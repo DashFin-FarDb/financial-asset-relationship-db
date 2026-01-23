@@ -20,6 +20,15 @@ class DummyGraph(AssetRelationshipGraph):
 
     def get_3d_visualization_data_enhanced(self):
         # Return positions (n,3), asset_ids, colors, hover_texts
+        """
+        Builds deterministic 3D visualization data for the graph's assets.
+        
+        Returns:
+            positions (numpy.ndarray): Float array of shape (n, 3) containing a 3D position for each asset.
+            asset_ids (list[str]): Sorted list of unique asset identifiers found as relationship sources or targets.
+            colors (list[str]): List of hex color strings, one per asset.
+            hover_texts (list[str]): Hover label for each asset, aligned with `asset_ids`.
+        """
         asset_ids = sorted(
             set(self.relationships.keys())
             | {t for v in self.relationships.values() for t, _, _ in v}

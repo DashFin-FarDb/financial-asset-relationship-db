@@ -654,7 +654,11 @@ class TestConcurrency:
     def test_multiple_concurrent_requests(
         self, mock_graph_instance, client, mock_graph
     ):
-        """Test handling multiple concurrent requests."""
+        """
+        Verify the assets endpoint handles multiple concurrent GET requests and returns the expected assets.
+        
+        Sends several concurrent requests to /api/assets and asserts each response has status code 200 and contains four assets.
+        """
         # Configure patched graph with mock_graph attributes
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships

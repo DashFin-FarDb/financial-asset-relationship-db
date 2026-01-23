@@ -90,6 +90,11 @@ def test_asset_crud_flow(session):
 
 
 def test_relationship_and_event_crud_flow(session):
+    """
+    Verify CRUD flows for relationships and regulatory events in AssetGraphRepository.
+    
+    Creates a parent equity and an associated bond, upserts them, adds a directed relationship twice to update its strength and asserts the final strength, creates and upserts a regulatory event linked to the parent with related_assets and asserts its presence, then deletes the event and the relationship and asserts they are removed.
+    """
     repo = AssetGraphRepository(session)
 
     parent_equity = Equity(

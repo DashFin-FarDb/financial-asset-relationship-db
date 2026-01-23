@@ -454,7 +454,11 @@ class TestRegulatoryEventORM:
         assert RegulatoryEventORM.__tablename__ == "regulatory_events"
 
     def test_create_regulatory_event(self, db_session):
-        """Test creating a regulatory event."""
+        """
+        Verify that a RegulatoryEventORM can be created, persisted, and retrieved with its fields correctly stored.
+        
+        Creates an AssetORM, persists a RegulatoryEventORM referencing that asset, and asserts the persisted event's `event_type` and `impact_score` match the inserted values.
+        """
         asset = AssetORM(
             id="EVENT_ASSET",
             symbol="EA",
@@ -637,7 +641,9 @@ class TestRegulatoryEventAssetORM:
             db_session.commit()
 
     def test_event_asset_cascade_delete_on_event(self, db_session):
-        """Test cascade delete when event is removed."""
+        """
+        Verify that deleting a RegulatoryEventORM deletes its associated RegulatoryEventAssetORM links.
+        """
         asset = AssetORM(
             id="CASCADE_ASSET",
             symbol="CA",

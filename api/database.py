@@ -94,15 +94,13 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
-    Determine whether the given or configured database refers to an in-memory
-    SQLite database.
-
+    Determine whether the given database path or the configured DATABASE_PATH refers to an in-memory SQLite database.
+    
     Parameters:
-        path (str | None): Optional database path or URI to evaluate.
-        If omitted, the configured DATABASE_PATH is used.
+        path (str | None): Optional database path or URI to evaluate. If omitted, the module's configured DATABASE_PATH is used.
+    
     Returns:
-        True if the path (or configured database) is an in-memory SQLite database.
-        For example, ":memory:" or "file::memory:?cache=shared", False otherwise.
+        bool: `True` if the evaluated path is an in-memory SQLite database (e.g., ":memory:" or a URI like "file::memory:?cache=shared"), `False` otherwise.
     """
     target = DATABASE_PATH if path is None else path
     if target == ":memory:":
@@ -253,7 +251,8 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    execute("""
+    execute(
+        """
         CREATE TABLE IF NOT EXISTS user_credentials (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -262,4 +261,5 @@ def initialize_schema() -> None:
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
         )
-        """)
+        """
+    )

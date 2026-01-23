@@ -35,8 +35,14 @@ class AssetRelationshipGraph:
 
     def build_relationships(self) -> None:
         """
-        Automatically discover relationships between assets
-        based on business rules.
+        Discover and populate asset relationships using built-in business rules.
+        
+        This clears existing relationships and adds edges between assets present in the graph according to three rules:
+        - Same-sector: adds a bidirectional "same_sector" relationship with strength 0.7 for assets that share the same sector (excluding "Unknown").
+        - Corporate bond linkage: when a Bond's issuer_id matches another asset's id, adds a unidirectional "corporate_link" from the bond to its issuer with strength 0.9.
+        - Regulatory event impact: for each RegulatoryEvent whose source asset and related assets exist in the graph, adds a unidirectional "event_impact" relationship from the event's asset to each related asset with strength equal to the absolute value of the event's impact_score.
+        
+        Only relationships between assets present in self.assets are created.
         """
         self.relationships = {}
 
@@ -84,7 +90,19 @@ class AssetRelationshipGraph:
         strength: float,
         bidirectional: bool = False,
     ) -> None:
-        """Manually add a relationship to the graph."""
+        """
+        Add a relationship from source_id to target_id in the graph.
+        
+        Parameters:
+            source_id (str): ID of the source asset.
+            target_id (str): ID of the target asset.
+            rel_type (str): Relationship type label (for example, "same_sector", "corporate_link", "event_impact").
+            strength (float): Numeric strength for the relationship; stored as provided.
+            bidirectional (bool): If True, also adds the same relationship from target_id back to source_id.
+        
+        Notes:
+            Duplicate entries with the same source, target, and rel_type are ignored.
+        """
         if source_id not in self.relationships:
             self.relationships[source_id] = []
 
@@ -105,7 +123,20 @@ class AssetRelationshipGraph:
                 self.relationships[target_id].append((source_id, rel_type, strength))
 
     def calculate_metrics(self) -> Dict[str, Any]:
-        """Calculate network statistics and distributions."""
+        """
+        Compute network-level metrics and distributions for the asset relationship graph.
+        
+        Returns:
+            metrics (dict): A dictionary containing:
+                total_assets (int): Effective number of assets (max of explicitly added assets and any asset IDs appearing in relationships).
+                total_relationships (int): Total number of relationship entries across all sources.
+                average_relationship_strength (float): Mean strength of all relationships (0.0 if none).
+                relationship_density (float): Percentage (0–100) of actual relationships relative to possible directed edges among effective assets.
+                relationship_distribution (Dict[str, int]): Counts of relationships keyed by relationship type.
+                asset_class_distribution (Dict[str, int]): Counts of assets keyed by their asset_class value.
+                top_relationships (List[Tuple[str, str, str, float]]): Up to 10 relationships sorted by strength descending; each tuple is (source_id, target_id, rel_type, strength).
+                regulatory_event_count (int): Number of stored regulatory events.
+        """
         total_assets = len(self.assets)
         # For total_assets if no assets were explicitly added but exist in relationships
         all_ids = set(self.assets.keys())
@@ -159,7 +190,15 @@ class AssetRelationshipGraph:
     def get_3d_visualization_data_enhanced(
         self,
     ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
-        """Return positions, asset_ids, colors, hover_texts for visualization."""
+        """
+        Prepare 3D layout data for visualizing assets and their relationships.
+        
+        Returns:
+            positions (np.ndarray): Array of shape (n, 3) containing XYZ coordinates for each asset. Positions lie on the unit circle in the XY plane (z = 0). If there are no assets, returns an array with a single zeroed position of shape (1, 3).
+            asset_ids (List[str]): Sorted list of asset IDs included in the layout. Includes assets that appear only as relationship targets. If there are no assets, returns ["A"].
+            colors (List[str]): Hex color string for each asset, one-to-one with `asset_ids`. Defaults to "#4ECDC4" for normal assets; in the no-assets case returns ["#888888"].
+            hover_texts (List[str]): Hover label for each asset in the form "Asset: <asset_id>". In the no-assets case returns ["Asset A"].
+        """
         all_ids = set(self.assets.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:

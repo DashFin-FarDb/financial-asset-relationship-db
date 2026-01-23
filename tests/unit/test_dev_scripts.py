@@ -404,7 +404,11 @@ class TestShellScripts:
         )
 
     def test_shell_scripts_consistent_style(self):
-        """Test that shell scripts use consistent coding style."""
+        """
+        Verify shell scripts use consistent variable naming style.
+        
+        If the scripts contain `BACKEND_PID` or `FRONTEND_PID`, assert that the script either uses explicit variable references (uses `$` before variable names) or the file content is entirely uppercase.
+        """
         for script in ["cleanup-branches.sh", "run-dev.sh"]:
             with open(script) as f:
                 content = f.read()

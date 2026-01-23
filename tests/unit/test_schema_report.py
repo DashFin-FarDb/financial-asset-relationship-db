@@ -234,7 +234,11 @@ class TestDataQualityScore:
     def test_quality_score_calculation_with_events(
         populated_graph, sample_regulatory_event
     ):
-        """Test quality score calculation with regulatory events."""
+        """
+        Verify that adding a regulatory event preserves the Data Quality Score in the generated schema report.
+        
+        After adding the provided regulatory event to the graph, generate the schema report and assert that the report contains the "Data Quality Score:" label.
+        """
         populated_graph.add_regulatory_event(sample_regulatory_event)
         report = generate_schema_report(populated_graph)
         assert "Data Quality Score:" in report

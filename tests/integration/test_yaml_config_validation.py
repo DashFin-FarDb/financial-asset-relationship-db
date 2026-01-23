@@ -126,9 +126,9 @@ class TestYAMLSyntaxAndStructure:
             except Exception as e:
                 parse_errors.append(f"{yaml_file}: {e}")
 
-        assert (
-            not parse_errors
-        ), "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+        assert not parse_errors, (
+            "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+        )
 
 
 class TestWorkflowSchemaCompliance:
@@ -158,14 +158,14 @@ class TestWorkflowSchemaCompliance:
         checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
-                assert (
-                    key in workflow["content"]
-                ), f"Workflow {workflow['path']} missing required key: {key}"
+                assert key in workflow["content"], (
+                    f"Workflow {workflow['path']} missing required key: {key}"
+                )
             unique_versions = set(checkout_versions.values())
             # Allow v3 and v4, but should be mostly consistent
-            assert (
-                len(unique_versions) <= 2
-            ), f"Too many different checkout versions: {checkout_versions}"
+            assert len(unique_versions) <= 2, (
+                f"Too many different checkout versions: {checkout_versions}"
+            )
 
 
 class TestDefaultValueHandling:
@@ -192,9 +192,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Ensure job-level workflow timeouts, when specified, are integers between 1 and 360 minutes.
-
-        Checks each YAML file in .github/workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
+        Verify workflow job timeouts, when present, are integers between 1 and 360 minutes.
+        
+        Scans YAML files under .github/workflows and asserts any job's "timeout-minutes" value is an int greater than or equal to 1 and less than or equal to 360.
         """
         workflow_dir = Path(".github/workflows")
 
@@ -206,12 +206,12 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(
-                        timeout, int
-                    ), f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    assert (
-                        1 <= timeout <= 360
-                    ), f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    assert isinstance(timeout, int), (
+                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    )
+                    assert 1 <= timeout <= 360, (
+                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    )
 
 
 if __name__ == "__main__":

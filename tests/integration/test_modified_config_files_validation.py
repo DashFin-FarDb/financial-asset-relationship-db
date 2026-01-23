@@ -59,16 +59,18 @@ class TestPRAgentConfigChanges:
         """Verify context chunking configuration has been removed."""
         # Should not have context configuration
         if "agent" in config_data:
-            assert (
-                "context" not in config_data["agent"]
-            ), "Context chunking config should be removed in v1.0.0"
+            assert "context" not in config_data["agent"], (
+                "Context chunking config should be removed in v1.0.0"
+            )
 
     def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
         """
-        Verify the PR Agent configuration does not define a 'fallback' key under the top-level 'limits' mapping.
-
+        Ensure the top-level 'limits' mapping in the PR Agent config does not define a 'fallback' key.
+        
+        If a 'limits' mapping exists in the provided config data, this test fails when that mapping contains the 'fallback' key.
+        
         Parameters:
-            config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`. If a 'limits' mapping exists, this test asserts it does not contain a 'fallback' key.
+            config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`.
         """
         limits = config_data.get("limits")
         if isinstance(limits, dict):
@@ -76,24 +78,27 @@ class TestPRAgentConfigChanges:
 
     def test_basic_sections_present(self, config_data: Dict[str, Any]):
         """
-        Check that the PR agent YAML configuration includes the essential top-level sections.
-
+        Verify the PR agent YAML contains the top-level sections required by the project.
+        
         Parameters:
-            config_data (dict): Parsed YAML configuration mapping (from .github/pr-agent-config.yml).
+            config_data (dict): Parsed YAML mapping of .github/pr-agent-config.yml.
+        
+        Raises:
+            AssertionError: If any of the required top-level sections ('agent', 'monitoring', 'actions', 'quality') is missing.
         """
         required_sections = ["agent", "monitoring", "actions", "quality"]
 
         for section in required_sections:
-            assert (
-                section in config_data
-            ), f"Required section '{section}' missing from config"
+            assert section in config_data, (
+                f"Required section '{section}' missing from config"
+            )
 
     def test_no_complex_token_management(self, config_data: Dict[str, Any]):
         """
-        Check that the PR agent configuration does not contain complex token-chunking or explicit token-limit settings.
-
-        Asserts that the configuration text does not include 'chunk_size', and that 'max_tokens' is absent unless a `limits.max_execution_time` value is present in the config.
-
+        Validate the PR agent configuration does not use complex token-chunking or explicit token limits.
+        
+        Checks that the configuration text does not contain "chunk_size" and that "max_tokens" is not present unless a `limits.max_execution_time` value exists in the configuration.
+        
         Parameters:
             config_data (Dict[str, Any]): Parsed PR agent configuration data.
         """
@@ -268,9 +273,9 @@ class TestDeletedFilesImpact:
                 content = f.read()
 
             for deleted_ref in deleted_refs:
-                assert (
-                    deleted_ref not in content
-                ), f"{workflow_file.name} still references deleted file: {deleted_ref}"
+                assert deleted_ref not in content, (
+                    f"{workflow_file.name} still references deleted file: {deleted_ref}"
+                )
 
 
 class TestRequirementsDevChanges:
@@ -287,27 +292,37 @@ class TestRequirementsDevChanges:
         return Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
     def test_pyyaml_added(self, req_dev_path: Path):
-        """Verify PyYAML has been added to requirements-dev.txt."""
+        """
+        Check that PyYAML is present in requirements-dev.txt.
+        
+        Reads the file at req_dev_path (case-insensitive) and asserts that either "pyyaml" or "yaml" appears in its contents.
+        
+        Parameters:
+            req_dev_path (Path): Path to the requirements-dev.txt file to inspect.
+        """
         with open(req_dev_path, "r") as f:
             content = f.read().lower()
 
-        assert (
-            "pyyaml" in content or "yaml" in content
-        ), "PyYAML should be in requirements-dev.txt"
+        assert "pyyaml" in content or "yaml" in content, (
+            "PyYAML should be in requirements-dev.txt"
+        )
 
     def test_no_tiktoken_requirement(self, req_dev_path: Path):
         """
-        Assert that the development requirements file does not list the `tiktoken` package.
-
-        Reads the file at the provided path and checks case-insensitively that the string `tiktoken` is not present.
+        Assert the project's development requirements file does not contain "tiktoken".
+        
+        Checks the file at req_dev_path for the substring "tiktoken" case-insensitively and fails the test if found.
+        
+        Parameters:
+            req_dev_path (Path): Path to the requirements-dev.txt file to inspect.
         """
         with open(req_dev_path, "r") as f:
             content = f.read().lower()
 
         # tiktoken should not be required anymore
-        assert (
-            "tiktoken" not in content
-        ), "tiktoken should be removed (no longer needed without context chunking)"
+        assert "tiktoken" not in content, (
+            "tiktoken should be removed (no longer needed without context chunking)"
+        )
 
     def test_essential_dev_dependencies_present(self, req_dev_path: Path):
         """Verify essential development dependencies are present."""
@@ -317,9 +332,9 @@ class TestRequirementsDevChanges:
         essential_deps = ["pytest", "pyyaml"]
 
         for dep in essential_deps:
-            assert (
-                dep in content
-            ), f"Essential dev dependency '{dep}' missing from requirements-dev.txt"
+            assert dep in content, (
+                f"Essential dev dependency '{dep}' missing from requirements-dev.txt"
+            )
 
 
 class TestGitignoreChanges:
@@ -345,9 +360,9 @@ class TestGitignoreChanges:
         with open(gitignore_path, "r") as f:
             content = f.read()
 
-        assert (
-            "codacy.instructions.md" in content
-        ), "codacy.instructions.md should be in .gitignore"
+        assert "codacy.instructions.md" in content, (
+            "codacy.instructions.md should be in .gitignore"
+        )
 
     @staticmethod
     def test_test_artifacts_not_ignored(gitignore_path: Path):
@@ -361,9 +376,9 @@ class TestGitignoreChanges:
 
         # junit.xml should not be specifically ignored (removed from gitignore)
         # This allows test results to be tracked if needed
-        assert (
-            "test_*.db" not in content
-        ), "Test database patterns should not be in gitignore"
+        assert "test_*.db" not in content, (
+            "Test database patterns should not be in gitignore"
+        )
 
     @staticmethod
     def test_standard_ignores_present(gitignore_path: Path):
@@ -379,9 +394,9 @@ class TestGitignoreChanges:
         ]
 
         for pattern in standard_patterns:
-            assert (
-                pattern in content
-            ), f"Standard ignore pattern '{pattern}' should be in .gitignore"
+            assert pattern in content, (
+                f"Standard ignore pattern '{pattern}' should be in .gitignore"
+            )
 
 
 class TestCodacyInstructionsChanges:
@@ -406,12 +421,12 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
-        Check that the Codacy instructions have been simplified and do not include repository-specific or prescriptive phrases.
-
-        Skips the test if the file does not exist. Fails if the file contains either 'git remote -v' or 'unless really necessary'.
-
+        Verify the Codacy instructions are simplified and do not contain certain repository-specific or prescriptive phrases.
+        
+        Skips the test if the file does not exist. The test fails if the file contains both the exact substring "git remote -v" and the exact substring "unless really necessary".
+        
         Parameters:
-                codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
+            codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
         """
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
@@ -438,7 +453,7 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Critical rules should be preserved
-        assert (
-            "codacy_cli_analyze" in content
-        ), "Critical Codacy CLI analyze rule should be present"
+        assert "codacy_cli_analyze" in content, (
+            "Critical Codacy CLI analyze rule should be present"
+        )
         assert "CRITICAL" in content, "Critical sections should be marked"

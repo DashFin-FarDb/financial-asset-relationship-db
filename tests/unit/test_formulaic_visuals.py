@@ -44,7 +44,20 @@ class TestFormulaicVisualizer:
 
     @pytest.fixture
     def sample_analysis_results(self, sample_formula):
-        """Create sample analysis results."""
+        """
+        Builds a mock analysis results dictionary used by tests.
+        
+        Parameters:
+            sample_formula: A Formula instance to include as the first entry in the returned `formulas` list.
+        
+        Returns:
+            dict: A dictionary with the following keys:
+                - formulas: list containing `sample_formula` and a second inline formula dict (fields include description, variables, example_calculation, category, r_squared).
+                - categories: mapping of category names to counts.
+                - empirical_relationships: mapping with `correlation_matrix` (pairwise correlation values) and `strongest_correlations` (list of correlation entries with asset1, asset2, correlation, strength).
+                - asset_class_relationships: mapping of asset class names to summary stats (e.g., asset_count, avg_price, total_value).
+                - sector_relationships: mapping of sector names to summary stats (e.g., asset_count, avg_price, price_range).
+        """
         return {
             "formulas": [
                 sample_formula,
@@ -118,12 +131,12 @@ class TestFormulaicVisualizer:
         ]
 
         for category in expected_categories:
-            assert (
-                category in visualizer.color_scheme
-            ), f"Color scheme should include {category}"
-            assert isinstance(
-                visualizer.color_scheme[category], str
-            ), f"Color for {category} should be a string"
+            assert category in visualizer.color_scheme, (
+                f"Color scheme should include {category}"
+            )
+            assert isinstance(visualizer.color_scheme[category], str), (
+                f"Color for {category} should be a string"
+            )
 
     @staticmethod
     def test_create_formula_dashboard_with_full_data(
@@ -301,9 +314,9 @@ class TestFormulaicVisualizer:
         node_trace = node_traces[-1]
         assert len(node_trace.x) > 0, "Should have node x coordinates"
         assert len(node_trace.y) > 0, "Should have node y coordinates"
-        assert len(node_trace.x) == len(
-            node_trace.y
-        ), "Should have matching x and y coordinates"
+        assert len(node_trace.x) == len(node_trace.y), (
+            "Should have matching x and y coordinates"
+        )
 
     @staticmethod
     def test_create_correlation_network_edge_colors(visualizer):
@@ -525,6 +538,6 @@ class TestFormulaicVisualizer:
         # Average should be (0.9 + 0.7) / 2 = 0.8
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
-        assert (
-            abs(avg_value - 0.8) < 0.01
-        ), "Should correctly calculate average R-squared"
+        assert abs(avg_value - 0.8) < 0.01, (
+            "Should correctly calculate average R-squared"
+        )

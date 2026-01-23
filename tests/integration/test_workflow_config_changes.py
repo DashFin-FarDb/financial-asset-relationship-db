@@ -228,7 +228,11 @@ class TestGreetingsWorkflowChanges:
         assert len(pr_message) < 200, "PR message should be simplified"
 
     def test_no_complex_markdown_formatting(self, greetings_workflow):
-        """Verify messages don't contain complex markdown."""
+        """
+        Check that the greeting workflow's messages do not include complex markdown fragments.
+        
+        This test locates the step using actions/first-interaction in the greeting job and asserts its `issue-message` and `pr-message` (if present) do not contain a "**Resources:**" section or the "✅" checkmark character.
+        """
         jobs = greetings_workflow.get("jobs", {})
         greeting_job = jobs.get("greeting", {})
         steps = greeting_job.get("steps", [])
@@ -281,7 +285,11 @@ class TestLabelWorkflowChanges:
         assert len(config_check_steps) == 0
 
     def test_no_checkout_step(self, label_workflow):
-        """Verify checkout step was removed (not needed)."""
+        """
+        Ensure the 'label' job contains no steps that use actions/checkout.
+        
+        Fails if any step in the 'label' job references 'actions/checkout' in its `uses` field.
+        """
         jobs = label_workflow.get("jobs", {})
         label_job = jobs.get("label", {})
         steps = label_job.get("steps", [])
@@ -348,9 +356,9 @@ class TestRequirementsDevChanges:
 
         # Should have version specifier
         pyyaml_line = pyyaml_lines[0]
-        assert any(
-            op in pyyaml_line for op in ["==", ">=", "<=", "~="]
-        ), "PyYAML should have version constraint"
+        assert any(op in pyyaml_line for op in ["==", ">=", "<=", "~="]), (
+            "PyYAML should have version constraint"
+        )
 
     @staticmethod
     def test_no_duplicate_dependencies():

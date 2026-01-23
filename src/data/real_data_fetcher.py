@@ -58,14 +58,11 @@ class RealDataFetcher:
     def create_real_database(self) -> AssetRelationshipGraph:
         """
         Create an AssetRelationshipGraph populated with real financial data.
-        Load from cache when available, otherwise fetch live data (if network
-        is enabled), and fall back to the provided factory or sample data on
-        network disablement or fetch failure.
-        Persist the freshly built graph to cache when possible.
-
+        
+        Loads and returns a cached graph if cache_path exists; otherwise, fetches live data when network fetching is enabled, falls back to the provided fallback_factory or built-in sample data on network disablement or fetch failure, and persists the newly built graph to cache when cache_path is set.
+        
         Returns:
-            graph (AssetRelationshipGraph): The constructed graph containing
-                assets, regulatory events and relationships.
+            AssetRelationshipGraph: The constructed graph containing assets, regulatory events, and relationships.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -156,13 +153,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
-        Fetches current market data for a predefined set of major equities and
-        returns them as Equity objects.
-
+        Fetch current market data for a predefined set of major equities.
+        
+        Skips symbols with no recent price data and continues on per-symbol errors; logs warnings for missing data and errors for failed fetches.
+        
         Returns:
-            List[Equity]: Equity instances populated with market fields including
-                id, symbol, name, asset_class, sector, price, market_cap,
-                pe_ratio, dividend_yield, earnings_per_share and book_value.
+            List[Equity]: Equity instances populated with fields id, symbol, name, asset_class, sector, price, market_cap, pe_ratio, dividend_yield, earnings_per_share, and book_value.
         """
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
@@ -210,7 +206,14 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """Fetch real bond/treasury data"""
+        """
+        Fetches bond and treasury data using ETF proxies and returns corresponding Bond objects.
+        
+        Creates Bond instances for a small set of bond/treasury ETFs (TLT, LQD, HYG) when recent price data is available. If an ETF has no recent price data it is skipped. When ticker metadata is missing, defaults are used: `yield_to_maturity` defaults to 0.03, `coupon_rate` defaults to 0.025, and `maturity_date` is set to the approximate value "2035-01-01". Credit ratings and sector values come from the internal symbol mapping.
+        
+        Returns:
+            List[Bond]: A list of Bond objects constructed from available ETF data.
+        """
         # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
@@ -267,7 +270,14 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity data"""
+        """
+        Builds a list of Commodity dataclass instances representing recent market data for a set of futures.
+        
+        Each returned Commodity contains price, contract size, approximate delivery date, and a simple volatility estimate computed from recent closing prices; if recent history is insufficient, volatility defaults to 0.20. The function attempts to fetch data for a predefined set of futures (gold, crude oil, silver) and skips any symbol with no available price data.
+        
+        Returns:
+            List[Commodity]: A list of populated Commodity objects for successfully fetched symbols.
+        """
         commodity_symbols = {
             "GC=F": ("Gold Futures", "Precious Metals", 100),
             "CL=F": ("Crude Oil Futures", "Energy", 1000),
@@ -358,7 +368,14 @@ class RealDataFetcher:
 
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
-        """Create realistic regulatory events for the fetched assets"""
+        """
+        Create a small set of realistic RegulatoryEvent instances associated with fetched assets.
+        
+        The returned events are hardcoded examples intended to accompany the fetched asset set (e.g., an earnings report for Apple, a dividend announcement for Microsoft, and an SEC filing for Exxon) and include fields such as id, asset_id, event_type, date, description, impact_score, and related_assets.
+        
+        Returns:
+            List[RegulatoryEvent]: A list of RegulatoryEvent objects representing recent regulatory or corporate events.
+        """
         # Create some realistic recent events
         events = []
 
@@ -462,19 +479,19 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
-    Serialize an AssetRelationshipGraph into a JSON-serialisable dictionary.
-
+    Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
+    
     Parameters:
         graph (AssetRelationshipGraph): Graph to serialize.
-
+    
     Returns:
-        Dict[str, Any]: Dictionary containing:
-            - "assets": list of serialized asset objects
-            - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of
-              outgoing relationships
-            - "incoming_relationships": mapping from target id to a list of
-              incoming relationships
+        Dict[str, Any]: Dictionary with the following keys:
+            - assets: list of serialized asset objects
+            - regulatory_events: list of serialized regulatory event objects
+            - relationships: mapping from source id to a list of outgoing relationships,
+              each relationship represented as a dict with `target`, `relationship_type`, and `strength`
+            - incoming_relationships: mapping from target id to a list of incoming relationships,
+              each relationship represented as a dict with `source`, `relationship_type`, and `strength`
     """
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
