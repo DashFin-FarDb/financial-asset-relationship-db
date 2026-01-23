@@ -31,14 +31,18 @@ def test_api():
     # Test assets endpoint
     print("3. Testing assets endpoint...")
     response = client.get("/api/assets")
-    assert response.status_code == 200, f"Assets endpoint failed: {response.status_code}"
+    assert response.status_code == 200, (
+        f"Assets endpoint failed: {response.status_code}"
+    )
     assets = response.json()
     print(f"   ✅ Assets endpoint passed (found {len(assets)} assets)")
 
     # Test metrics endpoint
     print("4. Testing metrics endpoint...")
     response = client.get("/api/metrics")
-    assert response.status_code == 200, f"Metrics endpoint failed: {response.status_code}"
+    assert response.status_code == 200, (
+        f"Metrics endpoint failed: {response.status_code}"
+    )
     metrics = response.json()
     print("   ✅ Metrics endpoint passed")
     print(f"      - Total assets: {metrics['total_assets']}")
@@ -47,7 +51,9 @@ def test_api():
     # Test visualization endpoint
     print("5. Testing visualization endpoint...")
     response = client.get("/api/visualization")
-    assert response.status_code == 200, f"Visualization endpoint failed: {response.status_code}"
+    assert response.status_code == 200, (
+        f"Visualization endpoint failed: {response.status_code}"
+    )
     viz_data = response.json()
     print("   ✅ Visualization endpoint passed")
     print(f"      - Nodes: {len(viz_data['nodes'])}")
@@ -56,21 +62,31 @@ def test_api():
     # Test relationships endpoint
     print("6. Testing relationships endpoint...")
     response = client.get("/api/relationships")
-    assert response.status_code == 200, f"Relationships endpoint failed: {response.status_code}"
+    assert response.status_code == 200, (
+        f"Relationships endpoint failed: {response.status_code}"
+    )
     relationships = response.json()
-    print(f"   ✅ Relationships endpoint passed (found {len(relationships)} relationships)")
+    print(
+        f"   ✅ Relationships endpoint passed (found {len(relationships)} relationships)"
+    )
 
     # Test asset classes endpoint
     print("7. Testing asset classes endpoint...")
     response = client.get("/api/asset-classes")
-    assert response.status_code == 200, f"Asset classes endpoint failed: {response.status_code}"
+    assert response.status_code == 200, (
+        f"Asset classes endpoint failed: {response.status_code}"
+    )
     asset_classes = response.json()
-    print(f"   ✅ Asset classes endpoint passed (found {len(asset_classes['asset_classes'])} classes)")
+    print(
+        f"   ✅ Asset classes endpoint passed (found {len(asset_classes['asset_classes'])} classes)"
+    )
 
     # Test sectors endpoint
     print("8. Testing sectors endpoint...")
     response = client.get("/api/sectors")
-    assert response.status_code == 200, f"Sectors endpoint failed: {response.status_code}"
+    assert response.status_code == 200, (
+        f"Sectors endpoint failed: {response.status_code}"
+    )
     sectors = response.json()
     print(f"   ✅ Sectors endpoint passed (found {len(sectors['sectors'])} sectors)")
 
