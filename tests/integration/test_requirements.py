@@ -63,7 +63,9 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 
                 specifier_str = str(req.specifier).strip()
                 if specifier_str:
-                    specifier_str = ",".join(s.strip() for s in specifier_str.split(",") if s.strip())
+                    specifier_str = ",".join(
+                        s.strip() for s in specifier_str.split(",") if s.strip()
+                    )
 
                 requirements.append((pkg, specifier_str))
     except OSError as e:
@@ -118,9 +120,13 @@ class TestRequirementsFileFormat:
     def test_no_trailing_whitespace(file_lines: List[str]):
         """Test that lines don't have trailing whitespace."""
         lines_with_trailing = [
-            (i + 1, repr(line)) for i, line in enumerate(file_lines) if line.rstrip("\n") != line.rstrip()
+            (i + 1, repr(line))
+            for i, line in enumerate(file_lines)
+            if line.rstrip("\n") != line.rstrip()
         ]
-        assert len(lines_with_trailing) == 0, f"Lines with trailing whitespace: {lines_with_trailing}"
+        assert len(lines_with_trailing) == 0, (
+            f"Lines with trailing whitespace: {lines_with_trailing}"
+        )
 
     @staticmethod
     def test_ends_with_newline(file_content: str):
@@ -217,13 +223,17 @@ class TestVersionSpecifications:
                 # Split compound version specs (e.g., ">=1.0,<2.0")
                 for spec in ver_spec.split(","):
                     spec = spec.strip()
-                    assert version_pattern.match(spec), f"Invalid version spec '{spec}' for package '{pkg}'"
+                    assert version_pattern.match(spec), (
+                        f"Invalid version spec '{spec}' for package '{pkg}'"
+                    )
 
     def test_zipp_security_version(self, requirements: List[Tuple[str, str]]):
         """Test that zipp has the security-required minimum version."""
         zipp_specs = [ver for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_specs) > 0, "zipp should be present for security fix"
-        assert zipp_specs[0].startswith(">=3.19"), f"zipp should be >=3.19.1, got {zipp_specs[0]}"
+        assert zipp_specs[0].startswith(">=3.19"), (
+            f"zipp should be >=3.19.1, got {zipp_specs[0]}"
+        )
 
     def test_uses_minimum_versions(self, requirements: List[Tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
@@ -241,11 +251,15 @@ class TestVersionSpecifications:
 
         for pkg in exact_pins:
             # Find the line with this package
-            pkg_lines = [line for line in lines if pkg.lower() in line.lower() and "==" in line]
+            pkg_lines = [
+                line for line in lines if pkg.lower() in line.lower() and "==" in line
+            ]
             assert len(pkg_lines) > 0, f"Package {pkg} not found in file"
             # Check if there's a comment on the same line or nearby
             has_comment = any("#" in line for line in pkg_lines)
-            assert has_comment, f"Exact pin for {pkg} should have a comment explaining why"
+            assert has_comment, (
+                f"Exact pin for {pkg} should have a comment explaining why"
+            )
 
 
 class TestPackageConsistency:
@@ -267,7 +281,9 @@ class TestPackageConsistency:
     def test_no_duplicate_packages(package_names: List[str]):
         """Test that no package is listed multiple times."""
         lowercase_names = [name.lower() for name in package_names]
-        duplicates = [name for name in lowercase_names if lowercase_names.count(name) > 1]
+        duplicates = [
+            name for name in lowercase_names if lowercase_names.count(name) > 1
+        ]
         assert len(set(duplicates)) == 0, f"Duplicate packages found: {set(duplicates)}"
 
     @staticmethod
@@ -281,7 +297,9 @@ class TestPackageConsistency:
         """Test that package names follow valid naming conventions."""
         valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
 
-        invalid_names = [pkg for pkg in package_names if not valid_name_pattern.match(pkg)]
+        invalid_names = [
+            pkg for pkg in package_names if not valid_name_pattern.match(pkg)
+        ]
         assert len(invalid_names) == 0, f"Invalid package names: {invalid_names}"
 
     @staticmethod
@@ -323,7 +341,9 @@ class TestFileOrganization:
             AssertionError: If the file has 200 or more lines.
         """
         # Production requirements should typically be under 100 lines
-        assert len(file_lines) < 200, f"Requirements file is too large: {len(file_lines)} lines"
+        assert len(file_lines) < 200, (
+            f"Requirements file is too large: {len(file_lines)} lines"
+        )
 
     @staticmethod
     def test_has_comments_for_sections(file_lines: List[str]):
@@ -357,8 +377,12 @@ class TestSecurityAndCompliance:
         Parameters:
             requirements (List[Tuple[str, str]]): Parsed requirements as (package_name, version_spec) tuples where package_name is the normalized package token and version_spec is the normalized version specifier string (empty string if none).
         """
-        zipp_entries = [(pkg, ver) for pkg, ver in requirements if pkg.lower() == "zipp"]
-        assert len(zipp_entries) == 1, "zipp security pin should be present exactly once"
+        zipp_entries = [
+            (pkg, ver) for pkg, ver in requirements if pkg.lower() == "zipp"
+        ]
+        assert len(zipp_entries) == 1, (
+            "zipp security pin should be present exactly once"
+        )
         pkg, ver = zipp_entries[0]
         assert ver == ">=3.19.1", f"zipp version should be >=3.19.1, got {ver}"
 
@@ -367,7 +391,11 @@ class TestSecurityAndCompliance:
         """Test that zipp entry has a comment explaining it's for security."""
         # Find the zipp line
         lines = file_content.split("\n")
-        zipp_lines = [line for line in lines if "zipp" in line.lower() and not line.strip().startswith("#")]
+        zipp_lines = [
+            line
+            for line in lines
+            if "zipp" in line.lower() and not line.strip().startswith("#")
+        ]
         assert len(zipp_lines) > 0, "zipp line not found"
 
         zipp_line = zipp_lines[0]
@@ -375,9 +403,9 @@ class TestSecurityAndCompliance:
         assert "#" in zipp_line, "zipp line should have a comment"
         comment = zipp_line.split("#", 1)[1].lower()
         security_keywords = ["security", "vulnerability", "snyk", "pinned"]
-        assert any(
-            keyword in comment for keyword in security_keywords
-        ), f"zipp comment should mention security/vulnerability, got: {comment}"
+        assert any(keyword in comment for keyword in security_keywords), (
+            f"zipp comment should mention security/vulnerability, got: {comment}"
+        )
 
     @staticmethod
     def test_no_known_vulnerable_versions(requirements: List[Tuple[str, str]]):
@@ -435,7 +463,9 @@ class TestEdgeCases:
         # All returned entries should have valid package names
         for pkg, _ in requirements:
             assert len(pkg) > 0, "Package name should not be empty"
-            assert pkg.strip() == pkg, f"Package name should not have leading/trailing whitespace: '{pkg}'"
+            assert pkg.strip() == pkg, (
+                f"Package name should not have leading/trailing whitespace: '{pkg}'"
+            )
 
 
 class TestComprehensiveValidation:
@@ -458,9 +488,9 @@ class TestComprehensiveValidation:
         """
         packages_without_versions = [pkg for pkg, ver in requirements if not ver]
         # Allow some packages without versions, but production deps should mostly be pinned
-        assert (
-            len(packages_without_versions) <= len(requirements) * 0.2
-        ), f"Too many packages without versions: {packages_without_versions}"
+        assert len(packages_without_versions) <= len(requirements) * 0.2, (
+            f"Too many packages without versions: {packages_without_versions}"
+        )
 
     @staticmethod
     def test_version_consistency(requirements: List[Tuple[str, str]]):
@@ -488,7 +518,9 @@ class TestComprehensiveValidation:
         if version_styles:
             max_style = max(version_styles.values(), key=len)
             total_versioned = sum(len(v) for v in version_styles.values())
-            assert len(max_style) >= total_versioned * 0.6, "Version specifications should be consistent in style"
+            assert len(max_style) >= total_versioned * 0.6, (
+                "Version specifications should be consistent in style"
+            )
 
     @staticmethod
     def test_transitive_dependencies_documented(requirements: List[Tuple[str, str]]):
@@ -502,4 +534,6 @@ class TestComprehensiveValidation:
         for line in lines:
             if any(indicator in line.lower() for indicator in transitive_indicators):
                 # If mentioning transitive/indirect, should have a comment
-                assert "#" in line, f"Transitive dependency line should have comment: {line}"
+                assert "#" in line, (
+                    f"Transitive dependency line should have comment: {line}"
+                )
