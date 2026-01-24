@@ -149,7 +149,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             "Expected knowledge type for repo_engineer_lead"
         )
 
-    @staticmethod
+    @ staticmethod
     def test_frontmatter_version_field(repo_engineer_frontmatter: dict[str, Any]):
         """
         Verify the frontmatter contains a "version" field that is a string and matches semantic version format `x.y.z`.
