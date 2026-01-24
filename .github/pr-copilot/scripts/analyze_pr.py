@@ -73,7 +73,7 @@ class AnalysisData:
     complexity_score: int
     risk_level: str
     scope_issues: List[str]
-    related_issues: List[dict[str, str]]
+    related_issues: list[dict[str, str]]
     commit_count: int
 
 
