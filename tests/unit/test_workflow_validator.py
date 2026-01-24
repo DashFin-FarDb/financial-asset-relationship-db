@@ -941,29 +941,29 @@ name: Test{i}
                                 f.write(
                                     f.write(
                                         f"""on: push
-jobs:
-  test{i}:
-    runs - on: ubuntu - latest
-    steps:
-      - run: echo {i}
-"""
+                jobs:
+                test{i}:
+                runs - on: ubuntu - latest
+                steps:
+                - run: echo {i}
+                """
                                     )
                                     f.flush()
                                     workflows.append(f.name)
                 """
-name: Booleans
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    if: true
-    continue -on - error: false
-    steps:
-      - uses: actions / checkout @ v4
-        with:
-          fetch - depth: 0
-          persist - credentials: true
-"""
+                name: Booleans
+                on: push
+                jobs:
+                test:
+                runs - on: ubuntu - latest
+                if: true
+                continue -on - error: false
+                steps:
+                - uses: actions / checkout @ v4
+                with:
+                fetch - depth: 0
+                persist - credentials: true
+                """
             )
             f.flush()
 
@@ -979,15 +979,15 @@ jobs:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
-name: Scientific
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    timeout - minutes: 1e2
-    steps:
-      - run: echo test
-"""
+                name: Scientific
+                on: push
+                jobs:
+                test:
+                runs - on: ubuntu - latest
+                timeout - minutes: 1e2
+                steps:
+                - run: echo test
+                """
             )
             f.flush()
 
@@ -1000,24 +1000,24 @@ jobs:
     @staticmethod
     def test_workflow_with_float_values():
         """
-        Verify that a workflow containing floating - point values is accepted as valid.
+                Verify that a workflow containing floating - point values is accepted as valid.
 
-        Creates a temporary YAML workflow with float values in environment fields and asserts that validate_workflow returns a valid ValidationResult.
-        """
+                Creates a temporary YAML workflow with float values in environment fields and asserts that validate_workflow returns a valid ValidationResult.
+                """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
-name: Floats
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    env:
-      VERSION: 3.14159
-      RATIO: 0.5
-    steps:
-      - run: echo test
-"""
+                name: Floats
+                on: push
+                jobs:
+                test:
+                runs - on: ubuntu - latest
+                env:
+                VERSION: 3.14159
+                RATIO: 0.5
+                steps:
+                - run: echo test
+                """
             )
             f.flush()
 
@@ -1049,14 +1049,14 @@ jobs:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
-name: Trailing
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    steps:
-      - uses: actions / checkout @ v4
-        with: {ref: main, fetch - depth: 1,}
+                name: Trailing
+                on: push
+                jobs:
+                test:
+                runs - on: ubuntu - latest
+                steps:
+                - uses: actions / checkout @ v4
+                with: {ref: main, fetch - depth: 1,}
             )
             f.flush()
 

@@ -559,7 +559,7 @@ class TestPRAgentConfigRemovedComplexity:
 
     @pytest.fixture
     def pr_agent_config_content() -> str:
-        """Raw YAML content of .github/pr-agent-config.yml."""
+        """Raw YAML content of .github / pr - agent - config.yml."""
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return f.read()
