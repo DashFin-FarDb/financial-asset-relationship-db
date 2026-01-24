@@ -284,17 +284,6 @@ class TestPRAgentConfigSecurity:
         import math
         import re
 
-        # Helper function for secret detection
-        def detect_secret_kinds(value):
-            kinds = []
-            if len(value) >= 40:
-                kinds.append("long_string")
-            if any(value.startswith(prefix) for prefix in secret_markers):
-                kinds.append("prefix")
-            if inline_creds_re.search(value):
-                kinds.append("inline_creds")
-            return kinds
-
         # Heuristic to detect inline creds in URLs (user:pass@)
         inline_creds_re = re.compile(
             r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE
