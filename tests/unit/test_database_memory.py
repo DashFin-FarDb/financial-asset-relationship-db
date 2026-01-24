@@ -263,8 +263,6 @@ class TestConnectWithMemoryDb:
             conn1.close()
             conn2.close()
         finally:
-            pass
-        finally:
             # Clean up temp file
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)

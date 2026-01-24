@@ -210,7 +210,8 @@ class TestVersionSpecifications:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
-    def test_all_packages_parseable(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_all_packages_parseable(requirements: List[Tuple[str, str]]):
         """Test that all package specifications are parseable."""
         assert len(requirements) > 0
 

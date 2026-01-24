@@ -205,7 +205,7 @@ class TestRemovedFilesIntegration:
         """
         Verify the label workflow does not require an external labeler configuration file.
 
-        Checks that .github / workflows / label.yml(if present) defines the 'label' job's first
+        Checks that .github/workflows/label.yml (if present) defines the 'label' job's first
         step using 'actions/labeler', and that the step either omits 'config-path' or sets it to
         '.github/labeler.yml'. Skips the test if label.yml is missing.
         """
@@ -226,7 +226,9 @@ class TestRemovedFilesIntegration:
         assert "config-path" not in with_config or with_config.get("config-path") == ".github/labeler.yml"
 
     def test_pr_agent_workflow_self_contained(self):
-        """Verify PR agent workflow doesn't depend on removed components."""
+        """
+        Verify PR agent workflow doesn't depend on removed components.
+        """
         with open(".github/workflows/pr-agent.yml", "r") as f:
             content = f.read()
 

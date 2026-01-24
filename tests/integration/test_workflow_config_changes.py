@@ -141,12 +141,14 @@ class TestPRAgentConfigChanges:
         with open(config_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_config_has_valid_yaml_syntax(self, pr_agent_config):
+    @staticmethod
+    def test_config_has_valid_yaml_syntax(pr_agent_config):
         """Verify config file has valid YAML syntax."""
         assert pr_agent_config is not None
         assert isinstance(pr_agent_config, dict)
 
-    def test_agent_version_is_simplified(self, pr_agent_config):
+    @staticmethod
+    def test_agent_version_is_simplified(pr_agent_config):
         """
         Assert the agent version in the parsed pr-agent-config.yml equals "1.0.0".
 
@@ -159,7 +161,8 @@ class TestPRAgentConfigChanges:
         # Version should be 1.0.0 (reverted from 1.1.0)
         assert version == "1.0.0"
 
-    def test_no_context_chunking_config(self, pr_agent_config):
+    @staticmethod
+    def test_no_context_chunking_config(pr_agent_config):
         """
         Ensure the agent configuration does not include a 'context' chunking subsection.
         """
@@ -168,7 +171,8 @@ class TestPRAgentConfigChanges:
         # Context chunking section should not exist
         assert "context" not in agent_config
 
-    def test_no_chunking_limits_config(self, pr_agent_config):
+    @staticmethod
+    def test_no_chunking_limits_config(pr_agent_config):
         """Verify chunking limits configuration was removed."""
         limits_config = pr_agent_config.get("limits", {})
 
@@ -178,19 +182,22 @@ class TestPRAgentConfigChanges:
         assert "max_comment_length" not in limits_config
         assert "fallback" not in limits_config
 
-    def test_basic_config_structure_intact(self, pr_agent_config):
+    @staticmethod
+    def test_basic_config_structure_intact(pr_agent_config):
         """Verify basic configuration structure is maintained."""
         assert "agent" in pr_agent_config
         assert "monitoring" in pr_agent_config
         assert "limits" in pr_agent_config
 
-    def test_rate_limiting_configured(self, pr_agent_config):
+    @staticmethod
+    def test_rate_limiting_configured(pr_agent_config):
         """Verify rate limiting is still configured."""
         limits = pr_agent_config.get("limits", {})
         assert "rate_limit_requests" in limits
         assert isinstance(limits["rate_limit_requests"], int)
 
-    def test_monitoring_interval_configured(self, pr_agent_config):
+    @staticmethod
+    def test_monitoring_interval_configured(pr_agent_config):
         """Verify monitoring interval is configured."""
         monitoring = pr_agent_config.get("monitoring", {})
         assert "check_interval" in monitoring
@@ -213,12 +220,14 @@ class TestGreetingsWorkflowChanges:
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_workflow_syntax_valid(self, greetings_workflow):
+    @staticmethod
+    def test_workflow_syntax_valid(greetings_workflow):
         """Verify workflow has valid YAML syntax."""
         assert greetings_workflow is not None
         assert isinstance(greetings_workflow, dict)
 
-    def test_greetings_messages_simplified(self, greetings_workflow):
+    @staticmethod
+    def test_greetings_messages_simplified(greetings_workflow):
         """Verify greeting messages were simplified."""
         jobs = greetings_workflow.get("jobs", {})
         greeting_job = jobs.get("greeting", {})
@@ -239,7 +248,8 @@ class TestGreetingsWorkflowChanges:
         assert len(issue_message) < 200, "Issue message should be simplified"
         assert len(pr_message) < 200, "PR message should be simplified"
 
-    def test_no_complex_markdown_formatting(self, greetings_workflow):
+    @staticmethod
+    def test_no_complex_markdown_formatting(greetings_workflow):
         """
         Ensure greeting workflow messages do not include complex markdown fragments.
 
@@ -280,12 +290,14 @@ class TestLabelWorkflowChanges:
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_workflow_syntax_valid(self, label_workflow):
+    @staticmethod
+    def test_workflow_syntax_valid(label_workflow):
         """Verify workflow has valid YAML syntax."""
         assert label_workflow is not None
         assert isinstance(label_workflow, dict)
 
-    def test_no_config_check_step(self, label_workflow):
+    @staticmethod
+    def test_no_config_check_step(label_workflow):
         """Verify config check step was removed."""
         jobs = label_workflow.get("jobs", {})
         label_job = jobs.get("label", {})
@@ -297,7 +309,8 @@ class TestLabelWorkflowChanges:
         ]
         assert len(config_check_steps) == 0
 
-    def test_no_checkout_step(self, label_workflow):
+    @staticmethod
+    def test_no_checkout_step(label_workflow):
         """
         Ensure the 'label' job contains no steps that use actions/checkout.
 
@@ -310,7 +323,8 @@ class TestLabelWorkflowChanges:
         checkout_steps = [s for s in steps if "actions/checkout" in s.get("uses", "")]
         assert len(checkout_steps) == 0
 
-    def test_simplified_to_single_step(self, label_workflow):
+    @staticmethod
+    def test_simplified_to_single_step(label_workflow):
         """
         Assert the label workflow has been simplified to a single actions/labeler step.
 
@@ -325,7 +339,8 @@ class TestLabelWorkflowChanges:
         assert len(steps) == 1
         assert "actions/labeler" in steps[0].get("uses", "")
 
-    def test_no_conditional_execution(self, label_workflow):
+    @staticmethod
+    def test_no_conditional_execution(label_workflow):
         """Verify no conditional if statements in steps."""
         jobs = label_workflow.get("jobs", {})
         label_job = jobs.get("label", {})

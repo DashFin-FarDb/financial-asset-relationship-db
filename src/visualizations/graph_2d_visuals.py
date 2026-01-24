@@ -102,10 +102,9 @@ def _create_spring_layout_2d(
 
     Returns:
         dict[str, Tuple[float, float]]: Mapping of each asset ID (from asset_ids)
-            present in positions_3d to a 2-tuple (x, y).
-            with coordinates cast to float.
-            Returns an empty dict if inputs are empty
-            or if no provided asset_ids exist in positions_3d.
+            present in positions_3d to a 2-tuple (x, y), with coordinates cast to float.
+            Returns an empty dict if inputs are empty or if no provided asset_ids
+            exist in positions_3d.
     """
     if not positions_3d or not asset_ids:
         return {}

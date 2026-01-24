@@ -142,7 +142,7 @@ class TestWorkflowSimplifications:
         return Path(__file__).parent.parent.parent / ".github" / "workflows"
 
     def test_pr_agent_workflow_simplified(self, workflows_dir: Path):
-        """
+        pass
         Verify the PR Agent GitHub Actions workflow is simplified and free of deprecated context chunking and inline tiktoken installation.
 
         Asserts that .github / workflows / pr - agent.yml exists, does not reference "context_chunker", does not perform an inline "tiktoken" installation immediately adjacent to a "pip install", and includes a simplified Python dependency installation that references "requirements.txt".

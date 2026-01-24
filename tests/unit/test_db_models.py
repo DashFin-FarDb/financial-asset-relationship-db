@@ -210,11 +210,6 @@ class TestAssetORM:
         """Test deleting an asset."""
         asset = AssetORM(
             id="TEST_DELETE",
-            symbol="DEL",
-            name="Test Delete",
-            asset_class="equity",
-            sector="Test",
-            price=100.0,
             currency="USD",
         )
         db_session.add(asset)
@@ -235,7 +230,8 @@ class TestAssetRelationshipORM:
         """Test that AssetRelationshipORM uses correct table name."""
         assert AssetRelationshipORM.__tablename__ == "asset_relationships"
 
-    def test_create_relationship(self, db_session):
+    @staticmethod
+    def test_create_relationship(db_session):
         """Test creating a relationship between assets."""
         # Create two assets
         asset1 = AssetORM(
@@ -279,7 +275,8 @@ class TestAssetRelationshipORM:
         assert retrieved.target_asset_id == "ASSET2"
         assert retrieved.strength == 0.7
 
-    def test_relationship_unique_constraint(self, db_session):
+    @staticmethod
+    def test_relationship_unique_constraint(db_session):
         """Test that duplicate relationships are prevented."""
         asset1 = AssetORM(
             id="ASSET_A",
@@ -323,7 +320,8 @@ class TestAssetRelationshipORM:
         with pytest.raises(IntegrityError):
             db_session.commit()
 
-    def test_relationship_cascade_delete(self, db_session):
+    @staticmethod
+    def test_relationship_cascade_delete(db_session):
         """Test that relationships are deleted when assets are deleted."""
         asset1 = AssetORM(
             id="CASCADE1",
@@ -367,7 +365,8 @@ class TestAssetRelationshipORM:
         )
         assert remaining is None
 
-    def test_bidirectional_flag(self, db_session):
+    @staticmethod
+    def test_bidirectional_flag(db_session):
         """Test bidirectional flag on relationships."""
         asset1 = AssetORM(
             id="BIDIR1",
@@ -407,7 +406,8 @@ class TestAssetRelationshipORM:
         )
         assert retrieved.bidirectional is True
 
-    def test_relationship_strength_bounds(self, db_session):
+    @staticmethod
+    def test_relationship_strength_bounds(db_session):
         """Test that relationship strength can store various values."""
         asset1 = AssetORM(
             id="STRENGTH1",
