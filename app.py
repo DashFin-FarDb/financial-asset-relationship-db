@@ -386,8 +386,6 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
                     correlation network,
                 metric_comparison_fig: Plotly Figure comparing metrics across
                     formulas,
-            )
-        """
                 formula_selector_update: gr.update object configuring the
                     formula selector's choices and selected value,
                 summary_text: str containing a textual summary of the
@@ -395,6 +393,7 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
                 error_visibility_update: gr.update object controlling
                     visibility of any error message
             )
+        """
 
         Notes:
             On error, the function returns three empty Plotly figures, an empty

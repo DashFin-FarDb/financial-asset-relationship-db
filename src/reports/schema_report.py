@@ -57,57 +57,34 @@ report += f"""
 - **Total Relationships**: {metrics["total_relationships"]}
 - **Average Relationship Strength**: {metrics["average_relationship_strength"]:.3f}
 - **Relationship Density**: {metrics["relationship_density"]:.2f}%
-- **Regulatory Events**: {metrics["regulatory_event_count"]}
+report += f"- **Regulatory Events**: {metrics['regulatory_event_count']}\n\n"
 
 # Asset Class Distribution
-"""
 for asset_class, count in sorted(metrics["asset_class_distribution"].items()):
     report += f"- **{asset_class}**: {count} assets\n"
 
-report += """
-# Top Relationships
-"""
-for idx, (source, target, rel_type, strength) in enumerate(
-    metrics["top_relationships"], 1
-):
+report += "\n# Top Relationships\n"
+for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
     report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
 
-report += """
-# Business Rules & Constraints
-
-# Cross-Asset Rules
-"""
+report += "\n# Business Rules & Constraints\n\n# Cross-Asset Rules\n"
 report += (
-    "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
-    "equity (directional)\n"
+    "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity (directional)\n"
     "2. **Sector Affinity**: Assets in same sector have baseline relationship\n"
+    "3. **Correlation Strength**: Asset pairs have minimum strength of 0.7 (bidirectional)\n"
+    "4. **Currency Exposure**: Non-USD assets link to their native currency asset when available\n"
+    "5. **Income Linkage**: Equity dividends compared to bond yields using similarity score\n"
+    "6. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal commodities\n"
 )
-)
-)
-        "strength of 0.7 (bidirectional)\n"
-        "3. **Currency Exposure**: Non-USD assets link to their native currency "
-        "asset when available\n"
-        "4. **Income Linkage**: Equity dividends compared to bond yields using "
-        "similarity score\n"
-        "5. **Commodity Exposure**: Energy equities link to crude oil; miners link "
-        "to metal commodities\n"
-    )
-    report += """
 
-# Regulatory Rules
-"""
-    report += (
-        "1. **Event Propagation**: Earnings events impact related bond and currency "
-        "assets\n"
-        "2. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
-        "3. **Related Assets**: Each event automatically creates relationships to "
-        "impacted securities\n"
-    )
-    report += """
+report += "\n# Regulatory Rules\n"
+report += (
+    "1. **Event Propagation**: Earnings events impact related bond and currency assets\n"
+    "2. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
+    "3. **Related Assets**: Each event automatically creates relationships to impacted securities\n"
+)
 
-# Valuation Rules
-"""
-    report += (
+report += "\n# Valuation Rules\n"
         "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
         "indicates relative value\n"
         "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "

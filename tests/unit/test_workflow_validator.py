@@ -922,7 +922,7 @@ jobs:
     runs - on: ubuntu - latest
     steps:
       - run: echo {i}
-"""
+                """
             )
             f.flush()
             workflows.append(f.name)
