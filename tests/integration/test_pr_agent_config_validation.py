@@ -554,13 +554,12 @@ class TestPRAgentConfigSecurity:
         assert limits["max_execution_time"] <= 3600, "Execution time too high"
         assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
         assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
-
 class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
     @pytest.fixture
     def pr_agent_config_content() -> str:
-        """Raw YAML content of .github / pr - agent - config.yml."""
+        """Raw YAML content of .github/pr-agent-config.yml."""
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return f.read()

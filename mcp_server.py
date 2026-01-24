@@ -75,7 +75,8 @@ def _build_mcp_app():
         Returns:
             A success message containing the equity name and symbol when
             validation (and addition, if supported) succeeds, or
-            `Validation Error: <message>` describing the validation failure.
+            `Validation Error: <message>` describing the validation
+            failure.
         """
         try:
             # Uses existing Equity dataclass for post-init validation.

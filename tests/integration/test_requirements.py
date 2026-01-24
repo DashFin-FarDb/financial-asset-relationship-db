@@ -271,19 +271,19 @@ class TestVersionSpecifications:
                 f"Exact pin for {pkg} should have a comment explaining why"
             )
 
-    """Test package consistency and naming conventions."""
+    # Test package consistency and naming conventions.
 
     @pytest.fixture
     @staticmethod
-    def requirements() -> List[Tuple[str, str]]:
+    def parsed_requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
     @pytest.fixture
     @staticmethod
-    def package_names(requirements: List[Tuple[str, str]]) -> List[str]:
+    def package_names(parsed_requirements: List[Tuple[str, str]]) -> List[str]:
         """Extract package names from requirements."""
-        return [pkg for pkg, _ in requirements]
+        return [pkg for pkg, _ in parsed_requirements]
 
     @staticmethod
     def test_no_duplicate_packages(package_names: List[str]):
@@ -299,8 +299,6 @@ class TestVersionSpecifications:
         """Test that packages are organized in logical groups."""
         # We don't enforce strict alphabetical sorting, but check for some organization
         assert len(package_names) > 0
-
-    @staticmethod
     def test_package_names_valid(package_names: List[str]):
         """Test that package names follow valid naming conventions."""
         valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")

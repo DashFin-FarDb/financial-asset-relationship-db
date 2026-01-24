@@ -576,6 +576,9 @@ class FormulaicVisualizer:
                 titlefont_size=16,
                 showlegend=False,
                 hovermode="closest",
+            )
+        )
+
     @staticmethod
     def create_metric_comparison_chart(analysis_results: dict[str, Any]) -> go.Figure:
         """
