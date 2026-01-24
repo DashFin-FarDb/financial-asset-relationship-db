@@ -115,7 +115,8 @@ class AssetRelationshipGraph:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
             rel_type (str): Relationship type label. For example,
-                "same_sector", "corporate_link", "event_impact".
+                "same_sector", "corporate_link",
+                "event_impact".
             strength (float): Numeric strength for the relationship; stored as
                 provided.
             bidirectional (bool): If True, also adds the same relationship from
@@ -129,14 +130,22 @@ class AssetRelationshipGraph:
             self.relationships[source_id] = []
 
         # Avoid duplicates
-        if not any(r[0] == target_id and r[1] == rel_type for r in self.relationships[source_id]):
+        if not any(
+            r[0] == target_id and r[1] == rel_type
+            for r in self.relationships[source_id]
+        ):
             self.relationships[source_id].append((target_id, rel_type, strength))
 
         if bidirectional:
             if target_id not in self.relationships:
                 self.relationships[target_id] = []
-            if not any(r[0] == source_id and r[1] == rel_type for r in self.relationships[target_id]):
-                self.relationships[target_id].append((source_id, rel_type, strength))
+            if not any(
+                r[0] == source_id and r[1] == rel_type
+                for r in self.relationships[target_id]
+            ):
+                self.relationships[target_id].append(
+                    (source_id, rel_type, strength)
+                )
 
     def calculate_metrics(self) -> dict[str, Any]:
         """
@@ -165,7 +174,8 @@ class AssetRelationshipGraph:
                 regulatory_event_count (int): Number of stored regulatory events.
         """
         total_assets = len(self.assets)
-        # For total_assets if no assets were explicitly added but exist in relationships
+        # For total_assets if no assets were explicitly added
+        # but exist in relationships
         all_ids = set(self.assets.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
@@ -179,7 +189,9 @@ class AssetRelationshipGraph:
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
 
         density = (
-            total_relationships / (effective_assets_count * (effective_assets_count - 1)) * 100
+            total_relationships
+            / (effective_assets_count * (effective_assets_count - 1))
+            * 100
             if effective_assets_count > 1
             else 0.0
         )

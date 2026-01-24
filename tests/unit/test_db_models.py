@@ -217,9 +217,6 @@ class TestAssetORM:
             price=100.0,
             currency="USD",
         )
-            id = "TEST_DELETE",
-            currency = "USD",
-        )
         db_session.add(asset)
         db_session.commit()
 

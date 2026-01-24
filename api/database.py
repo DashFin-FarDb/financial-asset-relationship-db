@@ -114,7 +114,9 @@ def _is_memory_db(path: str | None = None) -> bool:
     # SQLite supports URI-style memory databases
     # such as ``file::memory:?cache=shared``.
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
+    if (parsed.scheme == "file"
+        and (parsed.path == ":memory:"
+            or ":memory:" in parsed.query)):
         return True
 
     return False

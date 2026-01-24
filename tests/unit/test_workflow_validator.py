@@ -938,16 +938,17 @@ name: Test{i}
                     f.write(
                         f.write(
                             f.write(
-                                f"""on: push
+                                f.write(
+                                    f"""on: push
 jobs:
   test{i}:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
       - run: echo {i}
 """
-                            )
-                            f.flush()
-                            workflows.append(f.name)
+                                )
+                                f.flush()
+                                workflows.append(f.name)
 
         try:
             results = []

@@ -284,8 +284,11 @@ class TestVersionSpecifications:
         # We don't enforce strict alphabetical sorting, but check for some organization
         assert len(package_names) > 0
 
-    def test_package_names_valid(package_names: List[str]):
+    def test_package_names_valid(self, package_names: List[str]):
         """Test that package names follow valid naming conventions."""
+        if package_names is None:
+            package_names = []
+
         valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
 
         invalid_names = [pkg for pkg in package_names if not valid_name_pattern.match(pkg)]
