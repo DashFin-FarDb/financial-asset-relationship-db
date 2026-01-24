@@ -554,19 +554,19 @@ class FormulaicVisualizer:
     @staticmethod
     def create_metric_comparison_chart(analysis_results: dict[str, Any]) -> go.Figure:
         """
-        Produce a bar chart of average R-squared grouped by formula category.
+        Produce a bar chart of average R - squared grouped by formula category.
 
         Parameters:
-            analysis_results (dict[str, Any]):
+            analysis_results(dict[str, Any]):
                 Analysis payload expected to contain a "formulas" key that maps
-                to an iterable of formula-like objects.
+                to an iterable of formula - like objects.
                 Each formula object must expose `category` (str) and
                 `r_squared` (numeric) attributes or keys.
 
         Returns:
             go.Figure:
                 A Plotly Figure containing a bar chart with categories on the
-                x-axis and average R-squared per category on the y-axis.
+                x - axis and average R - squared per category on the y - axis.
                 If `analysis_results` contains no formulas, an empty Figure
                 is returned.
         """
