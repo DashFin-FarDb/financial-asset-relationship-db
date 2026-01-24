@@ -390,14 +390,14 @@ class TestPRAgentConfigSecurity:
         secrets by scanning for sensitive keys and validating placeholder values.
         """
 
-                Recursively scans the provided configuration (dict/list) and validates that any key whose name
-                contains sensitive indicators (e.g., "password", "secret", "token", "api_key", "access_key",
-                "private_key", "apikey") is assigned a safe placeholder value (None, "null", "webhook", or other
+                Recursively scans the provided configuration(dict / list) and validates that any key whose name
+                contains sensitive indicators(e.g., "password", "secret", "token", "api_key", "access_key",
+                "private_key", "apikey") is assigned a safe placeholder value(None, "null", "webhook", or other
                 allowed placeholders) or is represented as a templated variable like "${VAR}". The check inspects
                 both mapping keys and list elements and reports the dotted path to the offending entry.
 
                 Parameters:
-                    pr_agent_config (dict): Parsed YAML configuration for the PR agent.
+                    pr_agent_config(dict): Parsed YAML configuration for the PR agent.
 
                 Raises:
                     AssertionError: If a sensitive key or suspicious value appears to contain a hardcoded secret;
@@ -419,7 +419,7 @@ class TestPRAgentConfigSecurity:
                     """Check if a value is an allowed placeholder or templated variable.
 
                     Returns:
-                        bool: True if the value is a permitted placeholder (None, 'null', 'webhook') or a
+                        bool: True if the value is a permitted placeholder(None, 'null', 'webhook') or a
                         templated variable in the form '${VAR}', False otherwise.
                     """
                     if val in allowed_placeholders:
@@ -464,11 +464,11 @@ class TestPRAgentConfigSecurity:
                 suspected = []
 
                 def scan(obj, path=""):
-                    """Recursively scan a nested dict/list object for sensitive keys and hardcoded secrets.
+                    """Recursively scan a nested dict / list object for sensitive keys and hardcoded secrets.
 
                     Parameters:
-                        obj (dict|list|tuple|any): The object to scan for sensitive entries.
-                        path (str): The current dotted path in the object structure.
+                        obj(dict | list | tuple | any): The object to scan for sensitive entries.
+                        path(str): The current dotted path in the object structure.
                     """
                     if isinstance(obj, dict):
                         for key, value in obj.items():
