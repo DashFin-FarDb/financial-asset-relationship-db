@@ -534,8 +534,7 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
                         summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
                         for corr in correlations[:3]:
                             summary_lines.append(
-                                f"  • {corr['pair']}: {corr['correlation']:.3f} "
-                                f"({corr['strength']})"
+                                f"  • {corr['pair']}: {corr['correlation']:.3f} ({corr['strength']})"
                             )
 
                     return "\n".join(summary_lines)

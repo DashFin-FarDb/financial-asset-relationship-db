@@ -917,16 +917,17 @@ class TestWorkflowValidatorPerformance:
 name: Test{i}
             f.write(
                 f.write(
-                    f"""on: push
+                    f.write(
+                        f"""on: push
 jobs:
   test{i}:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
       - run: echo {i}
 """
-                )
-                f.flush()
-                workflows.append(f.name)
+                    )
+                    f.flush()
+                    workflows.append(f.name)
 
         try:
             results = []
@@ -967,7 +968,7 @@ class TestWorkflowValidatorEdgeCasesExtended:
     def test_workflow_with_boolean_values():
         """Test workflow with boolean values in various positions"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
+            f.write("")
                 """
 name: Booleans
 on: push

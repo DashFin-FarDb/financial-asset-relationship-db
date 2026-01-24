@@ -305,6 +305,7 @@ class TestBusinessRules:
         """Test that currency exposure rule is documented."""
         report = generate_schema_report(populated_graph)
         assert "Currency Exposure" in report or "currency" in report.lower()
+        return report
 
     @staticmethod
     def test_event_propagation_rule_documented(populated_graph):

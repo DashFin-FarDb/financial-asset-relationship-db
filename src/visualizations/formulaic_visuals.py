@@ -554,19 +554,19 @@ class FormulaicVisualizer:
     @staticmethod
     def create_metric_comparison_chart(analysis_results: dict[str, Any]) -> go.Figure:
         """
-        Produce a bar chart of average R - squared grouped by formula category.
+        Produce a bar chart of average R-squared grouped by formula category.
 
         Parameters:
-            analysis_results(dict[str, Any]):
+            analysis_results (dict[str, Any]):
                 Analysis payload expected to contain a "formulas" key that maps
-                to an iterable of formula - like objects.
+                to an iterable of formula-like objects.
                 Each formula object must expose `category` (str) and
                 `r_squared` (numeric) attributes or keys.
 
         Returns:
             go.Figure:
                 A Plotly Figure containing a bar chart with categories on the
-                x - axis and average R - squared per category on the y - axis.
+                x-axis and average R-squared per category on the y-axis.
                 If `analysis_results` contains no formulas, an empty Figure
                 is returned.
         """
@@ -593,8 +593,28 @@ class FormulaicVisualizer:
 
         for category in category_names:
             category_formulas = categories[category]
-            avg_r_squared = sum(f.r_squared for f in category_formulas) / len(category_formulas)
+            avg_r_squared = sum(category_formulas) / len(category_formulas)
             r_squared_by_category.append(avg_r_squared)
+            formula_counts.append(len(category_formulas))
+
+        fig.add_trace(
+            go.Bar(
+                x=category_names,
+                y=r_squared_by_category,
+                text=formula_counts,
+                name="Avg R-squared"
+            )
+        )
+
+        fig.update_layout(
+            title="Average R-squared by Formula Category",
+            xaxis_title="Category",
+            yaxis_title="R-squared",
+            template="plotly_white",
+            margin=dict(b=20, l=5, r=5, t=40)
+        )
+
+        return fig
             formula_counts.append(len(category_formulas))
 
         # R-squared bars
