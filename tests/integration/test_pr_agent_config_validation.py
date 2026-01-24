@@ -318,12 +318,6 @@ class TestPRAgentConfigSecurity:
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
             pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
-            "private_key",
-            "pwd",
-            "password",
-            "auth",
-            "bearer ",
-        )
 
         suspected = []
 

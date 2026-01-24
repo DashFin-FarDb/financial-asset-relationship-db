@@ -471,10 +471,6 @@ class TestIntegrationWithActualWorkflows:
     def test_validate_all_project_workflows():
         """
         Validate every workflow file in the project's .github/workflows directory.
-
-        Skips the test if the workflows directory does not exist or contains no .yml/.yaml files.
-        For each workflow file found, runs validate_workflow and collects any failures; the test asserts that no workflows fail validation and reports failing filenames and their errors when present.
-        """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
         if not workflows_dir.exists():
@@ -494,10 +490,6 @@ class TestIntegrationWithActualWorkflows:
                 failed.append((workflow_file.name, result.errors))
 
         assert len(failed) == 0, f"Failed workflows: {failed}"
-
-
-"""Unit tests for ValidationResult ensuring attributes exist and behave as expected."""
-
 
 class TestValidationResultDataStructure:
     """Test ValidationResult data structure integrity"""

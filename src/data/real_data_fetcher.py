@@ -156,16 +156,17 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
-        Fetch current market data for a predefined set of major equities.
+        """Fetch current market data for a predefined set of major equities.
 
-        Skips symbols with no recent price data and continues on per - symbol errors
-        logs warnings for missing data and errors for failed fetches.
+        Skips symbols with no recent price data and continues on per-symbol errors.
+        Logs warnings for missing data and errors for failed fetches.
 
         Returns:
             List[Equity]:
                 Equity instances populated with fields id, symbol, name,
                 asset_class, sector, price, market_cap, pe_ratio,
                 dividend_yield, earnings_per_share, and book_value.
+        """
         """
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),

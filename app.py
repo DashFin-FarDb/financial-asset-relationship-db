@@ -86,6 +86,8 @@ SCHEMA_RULES_GUIDE_MD = """
 
 View the automatically generated schema documentation including
 relationship types, business rules, and validation constraints.
+"""
+
 DETAILED_ASSET_INFO_MD = """
 # Asset Explorer
 

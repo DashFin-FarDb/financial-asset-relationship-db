@@ -398,6 +398,7 @@ class FormulaicVisualizer:
             ),
         )
 
+
         # Update axes
         fig.update_yaxes(title_text="Count", row=2, col=2)
         fig.update_yaxes(title_text="Asset Count", row=3, col=1)
@@ -438,7 +439,7 @@ class FormulaicVisualizer:
                 f"<b>Description:</b><br>"
                 f"{formula.description}<br><br>"
                 f"<b>Category:</b> {formula.category}<br>"
-                f"<b>Reliability (R²):</b> "
+                f"<b>Reliability (R^2):</b> "
                 f"{formula.r_squared:.3f}<br><br>"
                 + "<b>Variables:</b><br>"
                 + "<br>".join(
@@ -448,6 +449,10 @@ class FormulaicVisualizer:
                     f"<br><br><b>Example Calculation:</b><br>"
                     f"{formula.example_calculation}"
                 )
+            )
+        )
+
+        return fig
             ),
         )
 

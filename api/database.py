@@ -141,7 +141,7 @@ def _connect() -> sqlite3.Connection:
             DATABASE_PATH (shared for in-memory, new per call for file-backed).
     """
     if _is_memory_db():
-        global _memory_connection, _memory_connection_lock
+        global _memory_connection
         with _memory_connection_lock:
             if _memory_connection is None:
                 _memory_connection = sqlite3.connect(

@@ -272,7 +272,8 @@ class TestConnectWithMemoryDb:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
-    def test_connect_sets_row_factory(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_connect_sets_row_factory(monkeypatch, restore_database_module):
         """Test that _connect sets sqlite3.Row as the row factory."""
         import sqlite3
 
@@ -282,10 +283,9 @@ class TestConnectWithMemoryDb:
         conn = reloaded_database._connect()
         assert conn.row_factory == sqlite3.Row
 
-    """Module for testing that in-memory database connections disable check_same_thread for thread safety."""
-
+    @staticmethod
     def test_connect_enables_check_same_thread_false(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that _connect disables check_same_thread for thread safety."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -308,7 +308,8 @@ class TestConnectWithMemoryDb:
 
         # If we get here without exception, check_same_thread is properly disabled
 
-    def test_connect_with_uri_parameter(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_connect_with_uri_parameter(monkeypatch, restore_database_module):
         """Test that _connect correctly sets uri parameter for file: URIs."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
         reloaded_database = importlib.reload(database)

@@ -75,10 +75,11 @@ report += """
 
 # Cross-Asset Rules
 """
-    report += (
-        "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
-        "equity (directional)\n"
-        "2. **Sector Affinity**: Assets in same sector have baseline relationship "
+report += (
+    "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
+    "equity (directional)\n"
+    "2. **Sector Affinity**: Assets in same sector have baseline relationship\n"
+)
         "strength of 0.7 (bidirectional)\n"
         "3. **Currency Exposure**: Non-USD assets link to their native currency "
         "asset when available\n"
