@@ -42,6 +42,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
 # Relationship Types
 """
+
+
 for rel_type, count in sorted(
     metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True
 ):

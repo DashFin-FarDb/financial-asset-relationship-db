@@ -400,6 +400,7 @@ class TestPRAgentConfigSecurity:
             if isinstance(obj, dict):
                 for key, value in obj.items():
                     scan(value)
+
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """

@@ -492,6 +492,7 @@ class TestIntegrationWithActualWorkflows:
 
         assert len(failed) == 0, f"Failed workflows: {failed}"
 
+
 class TestValidationResultDataStructure:
     """Test ValidationResult data structure integrity"""
 
@@ -918,7 +919,7 @@ name: Test{i}
                 f"""on: push
 jobs:
   test{i}:
-    runs-on: ubuntu-latest
+    runs - on: ubuntu - latest
     steps:
       - run: echo {i}
 """
