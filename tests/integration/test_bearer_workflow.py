@@ -45,13 +45,19 @@ def bearer_steps(bearer_workflow_content: dict) -> list[dict]:
 @pytest.fixture
 def bearer_step(bearer_steps: list[dict]) -> dict:
     """Bearer scan step."""
-    return next(step for step in bearer_steps if "bearer/bearer-action" in step.get("uses", ""))
+    return next(
+        step for step in bearer_steps if "bearer/bearer-action" in step.get("uses", "")
+    )
 
 
 @pytest.fixture
 def upload_sarif_step(bearer_steps: list[dict]) -> dict:
     """SARIF upload step."""
-    return next(step for step in bearer_steps if "codeql-action/upload-sarif" in step.get("uses", ""))
+    return next(
+        step
+        for step in bearer_steps
+        if "codeql-action/upload-sarif" in step.get("uses", "")
+    )
 
 
 # -------------------------
@@ -90,7 +96,9 @@ class TestBearerWorkflowTriggers:
         assert trigger in bearer_workflow_content["on"]
 
     @pytest.mark.parametrize("trigger", ["push", "pull_request"])
-    def test_trigger_targets_main(self, bearer_workflow_content: dict, trigger: str) -> None:
+    def test_trigger_targets_main(
+        self, bearer_workflow_content: dict, trigger: str
+    ) -> None:
         assert "main" in bearer_workflow_content["on"][trigger]["branches"]
 
     def test_schedule_cron(self, bearer_workflow_content: dict) -> None:
@@ -138,7 +146,9 @@ class TestBearerSteps:
         assert with_config["exit-code"] == 0
         assert "secrets.BEARER_TOKEN" in with_config["api-key"]
 
-    def test_upload_sarif_configuration(self, bearer_step: dict, upload_sarif_step: dict) -> None:
+    def test_upload_sarif_configuration(
+        self, bearer_step: dict, upload_sarif_step: dict
+    ) -> None:
         assert upload_sarif_step["with"]["sarif_file"] == bearer_step["with"]["output"]
 
 
@@ -168,4 +178,6 @@ class TestBearerWorkflowDocumentation:
 
     def test_bearer_docs_link_present(self, bearer_workflow_raw: str) -> None:
         urls = re.findall(r"https?://[^\s)\"'>]+", bearer_workflow_raw)
-        assert any((urlparse(url).hostname or "").endswith("bearer.com") for url in urls)
+        assert any(
+            (urlparse(url).hostname or "").endswith("bearer.com") for url in urls
+        )
