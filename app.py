@@ -401,14 +401,14 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
         try:
             logger.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
-
+        # Notes:
             # Initialize analyzers
             formulaic_analyzer = FormulaicdAnalyzer()
             formulaic_visualizer = FormulaicVisualizer()
-
+            formulaic_analyzer = FormulaicdAnalyzer()
             # Perform analysis
             analysis_results = formulaic_analyzer.analyze_graph(graph)
-
+            analysis_results = formulaic_analyzer.analyze_graph(graph)
             # Generate visualizations
             dashboard_fig = formulaic_visualizer.create_formula_dashboard(
                 analysis_results
@@ -419,15 +419,15 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
             metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
                 analysis_results
             )
-
+            dashboard_fig = formulaic_visualizer.create_formula_dashboard(
             # Generate formula selector options
             formulas = analysis_results.get("formulas", [])
             formula_choices = [f.name for f in formulas]
-
+            formulas = analysis_results.get("formulas", [])
             # Generate summary
             summary = analysis_results.get("summary", {})
             summary_text = self._format_formula_summary(summary, analysis_results)
-
+            summary = analysis_results.get("summary", {})
             logger.info("Generated formulaic analysis with %d formulas", len(formulas))
             return (
                 dashboard_fig,
@@ -440,10 +440,8 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
                 summary_text,
                 gr.update(visible=False),  # Hide error message
             )
-
+            return (
         except Exception as e:
-                        logger.error("Error generating formulaic analysis: %s", e)
-                        empty_fig = go.Figure()
                         error_msg = f"Error generating formulaic analysis: {str(e)}"
                         return (
                             empty_fig,
