@@ -575,14 +575,6 @@ class TestPRAgentConfigRemovedComplexity:
 
     @pytest.fixture
     @staticmethod
-    def pr_agent_config_content():
-        """
-        Return the contents of .github / pr - agent - config.yml as a string.
-
-        Reads the PR agent configuration file from the repository root and returns its raw text.
-
-        Returns:
-
     @pytest.fixture
     def pr_agent_config_content() -> str:
         """Raw YAML content of .github / pr - agent - config.yml."""
