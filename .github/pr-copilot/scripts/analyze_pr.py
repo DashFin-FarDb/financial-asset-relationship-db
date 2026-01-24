@@ -142,7 +142,7 @@ def analyze_pr_files(pr_files_iterable: Any) -> dict[str, Any]:
     """
     categories: dict[str, int] = defaultdict(int)
     stats = {"additions": 0, "deletions": 0, "changes": 0}
-    large_files: List[dict[str, Any]] = []
+    large_files: list[dict[str, Any]] = []
     file_count = 0
 
     for pr_file in pr_files_iterable:
