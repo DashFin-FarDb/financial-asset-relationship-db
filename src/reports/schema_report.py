@@ -6,57 +6,56 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     Generate a human-readable Markdown report describing the
     asset relationship schema, calculated network metrics,
     top relationships, business/regulatory/valuation rules,
-    and optimization recommendations.
+and optimization recommendations.
 
-    The report is assembled from metrics computed by the provided
-    AssetRelationshipGraph and includes:
-    - schema overview (entity and relationship types),
-    - relationship distribution and asset class breakdown,
-    - network statistics (total assets/relationships, average strength,
-      density, regulatory events),
-    - ordered top relationships with strengths,
-    - predefined business, regulatory, and valuation rules,
-    - a data quality score and a textual recommendation
-      based on relationship density,
-    - implementation notes.
+The report is assembled from metrics computed by the provided
+AssetRelationshipGraph and includes:
+- schema overview (entity and relationship types),
+- relationship distribution and asset class breakdown,
+- network statistics (total assets/relationships, average strength,
+  density, regulatory events),
+- ordered top relationships with strengths,
+- predefined business, regulatory, and valuation rules,
+- a data quality score and a textual recommendation
+  based on relationship density,
+- implementation notes.
 
-    Parameters:
-        graph (AssetRelationshipGraph): Graph instance used to calculate
-          metrics required for the report.
+Parameters:
+    graph (AssetRelationshipGraph): Graph instance used to calculate
+      metrics required for the report.
 
-    Returns:
-        str: Complete Markdown-formatted report summarizing
-            schema, metrics, rules, and recommendations.
-    """
+Returns:
+    str: Complete Markdown-formatted report summarizing
+        schema, metrics, rules, and recommendations.
+"""
 
+report += "\n# Network Statistics\n"
+report += f"- **Total Assets**: {metrics['total_assets']}\n"
+report += f"- **Total Relationships**: {metrics['total_relationships']}\n"
 
-# Network Statistics
-- **Total Assets**: {metrics["total_assets"]}
-- **Total Relationships**: {metrics["total_relationships"]}
+report += "\n# Business Rules & Constraints\n\n# Cross-Asset Rules\n"
+report += (
+    "1. **Corporate Bond Linkage**: Corporate bonds link to issuing "
+    "company equity (directional)\n"
+    "2. **Sector Affinity**: Assets in same sector have baseline "
+    "relationship\n"
+    "3. **Correlation Strength**: Asset pairs have minimum strength "
+    "of 0.7 (bidirectional)\n"
+    "4. **Currency Exposure**: Non-USD assets link to their native "
+    "currency asset when available\n"
+    "5. **Income Linkage**: Equity dividends compared to bond yields "
+    "using similarity score\n"
+    "6. **Commodity Exposure**: Energy equities link to crude oil; "
+    "miners link to metal commodities\n"
+)
 
-    report += "\n# Business Rules & Constraints\n\n# Cross-Asset Rules\n"
-    report += (
-        "1. **Corporate Bond Linkage**: Corporate bonds link to issuing "
-        "company equity (directional)\n"
-        "2. **Sector Affinity**: Assets in same sector have baseline "
-        "relationship\n"
-        "3. **Correlation Strength**: Asset pairs have minimum strength "
-        "of 0.7 (bidirectional)\n"
-        "4. **Currency Exposure**: Non-USD assets link to their native "
-        "currency asset when available\n"
-        "5. **Income Linkage**: Equity dividends compared to bond yields "
-        "using similarity score\n"
-        "6. **Commodity Exposure**: Energy equities link to crude oil; "
-        "miners link to metal commodities\n"
-    )
-
-    report += "\n# Regulatory Rules\n"
-    report += (
-        "1. **Event Propagation**: Earnings events impact related bond "
-        "and currency assets\n"
-        "2. **Impact Scoring**: Events range from -1 (negative) to +1 "
-        "(positive)\n"
-        "3. **Related Assets**: Each event automatically creates "
+report += "\n# Regulatory Rules\n"
+report += (
+    "1. **Event Propagation**: Earnings events impact related bond "
+    "and currency assets\n"
+    "2. **Impact Scoring**: Events range from -1 (negative) to +1 "
+    "(positive)\n"
+    "3. **Related Assets**: Each event automatically creates "
         "relationships to impacted securities\n"
     )
 
