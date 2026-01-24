@@ -137,6 +137,7 @@ class TestCodeSherlockConfigFile:
 class TestCodeSherlockConfigContent:
     """Test suite for codesherlock.yaml configuration content validation."""
 
+
 def test_target_branches_are_strings(self, codesherlock_config: Dict[str, Any]):
     """
     Verify that all target branches are non-empty strings.
