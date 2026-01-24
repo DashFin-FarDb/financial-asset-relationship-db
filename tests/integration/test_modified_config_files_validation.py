@@ -116,7 +116,7 @@ class TestPRAgentConfigChanges:
 
     def test_quality_standards_preserved(self, config_data: dict[str, Any]):
         """
-        Ensure the config's 'quality' section includes 'python' and 'typescript', and that 'python' defines a 'linter' and 'test_runner' set to 'pytest'.
+        Ensure the config\'s 'quality' section includes 'python' and 'typescript', and that 'python' defines a 'linter' and 'test_runner' set to 'pytest'.
 
         Parameters:
             config_data(dict[str, Any]): Parsed PR agent YAML configuration to validate.
