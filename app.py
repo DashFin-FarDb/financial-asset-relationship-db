@@ -367,6 +367,8 @@ class FinancialAssetApp:
             return empty_fig, gr.update(value=error_msg, visible=True)
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
+
+
 def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGraph] = None):
         Generate visualizations, selector options, and a textual summary from a
         formulaic analysis of the asset graph.

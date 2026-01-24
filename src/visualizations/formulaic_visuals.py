@@ -423,7 +423,7 @@ class FormulaicVisualizer:
         Returns:
             go.Figure: A Plotly Figure containing a single annotation with the
                 formatted formula details(name, expression, LaTeX, description,
-                category, R^2, variables, and example calculation when present).
+                category, R ^ 2, variables, and example calculation when present).
         """
         fig = go.Figure()
 
