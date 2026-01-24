@@ -270,6 +270,7 @@ class TestVersionSpecifications:
             assert has_comment, (
                 f"Exact pin for {pkg} should have a comment explaining why"
             )
+
     """Test package consistency and naming conventions."""
 
     @pytest.fixture
