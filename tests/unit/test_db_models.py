@@ -217,8 +217,8 @@ class TestAssetORM:
             price=100.0,
             currency="USD",
         )
-            id="TEST_DELETE",
-            currency="USD",
+            id = "TEST_DELETE",
+            currency = "USD",
         )
         db_session.add(asset)
         db_session.commit()
@@ -233,43 +233,43 @@ class TestAssetORM:
 class TestAssetRelationshipORM:
     """Test cases for AssetRelationshipORM model."""
 
-    @staticmethod
+    @ staticmethod
     def test_relationship_table_name():
         """Test that AssetRelationshipORM uses correct table name."""
         assert AssetRelationshipORM.__tablename__ == "asset_relationships"
 
-    @staticmethod
+    @ staticmethod
     def test_create_relationship(db_session):
         """Test creating a relationship between assets."""
         # Create two assets
         asset1 = AssetORM(
-            id="ASSET1",
-            symbol="A1",
-            name="Asset 1",
-            asset_class="equity",
-            sector="Tech",
-            price=100.0,
-            currency="USD",
+            id = "ASSET1",
+            symbol = "A1",
+            name = "Asset 1",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 100.0,
+            currency = "USD",
         )
         asset2 = AssetORM(
-            id="ASSET2",
-            symbol="A2",
-            name="Asset 2",
-            asset_class="equity",
-            sector="Tech",
-            price=200.0,
-            currency="USD",
+            id = "ASSET2",
+            symbol = "A2",
+            name = "Asset 2",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 200.0,
+            currency = "USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
 
         # Create relationship
         rel = AssetRelationshipORM(
-            source_asset_id="ASSET1",
-            target_asset_id="ASSET2",
-            relationship_type="same_sector",
-            strength=0.7,
-            bidirectional=True,
+            source_asset_id = "ASSET1",
+            target_asset_id = "ASSET2",
+            relationship_type = "same_sector",
+            strength = 0.7,
+            bidirectional = True,
         )
         db_session.add(rel)
         db_session.commit()
@@ -283,80 +283,80 @@ class TestAssetRelationshipORM:
         assert retrieved.target_asset_id == "ASSET2"
         assert retrieved.strength == 0.7
 
-    @staticmethod
+    @ staticmethod
     def test_relationship_unique_constraint(db_session):
         """Test that duplicate relationships are prevented."""
         asset1 = AssetORM(
-            id="ASSET_A",
-            symbol="AA",
-            name="Asset A",
-            asset_class="equity",
-            sector="Tech",
-            price=100.0,
-            currency="USD",
+            id = "ASSET_A",
+            symbol = "AA",
+            name = "Asset A",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 100.0,
+            currency = "USD",
         )
         asset2 = AssetORM(
-            id="ASSET_B",
-            symbol="BB",
-            name="Asset B",
-            asset_class="equity",
-            sector="Tech",
-            price=200.0,
-            currency="USD",
+            id = "ASSET_B",
+            symbol = "BB",
+            name = "Asset B",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 200.0,
+            currency = "USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
 
         rel1 = AssetRelationshipORM(
-            source_asset_id="ASSET_A",
-            target_asset_id="ASSET_B",
-            relationship_type="test_rel",
-            strength=0.5,
+            source_asset_id = "ASSET_A",
+            target_asset_id = "ASSET_B",
+            relationship_type = "test_rel",
+            strength = 0.5,
         )
         db_session.add(rel1)
         db_session.commit()
 
         # Try to add duplicate
         rel2 = AssetRelationshipORM(
-            source_asset_id="ASSET_A",
-            target_asset_id="ASSET_B",
-            relationship_type="test_rel",
-            strength=0.8,
+            source_asset_id = "ASSET_A",
+            target_asset_id = "ASSET_B",
+            relationship_type = "test_rel",
+            strength = 0.8,
         )
         db_session.add(rel2)
 
         with pytest.raises(IntegrityError):
             db_session.commit()
 
-    @staticmethod
+    @ staticmethod
     def test_relationship_cascade_delete(db_session):
         """Test that relationships are deleted when assets are deleted."""
         asset1 = AssetORM(
-            id="CASCADE1",
-            symbol="C1",
-            name="Cascade 1",
-            asset_class="equity",
-            sector="Tech",
-            price=100.0,
-            currency="USD",
+            id = "CASCADE1",
+            symbol = "C1",
+            name = "Cascade 1",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 100.0,
+            currency = "USD",
         )
         asset2 = AssetORM(
-            id="CASCADE2",
-            symbol="C2",
-            name="Cascade 2",
-            asset_class="equity",
-            sector="Tech",
-            price=200.0,
-            currency="USD",
+            id = "CASCADE2",
+            symbol = "C2",
+            name = "Cascade 2",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 200.0,
+            currency = "USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
 
         rel = AssetRelationshipORM(
-            source_asset_id="CASCADE1",
-            target_asset_id="CASCADE2",
-            relationship_type="test",
-            strength=0.5,
+            source_asset_id = "CASCADE1",
+            target_asset_id = "CASCADE2",
+            relationship_type = "test",
+            strength = 0.5,
         )
         db_session.add(rel)
         db_session.commit()
@@ -373,36 +373,36 @@ class TestAssetRelationshipORM:
         )
         assert remaining is None
 
-    @staticmethod
+    @ staticmethod
     def test_bidirectional_flag(db_session):
         """Test bidirectional flag on relationships."""
         asset1 = AssetORM(
-            id="BIDIR1",
-            symbol="B1",
-            name="Bidir 1",
-            asset_class="equity",
-            sector="Tech",
-            price=100.0,
-            currency="USD",
+            id = "BIDIR1",
+            symbol = "B1",
+            name = "Bidir 1",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 100.0,
+            currency = "USD",
         )
         asset2 = AssetORM(
-            id="BIDIR2",
-            symbol="B2",
-            name="Bidir 2",
-            asset_class="equity",
-            sector="Tech",
-            price=200.0,
-            currency="USD",
+            id = "BIDIR2",
+            symbol = "B2",
+            name = "Bidir 2",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 200.0,
+            currency = "USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
 
         rel = AssetRelationshipORM(
-            source_asset_id="BIDIR1",
-            target_asset_id="BIDIR2",
-            relationship_type="bidirectional_test",
-            strength=0.8,
-            bidirectional=True,
+            source_asset_id = "BIDIR1",
+            target_asset_id = "BIDIR2",
+            relationship_type = "bidirectional_test",
+            strength = 0.8,
+            bidirectional = True,
         )
         db_session.add(rel)
         db_session.commit()
@@ -414,26 +414,26 @@ class TestAssetRelationshipORM:
         )
         assert retrieved.bidirectional is True
 
-    @staticmethod
+    @ staticmethod
     def test_relationship_strength_bounds(db_session):
         """Test that relationship strength can store various values."""
         asset1 = AssetORM(
-            id="STRENGTH1",
-            symbol="S1",
-            name="Strength 1",
-            asset_class="equity",
-            sector="Tech",
-            price=100.0,
-            currency="USD",
+            id = "STRENGTH1",
+            symbol = "S1",
+            name = "Strength 1",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 100.0,
+            currency = "USD",
         )
         asset2 = AssetORM(
-            id="STRENGTH2",
-            symbol="S2",
-            name="Strength 2",
-            asset_class="equity",
-            sector="Tech",
-            price=200.0,
-            currency="USD",
+            id = "STRENGTH2",
+            symbol = "S2",
+            name = "Strength 2",
+            asset_class = "equity",
+            sector = "Tech",
+            price = 200.0,
+            currency = "USD",
         )
         db_session.add_all([asset1, asset2])
         db_session.commit()
@@ -441,10 +441,10 @@ class TestAssetRelationshipORM:
         # Test various strength values
         for strength in [0.0, 0.5, 1.0]:
             rel = AssetRelationshipORM(
-                source_asset_id="STRENGTH1",
-                target_asset_id="STRENGTH2",
-                relationship_type=f"strength_{strength}",
-                strength=strength,
+                source_asset_id = "STRENGTH1",
+                target_asset_id = "STRENGTH2",
+                relationship_type = f"strength_{strength}",
+                strength = strength,
             )
             db_session.add(rel)
         db_session.commit()
