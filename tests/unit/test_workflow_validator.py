@@ -1037,7 +1037,7 @@ jobs:
     @staticmethod
     def test_workflow_with_float_values():
         """
-        Verify that a workflow containing floating-point values is accepted as valid.
+        Verify that a workflow containing floating - point values is accepted as valid.
 
         Creates a temporary YAML workflow with float values in environment fields and asserts that validate_workflow returns a valid ValidationResult.
         """

@@ -202,13 +202,13 @@ class FormulaicVisualizer:
 
     def _get_sorted_formulas(self, formulas: Any) -> Any:
         """
-        Return formulas sorted by descending R-squared.
+        Return formulas sorted by descending R - squared.
 
         Parameters:
-            formulas (Iterable): Iterable of formula-like objects; each should expose `r_squared` used for sorting.
+            formulas(Iterable): Iterable of formula - like objects; each should expose `r_squared` used for sorting.
 
         Returns:
-            list: Sorted list of formulas (or original order if sorting fails).
+            list: Sorted list of formulas ( or original order if sorting fails).
         """
         try:
             return sorted(

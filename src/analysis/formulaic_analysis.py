@@ -570,23 +570,23 @@ class FormulaicdAnalyzer:
         Metrics are derived from empirical relationship data.
 
         Parameters:
-            formulas (List[Formula]): List of Formula objects produced by the
+            formulas(List[Formula]): List of Formula objects produced by the
                 analysis.
-            empirical_relationships (Dict): Empirical data produced from the
+            empirical_relationships(Dict): Empirical data produced from the
                 graph analysis. Expected to include a
                 "correlation_matrix" key whose value is a mapping of
-                asset-pair identifiers to numeric correlation values.
+                asset - pair identifiers to numeric correlation values.
 
         Returns:
-            summary (dict[str, Any]): Dictionary with the following keys:
-                - total_formulas (int): Number of formulas in `formulas`.
-                - avg_r_squared (float): Average `r_squared` value across
+            summary(dict[str, Any]): Dictionary with the following keys:
+                - total_formulas(int): Number of formulas in `formulas`.
+                - avg_r_squared(float): Average `r_squared` value across
                   `formulas` (0 if `formulas` is empty).
-                - formula_categories (dict[str, int]): Counts of formulas
+                - formula_categories(dict[str, int]): Counts of formulas
                   grouped by category.
-                - empirical_data_points (int): Number of entries in the
+                - empirical_data_points(int): Number of entries in the
                   `correlation_matrix` (0 if absent).
-                - key_insights (List[str]): Short, high-level observations
+                - key_insights(List[str]): Short, high - level observations
                   derived from the formulas and empirical data.
         """
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
@@ -625,7 +625,7 @@ class FormulaicdAnalyzer:
         present, returns 0.5.
 
         Parameters:
-            empirical_relationships (Dict): A dictionary that may contain a
+            empirical_relationships(Dict): A dictionary that may contain a
                 "correlation_matrix" key mapping identifiers to numeric
                 correlation values.
 

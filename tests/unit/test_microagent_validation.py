@@ -105,10 +105,10 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         Extract the YAML frontmatter from the content of repo_engineer_lead.md.
 
         Parameters:
-        	repo_engineer_content (str): Full Markdown text of repo_engineer_lead.md, including the YAML frontmatter block.
+                repo_engineer_content (str): Full Markdown text of repo_engineer_lead.md, including the YAML frontmatter block.
 
         Returns:
-        	frontmatter (dict[str, Any]): Parsed YAML frontmatter as a dictionary mapping frontmatter keys to their values.
+                frontmatter (dict[str, Any]): Parsed YAML frontmatter as a dictionary mapping frontmatter keys to their values.
         """
         frontmatter, _ = self.parse_frontmatter(repo_engineer_content)
         return frontmatter
