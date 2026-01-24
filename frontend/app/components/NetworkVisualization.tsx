@@ -67,7 +67,7 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<any[]>([]);
+  const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
   const [status, setStatus] = useState<
     "loading" | "ready" | "empty" | "tooLarge"
   >("loading");
@@ -174,7 +174,7 @@ export default function NetworkVisualization({
   return (
     <div className="w-full h-[800px]">
       <Plot
-        data={plotData}
+        data={plotData as any}
         layout={{
           title: "3D Asset Relationship Network",
           showlegend: false,
