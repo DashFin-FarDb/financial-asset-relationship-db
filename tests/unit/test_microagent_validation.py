@@ -160,7 +160,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         version = repo_engineer_frontmatter["version"]
         assert isinstance(version, str)
         # Should match semantic versioning pattern
-        +assert re.match(r"^\d+\.\d+\.\d+$", version), "Version should follow semver format (x.y.z)"
+        assert re.match(r"^\d+\.\d+\.\d+$", version), (
+            "Version should follow semver format (x.y.z)"
+        )
             "Version should follow semver format (x.y.z)"
         )
 
