@@ -58,13 +58,9 @@ class ContextChunker:
                 self.config = {}
         agent_cfg = (self.config.get("agent") or {}).get("context") or {}
         self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
-        self.chunk_size: int = int(
-            agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000))
-        )
+        self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
         self.overlap_tokens: int = int(agent_cfg.get("overlap_tokens", 2000))
-        self.summarization_threshold: int = int(
-            agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9))
-        )
+        self.summarization_threshold: int = int(agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9)))
         limits_cfg = (self.config.get("limits") or {}).get("fallback") or {}
         self.priority_order: List[str] = limits_cfg.get(
             "priority_order",
@@ -76,9 +72,7 @@ class ContextChunker:
                 "full_diff",
             ],
         )
-        self.priority_map: dict[str, int] = {
-            name: i for i, name in enumerate(self.priority_order)
-        }
+        self.priority_map: dict[str, int] = {name: i for i, name in enumerate(self.priority_order)}
         self._encoder: Optional[Any] = None
         if TIKTOKEN_AVAILABLE:
             try:
