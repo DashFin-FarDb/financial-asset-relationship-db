@@ -479,7 +479,7 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
 
                     Parameters:
                         summary(Dict): Summary metrics with expected keys:
-                            - "avg_r_squared" (float): average R^2 across identified
+                            - "avg_r_squared" (float): average R ^ 2 across identified
                               formulas.
                             - "empirical_data_points" (int): number of empirical
                               observations used.

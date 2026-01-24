@@ -57,7 +57,7 @@ report += f"""
 - **Total Relationships**: {metrics["total_relationships"]}
 - **Average Relationship Strength**: {metrics["average_relationship_strength"]:.3f}
 - **Relationship Density**: {metrics["relationship_density"]:.2f}%
-report += f"- **Regulatory Events**: {metrics['regulatory_event_count']}\n\n"
+report += f"- **Regulatory Events**: {metrics["regulatory_event_count"]}\n\n"
 
 # Asset Class Distribution
 for asset_class, count in sorted(metrics["asset_class_distribution"].items()):
@@ -98,8 +98,7 @@ report += """
 # Data Quality Score: """
 quality_score = min(
     1.0,
-    metrics["average_relationship_strength"]
-    + (metrics["regulatory_event_count"] / 10),
+    metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
 )
 report += f"{quality_score:.1%}\n"
 
