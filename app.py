@@ -394,56 +394,54 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
                     visibility of any error message
             )
         """
+        # Notes:
+        #     On error, the function returns three empty Plotly figures, an empty
+        #     selector update, an error message string as summary_text, and an
+        #     error_visibility_update that makes the error visible.
+        try:
+            logger.info("Generating formulaic analysis")
+            graph = self.ensure_graph() if graph_state is None else graph_state
 
-        Notes:
-            On error, the function returns three empty Plotly figures, an empty
-            selector update, an error message string as summary_text, and an
-            error_visibility_update that makes the error visible.
-        """
-                    try:
-                        logger.info("Generating formulaic analysis")
-                        graph = self.ensure_graph() if graph_state is None else graph_state
+            # Initialize analyzers
+            formulaic_analyzer = FormulaicdAnalyzer()
+            formulaic_visualizer = FormulaicVisualizer()
 
-                        # Initialize analyzers
-                        formulaic_analyzer = FormulaicdAnalyzer()
-                        formulaic_visualizer = FormulaicVisualizer()
+            # Perform analysis
+            analysis_results = formulaic_analyzer.analyze_graph(graph)
 
-                        # Perform analysis
-                        analysis_results = formulaic_analyzer.analyze_graph(graph)
+            # Generate visualizations
+            dashboard_fig = formulaic_visualizer.create_formula_dashboard(
+                analysis_results
+            )
+            correlation_network_fig = formulaic_visualizer.create_correlation_network(
+                analysis_results.get("empirical_relationships", {})
+            )
+            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
+                analysis_results
+            )
 
-                        # Generate visualizations
-                        dashboard_fig = formulaic_visualizer.create_formula_dashboard(
-                            analysis_results
-                        )
-                        correlation_network_fig = formulaic_visualizer.create_correlation_network(
-                            analysis_results.get("empirical_relationships", {})
-                        )
-                        metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
-                            analysis_results
-                        )
+            # Generate formula selector options
+            formulas = analysis_results.get("formulas", [])
+            formula_choices = [f.name for f in formulas]
 
-                        # Generate formula selector options
-                        formulas = analysis_results.get("formulas", [])
-                        formula_choices = [f.name for f in formulas]
+            # Generate summary
+            summary = analysis_results.get("summary", {})
+            summary_text = self._format_formula_summary(summary, analysis_results)
 
-                        # Generate summary
-                        summary = analysis_results.get("summary", {})
-                        summary_text = self._format_formula_summary(summary, analysis_results)
+            logger.info("Generated formulaic analysis with %d formulas", len(formulas))
+            return (
+                dashboard_fig,
+                correlation_network_fig,
+                metric_comparison_fig,
+                gr.update(
+                    choices=formula_choices,
+                    value=formula_choices[0] if formula_choices else None,
+                ),
+                summary_text,
+                gr.update(visible=False),  # Hide error message
+            )
 
-                        logger.info("Generated formulaic analysis with %d formulas", len(formulas))
-                        return (
-                            dashboard_fig,
-                            correlation_network_fig,
-                            metric_comparison_fig,
-                            gr.update(
-                                choices=formula_choices,
-                                value=formula_choices[0] if formula_choices else None,
-                            ),
-                            summary_text,
-                            gr.update(visible=False),  # Hide error message
-                        )
-
-                    except Exception as e:
+        except Exception as e:
                         logger.error("Error generating formulaic analysis: %s", e)
                         empty_fig = go.Figure()
                         error_msg = f"Error generating formulaic analysis: {str(e)}"
