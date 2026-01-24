@@ -28,7 +28,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     metrics = graph.calculate_metrics()
 
     report = """# Financial Asset Relationship Database Schema & Rules
-report += """
+"""
+    report += """
 # Schema Overview
 
 
@@ -78,6 +79,7 @@ report += (
     "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
     "equity (directional)\n"
     "2. **Sector Affinity**: Assets in same sector have baseline relationship\n"
+)
 )
 )
         "strength of 0.7 (bidirectional)\n"

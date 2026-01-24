@@ -124,7 +124,7 @@ _memory_connection = None
 _memory_connection_lock = threading.Lock()
 
 
-def _connect(memory_connection=[None]) -> sqlite3.Connection:
+def _connect(memory_connection=None) -> sqlite3.Connection:
     """
     Open a configured SQLite connection for the module's database path.
 
@@ -140,6 +140,8 @@ def _connect(memory_connection=[None]) -> sqlite3.Connection:
         sqlite3.Connection: A sqlite3 connection to the configured
             DATABASE_PATH (shared for in-memory, new per call for file-backed).
     """
+    if memory_connection is None:
+        memory_connection = [None]
     if _is_memory_db():
         with _memory_connection_lock:
             if memory_connection[0] is None:

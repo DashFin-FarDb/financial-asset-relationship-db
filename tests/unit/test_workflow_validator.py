@@ -471,6 +471,7 @@ class TestIntegrationWithActualWorkflows:
     def test_validate_all_project_workflows():
         """
         Validate every workflow file in the project's .github/workflows directory.
+        """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
         if not workflows_dir.exists():
