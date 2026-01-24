@@ -219,14 +219,10 @@ def assess_complexity(file_data: dict[str, Any], commit_count: int) -> tuple[int
     score = 0
 
     # File count impact
-    score += calculate_score(
-        file_data["file_count"], [(50, 30), (20, 20), (10, 10)], default=5
-    )
+    score += calculate_score(file_data["file_count"], [(50, 30), (20, 20), (10, 10)], default=5)
 
     # Line change impact
-    score += calculate_score(
-        file_data["total_changes"], [(2000, 30), (1000, 20), (500, 15)], default=5
-    )
+    score += calculate_score(file_data["total_changes"], [(2000, 30), (1000, 20), (500, 15)], default=5)
 
     # Large file penalty (capped at 20)
     if file_data["has_large_files"]:
@@ -243,9 +239,7 @@ def assess_complexity(file_data: dict[str, Any], commit_count: int) -> tuple[int
     return score, "Low"
 
 
-def find_scope_issues(
-    pr_title: str, file_data: dict[str, Any], config: dict[str, Any]
-) -> list[str]:
+def find_scope_issues(pr_title: str, file_data: dict[str, Any], config: dict[str, Any]) -> list[str]:
     """
     Identify scope-related issues in a pull request based on its title and aggregated file-change data.
 
@@ -273,16 +267,12 @@ def find_scope_issues(
     # Size checks - File Count
     max_files = int(scope_conf.get("max_files_changed", 30))
     if file_data["file_count"] > max_files:
-        issues.append(
-            f"Too many files changed ({file_data['file_count']} > {max_files})"
-        )
+        issues.append(f"Too many files changed ({file_data['file_count']} > {max_files})")
 
     # FIX: Re-added missing logic for Total Changes
     max_total_changes = int(scope_conf.get("max_total_changes", 1500))
     if file_data["total_changes"] > max_total_changes:
-        issues.append(
-            f"Large changeset ({file_data['total_changes']} lines > {max_total_changes})"
-        )
+        issues.append(f"Large changeset ({file_data['total_changes']} lines > {max_total_changes})")
 
     # Context switching check
     distinct_types = len(file_data["file_categories"])
@@ -315,14 +305,10 @@ def find_related_issues(pr_body: Optional[str], repo_url: str) -> List[dict[str,
 
     for pattern in patterns:
         for match in re.finditer(pattern, pr_body, re.IGNORECASE):
-            issue_num = (
-                match.group(1) if match.lastindex == 1 else match.group(match.lastindex)
-            )
+            issue_num = match.group(1) if match.lastindex == 1 else match.group(match.lastindex)
             if issue_num not in found_ids:
                 found_ids.add(issue_num)
-                results.append(
-                    {"number": issue_num, "url": f"{repo_url}/issues/{issue_num}"}
-                )
+                results.append({"number": issue_num, "url": f"{repo_url}/issues/{issue_num}"})
     return results
 
 
@@ -360,26 +346,16 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
             return ""
         return f"\n**{header}**\n" + "".join([f"- {i}\n" for i in items])
 
-    cat_str = "\n".join(
-        [
-            f"- {k.title()}: {v}"
-            for k, v in data.file_analysis["file_categories"].items()
-        ]
-    )
+    cat_str = "\n".join([f"- {k.title()}: {v}" for k, v in data.file_analysis["file_categories"].items()])
 
     large_files_str = ""
     if data.file_analysis["large_files"]:
-        lines = [
-            f"- `{f['filename']}`: {f['changes']} lines"
-            for f in data.file_analysis["large_files"]
-        ]
+        lines = [f"- `{f['filename']}`: {f['changes']} lines" for f in data.file_analysis["large_files"]]
         large_files_str = "\n**Large Files (>500 lines):**\n" + "\n".join(lines) + "\n"
 
     related_str = ""
     if data.related_issues:
-        related_str = "\n**Related Issues:**\n" + "".join(
-            [f"- #{i['number']}\n" for i in data.related_issues]
-        )
+        related_str = "\n**Related Issues:**\n" + "".join([f"- #{i['number']}\n" for i in data.related_issues])
 
     recs = []
     if data.risk_level == "High":
@@ -424,9 +400,7 @@ def write_output(report: str) -> None:
             with open(gh_summary, "a", encoding="utf-8") as f:
                 f.write(report)
         except IOError as e:
-            print(
-                f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr
-            )
+            print(f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
 
     # 2. FIX: Secure Temp File (Address Bandit B303)
     try:

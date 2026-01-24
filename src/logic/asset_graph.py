@@ -130,19 +130,13 @@ class AssetRelationshipGraph:
             self.relationships[source_id] = []
 
         # Avoid duplicates
-        if not any(
-            r[0] == target_id and r[1] == rel_type
-            for r in self.relationships[source_id]
-        ):
+        if not any(r[0] == target_id and r[1] == rel_type for r in self.relationships[source_id]):
             self.relationships[source_id].append((target_id, rel_type, strength))
 
         if bidirectional:
             if target_id not in self.relationships:
                 self.relationships[target_id] = []
-            if not any(
-                r[0] == source_id and r[1] == rel_type
-                for r in self.relationships[target_id]
-            ):
+            if not any(r[0] == source_id and r[1] == rel_type for r in self.relationships[target_id]):
                 self.relationships[target_id].append((source_id, rel_type, strength))
 
     def calculate_metrics(self) -> dict[str, Any]:
@@ -187,9 +181,7 @@ class AssetRelationshipGraph:
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
 
         density = (
-            total_relationships
-            / (effective_assets_count * (effective_assets_count - 1))
-            * 100
+            total_relationships / (effective_assets_count * (effective_assets_count - 1)) * 100
             if effective_assets_count > 1
             else 0.0
         )
