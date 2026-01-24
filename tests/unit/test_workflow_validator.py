@@ -432,7 +432,11 @@ class TestIntegrationWithActualWorkflows:
 
     @staticmethod
     def test_validate_actual_pr_agent_workflow():
-        """Test validation of actual pr-agent.yml if it exists"""
+        """
+        Validate the repository's .github/workflows/pr-agent.yml workflow file when present.
+        
+        If the file exists, assert that the workflow parses as valid and that the parsed workflow_data contains a top-level "jobs" key; if the file does not exist, the test is skipped.
+        """
         workflow_path = (
             Path(__file__).parent.parent.parent
             / ".github"
@@ -908,7 +912,11 @@ class TestWorkflowValidatorPerformance:
 
     @staticmethod
     def test_validate_multiple_workflows_sequentially():
-        """Test validating multiple workflows in sequence"""
+        """
+        Validate that multiple GitHub workflow files can be validated sequentially.
+        
+        Creates and validates ten distinct temporary workflow files in sequence and asserts every validation result is valid and that ten results are produced.
+        """
         workflows = []
         for i in range(10):
             f = tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False)
@@ -1015,7 +1023,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_float_values():
-        """Test workflow with float values"""
+        """
+        Verify that a workflow containing floating-point values is accepted as valid.
+        
+        Creates a temporary YAML workflow with float values in environment fields and asserts that validate_workflow returns a valid ValidationResult.
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """

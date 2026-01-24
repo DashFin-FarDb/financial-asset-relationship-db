@@ -30,18 +30,16 @@ REL_TYPE_COLORS = defaultdict(
 
 
 def _is_valid_color_format(color: str) -> bool:
-    """Validate if a string is a valid color format.
-
-    Supports common color formats:
-    - Hex colors (#RGB, #RRGGBB, #RRGGBBAA)
-    - RGB/RGBA (e.g., 'rgb(255,0,0)', 'rgba(255,0,0,0.5)')
-    - Named colors (delegated to Plotly)
-
-    Args:
-        color: Color string to validate
-
+    """
+    Determine whether a string represents an acceptable color value for visualization.
+    
+    Accepts hexadecimal color codes (#RGB, #RRGGBB, #RRGGBBAA), rgb()/rgba() function strings (e.g., 'rgb(255,0,0)', 'rgba(255,0,0,0.5)'), or any non-empty string (treated as a named color and deferred to Plotly for final validation).
+    
+    Parameters:
+        color (str): Color string to validate.
+    
     Returns:
-        True if color format is valid, False otherwise
+        True if `color` matches a hex or rgb/rgba pattern or is a non-empty string (treated as a named color), `False` otherwise.
     """
     if not isinstance(color, str) or not color:
         return False
@@ -61,93 +59,39 @@ def _is_valid_color_format(color: str) -> bool:
 
 
 def _build_asset_id_index(asset_ids: List[str]) -> dict[str, int]:
-    """Build O(1) lookup index for asset IDs to their positions."""
+    """
+    Create a lookup mapping each asset ID to its index in the provided sequence.
+    
+    Parameters:
+        asset_ids (List[str]): Sequence of asset identifier strings.
+    
+    Returns:
+        dict[str, int]: A dictionary mapping each asset ID to its zero-based position.
+    """
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
 
 
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> dict[Tuple[str, str, str], float]:
-    """Build optimized relationship index for O(1) lookups with pre-filtering and
-    thread safety.
-
-    This function consolidates relationship data into a single index structure that
-    can be efficiently queried for:
-    - Checking if a relationship exists (O(1) lookup)
-    - Getting relationship strength (O(1) lookup)
-    - Detecting bidirectional relationships (O(1) reverse lookup)
-
-    Performance optimizations:
-    - Pre-filters graph.relationships to only include relevant source_ids
-    - Uses set-based membership tests for O(1) lookups
-    - Avoids unnecessary iterations over irrelevant relationships
-    - Reduces continue statements by filtering upfront
-
-    Thread Safety:
-    ==============
-    This function uses a reentrant lock (RLock) to protect concurrent access to
-    graph.relationships within this module. However, true thread safety requires
-    coordination across the entire codebase.
-
-    Implementation:
-    - Uses threading.RLock (_graph_access_lock) to synchronize access to
-      graph.relationships
-    - The lock is reentrant, allowing the same thread to acquire it multiple
-      times safely
-    - Creates a snapshot of relationships within the lock to minimize lock hold
-      time
-
-    Thread safety guarantees (with conditions):
-    ✓ SAFE: Multiple threads calling visualization functions in this module
-      concurrently
-    ✓ SAFE: Concurrent calls to this function with the same graph object
-    ⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe
-      if:
-      - All code that modifies graph.relationships uses the same
-        _graph_access_lock, OR
-      - The graph object is treated as immutable after creation (recommended
-        approach)
-
-    Recommended usage patterns for thread safety:
-    1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
-       completely before passing it to visualization functions. This eliminates the
-       need for locking.
-    2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure all
-       modification code acquires _graph_access_lock before accessing
-       graph.relationships. This requires coordination across your entire codebase.
-
-    Note: The AssetRelationshipGraph class itself does not implement any locking
-    mechanisms. Thread safety for modifications must be managed by the calling
-    code. If other parts of your application modify graph.relationships without
-    using _graph_access_lock, race conditions may occur.
-
-    Error Handling (addresses review feedback):
-    ===========================================
-    This function implements comprehensive error handling to ensure robustness:
-    - Validates that graph is an AssetRelationshipGraph instance
-    - Validates that graph.relationships exists and is a properly formatted
-      dictionary
-    - Validates that asset_ids is iterable and contains only strings
-    - Validates each relationship tuple has the correct structure (3 elements)
-    - Validates data types for target_id (string), rel_type (string), and
-      strength (numeric)
-    - Provides detailed error messages indicating the exact location and nature
-      of any issues
-
-    Args:
-        graph: The asset relationship graph
-        asset_ids: Iterable of asset IDs to include (will be converted to a set
-            for O(1) membership tests)
-
+    """
+    Build an index mapping each relevant (source_id, target_id, rel_type) tuple to its numeric strength.
+    
+    Only relationships whose source is present in asset_ids and whose target is also present in asset_ids are included; strengths are converted to floats.
+    
+    Parameters:
+        graph: AssetRelationshipGraph instance containing a .relationships mapping.
+        asset_ids: Iterable of asset IDs to include (will be converted to a set for membership tests).
+    
     Returns:
-        Dictionary mapping (source_id, target_id, rel_type) to strength for all
-        relationships
-
+        dict mapping (source_id, target_id, rel_type) to strength (float) for all included relationships.
+    
     Raises:
-        TypeError: If graph is not an AssetRelationshipGraph instance, or if data
-            types are invalid
-        ValueError: If graph.relationships has invalid structure or malformed
-            data
+        TypeError: If graph is not an AssetRelationshipGraph, if graph.relationships is not a dict,
+            or if relationship entries have incorrect types (e.g., non-string ids or types).
+        ValueError: If graph is missing a relationships attribute, if asset_ids is not iterable or contains
+            non-string values, or if a relationship tuple does not have exactly three elements or has
+            a non-numeric strength.
     """
     # Validate graph input
     if not isinstance(graph, AssetRelationshipGraph):
@@ -406,22 +350,17 @@ def _prepare_layout_config(
     base_title: str = "Financial Asset Network",
     layout_options: Optional[dict[str, object]] = None,
 ) -> Tuple[str, dict[str, object]]:
-    """Prepare layout configuration with dynamic title based on visualization data.
-
-    This function separates layout configuration logic from the main
-    visualization function, improving modularity and making it easier to
-    customize layouts in different contexts.
-
-    Args:
-        num_assets: Number of assets in the visualization
-        relationship_traces: List of relationship traces to count visible
-            relationships
-        base_title: Base title text (default: "Financial Asset Network")
-        layout_options: Optional layout customization options
-
+    """
+    Prepare layout options and a dynamic title reflecting the number of assets and visible relationships.
+    
+    Parameters:
+        num_assets (int): Total number of assets displayed.
+        relationship_traces (List[go.Scatter3d]): Relationship traces used to count visible relationships.
+        base_title (str): Base title text to prefix the counts.
+        layout_options (Optional[dict[str, object]]): Layout configuration overrides; if None an empty dict is returned.
+    
     Returns:
-        Tuple of (dynamic_title, layout_options) ready for use with
-            _configure_3d_layout
+        Tuple[str, dict[str, object]]: A tuple where the first element is the formatted dynamic title and the second is the layout options dict to apply.
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
     dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
@@ -448,18 +387,22 @@ def _configure_3d_layout(
     title: str,
     options: Optional[dict[str, object]] = None,
 ) -> None:
-    """Configure the 3D layout for the figure.
-
-    Args:
-        fig: Target Plotly figure
-        title: Title text
-        options: Optional mapping to override defaults. Supported keys:
-            - width(int)
-            - height(int)
-            - gridcolor(str)
-            - bgcolor(str)
-            - legend_bgcolor(str)
-            - legend_bordercolor(str)
+    """
+    Apply a standard 3D scene and overall layout configuration to a Plotly figure.
+    
+    Configures title, scene axes (labels, grid color, background, camera), figure size, legend placement and styling, and hover behavior. The optional `options` mapping may override defaults:
+    
+    - width (int): figure width in pixels (default 1200)
+    - height (int): figure height in pixels (default 800)
+    - gridcolor (str): grid line color for x/y/z axes (default "rgba(200, 200, 200, 0.3)")
+    - bgcolor (str): 3D scene background color (default "rgba(248, 248, 248, 0.95)")
+    - legend_bgcolor (str): legend background color (default "rgba(255, 255, 255, 0.8)")
+    - legend_bordercolor (str): legend border color (default "rgba(0, 0, 0, 0.3)")
+    
+    Parameters:
+        fig: The Plotly Figure to configure.
+        title: Text to display as the figure title.
+        options: Optional mapping of layout overrides as described above.
     """
     opts = options or {}
     width = int(opts.get("width", 1200))
@@ -706,7 +649,26 @@ def _collect_and_group_relationships(
     asset_ids: Iterable[str],
     relationship_filters: Optional[dict[str, bool]] = None,
 ) -> dict[Tuple[str, bool], List[dict]]:
-    """Collect and group relationships with directionality info in a single pass."""
+    """
+    Group graph relationships by relationship type and bidirectionality, applying optional filters.
+    
+    Builds an index of relationships for the provided asset_ids and returns a mapping from
+    (rel_type, is_bidirectional) to a list of relationship dictionaries. Each relationship
+    dictionary contains the keys "source_id", "target_id", and "strength" (float). Bidirectional
+    pairs are emitted only once (as a bidirectional group); unidirectional edges are emitted
+    in their own groups.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph providing relationship data.
+        asset_ids (Iterable[str]): Asset identifiers to include when collecting relationships.
+        relationship_filters (Optional[dict[str, bool]]): When provided, keys are relationship
+            types and boolean values indicate whether to include that type (`True`) or exclude it
+            (`False`). If None, all relationship types are considered.
+    
+    Returns:
+        dict[tuple[str, bool], List[dict]]: Mapping from (rel_type, is_bidirectional) to lists of
+        relationship dicts with keys "source_id", "target_id", and "strength".
+    """
     relationship_index = _build_relationship_index(graph, asset_ids)
 
     processed_pairs: Set[Tuple[str, str, str]] = set()
@@ -751,7 +713,21 @@ def _build_edge_coordinates_optimized(
     positions: np.ndarray,
     asset_id_index: dict[str, int],
 ) -> Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]:
-    """Build edge coordinate lists for relationships using optimized O(1) lookups."""
+    """
+    Create parallel x, y, and z coordinate lists for line segments that represent relationships.
+    
+    Parameters:
+        relationships (List[dict]): Sequence of relationship dicts each containing at least the keys
+            'source_id' and 'target_id'.
+        positions (np.ndarray): Array of node coordinates with shape (n, 3); each row is (x, y, z).
+        asset_id_index (dict[str, int]): Mapping from asset_id to the row index in `positions`.
+    
+    Returns:
+        Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]:
+            Three lists (edges_x, edges_y, edges_z), each of length 3 * len(relationships).
+            For each relationship the consecutive entries are [source_coord, target_coord, None],
+            where the trailing `None` separates segments for plotting.
+    """
     num_edges = len(relationships)
     edges_x: List[Optional[float]] = [None] * (num_edges * 3)
     edges_y: List[Optional[float]] = [None] * (num_edges * 3)
@@ -831,7 +807,12 @@ def _create_trace_for_group(
     positions: np.ndarray,
     asset_id_index: dict[str, int],
 ) -> go.Scatter3d:
-    """Create a single trace for a relationship group with optimized performance."""
+    """
+    Create a Plotly 3D line trace representing a group of relationships.
+    
+    Returns:
+        go.Scatter3d: A 3D line trace where each relationship is rendered as a three-point segment (source, separator, target), with line style, hover text, visibility, and legend grouping configured for the given relationship type and directionality.
+    """
     edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(
         relationships, positions, asset_id_index
     )
@@ -857,11 +838,20 @@ def _create_relationship_traces(
     asset_ids: List[str],
     relationship_filters: Optional[dict[str, bool]] = None,
 ) -> List[go.Scatter3d]:
-    """Create separate traces for different types of relationships
-    with enhanced visibility.
-
-    Returns a list of traces for batch addition to figure using
-    fig.add_traces() for optimal performance.
+    """
+    Create Plotly 3D line traces grouped by relationship type and direction for the given graph and assets.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph containing a `relationships` mapping to group into traces.
+        positions (np.ndarray): Nx3 array of node coordinates; length N must match `asset_ids`.
+        asset_ids (List[str]): Ordered list of asset identifiers corresponding to `positions`.
+        relationship_filters (Optional[dict[str, bool]]): Optional map of relationship type to a boolean indicating whether that type should be included; if None all relationship types are considered.
+    
+    Returns:
+        List[go.Scatter3d]: A list of Plotly 3D line traces, one per (relationship type, bidirectionality) group, ready for batch addition to a figure.
+    
+    Raises:
+        ValueError: If `graph` is not an AssetRelationshipGraph, `graph.relationships` is missing or not a dict, `positions` is not a numpy array, or `positions` length does not match `asset_ids`.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError(
@@ -900,10 +890,20 @@ def _create_directional_arrows(
     positions: np.ndarray,
     asset_ids: List[str],
 ) -> List[go.Scatter3d]:
-    """Create arrow markers for unidirectional relationships using
-    vectorized NumPy operations.
-
-    Returns a list of traces for batch addition to figure.
+    """
+    Create marker traces representing the direction of unidirectional relationships.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph containing a `relationships` mapping.
+        positions (np.ndarray): Array of shape (n, 3) with 3D coordinates for each asset.
+        asset_ids (List[str]): Sequence of asset IDs aligned with `positions`.
+    
+    Returns:
+        List[go.Scatter3d]: A list containing a single Scatter3d trace of arrow markers positioned at 70% along each unidirectional edge, or an empty list if no unidirectional relationships exist.
+    
+    Raises:
+        TypeError: If `graph` is not an AssetRelationshipGraph.
+        ValueError: If `graph.relationships` is missing or malformed, if `positions` and `asset_ids` are inconsistent or invalid (wrong shape, non-numeric, non-finite), or if `asset_ids` contains empty/non-string entries.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
@@ -997,25 +997,14 @@ def _create_directional_arrows(
 
 
 def _validate_filter_parameters(filter_params: dict[str, bool]) -> None:
-    """Validate that all filter parameters are boolean values.
-
-    Args:
-        filter_params: Dictionary mapping filter parameter names to
-            their boolean values.
-            Expected keys:
-                show_same_sector,
-                show_market_cap,
-                show_correlation,
-                show_corporate_bond,
-                show_commodity_currency,
-                show_income_comparison,
-                show_regulatory,
-                show_all_relationships,
-                toggle_arrows
-
+    """
+    Ensure every value in `filter_params` is a boolean.
+    
+    Parameters:
+        filter_params (dict[str, bool]): Mapping of filter names to their values.
+    
     Raises:
-        TypeError: If any parameter is not a boolean or if filter_params is not
-            a dictionary
+        TypeError: If `filter_params` is not a dict or any value is not a `bool`.
     """
     if not isinstance(filter_params, dict):
         raise TypeError(
@@ -1037,16 +1026,15 @@ def _validate_filter_parameters(filter_params: dict[str, bool]) -> None:
 def _validate_relationship_filters(
     relationship_filters: Optional[dict[str, bool]],
 ) -> None:
-    """Validate relationship filter dictionary structure and values.
-
-    Args:
-        relationship_filters: Optional dictionary mapping
-            relationship types to boolean visibility flags
-
+    """
+    Verify that `relationship_filters`, if provided, maps relationship type names to visibility flags.
+    
+    Parameters:
+        relationship_filters: Optional mapping where keys are relationship type names and values indicate whether that relationship should be shown; if `None`, no filtering is applied.
+    
     Raises:
-        TypeError: If relationship_filters is not None and not a dictionary
-        ValueError: If relationship_filters contains invalid keys or non-boolean
-            values
+        TypeError: If `relationship_filters` is not a dictionary when provided.
+        ValueError: If any key is not a string or any value is not a boolean.
     """
     if relationship_filters is None:
         return

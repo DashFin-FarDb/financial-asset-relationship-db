@@ -44,10 +44,13 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
     @staticmethod
     def workflow_raw(workflow_file: Path) -> str:
         """
-        Get the raw text of the workflow file for text-based validation.
-
+        Read and return the raw UTF-8 text of the workflow file.
+        
+        Parameters:
+            workflow_file (Path): Path to the workflow YAML file.
+        
         Returns:
-            The file contents decoded as UTF-8.
+            str: The file contents decoded as UTF-8.
         """
         with open(workflow_file, "r", encoding="utf-8") as f:
             return f.read()
@@ -67,7 +70,15 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
 
     @staticmethod
     def test_no_duplicate_with_blocks_in_setup_python(workflow_raw: str):
-        """Test that Setup Python step doesn't have duplicate 'with:' blocks."""
+        """
+        Ensure each "Setup Python" step contains at most one `with:` block.
+        
+        Scans the raw workflow YAML text for occurrences of `name: Setup Python`. For each occurrence, inspects the following lines (up to 10) until the next step begins and counts `with:` blocks, asserting there is at most one.
+        
+        Parameters:
+            workflow_raw (str): Raw UTF-8 text of the workflow YAML file to inspect.
+        
+        """
         # Split into lines and check for pattern of duplicate 'with:' after Setup Python
         lines = workflow_raw.split("\n")
 
@@ -88,7 +99,12 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
 
     @staticmethod
     def test_setup_python_single_python_version_definition(workflow_raw: str):
-        """Test that python-version is defined only once per Setup Python step."""
+        """
+        Ensure each 'Setup Python' step contains exactly one 'python-version' definition.
+        
+        Parameters:
+            workflow_raw (str): Raw text of the workflow YAML file to scan for 'Setup Python' steps and their 'python-version' occurrences.
+        """
         lines = workflow_raw.split("\n")
 
         for i, line in enumerate(lines):
@@ -113,10 +129,10 @@ class TestPRAgentWorkflowStructureValidation:
     @pytest.fixture
     def workflow_content(self) -> dict[str, Any]:
         """
-        Load and parse the repository's pr-agent GitHub Actions workflow YAML.
-
+        Load and parse the repository's pr-agent GitHub Actions workflow YAML from .github/workflows/pr-agent.yml.
+        
         Returns:
-            dict: The workflow content parsed from .github/workflows/pr-agent.yml as a mapping of YAML keys to Python objects.
+            dict: Workflow content as a mapping of YAML keys to native Python objects.
         """
         with open(".github/workflows/pr-agent.yml", "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
@@ -170,8 +186,8 @@ class TestPRAgentWorkflowStructureValidation:
 
     def test_trigger_on_issue_comment(self, workflow_content: dict[str, Any]):
         """
-        Check that the workflow includes an `issue_comment` trigger (used for @copilot mentions).
-
+        Ensure the workflow defines an `issue_comment` trigger to support @copilot mentions.
+        
         Parameters:
             workflow_content (dict[str, Any]): Parsed workflow YAML as a dictionary.
         """
@@ -187,10 +203,10 @@ class TestPRAgentWorkflowSetupSteps:
     @pytest.fixture
     def pr_agent_job(self) -> dict[str, Any]:
         """
-        Return the configuration for the 'pr-agent-trigger' job from the workflow file.
-
+        Retrieve the 'pr-agent-trigger' job configuration from .github/workflows/pr-agent.yml.
+        
         Returns:
-            job (dict[str, Any]): Mapping of the 'pr-agent-trigger' job as defined in .github/workflows/pr-agent.yml
+            dict[str, Any]: Mapping for the 'pr-agent-trigger' job as defined in the workflow file.
         """
         with open(".github/workflows/pr-agent.yml", "r", encoding="utf-8") as f:
             workflow = yaml.safe_load(f)
@@ -234,7 +250,12 @@ class TestPRAgentWorkflowSetupSteps:
                 )
 
     def test_nodejs_version_is_18(self, pr_agent_job: dict[str, Any]):
-        """Test that Node.js 18 is specified."""
+        """
+        Verify the 'Setup Node.js' step in the pr-agent-trigger job specifies node-version "18".
+        
+        Parameters:
+            pr_agent_job (dict[str, Any]): The pr-agent-trigger job configuration dictionary parsed from the workflow file.
+        """
         steps = pr_agent_job.get("steps", [])
         for step in steps:
             if step.get("name") == "Setup Node.js":

@@ -36,7 +36,18 @@ def workflow_content() -> str:
 
 @pytest.fixture(scope="module")
 def workflow_config(workflow_content: str) -> dict[str, Any]:
-    """Parse YAML content once for the module."""
+    """
+    Parse the workflow YAML text into a Python mapping.
+    
+    Parameters:
+        workflow_content (str): Raw YAML content of the workflow file.
+    
+    Returns:
+        dict[str, Any]: Parsed YAML as a dictionary.
+    
+    Raises:
+        Fails the running test via `pytest.fail` if the YAML cannot be parsed.
+    """
     try:
         return yaml.safe_load(workflow_content)
     except yaml.YAMLError as e:
@@ -45,7 +56,18 @@ def workflow_config(workflow_content: str) -> dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def scan_job(workflow_config: dict[str, Any]) -> dict[str, Any]:
-    """Get the vulnerabilities-scan job configuration."""
+    """
+    Retrieve the 'vulnerabilities-scan' job configuration from a parsed workflow dictionary.
+    
+    Parameters:
+        workflow_config (dict[str, Any]): Parsed GitHub Actions workflow configuration (from YAML).
+    
+    Returns:
+        dict[str, Any]: The configuration dictionary for the 'vulnerabilities-scan' job.
+    
+    Notes:
+        Fails the running test if the 'vulnerabilities-scan' job is not present in `workflow_config`.
+    """
     jobs = workflow_config.get("jobs", {})
     if "vulnerabilities-scan" not in jobs:
         pytest.fail("Workflow missing required job: 'vulnerabilities-scan'")
@@ -54,7 +76,15 @@ def scan_job(workflow_config: dict[str, Any]) -> dict[str, Any]:
 
 @pytest.fixture(scope="module")
 def job_steps(scan_job: dict[str, Any]) -> List[dict[str, Any]]:
-    """Get the list of steps from the scan job."""
+    """
+    Return the steps list from a job mapping parsed from the workflow configuration.
+    
+    Parameters:
+        scan_job (dict[str, Any]): Mapping for a workflow job (e.g., the "vulnerabilities-scan" job) as parsed from the YAML file.
+    
+    Returns:
+        List[dict[str, Any]]: List of step mappings from the job's "steps" key, or an empty list if no steps are present.
+    """
     return scan_job.get("steps", [])
 
 
@@ -106,10 +136,9 @@ class TestWorkflowStructure:
     @staticmethod
     def test_has_valid_name(workflow_config: dict[str, Any]):
         """
-        Assert the workflow defines a non-empty name string and that the name contains "debricked".
-
-        Raises:
-            AssertionError: If the workflow name is missing, not a string, empty, or does not include "debricked".
+        Check that the workflow defines a non-empty name and that the name includes "debricked".
+        
+        This test fails if the workflow name is missing, not a string, empty, or does not contain "debricked" (case-insensitive).
         """
         name = workflow_config.get("name", "")
         assert isinstance(name, str) and name, (
@@ -180,10 +209,10 @@ class TestWorkflowStructure:
     @staticmethod
     def test_runs_on_ubuntu(scan_job: dict[str, Any]):
         """
-        Assert that the provided job configuration targets an Ubuntu runner.
-
+        Verify that the given job configuration targets an Ubuntu runner.
+        
         Parameters:
-            scan_job (dict[str, Any]): The workflow job dictionary to inspect (e.g., the `vulnerabilities-scan` job).
+            scan_job (dict[str, Any]): Workflow job dictionary (e.g., the 'vulnerabilities-scan' job) whose `runs-on` value will be checked.
         """
         runs_on = scan_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Job should run on Ubuntu runner"
@@ -269,7 +298,16 @@ class TestSecretHandling:
 
     @staticmethod
     def test_debricked_token_configuration(job_steps: List[dict[str, Any]]):
-        """Test DEBRICKED_TOKEN injection via secrets."""
+        """
+        Verify that each Debricked action step defines DEBRICKED_TOKEN as an exact GitHub secret reference.
+        
+        Asserts that at least one step uses a Debricked action, that each such step sets an env key
+        `DEBRICKED_TOKEN`, and that its value exactly matches the pattern `${{ secrets.DEBRICKED_TOKEN }}` with
+        optional internal whitespace.
+        
+        Parameters:
+            job_steps (List[dict[str, Any]]): List of step dictionaries from the scan job to inspect.
+        """
         debricked_steps = get_steps_by_action(job_steps, "debricked")
         assert debricked_steps, (
             "Job must include Debricked action to configure DEBRICKED_TOKEN"
@@ -293,10 +331,10 @@ class TestSecretHandling:
     @staticmethod
     def test_no_hardcoded_secrets(workflow_content: str):
         """
-        Detects likely hardcoded secret tokens in the workflow file content.
-
-        Scans non-comment lines for known secret prefixes (GitHub token prefixes and Debricked token prefix). The test fails if any suspicious pattern is found, reporting the pattern and line number.
-
+        Scan workflow text for likely hardcoded secret token prefixes.
+        
+        Fails the test if any known secret prefix (for example `ghp_`, `gho_`, `ghs_`, `ghr_`, or `dbr_`) appears on a non-comment line; the failure message includes the matched pattern and its line number.
+        
         Parameters:
             workflow_content (str): Raw text content of the workflow file to scan.
         """
@@ -329,18 +367,15 @@ class TestSecurityPatterns:
     @staticmethod
     def test_no_script_injection(workflow_content: str):
         """
-        Detects unsafe interpolation of issue or pull request fields inside run script lines.
-
-        Searches the given workflow YAML text for occurrences of the GitHub event contexts
-        (issue.title, issue.body, pull_request.title, pull_request.body) interpolated
-        within `run:` script lines and asserts that none are present.
-
+        Detect occurrences of GitHub issue or pull request fields interpolated inside `run:` script lines and fail the test if any are found.
+        
+        Scans the provided workflow YAML text for uses of the event contexts `github.event.issue.title`, `github.event.issue.body`, `github.event.pull_request.title`, and `github.event.pull_request.body` embedded within `run:` script lines; presence of any match triggers an AssertionError naming the offending context.
+        
         Parameters:
             workflow_content (str): Raw text content of the workflow file to scan.
-
+        
         Raises:
-            AssertionError: If any matching interpolation is found; the assertion message
-            includes the specific context that triggered the failure.
+            AssertionError: If any unsafe interpolation is detected; the message includes the specific context that triggered the failure.
         """
         unsafe_contexts = [
             r"github\\.event\\.issue\\.title",
@@ -358,10 +393,10 @@ class TestSecurityPatterns:
     @staticmethod
     def test_no_secret_logging(workflow_content: str):
         """
-        Assert that the workflow content does not contain commands that log GitHub secrets.
-
-        Scans for common secret-logging patterns (echo, print, or console.log referencing `secrets`) and fails the test if any matches are found.
-
+        Check that the provided workflow content does not contain commands that log GitHub secrets.
+        
+        Searches for common secret-logging patterns such as uses of `echo`, `print`, or `console.log` that interpolate `secrets` and triggers a test failure if any are found.
+        
         Parameters:
             workflow_content (str): Raw text of the workflow file to inspect.
         """
@@ -384,10 +419,10 @@ class TestWorkflowDocumentation:
     @staticmethod
     def test_has_comments(workflow_content: str):
         """
-        Check that the workflow file contains at least one comment line.
-
+        Assert the workflow contains at least one comment line.
+        
         Parameters:
-            workflow_content (str): Raw text content of the workflow YAML file used to search for comment lines (lines starting with `#`).
+            workflow_content (str): Raw YAML text of the workflow file to inspect.
         """
         # Should have at least some comment lines
         comment_lines = [
@@ -399,7 +434,14 @@ class TestWorkflowDocumentation:
 
     @staticmethod
     def test_documents_security_features(workflow_content: str):
-        """Test that security features are documented."""
+        """
+        Asserts the workflow file documents security-related features.
+        
+        Checks the workflow content for any of the keywords "secret", "permission", or "security" (case-insensitive) and fails the test if none are present.
+        
+        Parameters:
+            workflow_content (str): Raw text content of the workflow YAML file to inspect.
+        """
         content_lower = workflow_content.lower()
 
         # Should document key security aspects
@@ -417,13 +459,13 @@ class TestVersionConsistency:
     @staticmethod
     def test_actions_use_consistent_versioning(job_steps: List[dict[str, Any]]):
         """
-        Validate that every workflow step which declares a `uses` reference pins an action to either a 40-character SHA or a semantic version tag.
-
+        Ensure every workflow step with a `uses` reference pins an action to either a 40-character hex SHA or a `v`-prefixed semantic version tag.
+        
         Parameters:
-            job_steps (List[dict[str, Any]]): List of job step dictionaries parsed from the workflow; steps that include a `uses` key are checked.
-
+        	job_steps (List[dict[str, Any]]): Parsed list of job step dictionaries; only steps containing a `uses` key are validated.
+        
         Raises:
-            AssertionError: If a `uses` entry does not include a version (missing `@`) or if the version is not a 40-character hex SHA or a `v`-prefixed semantic version tag containing digits.
+        	AssertionError: If a `uses` entry is missing a version (no `@`) or its version is not a 40-character hex SHA nor a `v`-prefixed tag containing digits.
         """
         for step in job_steps:
             if "uses" in step:
@@ -448,10 +490,10 @@ class TestVersionConsistency:
     @staticmethod
     def test_no_mutable_tags(job_steps: List[dict[str, Any]]):
         """
-        Ensure workflow steps do not use mutable action tags such as 'latest', 'main', 'master', or 'develop'.
-
+        Validate that no workflow step references an action using a mutable tag (for example: `latest`, `main`, `master`, or `develop`).
+        
         Parameters:
-            job_steps (List[dict[str, Any]]): List of job step mappings parsed from the workflow; each step may include a `uses` field with an action reference (e.g., `owner/repo@v1`).
+            job_steps (List[dict[str, Any]]): List of job step mappings parsed from the workflow. Steps that include a `uses` field are expected to reference an action in the form `owner/repo@version`.
         """
         mutable_tags = ["latest", "main", "master", "develop"]
 
@@ -498,12 +540,12 @@ class TestComplianceWithIssue492:
     @staticmethod
     def test_uses_github_secrets(job_steps: List[dict[str, Any]]):
         """
-        Verify that any step invoking the Debricked action supplies DEBRICKED_TOKEN via GitHub Secrets.
-
-        This test inspects the provided job steps and asserts that each Debricked-related step defines the `DEBRICKED_TOKEN` environment variable referencing `secrets.DEBRICKED_TOKEN`, preventing hardcoded tokens.
-
+        Ensure Debricked action steps set DEBRICKED_TOKEN to reference GitHub Secrets.
+        
+        Asserts that every step using a Debricked action defines an `env.DEBRICKED_TOKEN` value that contains `secrets.DEBRICKED_TOKEN`, preventing hardcoded tokens.
+        
         Parameters:
-            job_steps (List[dict[str, Any]]): The list of job step dictionaries to inspect.
+            job_steps (List[dict[str, Any]]): List of job step dictionaries to inspect.
         """
         debricked_steps = get_steps_by_action(job_steps, "debricked")
 

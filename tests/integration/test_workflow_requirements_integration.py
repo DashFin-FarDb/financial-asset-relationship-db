@@ -19,16 +19,16 @@ REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
     """
-    Parse a pip-format requirements file into a list of (package_name, version_specifier) pairs.
-
-    Skips blank lines and lines beginning with '#'. Extras and environment markers on a requirement line are ignored for matching.
-
+    Parse a pip-style requirements file into a list of (package_name, version_specifier) pairs.
+    
+    Blank lines and lines beginning with `#` are ignored. Extras and environment markers on a requirement line are ignored for matching; if a requirement has no version specifier the second element is an empty string.
+    
     Parameters:
         file_path (Path): Path to the requirements file (e.g., requirements-dev.txt).
-
+    
     Returns:
-        List[Tuple[str, str]]: A list of tuples where the first element is the package name and the second is the version specifier string (empty string if none).
-
+        List[Tuple[str, str]]: Tuples where the first element is the package name and the second is the version specifier string (empty string if none).
+    
     Raises:
         ValueError: If a non-empty, non-comment line cannot be parsed as a requirement; the exception message includes the offending line.
     """

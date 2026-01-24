@@ -25,6 +25,11 @@ class FormulaicdAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
 
     def __init__(self):
+        """
+        Initialize the analyzer and prepare an empty container for discovered Formula objects.
+        
+        The instance attribute `self.formulas` is initialized as an empty list that will hold Formula instances discovered during graph analysis.
+        """
         self.formulas: List[Formula] = []
 
     def analyze_graph(self, graph: AssetRelationshipGraph) -> dict[str, Any]:
@@ -431,22 +436,15 @@ class FormulaicdAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Extract cross-asset relationship formulas present in the provided asset graph.
-
-        This method identifies and returns formulas that describe relationships
-        between different asset classes detected in the graph, such as triangular
-        currency exchange relationships and inverse commodity-currency
-        relationships for commodity-exporting economies.
-
+        Identify cross-asset relationship formulas present in the given asset graph.
+        
+        Detects relationships across asset classes (e.g., triangular currency exchange and commodity–currency inverse relationships) and returns corresponding Formula objects when applicable.
+        
         Parameters:
-            graph (AssetRelationshipGraph): The asset relationship graph used to
-                detect currencies, commodities, and their interconnections.
-
+            graph (AssetRelationshipGraph): Asset relationship graph used to detect currencies, commodities, and their interconnections.
+        
         Returns:
-            List[Formula]: A list of Formula objects representing detected
-                cross-asset
-                relationships; returns an empty list if no applicable
-                relationships are found.
+            A list of Formula objects representing detected cross-asset relationships; an empty list if no applicable relationships are found.
         """
         formulas = []
 
@@ -520,7 +518,15 @@ class FormulaicdAnalyzer:
 
     @staticmethod
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
-        """Calculate average correlation strength in the graph"""
+        """
+        Estimate an average correlation strength for the asset graph using the count of relationships.
+        
+        Parameters:
+        	graph (AssetRelationshipGraph): Graph containing `assets` and `relationships` used to infer correlation strength.
+        
+        Returns:
+        	avg_strength (float): Estimated average correlation strength between 0.0 and 0.75 when relationships exist; `0.5` if the graph has no relationships.
+        """
         total_relationships = sum(len(rels) for rels in graph.relationships.values())
         if total_relationships > 0:
             return min(0.75, total_relationships / len(graph.assets) * 0.1)
@@ -529,15 +535,10 @@ class FormulaicdAnalyzer:
     @staticmethod
     def _categorize_formulas(formulas: List[Formula]) -> dict[str, int]:
         """
-        Group formulas by their category and
-        count how many formulas appear in each category.
-
-        Parameters:
-                formulas (List[Formula]): List of Formula objects to categorize.
-
+        Categorize a list of Formula objects by their category and count how many formulas fall into each category.
+        
         Returns:
-                category_counts (dict[str, int]): Mapping from category name
-                to the number of formulas in that category.
+            dict[str, int]: Mapping from category name to the number of formulas in that category.
         """
         categories = {}
         for formula in formulas:

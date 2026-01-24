@@ -246,7 +246,12 @@ class TestVersionSpecifications:
         assert len(specs_using_gte) >= len(all_with_versions) * 0.7
 
     def test_no_exact_pins_without_comment(self, requirements: List[Tuple[str, str]]):
-        """Test that exact pins (==) are documented with comments in the file."""
+        """
+        Ensure exact-version pins (`==`) in the requirements file are accompanied by a comment explaining the rationale.
+        
+        Parameters:
+            requirements (List[Tuple[str, str]]): Parsed (package, version_spec) pairs from the production requirements file.
+        """
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
@@ -335,11 +340,11 @@ class TestFileOrganization:
     @staticmethod
     def test_reasonable_file_size(file_lines: List[str]):
         """
-        Assert the requirements file contains a reasonable number of lines.
-
+        Check that the requirements file contains fewer than 200 lines.
+        
         Parameters:
             file_lines (List[str]): Lines of the requirements.txt file.
-
+        
         Raises:
             AssertionError: If the file has 200 or more lines.
         """
@@ -414,9 +419,9 @@ class TestSecurityAndCompliance:
     def test_no_known_vulnerable_versions(requirements: List[Tuple[str, str]]):
         """
         Check for obviously outdated exact version pins in parsed requirements.
-
-        Inspects each requirement's version specifier and fails the test if an exact pin (`==major.minor...`) appears to be an obviously very old release based on its major/minor numeric components.
-
+        
+        Inspects each requirement's version specifier and fails the test when an exact `==` pin contains a major.minor numeric pair that appears to be an obviously very old release.
+        
         Parameters:
             requirements (List[Tuple[str, str]]): Parsed requirements as (package_name, version_spec) tuples where `version_spec` is the raw specifier string (for example, '==1.2.3', '>=2.0').
         """

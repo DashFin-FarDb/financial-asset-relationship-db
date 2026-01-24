@@ -82,15 +82,12 @@ class AnalysisData:
 
 def load_config() -> dict[str, Any]:
     """
-    Load repository configuration from the YAML config file.
-
-    Reads and parses the file at CONFIG_PATH and returns its contents as a dictionary.
-    If the config file does not exist or cannot be parsed/read, an informational or
-    warning message is written to stderr and an empty dictionary is returned.
-
+    Load repository configuration from the YAML file at CONFIG_PATH.
+    
+    Parses the YAML config and returns its contents as a dictionary. If the file is missing, cannot be read, or fails to parse, an informational or warning message is written to stderr and an empty dictionary is returned.
+    
     Returns:
-        config (dict[str, Any]): Parsed configuration dictionary, or an empty dict if
-        the file is missing or cannot be loaded.
+        dict[str, Any]: Parsed configuration, or an empty dict if the config is absent or could not be loaded.
     """
     if not os.path.exists(CONFIG_PATH):
         print(
@@ -108,7 +105,14 @@ def load_config() -> dict[str, Any]:
 
 
 def categorize_filename(filename: str) -> str:
-    """Determine category based on filename or extension."""
+    """
+    Map a file path or name to a conceptual category (for example, language, test, or workflow).
+    
+    Returns:
+        category (str): The category for the given filename — "workflow" for files under
+        ".github/workflows", "test" if the name contains "test" or "spec" (case-insensitive),
+        a mapped language/category for known file extensions (via EXTENSION_MAP), or "other".
+    """
     lower_name = filename.lower()
 
     # FIX: Check specific paths (workflows) BEFORE generic patterns (tests)
@@ -180,7 +184,17 @@ def analyze_pr_files(pr_files_iterable: Any) -> dict[str, Any]:
 
 
 def calculate_score(value: int, thresholds: List[Tuple[int, int]], default: int) -> int:
-    """Helper to calculate score based on value thresholds."""
+    """
+    Select the point value for a given numeric value based on ordered thresholds.
+    
+    Parameters:
+        value (int): The numeric value to evaluate against thresholds.
+        thresholds (List[Tuple[int, int]]): Ordered sequence of (limit, points) pairs; the function returns the `points` from the first pair where `value` is greater than `limit`.
+        default (int): Value to return if `value` does not exceed any threshold.
+    
+    Returns:
+        int: The `points` corresponding to the matched threshold, or `default` if no thresholds are exceeded.
+    """
     for limit, points in thresholds:
         if value > limit:
             return points
@@ -317,14 +331,16 @@ def find_related_issues(pr_body: Optional[str], repo_url: str) -> List[dict[str,
 
 def generate_markdown(pr: Any, data: AnalysisData) -> str:
     """
-    Compose a markdown-formatted PR analysis report suitable for display in CI summaries.
-
+    Compose a Markdown-formatted PR analysis report for CI summaries.
+    
+    The report includes an overview (PR number, author, score, changes, and risk indicator), a file breakdown by category, highlights of large files, any detected scope issues, related issue references, and risk-based recommendations.
+    
     Parameters:
-        pr (Any): Pull request object used for metadata (e.g., number and author).
-        data (AnalysisData): Analysis results including file breakdown, complexity score, risk level, scope issues, large files, and related issues.
-
+        pr (Any): Pull request object (used for metadata such as number and author).
+        data (AnalysisData): Aggregated analysis results used to populate the report.
+    
     Returns:
-        str: A Markdown string summarizing the PR overview, file breakdown, large-file highlights, scope issues, related issues, and recommended actions.
+        str: Markdown string containing the formatted PR analysis.
     """
     emoji_map = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}
     risk_emoji = emoji_map.get(data.risk_level, "⚪")
@@ -397,9 +413,9 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 
 def write_output(report: str) -> None:
     """
-    Write the given report to the GitHub Actions summary (if configured), to a securely-created temporary file, and to standard output.
-
-    If the GITHUB_STEP_SUMMARY environment variable is set, the report is appended to that file. A temporary file with a randomized name is created (its path is printed) to persist the report for other steps. The report is also printed to stdout.
+    Write the analysis report to configured outputs for persistence and visibility.
+    
+    If the GITHUB_STEP_SUMMARY environment variable is set, the report is appended to that file. The report is also saved to a securely-named temporary file (its path is printed) and written to standard output. I/O errors encountered while writing to any destination are reported to stderr as warnings.
     """
     # 1. GitHub Actions Summary
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -436,15 +452,9 @@ def write_output(report: str) -> None:
 
 def run() -> None:
     """
-    Execute the PR analysis workflow and emit a Markdown report for the specified pull request.
-
-    This function reads required environment variables (GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, REPO_NAME), loads configuration, fetches the referenced pull request from GitHub, analyzes changed files and commits, computes a complexity score and risk level, identifies scope issues and related issues, generates a Markdown report, and writes the report to the GitHub Actions summary, a secure temporary file, and stdout. On success it exits with code 0. If the computed risk is "High" a GitHub Actions warning annotation is emitted.
-
-    Error behavior:
-    - Prints an error to stderr and exits with code 1 if any required environment variable is missing.
-    - Prints an error to stderr and exits with code 1 if PR_NUMBER cannot be parsed as an integer.
-    - Prints GitHub API errors to stderr and exits with code 1 for GitHub-related failures.
-    - Prints a full traceback and exits with code 1 for any other unexpected exceptions.
+    Run the end-to-end PR analysis and produce a Markdown report.
+    
+    Loads required environment variables (GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, REPO_NAME), fetches the referenced pull request from GitHub, analyzes changed files and commits, computes a complexity score and risk level, detects scope and related-issue signals, generates a Markdown report, and writes the report to the GitHub Actions summary file (if available), a temporary file, and stdout. Emits a GitHub Actions warning annotation when the computed risk is "High". Exits with status 0 on success and with status 1 on configuration, parsing, or GitHub/API errors.
     """
     required_vars = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
     env_vars = {var: os.environ.get(var) for var in required_vars}

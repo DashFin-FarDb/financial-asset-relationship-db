@@ -43,11 +43,10 @@ class TestWorkflowYAMLSyntax:
 
 def get_graph() -> AssetRelationshipGraph:
     """
-    Provide the global AssetRelationshipGraph, initialising it on first access
-    if necessary.
-
+    Return the globally shared AssetRelationshipGraph, initializing it on first access.
+    
     Returns:
-        AssetRelationshipGraph: The global graph instance.
+        The globally shared AssetRelationshipGraph instance.
     """
     global graph
     if graph is None:
@@ -76,12 +75,12 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -> None:
     """
     Set the callable used to construct the global AssetRelationshipGraph on demand.
-
-    If `factory` is a callable it will be used to build the graph the next time
-    `get_graph()` is called. Passing `None` clears any configured factory. In all
+    
+    If `factory` is provided, it will be called to build the graph the next time
+    get_graph() is invoked. Passing `None` clears any configured factory. In all
     cases the current global graph instance is cleared so a new graph will be
     created on next access; this operation is performed in a thread-safe manner.
-
+    
     Parameters:
         factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument
             callable that returns an `AssetRelationshipGraph`, or `None` to remove
@@ -95,27 +94,22 @@ def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -
 
 def reset_graph() -> None:
     """
-    Clear the global graph and any configured factory so the graph will be
-    reinitialised on next access.
-
-    This removes any existing graph instance and clears the graph factory.
+    Reset the global asset relationship graph and clear any configured graph factory so a new graph will be initialized on next access.
+    
+    Clears the current global graph instance and removes the configured factory.
     """
     set_graph_factory(None)
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Construct the asset relationship graph using the configured factory or
-    environment-backed data sources.
-
-    If a `graph_factory` is configured it is invoked. Otherwise, if
-    `GRAPH_CACHE_PATH` is set a real-data graph is created (network access
-    enabled when `USE_REAL_DATA_FETCHER` indicates real data should be used).
-    If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true,
-    `REAL_DATA_CACHE_PATH` is consulted to create a real-data graph. If neither
-    real-data path nor real-data mode is available, a sample database graph is
-    returned.
-
+    Initialize and return the global AssetRelationshipGraph using the configured factory or environment-backed data sources.
+    
+    If a `graph_factory` is set, it is invoked to build the graph. Otherwise the function prefers a real-data graph when environment variables indicate cached or real data availability:
+    - If `GRAPH_CACHE_PATH` is set, a RealDataFetcher is created with that path and network enabled or disabled based on `USE_REAL_DATA_FETCHER`.
+    - If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is truthy, `REAL_DATA_CACHE_PATH` is used to construct a RealDataFetcher with network enabled.
+    - When no real-data path or real-data mode is available, a sample in-memory database graph is returned.
+    
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
     """
@@ -155,16 +149,9 @@ def _should_use_real_data_fetcher() -> bool:
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
     """
-    Manage the application's lifespan by initialising the global graph on startup
-    and logging shutdown.
-
-    Initialises the global asset relationship graph before the application begins
-    handling requests; if initialisation fails the exception is re-raised to abort
-    startup. Yields control for the application's running lifetime and logs on
-    shutdown.
-
-    Parameters:
-        fastapi_app (FastAPI): The FastAPI application instance.
+    Manage application lifespan: initialize the global asset relationship graph on startup and log shutdown.
+    
+    On startup, initializes the global graph; any exception raised during initialization is propagated to abort application startup. Yields control for the application's running lifetime and logs a message when the application is shutting down.
     """
     # Startup
     try:
@@ -354,25 +341,28 @@ app.add_middleware(
 
 def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
     """
-    Raise HTTPException for missing resources.
-
-    Args:
-        asset_id (str): ID of the asset that was not found.
-        resource_type (str): Type of resource (default: "Asset").
+    Raise an HTTP 404 error indicating a specific resource was not found.
+    
+    Parameters:
+        asset_id (str): Identifier of the missing resource.
+        resource_type (str): Human-readable resource type used in the error message (default "Asset").
     """
     raise HTTPException(status_code=404, detail=f"{resource_type} {asset_id} not found")
 
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> dict[str, Any]:
     """
-    Serialize an Asset object to a dictionary representation.
-
-    Args:
-        asset: Asset object to serialize
-        include_issuer: Whether to include issuer_id field (for detail views)
-
+    Serialize an Asset-like object into a dictionary suitable for API responses.
+    
+    Parameters:
+        asset (Any): Object exposing attributes `id`, `symbol`, `name`, `asset_class` (enum with `.value`),
+            `sector`, `price`, `market_cap`, and `currency`, plus optional asset-specific attributes
+            such as `pe_ratio`, `dividend_yield`, `issuer_id`, etc.
+        include_issuer (bool): If True, include `issuer_id` in `additional_fields` when present.
+    
     Returns:
-        Dictionary containing asset data with additional_fields
+        dict[str, Any]: A dictionary with keys `id`, `symbol`, `name`, `asset_class`, `sector`,
+        `price`, `market_cap`, `currency`, and `additional_fields` (a mapping of present optional fields).
     """
     asset_dict = {
         "id": asset.id,

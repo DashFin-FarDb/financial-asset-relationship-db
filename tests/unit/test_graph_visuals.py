@@ -25,12 +25,14 @@ Unit tests for graph visualization utilities including asset ID indexing, relati
     def get_3d_visualization_data_enhanced(self):
         # Return positions (n,3), asset_ids, colors, hover_texts
         """
-        Builds deterministic 3D visualization data for the graph's assets.
-
+        Constructs deterministic 3D positions, color placeholders, and hover labels for each asset in the graph.
+        
+        Asset IDs are the sorted unique identifiers found among relationship sources and targets.
+        
         Returns:
-            positions (numpy.ndarray): Float array of shape (n, 3) containing a 3D position for each asset.
-            asset_ids (list[str]): Sorted list of unique asset identifiers found as relationship sources or targets.
-            colors (list[str]): List of hex color strings, one per asset.
+            positions (numpy.ndarray): Float array of shape (n, 3) with a 3D position for each asset.
+            asset_ids (list[str]): Sorted list of unique asset identifiers.
+            colors (list[str]): Hex color strings, one per asset (placeholder values).
             hover_texts (list[str]): Hover label for each asset, aligned with `asset_ids`.
         """
         asset_ids = sorted(

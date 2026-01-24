@@ -32,13 +32,15 @@ REL_TYPE_COLORS = {
 
 
 def _create_circular_layout(asset_ids: List[str]) -> dict[str, Tuple[float, float]]:
-    """Create circular layout for 2D visualization.
-
-    Args:
-        asset_ids: List of asset IDs to position
-
+    """
+    Compute 2D positions for asset IDs evenly spaced on the unit circle.
+    
+    Parameters:
+        asset_ids (List[str]): Ordered list of asset IDs to place around the circle.
+    
     Returns:
-        Dictionary mapping asset IDs to (x, y) positions on a unit circle
+        dict[str, Tuple[float, float]]: Mapping from each asset ID to its (x, y) coordinates on the unit circle.
+            Returns an empty dict if `asset_ids` is empty.
     """
     if not asset_ids:
         return {}
@@ -56,13 +58,17 @@ def _create_circular_layout(asset_ids: List[str]) -> dict[str, Tuple[float, floa
 
 
 def _create_grid_layout(asset_ids: List[str]) -> dict[str, Tuple[float, float]]:
-    """Create grid layout for 2D visualization.
-
-    Args:
-        asset_ids: List of asset IDs to position
-
+    """
+    Arrange asset IDs on a rectangular grid and return their 2D coordinates.
+    
+    Positions are assigned left-to-right, top-to-bottom: columns increase along x and rows along y,
+    starting at (0.0, 0.0). If `asset_ids` is empty, an empty dictionary is returned.
+    
+    Parameters:
+        asset_ids (List[str]): Ordered list of asset IDs to place on the grid.
+    
     Returns:
-        Dictionary mapping asset IDs to (x, y) positions in a grid
+        dict[str, Tuple[float, float]]: Mapping from each asset ID to its (x, y) grid coordinates as floats.
     """
     if not asset_ids:
         return {}
@@ -82,14 +88,17 @@ def _create_grid_layout(asset_ids: List[str]) -> dict[str, Tuple[float, float]]:
 def _create_spring_layout_2d(
     positions_3d: dict[str, Tuple[float, float, float]], asset_ids: List[str]
 ) -> dict[str, Tuple[float, float]]:
-    """Convert 3D spring layout positions to 2D by dropping z-coordinate.
-
-    Args:
-        positions_3d: Dictionary mapping asset IDs to (x, y, z) positions
-        asset_ids: List of asset IDs
-
+    """
+    Convert 3D layout coordinates to 2D coordinates by dropping the z component.
+    
+    Parameters:
+        positions_3d (dict[str, Tuple[float, float, float]]): Mapping of asset ID to 3D position.
+        asset_ids (List[str]): Asset IDs to include in the output.
+    
     Returns:
-        Dictionary mapping asset IDs to (x, y) positions
+        dict[str, Tuple[float, float]]: Mapping of each asset ID (from asset_ids and present in positions_3d)
+        to a 2-tuple (x, y) with coordinates cast to float. Returns an empty dict if inputs are empty
+        or if no provided asset_ids exist in positions_3d.
     """
     if not positions_3d or not asset_ids:
         return {}
@@ -118,23 +127,24 @@ def _create_2d_relationship_traces(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
-    """Create 2D relationship traces with filtering.
-
-    Args:
-        graph: Asset relationship graph
-        positions: Dictionary mapping asset IDs to (x, y) positions
-        asset_ids: List of asset IDs
-        show_same_sector: Show same sector relationships
-        show_market_cap: Show market cap relationships
-        show_correlation: Show correlation relationships
-        show_corporate_bond: Show corporate bond relationships
-        show_commodity_currency: Show commodity currency relationships
-        show_income_comparison: Show income comparison relationships
-        show_regulatory: Show regulatory relationships
-        show_all_relationships: Master toggle to show all relationships
-
+    """
+    Create Plotly line traces representing relationships between assets, applying per-type filters.
+    
+    Parameters:
+        graph: AssetRelationshipGraph containing relationships indexed by source asset ID.
+        positions: Mapping of asset IDs to 2D (x, y) coordinates used to draw edges.
+        asset_ids: Ordered list of asset IDs to consider when building relationships.
+        show_same_sector: Include "same_sector" relationships.
+        show_market_cap: Include "market_cap_similar" relationships.
+        show_correlation: Include "correlation" relationships.
+        show_corporate_bond: Include "corporate_bond_to_equity" relationships.
+        show_commodity_currency: Include "commodity_currency" relationships.
+        show_income_comparison: Include "income_comparison" relationships.
+        show_regulatory: Include "regulatory_impact" relationships.
+        show_all_relationships: If true, ignore individual show_* flags and include all relationship types.
+    
     Returns:
-        List of Plotly Scatter traces for relationships
+        List of Plotly Scatter traces, one per relationship type that passed filtering (empty list if no relationships).
     """
     if not asset_ids or not positions:
         return []

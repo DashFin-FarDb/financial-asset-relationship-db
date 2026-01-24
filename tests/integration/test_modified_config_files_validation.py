@@ -78,11 +78,11 @@ class TestPRAgentConfigChanges:
 
     def test_basic_sections_present(self, config_data: dict[str, Any]):
         """
-        Verify the PR agent YAML contains the top-level sections required by the project.
-
+        Check that the PR agent configuration contains the required top-level sections.
+        
         Parameters:
-            config_data (dict): Parsed YAML mapping of .github/pr-agent-config.yml.
-
+            config_data (dict[str, Any]): Parsed mapping of .github/pr-agent-config.yml.
+        
         Raises:
             AssertionError: If any of the required top-level sections ('agent', 'monitoring', 'actions', 'quality') is missing.
         """
@@ -95,12 +95,12 @@ class TestPRAgentConfigChanges:
 
     def test_no_complex_token_management(self, config_data: dict[str, Any]):
         """
-        Validate the PR agent configuration does not use complex token-chunking or explicit token limits.
-
-        Checks that the configuration text does not contain "chunk_size" and that "max_tokens" is not present unless a `limits.max_execution_time` value exists in the configuration.
-
+        Ensure the PR agent configuration does not use complex token chunking or explicit token limits.
+        
+        Asserts that the configuration (as a parsed mapping) does not contain the key "chunk_size" (case-insensitive) and that "max_tokens" is not present unless a `limits.max_execution_time` value exists.
+        
         Parameters:
-            config_data (dict[str, Any]): Parsed PR agent configuration data.
+            config_data (dict[str, Any]): Parsed PR agent configuration mapping.
         """
         config_str = str(config_data)
 
@@ -112,13 +112,10 @@ class TestPRAgentConfigChanges:
 
     def test_quality_standards_preserved(self, config_data: dict[str, Any]):
         """
-        Validate that the configuration preserves required quality settings for supported languages and Python tooling.
-
+        Ensure the config's `quality` section includes `python` and `typescript`, and that `python` defines a `linter` and `test_runner` set to "pytest".
+        
         Parameters:
-            config_data (dict[str, Any]): Parsed YAML configuration for the PR agent.
-
-        Details:
-            Asserts that the top-level `quality` section contains `python` and `typescript`, and that the Python quality configuration includes a `linter` and a `test_runner` set to `pytest`.
+            config_data (dict[str, Any]): Parsed PR agent YAML configuration to validate.
         """
         assert "quality" in config_data
         assert "python" in config_data["quality"]
@@ -142,9 +139,9 @@ class TestWorkflowSimplifications:
 
     def test_pr_agent_workflow_simplified(self, workflows_dir: Path):
         """
-        Validate that the PR Agent GitHub Actions workflow has been simplified.
-
-        Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
+        Verify the PR Agent GitHub Actions workflow is simplified and free of deprecated context chunking and inline tiktoken installation.
+        
+        Asserts that .github/workflows/pr-agent.yml exists, does not reference "context_chunker", does not perform an inline "tiktoken" installation immediately adjacent to a "pip install", and includes a simplified Python dependency installation that references "requirements.txt".
         """
         workflow_file = workflows_dir / "pr-agent.yml"
         assert workflow_file.exists()
@@ -295,10 +292,10 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_added(self, req_dev_path: Path):
         """
-        Check that PyYAML is present in requirements-dev.txt.
-
-        Reads the file at req_dev_path (case-insensitive) and asserts that either "pyyaml" or "yaml" appears in its contents.
-
+        Ensure requirements-dev.txt includes PyYAML.
+        
+        Asserts that the file at req_dev_path contains either "pyyaml" or "yaml" (case-insensitive).
+        
         Parameters:
             req_dev_path (Path): Path to the requirements-dev.txt file to inspect.
         """
@@ -311,12 +308,9 @@ class TestRequirementsDevChanges:
 
     def test_no_tiktoken_requirement(self, req_dev_path: Path):
         """
-        Assert the project's development requirements file does not contain "tiktoken".
-
-        Checks the file at req_dev_path for the substring "tiktoken" case-insensitively and fails the test if found.
-
-        Parameters:
-            req_dev_path (Path): Path to the requirements-dev.txt file to inspect.
+        Check that the development requirements file does not list "tiktoken".
+        
+        Fails the test if the requirements-dev.txt at the provided path contains the substring "tiktoken" (case-insensitive).
         """
         with open(req_dev_path, "r") as f:
             content = f.read().lower()
@@ -356,9 +350,7 @@ class TestGitignoreChanges:
     @staticmethod
     def test_codacy_instructions_ignored(gitignore_path: Path):
         """
-        Verify .gitignore includes 'codacy.instructions.md'.
-
-        Checks the repository .gitignore content for the presence of the filename 'codacy.instructions.md' and fails the test if it is missing.
+        Assert that the repository .gitignore contains "codacy.instructions.md".
         """
         with open(gitignore_path, "r") as f:
             content = f.read()
@@ -424,10 +416,10 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_instructions_simplified(codacy_instructions_path: Path):
         """
-        Verify the Codacy instructions are simplified and do not contain certain repository-specific or prescriptive phrases.
-
-        Skips the test if the file does not exist. The test fails if the file contains both the exact substring "git remote -v" and the exact substring "unless really necessary".
-
+        Ensure Codacy instructions are simplified and avoid repository-specific or prescriptive phrases.
+        
+        Skips the test when the file is absent. Fails if the file contains both the exact substrings "git remote -v" and "unless really necessary".
+        
         Parameters:
             codacy_instructions_path (Path): Path to .github/instructions/codacy.instructions.md
         """
@@ -445,9 +437,12 @@ class TestCodacyInstructionsChanges:
     @staticmethod
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):
         """
-        Check that the Codacy instructions file contains required critical rules.
-
-        Asserts that the file includes the string 'codacy_cli_analyze' and the marker 'CRITICAL'.
+        Verify that the Codacy instructions file contains required critical rules.
+        
+        Skips the test if the file does not exist. Asserts that the file content includes the string `codacy_cli_analyze` and the marker `CRITICAL`.
+        
+        Parameters:
+            codacy_instructions_path (Path): Path to the Codacy instructions Markdown file.
         """
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")

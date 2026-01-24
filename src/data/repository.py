@@ -48,7 +48,11 @@ class AssetGraphRepository:
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
-        """Create or update an asset record."""
+        """
+        Insert or update the given Asset in the repository's session.
+        
+        If an ORM record with the asset's id exists it is updated; otherwise a new record is created and added to the session.
+        """
 
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
@@ -58,10 +62,10 @@ class AssetGraphRepository:
 
     def list_assets(self) -> List[Asset]:
         """
-        Retrieve all assets as dataclass instances ordered by id.
-
+        Retrieve all assets as domain model instances ordered by id.
+        
         Returns:
-            List[Asset]: A list of Asset instances ordered by asset id.
+            List[Asset]: Asset instances converted from ORM rows, ordered by asset id.
         """
 
         result = (
@@ -71,17 +75,21 @@ class AssetGraphRepository:
 
     def get_assets_map(self) -> dict[str, Asset]:
         """
-        Map asset IDs to their corresponding Asset dataclass instances.
-
+        Return a mapping of asset IDs to their corresponding Asset instances.
+        
         Returns:
-            assets_map (dict[str, Asset]): Dictionary mapping each asset's
-                `id` to its Asset instance.
+            dict[str, Asset]: Mapping where each key is an asset `id` and each value is the corresponding Asset instance.
         """
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
     def delete_asset(self, asset_id: str) -> None:
-        """Delete an asset and cascading relationships/events."""
+        """
+        Remove the asset with the given id, along with any related relationships and regulatory events.
+        
+        Parameters:
+            asset_id (str): Identifier of the asset to delete. If no asset exists with this id, the operation has no effect.
+        """
         asset = self.session.get(AssetORM, asset_id)
         if asset is not None:
             self.session.delete(asset)
@@ -98,7 +106,16 @@ class AssetGraphRepository:
         *,
         bidirectional: bool,
     ) -> None:
-        """Insert or update a relationship between two assets."""
+        """
+        Create or update the relationship between two assets identified by their IDs.
+        
+        Parameters:
+            source_id (str): ID of the source asset.
+            target_id (str): ID of the target asset.
+            rel_type (str): Relationship type identifier.
+            strength (float): Numeric strength/weight of the relationship.
+            bidirectional (bool): Whether the relationship applies in both directions.
+        """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -194,7 +211,14 @@ class AssetGraphRepository:
     # Regulatory events
     # ------------------------------------------------------------------
     def upsert_regulatory_event(self, event: RegulatoryEvent) -> None:
-        """Create or update a regulatory event record."""
+        """
+        Persist the given regulatory event in the repository, creating a new record or updating an existing one.
+        
+        The event's fields (asset association, type, date, description, impact score) are stored and the set of related asset references is replaced with the event's current related_assets. The ORM instance is added to the session but not committed.
+        
+        Parameters:
+            event (RegulatoryEvent): The regulatory event to create or update.
+        """
         existing = self.session.get(RegulatoryEventORM, event.id)
         if existing is None:
             existing = RegulatoryEventORM(id=event.id)
@@ -217,7 +241,14 @@ class AssetGraphRepository:
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
-        """Delete a regulatory event."""
+        """
+        Remove a regulatory event by its identifier.
+        
+        If an event with the given `event_id` exists, it is deleted from the current session; otherwise no action is taken.
+        
+        Parameters:
+            event_id (str): Identifier of the regulatory event to delete.
+        """
         record = self.session.get(RegulatoryEventORM, event_id)
         if record is not None:
             self.session.delete(record)
@@ -228,13 +259,15 @@ class AssetGraphRepository:
     @staticmethod
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
         """
-        Synchronizes an Asset dataclass into an AssetORM instance.
-        Updating persistent fields and clearing optional fields.
-        To avoid stale values.
-
+        Synchronizes fields from an Asset dataclass into an AssetORM instance in-place.
+        
+        Updates core fields (symbol, name, asset_class, sector, price, market_cap, currency)
+        and resets optional asset-specific fields on the ORM to match the source Asset,
+        preventing stale values from remaining on the ORM.
+        
         Parameters:
-            orm (AssetORM): ORM instance to be updated in-place.
-            asset (Asset): Source dataclass whose fields will be applied to the ORM.
+            orm (AssetORM): ORM instance to update in-place.
+            asset (Asset): Source dataclass whose values will be applied to the ORM.
         """
         orm.symbol = asset.symbol
         orm.name = asset.name
@@ -269,7 +302,10 @@ class AssetGraphRepository:
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
         """
-        Convert an AssetORM instance to an Asset model, mapping fields based on asset class and returning the corresponding subclass or generic Asset.
+        Create an Asset-domain model from an AssetORM, returning the specific subclass for the ORM's asset_class when available.
+        
+        Returns:
+            An instance of Equity, Bond, Commodity, or Currency that corresponds to orm.asset_class with fields populated from the ORM; a generic Asset instance if the asset_class is unrecognized.
         """
         asset_class = AssetClass(orm.asset_class)
         base_kwargs = {
@@ -319,7 +355,15 @@ class AssetGraphRepository:
     @staticmethod
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
         """
-        Convert a RegulatoryEventORM instance to a RegulatoryEvent model, extracting related asset IDs and mapping fields accordingly.
+        Constructs a regulatory event model including the IDs of related assets.
+        
+        Maps persisted fields to the model and converts the stored event_type to the corresponding enumeration.
+        
+        Parameters:
+            orm (RegulatoryEventORM): Persisted regulatory event ORM containing related asset associations.
+        
+        Returns:
+            RegulatoryEvent: Model populated with id, asset_id, event_type (as enum), date, description, impact_score, and related_assets (list of asset IDs).
         """
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(

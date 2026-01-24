@@ -14,9 +14,9 @@ import api.database as database
 @pytest.fixture()
 def restore_database_module(monkeypatch) -> Iterator[None]:
     """
-    Preserve and restore the api.database module state and the DATABASE_URL environment variable around a test.
-
-    Yields control to the test; after the test completes, closes and clears any in-memory SQLite connection on api.database (if present), restores DATABASE_URL to its original value or removes it if it was not set, and reloads the api.database module to reset its state.
+    Preserve and restore api.database module state and the DATABASE_URL environment variable around a test.
+    
+    Yields control to the test. After the test completes, closes any in-memory SQLite connection stored on api.database._MEMORY_CONNECTION (if present), restores DATABASE_URL to its original value or removes it if it was not set, and reloads the api.database module to reset its state.
     """
 
     original_url = os.environ.get("DATABASE_URL")
@@ -76,9 +76,9 @@ def test_uri_style_memory_database_persists_schema_and_data(
     monkeypatch, restore_database_module
 ):
     """
-    Verify URI-style in-memory SQLite configuration is correctly detected and reuses a single connection instance.
-
-    Sets DATABASE_URL to use a URI-style in-memory SQLite database (file::memory:?cache=shared), reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
+    Verify that a URI-style in-memory SQLite database is treated as an in-memory DB whose schema and data persist across get_connection contexts and that the same connection object is reused.
+    
+    Sets a URI-style in-memory DATABASE_URL, reloads the database module, initializes the schema, inserts a row using one connection context, then reads the row from a second connection context and asserts the row exists and both contexts returned the same connection object.
     """
     monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 
@@ -136,7 +136,9 @@ class TestIsMemoryDb:
     def test_is_memory_db_with_regular_file_path(
         self, monkeypatch, restore_database_module
     ):
-        """Test that _is_memory_db returns False for regular file paths."""
+        """
+        Verify that regular filesystem paths are not classified as in-memory SQLite databases.
+        """
         # Regular file paths should return False
         assert database._is_memory_db("/path/to/database.db") is False
         assert database._is_memory_db("database.db") is False
@@ -396,7 +398,11 @@ class TestThreadSafety:
         connections = []
 
         def get_conn():
-            """Acquire a connection using the reloaded_database._connect method and append it to connections list."""
+            """
+            Acquire a database connection and record it for later cleanup.
+            
+            Appends the acquired connection to the module-level `connections` list.
+            """
             conn = reloaded_database._connect()
             connections.append(conn)
 
@@ -416,7 +422,11 @@ class TestThreadSafety:
     def test_concurrent_operations_on_memory_db(
         self, monkeypatch, restore_database_module
     ):
-        """Test concurrent read/write operations on memory database."""
+        """
+        Verifies that multiple threads can concurrently insert into an in-memory SQLite database without errors and that all inserts persist.
+        
+        Starts a shared in-memory database, spawns several threads that each insert a user within a connection context, asserts no exceptions occurred during concurrent writes, and asserts the final row count equals the number of inserts.
+        """
         import threading
 
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -427,7 +437,16 @@ class TestThreadSafety:
         errors = []
 
         def write_user(user_id):
-            """Insert a user into the database safely within a thread context."""
+            """
+            Insert a user row into the `user_credentials` table using the provided identifier.
+            
+            Parameters:
+                user_id (int): Numeric identifier used to construct the `username` ("user{user_id}") and `hashed_password` ("hash{user_id}").
+            
+            Side effects:
+                - Inserts a row into `user_credentials` and commits the transaction.
+                - On exception, appends the raised exception to the module-level `errors` list.
+            """
             try:
                 with reloaded_database.get_connection() as conn:
                     conn.execute(

@@ -20,6 +20,14 @@ class AssetRelationshipGraph:
     """
 
     def __init__(self, database_url: str | None = None) -> None:
+        """
+        Initialize the AssetRelationshipGraph instance.
+        
+        Creates empty containers for assets, directed relationships, and regulatory events, and stores the optional database URL.
+        
+        Parameters:
+            database_url (str | None): Optional connection URL for a backing database; stored on the instance as `self.database_url`.
+        """
         self.assets: dict[str, Asset] = {}
         self.relationships: dict[str, List[Tuple[str, str, float]]] = {}
         self.regulatory_events: List[RegulatoryEvent] = []
@@ -100,18 +108,17 @@ class AssetRelationshipGraph:
         bidirectional: bool = False,
     ) -> None:
         """
-        Add a relationship from source_id to target_id in the graph.
-
+        Add a directed relationship between two assets in the graph.
+        
         Parameters:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
-            rel_type (str): Relationship type label (for example, "same_sector",
-                "corporate_link", "event_impact").
+            rel_type (str): Relationship type label (e.g., "same_sector", "corporate_link", "event_impact").
             strength (float): Numeric strength for the relationship; stored as provided.
             bidirectional (bool): If True, also adds the same relationship from target_id back to source_id.
-
+        
         Notes:
-            Duplicate entries with the same source, target, and rel_type are ignored.
+            If a relationship with the same source, target, and rel_type already exists, the call has no effect for that direction.
         """
         if source_id not in self.relationships:
             self.relationships[source_id] = []
@@ -134,22 +141,17 @@ class AssetRelationshipGraph:
 
     def calculate_metrics(self) -> dict[str, Any]:
         """
-        Compute network-level metrics and distributions
-        for the asset relationship graph.
-
+        Compute summary metrics and distributions describing the asset relationship graph.
+        
         Returns:
-            metrics (dict): A dictionary containing:
-                total_assets (int): Effective number of assets
-                    (max of explicitly added assets and any asset IDs appearing in relationships).
-                total_relationships (int): Total number of relationship entries across all sources.
-                average_relationship_strength (float): Mean strength of all relationships
-                    (0.0 if none).
-                relationship_density (float): Percentage (0-100) of actual relationships
-                    relative to possible directed edges among effective assets.
-                relationship_distribution (dict[str, int]): Counts of relationships keyed by relationship type.
-                asset_class_distribution (dict[str, int]): Counts of assets keyed by their asset_class value.
-                top_relationships (List[Tuple[str, str, str, float]]): Up to 10 relationships sorted by strength descending;
-                    each tuple is (source_id, target_id, rel_type, strength).
+            dict: Metrics including:
+                total_assets (int): Effective number of assets (max of explicitly added assets and asset IDs appearing in relationships).
+                total_relationships (int): Total number of relationship entries.
+                average_relationship_strength (float): Mean strength across all relationships (0.0 if none).
+                relationship_density (float): Percentage (0-100) of actual relationships relative to possible directed edges among effective assets.
+                relationship_distribution (dict[str, int]): Counts of relationships by type.
+                asset_class_distribution (dict[str, int]): Counts of assets by asset_class.
+                top_relationships (List[Tuple[str, str, str, float]]): Up to 10 strongest relationships as (source_id, target_id, rel_type, strength).
                 regulatory_event_count (int): Number of stored regulatory events.
         """
         total_assets = len(self.assets)
@@ -206,13 +208,13 @@ class AssetRelationshipGraph:
         self,
     ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
         """
-        Prepare 3D layout data for visualizing assets and their relationships.
-
+        Prepare 3D layout data for plotting assets on the unit circle in the XY plane.
+        
         Returns:
-            positions (np.ndarray): Array of shape (n, 3) containing XYZ coordinates for each asset. Positions lie on the unit circle in the XY plane (z = 0). If there are no assets, returns an array with a single zeroed position of shape (1, 3).
-            asset_ids (List[str]): Sorted list of asset IDs included in the layout. Includes assets that appear only as relationship targets. If there are no assets, returns ["A"].
-            colors (List[str]): Hex color string for each asset, one-to-one with `asset_ids`. Defaults to "#4ECDC4" for normal assets; in the no-assets case returns ["#888888"].
-            hover_texts (List[str]): Hover label for each asset in the form "Asset: <asset_id>". In the no-assets case returns ["Asset A"].
+            positions (np.ndarray): Array of shape (n, 3) with XYZ coordinates for each asset; coordinates lie on the unit circle in the XY plane (z = 0). If there are no assets, returns a (1, 3) array of zeros.
+            asset_ids (List[str]): Sorted list of asset IDs included in the layout. Includes asset IDs that appear only as relationship targets. If there are no assets, returns ["A"].
+            colors (List[str]): Hex color string for each asset, one-to-one with `asset_ids`. Defaults to "#4ECDC4" for assets; if there are no assets, returns ["#888888"].
+            hover_texts (List[str]): Hover label for each asset in the form "Asset: <asset_id>". If there are no assets, returns ["Asset A"].
         """
         all_ids = set(self.assets.keys())
         for rels in self.relationships.values():

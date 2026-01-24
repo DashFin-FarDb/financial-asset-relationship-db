@@ -31,7 +31,15 @@ class TestMicroagentValidation:
 
     @pytest.fixture
     def microagent_files(self, microagents_dir: Path) -> List[Path]:
-        """Get all microagent markdown files."""
+        """
+        Collect markdown files from the specified microagents directory.
+        
+        Parameters:
+            microagents_dir (Path): Path to the directory containing microagent `.md` files.
+        
+        Returns:
+            files (List[Path]): List of Path objects for each markdown file found in the directory.
+        """
         assert microagents_dir.exists(), "Microagents directory does not exist"
         files = list(microagents_dir.glob("*.md"))
         assert len(files) > 0, "No microagent files found"
@@ -40,16 +48,16 @@ class TestMicroagentValidation:
     @staticmethod
     def parse_frontmatter(content: str) -> tuple[dict[str, Any], str]:
         """
-        Parse YAML frontmatter from markdown content.
-
-        Args:
-            content: Full markdown file content
-
+        Extract YAML frontmatter and the Markdown body from a Markdown file's text.
+        
+        Parameters:
+            content (str): Complete Markdown file text; frontmatter must be delimited by `---` lines.
+        
         Returns:
-            Tuple of (frontmatter_dict, body_content)
-
+            tuple[dict[str, Any], str]: `(frontmatter, body)` where `frontmatter` is the parsed YAML mapping and `body` is the Markdown content after the frontmatter.
+        
         Raises:
-            ValueError: If frontmatter is missing or invalid
+            ValueError: If frontmatter is missing or if the frontmatter contains invalid YAML.
         """
         # Strip leading whitespace/newlines and match YAML frontmatter
         content = content.lstrip()
@@ -82,13 +90,26 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     @pytest.fixture
     @staticmethod
     def repo_engineer_content(repo_engineer_path: Path) -> str:
-        """Load repo_engineer_lead.md content."""
+        """
+        Read the text contents of the repo_engineer_lead.md file.
+        
+        Returns:
+            The file contents as a string.
+        """
         with open(repo_engineer_path, encoding="utf-8") as f:
             return f.read()
 
     @pytest.fixture
     def repo_engineer_frontmatter(self, repo_engineer_content: str) -> dict[str, Any]:
-        """Parse and return frontmatter from repo_engineer_lead.md."""
+        """
+        Extract the YAML frontmatter from the content of repo_engineer_lead.md.
+        
+        Parameters:
+        	repo_engineer_content (str): Full Markdown text of repo_engineer_lead.md, including the YAML frontmatter block.
+        
+        Returns:
+        	frontmatter (dict[str, Any]): Parsed YAML frontmatter as a dictionary mapping frontmatter keys to their values.
+        """
         frontmatter, _ = self.parse_frontmatter(repo_engineer_content)
         return frontmatter
 
@@ -127,7 +148,12 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     @staticmethod
     def test_frontmatter_name_field(repo_engineer_frontmatter: dict[str, Any]):
-        """Test that name field is valid."""
+        """
+        Validate that the frontmatter 'name' field exists, is a non-empty string, and exactly equals "repo_engineer_lead".
+        
+        Parameters:
+            repo_engineer_frontmatter (dict[str, Any]): Parsed YAML frontmatter for the repo_engineer_lead microagent.
+        """
         assert "name" in repo_engineer_frontmatter
         name = repo_engineer_frontmatter["name"]
         assert isinstance(name, str)
@@ -217,7 +243,15 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     @staticmethod
     def test_body_mentions_pr_handling(repo_engineer_body: str):
-        """Test that body mentions PR handling functionality."""
+        """
+        Verify the microagent body describes pull request handling.
+        
+        Parameters:
+            repo_engineer_body (str): Markdown body content of the microagent to inspect for PR handling mentions.
+        
+        Raises:
+            AssertionError: If the body does not contain indicators of PR handling such as "pr" or "pull request".
+        """
         body_lower = repo_engineer_body.lower()
         assert any(term in body_lower for term in ["pr", "pull request"]), (
             "Should mention PR handling"
@@ -225,7 +259,12 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     @staticmethod
     def test_body_mentions_code_changes(repo_engineer_body: str):
-        """Test that body mentions code change capabilities."""
+        """
+        Verify the microagent body mentions code changes or general changes.
+        
+        Parameters:
+            repo_engineer_body (str): Markdown body text of the microagent to inspect.
+        """
         body_lower = repo_engineer_body.lower()
         assert "code changes" in body_lower or "changes" in body_lower, (
             "Should mention code change capabilities"
@@ -267,7 +306,15 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     @staticmethod
     def test_content_appropriate_length(repo_engineer_body: str):
-        """Test that content has appropriate length for a microagent description."""
+        """
+        Ensure the microagent body length falls within acceptable bounds.
+        
+        Parameters:
+            repo_engineer_body (str): Markdown body content of the microagent.
+        
+        Details:
+            Asserts that the body contains at least 30 words and no more than 1000 words.
+        """
         word_count = len(repo_engineer_body.split())
         assert word_count >= 30, "Content should be at least 30 words"
         assert word_count <= 1000, "Content should be concise (under 1000 words)"
@@ -320,12 +367,9 @@ class TestAllMicroagents(TestMicroagentValidation):
     @staticmethod
     def test_all_microagents_have_valid_structure(microagent_files: List[Path]):
         """
-        Verify every microagent Markdown file contains YAML frontmatter delimited by leading and trailing `---` lines.
-
-        Checks each provided file (after stripping leading whitespace) for YAML frontmatter enclosed between `---` delimiters; the test fails with an assertion if a file is missing or has invalid frontmatter.
-
-        Parameters:
-            microagent_files (List[Path]): Paths to microagent Markdown files to validate.
+        Verify each microagent Markdown file contains YAML frontmatter delimited by leading and trailing `---` lines.
+        
+        Fails the test if any file's content (after stripping leading whitespace) does not begin with YAML frontmatter enclosed between `---` delimiters.
         """
         for file_path in microagent_files:
             with open(file_path, encoding="utf-8") as f:
@@ -338,7 +382,12 @@ class TestAllMicroagents(TestMicroagentValidation):
             )
 
     def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
-        """Test that all microagent files have required frontmatter fields."""
+        """
+        Check that every microagent Markdown file contains the required YAML frontmatter fields: "name", "type", "version", and "agent".
+        
+        Raises:
+            AssertionError: if any file is missing one of the required fields; the message includes the filename and the missing field.
+        """
         required_fields = ["name", "type", "version", "agent"]
 
         for file_path in microagent_files:
@@ -580,7 +629,11 @@ class TestMicroagentEdgeCases:
 
     @staticmethod
     def test_consistent_newlines(repo_engineer_path: Path):
-        """Test that newlines are used consistently."""
+        """
+        Ensure the file uses a single consistent newline style (either LF or CRLF).
+        
+        If any CRLF sequences appear, every line ending must be CRLF (counts match); otherwise all line endings must be LF. Prefers LF style when no CRLF are present.
+        """
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
 

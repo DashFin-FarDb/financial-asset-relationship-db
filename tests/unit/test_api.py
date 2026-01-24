@@ -244,7 +244,10 @@ class TestAssetsEndpoint:
 
     @patch("api.main.graph")
     def test_filter_combined(self, mock_graph_instance, client, mock_graph):
-        """Test filtering with multiple parameters."""
+        """
+        Ensures the /api/assets endpoint returns only assets matching both asset_class and sector query filters.
+        
+        """
         # Configure patched graph with mock_graph attributes
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
@@ -282,7 +285,11 @@ class TestAssetsEndpoint:
 
     @patch("api.main.graph")
     def test_assets_error_handling(self, mock_graph_instance, client):
-        """Test error handling in assets endpoint."""
+        """
+        Verifies the /api/assets endpoint returns status 500 with an error detail when the asset graph raises an exception.
+        
+        Simulates graph.assets raising an exception and asserts the response status code is 500 and the JSON body contains a "detail" key.
+        """
         # Make graph.assets raise exception
         type(mock_graph_instance).assets = property(
             lambda self: (_ for _ in ()).throw(Exception("Database error"))
@@ -423,7 +430,11 @@ class TestMetricsEndpoint:
 
     @patch("api.main.graph")
     def test_get_metrics(self, mock_graph_instance, client, mock_graph):
-        """Test retrieving network metrics."""
+        """
+        Verifies the /api/metrics endpoint returns expected network metrics and valid summary values.
+        
+        Asserts the response contains keys: "total_assets", "total_relationships", "asset_classes", "avg_degree", "max_degree", and "network_density", that total_assets equals 4, that asset_classes is a dict, and that avg_degree and network_density are greater than or equal to 0.
+        """
         # Configure patched graph with mock_graph attributes
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
@@ -633,7 +644,9 @@ class TestEdgeCases:
 
     @patch("api.main.graph")
     def test_filter_no_matches(self, mock_graph_instance, client, mock_graph):
-        """Test filter that returns no results."""
+        """
+        Verify the assets endpoint returns an empty list when a filter matches no assets.
+        """
         # Configure patched graph with mock_graph attributes
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
@@ -655,9 +668,9 @@ class TestConcurrency:
         self, mock_graph_instance, client, mock_graph
     ):
         """
-        Verify the assets endpoint handles multiple concurrent GET requests and returns the expected assets.
-
-        Sends several concurrent requests to /api/assets and asserts each response has status code 200 and contains four assets.
+        Exercise the /api/assets endpoint multiple times and verify each request returns the expected assets.
+        
+        Asserts each response has status code 200 and a JSON list containing four assets.
         """
         # Configure patched graph with mock_graph attributes
         mock_graph_instance.assets = mock_graph.assets
@@ -744,7 +757,12 @@ class TestRealDataFetcherFallback:
 
         # Simulate API failure that causes exception in create_real_database
         def raise_error(*args, **kwargs):
-            """Raise an exception to simulate API connection failure."""
+            """
+            Simulate an API connection failure by always raising an exception.
+            
+            Raises:
+                Exception: Always raised with the message "API connection failed".
+            """
             raise Exception("API connection failed")
 
         mock_ticker.side_effect = raise_error

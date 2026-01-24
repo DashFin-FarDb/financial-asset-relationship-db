@@ -25,9 +25,9 @@ class TestPRAgentWorkflowChanges:
     def pr_agent_workflow() -> dict[str, Any]:
         """
         Load and parse the .github/workflows/pr-agent.yml workflow file.
-
+        
         Returns:
-            dict: Dictionary representation of the parsed YAML workflow.
+            dict[str, Any]: Parsed YAML workflow as a dictionary.
         """
         workflow_path = Path(".github/workflows/pr-agent.yml")
         with open(workflow_path, "r") as f:
@@ -69,7 +69,9 @@ class TestPRAgentWorkflowChanges:
         assert "pull_request_review" in triggers
 
     def test_python_dependencies_installation(self, pr_agent_workflow):
-        """Verify Python dependencies are properly installed."""
+        """
+        Ensure the pr-agent job contains a step named "Install Python dependencies" and that the step defines a `run` command.
+        """
         jobs = pr_agent_workflow.get("jobs", {})
         pr_agent_job = jobs.get("pr-agent-action", {})
         steps = pr_agent_job.get("steps", [])
@@ -127,10 +129,10 @@ class TestPRAgentConfigChanges:
     @pytest.fixture
     def pr_agent_config(self) -> dict[str, Any]:
         """
-        Load and parse the .github/pr-agent-config.yml file.
-
+        Load and parse the repository's .github/pr-agent-config.yml into a dictionary.
+        
         Returns:
-            config (dict[str, Any]): Parsed YAML configuration as a dictionary.
+            dict[str, Any]: Parsed YAML configuration mapping keys to Python objects.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
@@ -197,7 +199,12 @@ class TestGreetingsWorkflowChanges:
 
     @pytest.fixture
     def greetings_workflow(self) -> dict[str, Any]:
-        """Load greetings.yml workflow."""
+        """
+        Load and parse the .github/workflows/greetings.yml GitHub Actions workflow file.
+        
+        Returns:
+            dict[str, Any]: Parsed YAML content of the greetings workflow as a dictionary.
+        """
         workflow_path = Path(".github/workflows/greetings.yml")
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
@@ -230,9 +237,9 @@ class TestGreetingsWorkflowChanges:
 
     def test_no_complex_markdown_formatting(self, greetings_workflow):
         """
-        Check that the greeting workflow's messages do not include complex markdown fragments.
-
-        This test locates the step using actions/first-interaction in the greeting job and asserts its `issue-message` and `pr-message` (if present) do not contain a "**Resources:**" section or the "✅" checkmark character.
+        Ensure greeting workflow messages do not include complex markdown fragments.
+        
+        Checks the actions/first-interaction step in the greeting job (if present) and asserts that its `issue-message` and `pr-message` do not contain the substring "**Resources:**" or the checkmark character "✅".
         """
         jobs = greetings_workflow.get("jobs", {})
         greeting_job = jobs.get("greeting", {})
@@ -260,9 +267,9 @@ class TestLabelWorkflowChanges:
     def label_workflow(self) -> dict[str, Any]:
         """
         Load and parse the label GitHub Actions workflow file.
-
+        
         Returns:
-            workflow (dict): Parsed contents of `.github/workflows/label.yml` as a dictionary.
+            dict: Parsed contents of `.github/workflows/label.yml`.
         """
         workflow_path = Path(".github/workflows/label.yml")
         with open(workflow_path, "r") as f:
@@ -354,7 +361,11 @@ class TestRequirementsDevChanges:
 
     @staticmethod
     def test_pyyaml_version_pinned():
-        """Verify PyYAML has version constraint."""
+        """
+        Verify that 'requirements-dev.txt' contains a PyYAML entry with an explicit version constraint.
+        
+        Reads requirements-dev.txt, finds lines containing 'pyyaml' (case-insensitive), asserts at least one such line exists, and asserts that at least one of those lines includes one of the version operators: `==`, `>=`, `<=`, or `~=`.
+        """
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:
             lines = f.readlines()
@@ -371,9 +382,9 @@ class TestRequirementsDevChanges:
     @staticmethod
     def test_no_duplicate_dependencies():
         """
-        Check that requirements-dev.txt contains no duplicate package entries.
-
-        Ignores blank lines and comments, normalizes package names to lowercase and strips version specifiers (e.g., ==, >=, <=, ~=, >, <), and asserts there are no duplicate package names; on failure, reports the duplicated package names.
+        Ensure requirements-dev.txt contains no duplicate package names.
+        
+        Ignores blank lines and comments, normalizes package names to lowercase, and strips common version specifiers before checking for duplicates. On failure, the assertion reports the duplicated package names.
         """
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:

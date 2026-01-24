@@ -12,6 +12,11 @@ class FormulaicVisualizer:
     """Visualizes mathematical formulas and relationships from financial analysis."""
 
     def __init__(self):
+        """
+        Initialize the visualizer's color scheme.
+        
+        Creates self.color_scheme, a mapping of formula category names to hex color codes used for consistent coloring across dashboard plots.
+        """
         self.color_scheme = {
             "Valuation": "#FF6B6B",
             "Income": "#4ECDC4",
@@ -24,7 +29,23 @@ class FormulaicVisualizer:
         }
 
     def create_formula_dashboard(self, analysis_results: dict[str, Any]) -> go.Figure:
-        """Create a comprehensive dashboard showing all formulaic relationships"""
+        """
+        Assemble a multi-panel dashboard visualizing formula categories, reliability, empirical correlations, asset-class and sector relationships, and example formulas.
+        
+        Parameters:
+            analysis_results (dict[str, Any]): Analysis payload containing at least:
+                - "formulas": iterable of formula objects or mappings used to populate category, reliability, sector, and example panels.
+                - "empirical_relationships": mapping of empirical correlation data used for the correlation matrix and asset-class relationships.
+        
+        Returns:
+            go.Figure: A Plotly Figure with a 3x2 subplot layout containing:
+                - Formula Categories Distribution (pie)
+                - Formula Reliability (R-squared) (bar)
+                - Empirical Correlation Matrix (heatmap)
+                - Asset Class Relationships (bar)
+                - Sector Analysis (bar)
+                - Key Formula Examples (table)
+        """
         formulas = analysis_results.get("formulas", [])
         empirical_relationships = analysis_results.get("empirical_relationships", {})
 
@@ -58,24 +79,27 @@ class FormulaicVisualizer:
         return fig
 
     def _plot_category_distribution(self, fig: go.Figure, formulas: Any) -> None:
+        """
+        Populate the "Formula Categories Distribution" subplot with a pie chart showing counts per formula category.
+        
+        Parameters:
+            fig (go.Figure): Plotly Figure containing the dashboard subplots; the pie trace will be added to the appropriate subplot.
+            formulas (Any): Iterable of formula records. Each record is expected to expose a category (e.g., via a 'category' attribute or key) used to aggregate counts. The function modifies `fig` in place and does not return a value.
+        """
         pass
 
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
         """
-        Add a reliability bar chart of formulas to the provided Plotly figure.
-
-        Populates the given Plotly figure with a bar chart that visualizes each
-        formula's reliability as R², using formula names for the x-axis and
-        coloring bars by formula category. Intended to be used as a subplot
-        population helper and does not return a value.
-
+        Add a bar chart of formulas' reliability (R-squared) to the provided Plotly figure.
+        
+        Populates the given Figure (typically a subplot) with a bar trace where the x-axis is formula names and the y-axis is their R-squared reliability; bars are color-coded by formula category.
+        
         Parameters:
-            fig (go.Figure): The Plotly figure (or subplot figure) to which the
-                reliability bar chart will be added.
-            formulas (Iterable[dict|object]): An iterable of formula records
-                where each record provides a name, a reliability value
-                accessible as `r_squared`, and a `category`. Records may be dicts
-                (keys 'name', 'r_squared', 'category') or objects with those attributes.
+            fig (go.Figure): The Plotly figure or subplot to modify in place.
+            formulas (Iterable[dict|object]): Iterable of formula records. Each record must expose:
+                - name (str): display name for the formula (either dict key 'name' or attribute).
+                - r_squared (float): reliability value to plot (either dict key 'r_squared' or attribute).
+                - category (str): category used for bar color grouping (either dict key 'category' or attribute).
         """
 
     def _plot_empirical_correlation(
@@ -146,22 +170,20 @@ class FormulaicVisualizer:
         # Populate the "Key Formula Examples" table in row 3, column 2.
         # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
         """
-        Populate the "Key Formula Examples" table and related dashboard
-        subplots on the provided Plotly figure using the supplied formula data.
-
+        Populate the "Key Formula Examples" table and associated dashboard traces for the provided Plotly figure.
+        
+        Adds a compact table of top formulas (selected by highest R-squared) and prepares space for related chart traces that illustrate example formulas and their metadata.
+        
         Parameters:
-            fig (go.Figure): The Plotly figure to populate; traces will be added
-                to specific subplot positions.
-            formulas (Iterable): Iterable of formula-like objects. Each object is
-                expected to expose attributes used for display:
+            fig (go.Figure): Plotly figure to modify; traces and table are added into existing subplots.
+            formulas (Iterable): Iterable of formula-like objects. Each object should provide:
                 - name: display name of the formula
                 - category: category or group name
                 - r_squared: numeric reliability metric (may be None)
                 - formula: textual or mathematical expression (optional)
-
+        
         Returns:
-            go.Figure: The same Plotly figure instance with added table, chart,
-                heatmap, and bar traces for the dashboard.
+            go.Figure: The same Plotly figure instance with the top-formulas table and any added example traces.
         """
         if not formulas:
             return fig
@@ -179,6 +201,25 @@ class FormulaicVisualizer:
         return fig
 
     def _get_sorted_formulas(self, formulas: Any) -> Any:
+        """
+        Prepare a sorted list of formulas by R-squared and populate a Plotly Figure with summary visualizations for a formulaic analysis dashboard.
+        
+        This function sorts the provided formulas in descending order of their `r_squared` attribute (falls back to the original order if sorting fails), assembles top-formula summaries (truncated names, categories, formatted R-squared values), and constructs a multi-panel Plotly figure containing:
+        - A top-formulas table,
+        - A formula categories pie chart,
+        - A formula reliability bar chart,
+        - An empirical correlation heatmap,
+        - Asset class relationships bar chart,
+        - Sector analysis bar chart,
+        - A key formula examples table,
+        then updates layout and axis labels.
+        
+        Parameters:
+            formulas (Iterable): An iterable of formula-like objects. Each object is expected to expose attributes used in the visuals such as `name`, `category`, `r_squared`, and `formula`. Missing attributes are handled defensively.
+        
+        Returns:
+            fig (plotly.graph_objs.Figure): A Plotly Figure populated with the dashboard traces and layout ready for rendering.
+        """
         try:
             return sorted(
                 formulas,
@@ -551,21 +592,13 @@ class FormulaicVisualizer:
     @staticmethod
     def create_metric_comparison_chart(analysis_results: dict[str, Any]) -> go.Figure:
         """
-        Produce a bar chart of average R-squared grouped by formula category.
-
+        Create a bar chart of average R-squared grouped by formula category.
+        
         Parameters:
-            analysis_results (dict[str, Any]):
-                Analysis payload expected to contain a "formulas" key that maps
-                to an iterable of formula-like objects.
-                Each formula object must expose `category` (str) and
-                `r_squared` (numeric) attributes or keys.
-
+        	analysis_results (dict[str, Any]): Payload containing a "formulas" key mapping to an iterable of items where each item exposes `category` (str) and `r_squared` (numeric).
+        
         Returns:
-            go.Figure:
-                A Plotly Figure containing a bar chart with categories on the
-                x-axis and average R-squared per category on the y-axis.
-                If `analysis_results` contains no formulas, an empty Figure
-                is returned.
+        	fig (go.Figure): Plotly Figure with categories on the x-axis and average R-squared per category; returns an empty Figure if no formulas are present.
         """
         fig = go.Figure()
 
