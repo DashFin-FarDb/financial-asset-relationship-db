@@ -605,6 +605,25 @@ class FormulaicVisualizer:
                 name="Avg R-squared"
             )
         )
+        fig.update_layout(
+            title="Average R-squared by Formula Category",
+            xaxis_title="Category",
+            yaxis_title="Average R-squared",
+            margin=dict(b=20, l=5, r=5, t=40),
+            xaxis=dict(showgrid=False, zeroline=False),
+            yaxis=dict(showgrid=False, zeroline=False)
+        )
+        return fig
+            formula_counts.append(len(category_formulas))
+
+        fig.add_trace(
+            go.Bar(
+                x=category_names,
+                y=r_squared_by_category,
+                text=formula_counts,
+                name="Avg R-squared"
+            )
+        )
 
         fig.update_layout(
             title="Average R-squared by Formula Category",

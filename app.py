@@ -344,57 +344,54 @@ class FinancialAssetApp:
                     show_all_relationships=show_all_relationships,
                     layout_type=layout_type,
                 )
-            else:  # 3D mode
-                graph_viz = visualize_3d_graph_with_filters(
-                    graph,
-                    show_same_sector=show_same_sector,
-                    show_market_cap=show_market_cap,
-                    show_correlation=show_correlation,
-                    show_corporate_bond=show_corporate_bond,
-                    show_commodity_currency=show_commodity_currency,
-                    show_income_comparison=show_income_comparison,
-                    show_regulatory=show_regulatory,
-                    show_all_relationships=show_all_relationships,
-                    toggle_arrows=toggle_arrows,
-                )
+        else:  # 3D mode
+            graph_viz = visualize_3d_graph_with_filters(
+                graph,
+                show_same_sector=show_same_sector,
+                show_market_cap=show_market_cap,
+                show_correlation=show_correlation,
+                show_corporate_bond=show_corporate_bond,
+                show_commodity_currency=show_commodity_currency,
+                show_income_comparison=show_income_comparison,
+                show_regulatory=show_regulatory,
+                show_all_relationships=show_all_relationships,
+                toggle_arrows=toggle_arrows,
+            )
 
-            return graph_viz, gr.update(visible=False)
+        return graph_viz, gr.update(visible=False)
 
-        except Exception as e:
-            logger.error("Error refreshing visualization: %s", e)
-            empty_fig = go.Figure()
-            error_msg = f"Error refreshing visualization: {str(e)}"
-            return empty_fig, gr.update(value=error_msg, visible=True)
-
-    def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
-
+    except Exception as e:
+        logger.error("Error refreshing visualization: %s", e)
+        empty_fig = go.Figure()
+        error_msg = f"Error refreshing visualization: {str(e)}"
+        return empty_fig, gr.update(value=error_msg, visible=True)
 
 def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGraph] = None):
-        """
-        Generate visualizations, selector options, and a textual summary from a
-        formulaic analysis of the asset graph.
+    """
+    Generate visualizations, selector options, and a textual summary from a
+    formulaic analysis of the asset graph.
 
-        Parameters:
-            graph_state(AssetRelationshipGraph | None): The asset graph to
-                analyze. If None, the application's internal graph will be
-                used.
+    Parameters:
+        graph_state(AssetRelationshipGraph | None): The asset graph to
+            analyze. If None, the application's internal graph will be
+            used.
 
-        Returns:
-            tuple: (
-                dashboard_fig: Plotly Figure for the formula dashboard,
-                correlation_network_fig: Plotly Figure for the empirical
-                    correlation network,
-                metric_comparison_fig: Plotly Figure comparing metrics across
-                    formulas,
-                formula_selector_update: gr.update object configuring the
-                    formula selector's choices and selected value,
-                summary_text: str containing a textual summary of the
-                    analysis,
-                error_visibility_update: gr.update object controlling
-                    visibility of any error message
-            )
-        """
-        # Notes:
+    Returns:
+        tuple: (
+            dashboard_fig: Plotly Figure for the formula dashboard,
+            correlation_network_fig: Plotly Figure for the empirical
+                correlation network,
+            metric_comparison_fig: Plotly Figure comparing metrics across
+                formulas,
+            formula_selector_update: gr.update object configuring the
+                formula selector's choices and selected value,
+            summary_text: str containing a textual summary of the
+                analysis,
+            error_visibility_update: gr.update object controlling
+                visibility of any error message
+        )
+    """
+    # Notes:
         #     On error, the function returns three empty Plotly figures, an empty
         #     selector update, an error message string as summary_text, and an
         #     error_visibility_update that makes the error visible.
