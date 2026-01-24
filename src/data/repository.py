@@ -64,7 +64,9 @@ class AssetGraphRepository:
             List[Asset]: A list of Asset instances ordered by asset id.
         """
 
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> dict[str, Asset]:
@@ -138,7 +140,9 @@ class AssetGraphRepository:
             for rel in result
         ]
 
-    def get_relationship(self, source_id: str, target_id: str, rel_type: str) -> Optional[RelationshipRecord]:
+    def get_relationship(
+        self, source_id: str, target_id: str, rel_type: str
+    ) -> Optional[RelationshipRecord]:
         """
         Retrieve the relationship between two assets that matches
         the specified relationship type.
@@ -163,7 +167,9 @@ class AssetGraphRepository:
             bidirectional=relationship.bidirectional,
         )
 
-    def delete_relationship(self, source_id: str, target_id: str, rel_type: str) -> None:
+    def delete_relationship(
+        self, source_id: str, target_id: str, rel_type: str
+    ) -> None:
         """
         Remove the relationship of the given type between two assets.
 
@@ -235,7 +241,9 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         # Reset all optional fields to avoid stale values

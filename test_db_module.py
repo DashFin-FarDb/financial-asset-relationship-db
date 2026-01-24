@@ -7,7 +7,9 @@ import logging
 from src.data.database import get_db
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -28,10 +30,14 @@ def test_database_connection():
             results = db.query("assets", limit=5)
 
             if results:
-                logger.info("Successfully queried database! Found %s records.", len(results))
+                logger.info(
+                    "Successfully queried database! Found %s records.", len(results)
+                )
                 logger.info("Sample data: %s", results[:2])
             else:
-                logger.warning("Query returned no results. This might be normal for a new database.")
+                logger.warning(
+                    "Query returned no results. This might be normal for a new database."
+                )
 
             # Close the connection
             db.close()
