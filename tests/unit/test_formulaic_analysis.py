@@ -164,7 +164,9 @@ class TestFormulaicdAnalyzer:
         # Should still be true because we have one dividend stock
         assert analyzer._has_dividend_stocks(empty_graph)
 
-    def test_extract_fundamental_formulas_with_equities(self, analyzer, empty_graph, sample_equity):
+    def test_extract_fundamental_formulas_with_equities(
+        self, analyzer, empty_graph, sample_equity
+    ):
         """Test extraction of fundamental formulas with equity assets."""
         empty_graph.add_asset(sample_equity)
 
@@ -177,7 +179,9 @@ class TestFormulaicdAnalyzer:
         assert "Price-to-Earnings Ratio" in formula_names
         assert "Market Capitalization" in formula_names
 
-    def test_extract_fundamental_formulas_with_bonds(self, analyzer, empty_graph, sample_bond):
+    def test_extract_fundamental_formulas_with_bonds(
+        self, analyzer, empty_graph, sample_bond
+    ):
         """Test extraction of fundamental formulas with bond assets."""
         empty_graph.add_asset(sample_bond)
 
@@ -189,7 +193,9 @@ class TestFormulaicdAnalyzer:
         formula_names = [f.name for f in formulas]
         assert "Bond Yield-to-Maturity (Approximation)" in formula_names
 
-    def test_extract_fundamental_formulas_with_dividend_stocks(self, analyzer, empty_graph, dividend_stock):
+    def test_extract_fundamental_formulas_with_dividend_stocks(
+        self, analyzer, empty_graph, dividend_stock
+    ):
         """Test extraction of dividend yield formula."""
         empty_graph.add_asset(dividend_stock)
 
@@ -244,7 +250,9 @@ class TestFormulaicdAnalyzer:
         assert "Portfolio Expected Return" in formula_names
         assert "Portfolio Variance (2-Asset)" in formula_names
 
-    def test_analyze_cross_asset_relationships_with_currencies(self, analyzer, empty_graph, sample_currency):
+    def test_analyze_cross_asset_relationships_with_currencies(
+        self, analyzer, empty_graph, sample_currency
+    ):
         """Test cross-asset relationship analysis with currencies."""
         empty_graph.add_asset(sample_currency)
 
@@ -284,11 +292,15 @@ class TestFormulaicdAnalyzer:
         assets_data = {}  # Not used in this method
 
         # Execute
-        strongest = analyzer._find_strongest_correlations(correlation_matrix, assets_data)
+        strongest = analyzer._find_strongest_correlations(
+            correlation_matrix, assets_data
+        )
 
         # Assert
         assert len(strongest) <= 5, "Should return at most 5 correlations"
-        assert all(c["correlation"] < 1.0 for c in strongest), "Should exclude self-correlations"
+        assert all(c["correlation"] < 1.0 for c in strongest), (
+            "Should exclude self-correlations"
+        )
 
         # Check that results are sorted by correlation strength
         correlations = [c["correlation"] for c in strongest]
@@ -307,7 +319,9 @@ class TestFormulaicdAnalyzer:
             assert "asset_count" in stats
             assert "avg_price" in stats
             assert "price_range" in stats
-            assert stats["asset_count"] >= 2, "Sector stats should only include sectors with 2+ assets"
+            assert stats["asset_count"] >= 2, (
+                "Sector stats should only include sectors with 2+ assets"
+            )
 
     @staticmethod
     def test_calculate_asset_class_relationships(analyzer, populated_graph):
@@ -519,7 +533,9 @@ class TestExampleCalculationMethods:
         assert "variance" in examples.lower()
 
         @staticmethod
-        def test_calculate_exchange_rate_examples(analyzer, empty_graph, sample_currency):
+        def test_calculate_exchange_rate_examples(
+            analyzer, empty_graph, sample_currency
+        ):
             """Test exchange rate example calculations."""
             empty_graph.add_asset(sample_currency)
 
@@ -533,7 +549,9 @@ class TestExampleCalculationMethods:
         def test_calculate_commodity_currency_examples(analyzer, populated_graph):
             """Test commodity-currency example calculations."""
             # Execute
-            examples = FormulaicdAnalyzer._calculate_commodity_currency_examples(populated_graph)
+            examples = FormulaicdAnalyzer._calculate_commodity_currency_examples(
+                populated_graph
+            )
 
             # Assert
             assert isinstance(examples, str)
@@ -620,7 +638,9 @@ class TestEdgeCases:
         strongest = analyzer._find_strongest_correlations(correlation_matrix, {})
 
         # Assert
-        assert len(strongest) == 0, "Should return empty list when no cross-correlations exist"
+        assert len(strongest) == 0, (
+            "Should return empty list when no cross-correlations exist"
+        )
 
     @staticmethod
     def test_sector_relationships_with_single_asset_sectors(analyzer, populated_graph):
@@ -644,10 +664,14 @@ class TestEdgeCases:
         sector_stats = analyzer._calculate_sector_relationships(populated_graph)
 
         # Assert
-        assert "Aerospace" not in sector_stats, "Sectors with only one asset should be excluded"
+        assert "Aerospace" not in sector_stats, (
+            "Sectors with only one asset should be excluded"
+        )
 
     @staticmethod
-    def test_calculate_avg_correlation_strength_with_no_relationships(analyzer, empty_graph):
+    def test_calculate_avg_correlation_strength_with_no_relationships(
+        analyzer, empty_graph
+    ):
         """Test average correlation strength with no relationships."""
         # Execute
         strength = analyzer._calculate_avg_correlation_strength(empty_graph)
@@ -674,4 +698,6 @@ class TestEdgeCases:
         analyzer.analyze_graph(populated_graph)
 
         # Assert
-        assert len(analyzer.formulas) == initial_length, "Should not modify analyzer's formulas list"
+        assert len(analyzer.formulas) == initial_length, (
+            "Should not modify analyzer's formulas list"
+        )
