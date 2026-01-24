@@ -627,7 +627,7 @@ name: 12345
 on: 67890
 jobs:
   test:
-    runs - on: 11111
+    runs-on: 11111
     steps:
       - run: 22222
 """
