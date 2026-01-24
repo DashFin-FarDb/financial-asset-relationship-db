@@ -128,8 +128,9 @@ class TestPRAgentWorkflowChanges:
 class TestPRAgentConfigChanges:
     """Tests for pr-agent-config.yml configuration changes."""
 
+    @staticmethod
     @pytest.fixture
-    def pr_agent_config(self) -> dict[str, Any]:
+    def pr_agent_config() -> dict[str, Any]:
         """
         Load and parse the repository's .github/pr-agent-config.yml into a dictionary.
 
@@ -199,8 +200,9 @@ class TestPRAgentConfigChanges:
 class TestGreetingsWorkflowChanges:
     """Tests for greetings.yml workflow changes."""
 
+    @staticmethod
     @pytest.fixture
-    def greetings_workflow(self) -> dict[str, Any]:
+    def greetings_workflow() -> dict[str, Any]:
         """
         Load and parse the .github/workflows/greetings.yml GitHub Actions workflow file.
 
@@ -265,8 +267,9 @@ class TestGreetingsWorkflowChanges:
 class TestLabelWorkflowChanges:
     """Tests for label.yml workflow changes."""
 
+    @staticmethod
     @pytest.fixture
-    def label_workflow(self) -> dict[str, Any]:
+    def label_workflow() -> dict:
         """
         Load and parse the label GitHub Actions workflow file.
 

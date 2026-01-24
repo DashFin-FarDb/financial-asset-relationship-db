@@ -161,7 +161,8 @@ class TestAssetORM:
             db_session.query(AssetORM).filter_by(id="TEST_REQUIRED").first() is not None
         )
 
-    def test_asset_nullable_fields(self, db_session):
+    @staticmethod
+    def test_asset_nullable_fields(db_session):
         """Test that nullable fields can be None."""
         asset = AssetORM(
             id="TEST_NULLABLE",
@@ -181,7 +182,8 @@ class TestAssetORM:
         assert retrieved.pe_ratio is None
         assert retrieved.market_cap is None
 
-    def test_asset_update(self, db_session):
+    @staticmethod
+    def test_asset_update(db_session):
         """Test updating asset fields."""
         asset = AssetORM(
             id="TEST_UPDATE",
@@ -203,7 +205,8 @@ class TestAssetORM:
         assert retrieved.price == 150.0
         assert retrieved.sector == "Technology"
 
-    def test_asset_deletion(self, db_session):
+    @staticmethod
+    def test_asset_deletion(db_session):
         """Test deleting an asset."""
         asset = AssetORM(
             id="TEST_DELETE",

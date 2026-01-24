@@ -68,9 +68,9 @@ def _build_mcp_app():
         Validate an Equity and add it to the global graph or perform
         validation only.
 
-        If the global graph exposes an `add_asset` method, the created Equity is
-        added; otherwise the function only validates the provided fields and does
-        not mutate graph state.
+        If the global graph exposes an `add_asset` method, the created
+        Equity is added; otherwise the function only validates the
+        provided fields and does not mutate graph state.
 
         Returns:
             A success message containing the equity name and symbol when

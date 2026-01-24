@@ -3010,7 +3010,9 @@ class TestWorkflowScheduledExecutionBestPractices:
         triggers = data.get("on", {})
 
         if "schedule" in triggers:
-            pass
+            schedules = triggers["schedule"]
+            for schedule in schedules:
+                pass
 
 
 if "schedule" in triggers:

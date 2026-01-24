@@ -121,6 +121,7 @@ def _create_spring_layout_2d(
     return positions_2d
 
 
+
 def _create_2d_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: dict[str, Tuple[float, float]],
@@ -139,7 +140,8 @@ def _create_2d_relationship_traces(
     applying per-type filters.
 
     Parameters:
-        graph: AssetRelationshipGraph containing relationships indexed by source asset ID.
+        graph: AssetRelationshipGraph containing relationships indexed by
+            source asset ID.
         positions: Mapping of asset IDs to 2D (x, y) coordinates used to draw edges.
         asset_ids: Ordered list of asset IDs to consider when building relationships.
         show_same_sector: Include "same_sector" relationships.
