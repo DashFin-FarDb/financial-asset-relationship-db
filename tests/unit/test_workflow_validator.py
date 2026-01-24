@@ -913,10 +913,11 @@ class TestWorkflowValidatorPerformance:
             f.write(
                 f"""
 name: Test{i}
-on: push
+            f.write(
+                f"""on: push
 jobs:
   test{i}:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
       - run: echo {i}
 """

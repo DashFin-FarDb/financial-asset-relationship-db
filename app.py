@@ -137,13 +137,13 @@ class FinancialAssetApp:
 
     def _initialize_graph(self) -> None:
         """
-                   Initialize the instance's asset relationship graph by building a real - data - backed graph.
+        Initialize the instance's asset relationship graph by building a real-data-backed graph.
 
-                    Attempts to create and assign a real AssetRelationshipGraph to self.graph using external data sources. On failure, logs the error and re - raises the exception so callers can handle startup failures.
+        Attempts to create and assign a real AssetRelationshipGraph to self.graph using external data sources. On failure, logs the error and re-raises the exception so callers can handle startup failures.
+
+        Raises:
+            Exception: Any error raised while creating the graph is re-raised after being logged.
         """
-                    Raises:
-                        Exception: Any error raised while creating the graph is re - raised after being logged.
-                    """
         try:
             logger.info("Initializing with real financial data from Yahoo Finance")
             self.graph = create_real_database()
@@ -169,10 +169,10 @@ class FinancialAssetApp:
     @staticmethod
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """
-                    Create a multi - line textual report summarizing network metrics for the given asset graph.
+        Create a multi - line textual report summarizing network metrics for the given asset graph.
 
-                    Parameters:
-                        graph(AssetRelationshipGraph): Graph used to compute network metrics.
+        Parameters:
+            graph(AssetRelationshipGraph): Graph used to compute network metrics.
 
                     Returns:
                         str: A formatted report containing total assets, total relationships, average relationship strength, relationship density, regulatory event count, a JSON - formatted asset class distribution, and a numbered list of top relationships with strengths shown as percentages.

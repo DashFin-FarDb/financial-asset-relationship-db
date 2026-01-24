@@ -28,16 +28,14 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     metrics = graph.calculate_metrics()
 
     report = """# Financial Asset Relationship Database Schema & Rules
-
-## Schema Overview
 report += """
-
+## Schema Overview
 
 # Entity Types
-1. ** Equity ** - Stock instruments with P / E ratio, dividend yield , EPS
-2. ** Bond ** - Fixed income with yield , coupon, maturity, credit rating
+1. ** Equity ** - Stock instruments with P / E ratio, dividend yield, EPS
+2. ** Bond ** - Fixed income with yield, coupon, maturity, credit rating
 3. ** Commodity ** - Physical assets with contracts and delivery dates
-4. ** Currency ** - FX pairs or single - currency proxies with exchange rates and policy links
+4. ** Currency ** - FX pairs or single-currency proxies with exchange rates and policy links
 5. ** Regulatory Events ** - Corporate actions and SEC filings
 
 # Relationship Types
@@ -79,6 +77,7 @@ report += (
     "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
     "equity (directional)\n"
     "2. **Sector Affinity**: Assets in same sector have baseline relationship\n"
+)
 )
         "strength of 0.7 (bidirectional)\n"
         "3. **Currency Exposure**: Non-USD assets link to their native currency "

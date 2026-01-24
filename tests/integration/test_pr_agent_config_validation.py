@@ -461,6 +461,7 @@ class TestPRAgentConfigSecurity:
                 return True
             # Hex-encoded long strings (e.g., keys)
             if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
+                return True
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
