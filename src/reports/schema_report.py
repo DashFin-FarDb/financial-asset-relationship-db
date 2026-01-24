@@ -28,57 +28,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         str: Complete Markdown-formatted report summarizing
             schema, metrics, rules, and recommendations.
     """
-
-    schema_report = """# Financial Asset Relationship Database Schema & Rules
-"""
-    schema_report += """
-# Schema Overview
-
-
-# Entity Types
-1. ** Equity ** - Stock instruments with P / E ratio, dividend yield , EPS
-2. ** Bond ** - Fixed income with yield , coupon, maturity, credit rating
-3. ** Commodity ** - Physical assets with contracts and delivery dates
-4. ** Currency ** - FX pairs or single - currency proxies with exchange rates and policy links
-5. ** Regulatory Events ** - Corporate actions and SEC filings
-
-# Relationship Types
-    for rel_type, count in sorted(
-        metrics["relationship_distribution"].items(),
-        key=lambda x: x[1],
-        reverse=True,
-    ):
-        report += f"- **{rel_type}**: {count} instances\n"
-    report += f"""
-
-
-# Calculated Metrics
-```markdown
 # Network Statistics
 - **Total Assets**: {metrics["total_assets"]}
 - **Total Relationships**: {metrics["total_relationships"]}
-"""
-    report += (
-        f"- **Average Relationship Strength**: "
-        f"{metrics['average_relationship_strength']:.3f}\n"
-    )
-    report += (
-        f"- **Relationship Density**: "
-        f"{metrics['relationship_density']:.2f}%\n"
-    )
-    report += f"- **Regulatory Events**: {metrics['regulatory_event_count']}\n\n"
-
-    # Asset Class Distribution
-    asset_count = None
-    for asset_class, count in sorted(metrics["asset_class_distribution"].items()):
-        asset_count = count
-        report += f"- **{asset_class}**: {asset_count} assets\n"
-
-    report += "\n# Top Relationships\n"
-    relationship_type = None
-    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
-        relationship_type = rel_type
-        report += f"{idx}. {source} → {target} ({relationship_type}): {strength:.2%}\n"
 
     report += "\n# Business Rules & Constraints\n\n# Cross-Asset Rules\n"
     report += (

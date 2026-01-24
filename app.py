@@ -537,7 +537,7 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
                                 f"  • {corr['pair']}: {corr['correlation']:.3f} ({corr['strength']})"
                             )
 
-                    return "\n".join(summary_lines)
+                        return "\n".join(summary_lines)
 
                 def create_interface(self):
                     """
@@ -572,7 +572,7 @@ def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGra
                                     gr.Markdown("### 🎛️ Visualization Controls")
                                 with gr.Row():
                                     with gr.Column(scale=1):
-                                        view_mode = gr.Radio(
+                                        view_mode = gr.Radio()
                                             label="Visualization Mode",
                                             choices=["3D", "2D"],
                                             value="3D",
