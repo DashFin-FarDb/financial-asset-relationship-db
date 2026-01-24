@@ -164,7 +164,7 @@ class FormulaicVisualizer:
                 heatmap, and bar traces for the dashboard.
         """
         if not formulas:
-            return None
+            return fig
 
         sorted_formulas = self._get_sorted_formulas(formulas)
 
