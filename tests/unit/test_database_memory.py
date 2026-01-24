@@ -293,7 +293,7 @@ class TestConnectWithMemoryDb:
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
 
-         conn = reloaded_database._connect()
+        conn = reloaded_database._connect()
 
           # Verify we can use the connection from different threads
           # by attempting to execute a query (would fail if check_same_thread=True)
