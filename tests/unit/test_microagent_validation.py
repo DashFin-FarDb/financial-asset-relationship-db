@@ -163,8 +163,6 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert re.match(r"^\d+\.\d+\.\d+$", version), (
             "Version should follow semver format (x.y.z)"
         )
-            "Version should follow semver format (x.y.z)"
-        )
 
     @ staticmethod
     def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]):
