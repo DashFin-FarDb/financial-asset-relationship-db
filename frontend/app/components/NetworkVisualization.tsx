@@ -30,6 +30,29 @@ type EdgeTrace = {
   showlegend: false;
 };
 
+type NodeTrace = {
+  type: "scatter3d";
+  mode: "markers" | "text" | "lines" | "markers+text";
+  x: number[];
+  y: number[];
+  z: number[];
+  text: string[];
+  hovertext: string[];
+  hoverinfo: "text";
+  marker: {
+    size: number[];
+    color: string[];
+    line: {
+      color: string;
+      width: number;
+    };
+  };
+  textposition: string;
+  textfont: {
+    size: number;
+  };
+};
+
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
@@ -44,7 +67,7 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
+  const [plotData, setPlotData] = useState<any[]>([]);
   const [status, setStatus] = useState<
     "loading" | "ready" | "empty" | "tooLarge"
   >("loading");
@@ -78,7 +101,7 @@ export default function NetworkVisualization({
     }
 
     // Create node trace
-    const nodeTrace = {
+    const nodeTrace: NodeTrace = {
       type: "scatter3d",
       mode: "markers+text",
       x: nodes.map((n) => n.x),

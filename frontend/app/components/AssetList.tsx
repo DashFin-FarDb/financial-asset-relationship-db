@@ -277,15 +277,6 @@ export default function AssetList() {
       {/* Asset List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <AssetListStatus loading={loading} error={error} />
-              error
-                ? "bg-red-50 text-red-700 border-b border-red-100"
-                : "bg-blue-50 text-blue-700 border-b border-blue-100"
-            }`}
-            role={error ? "alert" : "status"}
-          >
-            {error || `Loading results for ${querySummary}...`}
-          </div>
-        )}
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
