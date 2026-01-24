@@ -21,6 +21,9 @@ def codesherlock_config_path() -> Path:
 
 @pytest.fixture
 def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
+    """Load and parse the codesherlock.yaml file."""
+    with codesherlock_config_path.open("r") as f:
+        return yaml.safe_load(f)
 
 
 @pytest.fixture
