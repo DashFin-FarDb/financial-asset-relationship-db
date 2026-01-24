@@ -143,11 +143,15 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                 # Normalize specifier string by removing spaces around
                 # commas so SpecifierSet accepts it consistently
                 if specifier_str:
-                    specifier_str = ",".join(s.strip() for s in specifier_str.split(",") if s.strip())
+                    specifier_str = ",".join(
+                        s.strip() for s in specifier_str.split(",") if s.strip()
+                    )
 
                 requirements.append((pkg, specifier_str))
     except OSError as os_error:
-        raise OSError(f"Could not open requirements file '{file_path}': {os_error}") from os_error
+        raise OSError(
+            f"Could not open requirements file '{file_path}': {os_error}"
+        ) from os_error
 
     return requirements
 
@@ -198,7 +202,9 @@ class TestRequirementsFileFormat:
     def test_no_trailing_whitespace(file_lines: List[str]):
         """Test that lines don't have trailing whitespace."""
         lines_with_trailing = [
-            (i + 1, repr(line)) for i, line in enumerate(file_lines) if line.rstrip("\n") != line.rstrip()
+            (i + 1, repr(line))
+            for i, line in enumerate(file_lines)
+            if line.rstrip("\n") != line.rstrip()
         ]
         assert len(lines_with_trailing) == 0
 
@@ -337,7 +343,9 @@ class TestPackageConsistency:
         """Test that package names follow valid naming conventions."""
         valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
 
-        invalid_names = [pkg for pkg in package_names if not valid_name_pattern.match(pkg)]
+        invalid_names = [
+            pkg for pkg in package_names if not valid_name_pattern.match(pkg)
+        ]
         assert len(invalid_names) == 0
 
 
@@ -381,7 +389,9 @@ class TestSpecificChanges:
     @staticmethod
     def test_types_pyyaml_added(requirements: List[Tuple[str, str]]):
         """Test that types-PyYAML was added as per the diff."""
-        types_entries = [(pkg, ver) for pkg, ver in requirements if pkg == "types-PyYAML"]
+        types_entries = [
+            (pkg, ver) for pkg, ver in requirements if pkg == "types-PyYAML"
+        ]
         assert len(types_entries) == 1
 
     @staticmethod
@@ -453,7 +463,11 @@ class TestEdgeCasesAndErrorHandling:
         requirements = parse_requirements(REQUIREMENTS_FILE)
 
         # Count non-empty, non-comment lines
-        content_lines = [line for line in all_lines if line.strip() and not line.strip().startswith("#")]
+        content_lines = [
+            line
+            for line in all_lines
+            if line.strip() and not line.strip().startswith("#")
+        ]
 
         # Number of requirements should not exceed content lines
         assert len(requirements) <= len(content_lines)
@@ -482,7 +496,9 @@ class TestVersionConstraintValidation:
                         operators_found.append(op)
 
                 # Should have at least one valid operator
-                assert len(operators_found) > 0, f"No valid operator found in '{ver}' for package '{pkg}'"
+                assert len(operators_found) > 0, (
+                    f"No valid operator found in '{ver}' for package '{pkg}'"
+                )
 
     @staticmethod
     def test_compound_version_specs(requirements: List[Tuple[str, str]]):
@@ -492,9 +508,9 @@ class TestVersionConstraintValidation:
                 # Compound spec should not have spaces after comma
                 parts = ver.split(",")
                 for part in parts:
-                    assert (
-                        part.strip() == part or part == ""
-                    ), f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
+                    assert part.strip() == part or part == "", (
+                        f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
+                    )
 
     @staticmethod
     def test_minimum_version_numbers_reasonable(requirements: List[Tuple[str, str]]):
@@ -535,7 +551,9 @@ class TestVersionConstraintValidation:
                         min_ver = specs[0].replace(">=", "").strip()
                         max_ver = specs[1].replace("<", "").replace("<=", "").strip()
                         # Just ensure they're not obviously wrong
-                        assert min_ver != max_ver or "<=" in specs[1], f"Conflicting version spec for {pkg}: {ver}"
+                        assert min_ver != max_ver or "<=" in specs[1], (
+                            f"Conflicting version spec for {pkg}: {ver}"
+                        )
 
 
 class TestPackageNamingAndCasing:
@@ -556,7 +574,11 @@ class TestPackageNamingAndCasing:
 
         for pkg, _ in requirements:
             # Find the original line
-            matching_lines = [line for line in lines if pkg in line and not line.strip().startswith("#")]
+            matching_lines = [
+                line
+                for line in lines
+                if pkg in line and not line.strip().startswith("#")
+            ]
             assert len(matching_lines) > 0, f"Package {pkg} not found in original file"
 
     @staticmethod
@@ -578,7 +600,9 @@ class TestPackageNamingAndCasing:
         for pkg, _ in requirements:
             # Should not start or end with hyphen or underscore
             assert not pkg.startswith("-"), f"Package name starts with hyphen: {pkg}"
-            assert not pkg.startswith("_"), f"Package name starts with underscore: {pkg}"
+            assert not pkg.startswith("_"), (
+                f"Package name starts with underscore: {pkg}"
+            )
             assert not pkg.endswith("-"), f"Package name ends with hyphen: {pkg}"
             assert not pkg.endswith("_"), f"Package name ends with underscore: {pkg}"
 
@@ -596,13 +620,17 @@ class TestDevelopmentToolsPresence:
     def test_has_testing_framework(package_names: List[str]):
         """Test that a testing framework is present."""
         testing_frameworks = ["pytest", "unittest", "nose"]
-        assert any(fw in package_names for fw in testing_frameworks), "No testing framework found"
+        assert any(fw in package_names for fw in testing_frameworks), (
+            "No testing framework found"
+        )
 
     @staticmethod
     def test_has_code_formatter(package_names: List[str]):
         """Test that a code formatter is present."""
         formatters = ["black", "autopep8", "yapf"]
-        assert any(fmt in package_names for fmt in formatters), "No code formatter found"
+        assert any(fmt in package_names for fmt in formatters), (
+            "No code formatter found"
+        )
 
     @staticmethod
     def test_has_linter(package_names: List[str]):
@@ -666,7 +694,9 @@ class TestPytestEcosystem:
         Parameters:
             requirements (List[Tuple[str, str]]): Parsed requirements as (package_name, version_specifier) tuples.
         """
-        pytest_plugins = [(pkg, ver) for pkg, ver in requirements if pkg.lower().startswith("pytest-")]
+        pytest_plugins = [
+            (pkg, ver) for pkg, ver in requirements if pkg.lower().startswith("pytest-")
+        ]
 
         # All pytest plugins should have version constraints
         for pkg, ver in pytest_plugins:
@@ -713,7 +743,9 @@ class TestTypeStubConsistency:
                     or base_name.replace("_", "-") in packages_map
                 )
 
-                assert base_exists, f"Type stub package {pkg} has no corresponding base package"
+                assert base_exists, (
+                    f"Type stub package {pkg} has no corresponding base package"
+                )
 
     @staticmethod
     def test_type_stub_versions_reasonable(requirements: List[Tuple[str, str]]):
@@ -723,9 +755,9 @@ class TestTypeStubConsistency:
                 # Type stubs may or may not have version constraints
                 # but if they do, they should be valid
                 if ver:
-                    assert any(
-                        op in ver for op in [">=", "==", "~="]
-                    ), f"Type stub {pkg} has invalid version spec: {ver}"
+                    assert any(op in ver for op in [">=", "==", "~="]), (
+                        f"Type stub {pkg} has invalid version spec: {ver}"
+                    )
 
 
 class TestFileStructureAndOrganization:
@@ -741,9 +773,9 @@ class TestFileStructureAndOrganization:
             if line.strip().startswith("#"):
                 # Comments should have a space after #
                 if len(line.strip()) > 1:
-                    assert (
-                        line.strip()[1] == " " or line.strip()[1] == "#"
-                    ), f"Line {i}: Comment should have space after #: {line.strip()}"
+                    assert line.strip()[1] == " " or line.strip()[1] == "#", (
+                        f"Line {i}: Comment should have space after #: {line.strip()}"
+                    )
 
     @staticmethod
     def test_sections_are_organized():
@@ -800,7 +832,9 @@ class TestSecurityBestPractices:
                     # Most modern packages should be at least version 1.0
                     # Allow exceptions for certain packages
                     if pkg not in ["types-PyYAML"] and not pkg.startswith("types-"):
-                        assert major >= 1, f"{pkg} should be at least major version 1, got {ver}"
+                        assert major >= 1, (
+                            f"{pkg} should be at least major version 1, got {ver}"
+                        )
 
     @staticmethod
     def test_critical_packages_pinned(requirements: List[Tuple[str, str]]):
@@ -808,9 +842,13 @@ class TestSecurityBestPractices:
         critical_packages = ["pytest", "pytest-cov"]
 
         for critical in critical_packages:
-            matching = [ver for pkg, ver in requirements if pkg.lower() == critical.lower()]
+            matching = [
+                ver for pkg, ver in requirements if pkg.lower() == critical.lower()
+            ]
             if matching:
-                assert matching[0], f"Critical package {critical} should have version constraint"
+                assert matching[0], (
+                    f"Critical package {critical} should have version constraint"
+                )
 
 
 class TestPyYAMLIntegration:
@@ -846,7 +884,9 @@ class TestPyYAMLIntegration:
         # types-PyYAML may or may not have version constraint
 
         # PyYAML should be at least 6.0 (as per the diff)
-        assert pyyaml_ver[0].startswith(">=6.0"), f"PyYAML should be >=6.0, got {pyyaml_ver[0]}"
+        assert pyyaml_ver[0].startswith(">=6.0"), (
+            f"PyYAML should be >=6.0, got {pyyaml_ver[0]}"
+        )
 
     @staticmethod
     def test_yaml_parsing_capability():
@@ -897,7 +937,9 @@ class TestComprehensivePackageValidation:
     def test_package_count_reasonable(requirements: List[Tuple[str, str]]):
         """Test that the number of development packages is reasonable."""
         # Development dependencies should typically be between 5 and 50 packages
-        assert 5 <= len(requirements) <= 50, f"Development dependencies count seems unusual: {len(requirements)}"
+        assert 5 <= len(requirements) <= 50, (
+            f"Development dependencies count seems unusual: {len(requirements)}"
+        )
 
     @staticmethod
     def test_no_missing_pytest_plugins(requirements: List[Tuple[str, str]]):
