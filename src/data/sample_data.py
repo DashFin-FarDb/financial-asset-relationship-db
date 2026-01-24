@@ -355,18 +355,35 @@ def create_sample_database() -> AssetRelationshipGraph:
         graph.build_relationships()
 
         asset_count = len(graph.assets)
-        relationship_count = sum(len(rels) for rels in graph.relationships.values())
+        relationship_count = sum(
+            len(rels)
+            for rels in graph.relationships.values()
+        )
         logger.info(
-            "Expanded sample database created with %s assets and %s relationships",
+            "Expanded sample database created with %s assets "
+            "and %s relationships",
             asset_count,
             relationship_count,
         )
         logger.info(
-            "Asset classes covered: Equity (%s), Fixed Income (%s), " "Commodity (%s), Currency (%s)",
-            len([a for a in all_assets if a.asset_class == AssetClass.EQUITY]),
-            len([a for a in all_assets if a.asset_class == AssetClass.FIXED_INCOME]),
-            len([a for a in all_assets if a.asset_class == AssetClass.COMMODITY]),
-            len([a for a in all_assets if a.asset_class == AssetClass.CURRENCY]),
+            "Asset classes covered: Equity (%s), Fixed Income (%s), "
+            "Commodity (%s), Currency (%s)",
+            len([
+                a for a in all_assets
+                if a.asset_class == AssetClass.EQUITY
+            ]),
+            len([
+                a for a in all_assets
+                if a.asset_class == AssetClass.FIXED_INCOME
+            ]),
+            len([
+                a for a in all_assets
+                if a.asset_class == AssetClass.COMMODITY
+            ]),
+            len([
+                a for a in all_assets
+                if a.asset_class == AssetClass.CURRENCY
+            ]),
         )
 
         return graph

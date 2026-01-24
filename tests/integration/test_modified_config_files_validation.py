@@ -101,10 +101,10 @@ class TestPRAgentConfigChanges:
         """
         Ensure the PR agent configuration does not use complex token chunking or explicit token limits.
 
-        Asserts that the configuration(as a parsed mapping) does not contain the key "chunk_size" (case-insensitive) and that "max_tokens" is not present unless a `limits.max_execution_time` value exists.
+        Asserts that the configuration (as a parsed mapping) does not contain the key "chunk_size" (case-insensitive) and that "max_tokens" is not present unless a limits.max_execution_time value exists.
 
         Parameters:
-            config_data(dict[str, Any]): Parsed PR agent configuration mapping.
+            config_data (dict[str, Any]): Parsed PR agent configuration mapping.
         """
         config_str = str(config_data)
 
@@ -116,10 +116,10 @@ class TestPRAgentConfigChanges:
 
     def test_quality_standards_preserved(self, config_data: dict[str, Any]):
         """
-        Ensure the config's `quality` section includes `python` and `typescript`, and that `python` defines a `linter` and `test_runner` set to "pytest".
+        Ensure the config's 'quality' section includes 'python' and 'typescript', and that 'python' defines a 'linter' and 'test_runner' set to "pytest".
 
         Parameters:
-            config_data(dict[str, Any]): Parsed PR agent YAML configuration to validate.
+            config_data (dict[str, Any]): Parsed PR agent YAML configuration to validate.
         """
         assert "quality" in config_data
         assert "python" in config_data["quality"]

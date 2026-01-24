@@ -90,11 +90,17 @@ def _build_mcp_app():
             add_asset = getattr(graph, "add_asset", None)
             if callable(add_asset):
                 add_asset(new_equity)
-                return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
+                return (
+                    f"Successfully added: {new_equity.name} "
+                    f"({new_equity.symbol})"
+                )
 
             # Fallback: validation-only behavior if the graph does not expose an add API.
             # Explicitly indicate that no mutation occurred.
-            return f"Successfully validated (Graph mutation not supported): " f"{new_equity.name} ({new_equity.symbol})"
+            return (
+                f"Successfully validated (Graph mutation not supported): "
+                f"{new_equity.name} ({new_equity.symbol})"
+            )
         except ValueError as e:
             return f"Validation Error: {str(e)}"
 
@@ -116,8 +122,8 @@ def _build_mcp_app():
 
 def main(argv: list[str] | None = None) -> int:
     """
-    Parse command-line arguments, build and run the MCP application, and return an
-    exit code.
+    Parse command-line arguments, build and run the MCP application,
+    and return an exit code.
 
     If called with --version, prints a short version line and exits.
     Attempts to construct the MCP app; if the optional MCP package is missing,
@@ -156,7 +162,10 @@ def main(argv: list[str] | None = None) -> int:
         # Provide a clear message for missing optional dependency
         # when invoked via the CLI.
         missing = getattr(e, "name", None) or str(e)
-        raise SystemExit(f"Missing dependency '{missing}'. " + "Install the MCP package to run the server.") from e
+        raise SystemExit(
+            f"Missing dependency '{missing}'. "
+            + "Install the MCP package to run the server."
+        ) from e
 
     mcp.run()
     return 0

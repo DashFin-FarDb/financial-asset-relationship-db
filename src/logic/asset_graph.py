@@ -48,19 +48,6 @@ class AssetRelationshipGraph:
         Discover and populate asset relationships using built-in business rules.
 
         This clears existing relationships and adds edges between assets present
-        in the graph according to three rules:
-        - Same-sector: adds a bidirectional "same_sector" relationship with
-          strength 0.7 for assets that share the same sector (excluding
-          "Unknown").
-        - Corporate bond linkage: when a Bond's issuer_id matches another
-          asset's id, adds a unidirectional "corporate_link" from the bond to
-          its issuer with strength 0.9.
-        - Regulatory event impact: for each RegulatoryEvent whose source asset
-          and related assets exist in the graph, adds a unidirectional
-          "event_impact" relationship from the event's asset to each related
-          asset with strength equal to the absolute value of the event's
-          impact_score.
-
         Only relationships between assets present in self.assets are created.
         """
         self.relationships = {}
@@ -73,13 +60,31 @@ class AssetRelationshipGraph:
 
                 # Rule 2: Sector Affinity
                 if asset1.sector == asset2.sector and asset1.sector != "Unknown":
-                    self.add_relationship(id1, id2, "same_sector", 0.7, bidirectional=True)
+                    self.add_relationship(
+                        id1,
+                        id2,
+                        "same_sector",
+                        0.7,
+                        bidirectional=True,
+                    )
 
                 # Rule 1: Corporate Bond Linkage
                 if isinstance(asset1, Bond) and asset1.issuer_id == id2:
-                    self.add_relationship(id1, id2, "corporate_link", 0.9, bidirectional=False)
+                    self.add_relationship(
+                        id1,
+                        id2,
+                        "corporate_link",
+                        0.9,
+                        bidirectional=False,
+                    )
                 elif isinstance(asset2, Bond) and asset2.issuer_id == id1:
-                    self.add_relationship(id2, id1, "corporate_link", 0.9, bidirectional=False)
+                    self.add_relationship(
+                        id2,
+                        id1,
+                        "corporate_link",
+                        0.9,
+                        bidirectional=False,
+                    )
 
         # Rule: Event Impact
         for event in self.regulatory_events:
@@ -118,7 +123,7 @@ class AssetRelationshipGraph:
 
         Notes:
             Duplicate entries with the same source, target, and rel_type are
-            ignored.
+        ignored.
         """
         if source_id not in self.relationships:
             self.relationships[source_id] = []
@@ -174,7 +179,9 @@ class AssetRelationshipGraph:
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
 
         density = (
-            (total_relationships / (effective_assets_count * (effective_assets_count - 1)) * 100)
+            total_relationships
+            / (effective_assets_count * (effective_assets_count - 1))
+            * 100
             if effective_assets_count > 1
             else 0.0
         )
@@ -238,7 +245,10 @@ class AssetRelationshipGraph:
         asset_ids = sorted(all_ids)
         n = len(asset_ids)
         theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
-        positions = np.stack([np.cos(theta), np.sin(theta), np.zeros_like(theta)], axis=1)
+        positions = np.stack(
+            [np.cos(theta), np.sin(theta), np.zeros_like(theta)],
+            axis=1,
+        )
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]
         return positions, asset_ids, colors, hover

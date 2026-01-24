@@ -436,7 +436,8 @@ class TestRegulatoryEventORM:
         """Test that RegulatoryEventORM uses correct table name."""
         assert RegulatoryEventORM.__tablename__ == "regulatory_events"
 
-    def test_create_regulatory_event(self, db_session):
+    @staticmethod
+    def test_create_regulatory_event(db_session):
         """
         Verify that a RegulatoryEventORM can be created, persisted, and retrieved with its fields correctly stored.
 

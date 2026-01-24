@@ -443,7 +443,7 @@ class FormulaicdAnalyzer:
         Identify cross - asset relationship formulas present in the given asset graph.
 
         Detects relationships across asset classes(e.g., triangular currency
-        exchange and commodity–currency inverse relationships) and returns
+        exchange and commodity-currency inverse relationships) and returns
         corresponding Formula objects when applicable.
 
         Parameters:
