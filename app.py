@@ -825,29 +825,29 @@ class FinancialAssetApp:
 
             view_mode.change(
                 _on_view_mode_change,
-                inputs = visualization_inputs,
-                outputs = [visualization_3d, error_message, layout_type],
+                inputs=visualization_inputs,
+                outputs=[visualization_3d, error_message, layout_type],
             )
 
             # Reset view button
             reset_view_btn.click(
                 self.refresh_visualization,
-                inputs = visualization_inputs,
-                outputs = visualization_outputs,
+                inputs=visualization_inputs,
+                outputs=visualization_outputs,
             )
 
             # Asset selector change handler
             asset_selector.change(
                 self.update_asset_info,
-                inputs = [asset_selector, graph_state],
-                outputs = [asset_info, asset_relationships],
+                inputs=[asset_selector, graph_state],
+                outputs=[asset_info, asset_relationships],
             )
 
             # Formulaic analysis handlers
             refresh_formulas_btn.click(
                 self.generate_formulaic_analysis,
-                inputs = [graph_state],
-                outputs = [
+                inputs=[graph_state],
+                outputs=[
                     formulaic_dashboard,
                     correlation_network,
                     metric_comparison,
@@ -859,8 +859,8 @@ class FinancialAssetApp:
 
             formula_selector.change(
                 self.show_formula_details,
-                inputs = [formula_selector, graph_state],
-                outputs = [formula_detail_view, error_message],
+                inputs=[formula_selector, graph_state],
+                outputs=[formula_detail_view, error_message],
             )
 
         return demo
