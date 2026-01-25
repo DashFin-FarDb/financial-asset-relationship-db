@@ -386,7 +386,7 @@ class FinancialAssetApp:
                 gr.update(value=f"Error: {e}", visible=True),
             )
 
-    @staticmethod
+    @ staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """Format the formula analysis summary for display."""
         formulas=analysis_results.get("formulas", [])
