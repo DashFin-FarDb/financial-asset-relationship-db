@@ -288,7 +288,7 @@ class FinancialAssetApp:
         try:
             LOGGER.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
-            formulaic_analyzer = FormulaicdAnalyzer()
+            FormulaicdAnalyzer()
             formulaic_visualizer = FormulaicVisualizer()
 
             if view_mode == "2D":
