@@ -63,7 +63,9 @@ class AppConstants:
 
     INITIAL_GRAPH_ERROR: Final[str] = "Failed to create sample database"
     REFRESH_OUTPUTS_ERROR: Final[str] = "Error refreshing outputs"
-    APP_START_INFO: Final[str] = "Starting Financial Asset Relationship Database application"
+    APP_START_INFO: Final[str] = (
+        "Starting Financial Asset Relationship Database application"
+    )
     APP_LAUNCH_INFO: Final[str] = "Launching Gradio interface"
     APP_START_ERROR: Final[str] = "Failed to start application"
 
@@ -572,7 +574,9 @@ class FinancialAssetApp:
                             gr.Markdown("")
 
                     with gr.Row():
-                        asset_info: gr.JSON = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
+                        asset_info: gr.JSON = gr.JSON(
+                            label=AppConstants.ASSET_DETAILS_LABEL
+                        )
                     with gr.Row():
                         asset_relationships: gr.JSON = gr.JSON(
                             label=AppConstants.RELATED_ASSETS_LABEL
