@@ -185,7 +185,9 @@ class FinancialAssetApp:
             regulatory_event_count=metrics["regulatory_event_count"],
             asset_class_distribution=json.dumps(metrics["asset_class_distribution"], indent=2),
         )
-        for idx, (src, tgt, rel, strength) in enumerate(metrics["top_relationships"], 1):
+        for idx, (src, tgt, rel, strength) in enumerate(
+            metrics["top_relationships"], 1
+        ):
             text += f"{idx}. {src} → {tgt} ({rel}): {strength:.1%}\n"
         return text
 
@@ -205,11 +207,15 @@ class FinancialAssetApp:
         asset_dict["asset_class"] = asset.asset_class.value
         outgoing = {
             target_id: {"relationship_type": rel_type, "strength": strength}
-            for target_id, rel_type, strength in graph.relationships.get(selected_asset, [])
+            for target_id, rel_type, strength in graph.relationships.get(
+                selected_asset, []
+            )
         }
         incoming = {
             src_id: {"relationship_type": rel_type, "strength": strength}
-            for src_id, rel_type, strength in graph.incoming_relationships.get(selected_asset, [])
+            for src_id, rel_type, strength in graph.incoming_relationships.get(
+                selected_asset, []
+            )
         }
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
@@ -366,7 +372,9 @@ class FinancialAssetApp:
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
     @staticmethod
-    def _format_formula_summary(summary: Dict[str, Any], analysis_results: Dict[str, Any]) -> str:
+    def _format_formula_summary(
+        summary: Dict[str, Any], analysis_results: Dict[str, Any]
+    ) -> str:
         """Format formula analysis summary for display."""
         formulas: List[Any] = analysis_results.get("formulas", [])
         empirical: Dict[str, Any] = analysis_results.get("empirical_relationships", {})
@@ -461,7 +469,9 @@ class FinancialAssetApp:
                         with gr.Column(scale=1):
                             reset_view_btn: gr.Button = gr.Button("Reset View & Show All", variant="secondary")
                         with gr.Column(scale=2):
-                            gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
+                            gr.Markdown(
+                                "**Legend:** ↔ = Bidirectional, → = Unidirectional"
+                            )
 
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
@@ -504,7 +514,9 @@ class FinancialAssetApp:
                         with gr.Column(scale=3):
                             gr.Markdown("")
                     with gr.Row():
-                        asset_info: gr.JSON = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
+                        asset_info: gr.JSON = gr.JSON(
+                            label=AppConstants.ASSET_DETAILS_LABEL
+                        )
                     with gr.Row():
                         asset_relationships: gr.JSON = gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
                     with gr.Row():
@@ -532,7 +544,9 @@ class FinancialAssetApp:
                                 value=None,
                                 interactive=True,
                             )
-                            formula_detail_view: gr.Plot = gr.Plot(label="Formula Details")
+                            formula_detail_view: gr.Plot = gr.Plot(
+                                label="Formula Details"
+                            )
 
                     with gr.Row():
                         with gr.Column(scale=1):
@@ -547,7 +561,9 @@ class FinancialAssetApp:
                             )
                         with gr.Column(scale=2):
                             formula_summary: gr.Textbox = gr.Textbox(
-                                label="Formula Analysis Summary", lines=5, interactive=False
+                                label="Formula Analysis Summary",
+                                lines=5,
+                                interactive=False,
                             )
 
             graph_state: gr.State = gr.State(value=self.graph)
@@ -589,7 +605,10 @@ class FinancialAssetApp:
                 show_all_relationships,
                 toggle_arrows,
             ]
-            visualization_outputs: List[GradioUpdate] = [visualization_3d, error_message]
+            visualization_outputs: List[GradioUpdate] = [
+                visualization_3d,
+                error_message,
+            ]
 
             refresh_btn.click(
                 self.refresh_visualization,
