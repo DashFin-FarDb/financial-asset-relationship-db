@@ -793,7 +793,7 @@ class FormulaicVisualizer:
         )
         return fig
 
-    @ staticmethod
+@staticmethod
     def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
         fig = go.Figure()
