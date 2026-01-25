@@ -399,7 +399,10 @@ class TestShellScripts:
             content = f.read()
 
         # Should reference the analysis document
-        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
+        assert (
+            "BRANCH_CLEANUP_ANALYSIS.md" in content
+            or "documentation" in content.lower()
+        )
 
     @staticmethod
     def test_shell_scripts_consistent_style():
@@ -513,7 +516,9 @@ class TestShellScripts:
         if "git branch" in content and "-" in content:
             # Check the context of deletion
             lines = content.split("\n")
-            delete_lines = [line for line in lines if "git branch -" in line and "xargs" in line]
+            delete_lines = [
+                line for line in lines if "git branch -" in line and "xargs" in line
+            ]
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)
