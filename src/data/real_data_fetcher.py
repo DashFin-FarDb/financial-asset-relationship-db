@@ -145,13 +145,6 @@ class RealDataFetcher:
         """
         if self.fallback_factory is not None:
             return self.fallback_factory()
-        from src.data.sample_data import create_sample_database
-
-        return create_sample_database()
-        if self.fallback_factory is not None:
-            return self.fallback_factory()
-        from src.data.sample_data import create_sample_database
-
         return create_sample_database()
 
     @staticmethod

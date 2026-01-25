@@ -312,6 +312,7 @@ class FinancialAssetApp:
                     show_income_comparison=show_income_comparison,
                     show_regulatory=show_regulatory,
                     show_all_relationships=show_all_relationships,
+                )
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
         """Generate comprehensive formulaic analysis of the asset graph."""
         try:
