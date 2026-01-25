@@ -87,9 +87,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     reviews = list(pr.get_reviews())
     review_stats = {
         "approved": len([r for r in reviews if r.state == "APPROVED"]),
-        "changes_requested": len(
-            [r for r in reviews if r.state == "CHANGES_REQUESTED"]
-        ),
+        "changes_requested": len([r for r in reviews if r.state == "CHANGES_REQUESTED"]),
         "commented": len([r for r in reviews if r.state == "COMMENTED"]),
         "total": len(reviews),
     }
@@ -107,9 +105,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
     # We use list() here because we need to inspect properties
     for run in head_commit.get_check_runs():
-        check_runs_data.append(
-            CheckRunInfo(name=run.name, status=run.status, conclusion=run.conclusion)
-        )
+        check_runs_data.append(CheckRunInfo(name=run.name, status=run.status, conclusion=run.conclusion))
 
     return PRStatus(
         number=pr.number,
@@ -168,9 +164,7 @@ def format_checklist(status: PRStatus) -> str:
     elif passed_checks == total_checks:
         tasks.append("- [x] All CI checks passing")
     else:
-        tasks.append(
-            f"- [ ] All CI checks passing ({passed_checks}/{total_checks} passed)"
-        )
+        tasks.append(f"- [ ] All CI checks passing ({passed_checks}/{total_checks} passed)")
 
     # Conflicts
     clean_merge = status.mergeable is True
@@ -237,9 +231,7 @@ def generate_markdown(status: PRStatus) -> str:
         f"- 📋 **Total Reviews:** {revs['total']}"
     )
 
-    labels_str = (
-        ", ".join([f"`{l}`" for l in status.labels]) if status.labels else "None"
-    )
+    labels_str = ", ".join([f"`{l}`" for l in status.labels]) if status.labels else "None"
     draft_status = "📝 Yes" if status.is_draft else "✅ No"
 
     # Merge Status
@@ -298,9 +290,7 @@ def write_output(content: str) -> None:
             with open(gh_summary, "a", encoding="utf-8") as f:
                 f.write(content)
         except IOError as e:
-            print(
-                f"Warning: Could not write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr
-            )
+            print(f"Warning: Could not write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
 
     # 2. Standard Temp File
     # We use a standard temp path. We DO NOT crash if it exists; we overwrite.

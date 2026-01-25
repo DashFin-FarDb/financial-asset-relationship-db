@@ -60,13 +60,11 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         """Test that there's no duplicate 'Setup Python' step name."""
         for job_name, job_config in workflow_content.get("jobs", {}).items():
             steps = job_config.get("steps", [])
-            setup_python_count = sum(
-                1 for step in steps if step.get("name") == "Setup Python"
-            )
+            setup_python_count = sum(1 for step in steps if step.get("name") == "Setup Python")
 
-            assert setup_python_count <= 1, (
-                f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps, expected at most 1"
-            )
+            assert (
+                setup_python_count <= 1
+            ), f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps, expected at most 1"
 
     @staticmethod
     def test_no_duplicate_with_blocks_in_setup_python(workflow_raw: str):
@@ -93,9 +91,7 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
                     if re.match(r"^\s+- name:", lines[j]) and j != i:
                         break
 
-                assert with_count <= 1, (
-                    f"Setup Python step at line {i + 1} has {with_count} 'with:' blocks, expected 1"
-                )
+                assert with_count <= 1, f"Setup Python step at line {i + 1} has {with_count} 'with:' blocks, expected 1"
 
     @staticmethod
     def test_setup_python_single_python_version_definition(workflow_raw: str):
@@ -118,9 +114,9 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
                     if re.match(r"^\s+- name:", lines[j]):
                         break
 
-                assert version_count == 1, (
-                    f"Setup Python at line {i + 1} has {version_count} python-version definitions, expected 1"
-                )
+                assert (
+                    version_count == 1
+                ), f"Setup Python at line {i + 1} has {version_count} python-version definitions, expected 1"
 
 
 class TestPRAgentWorkflowStructureValidation:
@@ -147,48 +143,36 @@ class TestPRAgentWorkflowStructureValidation:
             workflow_content (dict[str, Any]): Parsed YAML mapping of the workflow file.
         """
         assert "jobs" in workflow_content
-        assert "pr-agent-trigger" in workflow_content["jobs"], (
-            "Workflow should have 'pr-agent-trigger' job"
-        )
+        assert "pr-agent-trigger" in workflow_content["jobs"], "Workflow should have 'pr-agent-trigger' job"
 
     @staticmethod
     def test_has_auto_merge_check_job(workflow_content: dict[str, Any]):
         """Test that workflow has the auto-merge-check job."""
-        assert "auto-merge-check" in workflow_content.get("jobs", {}), (
-            "Workflow should have 'auto-merge-check' job"
-        )
+        assert "auto-merge-check" in workflow_content.get("jobs", {}), "Workflow should have 'auto-merge-check' job"
 
     @staticmethod
     def test_has_dependency_update_job(workflow_content: dict[str, Any]):
         """Test that workflow has the dependency-update job."""
-        assert "dependency-update" in workflow_content.get("jobs", {}), (
-            "Workflow should have 'dependency-update' job"
-        )
+        assert "dependency-update" in workflow_content.get("jobs", {}), "Workflow should have 'dependency-update' job"
 
     @staticmethod
     def test_trigger_on_pr_events(workflow_content: dict[str, Any]):
         """Test that workflow triggers on appropriate PR events."""
         triggers = workflow_content.get("on", {})
 
-        assert "pull_request" in triggers, (
-            "Workflow should trigger on pull_request events"
-        )
+        assert "pull_request" in triggers, "Workflow should trigger on pull_request events"
 
         if isinstance(triggers.get("pull_request"), dict):
             pr_types = triggers["pull_request"].get("types", [])
             expected_types = ["opened", "synchronize", "reopened"]
             for expected in expected_types:
-                assert expected in pr_types, (
-                    f"pull_request trigger should include '{expected}' type"
-                )
+                assert expected in pr_types, f"pull_request trigger should include '{expected}' type"
 
     @staticmethod
     def test_trigger_on_pr_review(workflow_content: dict[str, Any]):
         """Test that workflow triggers on PR review events."""
         triggers = workflow_content.get("on", {})
-        assert "pull_request_review" in triggers, (
-            "Workflow should trigger on pull_request_review events"
-        )
+        assert "pull_request_review" in triggers, "Workflow should trigger on pull_request_review events"
 
     @staticmethod
     def test_trigger_on_issue_comment(workflow_content: dict[str, Any]):
@@ -199,9 +183,7 @@ class TestPRAgentWorkflowStructureValidation:
             workflow_content (dict[str, Any]): Parsed workflow YAML as a dictionary.
         """
         triggers = workflow_content.get("on", {})
-        assert "issue_comment" in triggers, (
-            "Workflow should trigger on issue_comment events for @copilot mentions"
-        )
+        assert "issue_comment" in triggers, "Workflow should trigger on issue_comment events for @copilot mentions"
 
 
 class TestPRAgentWorkflowSetupSteps:
@@ -224,11 +206,7 @@ class TestPRAgentWorkflowSetupSteps:
     def test_checkout_step_exists(pr_agent_job: dict[str, Any]):
         """Check that the job contains at least one step using `actions/checkout`."""
         steps = pr_agent_job.get("steps", [])
-        checkout_steps = [
-            step
-            for step in steps
-            if step.get("uses", "").startswith("actions/checkout")
-        ]
+        checkout_steps = [step for step in steps if step.get("uses", "").startswith("actions/checkout")]
         assert len(checkout_steps) >= 1, "Job should have checkout step"
 
     @staticmethod
@@ -257,9 +235,7 @@ class TestPRAgentWorkflowSetupSteps:
         for step in steps:
             if step.get("name") == "Setup Python":
                 version = step.get("with", {}).get("python-version")
-                assert version == "3.11", (
-                    f"Expected Python version '3.11', got '{version}'"
-                )
+                assert version == "3.11", f"Expected Python version '3.11', got '{version}'"
 
     @staticmethod
     def test_nodejs_version_is_18(pr_agent_job: dict[str, Any]):
@@ -273,9 +249,7 @@ class TestPRAgentWorkflowSetupSteps:
         for step in steps:
             if step.get("name") == "Setup Node.js":
                 version = step.get("with", {}).get("node-version")
-                assert version == "18", (
-                    f"Expected Node.js version '18', got '{version}'"
-                )
+                assert version == "18", f"Expected Node.js version '18', got '{version}'"
 
     @staticmethod
     def test_setup_order_correct(pr_agent_job: dict[str, Any]):
@@ -303,6 +277,4 @@ class TestPRAgentWorkflowSetupSteps:
             assert checkout_idx < python_idx, "Checkout should come before Setup Python"
 
         if python_idx is not None and node_idx is not None:
-            assert python_idx < node_idx, (
-                "Setup Python should come before Setup Node.js"
-            )
+            assert python_idx < node_idx, "Setup Python should come before Setup Node.js"
