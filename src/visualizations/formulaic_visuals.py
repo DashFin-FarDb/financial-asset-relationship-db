@@ -353,11 +353,11 @@ class FormulaicVisualizer:
                     xref="paper",
                     yref="paper",
                     showarrow=False,
-                        font=dict(size=14, color="gray"),
-                    )
-                ],
-            )
-            return fig
+                    font=dict(size=14, color="gray"),
+                )
+            ],
+        )
+        return fig
 
         @staticmethod
         def _build_and_render_correlation_network(
@@ -728,8 +728,8 @@ class FormulaicVisualizer:
             ),
         )
         return fig
-            color = "lightgray"
-            width = 2
+        color = "lightgray"
+        width = 2
 
         edge_traces.append(
             go.Scatter(
@@ -748,12 +748,12 @@ class FormulaicVisualizer:
         node_text = assets
 
         node_trace = go.Scatter(
-            x = node_x,
-            y = node_y,
-            mode = "markers+text",
-            text = node_text,
-            textposition = "top center",
-            marker = dict(
+            x=node_x,
+            y=node_y,
+            mode="markers+text",
+            text=node_text,
+            textposition="top center",
+            marker=dict(
                 showscale=True,
                 colorscale="YlGnBu",
                 size=10,
@@ -765,7 +765,7 @@ class FormulaicVisualizer:
                 ),
                 line_width=2,
             ),
-            hoverinfo = "text",
+            hoverinfo="text",
         )
 
         # Color nodes by degree
@@ -775,8 +775,8 @@ class FormulaicVisualizer:
         node_trace.marker.color = node_adjacencies
 
         fig = go.Figure(
-            data = [edge_traces, node_trace],
-            layout = go.Layout(
+            data=[edge_traces, node_trace],
+            layout=go.Layout(
                 title="Correlation Network Graph",
                 titlefont_size=16,
                 showlegend=False,
@@ -788,15 +788,16 @@ class FormulaicVisualizer:
         )
         return fig
 
-@ staticmethod
-    def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
-        """Create a chart comparing different metrics derived from formulas."""
-        fig = go.Figure()
 
-        # Example logic: Compare theoretical vs empirical values if available
-        # For now, we plot R-squared distribution by category
-        formulas = analysis_results.get("formulas", [])
-        if not formulas:
+@staticmethod
+def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
+    """Create a chart comparing different metrics derived from formulas."""
+     fig = go.Figure()
+
+      # Example logic: Compare theoretical vs empirical values if available
+      # For now, we plot R-squared distribution by category
+      formulas = analysis_results.get("formulas", [])
+       if not formulas:
             return fig
 
         categories = {}
@@ -831,10 +832,10 @@ class FormulaicVisualizer:
         )
 
         fig.update_layout(
-            title = "Formula Reliability Distribution by Category",
-            yaxis_title = "R-Squared Score",
-            xaxis_title = "Formula Category",
-            showlegend = False,
-            template = "plotly_white",
+            title="Formula Reliability Distribution by Category",
+            yaxis_title="R-Squared Score",
+            xaxis_title="Formula Category",
+            showlegend=False,
+            template="plotly_white",
         )
         return fig
