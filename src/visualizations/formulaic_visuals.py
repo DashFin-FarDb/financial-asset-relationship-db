@@ -385,7 +385,7 @@ class FormulaicVisualizer:
     ) -> go.Figure:
             """Build a NetworkX graph from strongest correlations and
             render it with Plotly."""
-            G = nx.Graph()
+        G = nx.Graph()
 
             # Add edges from strongest correlations (expected: list of dict-like objects)
             for item in strongest_correlations or []:
