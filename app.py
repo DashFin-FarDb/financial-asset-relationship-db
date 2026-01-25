@@ -298,9 +298,8 @@ class FinancialAssetApp:
                 )
 
             return graph_viz, gr.update(visible=False)
-            return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
+        except Exception as e:
             logger.error("Error refreshing visualization: %s", e)
-            return gr.update(), gr.update(value=f"Error: {e}", visible=True)
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
         """Generate comprehensive formulaic analysis of the asset graph."""
