@@ -147,7 +147,7 @@ class FinancialAssetApp:
     def _initialize_graph(self) -> None:
         """
         Builds and assigns the asset relationship graph from real financial data.
-        
+
         Attempts to initialize the application's asset graph by loading real financial data (via create_real_database) and stores the result on self.graph. If initialization fails, the original exception is propagated.
         """
         try:
@@ -163,10 +163,10 @@ class FinancialAssetApp:
     def ensure_graph(self) -> AssetRelationshipGraph:
         """
         Ensure the application's asset relationship graph is initialized.
-        
+
         Returns:
             AssetRelationshipGraph: The initialized asset relationship graph.
-        
+
         Raises:
             RuntimeError: If initialization fails and the graph remains None.
         """
@@ -183,11 +183,11 @@ class FinancialAssetApp:
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """
         Format network statistics and top relationships from the asset graph into a human-readable text block.
-        
+
         The output includes total assets, total relationships, average relationship strength, relationship density,
         regulatory event count, a JSON-formatted asset class distribution, and a numbered list of top relationships
         with their relationship type and strength.
-        
+
         Returns:
             str: Formatted metrics text ready for display.
         """
@@ -211,10 +211,10 @@ class FinancialAssetApp:
     ) -> Tuple[go.Figure, go.Figure, go.Figure, str]:
         """
         Generate metric visualizations and the formatted network metrics text for the given asset graph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): The asset relationship graph used to compute metrics and visualizations.
-        
+
         Returns:
             Tuple[go.Figure, go.Figure, go.Figure, str]: A tuple containing three Plotly figures (metric visualizations) and a string with the formatted network metrics report.
         """
@@ -228,13 +228,13 @@ class FinancialAssetApp:
     ) -> Tuple[Dict, AssetRelationshipView]:
         """
         Return detailed information and related relationships for the specified asset.
-        
+
         Parameters:
             selected_asset (Optional[str]): Asset identifier to look up in `graph.assets`. If `None` or not present, no asset is returned.
             graph (AssetRelationshipGraph): Graph containing assets and their relationships.
-        
+
         Returns:
-            Tuple[Dict[str, Union[str, float, int]], AssetRelationshipView]: 
+            Tuple[Dict[str, Union[str, float, int]], AssetRelationshipView]:
                 - First element: a dictionary of the asset's fields (converted from the dataclass) with an added `"asset_class"` key containing the asset class value.
                 - Second element: an AssetRelationshipView with two keys, `"outgoing"` and `"incoming"`, each mapping counterparty asset ids to dictionaries of the form `{"relationship_type": <str>, "strength": <float>}`. If the asset is missing, returns an empty dict and `{"outgoing": {}, "incoming": {}}`.
         """
@@ -273,7 +273,7 @@ class FinancialAssetApp:
     ]:
         """
         Refreshes all UI visuals, metrics, schema report, and asset selector options.
-        
+
         @returns Tuple containing:
             - 3D network visualization figure for the main plot.
             - Metric figure 1 (Plotly figure) for metrics visualization.
@@ -338,9 +338,9 @@ class FinancialAssetApp:
     ) -> go.Figure:
         """
         Generate a network visualization of the asset relationship graph with optional 2D/3D mode and relationship filters.
-        
+
         The visualization respects the supplied view mode ("2D" for planar layouts; any other value selects the 3D renderer) and applies the boolean filter flags to control which relationship types and node attributes are shown.
-        
+
         Returns:
             A Plotly Figure containing the requested visualization. Returns an empty Figure if visualization fails.
         """
@@ -388,10 +388,10 @@ class FinancialAssetApp:
     ) -> Tuple[go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox]:
         """
         Produce a formulaic analysis dashboard and companion visualizations derived from the asset graph.
-        
+
         Parameters:
             graph_state (Optional[AssetRelationshipGraph]): Asset graph to analyze; if None, the app's initialized graph is used.
-        
+
         Returns:
             Tuple containing:
             - dashboard_fig (go.Figure): Main formula dashboard summarizing identified formulas and metrics.
@@ -465,11 +465,11 @@ class FinancialAssetApp:
     ) -> Tuple[go.Figure, gr.Textbox]:
             """
         Provide a placeholder detail view for a selected formula and hide the detail textbox while the feature is not implemented.
-        
+
         Parameters:
             formula_name (str): The name of the formula whose details would be shown.
             graph_state (AssetRelationshipGraph): The current asset relationship graph used for analysis.
-        
+
         Returns:
             Tuple[go.Figure, gr.Textbox]: A pair where the first element is an empty Plotly Figure as a placeholder, and the second is a Gradio textbox update with no value and visibility set to False.
         """
@@ -485,7 +485,7 @@ class FinancialAssetApp:
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """
         Builds a human-readable, markdown-formatted summary of formulaic analysis and empirical relationships.
-        
+
         Parameters:
             summary (Dict): Aggregated summary metrics with keys such as
                 - "avg_r_squared" (float): average R² across formulas,
@@ -497,7 +497,7 @@ class FinancialAssetApp:
                 - "empirical_relationships" (Dict): empirical data including
                   "strongest_correlations" (List[Dict]) where each dict has keys
                   "pair", "correlation", and "strength".
-        
+
         Returns:
             str: A multi-line markdown string summarizing totals, average reliability,
                  empirical data points, categorized formula counts, key insights, and
@@ -538,7 +538,7 @@ class FinancialAssetApp:
     def create_interface(self) -> gr.Blocks:
         """
         Builds the Gradio Blocks user interface for the Financial Asset Relationship Database application.
-        
+
         Creates a multi-tab UI containing:
         - Network Visualization (2D/3D) with visualization controls, relationship visibility toggles, a 3D/2D plot, and refresh/reset actions.
         - Metrics & Analytics with metric charts and a network statistics textbox.
@@ -546,12 +546,12 @@ class FinancialAssetApp:
         - Asset Explorer with an asset selector, asset details and related-assets JSON views, and refresh action.
         - Documentation with static markdown.
         - Formulaic Analysis with a dashboard, formula selector, detail view, correlation network, metric comparison chart, and summary.
-        
+
         Event handlers and state:
         - Initializes a gr.State holding the application's graph.
         - Wires refresh buttons, visualization controls, layout selection, and formula-related controls to the corresponding FinancialAssetApp methods so UI components update based on the current graph state.
         - Provides an error message textbox that is updated by event handlers.
-        
+
         Returns:
             demo (gr.Blocks): The constructed Gradio Blocks instance representing the complete application UI.
         """
