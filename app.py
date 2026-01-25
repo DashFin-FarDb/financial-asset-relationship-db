@@ -563,9 +563,7 @@ class FinancialAssetApp:
                             gr.Markdown("")
 
                     with gr.Row():
-                        gr.JSON(
-                            label=AppConstants.ASSET_DETAILS_LABEL
-                        )
+                        gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
                     with gr.Row():
                         asset_relationships: gr.JSON = gr.JSON(
                             label=AppConstants.RELATED_ASSETS_LABEL
