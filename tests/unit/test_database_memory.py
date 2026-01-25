@@ -14,9 +14,9 @@ import api.database as database
 @pytest.fixture()
 def restore_database_module(monkeypatch) -> Iterator[None]:
     """
-    Preserve and restore the api.database module state and the DATABASE_URL environment variable around a test.
+    Preserve and restore api.database module state and the DATABASE_URL environment variable around a test.
 
-    Yields control to the test; after the test completes, closes and clears any in-memory SQLite connection on api.database (if present), restores DATABASE_URL to its original value or removes it if it was not set, and reloads the api.database module to reset its state.
+    Yields control to the test. After the test completes, closes any in-memory SQLite connection stored on api.database._MEMORY_CONNECTION (if present), restores DATABASE_URL to its original value or removes it if it was not set, and reloads the api.database module to reset its state.
     """
 
     original_url = os.environ.get("DATABASE_URL")
@@ -76,9 +76,9 @@ def test_uri_style_memory_database_persists_schema_and_data(
     monkeypatch, restore_database_module
 ):
     """
-    Verify URI-style in-memory SQLite configuration is correctly detected and reuses a single connection instance.
+    Verify that a URI-style in-memory SQLite database is treated as an in-memory DB whose schema and data persist across get_connection contexts and that the same connection object is reused.
 
-    Sets DATABASE_URL to use a URI-style in-memory SQLite database (file::memory:?cache=shared), reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
+    Sets a URI-style in-memory DATABASE_URL, reloads the database module, initializes the schema, inserts a row using one connection context, then reads the row from a second connection context and asserts the row exists and both contexts returned the same connection object.
     """
     monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 
@@ -118,9 +118,8 @@ class TestIsMemoryDb:
         assert reloaded_database._is_memory_db() is True
         assert reloaded_database._is_memory_db(":memory:") is True
 
-    def test_is_memory_db_with_file_uri_memory(
-        self, monkeypatch, restore_database_module
-    ):
+    @staticmethod
+    def test_is_memory_db_with_file_uri_memory(monkeypatch, restore_database_module):
         """Test that _is_memory_db returns True for file::memory: URI format."""
         # Test file::memory: pattern
         assert database._is_memory_db("file::memory:") is True
@@ -131,25 +130,28 @@ class TestIsMemoryDb:
         # Test file:///path/to/:memory: pattern
         assert database._is_memory_db("file:///path/:memory:") is True
 
-    def test_is_memory_db_with_regular_file_path(
-        self, monkeypatch, restore_database_module
-    ):
-        """Test that _is_memory_db returns False for regular file paths."""
+    @staticmethod
+    def test_is_memory_db_with_regular_file_path(monkeypatch, restore_database_module):
+        """
+        Verify that regular filesystem paths are not classified as in-memory SQLite databases.
+        """
         # Regular file paths should return False
         assert database._is_memory_db("/path/to/database.db") is False
         assert database._is_memory_db("database.db") is False
         assert database._is_memory_db("./relative/path/db.sqlite") is False
 
+    @staticmethod
     def test_is_memory_db_with_file_prefix_but_not_memory(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that _is_memory_db returns False for file: URIs that aren't memory databases."""
         # file: prefix but not a memory database
         assert database._is_memory_db("file:///path/to/database.db") is False
         assert database._is_memory_db("file://database.db") is False
 
+    @staticmethod
     def test_is_memory_db_with_memory_in_path_but_not_memory_db(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that _is_memory_db returns False when 'memory' appears in path but it's not a memory DB."""
         # Paths containing 'memory' substring but not actual memory databases
@@ -157,8 +159,9 @@ class TestIsMemoryDb:
         assert database._is_memory_db("/memory/storage/db.sqlite") is False
         assert database._is_memory_db("my_memory.db") is False
 
+    @staticmethod
     def test_is_memory_db_with_none_uses_module_database_path(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that _is_memory_db with None parameter uses the module's DATABASE_PATH."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -168,12 +171,14 @@ class TestIsMemoryDb:
         assert reloaded_database._is_memory_db() is True
         assert reloaded_database._is_memory_db(None) is True
 
-    def test_is_memory_db_with_empty_string(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_is_memory_db_with_empty_string(monkeypatch, restore_database_module):
         """Test that _is_memory_db returns False for empty string."""
         assert database._is_memory_db("") is False
 
+    @staticmethod
     def test_is_memory_db_with_various_uri_formats(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test _is_memory_db with various URI-style memory database formats."""
         # URI formats that should be detected as memory databases (contain :memory:)
@@ -198,7 +203,8 @@ class TestIsMemoryDb:
                 f"Unexpectedly detected as memory DB: {uri}"
             )
 
-    def test_is_memory_db_case_sensitivity(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_is_memory_db_case_sensitivity(monkeypatch, restore_database_module):
         """Test that _is_memory_db is case-sensitive."""
         # SQLite memory database identifiers are case-sensitive
         assert database._is_memory_db(":memory:") is True
@@ -209,8 +215,9 @@ class TestIsMemoryDb:
 class TestConnectWithMemoryDb:
     """Tests for _connect function with various memory database configurations."""
 
+    @staticmethod
     def test_connect_creates_shared_memory_connection(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that _connect creates and reuses a single shared connection for memory databases."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -226,9 +233,8 @@ class TestConnectWithMemoryDb:
         assert conn2 is conn1
         assert conn2 is reloaded_database._MEMORY_CONNECTION
 
-    def test_connect_with_uri_memory_database(
-        self, monkeypatch, restore_database_module
-    ):
+    @staticmethod
+    def test_connect_with_uri_memory_database(monkeypatch, restore_database_module):
         """Test that _connect properly handles URI-style memory databases."""
         # Test with file::memory:?cache=shared format
         monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
@@ -241,8 +247,9 @@ class TestConnectWithMemoryDb:
         conn2 = reloaded_database._connect()
         assert conn2 is conn1
 
+    @staticmethod
     def test_connect_creates_new_connection_for_file_db(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that _connect creates new connections for file-based databases."""
         import tempfile
@@ -322,8 +329,9 @@ class TestConnectWithMemoryDb:
 class TestGetConnectionWithMemoryDb:
     """Tests for get_connection context manager with memory databases."""
 
+    @staticmethod
     def test_get_connection_does_not_close_memory_db(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that get_connection keeps memory database connections open."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -348,7 +356,8 @@ class TestGetConnectionWithMemoryDb:
             assert row is not None
             assert row["username"] == "testuser"
 
-    def test_get_connection_closes_file_db(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_get_connection_closes_file_db(monkeypatch, restore_database_module):
         """Test that get_connection closes file database connections."""
         import tempfile
 
@@ -383,8 +392,9 @@ class TestGetConnectionWithMemoryDb:
 class TestThreadSafety:
     """Tests for thread safety of memory database connections."""
 
+    @staticmethod
     def test_memory_connection_lock_prevents_race_condition(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that the memory connection lock prevents race conditions during initialization."""
         import threading
@@ -395,7 +405,11 @@ class TestThreadSafety:
         connections = []
 
         def get_conn():
-            """Acquire a connection using the reloaded_database._connect method and append it to connections list."""
+            """
+            Acquire a database connection and record it for later cleanup.
+
+            Appends the acquired connection to the module-level `connections` list.
+            """
             conn = reloaded_database._connect()
             connections.append(conn)
 
@@ -412,10 +426,13 @@ class TestThreadSafety:
         assert len(connections) == 10
         assert all(conn is connections[0] for conn in connections)
 
-    def test_concurrent_operations_on_memory_db(
-        self, monkeypatch, restore_database_module
-    ):
-        """Test concurrent read/write operations on memory database."""
+    @staticmethod
+    def test_concurrent_operations_on_memory_db(monkeypatch, restore_database_module):
+        """
+        Verifies that multiple threads can concurrently insert into an in-memory SQLite database without errors and that all inserts persist.
+
+        Starts a shared in-memory database, spawns several threads that each insert a user within a connection context, asserts no exceptions occurred during concurrent writes, and asserts the final row count equals the number of inserts.
+        """
         import threading
 
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -426,7 +443,16 @@ class TestThreadSafety:
         errors = []
 
         def write_user(user_id):
-            """Insert a user into the database safely within a thread context."""
+            """
+            Insert a user row into the `user_credentials` table using the provided identifier.
+
+            Parameters:
+                user_id (int): Numeric identifier used to construct the `username` ("user{user_id}") and `hashed_password` ("hash{user_id}").
+
+            Side effects:
+                - Inserts a row into `user_credentials` and commits the transaction.
+                - On exception, appends the raised exception to the module-level `errors` list.
+            """
             try:
                 with reloaded_database.get_connection() as conn:
                     conn.execute(
@@ -458,9 +484,8 @@ class TestThreadSafety:
 class TestEdgeCasesAndErrorHandling:
     """Tests for edge cases and error handling in database connection management."""
 
-    def test_resolve_sqlite_path_with_memory(
-        self, monkeypatch, restore_database_module
-    ):
+    @staticmethod
+    def test_resolve_sqlite_path_with_memory(monkeypatch, restore_database_module):
         """Test that _resolve_sqlite_path correctly handles :memory: URLs."""
         from api.database import _resolve_sqlite_path
 
@@ -468,8 +493,9 @@ class TestEdgeCasesAndErrorHandling:
         assert _resolve_sqlite_path("sqlite:///:memory:") == ":memory:"
         assert _resolve_sqlite_path("sqlite://:memory:") == ":memory:"
 
+    @staticmethod
     def test_resolve_sqlite_path_with_regular_file(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that _resolve_sqlite_path correctly resolves file paths."""
         from pathlib import Path
@@ -481,8 +507,9 @@ class TestEdgeCasesAndErrorHandling:
         assert "test.db" in result
         assert Path(result).is_absolute()
 
+    @staticmethod
     def test_database_url_environment_variable_required(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that DATABASE_URL environment variable is required."""
         monkeypatch.delenv("DATABASE_URL", raising=False)
@@ -492,8 +519,9 @@ class TestEdgeCasesAndErrorHandling:
         ):
             importlib.reload(database)
 
+    @staticmethod
     def test_execute_with_memory_db_commits_changes(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """
         Verify that calling `execute` inserts and commits a row into an in-memory SQLite database so that subsequent queries can retrieve it.
@@ -516,7 +544,8 @@ class TestEdgeCasesAndErrorHandling:
         assert row is not None
         assert row["username"] == "testuser"
 
-    def test_fetch_value_with_memory_db(self, monkeypatch, restore_database_module):
+    @staticmethod
+    def test_fetch_value_with_memory_db(monkeypatch, restore_database_module):
         """Test that fetch_value works correctly with memory database."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
@@ -539,8 +568,9 @@ class TestEdgeCasesAndErrorHandling:
         )
         assert result is None
 
+    @staticmethod
     def test_connection_row_factory_returns_dict_like_rows(
-        self, monkeypatch, restore_database_module
+        monkeypatch, restore_database_module
     ):
         """Test that connections return dict-like Row objects."""
         import sqlite3

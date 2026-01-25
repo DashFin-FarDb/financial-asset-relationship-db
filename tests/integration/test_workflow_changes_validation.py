@@ -47,9 +47,12 @@ class TestPRAgentWorkflowChanges:
 
     def test_pr_agent_python_setup_simplified(self, pr_agent_workflow):
         """
-        Validate the pr-agent-trigger job uses a single Python dependency installation step and does not install PyYAML.
+        Ensure the pr-agent-trigger job has a single Python dependency installation step and that it does not install PyYAML.
 
-        Finds a step whose name includes "Install Python dependencies", asserts exactly one such step exists, and verifies the step's run script contains no references to "pyyaml" or "PyYAML".
+        Checks the pr-agent-trigger job's steps for exactly one step whose name contains "Install Python dependencies" and asserts that that step's run script contains no occurrences of "pyyaml" or "PyYAML".
+
+        Parameters:
+            pr_agent_workflow (dict): Parsed YAML mapping of the PR Agent workflow under .github/workflows/pr-agent.yml.
         """
         pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = pr_agent_job["steps"]
@@ -276,12 +279,9 @@ class TestWorkflowSecurityBestPractices:
     @staticmethod
     def test_workflows_use_pinned_action_versions():
         """
-        Validate that actions used in workflows are pinned to explicit versions and do not use 'latest' or 'master'.
+        Ensure workflow action usages are pinned to explicit versions and do not reference "latest" or "master".
 
-        Scans all `.yml` files under `.github/workflows` and asserts that every step containing a `uses` reference includes a version specifier (contains `'@'`) and that the version is not `'latest'` or `'master'` (case-insensitive).
-
-        Raises:
-            AssertionError: If an action reference is missing a version specifier or specifies `latest` or `master`.
+        Scans all YAML files under .github/workflows and asserts that every step with a `uses` entry includes a version specifier (contains `@`) and that the version is not `latest` or `master` (case-insensitive).
         """
         workflows_dir = Path(".github/workflows")
 

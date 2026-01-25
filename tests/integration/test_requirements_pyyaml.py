@@ -69,7 +69,11 @@ class TestPyYAMLDependencyAddition:
 
     @staticmethod
     def test_types_pyyaml_present(requirements_lines: List[str]):
-        """Test that types-PyYAML is in requirements-dev.txt."""
+        """
+        Ensure types-PyYAML is listed in requirements-dev.txt.
+
+        Asserts that at least one non-empty, non-comment requirement line begins with "types-PyYAML".
+        """
         types_lines = [
             line for line in requirements_lines if line.startswith("types-PyYAML")
         ]
@@ -114,10 +118,10 @@ class TestPyYAMLDependencyAddition:
     @staticmethod
     def test_types_pyyaml_matches_pyyaml_version(requirements_lines: List[str]):
         """
-        Verify that the major version of types-PyYAML matches the major version of PyYAML when both are specified using '>=' in the provided requirements lines.
+        Ensure the major version number of `types-PyYAML` equals the major version number of `PyYAML` when both are specified with '>=' in the given requirements lines.
 
         Parameters:
-            requirements_lines (List[str]): Non-comment, non-empty lines from requirements-dev.txt to inspect for 'PyYAML>=' and 'types-PyYAML>=' entries. If both '>=' entries are present, the test asserts their major versions are equal.
+            requirements_lines (List[str]): Non-comment, non-empty lines from requirements-dev.txt to inspect for 'PyYAML>=' and 'types-PyYAML>=' entries.
         """
         pyyaml_version = None
         types_version = None
@@ -164,9 +168,9 @@ class TestRequirementsDevYAMLUsage:
     @staticmethod
     def test_yaml_files_exist_in_repo():
         """
-        Check that at least one YAML workflow file exists under .github/workflows.
+        Verify that at least one YAML workflow file exists in .github/workflows.
 
-        Asserts that a file with extension `.yml` or `.yaml` is present in the repository's .github/workflows directory.
+        Checks for files with `.yml` or `.yaml` extensions and fails the test if none are found.
         """
         yaml_files_exist = False
         workflows_dir = Path(".github/workflows")
@@ -198,7 +202,12 @@ class TestRequirementsDevCompleteness:
 
     @staticmethod
     def test_file_ends_with_newline(requirements_content: str):
-        """Test that requirements-dev.txt ends with a newline."""
+        """
+        Assert that the requirements-dev.txt content ends with a newline.
+
+        Parameters:
+            requirements_content (str): UTF-8 decoded contents of requirements-dev.txt.
+        """
         assert requirements_content.endswith("\n"), (
             "requirements-dev.txt should end with a newline"
         )
@@ -206,9 +215,9 @@ class TestRequirementsDevCompleteness:
     @staticmethod
     def test_no_duplicate_packages(requirements_content: str):
         """
-        Assert that the requirements content contains no duplicate package entries.
+        Ensure the requirements text contains no duplicate package names.
 
-        Ignores blank lines and lines starting with '#'. For each non-comment line, the package name is taken as the text before any of the characters '>', '<', or '='.
+        Ignores blank lines and comment lines (starting with '#'). For each remaining line, the package name is taken as the substring before any of '>', '<', or '='; the test fails if any package appears more than once.
 
         Parameters:
             requirements_content (str): Full text of the requirements file to inspect.
@@ -226,9 +235,9 @@ class TestRequirementsDevCompleteness:
     @staticmethod
     def test_all_lines_valid_format(requirements_content: str):
         """
-        Validate that each non-empty, non-comment line in requirements_content matches the expected package/version format.
+        Ensure each non-empty, non-comment line in requirements_content matches the package/version pattern.
 
-        Skips blank lines and lines beginning with '#'. Each remaining line must match the package specifier pattern (package name with optional extras and an optional version specifier such as `==1.2.3`, `>=1.0`, `~=`, etc.). On mismatch an assertion is raised identifying the offending line number and text.
+        Empty lines and lines starting with '#' are ignored. Raises an AssertionError identifying the offending line number and text if any remaining line does not match the expected package name, optional extras, and optional version specifier (e.g., `==1.2.3`, `>=1.0`, `~=1.4`).
 
         Parameters:
             requirements_content (str): Full text of requirements-dev.txt to validate.
@@ -247,7 +256,12 @@ class TestRequirementsDevCompleteness:
 
     @staticmethod
     def test_has_testing_dependencies(requirements_content: str):
-        """Test that file includes essential testing dependencies."""
+        """
+        Verify that requirements-dev.txt contains essential testing packages.
+
+        Parameters:
+            requirements_content (str): Full text contents of requirements-dev.txt to check.
+        """
         essential_packages = ["pytest", "pytest-cov"]
 
         for package in essential_packages:
@@ -258,10 +272,10 @@ class TestRequirementsDevCompleteness:
     @staticmethod
     def test_has_linting_dependencies(requirements_content: str):
         """
-        Verify the requirements-dev.txt content includes the common linting packages: flake8, pylint, and black.
+        Ensure the requirements-dev.txt content includes the linting packages flake8, pylint, and black.
 
         Parameters:
-            requirements_content (str): The full text of requirements-dev.txt to inspect.
+            requirements_content (str): Full text of requirements-dev.txt to inspect for the presence of the listed packages.
         """
         linting_packages = ["flake8", "pylint", "black"]
 

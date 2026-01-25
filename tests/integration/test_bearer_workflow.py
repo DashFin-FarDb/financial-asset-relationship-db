@@ -57,7 +57,9 @@ class TestBearerWorkflowStructure:
 
     @staticmethod
     def test_workflow_has_name(bearer_workflow_content):
-        """Verify the workflow has a name."""
+        """
+        Check that the parsed workflow defines a top-level `name` field equal to "Bearer".
+        """
         assert "name" in bearer_workflow_content, "Workflow should have a name"
         assert bearer_workflow_content["name"] == "Bearer", (
             "Workflow name should be 'Bearer'"
@@ -178,7 +180,11 @@ class TestBearerJobConfiguration:
 
     @staticmethod
     def test_job_has_steps(bearer_workflow_content):
-        """Verify the job has steps defined."""
+        """
+        Ensure the 'bearer' job defines a `steps` sequence with at least three entries.
+
+        Asserts that the workflow's `jobs.bearer` mapping contains a `steps` key, that `steps` is a list, and that it has three or more elements.
+        """
         bearer_job = bearer_workflow_content["jobs"]["bearer"]
         assert "steps" in bearer_job, "Job should have steps"
         assert isinstance(bearer_job["steps"], list), "Steps should be a list"
@@ -322,9 +328,9 @@ class TestBearerActionConfiguration:
     @staticmethod
     def test_bearer_api_key_configured(bearer_workflow_content):
         """
-        Assert the Bearer action's `api-key` is sourced from the `secrets.BEARER_TOKEN` GitHub secret.
+        Verify the Bearer action's api-key references the GitHub secret BEARER_TOKEN.
 
-        Checks that the Bearer step in the workflow includes a `with.api-key` field referencing `${{ secrets.BEARER_TOKEN }}`.
+        Ensures the bearer job contains a step using `bearer/bearer-action` with a `with.api-key` value that includes `${{ secrets.BEARER_TOKEN }}`.
         """
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         bearer_step = next(
@@ -401,7 +407,11 @@ class TestBearerWorkflowComments:
 
     @staticmethod
     def test_has_header_comment(bearer_workflow_raw):
-        """Verify the workflow has a header comment explaining its purpose."""
+        """
+        Ensure the workflow file begins with a header comment that includes the third-party action disclaimer.
+
+        Checks that the raw workflow text starts with a comment character and contains the phrase "not certified by GitHub".
+        """
         assert bearer_workflow_raw.startswith("#"), (
             "Workflow should start with a comment"
         )
@@ -456,7 +466,12 @@ class TestBearerWorkflowSecurity:
 
     @staticmethod
     def test_uses_github_secrets(bearer_workflow_content):
-        """Verify the workflow uses GitHub secrets for sensitive data."""
+        """
+        Ensure the Bearer action's `api-key` references the GitHub secret `BEARER_TOKEN`.
+
+        Parameters:
+            bearer_workflow_content (dict): Parsed YAML content of the workflow file.
+        """
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         bearer_step = next(
             (s for s in steps if "bearer/bearer-action" in s.get("uses", "")), None

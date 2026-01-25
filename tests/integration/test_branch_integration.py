@@ -22,12 +22,16 @@ class TestWorkflowConsistency:
     @pytest.fixture
     def all_workflows(self) -> dict[str, Dict]:
         """
-        Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
+        Load a fixed set of GitHub Actions workflow files and return their parsed YAML content.
 
-        Only files from the internal list are considered; files that are not present are omitted from the result.
+        Only the following workflow paths are considered: ".github/workflows/pr-agent.yml",
+        ".github/workflows/apisec-scan.yml", ".github/workflows/label.yml", and
+        ".github/workflows/greetings.yml". Files that do not exist are omitted. If a file
+        parses to a non-mapping value an empty dict is stored for that file; malformed
+        YAML causes the file to be skipped.
 
-    @staticmethod
-    def all_workflows():
+        Returns:
+            dict[str, dict]: Mapping from workflow file path to the parsed YAML mapping (or an empty dict for non-mapping parses) for each workflow file that exists.
         """
         Returns:
             dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
@@ -198,12 +202,13 @@ class TestRemovedFilesIntegration:
                 assert removed not in content, f"{wf_file} references removed file {removed}"
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-        """Verify the label workflow does not require an external labeler configuration file.
+        '''
+        Verify the label workflow does not require an external labeler configuration file.
 
-        Checks that .github / workflows / label.yml(if present) defines the 'label' job's first
-        step using 'actions/labeler', and that the step either omits 'config-path' or sets it to
+        Checks that .github/workflows/label.yml (if present) defines the 'label' job's first step
+        using 'actions/labeler', and that the step either omits 'config-path' or sets it to
         '.github/labeler.yml'. Skips the test if label.yml is missing.
-        """
+        '''
         label_path = Path(".github/workflows/label.yml")
         if not label_path.exists():
             pytest.skip("label.yml not present; skipping label workflow checks")
@@ -221,7 +226,9 @@ class TestRemovedFilesIntegration:
         assert "config-path" not in with_config or with_config.get("config-path") == ".github/labeler.yml"
 
     def test_pr_agent_workflow_self_contained(self):
-        """Verify PR agent workflow doesn't depend on removed components."""
+        """
+        Verify PR agent workflow doesn't depend on removed components.
+        """
         with open(".github/workflows/pr-agent.yml", "r") as f:
             content = f.read()
 
@@ -231,7 +238,6 @@ class TestRemovedFilesIntegration:
 
         # Should not have complex context management
         assert "fetch-context" not in content
-
 
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
@@ -246,6 +252,9 @@ class TestWorkflowSecurityConsistency:
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
         dangerous = [
             r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
+        ]
+        ]
+        ]
             r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
             r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",
         ]

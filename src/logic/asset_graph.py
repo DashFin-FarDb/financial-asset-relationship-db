@@ -20,6 +20,16 @@ class AssetRelationshipGraph:
     """
 
     def __init__(self, database_url: str | None = None) -> None:
+        """
+        Initialize the AssetRelationshipGraph instance.
+
+        Creates empty containers for assets, directed relationships,
+        and regulatory events, and stores the optional database URL.
+
+        Parameters:
+            database_url (str | None): Optional connection URL for a backing
+                database; stored on the instance as `self.database_url`.
+        """
         self.assets: dict[str, Asset] = {}
         self.relationships: dict[str, List[Tuple[str, str, float]]] = {}
         self.regulatory_events: List[RegulatoryEvent] = []
@@ -38,19 +48,6 @@ class AssetRelationshipGraph:
         Discover and populate asset relationships using built-in business rules.
 
         This clears existing relationships and adds edges between assets present
-        in the graph according to three rules:
-        - Same-sector: adds a bidirectional "same_sector" relationship with
-          strength 0.7 for assets that share the same sector (excluding
-          "Unknown").
-        - Corporate bond linkage: when a Bond's issuer_id matches another
-          asset's id, adds a unidirectional "corporate_link" from the bond to
-          its issuer with strength 0.9.
-        - Regulatory event impact: for each RegulatoryEvent whose source asset
-          and related assets exist in the graph, adds a unidirectional
-          "event_impact" relationship from the event's asset to each related
-          asset with strength equal to the absolute value of the event's
-          impact_score.
-
         Only relationships between assets present in self.assets are created.
         """
         self.relationships = {}
@@ -64,17 +61,29 @@ class AssetRelationshipGraph:
                 # Rule 2: Sector Affinity
                 if asset1.sector == asset2.sector and asset1.sector != "Unknown":
                     self.add_relationship(
-                        id1, id2, "same_sector", 0.7, bidirectional=True
+                        id1,
+                        id2,
+                        "same_sector",
+                        0.7,
+                        bidirectional=True,
                     )
 
                 # Rule 1: Corporate Bond Linkage
                 if isinstance(asset1, Bond) and asset1.issuer_id == id2:
                     self.add_relationship(
-                        id1, id2, "corporate_link", 0.9, bidirectional=False
+                        id1,
+                        id2,
+                        "corporate_link",
+                        0.9,
+                        bidirectional=False,
                     )
                 elif isinstance(asset2, Bond) and asset2.issuer_id == id1:
                     self.add_relationship(
-                        id2, id1, "corporate_link", 0.9, bidirectional=False
+                        id2,
+                        id1,
+                        "corporate_link",
+                        0.9,
+                        bidirectional=False,
                     )
 
         # Rule: Event Impact
@@ -100,13 +109,14 @@ class AssetRelationshipGraph:
         bidirectional: bool = False,
     ) -> None:
         """
-        Add a relationship from source_id to target_id in the graph.
+        Add a directed relationship between two assets in the graph.
 
         Parameters:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
             rel_type (str): Relationship type label. For example,
-                "same_sector", "corporate_link", "event_impact".
+                "same_sector", "corporate_link",
+                "event_impact".
             strength (float): Numeric strength for the relationship; stored as
                 provided.
             bidirectional (bool): If True, also adds the same relationship from
@@ -114,7 +124,7 @@ class AssetRelationshipGraph:
 
         Notes:
             Duplicate entries with the same source, target, and rel_type are
-            ignored.
+        ignored.
         """
         if source_id not in self.relationships:
             self.relationships[source_id] = []
@@ -137,8 +147,8 @@ class AssetRelationshipGraph:
 
     def calculate_metrics(self) -> dict[str, Any]:
         """
-        Compute network-level metrics and distributions
-        for the asset relationship graph.
+        Compute summary metrics and distributions describing the asset
+        relationship graph.
 
         Returns:
             metrics (dict): A dictionary containing:
@@ -162,7 +172,8 @@ class AssetRelationshipGraph:
                 regulatory_event_count (int): Number of stored regulatory events.
         """
         total_assets = len(self.assets)
-        # For total_assets if no assets were explicitly added but exist in relationships
+        # For total_assets if no assets were explicitly added
+        # but exist in relationships
         all_ids = set(self.assets.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
@@ -176,11 +187,9 @@ class AssetRelationshipGraph:
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
 
         density = (
-            (
-                total_relationships
-                / (effective_assets_count * (effective_assets_count - 1))
-                * 100
-            )
+            total_relationships
+            / (effective_assets_count * (effective_assets_count - 1))
+            * 100
             if effective_assets_count > 1
             else 0.0
         )
@@ -215,7 +224,8 @@ class AssetRelationshipGraph:
         self,
     ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
         """
-        Prepare 3D layout data for visualizing assets and their relationships.
+        Prepare 3D layout data for plotting assets on the unit circle in the
+        XY plane.
 
         Returns:
             positions (np.ndarray): Array of shape (n, 3) containing XYZ
@@ -244,7 +254,8 @@ class AssetRelationshipGraph:
         n = len(asset_ids)
         theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
         positions = np.stack(
-            [np.cos(theta), np.sin(theta), np.zeros_like(theta)], axis=1
+            [np.cos(theta), np.sin(theta), np.zeros_like(theta)],
+            axis=1,
         )
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]

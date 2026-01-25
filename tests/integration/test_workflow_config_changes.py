@@ -27,7 +27,7 @@ class TestPRAgentWorkflowChanges:
         Load and parse the .github/workflows/pr-agent.yml workflow file.
 
         Returns:
-            dict: Dictionary representation of the parsed YAML workflow.
+            dict[str, Any]: Parsed YAML workflow as a dictionary.
         """
         workflow_path = Path(".github/workflows/pr-agent.yml")
         with open(workflow_path, "r") as f:
@@ -69,7 +69,9 @@ class TestPRAgentWorkflowChanges:
         assert "pull_request_review" in triggers
 
     def test_python_dependencies_installation(self, pr_agent_workflow):
-        """Verify Python dependencies are properly installed."""
+        """
+        Ensure the pr-agent job contains a step named "Install Python dependencies" and that the step defines a `run` command.
+        """
         jobs = pr_agent_workflow.get("jobs", {})
         pr_agent_job = jobs.get("pr-agent-action", {})
         steps = pr_agent_job.get("steps", [])
@@ -94,7 +96,8 @@ class TestPRAgentWorkflowChanges:
         setup_python_steps = [s for s in steps if s.get("name") == "Setup Python"]
         assert len(setup_python_steps) == 1, "Found duplicate 'Setup Python' steps"
 
-    def test_uses_specific_python_version(self, pr_agent_workflow):
+    @staticmethod
+    def test_uses_specific_python_version(pr_agent_workflow):
         """Verify workflow pins Python version."""
         jobs = pr_agent_workflow.get("jobs", {})
         pr_agent_job = jobs.get("pr-agent-action", {})
@@ -108,7 +111,8 @@ class TestPRAgentWorkflowChanges:
         assert "python-version" in setup_python_step["with"]
         assert setup_python_step["with"]["python-version"] == "3.11"
 
-    def test_checkout_uses_fetch_depth_zero(self, pr_agent_workflow):
+    @staticmethod
+    def test_checkout_uses_fetch_depth_zero(pr_agent_workflow):
         """Verify checkout fetches full git history."""
         jobs = pr_agent_workflow.get("jobs", {})
         pr_agent_job = jobs.get("pr-agent-action", {})
@@ -124,24 +128,27 @@ class TestPRAgentWorkflowChanges:
 class TestPRAgentConfigChanges:
     """Tests for pr-agent-config.yml configuration changes."""
 
+    @staticmethod
     @pytest.fixture
-    def pr_agent_config(self) -> dict[str, Any]:
+    def pr_agent_config() -> dict[str, Any]:
         """
-        Load and parse the .github/pr-agent-config.yml file.
+        Load and parse the repository's .github/pr-agent-config.yml into a dictionary.
 
         Returns:
-            config (dict[str, Any]): Parsed YAML configuration as a dictionary.
+            dict[str, Any]: Parsed YAML configuration mapping keys to Python objects.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_config_has_valid_yaml_syntax(self, pr_agent_config):
+    @staticmethod
+    def test_config_has_valid_yaml_syntax(pr_agent_config):
         """Verify config file has valid YAML syntax."""
         assert pr_agent_config is not None
         assert isinstance(pr_agent_config, dict)
 
-    def test_agent_version_is_simplified(self, pr_agent_config):
+    @staticmethod
+    def test_agent_version_is_simplified(pr_agent_config):
         """
         Assert the agent version in the parsed pr-agent-config.yml equals "1.0.0".
 
@@ -154,7 +161,8 @@ class TestPRAgentConfigChanges:
         # Version should be 1.0.0 (reverted from 1.1.0)
         assert version == "1.0.0"
 
-    def test_no_context_chunking_config(self, pr_agent_config):
+    @staticmethod
+    def test_no_context_chunking_config(pr_agent_config):
         """
         Ensure the agent configuration does not include a 'context' chunking subsection.
         """
@@ -163,7 +171,8 @@ class TestPRAgentConfigChanges:
         # Context chunking section should not exist
         assert "context" not in agent_config
 
-    def test_no_chunking_limits_config(self, pr_agent_config):
+    @staticmethod
+    def test_no_chunking_limits_config(pr_agent_config):
         """Verify chunking limits configuration was removed."""
         limits_config = pr_agent_config.get("limits", {})
 
@@ -173,19 +182,22 @@ class TestPRAgentConfigChanges:
         assert "max_comment_length" not in limits_config
         assert "fallback" not in limits_config
 
-    def test_basic_config_structure_intact(self, pr_agent_config):
+    @staticmethod
+    def test_basic_config_structure_intact(pr_agent_config):
         """Verify basic configuration structure is maintained."""
         assert "agent" in pr_agent_config
         assert "monitoring" in pr_agent_config
         assert "limits" in pr_agent_config
 
-    def test_rate_limiting_configured(self, pr_agent_config):
+    @staticmethod
+    def test_rate_limiting_configured(pr_agent_config):
         """Verify rate limiting is still configured."""
         limits = pr_agent_config.get("limits", {})
         assert "rate_limit_requests" in limits
         assert isinstance(limits["rate_limit_requests"], int)
 
-    def test_monitoring_interval_configured(self, pr_agent_config):
+    @staticmethod
+    def test_monitoring_interval_configured(pr_agent_config):
         """Verify monitoring interval is configured."""
         monitoring = pr_agent_config.get("monitoring", {})
         assert "check_interval" in monitoring
@@ -195,19 +207,27 @@ class TestPRAgentConfigChanges:
 class TestGreetingsWorkflowChanges:
     """Tests for greetings.yml workflow changes."""
 
+    @staticmethod
     @pytest.fixture
-    def greetings_workflow(self) -> dict[str, Any]:
-        """Load greetings.yml workflow."""
+    def greetings_workflow() -> dict[str, Any]:
+        """
+        Load and parse the .github/workflows/greetings.yml GitHub Actions workflow file.
+
+        Returns:
+            dict[str, Any]: Parsed YAML content of the greetings workflow as a dictionary.
+        """
         workflow_path = Path(".github/workflows/greetings.yml")
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_workflow_syntax_valid(self, greetings_workflow):
+    @staticmethod
+    def test_workflow_syntax_valid(greetings_workflow):
         """Verify workflow has valid YAML syntax."""
         assert greetings_workflow is not None
         assert isinstance(greetings_workflow, dict)
 
-    def test_greetings_messages_simplified(self, greetings_workflow):
+    @staticmethod
+    def test_greetings_messages_simplified(greetings_workflow):
         """Verify greeting messages were simplified."""
         jobs = greetings_workflow.get("jobs", {})
         greeting_job = jobs.get("greeting", {})
@@ -228,11 +248,12 @@ class TestGreetingsWorkflowChanges:
         assert len(issue_message) < 200, "Issue message should be simplified"
         assert len(pr_message) < 200, "PR message should be simplified"
 
-    def test_no_complex_markdown_formatting(self, greetings_workflow):
+    @staticmethod
+    def test_no_complex_markdown_formatting(greetings_workflow):
         """
-        Check that the greeting workflow's messages do not include complex markdown fragments.
+        Ensure greeting workflow messages do not include complex markdown fragments.
 
-        This test locates the step using actions/first-interaction in the greeting job and asserts its `issue-message` and `pr-message` (if present) do not contain a "**Resources:**" section or the "✅" checkmark character.
+        Checks the actions/first-interaction step in the greeting job (if present) and asserts that its `issue-message` and `pr-message` do not contain the substring "**Resources:**" or the checkmark character "✅".
         """
         jobs = greetings_workflow.get("jobs", {})
         greeting_job = jobs.get("greeting", {})
@@ -256,24 +277,27 @@ class TestGreetingsWorkflowChanges:
 class TestLabelWorkflowChanges:
     """Tests for label.yml workflow changes."""
 
+    @staticmethod
     @pytest.fixture
-    def label_workflow(self) -> dict[str, Any]:
+    def label_workflow() -> dict:
         """
         Load and parse the label GitHub Actions workflow file.
 
         Returns:
-            workflow (dict): Parsed contents of `.github/workflows/label.yml` as a dictionary.
+            dict: Parsed contents of `.github/workflows/label.yml`.
         """
         workflow_path = Path(".github/workflows/label.yml")
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_workflow_syntax_valid(self, label_workflow):
+    @staticmethod
+    def test_workflow_syntax_valid(label_workflow):
         """Verify workflow has valid YAML syntax."""
         assert label_workflow is not None
         assert isinstance(label_workflow, dict)
 
-    def test_no_config_check_step(self, label_workflow):
+    @staticmethod
+    def test_no_config_check_step(label_workflow):
         """Verify config check step was removed."""
         jobs = label_workflow.get("jobs", {})
         label_job = jobs.get("label", {})
@@ -285,7 +309,8 @@ class TestLabelWorkflowChanges:
         ]
         assert len(config_check_steps) == 0
 
-    def test_no_checkout_step(self, label_workflow):
+    @staticmethod
+    def test_no_checkout_step(label_workflow):
         """
         Ensure the 'label' job contains no steps that use actions/checkout.
 
@@ -298,7 +323,8 @@ class TestLabelWorkflowChanges:
         checkout_steps = [s for s in steps if "actions/checkout" in s.get("uses", "")]
         assert len(checkout_steps) == 0
 
-    def test_simplified_to_single_step(self, label_workflow):
+    @staticmethod
+    def test_simplified_to_single_step(label_workflow):
         """
         Assert the label workflow has been simplified to a single actions/labeler step.
 
@@ -313,7 +339,8 @@ class TestLabelWorkflowChanges:
         assert len(steps) == 1
         assert "actions/labeler" in steps[0].get("uses", "")
 
-    def test_no_conditional_execution(self, label_workflow):
+    @staticmethod
+    def test_no_conditional_execution(label_workflow):
         """Verify no conditional if statements in steps."""
         jobs = label_workflow.get("jobs", {})
         label_job = jobs.get("label", {})
@@ -352,7 +379,11 @@ class TestRequirementsDevChanges:
 
     @staticmethod
     def test_pyyaml_version_pinned():
-        """Verify PyYAML has version constraint."""
+        """
+        Verify that 'requirements-dev.txt' contains a PyYAML entry with an explicit version constraint.
+
+        Reads requirements-dev.txt, finds lines containing 'pyyaml' (case-insensitive), asserts at least one such line exists, and asserts that at least one of those lines includes one of the version operators: `==`, `>=`, `<=`, or `~=`.
+        """
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:
             lines = f.readlines()
@@ -369,9 +400,9 @@ class TestRequirementsDevChanges:
     @staticmethod
     def test_no_duplicate_dependencies():
         """
-        Check that requirements-dev.txt contains no duplicate package entries.
+        Ensure requirements-dev.txt contains no duplicate package names.
 
-        Ignores blank lines and comments, normalizes package names to lowercase and strips version specifiers (e.g., ==, >=, <=, ~=, >, <), and asserts there are no duplicate package names; on failure, reports the duplicated package names.
+        Ignores blank lines and comments, normalizes package names to lowercase, and strips common version specifiers before checking for duplicates. On failure, the assertion reports the duplicated package names.
         """
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:

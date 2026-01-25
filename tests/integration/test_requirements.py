@@ -210,11 +210,13 @@ class TestVersionSpecifications:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
-    def test_all_packages_parseable(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_all_packages_parseable(requirements: List[Tuple[str, str]]):
         """Test that all package specifications are parseable."""
         assert len(requirements) > 0
 
-    def test_version_format_valid(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_version_format_valid(requirements: List[Tuple[str, str]]):
         """Test that version specifications use valid format."""
         version_pattern = re.compile(r"^(>=|==|<=|>|<|~=)\d+(\.\d+)*$")
 
@@ -227,7 +229,8 @@ class TestVersionSpecifications:
                         f"Invalid version spec '{spec}' for package '{pkg}'"
                     )
 
-    def test_zipp_security_version(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_zipp_security_version(requirements: List[Tuple[str, str]]):
         """Test that zipp has the security-required minimum version."""
         zipp_specs = [ver for pkg, ver in requirements if pkg.lower() == "zipp"]
         assert len(zipp_specs) > 0, "zipp should be present for security fix"
@@ -235,15 +238,22 @@ class TestVersionSpecifications:
             f"zipp should be >=3.19.1, got {zipp_specs[0]}"
         )
 
-    def test_uses_minimum_versions(self, requirements: List[Tuple[str, str]]):
+    @staticmethod
+    def test_uses_minimum_versions(requirements: List[Tuple[str, str]]):
         """Test that most packages use >= for version specifications."""
         specs_using_gte = [ver for pkg, ver in requirements if ver.startswith(">=")]
         all_with_versions = [ver for pkg, ver in requirements if ver]
         # At least 70% should use >= for flexibility
         assert len(specs_using_gte) >= len(all_with_versions) * 0.7
 
-    def test_no_exact_pins_without_comment(self, requirements: List[Tuple[str, str]]):
-        """Test that exact pins (==) are documented with comments in the file."""
+    @staticmethod
+    def test_no_exact_pins_without_comment(requirements: List[Tuple[str, str]]):
+        """
+        Ensure exact-version pins (`==`) in the requirements file are accompanied by a comment explaining the rationale.
+
+        Parameters:
+            requirements (List[Tuple[str, str]]): Parsed (package, version_spec) pairs from the production requirements file.
+        """
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
@@ -261,21 +271,20 @@ class TestVersionSpecifications:
                 f"Exact pin for {pkg} should have a comment explaining why"
             )
 
-
-class TestPackageConsistency:
-    """Test package consistency and naming conventions."""
+    # Test package consistency and naming conventions.
 
     @pytest.fixture
     @staticmethod
-    def requirements() -> List[Tuple[str, str]]:
+    @staticmethod
+    def parsed_requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
         return parse_requirements(REQUIREMENTS_FILE)
 
     @pytest.fixture
     @staticmethod
-    def package_names(requirements: List[Tuple[str, str]]) -> List[str]:
+    def package_names(parsed_requirements: List[Tuple[str, str]]) -> List[str]:
         """Extract package names from requirements."""
-        return [pkg for pkg, _ in requirements]
+        return [pkg for pkg, _ in parsed_requirements]
 
     @staticmethod
     def test_no_duplicate_packages(package_names: List[str]):
@@ -332,7 +341,7 @@ class TestFileOrganization:
     @staticmethod
     def test_reasonable_file_size(file_lines: List[str]):
         """
-        Assert the requirements file contains a reasonable number of lines.
+        Check that the requirements file contains fewer than 200 lines.
 
         Parameters:
             file_lines (List[str]): Lines of the requirements.txt file.
@@ -412,7 +421,7 @@ class TestSecurityAndCompliance:
         """
         Check for obviously outdated exact version pins in parsed requirements.
 
-        Inspects each requirement's version specifier and fails the test if an exact pin (`==major.minor...`) appears to be an obviously very old release based on its major/minor numeric components.
+        Inspects each requirement's version specifier and fails the test when an exact `==` pin contains a major.minor numeric pair that appears to be an obviously very old release.
 
         Parameters:
             requirements (List[Tuple[str, str]]): Parsed requirements as (package_name, version_spec) tuples where `version_spec` is the raw specifier string (for example, '==1.2.3', '>=2.0').

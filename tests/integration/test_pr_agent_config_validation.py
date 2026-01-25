@@ -201,17 +201,11 @@ class TestPRAgentConfigSecurity:
             pytest.fail("Config must be a YAML mapping (dict) and not empty")
         return cfg
 
-    @staticmethod
     def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
         """
-        Scan a parsed PR agent configuration for string values that resemble hardcoded credentials.
+        Scan the PR agent configuration for string values that resemble hardcoded credentials.
 
-        Traverses nested dicts and lists and inspects all string values. Flags values that match any of these heuristics:
-        - long strings (40 or more characters),
-        - common secret prefixes such as "sk-", "AKIA", "SECRET_", "TOKEN_",
-        - inline credentials in URLs (user:pass@host).
-
-        If any suspected secrets are found, the test fails with details of each finding.
+        This test inspects all string values in the provided configuration and fails if any value matches credential heuristics: strings of 40 or more characters, strings starting with common secret prefixes (e.g., "sk-", "AKIA", "SECRET_", "TOKEN_"), or inline credentials embedded in URLs (user:pass@host). On failure, the test reports each finding with its heuristic type and value.
         """
 
         def _iter_string_values(obj):
@@ -263,16 +257,13 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """
-        Scan the PR agent configuration for hardcoded credentials and fail the test if any are found.
+        Scan the PR agent configuration for potential hardcoded credentials and fail the test if any are found.
 
-        This test inspects keys and string values in the provided configuration for indicators of secrets:
-        long credential-like strings, common secret/key prefixes, inline credentials in URLs, high-entropy
-        token-like sequences, and hex/base64-like keys. If any suspicious items are detected, the test
-        fails with locations or examples of the offending values. It also enforces that recognized sensitive
-        keys use safe placeholder values rather than actual secrets.
+        Uses heuristic checks (long strings, known secret-like prefixes, inline credentials in URLs, entropy/encoding patterns,
+        and sensitive key names) to identify suspicious values and reports their locations via pytest.fail.
 
         Parameters:
-            pr_agent_config (dict): Parsed PR agent configuration to scan for secrets.
+            pr_agent_config (dict): Parsed PR agent configuration mapping to inspect for hardcoded secrets.
         """
         inline_creds_re = re.compile(
             r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE
@@ -365,19 +356,6 @@ class TestPRAgentConfigSecurity:
             """
             if len(s) >= 40:
                 return ("long_string", s)
-
-        def detect_prefix(s):
-            """Detect strings starting with known secret-like prefixes.
-
-            Parameters:
-                s (str): Input string to check.
-
-            Returns:
-                tuple: ("prefix", s) if prefix matches, otherwise None.
-            """
-            for marker in secret_markers:
-                if s.lower().startswith(marker):
-                    return ("prefix", s)
             return None
 
         def detect_inline_creds(s):
@@ -473,11 +451,14 @@ class TestPRAgentConfigSecurity:
         def shannon_entropy(data):
             import math
             from collections import Counter
+
             if not data:
                 return 0.0
             freq = Counter(data)
             length = len(data)
-            return -sum((count / length) * math.log2(count / length) for count in freq.values())
+            return -sum(
+                (count / length) * math.log2(count / length) for count in freq.values()
+            )
 
         def is_hardcoded_secret(val):
             """Determine if a string value likely contains a hardcoded secret.
@@ -512,31 +493,31 @@ class TestPRAgentConfigSecurity:
                 obj (dict|list|tuple|any): The object to scan for sensitive entries.
                 path (str): The current dotted path in the object structure.
             """
-                    if isinstance(obj, dict):
-                        for key, value in obj.items():
-                            new_path = f"{path}.{key}" if path else key
-                            if any(pat in key.lower() for pat in sensitive_patterns):
-                                if not is_allowed_value(value):
-                                    suspected.append((new_path, value))
-                            else:
-                                scan(value, new_path)
-                    elif isinstance(obj, (list, tuple)):
-                        for idx, item in enumerate(obj):
-                            scan(item, f"{path}[{idx}]")
+            if isinstance(obj, dict):
+                for key, value in obj.items():
+                    new_path = f"{path}.{key}" if path else key
+                    if any(pat in key.lower() for pat in sensitive_patterns):
+                        if not is_allowed_value(value):
+                            suspected.append((new_path, value))
                     else:
-                        if is_hardcoded_secret(obj):
-                            suspected.append((path, obj))
+                        scan(value, new_path)
+            elif isinstance(obj, (list, tuple)):
+                for idx, item in enumerate(obj):
+                    scan(item, f"{path}[{idx}]")
+            else:
+                if is_hardcoded_secret(obj):
+                    suspected.append((path, obj))
 
-                scan(pr_agent_config)
+        scan(pr_agent_config)
 
-                if suspected:
-                    details = "\n".join(f"{p}: {v}" for p, v in suspected)
-                    pytest.fail(
-                        f"Potential hardcoded credentials found in PR agent config:\n{details}"
-                    )
-                allowed_placeholders = {None, "null", "webhook"}
+        if suspected:
+            details = "\n".join(f"{p}: {v}" for p, v in suspected)
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
+        allowed_placeholders = {None, "null", "webhook"}
 
-                def is_sensitive_key(key):
+        def is_sensitive_key(key):
             """Return True if the key name contains any of the predefined sensitive patterns."""
             key_lower = key.lower()
             return any(pattern in key_lower for pattern in sensitive_patterns)
@@ -582,13 +563,13 @@ class TestPRAgentConfigSecurity:
 
         def check_node(node, path=""):
             """
-            Recursively inspects a nested structure for keys that match predefined sensitive patterns and asserts their values are safe.
+            Recursively validate that values stored under sensitive keys are not hardcoded secrets.
 
-            Traverses dictionaries and lists within `node`. For any dictionary key whose lowercase form contains one of the module - level sensitive_patterns, the corresponding value must be present in the module - level safe_placeholders set; otherwise an AssertionError is raised identifying the offending path.
+            Inspects dictionaries and lists within `node`. If a dictionary key(lowercased) contains any substring from the module - level `sensitive_patterns`, its value must be one of the module - level `safe_placeholders`; otherwise an AssertionError is raised identifying the dotted / bracketed path to the offending value.
 
             Parameters:
-                node: The value to inspect; typically a dict, list, or primitive contained in the configuration.
-                path(str): Dot - and -bracket notation string representing the current traversal path(used only for error messages).
+                node: The value to inspect; typically a dict, list, or primitive from the configuration.
+                path(str): Current traversal path in dotted / bracket notation used in error messages(defaults to the empty string).
 
             Raises:
                 AssertionError: If a value is found under a sensitive key that is not listed in `safe_placeholders`.
@@ -624,14 +605,14 @@ class TestPRAgentConfigSecurity:
         # Check for reasonable numeric limits
         assert limits["max_execution_time"] <= 3600, "Execution time too high"
         assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
-        assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
+
+
+assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
 
 
 class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
-    @pytest.fixture
-    @staticmethod
     @pytest.fixture
     def pr_agent_config_content() -> str:
         """Raw YAML content of .github / pr - agent - config.yml."""
@@ -639,19 +620,16 @@ class TestPRAgentConfigRemovedComplexity:
         with open(config_path, "r") as f:
             return f.read()
 
-    @staticmethod
     def test_no_summarization_settings(pr_agent_config_content):
         """Verify summarization settings removed."""
         assert "summarization" not in pr_agent_config_content.lower()
         assert "max_summary_tokens" not in pr_agent_config_content
 
-    @staticmethod
     def test_no_token_management(pr_agent_config_content):
         """Verify token management settings removed."""
         assert "max_tokens" not in pr_agent_config_content
         assert "context_length" not in pr_agent_config_content
 
-    @staticmethod
     def test_no_llm_model_references(pr_agent_config_content):
         """Ensure no explicit LLM model identifiers appear in the raw PR agent configuration."""
         assert "gpt-3.5-turbo" not in pr_agent_config_content

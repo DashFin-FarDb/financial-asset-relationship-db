@@ -94,23 +94,27 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
-    Determine whether the given database path or the configured DATABASE_PATH
-    refers to an in-memory SQLite database.
+    Check if a database path refers to an in-memory SQLite database.
+
+    If `path` is omitted, the module-level `DATABASE_PATH` is evaluated.
 
     Parameters:
-        path (str | None): Optional database path or URI to evaluate. If omitted, the
-            module's configured DATABASE_PATH is used.
+        path: Optional filesystem path or SQLite URI to evaluate;
+            when omitted, `DATABASE_PATH` is used.
 
     Returns:
-        bool: `True` if the evaluated path is an in-memory SQLite database (e.g.,
-            ":memory:" or a URI like "file::memory:?cache=shared"),
+        `True` if the evaluated path represents an in-memory SQLite
+        database.
+        (for example, `":memory:"` or a URI like
+         `file::memory:?cache=shared`),
         `False` otherwise.
     """
     target = DATABASE_PATH if path is None else path
     if target == ":memory":
         return True
 
-    # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
+    # SQLite supports URI-style memory databases
+    # such as ``file::memory:?cache=shared``.
     parsed = urlparse(target)
     if parsed.scheme == "file" and (
         parsed.path == ":memory:" or ":memory:" in parsed.query
@@ -185,7 +189,14 @@ def get_connection() -> Iterator[sqlite3.Connection]:
 
 
 def _cleanup_memory_connection(memory_connection):
-    """Clean up the memory connection when the program exits."""
+    """
+    Close the provided SQLite in-memory connection if one is given;
+    intended for use at program exit.
+
+    Parameters:
+        memory_connection (sqlite3.Connection | None): The connection to close.
+            If `None`, no action is taken.
+    """
     if memory_connection is not None:
         memory_connection.close()
 

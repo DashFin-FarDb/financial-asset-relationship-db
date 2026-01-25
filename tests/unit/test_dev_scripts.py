@@ -404,11 +404,12 @@ class TestShellScripts:
             or "documentation" in content.lower()
         )
 
-    def test_shell_scripts_consistent_style(self):
+    @staticmethod
+    def test_shell_scripts_consistent_style():
         """
-        Verify shell scripts use consistent variable naming style.
+        Ensure shell scripts use a consistent variable-naming style for PID variables.
 
-        If the scripts contain `BACKEND_PID` or `FRONTEND_PID`, assert that the script either uses explicit variable references (uses `$` before variable names) or the file content is entirely uppercase.
+        If a script contains `BACKEND_PID` or `FRONTEND_PID`, require that the file content is entirely uppercase or that variable names are referenced with a `$` prefix (e.g., `$BACKEND_PID`).
         """
         for script in ["cleanup-branches.sh", "run-dev.sh"]:
             with open(script) as f:
@@ -418,7 +419,8 @@ class TestShellScripts:
             if "BACKEND_PID" in content or "FRONTEND_PID" in content:
                 assert content.isupper() or "$" in content  # Variables are referenced
 
-    def test_cleanup_branches_safe_defaults(self):
+    @staticmethod
+    def test_cleanup_branches_safe_defaults():
         """Test that cleanup-branches.sh uses safe defaults."""
         with open("cleanup-branches.sh") as f:
             content = f.read()
@@ -427,7 +429,8 @@ class TestShellScripts:
         assert "-d" in content or "-D" in content  # Delete flags
         assert "read" in content  # User confirmation
 
-    def test_run_dev_sh_process_cleanup(self):
+    @staticmethod
+    def test_run_dev_sh_process_cleanup():
         """Test that run-dev.sh cleans up processes on exit."""
         with open("run-dev.sh") as f:
             content = f.read()
@@ -437,7 +440,8 @@ class TestShellScripts:
         assert "kill" in content
         assert "trap" in content
 
-    def test_shell_scripts_have_comments(self):
+    @staticmethod
+    def test_shell_scripts_have_comments():
         """Test that shell scripts have helpful comments."""
         for script in ["cleanup-branches.sh", "run-dev.sh"]:
             with open(script) as f:
@@ -448,7 +452,8 @@ class TestShellScripts:
             # Should have at least a few comments
             assert len(comment_lines) >= 3, f"{script} should have more comments"
 
-    def test_run_dev_scripts_activate_venv(self):
+    @staticmethod
+    def test_run_dev_scripts_activate_venv():
         """Test that run-dev scripts activate virtual environment."""
         with open("run-dev.sh") as f:
             sh_content = f.read()
@@ -459,7 +464,8 @@ class TestShellScripts:
         assert "activate" in sh_content
         assert "activate" in bat_content
 
-    def test_run_dev_sh_waits_for_backend(self):
+    @staticmethod
+    def test_run_dev_sh_waits_for_backend():
         """Test that run-dev.sh waits for backend to start before starting frontend."""
         with open("run-dev.sh") as f:
             content = f.read()
@@ -467,7 +473,8 @@ class TestShellScripts:
         # Should have a sleep or wait command
         assert "sleep" in content or "wait" in content
 
-    def test_cleanup_branches_date_handling(self):
+    @staticmethod
+    def test_cleanup_branches_date_handling():
         """Test that cleanup-branches.sh handles dates for stale branch detection."""
         with open("cleanup-branches.sh") as f:
             content = f.read()
@@ -477,7 +484,8 @@ class TestShellScripts:
         # Should check for 90+ day old branches
         assert "90" in content
 
-    def test_shell_scripts_error_messages(self):
+    @staticmethod
+    def test_shell_scripts_error_messages():
         """Test that shell scripts provide helpful error messages."""
         for script in ["cleanup-branches.sh", "run-dev.sh"]:
             with open(script) as f:
@@ -487,7 +495,8 @@ class TestShellScripts:
             echo_count = content.count("echo")
             assert echo_count > 2, f"{script} should have multiple echo statements"
 
-    def test_run_dev_sh_background_processes(self):
+    @staticmethod
+    def test_run_dev_sh_background_processes():
         """Test that run-dev.sh runs processes in background appropriately."""
         with open("run-dev.sh") as f:
             content = f.read()
@@ -497,7 +506,8 @@ class TestShellScripts:
         # Should track PIDs
         assert "PID=" in content
 
-    def test_cleanup_branches_git_safety(self):
+    @staticmethod
+    def test_cleanup_branches_git_safety():
         """Test that cleanup-branches.sh uses safe git operations."""
         with open("cleanup-branches.sh") as f:
             content = f.read()

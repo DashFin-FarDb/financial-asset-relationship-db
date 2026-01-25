@@ -432,7 +432,11 @@ class TestIntegrationWithActualWorkflows:
 
     @staticmethod
     def test_validate_actual_pr_agent_workflow():
-        """Test validation of actual pr-agent.yml if it exists"""
+        """
+        Validate the repository's .github/workflows/pr-agent.yml workflow file when present.
+
+        If the file exists, assert that the workflow parses as valid and that the parsed workflow_data contains a top-level "jobs" key; if the file does not exist, the test is skipped.
+        """
         workflow_path = (
             Path(__file__).parent.parent.parent
             / ".github"
@@ -532,7 +536,8 @@ class TestValidationResultDataStructure:
 class TestAdvancedValidationScenarios:
     """Additional advanced validation scenarios with bias for action"""
 
-    def test_workflow_with_binary_content(self):
+    @staticmethod
+    def test_workflow_with_binary_content():
         """Test handling of binary file mistakenly treated as YAML"""
         with tempfile.NamedTemporaryFile(mode="wb", suffix=".yml", delete=False) as f:
             # Write some binary content
@@ -545,8 +550,10 @@ class TestAdvancedValidationScenarios:
                 assert len(result.errors) >= 1
             finally:
                 Path(f.name).unlink()
+    Path(f.name).unlink()
 
-    def test_workflow_with_only_whitespace(self):
+    @staticmethod
+    def test_workflow_with_only_whitespace():
         """Test workflow file containing only whitespace"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("   \n\t\n   \n")
@@ -558,7 +565,8 @@ class TestAdvancedValidationScenarios:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_comments_only(self):
+    @staticmethod
+    def test_workflow_with_comments_only():
         """Test workflow file with only YAML comments"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -578,7 +586,8 @@ class TestAdvancedValidationScenarios:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_null_jobs_value(self):
+    @staticmethod
+    def test_workflow_with_null_jobs_value():
         """Test workflow with null value for jobs key"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -597,7 +606,8 @@ jobs: ~
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_list_as_jobs(self):
+    @staticmethod
+    def test_workflow_with_list_as_jobs():
         """Test workflow where jobs is a list instead of dict"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -618,7 +628,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_integer_values(self):
+    @staticmethod
+    def test_workflow_with_integer_values():
         """Test workflow with integer values in unexpected places"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -640,7 +651,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_path_with_spaces(self):
+    @staticmethod
+    def test_workflow_path_with_spaces():
         """Test workflow file with spaces in path"""
         import os
 
@@ -654,7 +666,7 @@ name: Test
 on: push
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs - on: ubuntu - latest
     steps:
       - run: echo test
 """
@@ -667,7 +679,8 @@ jobs:
 
             shutil.rmtree(temp_dir)
 
-    def test_workflow_with_extremely_long_line(self):
+    @staticmethod
+    def test_workflow_with_extremely_long_line():
         """Test workflow with extremely long single line"""
         long_string = "A" * 10000
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -692,7 +705,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_circular_yaml_reference(self):
+    @staticmethod
+    def test_workflow_with_circular_yaml_reference():
         """Test workflow with YAML anchors that could cause circular references"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -722,7 +736,8 @@ jobs:
             finally:
                 Path(f.name).unlink()
 
-    def test_workflow_with_multiline_strings(self):
+    @staticmethod
+    def test_workflow_with_multiline_strings():
         """Test workflow with various multiline string formats"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
@@ -908,7 +923,11 @@ class TestWorkflowValidatorPerformance:
 
     @staticmethod
     def test_validate_multiple_workflows_sequentially():
-        """Test validating multiple workflows in sequence"""
+        """
+        Validate that multiple GitHub workflow files can be validated sequentially.
+
+        Creates and validates ten distinct temporary workflow files in sequence and asserts every validation result is valid and that ten results are produced.
+        """
         workflows = []
         for i in range(10):
             f = tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False)
@@ -971,19 +990,6 @@ class TestWorkflowValidatorEdgeCasesExtended:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("")
                 """
-name: Booleans
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    if: true
-    continue -on - error: false
-    steps:
-      - uses: actions / checkout @ v4
-        with:
-          fetch - depth: 0
-          persist - credentials: true
-"""
             )
             f.flush()
 
@@ -999,15 +1005,15 @@ jobs:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
-name: Scientific
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    timeout - minutes: 1e2
-    steps:
-      - run: echo test
-"""
+                name: Scientific
+                on: push
+                jobs:
+                test:
+                timeout-minutes: 1e2
+                timeout - minutes: 1e2
+                steps:
+                - run: echo test
+                """
             )
             f.flush()
 
@@ -1019,21 +1025,25 @@ jobs:
 
     @staticmethod
     def test_workflow_with_float_values():
-        """Test workflow with float values"""
+        """
+                Verify that a workflow containing floating - point values is accepted as valid.
+
+                Creates a temporary YAML workflow with float values in environment fields and asserts that validate_workflow returns a valid ValidationResult.
+                """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
-name: Floats
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    env:
-      VERSION: 3.14159
-      RATIO: 0.5
-    steps:
-      - run: echo test
-"""
+                name: Floats
+                on: push
+                jobs:
+                test:
+                runs - on: ubuntu - latest
+                env:
+                VERSION: 3.14159
+                RATIO: 0.5
+                steps:
+                - run: echo test
+                """
             )
             f.flush()
 
@@ -1065,15 +1075,14 @@ jobs:
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
-name: Trailing
-on: push
-jobs:
-  test:
-    runs - on: ubuntu - latest
-    steps:
-      - uses: actions / checkout @ v4
-        with: {ref: main, fetch - depth: 1,}
-"""
+                name: Trailing
+                on: push
+                jobs:
+                test:
+                runs - on: ubuntu - latest
+                steps:
+                - uses: actions / checkout @ v4
+                with: {ref: main, fetch - depth: 1,}
             )
             f.flush()
 

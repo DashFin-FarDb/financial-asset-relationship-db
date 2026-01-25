@@ -137,7 +137,16 @@ class TestWorkflowPermissionsHardening:
 
     @staticmethod
     def test_workflows_define_explicit_permissions(all_workflows):
-        """Verify workflows explicitly define permissions."""
+        """
+        Ensure each workflow defines a top-level `permissions` field.
+
+        Asserts that every workflow's `content` mapping contains the `permissions` key; on failure the assertion message includes the workflow `path`.
+
+        Parameters:
+            all_workflows (iterable): Iterable of workflow objects where each item is a mapping with at least:
+                - `content` (dict): Parsed workflow YAML as a dictionary.
+                - `path` (str): Filesystem path or identifier for the workflow.
+        """
         for workflow in all_workflows:
             assert "permissions" in workflow["content"], (
                 f"Workflow {workflow['path']} should define permissions"
@@ -145,7 +154,21 @@ class TestWorkflowPermissionsHardening:
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
-        """Verify default permissions follow least privilege."""
+        """
+        Ensure each workflow's default permissions are restricted to least-privilege values.
+
+        For a workflow whose top-level `permissions` is a string, requires the value to be
+        "read-all" or "none". For a workflow whose `permissions` is a mapping, ensures
+        no permission is set to `"write"` except for the allowed keys: `"contents"`,
+        `"pull-requests"`, `"issues"`, and `"checks"`. Raises AssertionError with the
+        workflow path when a violation is detected.
+
+        Parameters:
+            all_workflows (Iterable[dict]): Iterable of workflow records where each
+                record is a mapping containing at least the keys:
+                - "path": str, filesystem path or identifier of the workflow
+                - "content": dict, parsed workflow YAML content
+        """
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
 

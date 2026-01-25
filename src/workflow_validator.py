@@ -45,7 +45,8 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     mapping (dict), and contain a top-level "jobs" key. On success the parsed
     workflow data is returned in the result; on failure the result contains
     human-readable error messages such as "File not found: ...",
-    "Invalid YAML syntax: ...", "Workflow file is empty or contains only nulls.",
+    "Invalid YAML syntax: ...",
+    "Workflow file is empty or contains only nulls.",
     "Workflow must be a dict", or "Workflow must have a 'jobs' key".
 
     Parameters:
@@ -69,7 +70,9 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
 
         if data is None:
             return ValidationResult(
-                False, ["Workflow file is empty or contains only nulls."], {}
+                False,
+                ["Workflow file is empty or contains only nulls."],
+                {},
             )
 
         if not isinstance(data, dict):
@@ -88,7 +91,9 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
         return ValidationResult(False, [f"Permission denied: {e}"], {})
     except IsADirectoryError as e:
         return ValidationResult(
-            False, [f"Expected a file but found a directory: {e}"], {}
+            False,
+            [f"Expected a file but found a directory: {e}"],
+            {},
         )
     except OSError as e:
         return ValidationResult(False, [f"OS Error reading file: {e}"], {})

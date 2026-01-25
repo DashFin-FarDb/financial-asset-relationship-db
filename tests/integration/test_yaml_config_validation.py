@@ -89,11 +89,11 @@ class TestYAMLSyntaxAndStructure:
                     line
                     and line[0] == " "
                     and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |")
+                    and leading_spaces % 2 != 0
                 ):
-                    if leading_spaces % 2 != 0:
-                        indentation_errors.append(
-                            f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
-                        )
+                    indentation_errors.append(
+                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
+                    )
 
 
 class TestWorkflowSchemaCompliance:
@@ -103,10 +103,10 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[dict[str, Any]]:
         """
-        Collects and parses all YAML workflow files found in .github/workflows.
+        Collect and parse all YAML workflow files in .github/workflows.
 
         Returns:
-            workflows (List[dict[str, Any]]): A list of dictionaries, each containing:
+            workflows (List[dict[str, Any]]): List of dictionaries with:
                 - 'path' (Path): Path to the workflow file.
                 - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
         """
@@ -119,7 +119,14 @@ class TestWorkflowSchemaCompliance:
 
     @staticmethod
     def test_workflows_have_required_top_level_keys(all_workflows):
-        """Verify workflows have all required top-level keys."""
+        """
+        Check each workflow contains the required top-level keys and that checkout versions are reasonably consistent.
+
+        Asserts that every workflow dict in `all_workflows` has the top-level keys "name" and "jobs". Also asserts that the set of recorded checkout versions contains at most two distinct values to enforce overall consistency.
+
+        Parameters:
+            all_workflows (list[dict]): Iterable of workflow descriptors, each with at least the keys "path" and "content".
+        """
         required_keys = ["name", "jobs"]
         checkout_versions = {}
         for workflow in all_workflows:
@@ -158,9 +165,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Verify workflow job timeouts, when present, are integers between 1 and 360 minutes.
+        Verify that any job-level "timeout-minutes" in workflows falls within 1 to 360 minutes.
 
-        Scans YAML files under .github/workflows and asserts any job's "timeout-minutes" value is an int greater than or equal to 1 and less than or equal to 360.
+        When a job defines "timeout-minutes", assert the value is an integer and is between 1 and 360 inclusive.
         """
         workflow_dir = Path(".github/workflows")
 

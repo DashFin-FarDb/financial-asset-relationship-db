@@ -42,17 +42,19 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 def _build_mcp_app():
     """
-    Create and return a FastMCP application configured for
-    managing asset relationships.
+    Create a configured FastMCP application for asset relationship
+    management.
 
-    This function performs a lazy import of the MCP server package so
-    importing the module does not require the optional `mcp` dependency
-    to be present.
+    Performs a lazy import of the MCP server package so the module can
+    be imported without requiring the optional `mcp` dependency. The
+    returned FastMCP instance is configured with a tool that validates
+    an Equity (and adds it to the global graph if the graph exposes an
+    `add_asset` method) and a resource that returns the current 3D
+    visualization layout as JSON.
 
     Returns:
-        FastMCP: A FastMCP application instance configured with a tool to
-            add/validate equity nodes and a resource that exposes current 3D
-            visualization layout data.
+        FastMCP: A FastMCP application instance with the equity tool and
+            3D layout resource.
     """
     from mcp.server.fastmcp import FastMCP  # local import (lazy)
 
@@ -60,20 +62,25 @@ def _build_mcp_app():
 
     @mcp.tool()
     def add_equity_node(
-        asset_id: str, symbol: str, name: str, sector: str, price: float
+        asset_id: str,
+        symbol: str,
+        name: str,
+        sector: str,
+        price: float,
     ) -> str:
         """
         Validate an Equity and add it to the global graph or perform
         validation only.
 
-        If the global graph exposes an `add_asset` method, the created Equity is
-        added; otherwise the function only validates the provided fields and does
-        not mutate graph state.
+        If the global graph exposes an `add_asset` method, the created Equity
+        is added; otherwise the function only validates the provided fields and
+        does not mutate graph state.
 
         Returns:
             A success message containing the equity name and symbol when
             validation (and addition, if supported) succeeds, or
-            `Validation Error: <message>` describing the validation failure.
+            `Validation Error: <message>` describing the validation
+            failure.
         """
         try:
             # Uses existing Equity dataclass for post-init validation.
@@ -119,8 +126,8 @@ def _build_mcp_app():
 
 def main(argv: list[str] | None = None) -> int:
     """
-    Parse command-line arguments, build and run the MCP application, and return an
-    exit code.
+    Parse command-line arguments, build and run the MCP application,
+    and return an exit code.
 
     If called with --version, prints a short version line and exits.
     Attempts to construct the MCP app; if the optional MCP package is missing,
@@ -161,7 +168,7 @@ def main(argv: list[str] | None = None) -> int:
         missing = getattr(e, "name", None) or str(e)
         raise SystemExit(
             f"Missing dependency '{missing}'. "
-            + "Install the MCP package to run the server."
+            "Install the MCP package to run the server."
         ) from e
 
     mcp.run()

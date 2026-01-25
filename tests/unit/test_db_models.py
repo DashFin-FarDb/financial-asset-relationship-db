@@ -161,7 +161,8 @@ class TestAssetORM:
             db_session.query(AssetORM).filter_by(id="TEST_REQUIRED").first() is not None
         )
 
-    def test_asset_nullable_fields(self, db_session):
+    @staticmethod
+    def test_asset_nullable_fields(db_session):
         """Test that nullable fields can be None."""
         asset = AssetORM(
             id="TEST_NULLABLE",
@@ -181,7 +182,8 @@ class TestAssetORM:
         assert retrieved.pe_ratio is None
         assert retrieved.market_cap is None
 
-    def test_asset_update(self, db_session):
+    @staticmethod
+    def test_asset_update(db_session):
         """Test updating asset fields."""
         asset = AssetORM(
             id="TEST_UPDATE",
@@ -203,7 +205,8 @@ class TestAssetORM:
         assert retrieved.price == 150.0
         assert retrieved.sector == "Technology"
 
-    def test_asset_deletion(self, db_session):
+    @staticmethod
+    def test_asset_deletion(db_session):
         """Test deleting an asset."""
         asset = AssetORM(
             id="TEST_DELETE",
@@ -232,7 +235,8 @@ class TestAssetRelationshipORM:
         """Test that AssetRelationshipORM uses correct table name."""
         assert AssetRelationshipORM.__tablename__ == "asset_relationships"
 
-    def test_create_relationship(self, db_session):
+    @staticmethod
+    def test_create_relationship(db_session):
         """Test creating a relationship between assets."""
         # Create two assets
         asset1 = AssetORM(
@@ -276,7 +280,8 @@ class TestAssetRelationshipORM:
         assert retrieved.target_asset_id == "ASSET2"
         assert retrieved.strength == 0.7
 
-    def test_relationship_unique_constraint(self, db_session):
+    @staticmethod
+    def test_relationship_unique_constraint(db_session):
         """Test that duplicate relationships are prevented."""
         asset1 = AssetORM(
             id="ASSET_A",
@@ -320,7 +325,8 @@ class TestAssetRelationshipORM:
         with pytest.raises(IntegrityError):
             db_session.commit()
 
-    def test_relationship_cascade_delete(self, db_session):
+    @staticmethod
+    def test_relationship_cascade_delete(db_session):
         """Test that relationships are deleted when assets are deleted."""
         asset1 = AssetORM(
             id="CASCADE1",
@@ -364,7 +370,8 @@ class TestAssetRelationshipORM:
         )
         assert remaining is None
 
-    def test_bidirectional_flag(self, db_session):
+    @staticmethod
+    def test_bidirectional_flag(db_session):
         """Test bidirectional flag on relationships."""
         asset1 = AssetORM(
             id="BIDIR1",
@@ -404,7 +411,8 @@ class TestAssetRelationshipORM:
         )
         assert retrieved.bidirectional is True
 
-    def test_relationship_strength_bounds(self, db_session):
+    @staticmethod
+    def test_relationship_strength_bounds(db_session):
         """Test that relationship strength can store various values."""
         asset1 = AssetORM(
             id="STRENGTH1",
@@ -454,7 +462,8 @@ class TestRegulatoryEventORM:
         """Test that RegulatoryEventORM uses correct table name."""
         assert RegulatoryEventORM.__tablename__ == "regulatory_events"
 
-    def test_create_regulatory_event(self, db_session):
+    @staticmethod
+    def test_create_regulatory_event(db_session):
         """
         Verify that a RegulatoryEventORM can be created, persisted, and retrieved with its fields correctly stored.
 
