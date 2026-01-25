@@ -325,7 +325,7 @@ class FinancialAssetApp:
 
         # Perform analysis
         analysis_results = formulaic_analyzer.analyze_graph(graph)
-
+        formula_choices = [f.name for f in formulas]
         # Generate visualizations
         summary = analysis_results.get("summary", {})
         summary_text = self._format_formula_summary(summary, analysis_results)
