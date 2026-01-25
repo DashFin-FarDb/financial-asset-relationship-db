@@ -567,18 +567,18 @@ class FinancialAssetApp:
                             with gr.Tab("🌐 Network Visualization (2D/3D)"):
                                 gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
 
-                                # Visualization mode and layout controls
-                                with gr.Row():
-                                    gr.Markdown("### 🎛️ Visualization Controls")
-                                with gr.Row():
-                                    with gr.Column(scale=1):
-                                        view_mode=gr.Radio()
+                                        view_mode = gr.Radio(
                                             label="Visualization Mode",
                                             choices=["3D", "2D"],
                                             value="3D",
                                         )
                                     with gr.Column(scale=1):
                                         layout_type=gr.Radio(
+                                            label="2D Layout Type",
+                                            choices=["spring", "circular", "grid"],
+                                            value="spring",
+                                            visible=False,
+                                        )
                                             label="2D Layout Type",
                                             choices=["spring", "circular", "grid"],
                                             value="spring",
