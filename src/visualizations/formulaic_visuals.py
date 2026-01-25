@@ -792,50 +792,50 @@ class FormulaicVisualizer:
 @staticmethod
 def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
     """Create a chart comparing different metrics derived from formulas."""
-     fig = go.Figure()
+    fig = go.Figure()
 
-      # Example logic: Compare theoretical vs empirical values if available
-      # For now, we plot R-squared distribution by category
-      formulas = analysis_results.get("formulas", [])
-       if not formulas:
-            return fig
-
-        categories = {}
-        for f in formulas:
-            if f.category not in categories:
-                categories[f.category] = []
-            categories[f.category].append(f.r_squared)
-
-        fig = go.Figure()
-
-        # Create bar chart for each category
-        category_names = list(categories.keys())
-        r_squared_by_category = []
-        formula_counts = []
-
-        for category in category_names:
-            category_formulas = categories[category]
-            avg_r_squared = sum(f.r_squared for f in category_formulas) / len(category_formulas)
-            r_squared_by_category.append(avg_r_squared)
-            formula_counts.append(len(category_formulas))
-
-        # R-squared bars
-        fig.add_trace(
-            go.Bar(
-                name="Average R-squared",
-                x=category_names,
-                y=r_squared_by_category,
-                marker=dict(color="lightcoral"),
-                yaxis="y",
-                offsetgroup=1,
-            )
-        )
-
-        fig.update_layout(
-            title="Formula Reliability Distribution by Category",
-            yaxis_title="R-Squared Score",
-            xaxis_title="Formula Category",
-            showlegend=False,
-            template="plotly_white",
-        )
+    # Example logic: Compare theoretical vs empirical values if available
+    # For now, we plot R-squared distribution by category
+    formulas = analysis_results.get("formulas", [])
+    if not formulas:
         return fig
+
+    categories = {}
+    for f in formulas:
+        if f.category not in categories:
+            categories[f.category] = []
+        categories[f.category].append(f.r_squared)
+
+    fig = go.Figure()
+
+    # Create bar chart for each category
+    category_names = list(categories.keys())
+    r_squared_by_category = []
+    formula_counts = []
+
+    for category in category_names:
+        category_formulas = categories[category]
+        avg_r_squared = sum(f.r_squared for f in category_formulas) / len(category_formulas)
+        r_squared_by_category.append(avg_r_squared)
+        formula_counts.append(len(category_formulas))
+
+    # R-squared bars
+    fig.add_trace(
+        go.Bar(
+            name="Average R-squared",
+            x=category_names,
+            y=r_squared_by_category,
+            marker=dict(color="lightcoral"),
+            yaxis="y",
+            offsetgroup=1,
+        )
+    )
+
+    fig.update_layout(
+        title="Formula Reliability Distribution by Category",
+        yaxis_title="R-Squared Score",
+        xaxis_title="Formula Category",
+        showlegend=False,
+        template="plotly_white",
+    )
+    return fig
