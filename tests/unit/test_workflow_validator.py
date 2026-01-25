@@ -922,7 +922,7 @@ name: Test{i}
                             f"""on: push
 jobs:
   test{i}:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
       - run: echo {i}
 """
