@@ -331,32 +331,28 @@ class FormulaicVisualizer:
             return FormulaicVisualizer._create_empty_correlation_figure()
 
         return FormulaicVisualizer._build_and_render_correlation_network(
-        return FormulaicVisualizer._build_and_render_correlation_network(
-            strongest_correlations,
-            correlation_matrix,
-        )
             strongest_correlations,
             correlation_matrix,
         )
 
-        @staticmethod
-        def _create_empty_correlation_figure() -> go.Figure:
-            """Return an empty placeholder figure for the correlation network."""
-            fig = go.Figure()
-            fig.update_layout(
-                title="Correlation Network Graph",
-                template="plotly_white",
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                margin=dict(b=20, l=5, r=5, t=40),
-                annotations=[
-                    dict(
-                        text="No correlation data available",
-                        x=0.5,
-                        y=0.5,
-                        xref="paper",
-                        yref="paper",
-                        showarrow=False,
+    @staticmethod
+    def _create_empty_correlation_figure() -> go.Figure:
+        """Return an empty placeholder figure for the correlation network."""
+        fig = go.Figure()
+        fig.update_layout(
+            title="Correlation Network Graph",
+            template="plotly_white",
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            margin=dict(b=20, l=5, r=5, t=40),
+            annotations=[
+                dict(
+                    text="No correlation data available",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
                         font=dict(size=14, color="gray"),
                     )
                 ],
