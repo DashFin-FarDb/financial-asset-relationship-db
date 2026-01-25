@@ -650,7 +650,6 @@ class FinancialAssetApp:
                 refresh_schema_btn,
                 refresh_explorer_btn,
                 refresh_btn,
-                refresh_formulas_btn,
             ]
 
             for btn in refresh_buttons:
