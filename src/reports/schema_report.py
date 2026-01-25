@@ -74,6 +74,7 @@ def generate_schema_report(_graph: AssetRelationshipGraph) -> str:
 
     return report
 
+
 def generate_schema_optimization_report(metrics):
     """Generate a schema optimization report based on provided metrics.
 
