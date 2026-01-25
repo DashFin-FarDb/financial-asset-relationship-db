@@ -780,20 +780,20 @@ class FinancialAssetApp:
                 show_income_comparison_value: bool,
                 show_regulatory_value: bool,
                 show_all_relationships_value: bool,
-            # View mode change handlers:
-            # 1) refresh visualization
-            view_mode.change(
-                self.refresh_visualization,
-                inputs=visualization_inputs,
-                outputs=visualization_outputs,
-            )
+                # View mode change handlers:
+                # 1) refresh visualization
+                view_mode.change(
+                    self.refresh_visualization,
+                    inputs=visualization_inputs,
+                    outputs=visualization_outputs,
+                )
 
-            # 2) toggle 2D layout selector visibility
-            view_mode.change(
-                lambda mode: gr.update(visible=(mode == "2D")),
-                inputs=[view_mode],
-                outputs=[layout_type],
-            )
+                # 2) toggle 2D layout selector visibility
+                view_mode.change(
+                    lambda mode: gr.update(visible=(mode == "2D")),
+                    inputs=[view_mode],
+                    outputs=[layout_type],
+                )
             ) -> Tuple[go.Figure, Any, Any]:
                 fig, err = self.refresh_visualization(
                     graph_state,
