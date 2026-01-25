@@ -289,7 +289,7 @@ class FinancialAssetApp:
             LOGGER.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
             FormulaicdAnalyzer()
-            formulaic_visualizer = FormulaicVisualizer()
+            FormulaicVisualizer()
 
             if view_mode == "2D":
                 graph_viz: go.Figure = visualize_2d_graph(
