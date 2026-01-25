@@ -460,19 +460,19 @@ class FormulaicVisualizer:
             return fig
             correlation_matrix,
         )
-                color = "lightgray"
-                width = 2
+            color = "lightgray"
+            width = 2
 
-            edge_traces.append(
-                go.Scatter(
-                    x=[x0, x1, None],
-                    y=[y0, y1, None],
-                    mode="lines",
-                    line=dict(color=color, width=width),
-                    hoverinfo="none",
-                    showlegend=False,
-                )
+        edge_traces.append(
+            go.Scatter(
+                x=[x0, x1, None],
+                y=[y0, y1, None],
+                mode="lines",
+                line=dict(color=color, width=width),
+                hoverinfo="none",
+                showlegend=False,
             )
+        )
 
         # Create node trace
         node_x = [positions[asset][0] for asset in assets]
