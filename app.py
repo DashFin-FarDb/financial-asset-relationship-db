@@ -166,7 +166,7 @@ class FinancialAssetApp:
             self._initialize_graph()
         return self.graph
 
-    @staticmethod
+    @ staticmethod
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """
         Create a multi - line textual report summarizing network metrics for the given asset graph.
@@ -179,12 +179,12 @@ class FinancialAssetApp:
                     """
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
-            total_assets=metrics["total_assets"],
-            total_relationships=metrics["total_relationships"],
-            average_relationship_strength=metrics["average_relationship_strength"],
-            relationship_density=metrics["relationship_density"],
-            regulatory_event_count=metrics["regulatory_event_count"],
-            asset_class_distribution=json.dumps(
+            total_assets = metrics["total_assets"],
+            total_relationships = metrics["total_relationships"],
+            average_relationship_strength = metrics["average_relationship_strength"],
+            relationship_density = metrics["relationship_density"],
+            regulatory_event_count = metrics["regulatory_event_count"],
+            asset_class_distribution = json.dumps(
                 metrics["asset_class_distribution"], indent=2
             ),
         )
@@ -207,7 +207,7 @@ class FinancialAssetApp:
         text = self._update_metrics_text(graph)
         return f1, f2, f3, text
 
-    @staticmethod
+    @ staticmethod
     def update_asset_info(
         selected_asset: Optional[str], graph: AssetRelationshipGraph
     ) -> Tuple[Dict, Dict]:
