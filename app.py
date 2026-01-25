@@ -128,6 +128,10 @@ Top Relationships:
 
 class FinancialAssetApp:
     """
+Manages the financial asset application, including initialization of the
+asset relationship graph, data handling, and providing interfaces for
+analyzing and visualizing asset networks.
+    """
    Manages the financial asset application, including initialization of the
        asset relationship graph, data handling, and providing interfaces for
            analyzing and visualizing asset networks.
