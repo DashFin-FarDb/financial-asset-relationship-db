@@ -66,7 +66,9 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
             data = yaml.safe_load(f)
 
         if data is None:
-            return ValidationResult(False, ["Workflow file is empty or contains only nulls."], {})
+            return ValidationResult(
+                False, ["Workflow file is empty or contains only nulls."], {}
+            )
 
         if not isinstance(data, dict):
             return ValidationResult(False, ["Workflow must be a dict"], {})
