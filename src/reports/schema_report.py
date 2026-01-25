@@ -118,8 +118,8 @@ exchange rates and policy links
     report += "- Relationship strengths normalized to 0-1 range\n"
     report += "- Impact scores on -1 to +1 scale for comparability\n"
     report += (
-        "- Relationship directionality: some types are"
-        " bidirectional (e.g.,\n"
+"- Relationship directionality: some types are bidirectional "
+        "(e.g.,\n"
         "  same_sector, income_comparison);\n"
         "  others are directional\n"
     )
