@@ -448,7 +448,10 @@ class FinancialAssetApp:
 
         return "\n".join(summary_lines)
 
-    def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
+    @staticmethod
+    def _format_formula_summary_legacy(summary: Dict, analysis_results: Dict) -> str:
+        """Deprecated: kept for backward compatibility; delegates to the canonical formatter."""
+        return FinancialAssetApp._format_formula_summary(summary, analysis_results)
         """Format the formula analysis summary for display."""
         formulas: List = analysis_results.get("formulas", [])
         empirical: Dict = analysis_results.get("empirical_relationships", {})
