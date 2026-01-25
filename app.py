@@ -94,7 +94,7 @@ class FinancialAssetApp:
                 analysis_results
             )
 
-            summary_text = analysis_results.summary
+            summary_text = analysis_results.get("summary", "")
 
             return (
                 dashboard_fig,
