@@ -1,7 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Final, List, Optional, Tuple, Union
 
 import gradio as gr
 import plotly.graph_objects as go
@@ -19,20 +19,25 @@ from src.visualizations.graph_visuals import (
 )
 from src.visualizations.metric_visuals import visualize_metrics
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
+# Configure module-level logger without altering global logging configuration
 LOGGER = logging.getLogger(__name__)
+if not LOGGER.handlers:
+    _handler = logging.StreamHandler()
+    _formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    _handler.setFormatter(_formatter)
+    LOGGER.addHandler(_handler)
+    LOGGER.setLevel(logging.INFO)
+    LOGGER.propagate = False
 
 
 class AppConstants:
     """Holds all application constants including labels, markdown, and messages."""
 
-    TITLE: str = "Financial Asset Relationship Database Visualization"
+    TITLE: Final[str] = "Financial Asset Relationship Database Visualization"
 
-    MARKDOWN_HEADER: str = """
+    MARKDOWN_HEADER: Final[str] = """
     # 🏦 Financial Asset Relationship Network
 
     A comprehensive 3D visualization of interconnected financial
@@ -41,27 +46,28 @@ class AppConstants:
     Events**
     """
 
-    TAB_3D_VISUALIZATION: str = "3D Network Visualization"
-    TAB_METRICS_ANALYTICS: str = "Metrics & Analytics"
-    TAB_SCHEMA_RULES: str = "Schema & Rules"
-    TAB_ASSET_EXPLORER: str = "Asset Explorer"
-    TAB_DOCUMENTATION: str = "Documentation"
+    TAB_3D_VISUALIZATION: Final[str] = "3D Network Visualization"
+    TAB_METRICS_ANALYTICS: Final[str] = "Metrics & Analytics"
+    TAB_SCHEMA_RULES: Final[str] = "Schema & Rules"
+    TAB_ASSET_EXPLORER: Final[str] = "Asset Explorer"
+    TAB_DOCUMENTATION: Final[str] = "Documentation"
 
-    ERROR_LABEL: str = "Error"
-    REFRESH_BUTTON_LABEL: str = "Refresh Visualization"
-    GENERATE_SCHEMA_BUTTON_LABEL: str = "Generate Schema Report"
-    SELECT_ASSET_LABEL: str = "Select Asset"
-    ASSET_DETAILS_LABEL: str = "Asset Details"
-    RELATED_ASSETS_LABEL: str = "Related Assets"
-    NETWORK_STATISTICS_LABEL: str = "Network Statistics"
+    ERROR_LABEL: Final[str] = "Error"
+    REFRESH_BUTTON_LABEL: Final[str] = "Refresh Visualization"
+    GENERATE_SCHEMA_BUTTON_LABEL: Final[str] = "Generate Schema Report"
+    SELECT_ASSET_LABEL: Final[str] = "Select Asset"
+    ASSET_DETAILS_LABEL: Final[str] = "Asset Details"
+    RELATED_ASSETS_LABEL: Final[str] = "Related Assets"
+    NETWORK_STATISTICS_LABEL: Final[str] = "Network Statistics"
+    SCHEMA_REPORT_LABEL: Final[str] = "Schema Report"
 
-    INITIAL_GRAPH_ERROR: str = "Failed to create sample database"
-    REFRESH_OUTPUTS_ERROR: str = "Error refreshing outputs"
-    APP_START_INFO: str = "Starting Financial Asset Relationship Database application"
-    APP_LAUNCH_INFO: str = "Launching Gradio interface"
-    APP_START_ERROR: str = "Failed to start application"
+    INITIAL_GRAPH_ERROR: Final[str] = "Failed to create sample database"
+    REFRESH_OUTPUTS_ERROR: Final[str] = "Error refreshing outputs"
+    APP_START_INFO: Final[str] = "Starting Financial Asset Relationship Database application"
+    APP_LAUNCH_INFO: Final[str] = "Launching Gradio interface"
+    APP_START_ERROR: Final[str] = "Failed to start application"
 
-    INTERACTIVE_3D_GRAPH_MD: str = """
+    INTERACTIVE_3D_GRAPH_MD: Final[str] = """
     ## Interactive 3D Network Graph
 
     Explore the relationships between financial assets in three dimensions.
@@ -76,28 +82,28 @@ class AppConstants:
     - 🟣 Purple: Derivatives
     """
 
-    NETWORK_METRICS_ANALYSIS_MD: str = """
+    NETWORK_METRICS_ANALYSIS_MD: Final[str] = """
     ## Network Metrics & Analytics
 
     Comprehensive analysis of asset relationships, distributions, and
     regulatory event impacts.
     """
 
-    SCHEMA_RULES_GUIDE_MD: str = """
+    SCHEMA_RULES_GUIDE_MD: Final[str] = """
     ## Database Schema & Business Rules
 
     View the automatically generated schema documentation including
     relationship types, business rules, and validation constraints.
     """
 
-    DETAILED_ASSET_INFO_MD: str = """
+    DETAILED_ASSET_INFO_MD: Final[str] = """
     ## Asset Explorer
 
     Select any asset to view detailed information including financial
     metrics, relationships, and connected assets.
     """
 
-    DOC_MARKDOWN: str = """
+    DOC_MARKDOWN: Final[str] = """
     ## Documentation & Help
 
     ### Quick Start
@@ -119,7 +125,7 @@ class AppConstants:
     For technical details, see the GitHub repository documentation.
     """
 
-    NETWORK_STATISTICS_TEXT: str = """Network Statistics:
+    NETWORK_STATISTICS_TEXT: Final[str] = """Network Statistics:
 
 Total Assets: {total_assets}
 Total Relationships: {total_relationships}
@@ -196,7 +202,7 @@ class FinancialAssetApp:
     @staticmethod
     def update_asset_info(
         selected_asset: Optional[str], graph: AssetRelationshipGraph
-    ) -> Tuple[Dict, AssetRelationshipView]:
+    ) -> Tuple[Dict, Dict[str, Dict]]:
         """Retrieves and formats detailed information for a selected asset."""
         if not selected_asset or selected_asset not in graph.assets:
             return {}, {"outgoing": {}, "incoming": {}}
@@ -222,14 +228,14 @@ class FinancialAssetApp:
     def refresh_all_outputs(
         self, graph_state: AssetRelationshipGraph
     ) -> Tuple[
-        gr.Plot,
-        gr.Plot,
-        gr.Plot,
-        gr.Plot,
-        gr.Textbox,
-        gr.Textbox,
-        gr.Dropdown,
-        gr.Textbox,
+        go.Figure,
+        go.Figure,
+        go.Figure,
+        go.Figure,
+        str,
+        str,
+        Any,
+        Any,
     ]:
         """Refreshes all visualizations and reports in the Gradio interface."""
         try:
@@ -283,13 +289,11 @@ class FinancialAssetApp:
         show_regulatory: bool,
         show_all_relationships: bool,
         toggle_arrows: bool,
-    ) -> go.Figure:
+    ) -> Tuple[go.Figure, Any]:
         """Refresh visualization with 2D/3D mode support and relationship filtering."""
         try:
-            LOGGER.info("Generating formulaic analysis")
+            LOGGER.info("Refreshing visualization")
             graph = self.ensure_graph() if graph_state is None else graph_state
-            formulaic_analyzer = FormulaicdAnalyzer()
-            formulaic_visualizer = FormulaicVisualizer()
 
             if view_mode == "2D":
                 graph_viz: go.Figure = visualize_2d_graph(
@@ -318,15 +322,15 @@ class FinancialAssetApp:
                     toggle_arrows=toggle_arrows,
                 )
 
-            return graph_viz
+            return graph_viz, gr.update(visible=False)
 
         except Exception as e:
             LOGGER.error("Error refreshing visualization: %s", e)
-            return go.Figure()
+            return go.Figure(), gr.update(value=f"Error: {str(e)}", visible=True)
 
     def generate_formulaic_analysis(
         self, graph_state: Optional[AssetRelationshipGraph]
-    ) -> Tuple[go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox]:
+    ) -> Tuple[go.Figure, go.Figure, go.Figure, Any, str, Any]:
         """Generate comprehensive formulaic analysis of the asset graph."""
         try:
             LOGGER.info("Generating formulaic analysis")
@@ -386,13 +390,12 @@ class FinancialAssetApp:
                 gr.update(value=error_msg, visible=True),
             )
 
-    @staticmethod
     def show_formula_details(
-        formula_name: str, graph_state: AssetRelationshipGraph
-    ) -> Tuple[go.Figure, gr.Textbox]:
-            LOGGER.warning("Formula detail view is not yet implemented.")
-            return go.Figure(), gr.update(value=None, visible=False)
+        self, formula_name: str, graph_state: AssetRelationshipGraph
+    ) -> Tuple[go.Figure, Any]:
+        """Show detailed analysis for a specific formula."""
         try:
+            LOGGER.warning("Formula detail view is not yet implemented.")
             return go.Figure(), gr.update(value=None, visible=False)
         except Exception as e:
             LOGGER.error("Error showing formula details: %s", e)
@@ -569,7 +572,7 @@ class FinancialAssetApp:
                             gr.Markdown("")
 
                     with gr.Row():
-                        gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
+                        asset_info: gr.JSON = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
                     with gr.Row():
                         asset_relationships: gr.JSON = gr.JSON(
                             label=AppConstants.RELATED_ASSETS_LABEL
@@ -705,11 +708,32 @@ class FinancialAssetApp:
                 outputs=visualization_outputs,
             )
 
-            # Reset view button
-            reset_view_btn.click(
-                lambda *args: self.refresh_visualization(*args),
+            # View mode change handlers
+            view_mode.change(
+                self.refresh_visualization,
                 inputs=visualization_inputs,
                 outputs=visualization_outputs,
+            )
+
+            # Update layout_type visibility based on view_mode
+            view_mode.change(
+                lambda mode: gr.update(visible=(mode == "2D")),
+                inputs=[view_mode],
+                outputs=[layout_type],
+            )
+
+            # Reset view button
+            reset_view_btn.click(
+                self.refresh_visualization,
+                inputs=visualization_inputs,
+                outputs=visualization_outputs,
+            )
+
+            # Asset selector change handler
+            asset_selector.change(
+                self.update_asset_info,
+                inputs=[asset_selector, graph_state],
+                outputs=[asset_info, asset_relationships],
             )
 
             # Formulaic analysis handlers
