@@ -463,7 +463,7 @@ class FinancialAssetApp:
     def show_formula_details(
         formula_name: str, graph_state: AssetRelationshipGraph
     ) -> Tuple[go.Figure, gr.Textbox]:
-            """
+        """
         Provide a placeholder detail view for a selected formula and hide the detail textbox while the feature is not implemented.
 
         Parameters:
@@ -474,7 +474,7 @@ class FinancialAssetApp:
             Tuple[go.Figure, gr.Textbox]: A pair where the first element is an empty Plotly Figure as a placeholder, and the second is a Gradio textbox update with no value and visibility set to False.
         """
         LOGGER.warning("Formula detail view is not yet implemented.")
-            return go.Figure(), gr.update(value=None, visible=False)
+        return go.Figure(), gr.update(value=None, visible=False)
         try:
             return go.Figure(), gr.update(value=None, visible=False)
         except Exception as e:
