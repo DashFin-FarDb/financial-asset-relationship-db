@@ -107,10 +107,6 @@ DOC_MARKDOWN = """
 # Features
 - **Cross-Asset Analysis**: Automatic relationship discovery
 - **Regulatory Integration**: Corporate events impact modeling
-- **Real-time Metrics**: Network statistics and strength analysis
-- **Deterministic Layout**: Consistent 3D positioning across sessions
-"""
-
 NETWORK_STATISTICS_TEXT = """Network Statistics:
 
 Total Assets: {total_assets}
@@ -128,14 +124,10 @@ Top Relationships:
 
 class FinancialAssetApp:
     """
-Manages the financial asset application, including initialization of the
-asset relationship graph, data handling, and providing interfaces for
-analyzing and visualizing asset networks.
+    Manages the financial asset application, including initialization of the
+    asset relationship graph, data handling, and providing interfaces for
+    analyzing and visualizing asset networks.
     """
-   Manages the financial asset application, including initialization of the
-       asset relationship graph, data handling, and providing interfaces for
-           analyzing and visualizing asset networks.
-               """
 
     def __init__(self):
         self.graph: Optional[AssetRelationshipGraph] = None
@@ -158,6 +150,7 @@ analyzing and visualizing asset networks.
             )
             logger.info(
                 "Initialized sample database with %s assets", len(self.graph.assets)
+            )
             )
         except Exception as e:
             logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, e)
