@@ -709,13 +709,7 @@ class FinancialAssetApp:
                 inputs=visualization_inputs,
                 outputs=visualization_outputs,
             )
-            # View mode change handlers
-            view_mode.change(
-                self.refresh_visualization,
-                inputs=visualization_inputs,
-                outputs=visualization_outputs,
-            )
-
+            # View mode change handler is defined below in `_on_view_mode_change`
             # Update layout_type visibility based on view_mode
             # View mode change handler (refresh visualization + toggle layout_type visibility)
             def _on_view_mode_change(
