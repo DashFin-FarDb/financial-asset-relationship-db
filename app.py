@@ -386,17 +386,16 @@ class FinancialAssetApp:
                 gr.update(value=error_msg, visible=True),
             )
 
-    @staticmethod
-    def show_formula_details(
-        formula_name: str, graph_state: AssetRelationshipGraph
-    ) -> Tuple[go.Figure, gr.Textbox]:
+        @staticmethod
+        def show_formula_details(
+            formula_name: str, graph_state: AssetRelationshipGraph
+        ) -> Tuple[go.Figure, gr.Textbox]:
             LOGGER.warning("Formula detail view is not yet implemented.")
-            return go.Figure(), gr.update(value=None, visible=False)
-        try:
-            return go.Figure(), gr.update(value=None, visible=False)
-        except Exception as e:
-            LOGGER.error("Error showing formula details: %s", e)
-            return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
+            try:
+                return go.Figure(), gr.update(value=None, visible=False)
+            except Exception as e:
+                LOGGER.error("Error showing formula details: %s", e)
+                return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
