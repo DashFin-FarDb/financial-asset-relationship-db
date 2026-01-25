@@ -91,10 +91,14 @@ class FinancialAssetApp:
             average_relationship_strength=metrics["average_relationship_strength"],
             relationship_density=metrics["relationship_density"],
             regulatory_event_count=metrics["regulatory_event_count"],
-            asset_class_distribution=json.dumps(metrics["asset_class_distribution"], indent=2),
+            asset_class_distribution=json.dumps(
+                metrics["asset_class_distribution"], indent=2
+            ),
         )
 
-        for idx, (src, tgt, rel, strength) in enumerate(metrics["top_relationships"], start=1):
+        for idx, (src, tgt, rel, strength) in enumerate(
+            metrics["top_relationships"], start=1
+        ):
             text += f"{idx}. {src} → {tgt} ({rel}): {strength:.1%}\n"
 
         return text
@@ -116,7 +120,8 @@ class FinancialAssetApp:
         asset_dict["asset_class"] = asset.asset_class.value
 
         outgoing = {
-            tgt: {"relationship_type": r, "strength": s} for tgt, r, s in graph.relationships.get(selected_asset, [])
+            tgt: {"relationship_type": r, "strength": s}
+            for tgt, r, s in graph.relationships.get(selected_asset, [])
         }
         incoming = {
             src: {"relationship_type": r, "strength": s}
@@ -215,7 +220,9 @@ class FinancialAssetApp:
 
             return (
                 visualizer.create_formula_dashboard(results),
-                visualizer.create_correlation_network(results.get("empirical_relationships", {})),
+                visualizer.create_correlation_network(
+                    results.get("empirical_relationships", {})
+                ),
                 visualizer.create_metric_comparison_chart(results),
                 gr.update(
                     choices=[f.name for f in formulas],
