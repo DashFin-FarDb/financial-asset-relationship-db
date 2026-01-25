@@ -105,8 +105,10 @@ DOC_MARKDOWN = """
 4. ** Explorer**: Drill down into individual asset details
 
 # Features
-- **Cross - Asset Analysis**: Automatic relationship discovery
+- **Cross-Asset Analysis**: Automatic relationship discovery
 - **Regulatory Integration**: Corporate events impact modeling
+- **Real-time Metrics**: Network statistics and strength analysis
+- **Deterministic Layout**: Consistent 3D positioning across sessions
 """
 
 NETWORK_STATISTICS_TEXT = """Network Statistics:
