@@ -431,7 +431,7 @@ def create_real_database() -> AssetRelationshipGraph:
     Returns:
         AssetRelationshipGraph: The constructed graph populated with assets,
         regulatory events and relationship mappings; the content may come from the
-        cache, a real - data fetch, or the sample fallback.
+        cache, a real-data fetch, or the sample fallback.
     """
     fetcher = RealDataFetcher()
     return fetcher.create_real_database()
