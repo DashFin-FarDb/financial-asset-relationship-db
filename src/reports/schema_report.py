@@ -95,7 +95,8 @@ def generate_schema_optimization_report(metrics):
 # Data Quality Score: """
     quality_score = min(
         1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+        metrics["average_relationship_strength"]
+        + (metrics["regulatory_event_count"] / 10),
     )
     report_content += f"{quality_score:.1%}\n"
 
