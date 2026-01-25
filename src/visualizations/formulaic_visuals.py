@@ -780,7 +780,7 @@ class FormulaicVisualizer:
         node_trace.marker.color = node_adjacencies
 
         fig = go.Figure(
-            data = [edge_trace, node_trace],
+            data = [edge_traces, node_trace],
             layout = go.Layout(
                 title="Correlation Network Graph",
                 titlefont_size=16,
