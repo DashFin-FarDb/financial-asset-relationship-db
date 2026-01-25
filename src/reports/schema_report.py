@@ -74,19 +74,12 @@ def generate_schema_report(_graph: AssetRelationshipGraph) -> str:
 
     return report
 
-
-"""Schema Report Generation Module.
-
-This module builds and assembles a detailed schema optimization report,
-including rules, metrics, recommendations, and implementation notes.
-"""
-
-
 def generate_schema_optimization_report(metrics):
     """Generate a schema optimization report based on provided metrics.
 
-    Computes a data quality score based on relationship strength and regulatory event count,
-    provides recommendations based on relationship density, and appends implementation notes.
+    Computes a data quality score based on relationship strength and
+    regulatory event count, provides recommendations based on relationship
+    density, and appends implementation notes.
     """
     report_content = ""
     report_content += """

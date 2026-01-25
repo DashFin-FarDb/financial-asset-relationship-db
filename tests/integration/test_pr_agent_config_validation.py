@@ -454,35 +454,35 @@ class TestPRAgentConfigSecurity:
             "api_key",
             "apikey",
             "access_key",
-                    "private_key",
-                ]
-                # Values considered safe placeholders
-                allowed_placeholders = {None, "null", "webhook"}
+            "private_key",
+        ]
+        # Values considered safe placeholders
+        allowed_placeholders = {None, "null", "webhook"}
 
-                def is_allowed_value(val):
-                    """Check if a value is an allowed placeholder or templated variable.
+        def is_allowed_value(val):
+            """Check if a value is an allowed placeholder or templated variable.
 
-                    Returns:
-                        bool: True if the value is a permitted placeholder (None, 'null', 'webhook') or a
-                        templated variable in the form '${VAR}', False otherwise.
-                    """
-                    if val in allowed_placeholders:
-                        return True
-                    if isinstance(val, str) and val.startswith("${") and val.endswith("}"):
-                        return True
-                    return False
+            Returns:
+                bool: True if the value is a permitted placeholder (None, 'null', 'webhook') or a
+                templated variable in the form '${VAR}', False otherwise.
+            """
+            if val in allowed_placeholders:
+                return True
+            if isinstance(val, str) and val.startswith("${") and val.endswith("}"):
+                return True
+            return False
 
-                def shannon_entropy(data):
-                    import math
-                    from collections import Counter
-                    if not data:
-                        return 0.0
-                    freq = Counter(data)
-                    length = len(data)
-                    return -sum((count / length) * math.log2(count / length) for count in freq.values())
+        def shannon_entropy(data):
+            import math
+            from collections import Counter
+            if not data:
+                return 0.0
+            freq = Counter(data)
+            length = len(data)
+            return -sum((count / length) * math.log2(count / length) for count in freq.values())
 
-                def is_hardcoded_secret(val):
-                    """Determine if a string value likely contains a hardcoded secret.
+        def is_hardcoded_secret(val):
+            """Determine if a string value likely contains a hardcoded secret.
 
                     Returns:
                         bool: True if the value matches patterns indicating a potential secret based on
