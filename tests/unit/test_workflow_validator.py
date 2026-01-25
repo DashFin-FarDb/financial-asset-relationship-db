@@ -666,7 +666,7 @@ name: Test
 on: push
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs - on: ubuntu - latest
     steps:
       - run: echo test
 """

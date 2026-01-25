@@ -95,7 +95,8 @@ def generate_schema_optimization_report(metrics):
 # Data Quality Score: """
     quality_score = min(
         1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+        metrics["average_relationship_strength"]
+        + (metrics["regulatory_event_count"] / 10),
     )
     report_content += f"{quality_score:.1%}\n"
 
@@ -103,10 +104,14 @@ def generate_schema_optimization_report(metrics):
     if metrics["relationship_density"] > 30:
         report_content += "High connectivity - consider normalization"
     elif metrics["relationship_density"] > 10:
-        report_content += "Well-balanced relationship graph - optimal for most use cases"
+        report_content += (
+            "Well-balanced relationship graph - optimal for most use cases"
+        )
     else:
         report_content += "Sparse connections - consider adding more relationships"
 
-    report_content += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
+    report_content += (
+        "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
+    )
     report_content += "- Relationship strengths normalized to 0-1 range\n"
     return report_content
