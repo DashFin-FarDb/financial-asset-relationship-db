@@ -765,7 +765,7 @@ class FormulaicVisualizer:
             ),
         )
         return fig
-                showscale = True,
+            showscale=True,
                 colorscale = "YlGnBu",
                 size = 10,
                 colorbar = dict(
