@@ -400,19 +400,19 @@ class FinancialAssetApp:
         error_visibility_update that makes the error visible.
         """
         try:
-    #     error_visibility_update that makes the error visible.
-    try:
-        logger.info("Generating formulaic analysis")
-        graph = self.ensure_graph() if graph_state is None else graph_state
-        # Notes:
-        #     Initialize analyzers
-        formulaic_analyzer = FormulaicdAnalyzer()
-        formulaic_visualizer = FormulaicVisualizer()
-        formulaic_analyzer = FormulaicdAnalyzer()
-        # Perform analysis
-        analysis_results = formulaic_analyzer.analyze_graph(graph)
-        analysis_results = formulaic_analyzer.analyze_graph(graph)
-        # Generate visualizations
+            logger.info("Generating formulaic analysis")
+            graph = self.ensure_graph() if graph_state is None else graph_state
+
+            # Initialize analyzers
+            formulaic_analyzer = FormulaicdAnalyzer()
+            formulaic_visualizer = FormulaicVisualizer()
+
+            # Perform analysis
+            analysis_results = formulaic_analyzer.analyze_graph(graph)
+
+            # Generate visualizations
+            # (Existing visualization and return logic continues here)
+            # Generate visualizations
         dashboard_fig = formulaic_visualizer.create_formula_dashboard(
             analysis_results
         )
