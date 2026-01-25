@@ -7,12 +7,12 @@ import gradio as gr
 import pandas as pd
 
 from src.constants import AppConstants
+from src.formulaic import FormulaicVisualizer
 from src.graph_builder import GraphBuilder
 from src.visualization import (
     visualize_2d_graph,
     visualize_3d_graph_with_filters,
 )
-from src.formulaic import FormulaicVisualizer
 
 
 class FinancialAssetApp:
@@ -84,19 +84,9 @@ class FinancialAssetApp:
                 lookback_days=lookback_days,
             )
 
-            dashboard_fig = self.formulaic_visualizer.create_formula_dashboard(
-                analysis_results
-            )
-            correlation_network_fig = (
-                self.formulaic_visualizer.create_correlation_network(
-                    analysis_results
-                )
-            )
-            metric_comparison_fig = (
-                self.formulaic_visualizer.create_metric_comparison(
-                    analysis_results
-                )
-            )
+            dashboard_fig = self.formulaic_visualizer.create_formula_dashboard(analysis_results)
+            correlation_network_fig = self.formulaic_visualizer.create_correlation_network(analysis_results)
+            metric_comparison_fig = self.formulaic_visualizer.create_metric_comparison(analysis_results)
 
             summary_text = analysis_results.summary
 
