@@ -385,7 +385,8 @@ class FinancialAssetApp:
     def show_formula_details(
         formula_name: str, graph_state: AssetRelationshipGraph
     ) -> Tuple[go.Figure, gr.Textbox]:
-        """Show detailed view of a specific formula."""
+            LOGGER.warning("Formula detail view is not yet implemented.")
+            return go.Figure(), gr.update(value=None, visible=False)
         try:
             return go.Figure(), gr.update(value=None, visible=False)
         except Exception as e:
