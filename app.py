@@ -430,9 +430,9 @@ class FinancialAssetApp:
         formula_choices=[f.name for f in formulas]
         )
             # Generate summary
-            summary=analysis_results.get("summary", {})
-            summary_text=self._format_formula_summary(summary, analysis_results)
-            summary=analysis_results.get("summary", {})
+            summary = analysis_results.get("summary", {})
+            summary_text = self._format_formula_summary(summary, analysis_results)
+            summary = analysis_results.get("summary", {})
             logger.info("Generated formulaic analysis with %d formulas", len(formulas))
             return (
                 dashboard_fig,
@@ -591,45 +591,45 @@ class FinancialAssetApp:
                                     gr.Markdown("### 🔗 Relationship Visibility Controls")
                                 with gr.Row():
                                     with gr.Column(scale=1):
-                                        show_same_sector=gr.Checkbox(
+                                        show_same_sector = gr.Checkbox(
                                             label="Same Sector (↔)", value=True
                                         )
-                                        show_market_cap=gr.Checkbox(
+                                        show_market_cap = gr.Checkbox(
                                             label="Market Cap Similar (↔)", value=True
                                         )
-                                        show_correlation=gr.Checkbox(
+                                        show_correlation = gr.Checkbox(
                                             label="Correlation (↔)", value=True
                                         )
                                     with gr.Column(scale=1):
-                                        show_corporate_bond=gr.Checkbox(
+                                        show_corporate_bond = gr.Checkbox(
                                             label="Corporate Bond → Equity (→)", value=True
                                         )
-                                        show_commodity_currency=gr.Checkbox(
+                                        show_commodity_currency = gr.Checkbox(
                                             label="Commodity ↔ Currency", value=True
                                         )
-                                        show_income_comparison=gr.Checkbox(
+                                        show_income_comparison = gr.Checkbox(
                                             label="Income Comparison (↔)", value=True
                                         )
                                     with gr.Column(scale=1):
-                                        show_regulatory=gr.Checkbox(
+                                        show_regulatory = gr.Checkbox(
                                             label="Regulatory Impact (→)", value=True
                                         )
-                                        show_all_relationships=gr.Checkbox(
+                                        show_all_relationships = gr.Checkbox(
                                             label="Show All Relationships", value=True
                                         )
-                                        toggle_arrows=gr.Checkbox(
+                                        toggle_arrows = gr.Checkbox(
                                             label="Show Direction Arrows", value=True
                                         )
 
                                 with gr.Row():
-                                    visualization_3d=gr.Plot()
+                                    visualization_3d = gr.Plot()
                                 with gr.Row():
                                     with gr.Column(scale=1):
-                                        refresh_btn=gr.Button(
+                                        refresh_btn = gr.Button(
                                             AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
                                         )
                                     with gr.Column(scale=1):
-                                        reset_view_btn=gr.Button(
+                                        reset_view_btn = gr.Button(
                                             "Reset View & Show All", variant="secondary"
                                         )
                                     with gr.Column(scale=2):
