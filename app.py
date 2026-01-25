@@ -743,7 +743,7 @@ class FinancialAssetApp:
                                             interactive=False,
                                         )
 
-                        graph_state=gr.State(value=self.graph)
+                            graph_state=gr.State(value=self.graph)
 
                         # Event handlers
                         all_refresh_outputs=[
