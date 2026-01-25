@@ -78,12 +78,8 @@ class AssetRelationshipORM(Base):
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    source_asset_id: Mapped[str] = mapped_column(
-        ForeignKey("assets.id", ondelete="CASCADE"), nullable=False
-    )
-    target_asset_id: Mapped[str] = mapped_column(
-        ForeignKey("assets.id", ondelete="CASCADE"), nullable=False
-    )
+    source_asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    target_asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
     relationship_type: Mapped[str] = mapped_column(String, nullable=False)
     strength: Mapped[float] = mapped_column(Float, nullable=False)
     bidirectional: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
@@ -115,9 +111,7 @@ class RegulatoryEventORM(Base):
     description: Mapped[str] = mapped_column(String, nullable=False)
     impact_score: Mapped[float] = mapped_column(Float, nullable=False)
 
-    asset: Mapped[AssetORM] = relationship(
-        "AssetORM", back_populates="regulatory_events"
-    )
+    asset: Mapped[AssetORM] = relationship("AssetORM", back_populates="regulatory_events")
     related_assets: Mapped[List["RegulatoryEventAssetORM"]] = relationship(
         "RegulatoryEventAssetORM",
         back_populates="event",
@@ -141,7 +135,5 @@ class RegulatoryEventAssetORM(Base):
         nullable=False,
     )
 
-    event: Mapped[RegulatoryEventORM] = relationship(
-        "RegulatoryEventORM", back_populates="related_assets"
-    )
+    event: Mapped[RegulatoryEventORM] = relationship("RegulatoryEventORM", back_populates="related_assets")
     asset: Mapped[AssetORM] = relationship("AssetORM")
