@@ -84,9 +84,15 @@ class FinancialAssetApp:
                 lookback_days=lookback_days,
             )
 
-            dashboard_fig = self.formulaic_visualizer.create_formula_dashboard(analysis_results)
-            correlation_network_fig = self.formulaic_visualizer.create_correlation_network(analysis_results)
-            metric_comparison_fig = self.formulaic_visualizer.create_metric_comparison(analysis_results)
+            dashboard_fig = self.formulaic_visualizer.create_formula_dashboard(
+                analysis_results
+            )
+            correlation_network_fig = (
+                self.formulaic_visualizer.create_correlation_network(analysis_results)
+            )
+            metric_comparison_fig = self.formulaic_visualizer.create_metric_comparison(
+                analysis_results
+            )
 
             summary_text = analysis_results.summary
 
