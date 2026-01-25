@@ -689,7 +689,7 @@ class FormulaicVisualizer:
                 G.add_edge(a1, a2, weight=weight)
 
         if G.number_of_nodes() == 0:
-            return FormulaicVisualizer._create_empty_correlation_figure()
+            return FormulaicVisualizer._create_empty_correlation_network_figure()
 
         # Layout
         positions = nx.spring_layout(G, seed=42)
