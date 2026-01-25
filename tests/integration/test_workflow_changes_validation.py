@@ -58,21 +58,15 @@ class TestPRAgentWorkflowChanges:
         steps = pr_agent_job["steps"]
 
         # Find Python dependency installation step
-        install_steps = [
-            s for s in steps if "Install Python dependencies" in s.get("name", "")
-        ]
+        install_steps = [s for s in steps if "Install Python dependencies" in s.get("name", "")]
         assert len(install_steps) == 1, "Should have exactly one Python install step"
 
         install_step = install_steps[0]
         run_script = install_step["run"]
 
         # Verify no duplicate pyyaml installations
-        assert run_script.count("pyyaml") == 0, (
-            "Should not explicitly install pyyaml in workflow"
-        )
-        assert run_script.count("PyYAML") == 0, (
-            "Should not explicitly install PyYAML in workflow"
-        )
+        assert run_script.count("pyyaml") == 0, "Should not explicitly install pyyaml in workflow"
+        assert run_script.count("PyYAML") == 0, "Should not explicitly install PyYAML in workflow"
 
     @staticmethod
     def test_pr_agent_no_context_chunking_references(pr_agent_workflow):
@@ -171,9 +165,7 @@ class TestLabelWorkflowChanges:
 
         # Should not have conditional config checking
         step_names = [s.get("name", "") for s in steps]
-        assert not any(
-            "check" in name.lower() and "config" in name.lower() for name in step_names
-        )
+        assert not any("check" in name.lower() and "config" in name.lower() for name in step_names)
 
     @staticmethod
     def test_label_workflow_uses_actions_labeler(label_workflow):
@@ -186,9 +178,7 @@ class TestLabelWorkflowChanges:
         job = label_workflow["jobs"]["label"]
         steps = job["steps"]
 
-        labeler_step = next(
-            (s for s in steps if "actions/labeler" in s.get("uses", "")), None
-        )
+        labeler_step = next((s for s in steps if "actions/labeler" in s.get("uses", "")), None)
         assert labeler_step is not None
         assert "with" in labeler_step
         assert "repo-token" in labeler_step["with"]
@@ -223,10 +213,7 @@ class TestAPISecWorkflowChanges:
 
         # Should not have credential checking steps
         step_names = [s.get("name", "") for s in steps]
-        assert not any(
-            "check" in name.lower() and "credential" in name.lower()
-            for name in step_names
-        )
+        assert not any("check" in name.lower() and "credential" in name.lower() for name in step_names)
 
     @staticmethod
     def test_apisec_no_conditional_if(apisec_workflow):
@@ -268,9 +255,9 @@ class TestDeletedFilesImpact:
         for workflow_file in workflows_dir.glob("*.yml"):
             with open(workflow_file, "r") as f:
                 content = f.read()
-                assert "context_chunker" not in content.lower(), (
-                    f"{workflow_file.name} should not reference deleted context_chunker script"
-                )
+                assert (
+                    "context_chunker" not in content.lower()
+                ), f"{workflow_file.name} should not reference deleted context_chunker script"
 
 
 class TestWorkflowSecurityBestPractices:
@@ -295,9 +282,7 @@ class TestWorkflowSecurityBestPractices:
                     if "uses" in step:
                         action = step["uses"]
                         # Should have version specifier
-                        assert "@" in action, (
-                            f"Action {action} in {workflow_file.name} should specify version"
-                        )
+                        assert "@" in action, f"Action {action} in {workflow_file.name} should specify version"
                         # Should not use 'latest' or 'master'
                         assert "@latest" not in action.lower()
                         assert "@master" not in action.lower()
@@ -321,9 +306,9 @@ class TestWorkflowSecurityBestPractices:
             if "permissions" in workflow:
                 perms = workflow["permissions"]
                 # Should not have blanket 'write-all' permission
-                assert perms.get("contents") != "write" or len(perms) > 1, (
-                    f"{workflow_file.name} should limit permissions"
-                )
+                assert (
+                    perms.get("contents") != "write" or len(perms) > 1
+                ), f"{workflow_file.name} should limit permissions"
 
 
 class TestWorkflowYAMLValidity:
@@ -376,9 +361,7 @@ class TestWorkflowYAMLValidity:
                 workflow = yaml.safe_load(f)
 
             for job_name, job in workflow.get("jobs", {}).items():
-                assert "runs-on" in job, (
-                    f"Job '{job_name}' in {workflow_file.name} missing 'runs-on'"
-                )
+                assert "runs-on" in job, f"Job '{job_name}' in {workflow_file.name} missing 'runs-on'"
 
 
 class TestWorkflowIntegration:
@@ -415,6 +398,4 @@ class TestWorkflowIntegration:
                     # Skip variables and wildcards
                     if "$" not in path and "*" not in path:
                         full_path = repo_root / path
-                        assert full_path.exists(), (
-                            f"Path {path} referenced in {workflow_file.name} doesn't exist"
-                        )
+                        assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"

@@ -231,9 +231,7 @@ class TestDataQualityScore:
         assert re.search(pattern, report)
 
     @staticmethod
-    def test_quality_score_calculation_with_events(
-        populated_graph, sample_regulatory_event
-    ):
+    def test_quality_score_calculation_with_events(populated_graph, sample_regulatory_event):
         """
         Verify that adding a regulatory event preserves the Data Quality Score in the generated schema report.
 
