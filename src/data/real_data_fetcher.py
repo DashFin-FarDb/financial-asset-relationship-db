@@ -462,7 +462,7 @@ def _enum_to_value(value: Any) -> Any:
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
-    Serialize a dataclass instance into a JSON - friendly dictionary
+    Serialize a dataclass instance into a JSON-friendly dictionary
     with enum values converted.
 
     Parameters:
