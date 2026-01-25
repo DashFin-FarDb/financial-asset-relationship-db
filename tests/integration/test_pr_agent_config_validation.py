@@ -366,14 +366,32 @@ class TestPRAgentConfigSecurity:
 
             Parameters:
                 s (str): Input string to check.
-        Returns:
-            tuple: ("inline_creds", s) if inline credentials found, otherwise None.
-        """
-        if inline_creds_re.search(s):
-            return ("inline_creds", s)
-        return None
 
-    detectors = [detect_long_string, detect_prefix, detect_inline_creds]
+            Returns:
+                tuple: ("inline_creds", s) if inline credentials found, otherwise None.
+            """
+            if inline_creds_re.search(s):
+                return ("inline_creds", s)
+            return None
+
+        detectors = [detect_long_string, detect_prefix, detect_inline_creds]
+
+        for value in pr_agent_config.values():
+            if not isinstance(value, str):
+                continue
+            stripped = value.strip()
+            for detector in detectors:
+                result = detector(stripped)
+                if result is not None:
+                    kind, val = result
+                    suspected.append((kind, val))
+                    break
+
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config (detectors):\n{details}"
+            )
 
     def scan(obj):
         """Recursively scan nested structures for potential secrets.

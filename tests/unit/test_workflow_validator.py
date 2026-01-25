@@ -638,7 +638,7 @@ name: 12345
 on: 67890
 jobs:
   test:
-    runs - on: 11111
+    runs-on: 11111
     steps:
       - run: 22222
 """
@@ -666,7 +666,7 @@ name: Test
 on: push
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
       - run: echo test
 """
@@ -713,8 +713,8 @@ jobs:
                 """
 name: Test
 on: push
-defaults: & defaults
-  runs - on: ubuntu - latest
+defaults: &defaults
+  runs-on: ubuntu-latest
 jobs:
   test1:
     <<: *defaults
