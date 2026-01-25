@@ -765,16 +765,16 @@ class FormulaicVisualizer:
             ),
         )
         return fig
-                showscale=True,
-                colorscale="YlGnBu",
-                size=10,
-                colorbar=dict(
+                showscale = True,
+                colorscale = "YlGnBu",
+                size = 10,
+                colorbar = dict(
                     thickness=15,
                     title="Node Connections",
                     xanchor="left",
                     titleside="right",
                 ),
-                line_width=2,
+                line_width = 2,
             ),
             hoverinfo="text",
         )
