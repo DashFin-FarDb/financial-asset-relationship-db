@@ -239,7 +239,9 @@ class FinancialAssetApp:
             schema_rpt: str = generate_schema_report(graph)
             asset_choices: List[str] = list(graph.assets.keys())
 
-            LOGGER.info("Successfully refreshed outputs for %s assets", len(asset_choices))
+            LOGGER.info(
+                "Successfully refreshed outputs for %s assets", len(asset_choices)
+            )
 
             return (
                 viz_3d,
@@ -319,9 +321,7 @@ class FinancialAssetApp:
 
     def generate_formulaic_analysis(
         self, graph_state: Optional[AssetRelationshipGraph]
-    ) -> Tuple[
-        go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox
-    ]:
+    ) -> Tuple[go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox]:
         """Generate comprehensive formulaic analysis of the asset graph."""
         try:
             LOGGER.info("Generating formulaic analysis")
@@ -338,12 +338,14 @@ class FinancialAssetApp:
                 analysis_results
             )
 
-            correlation_network_fig: go.Figure = formulaic_visualizer.create_correlation_network(
-                analysis_results.get("empirical_relationships", {})
+            correlation_network_fig: go.Figure = (
+                formulaic_visualizer.create_correlation_network(
+                    analysis_results.get("empirical_relationships", {})
+                )
             )
 
-            metric_comparison_fig: go.Figure = formulaic_visualizer.create_metric_comparison_chart(
-                analysis_results
+            metric_comparison_fig: go.Figure = (
+                formulaic_visualizer.create_metric_comparison_chart(analysis_results)
             )
 
             formulas: List = analysis_results.get("formulas", [])
@@ -510,7 +512,9 @@ class FinancialAssetApp:
                                 "Reset View & Show All", variant="secondary"
                             )
                         with gr.Column(scale=2):
-                            gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
+                            gr.Markdown(
+                                "**Legend:** ↔ = Bidirectional, → = Unidirectional"
+                            )
 
                 # Metrics & Analytics Tab
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
@@ -559,7 +563,9 @@ class FinancialAssetApp:
                             gr.Markdown("")
 
                     with gr.Row():
-                        asset_info: gr.JSON = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
+                        asset_info: gr.JSON = gr.JSON(
+                            label=AppConstants.ASSET_DETAILS_LABEL
+                        )
                     with gr.Row():
                         asset_relationships: gr.JSON = gr.JSON(
                             label=AppConstants.RELATED_ASSETS_LABEL
@@ -649,7 +655,11 @@ class FinancialAssetApp:
             ]
 
             for btn in refresh_buttons:
-                btn.click(self.refresh_all_outputs, inputs=[graph_state], outputs=all_refresh_outputs)
+                btn.click(
+                    self.refresh_all_outputs,
+                    inputs=[graph_state],
+                    outputs=all_refresh_outputs,
+                )
 
             # Visualization checkbox inputs
             visualization_inputs = [
@@ -680,9 +690,17 @@ class FinancialAssetApp:
                 show_all_relationships,
                 toggle_arrows,
             ]:
-                checkbox.change(self.refresh_visualization, inputs=visualization_inputs, outputs=visualization_outputs)
+                checkbox.change(
+                    self.refresh_visualization,
+                    inputs=visualization_inputs,
+                    outputs=visualization_outputs,
+                )
 
-            layout_type.change(self.refresh_visualization, inputs=visualization_inputs, outputs=visualization_outputs)
+            layout_type.change(
+                self.refresh_visualization,
+                inputs=visualization_inputs,
+                outputs=visualization_outputs,
+            )
 
             # Reset view button
             reset_view_btn.click(
