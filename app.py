@@ -584,11 +584,6 @@ analyzing and visualizing asset networks.
                                             value="spring",
                                             visible=False,
                                         )
-                                            label="2D Layout Type",
-                                            choices=["spring", "circular", "grid"],
-                                            value="spring",
-                                            visible=False,
-                                        )
 
                                 # Relationship visibility controls
                                 with gr.Row():
