@@ -767,10 +767,41 @@ class FinancialAssetApp:
             )
 
             # Update layout_type visibility based on view_mode
+            # View mode change handler (refresh visualization + toggle layout_type visibility)
+            def _on_view_mode_change(
+                graph_state: AssetRelationshipGraph,
+                view_mode: str,
+                layout_type_value: str,
+                show_same_sector_value: bool,
+                show_market_cap_value: bool,
+                show_correlation_value: bool,
+                show_corporate_bond_value: bool,
+                show_commodity_currency_value: bool,
+                show_income_comparison_value: bool,
+                show_regulatory_value: bool,
+                show_all_relationships_value: bool,
+                toggle_arrows_value: bool,
+            ) -> Tuple[go.Figure, Any, Any]:
+                fig, err = self.refresh_visualization(
+                    graph_state,
+                    view_mode,
+                    layout_type_value,
+                    show_same_sector_value,
+                    show_market_cap_value,
+                    show_correlation_value,
+                    show_corporate_bond_value,
+                    show_commodity_currency_value,
+                    show_income_comparison_value,
+                    show_regulatory_value,
+                    show_all_relationships_value,
+                    toggle_arrows_value,
+                )
+                return fig, err, gr.update(visible=view_mode == "2D")
+
             view_mode.change(
-                lambda mode: gr.update(visible=mode == "2D"),
-                inputs=[view_mode],
-                outputs=[layout_type],
+                _on_view_mode_change,
+                inputs=visualization_inputs,
+                outputs=[visualization_3d, error_message, layout_type],
             )
 
             # Reset view button
