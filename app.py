@@ -890,7 +890,7 @@ class FinancialAssetApp:
                             inputs=[graph_state],
                             outputs=all_refresh_outputs,
                         )
-                    return demo
+                        return demo
 
 
 if __name__ == "__main__":
