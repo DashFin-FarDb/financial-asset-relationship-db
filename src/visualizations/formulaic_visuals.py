@@ -732,7 +732,6 @@ class FormulaicVisualizer:
             ),
         )
         return fig
-        )
             color = "lightgray"
             width = 2
 
