@@ -395,41 +395,40 @@ class FinancialAssetApp:
                 graph_viz: go.Figure = visualize_2d_graph(
                     graph,
                     show_same_sector=show_same_sector,
-                 show_market_cap=show_market_cap,
-                 show_correlation=show_correlation,
-                 show_corporate_bond=show_corporate_bond,
-                 show_commodity_currency=show_commodity_currency,
-                 show_income_comparison=show_income_comparison,
-                 show_regulatory=show_regulatory,
-                 show_all_relationships=show_all_relationships,
-                 layout_type=layout_type,
-             )
-         else:
-             graph_viz = visualize_3d_graph_with_filters(
-                 graph,
-                 show_same_sector=show_same_sector,
-                 show_market_cap=show_market_cap,
-                 show_correlation=show_correlation,
-                 show_corporate_bond=show_corporate_bond,
-                 show_commodity_currency=show_commodity_currency,
-                 show_income_comparison=show_income_comparison,
-                 show_regulatory=show_regulatory,
-                 show_all_relationships=show_all_relationships,
-                 toggle_arrows=toggle_arrows,
-        )
+                    show_market_cap=show_market_cap,
+                    show_correlation=show_correlation,
+                    show_corporate_bond=show_corporate_bond,
+                    show_commodity_currency=show_commodity_currency,
+                    show_income_comparison=show_income_comparison,
+                    show_regulatory=show_regulatory,
+                    show_all_relationships=show_all_relationships,
+                    layout_type=layout_type,
+                )
+            else:
+                graph_viz = visualize_3d_graph_with_filters(
+                    graph,
+                    show_same_sector=show_same_sector,
+                    show_market_cap=show_market_cap,
+                    show_correlation=show_correlation,
+                    show_corporate_bond=show_corporate_bond,
+                    show_commodity_currency=show_commodity_currency,
+                    show_income_comparison=show_income_comparison,
+                    show_regulatory=show_regulatory,
+                    show_all_relationships=show_all_relationships,
+                    toggle_arrows=toggle_arrows,
+                )
 
-        return graph_viz, gr.update(visible=False)
+            return graph_viz, gr.update(visible=False)
 
         except Exception as e:
-             LOGGER.error("Error refreshing visualization", exc_info=True)
-             return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
+            LOGGER.error("Error refreshing visualization", exc_info=True)
+            return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
 
     class FinancialAssetApp:
     ...
     def generate_formulaic_analysis(
         self, graph_state: Optional[AssetRelationshipGraph]
     ) -> Tuple[go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox]:
-        """
         Produce a formulaic analysis dashboard and companion visualizations
         derived from the asset graph.
         Parameters:
