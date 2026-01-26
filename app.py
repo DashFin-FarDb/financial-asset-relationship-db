@@ -425,7 +425,29 @@ class FinancialAssetApp:
     def generate_formulaic_analysis(
         self, graph_state: Optional[AssetRelationshipGraph]
     ) -> Tuple[go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox]:
+        """
         Produce a formulaic analysis dashboard and companion visualizations
+        derived from the asset graph.
+        Parameters:
+            graph_state(Optional[AssetRelationshipGraph]): Asset graph to analyze; if
+                None, the app's initialized graph is used.
+        Returns:
+            Tuple containing:
+            - dashboard_fig(go.Figure): Main formula dashboard summarizing identified
+                formulas and metrics.
+            - correlation_network_fig(go.Figure): Network figure showing empirical
+                relationships and correlations between assets / metrics.
+            - metric_comparison_fig(go.Figure): Figure comparing metrics used by the
+                discovered formulas.
+            - formula_selector_update(gr.Dropdown): Gradio update for the formula
+                selector populated with discovered formula names (selected value set to
+                the first formula when available, otherwise cleared).
+            - summary_text(str): Human-readable summary of the formulaic analysis
+                and key insights.
+            - error_textbox_update(gr.Textbox): Gradio update for the error textbox
+                (hidden on success; when an error occurs contains the error message
+                and is visible).
+        """
         derived from the asset graph.
         Parameters:
             graph_state(Optional[AssetRelationshipGraph]): Asset graph to analyze; if
