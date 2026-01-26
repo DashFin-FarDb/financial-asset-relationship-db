@@ -501,7 +501,7 @@ class FinancialAssetApp(AssetUIController):
                     with gr.Row():
                         asset_primary_json = gr.JSON(label=AppConstants.LBL_ASSET_JSON)
                         asset_network_json = gr.JSON(label=AppConstants.LBL_REL_JSON)
-                    refresh_explorer_btn = gr.Button("Refresh Explorer Data")
+                        refresh_explorer_btn = gr.Button("Refresh Explorer Data")
                            # --- TAB 5: FORMULAIC ANALYSIS ---
                        with gr.Tab(AppConstants.TAB_FORMULAIC_ANALYSIS):
                             with gr.Row():
@@ -558,17 +558,17 @@ class FinancialAssetApp(AssetUIController):
                     error_output,
                 ]
 
-                       # Trigger global refreshes from multiple buttons
-                   for refresh_trigger in [
-                        apply_filters_btn,
-                        refresh_metrics_btn,
-                        generate_schema_btn,
-                        refresh_explorer_btn,
-                    ]:
-                            refresh_trigger.click(
-                                self.refresh_global_state,
-                                inputs=[graph_persistence],
-                                outputs=refresh_outputs,
+                # Trigger global refreshes from multiple buttons
+                for refresh_trigger in [
+                    apply_filters_btn,
+                    refresh_metrics_btn,
+                    generate_schema_btn,
+                    refresh_explorer_btn,
+                ]:
+                    refresh_trigger.click(
+                        self.refresh_global_state,
+                        inputs=[graph_persistence],
+                        outputs=refresh_outputs,
                             )
 
             # Visualization Filtering Logic
