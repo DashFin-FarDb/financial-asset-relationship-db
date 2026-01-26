@@ -553,6 +553,7 @@ class FinancialAssetApp:
             f"📊 **Total Formulas Identified:** {len(formulas)}",
             f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}",
             f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
+        ]
     def create_interface(self) -> gr.Blocks:
         """
         Builds the Gradio Blocks user interface for the
@@ -573,6 +574,7 @@ class FinancialAssetApp:
         - Formulaic Analysis with a dashboard,
           formula selector, detail view,
           correlation network, metric comparison chart, and summary.
+        """
 
         Event handlers and state:
         - Initializes a gr.State holding the application's graph.
