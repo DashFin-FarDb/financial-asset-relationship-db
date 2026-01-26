@@ -203,7 +203,7 @@ class FinancialAssetApp:
         metrics = graph.calculate_metrics()
         text: str = AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
-        text: str = AppConstants.NETWORK_STATISTICS_TEXT.format(
+        text: str=AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
             total_relationships=metrics["total_relationships"],
             average_relationship_strength=metrics["average_relationship_strength"],
@@ -242,8 +242,8 @@ class FinancialAssetApp:
                 figures (metric visualizations) and a string with the formatted network
                 metrics report.
         """
-        f1, f2, f3=visualize_metrics(graph)
-        text: str=self._update_metrics_text(graph)
+        f1, f2, f3 = visualize_metrics(graph)
+        text: str = self._update_metrics_text(graph)
         return f1, f2, f3, text
 
         """
@@ -278,18 +278,18 @@ class FinancialAssetApp:
         """
         if not selected_asset or selected_asset not in graph.assets:
             return {}, {"outgoing": {}, "incoming": {}}
-        asset: Asset=graph.assets[selected_asset]
-        asset_dict: Dict[str, Union[str, float, int]]=asdict(asset)
-        asset_dict["asset_class"]=asset.asset_class.value
+        asset: Asset = graph.assets[selected_asset]
+        asset_dict: Dict[str, Union[str, float, int]] = asdict(asset)
+        asset_dict["asset_class"] = asset.asset_class.value
 
-        outgoing: Dict[str, Dict[str, Union[str, float]]]={
+        outgoing: Dict[str, Dict[str, Union[str, float]]] = {
             target_id: {"relationship_type": rel_type, "strength": strength}
             for target_id, rel_type, strength in graph.relationships.get(
                 selected_asset, []
             )
         }
 
-        incoming: Dict[str, Dict[str, Union[str, float]]]={
+        incoming: Dict[str, Dict[str, Union[str, float]]] = {
             src_id: {"relationship_type": rel_type, "strength": strength}
             for src_id, rel_type, strength in graph.incoming_relationships.get(
                 selected_asset, []
@@ -327,13 +327,13 @@ class FinancialAssetApp:
               visible with an error message when refresh fails).
         """
         try:
-            graph=self.ensure_graph()
+            graph = self.ensure_graph()
             LOGGER.info("Refreshing all visualization outputs")
 
-            viz_3d: go.Figure=visualize_3d_graph(graph)
-            f1, f2, f3, metrics_txt=self.update_all_metrics_outputs(graph)
-            schema_rpt: str=generate_schema_report(graph)
-            asset_choices: List[str]=list(graph.assets.keys())
+            viz_3d: go.Figure = visualize_3d_graph(graph)
+            f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
+            schema_rpt: str = generate_schema_report(graph)
+            asset_choices: List[str] = list(graph.assets.keys())
 
             LOGGER.info(
                 "Successfully refreshed outputs for %s assets", len(asset_choices)
@@ -392,11 +392,11 @@ class FinancialAssetApp:
         """
         try:
             LOGGER.info("Refreshing network visualization")
-            default_graph=self.ensure_graph()
-            graph=graph_state or default_graph
+            default_graph = self.ensure_graph()
+            graph = graph_state or default_graph
 
             if view_mode == "2D":
-                graph_viz: go.Figure=visualize_2d_graph(
+                graph_viz: go.Figure = visualize_2d_graph(
                     graph,
                     show_same_sector=show_same_sector,
                     show_market_cap=show_market_cap,
@@ -409,7 +409,7 @@ class FinancialAssetApp:
                     layout_type=layout_type,
                 )
             else:
-                graph_viz=visualize_3d_graph_with_filters(
+                graph_viz = visualize_3d_graph_with_filters(
                     graph,
                     show_same_sector=show_same_sector,
                     show_market_cap=show_market_cap,
