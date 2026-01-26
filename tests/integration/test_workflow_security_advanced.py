@@ -18,9 +18,7 @@ class TestWorkflowInjectionPrevention:
 
     @staticmethod
     def test_no_unquoted_github_context_in_run_commands(all_workflows):
-        """
-        Ensure GitHub context variables in 'run' steps are enclosed in quotes.
-        """
+        """Ensure GitHub context variables in 'run' steps are enclosed in quotes."""
         dangerous_patterns = [
             r"\${{\s*github\.event\.[\w.]+\s*}}",  # ${{ github.event.* }}
             r"\${{\s*github\.head_ref\s*}}",  # ${{ github.head_ref }}
