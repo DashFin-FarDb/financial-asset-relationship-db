@@ -422,7 +422,7 @@ return graph_viz, gr.update(visible=False)
 
         except Exception as e:
             LOGGER.error("Error refreshing visualization", exc_info=True)
-            return go.Figure()
+return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
 
     def generate_formulaic_analysis(
         self, graph_state: Optional[AssetRelationshipGraph]
