@@ -266,7 +266,10 @@ asset_list = sorted(active_graph.assets.keys())
                 m_r,
                 m_e,
                 m_t,
-                schema_report,
+            # 3. Schema Report
+            schema_report = generate_schema_report(active_graph)
+
+            asset_list = sorted(active_graph.assets.keys())
                 gr.update(choices=asset_list, value=None),
                 gr.update(value="", visible=False),
             )
