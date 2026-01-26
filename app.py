@@ -595,23 +595,7 @@ class FinancialAssetApp(AssetUIController):
                 outputs=[layout_2d],
             )
 
-            # Explicitly binding filter changes to allow granular control
-            f_sector.change(
-                self.filter_visualization,
-                inputs=viz_inputs,
-                outputs=[main_graph_plot, error_output],
-            )
-            f_mcap.change(
-                self.filter_visualization,
-                inputs=viz_inputs,
-                outputs=[main_graph_plot, error_output],
-            )
-            f_corr.change(
-                self.filter_visualization,
-                inputs=viz_inputs,
-                outputs=[main_graph_plot, error_output],
-            )
-            # Note: Filter checkboxes no longer trigger an immediate graph
+            # Note: Filter checkboxes do not trigger an immediate graph
             # re-render on every change. Filters are applied via the
             # dedicated "Apply Filters" button and the reset view action.
 
