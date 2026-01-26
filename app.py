@@ -20,13 +20,13 @@ import plotly.graph_objects as go
 
 # --- Managed Imports ---
 # Consolidated imports to resolve redundancies found in the original source
-from src.analysis.formulaic_analysis import FormulaicAnalyzer
+from src.analysis.formulaic_analysis import FormulaicdAnalyzer
 from src.data.real_data_fetcher import create_real_database
 from src.logging import LOGGER
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.schema_report import generate_schema_report
 from src.models.financial_models import Asset
-from src.visualizations.formulaic_visuals import FormulaicVisualizer
+from src.visualizations.formulaic_visuals import FormulaicdVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
 from src.visualizations.graph_visuals import (
     visualize_3d_graph,
@@ -359,8 +359,8 @@ class FinancialAssetApp(AssetUIController):
             LOGGER.info(AppConstants.MSG_ANALYSIS_START)
             active_graph = graph_state or self.get_valid_graph()
 
-            # --- FIXED TYPO: FormulaicdAnalyzer -> FormulaicAnalyzer ---
-            analyzer = FormulaicAnalyzer()
+            # --- FIXED TYPO: FormulaicdAnalyzer -> FormulaicdAnalyzer ---
+            analyzer = FormulaicdAnalyzer()
             visualizer = FormulaicVisualizer()
 
             results = analyzer.analyze_graph(active_graph)
