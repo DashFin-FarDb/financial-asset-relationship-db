@@ -554,6 +554,7 @@ class FinancialAssetApp:
             f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}",
             f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
         ]
+
     def create_interface(self) -> gr.Blocks:
         """
         Builds the Gradio Blocks user interface for the
@@ -579,13 +580,13 @@ class FinancialAssetApp:
         Event handlers and state:
         - Initializes a gr.State holding the application's graph.
         - Wires refresh buttons, visualization controls, layout selection, and
-          formula-related controls to the corresponding FinancialAssetApp methods
+          formula - related controls to the corresponding FinancialAssetApp methods
           so UI components update based on the current graph state.
         - Provides an error message textbox that is updated by
           event handlers.
 
         Returns:
-            demo_ui (gr.Blocks): The constructed Gradio Blocks instance
+            demo_ui(gr.Blocks): The constructed Gradio Blocks instance
                 representing the complete application UI.
         """
         demo_ui: gr.Blocks = gr.Blocks(title=AppConstants.TITLE)
@@ -738,7 +739,7 @@ class FinancialAssetApp:
                 with gr.Tab("📊 Formulaic Analysis"):
                     gr.Markdown(
                         """
-                        ## Mathematical Relationships & Formulas
+                        # Mathematical Relationships & Formulas
 
                         This section extracts and visualizes mathematical
                         formulas and relationships between financial variables.
