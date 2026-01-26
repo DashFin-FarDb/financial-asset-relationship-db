@@ -345,7 +345,9 @@ class AssetUIController:
             LOGGER.info("Refreshing all visualization outputs")
 
             viz_3d = visualize_3d_graph(graph)
-            fig_1, fig_2, fig_3, metrics_text = self.update_all_metrics_outputs(graph)
+            fig_1, fig_2, fig_3, metrics_text = (
+                self.update_all_metrics_outputs(graph)
+            )
             schema_report = generate_schema_report(graph)
             asset_choices = list(graph.assets.keys())
 
@@ -367,11 +369,12 @@ class AssetUIController:
 
         except Exception:
             LOGGER.exception(AppConstants.REFRESH_OUTPUTS_ERROR)
+            empty_fig = go.Figure()
             return (
-                go.Figure(),
-                go.Figure(),
-                go.Figure(),
-                go.Figure(),
+                empty_fig,
+                empty_fig,
+                empty_fig,
+                empty_fig,
                 "",
                 "",
                 gr.update(choices=[], value=None),
