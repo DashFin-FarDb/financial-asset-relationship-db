@@ -555,6 +555,52 @@ class FinancialAssetApp:
             f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
         ]
 
+        # Add formula categories, if available
+        formula_categories: Optional[Dict] = summary.get("formula_categories")
+        if formula_categories:
+            summary_lines.extend(
+                [
+                    "",
+                    "## 🧮 Formula Categories",
+                ]
+            )
+            for category, count in formula_categories.items():
+                summary_lines.append(f"- **{category}**: {count}")
+
+        # Add key insights, if available
+        key_insights: Optional[List[str]] = summary.get("key_insights")
+        if key_insights:
+            summary_lines.extend(
+                [
+                    "",
+                    "## 💡 Key Insights",
+                ]
+            )
+            for idx, insight in enumerate(key_insights, start=1):
+                summary_lines.append(f"{idx}. {insight}")
+
+        # Add top empirical correlations, if available
+        strongest_correlations: List[Dict] = empirical.get(
+            "strongest_correlations", []
+        )
+        if strongest_correlations:
+            summary_lines.extend(
+                [
+                    "",
+                    "## 🔗 Top Empirical Asset Correlations",
+                ]
+            )
+            for item in strongest_correlations:
+                pair = item.get("pair")
+                correlation = item.get("correlation")
+                strength = item.get("strength")
+                if pair is None or correlation is None:
+                    continue
+                summary_lines.append(
+                    f"- **{pair}**: correlation={correlation:.3f}, strength={strength}"
+                )
+
+        return "\n".join(summary_lines)
     def create_interface(self) -> gr.Blocks:
         """
         Builds the Gradio Blocks user interface for the
