@@ -395,57 +395,55 @@ class FinancialAssetApp:
                 graph_viz: go.Figure = visualize_2d_graph(
                     graph,
                     show_same_sector=show_same_sector,
-                    show_market_cap=show_market_cap,
-                    show_correlation=show_correlation,
-                    show_corporate_bond=show_corporate_bond,
-                    show_commodity_currency=show_commodity_currency,
-                    show_income_comparison=show_income_comparison,
-                    show_regulatory=show_regulatory,
-                    show_all_relationships=show_all_relationships,
-                    layout_type=layout_type,
-                )
-            else:
-                graph_viz = visualize_3d_graph_with_filters(
-                    graph,
-                    show_same_sector=show_same_sector,
-                    show_market_cap=show_market_cap,
-                    show_correlation=show_correlation,
-                    show_corporate_bond=show_corporate_bond,
-                    show_commodity_currency=show_commodity_currency,
-                    show_income_comparison=show_income_comparison,
-                    show_regulatory=show_regulatory,
-                    show_all_relationships=show_all_relationships,
-                    toggle_arrows=toggle_arrows,
-                )
+                 show_market_cap=show_market_cap,
+                 show_correlation=show_correlation,
+                 show_corporate_bond=show_corporate_bond,
+                 show_commodity_currency=show_commodity_currency,
+                 show_income_comparison=show_income_comparison,
+                 show_regulatory=show_regulatory,
+                 show_all_relationships=show_all_relationships,
+                 layout_type=layout_type,
+             )
+         else:
+             graph_viz = visualize_3d_graph_with_filters(
+                 graph,
+                 show_same_sector=show_same_sector,
+                 show_market_cap=show_market_cap,
+                 show_correlation=show_correlation,
+                 show_corporate_bond=show_corporate_bond,
+                 show_commodity_currency=show_commodity_currency,
+                 show_income_comparison=show_income_comparison,
+                 show_regulatory=show_regulatory,
+                 show_all_relationships=show_all_relationships,
+                 toggle_arrows=toggle_arrows,
+             )
 
+         return graph_viz, gr.update(visible=False)
 
+     except Exception as e:
+         LOGGER.error("Error refreshing visualization", exc_info=True)
+         return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
 
-return graph_viz, gr.update(visible=False)
+def generate_formulaic_analysis(
+     self, graph_state: Optional[AssetRelationshipGraph]
+ ) -> Tuple[go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox]:
+     """
+     Produce a formulaic analysis dashboard and companion visualizations
+     derived from the asset graph.
 
-   except Exception as e:
-        LOGGER.error("Error refreshing visualization", exc_info=True)
-return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
+     Parameters:
+         graph_state (Optional[AssetRelationshipGraph]): Asset graph to analyze; if
+             None, the app's initialized graph is used.
 
-   def generate_formulaic_analysis(
-        self, graph_state: Optional[AssetRelationshipGraph]
-    ) -> Tuple[go.Figure, go.Figure, go.Figure, gr.Dropdown, str, gr.Textbox]:
-        """
-        Produce a formulaic analysis dashboard and companion visualizations
-        derived from the asset graph.
-
-        Parameters:
-            graph_state (Optional[AssetRelationshipGraph]): Asset graph to analyze; if
-                None, the app's initialized graph is used.
-
-        Returns:
-            Tuple containing:
-            - dashboard_fig (go.Figure): Main formula dashboard summarizing identified
-                formulas and metrics.
-            - correlation_network_fig (go.Figure): Network figure showing empirical
-                relationships and correlations between assets/metrics.
-            - metric_comparison_fig (go.Figure): Figure comparing metrics used by the
-                discovered formulas.
-            - formula_selector_update (gr.Dropdown): Gradio update for the formula
+     Returns:
+         Tuple containing:
+         - dashboard_fig (go.Figure): Main formula dashboard summarizing identified
+             formulas and metrics.
+         - correlation_network_fig (go.Figure): Network figure showing empirical
+             relationships and correlations between assets/metrics.
+         - metric_comparison_fig (go.Figure): Figure comparing metrics used by the
+             discovered formulas.
+         - formula_selector_update (gr.Dropdown): Gradio update for the formula
                 selector populated with discovered formula names (selected value set to
                 the first formula when available, otherwise cleared).
             - summary_text (str): Human-readable summary of the formulaic analysis
