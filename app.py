@@ -565,11 +565,11 @@ class FinancialAssetApp(AssetUIController):
                         generate_schema_btn,
                         refresh_explorer_btn,
                     ]:
-                refresh_trigger.click(
-                    self.refresh_global_state,
-                    inputs=[graph_persistence],
-                    outputs=refresh_outputs,
-                )
+                            refresh_trigger.click(
+                                self.refresh_global_state,
+                                inputs=[graph_persistence],
+                                outputs=refresh_outputs,
+                            )
 
             # Visualization Filtering Logic
             viz_inputs = [
