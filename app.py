@@ -412,7 +412,7 @@ class FinancialAssetApp(AssetUIController):
             # State management
             graph_persistence = gr.State(value=self.graph)
 
-            with gr.Tabs() as main_tabs:
+            with gr.Tabs():
                 # --- TAB 1: VISUALIZATION ---
                 with gr.Tab(AppConstants.TAB_3D_VISUALIZATION):
                     # RESTORED LEGEND
