@@ -286,7 +286,15 @@ class FinancialAssetApp(AssetUIController):
         graph_state: AssetRelationshipGraph | None,
         mode: str,
         layout: str,
-        *filters: bool,
+        show_sector: bool,
+        show_market_cap: bool,
+        show_correlation: bool,
+        show_corporate_bond: bool,
+        show_commodity_currency: bool,
+        show_income_comparison: bool,
+        show_regulatory: bool,
+        show_all: bool,
+        toggle_arrows: bool,
     ) -> tuple[go.Figure, Any]:
         """Generates a filtered 2D or 3D graph view based on user selection."""
         try:
