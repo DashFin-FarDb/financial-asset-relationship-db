@@ -454,7 +454,7 @@ class FinancialAssetApp:
             )
 
             formulaic_visualizer: FormulaicVisualizer = FormulaicVisualizer()
-            formulaic_analyzer: FormulaicAnalyzer = FormulaicAnalyzer()
+            formulaic_analyzer: FormulaicdAnalyzer = FormulaicdAnalyzer()
             analysis_results: Dict = formulaic_analyzer.analyze_graph(graph)
 
             dashboard_fig: go.Figure = formulaic_visualizer.create_formula_dashboard(
