@@ -153,7 +153,7 @@ class FinancialAssetApp:
         self.graph. If initialization fails, the original exception is
         propagated.
         """
-        try:
+       try:
             LOGGER.info("Initializing with real financial data from Yahoo Finance")
             self.graph = create_real_database()
             LOGGER.info(
@@ -601,6 +601,7 @@ class FinancialAssetApp:
                 )
 
         return "\n".join(summary_lines)
+
     def create_interface(self) -> gr.Blocks:
         """
         Builds the Gradio Blocks user interface for the
