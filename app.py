@@ -285,7 +285,7 @@ class FinancialAssetApp(AssetUIController):
 
     def filter_visualization(
         self,
-        graph_state: AssetGraph | None,
+        graph_state: AssetRelationshipGraph | None,
         mode: str,
         layout: str,
         show_sector: bool,
