@@ -580,9 +580,7 @@ class FinancialAssetApp:
                 summary_lines.append(f"{idx}. {insight}")
 
         # Add top empirical correlations, if available
-        strongest_correlations: List[Dict] = empirical.get(
-            "strongest_correlations", []
-        )
+        strongest_correlations: List[Dict] = empirical.get("strongest_correlations", [])
         if strongest_correlations:
             summary_lines.extend(
                 [
