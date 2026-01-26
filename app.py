@@ -509,9 +509,7 @@ class FinancialAssetApp(AssetUIController):
                     with gr.Row():
                         formula_dashboard = gr.Plot(scale=2)
                         with gr.Column(scale=1):
-                            formula_drilldown = gr.Dropdown(
-                                label="Drill-down Formula"
-                            )
+                            formula_drilldown = gr.Dropdown(label="Drill-down Formula")
                             formula_drill_plot = gr.Plot()
                     with gr.Row():
                         formula_corr_plot = gr.Plot(label="Correlation Network")
