@@ -21,7 +21,7 @@ class Formula:
     r_squared: float = 0.0  # Correlation strength if applicable
 
 
-class FormulaicdAnalyzer:
+class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
 
     def __init__(self):
