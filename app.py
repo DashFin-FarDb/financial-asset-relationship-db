@@ -546,7 +546,7 @@ asset_list = sorted(active_graph.assets.keys())
             ### Features
             - **3D Network Visualization**:
               Interactive force-directed graph.
-            - ** Discovery**:
+            - **Formulaic Discovery**:
               Validates theoretical pricing models against the graph.
             - **Regulatory Tracking**:
               Maps assets to systemic regulatory events.
