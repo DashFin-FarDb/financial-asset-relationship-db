@@ -174,7 +174,7 @@ class FinancialAssetApp:
             RuntimeError: If initialization fails and the graph remains None.
         """
         if self.graph is None:
-            LOGGER.warning("Graph is None, re-creating sample database.")
+            LOGGER.warning("Graph is None, re-initializing with real financial data.")
             self._initialize_graph()
             if self.graph is None:
                 # Critical invariant: graph must not be None after initialization.
