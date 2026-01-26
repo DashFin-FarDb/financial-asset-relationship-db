@@ -245,7 +245,25 @@ class FinancialAssetApp:
             str: Formatted metrics text ready for display.
         """
 
-        f1, f2, f3 = visualize_metrics(graph)
+        def update_all_metrics_outputs(
+            self, graph: AssetRelationshipGraph
+        ) -> Tuple[go.Figure, go.Figure, go.Figure, str]:
+            """
+            Generate metric visualizations and the formatted network metrics text
+            for the given asset graph.
+
+            Parameters:
+                graph (AssetRelationshipGraph): The asset relationship graph used to compute
+                    metrics and visualizations.
+
+            Returns:
+                Tuple[go.Figure, go.Figure, go.Figure, str]: A tuple containing three Plotly
+                    figures (metric visualizations) and a string with the formatted network
+                    metrics report.
+            """
+            f1, f2, f3 = visualize_metrics(graph)
+            text: str = self._update_metrics_text(graph)
+            return f1, f2, f3, text
         text: str = self._update_metrics_text(graph)
         return f1, f2, f3, text
 
