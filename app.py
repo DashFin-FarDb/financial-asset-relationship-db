@@ -36,11 +36,8 @@ from src.visualizations.graph_visuals import (
 from src.visualizations.metric_visuals import visualize_metrics
 
 # Standard Logging Configuration
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-LOGGER = logging.getLogger(__name__)
+
+# Use LOGGER imported from src.logging
 
 
 class AppConstants:
