@@ -73,7 +73,7 @@ class AppConstants:
     BTN_REFRESH_VIZ: str = "Apply Visualization Filters"
     BTN_REFRESH_METRICS: str = "Refresh Network Metrics"
     BTN_GEN_SCHEMA: str = "Generate Schema Report"
-    BTN_RUN_ANALYSIS: str = "Execute  Discovery"
+    BTN_RUN_ANALYSIS: str = "Execute Formulaic Discovery"
     BTN_RESET: str = "Reset Graph View"
 
     # Legend & UI Context (Restored per user request)
