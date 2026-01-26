@@ -256,7 +256,6 @@ class FinancialAssetApp(AssetUIController):
             # 2. Metrics Components
             m_a, m_r, m_e, m_t = self.prepare_metrics_view(active_graph)
 
-
     asset_list = sorted(active_graph.assets.keys())
 
             LOGGER.info("UI Refresh sequence completed.")
