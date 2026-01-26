@@ -508,8 +508,9 @@ class FinancialAssetApp(AssetUIController):
 
                 # --- TAB 5: FORMULAIC ANALYSIS ---
                 with gr.Tab(AppConstants.TAB_FORMULAIC_ANALYSIS):
+                    pass
 
-                    # --- TAB 6: DOCUMENTATION ---
+                # --- TAB 6: DOCUMENTATION ---
                 with gr.Tab(AppConstants.TAB_DOCUMENTATION):
                     gr.Markdown(
                         """
