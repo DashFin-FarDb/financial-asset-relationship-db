@@ -256,9 +256,7 @@ class FinancialAssetApp(AssetUIController):
             # 2. Metrics Components
             m_a, m_r, m_e, m_t = self.prepare_metrics_view(active_graph)
 
-            # 3. Schema & Explorer Data
-            schema_report = generate_schema_report(active_graph)
-            asset_list = sorted(list(active_graph.assets.keys()))
+asset_list = sorted(active_graph.assets.keys())
 
             LOGGER.info("UI Refresh sequence completed.")
             return (
