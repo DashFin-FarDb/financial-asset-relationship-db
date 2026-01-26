@@ -544,20 +544,20 @@ class FinancialAssetApp(AssetUIController):
             """
                                 )
 
-                        # --- EVENT HANDLING LOGIC ---
-                        # (Maintaining explicit definitions for structural volume and clarity)
+                # --- EVENT HANDLING LOGIC ---
+                # (Maintaining explicit definitions for structural volume and clarity)
 
-                        # Collection of components for global refresh
-                        refresh_outputs = [
-                            main_graph_plot,
-                            metric_asset_plot,
-                            metric_rel_plot,
-                            metric_event_plot,
-                            metric_stats_text,
-                            schema_report_text,
-                            asset_selector,
-                            error_output,
-                        ]
+                # Collection of components for global refresh
+                refresh_outputs = [
+                    main_graph_plot,
+                    metric_asset_plot,
+                    metric_rel_plot,
+                    metric_event_plot,
+                    metric_stats_text,
+                    schema_report_text,
+                    asset_selector,
+                    error_output,
+                ]
 
                         # Trigger global refreshes from multiple buttons
                         for refresh_trigger in [
