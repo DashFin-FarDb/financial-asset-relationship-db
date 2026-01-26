@@ -171,7 +171,10 @@ class FinancialAssetApp:
             AssetRelationshipGraph: The initialized asset relationship graph.
 
         Raises:
-            RuntimeError: If initialization fails and the graph remains None.
+            Exception: Any exception raised during graph initialization, propagated
+                from `_initialize_graph` / `create_real_database`.
+            RuntimeError: If initialization completes without error but the graph
+                remains None (invariant violation).
         """
         if self.graph is None:
             LOGGER.warning("Graph is None, re-initializing with real financial data.")
