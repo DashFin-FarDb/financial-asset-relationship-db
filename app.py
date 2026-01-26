@@ -273,12 +273,11 @@ class FinancialAssetApp(AssetUIController):
             )
         except Exception as e:
             LOGGER.exception(AppConstants.MSG_REFRESH_ERROR)
-            blank = go.Figure()
             return (
-                blank,
-                blank,
-                blank,
-                blank,
+                go.Figure(),
+                go.Figure(),
+                go.Figure(),
+                go.Figure(),
                 "",
                 "",
                 gr.update(choices=[]),
