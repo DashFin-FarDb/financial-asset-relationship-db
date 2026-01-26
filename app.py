@@ -519,10 +519,10 @@ class FinancialAssetApp(AssetUIController):
                                 AppConstants.BTN_RUN_ANALYSIS, variant="primary"
                             )
 
-                        # --- TAB 6: DOCUMENTATION ---
-                        with gr.Tab(AppConstants.TAB_DOCUMENTATION):
-                            gr.Markdown(
-                                """
+                # --- TAB 6: DOCUMENTATION ---
+                with gr.Tab(AppConstants.TAB_DOCUMENTATION):
+                    gr.Markdown(
+                """
             ## Application Documentation
 
             ### Overview
