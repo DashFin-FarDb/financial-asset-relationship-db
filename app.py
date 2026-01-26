@@ -163,7 +163,7 @@ class AssetUIController:
         empirical = results.get("empirical_relationships", {})
 
         md_output = [
-            "### Systemic  Analysis",
+            "### Systemic Analysis",
             f"\n- **Total Active Formulas**: {len(formulas)}",
             f"- **Aggregate R-Squared**: {summary.get('avg_r_squared', 0.0):.4f}",
             f"- **Empirical Data Points**: {summary.get('empirical_data_points', 0)}",
