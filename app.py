@@ -410,7 +410,7 @@ class FinancialAssetApp:
     ) -> str:
         """Format the formula analysis summary for display."""
         formulas: List[Any] = analysis_results.get("formulas", [])
-        empirical: Dict[str, Any] = analysis_results.get("empirical_relationships", {})
+        analysis_results.get("empirical_relationships", {})
 
         summary_lines: List[str] = [
             "🔍 **Formulaic Analysis Summary**",
