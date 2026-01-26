@@ -30,9 +30,9 @@ LOGGER = logging.getLogger(__name__)
 class AppConstants:
     """Holds all application constants including labels, markdown, and messages."""
 
-    TITLE: str="Financial Asset Relationship Database Visualization"
+    TITLE: str = "Financial Asset Relationship Database Visualization"
 
-    MARKDOWN_HEADER: str="""
+    MARKDOWN_HEADER: str = """
     # 🏦 Financial Asset Relationship Network
 
     A comprehensive 3D visualization of interconnected financial
@@ -41,28 +41,28 @@ class AppConstants:
     Events**
     """
 
-    TAB_3D_VISUALIZATION: str="3D Network Visualization"
-    TAB_METRICS_ANALYTICS: str="Metrics & Analytics"
-    TAB_SCHEMA_RULES: str="Schema & Rules"
-    TAB_ASSET_EXPLORER: str="Asset Explorer"
-    TAB_DOCUMENTATION: str="Documentation"
+    TAB_3D_VISUALIZATION: str = "3D Network Visualization"
+    TAB_METRICS_ANALYTICS: str = "Metrics & Analytics"
+    TAB_SCHEMA_RULES: str = "Schema & Rules"
+    TAB_ASSET_EXPLORER: str = "Asset Explorer"
+    TAB_DOCUMENTATION: str = "Documentation"
 
-    ERROR_LABEL: str="Error"
-    REFRESH_BUTTON_LABEL: str="Refresh Visualization"
-    GENERATE_SCHEMA_BUTTON_LABEL: str="Generate Schema Report"
-    SCHEMA_REPORT_LABEL: str="Generate Schema Report"
-    SELECT_ASSET_LABEL: str="Select Asset"
-    ASSET_DETAILS_LABEL: str="Asset Details"
-    RELATED_ASSETS_LABEL: str="Related Assets"
-    NETWORK_STATISTICS_LABEL: str="Network Statistics"
+    ERROR_LABEL: str = "Error"
+    REFRESH_BUTTON_LABEL: str = "Refresh Visualization"
+    GENERATE_SCHEMA_BUTTON_LABEL: str = "Generate Schema Report"
+    SCHEMA_REPORT_LABEL: str = "Generate Schema Report"
+    SELECT_ASSET_LABEL: str = "Select Asset"
+    ASSET_DETAILS_LABEL: str = "Asset Details"
+    RELATED_ASSETS_LABEL: str = "Related Assets"
+    NETWORK_STATISTICS_LABEL: str = "Network Statistics"
 
-    INITIAL_GRAPH_ERROR: str="Failed to create sample database"
-    REFRESH_OUTPUTS_ERROR: str="Error refreshing outputs"
-    APP_START_INFO: str="Starting Financial Asset Relationship Database application"
-    APP_LAUNCH_INFO: str="Launching Gradio interface"
-    APP_START_ERROR: str="Failed to start application"
+    INITIAL_GRAPH_ERROR: str = "Failed to create sample database"
+    REFRESH_OUTPUTS_ERROR: str = "Error refreshing outputs"
+    APP_START_INFO: str = "Starting Financial Asset Relationship Database application"
+    APP_LAUNCH_INFO: str = "Launching Gradio interface"
+    APP_START_ERROR: str = "Failed to start application"
 
-    INTERACTIVE_3D_GRAPH_MD: str="""
+    INTERACTIVE_3D_GRAPH_MD: str = """
     ## Interactive 3D Network Graph
 
     Explore the relationships between financial assets in three dimensions.
@@ -77,28 +77,28 @@ class AppConstants:
     - 🟣 Purple: Derivatives
     """
 
-    NETWORK_METRICS_ANALYSIS_MD: str="""
+    NETWORK_METRICS_ANALYSIS_MD: str = """
     ## Network Metrics & Analytics
 
     Comprehensive analysis of asset relationships, distributions, and
     regulatory event impacts.
     """
 
-    SCHEMA_RULES_GUIDE_MD: str="""
+    SCHEMA_RULES_GUIDE_MD: str = """
     ## Database Schema & Business Rules
 
     View the automatically generated schema documentation including
     relationship types, business rules, and validation constraints.
     """
 
-    DETAILED_ASSET_INFO_MD: str="""
+    DETAILED_ASSET_INFO_MD: str = """
     ## Asset Explorer
 
     Select any asset to view detailed information including financial
     metrics, relationships, and connected assets.
     """
 
-    DOC_MARKDOWN: str="""
+    DOC_MARKDOWN: str = """
     ## Documentation & Help
 
     ### Quick Start
@@ -120,7 +120,7 @@ class AppConstants:
     For technical details, see the GitHub repository documentation.
     """
 
-    NETWORK_STATISTICS_TEXT: str="""Network Statistics:
+    NETWORK_STATISTICS_TEXT: str = """Network Statistics:
 
 Total Assets: {total_assets}
 Total Relationships: {total_relationships}
@@ -203,7 +203,7 @@ class FinancialAssetApp:
         """
         metrics = graph.calculate_metrics()
         text: str = AppConstants.NETWORK_STATISTICS_TEXT.format(
-            text: str = AppConstants.NETWORK_STATISTICS_TEXT.format(
+            text: str=AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
             total_relationships=metrics["total_relationships"],
             average_relationship_strength=metrics["average_relationship_strength"],
@@ -246,8 +246,8 @@ class FinancialAssetApp:
             str: Formatted metrics text ready for display.
         """
 
-        f1, f2, f3 = visualize_metrics(graph)
-        text: str = self._update_metrics_text(graph)
+        f1, f2, f3=visualize_metrics(graph)
+        text: str=self._update_metrics_text(graph)
         return f1, f2, f3, text
 
         """
@@ -282,18 +282,18 @@ class FinancialAssetApp:
         """
         if not selected_asset or selected_asset not in graph.assets:
             return {}, {"outgoing": {}, "incoming": {}}
-        asset: Asset = graph.assets[selected_asset]
-        asset_dict: Dict[str, Union[str, float, int]] = asdict(asset)
-        asset_dict["asset_class"] = asset.asset_class.value
+        asset: Asset=graph.assets[selected_asset]
+        asset_dict: Dict[str, Union[str, float, int]]=asdict(asset)
+        asset_dict["asset_class"]=asset.asset_class.value
 
-        outgoing: Dict[str, Dict[str, Union[str, float]]] = {
+        outgoing: Dict[str, Dict[str, Union[str, float]]]={
             target_id: {"relationship_type": rel_type, "strength": strength}
             for target_id, rel_type, strength in graph.relationships.get(
                 selected_asset, []
             )
         }
 
-        incoming: Dict[str, Dict[str, Union[str, float]]] = {
+        incoming: Dict[str, Dict[str, Union[str, float]]]={
             src_id: {"relationship_type": rel_type, "strength": strength}
             for src_id, rel_type, strength in graph.incoming_relationships.get(
                 selected_asset, []
@@ -331,13 +331,13 @@ class FinancialAssetApp:
               visible with an error message when refresh fails).
         """
         try:
-            graph = self.ensure_graph()
+            graph=self.ensure_graph()
             LOGGER.info("Refreshing all visualization outputs")
 
-            viz_3d: go.Figure = visualize_3d_graph(graph)
-            f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
-            schema_rpt: str = generate_schema_report(graph)
-            asset_choices: List[str] = list(graph.assets.keys())
+            viz_3d: go.Figure=visualize_3d_graph(graph)
+            f1, f2, f3, metrics_txt=self.update_all_metrics_outputs(graph)
+            schema_rpt: str=generate_schema_report(graph)
+            asset_choices: List[str]=list(graph.assets.keys())
 
             LOGGER.info(
                 "Successfully refreshed outputs for %s assets", len(asset_choices)
@@ -396,11 +396,11 @@ class FinancialAssetApp:
         """
         try:
             LOGGER.info("Refreshing network visualization")
-            default_graph = self.ensure_graph()
-            graph = graph_state or default_graph
+            default_graph=self.ensure_graph()
+            graph=graph_state or default_graph
 
             if view_mode == "2D":
-                graph_viz: go.Figure = visualize_2d_graph(
+                graph_viz: go.Figure=visualize_2d_graph(
                     graph,
                     show_same_sector=show_same_sector,
                     show_market_cap=show_market_cap,
@@ -413,7 +413,7 @@ class FinancialAssetApp:
                     layout_type=layout_type,
                 )
             else:
-                graph_viz = visualize_3d_graph_with_filters(
+                graph_viz=visualize_3d_graph_with_filters(
                     graph,
                     show_same_sector=show_same_sector,
                     show_market_cap=show_market_cap,
@@ -441,9 +441,9 @@ class FinancialAssetApp:
             - metric_comparison_fig(go.Figure): Figure comparing metrics used by the
                 discovered formulas.
             - formula_selector_update(gr.Dropdown): Gradio update for the formula
-                selector populated with discovered formula names (selected value set to
+                selector populated with discovered formula names(selected value set to
                 the first formula when available, otherwise cleared).
-            - summary_text(str): Human-readable summary of the formulaic analysis
+            - summary_text(str): Human - readable summary of the formulaic analysis
                 and key insights.
             - error_textbox_update(gr.Textbox): Gradio update for the error textbox
                 (hidden on success; when an error occurs contains the error message
@@ -472,27 +472,27 @@ class FinancialAssetApp:
         """
         try:
             LOGGER.info("Generating formulaic analysis")
-            graph: AssetRelationshipGraph = (
+            graph: AssetRelationshipGraph=(
                 self.ensure_graph() if graph_state is None else graph_state
             )
-            formulaic_visualizer: FormulaicVisualizer = FormulaicVisualizer()
-            formulaic_analyzer: FormulaicdAnalyzer = FormulaicdAnalyzer()
-            analysis_results: Dict = formulaic_analyzer.analyze_graph(graph)
-            dashboard_fig: go.Figure = formulaic_visualizer.create_formula_dashboard(
+            formulaic_visualizer: FormulaicVisualizer=FormulaicVisualizer()
+            formulaic_analyzer: FormulaicdAnalyzer=FormulaicdAnalyzer()
+            analysis_results: Dict=formulaic_analyzer.analyze_graph(graph)
+            dashboard_fig: go.Figure=formulaic_visualizer.create_formula_dashboard(
                 analysis_results
             )
-            correlation_network_fig: go.Figure = (
+            correlation_network_fig: go.Figure=(
                 formulaic_visualizer.create_correlation_network(
                     analysis_results.get("empirical_relationships", {})
                 )
             )
-            metric_comparison_fig: go.Figure = (
+            metric_comparison_fig: go.Figure=(
                 formulaic_visualizer.create_metric_comparison_chart(analysis_results)
             )
-            formulas: List = analysis_results.get("formulas", [])
-            formula_choices: List[str] = [f.name for f in formulas]
-            summary: Dict = analysis_results.get("summary", {})
-            summary_text: str = self._format_formula_summary(summary, analysis_results)
+            formulas: List=analysis_results.get("formulas", [])
+            formula_choices: List[str]=[f.name for f in formulas]
+            summary: Dict=analysis_results.get("summary", {})
+            summary_text: str=self._format_formula_summary(summary, analysis_results)
             LOGGER.info("Generated formulaic analysis with %d formulas", len(formulas))
             return (
                 dashboard_fig,
@@ -507,8 +507,8 @@ class FinancialAssetApp:
             )
         except Exception as e:
             LOGGER.error("Error generating formulaic analysis: %s", e)
-            empty_fig: go.Figure = go.Figure()
-            error_msg: str = f"Error generating formulaic analysis: {str(e)}"
+            empty_fig: go.Figure=go.Figure()
+            error_msg: str=f"Error generating formulaic analysis: {str(e)}"
             return (
                 empty_fig,
                 empty_fig,
@@ -518,7 +518,7 @@ class FinancialAssetApp:
                 gr.update(value=error_msg, visible=True),
             )
 
-    @staticmethod
+    @ staticmethod
     def show_formula_details(
         formula_name: str, graph_state: AssetRelationshipGraph
     ) -> Tuple[go.Figure, gr.Textbox]:
@@ -541,7 +541,7 @@ class FinancialAssetApp:
         LOGGER.warning("Formula detail view is not yet implemented.")
         return go.Figure(), gr.update(value=None, visible=False)
 
-    @staticmethod
+    @ staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """
         Builds a human - readable, markdown - formatted summary of formulaic analysis
@@ -564,10 +564,10 @@ class FinancialAssetApp:
                  empirical data points, categorized formula counts, key insights, and
                  top asset correlations suitable for display in the UI.
         """
-        formulas: List = analysis_results.get("formulas", [])
-        empirical: Dict = analysis_results.get("empirical_relationships", {})
+        formulas: List=analysis_results.get("formulas", [])
+        empirical: Dict=analysis_results.get("empirical_relationships", {})
 
-        summary_lines: List[str] = [
+        summary_lines: List[str]=[
             "🔍 **Formulaic Analysis Summary**",
             "",
             f"📊 **Total Formulas Identified:** {len(formulas)}",
@@ -576,7 +576,7 @@ class FinancialAssetApp:
         ]
 
         # Add formula categories, if available
-        formula_categories: Optional[Dict] = summary.get("formula_categories")
+        formula_categories: Optional[Dict]=summary.get("formula_categories")
         if formula_categories:
             summary_lines.extend(
                 [
@@ -588,7 +588,7 @@ class FinancialAssetApp:
                 summary_lines.append(f"- **{category}**: {count}")
 
         # Add key insights, if available
-        key_insights: Optional[List[str]] = summary.get("key_insights")
+        key_insights: Optional[List[str]]=summary.get("key_insights")
         if key_insights:
             summary_lines.extend(
                 [
@@ -600,7 +600,7 @@ class FinancialAssetApp:
                 summary_lines.append(f"{idx}. {insight}")
 
         # Add top empirical correlations, if available
-        strongest_correlations: List[Dict] = empirical.get("strongest_correlations", [])
+        strongest_correlations: List[Dict]=empirical.get("strongest_correlations", [])
         if strongest_correlations:
             summary_lines.extend(
                 [
@@ -609,9 +609,9 @@ class FinancialAssetApp:
                 ]
             )
             for item in strongest_correlations:
-                pair = item.get("pair")
-                correlation = item.get("correlation")
-                strength = item.get("strength")
+                pair=item.get("pair")
+                correlation=item.get("correlation")
+                strength=item.get("strength")
                 if pair is None or correlation is None:
                     continue
                 summary_lines.append(
@@ -653,12 +653,12 @@ class FinancialAssetApp:
             demo_ui(gr.Blocks): The constructed Gradio Blocks instance
                 representing the complete application UI.
         """
-        demo_ui: gr.Blocks = gr.Blocks(title=AppConstants.TITLE)
+        demo_ui: gr.Blocks=gr.Blocks(title=AppConstants.TITLE)
 
         with demo_ui:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
-            error_message: gr.Textbox = gr.Textbox(
+            error_message: gr.Textbox=gr.Textbox(
                 label=AppConstants.ERROR_LABEL,
                 visible=False,
                 interactive=False,
@@ -674,13 +674,13 @@ class FinancialAssetApp:
                         gr.Markdown("### 🎛️ Visualization Controls")
                     with gr.Row():
                         with gr.Column(scale=1):
-                            view_mode: gr.Radio = gr.Radio(
+                            view_mode: gr.Radio=gr.Radio(
                                 label="Visualization Mode",
                                 choices=["3D", "2D"],
                                 value="3D",
                             )
                         with gr.Column(scale=1):
-                            layout_type: gr.Radio = gr.Radio(
+                            layout_type: gr.Radio=gr.Radio(
                                 label="2D Layout Type",
                                 choices=["spring", "circular", "grid"],
                                 value="spring",
@@ -692,45 +692,45 @@ class FinancialAssetApp:
                         gr.Markdown("### 🔗 Relationship Visibility Controls")
                     with gr.Row():
                         with gr.Column(scale=1):
-                            show_same_sector: gr.Checkbox = gr.Checkbox(
+                            show_same_sector: gr.Checkbox=gr.Checkbox(
                                 label="Same Sector (↔)", value=True
                             )
-                            show_market_cap: gr.Checkbox = gr.Checkbox(
+                            show_market_cap: gr.Checkbox=gr.Checkbox(
                                 label="Market Cap Similar (↔)", value=True
                             )
-                            show_correlation: gr.Checkbox = gr.Checkbox(
+                            show_correlation: gr.Checkbox=gr.Checkbox(
                                 label="Correlation (↔)", value=True
                             )
                         with gr.Column(scale=1):
-                            show_corporate_bond: gr.Checkbox = gr.Checkbox(
+                            show_corporate_bond: gr.Checkbox=gr.Checkbox(
                                 label="Corporate Bond → Equity (→)", value=True
                             )
-                            show_commodity_currency: gr.Checkbox = gr.Checkbox(
+                            show_commodity_currency: gr.Checkbox=gr.Checkbox(
                                 label="Commodity ↔ Currency", value=True
                             )
-                            show_income_comparison: gr.Checkbox = gr.Checkbox(
+                            show_income_comparison: gr.Checkbox=gr.Checkbox(
                                 label="Income Comparison (↔)", value=True
                             )
                         with gr.Column(scale=1):
-                            show_regulatory: gr.Checkbox = gr.Checkbox(
+                            show_regulatory: gr.Checkbox=gr.Checkbox(
                                 label="Regulatory Impact (→)", value=True
                             )
-                            show_all_relationships: gr.Checkbox = gr.Checkbox(
+                            show_all_relationships: gr.Checkbox=gr.Checkbox(
                                 label="Show All Relationships", value=True
                             )
-                            toggle_arrows: gr.Checkbox = gr.Checkbox(
+                            toggle_arrows: gr.Checkbox=gr.Checkbox(
                                 label="Show Direction Arrows", value=True
                             )
 
                     with gr.Row():
-                        visualization_3d: gr.Plot = gr.Plot()
+                        visualization_3d: gr.Plot=gr.Plot()
                     with gr.Row():
                         with gr.Column(scale=1):
-                            refresh_btn: gr.Button = gr.Button(
+                            refresh_btn: gr.Button=gr.Button(
                                 AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
                             )
                         with gr.Column(scale=1):
-                            reset_view_btn: gr.Button = gr.Button(
+                            reset_view_btn: gr.Button=gr.Button(
                                 "Reset View & Show All", variant="secondary"
                             )
                         with gr.Column(scale=2):
@@ -742,18 +742,18 @@ class FinancialAssetApp:
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
                     with gr.Row():
-                        asset_dist_chart: gr.Plot = gr.Plot()
-                        rel_types_chart: gr.Plot = gr.Plot()
+                        asset_dist_chart: gr.Plot=gr.Plot()
+                        rel_types_chart: gr.Plot=gr.Plot()
                     with gr.Row():
-                        events_timeline_chart: gr.Plot = gr.Plot()
+                        events_timeline_chart: gr.Plot=gr.Plot()
                     with gr.Row():
-                        metrics_text: gr.Textbox = gr.Textbox(
+                        metrics_text: gr.Textbox=gr.Textbox(
                             label=AppConstants.NETWORK_STATISTICS_LABEL,
                             lines=10,
                             interactive=False,
                         )
                     with gr.Row():
-                        refresh_metrics_btn: gr.Button = gr.Button(
+                        refresh_metrics_btn: gr.Button=gr.Button(
                             AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
                         )
 
@@ -761,13 +761,13 @@ class FinancialAssetApp:
                 with gr.Tab(AppConstants.TAB_SCHEMA_RULES):
                     gr.Markdown(AppConstants.SCHEMA_RULES_GUIDE_MD)
                     with gr.Row():
-                        schema_report: gr.Textbox = gr.Textbox(
+                        schema_report: gr.Textbox=gr.Textbox(
                             label=AppConstants.SCHEMA_REPORT_LABEL,
                             lines=25,
                             interactive=False,
                         )
                     with gr.Row():
-                        refresh_schema_btn: gr.Button = gr.Button(
+                        refresh_schema_btn: gr.Button=gr.Button(
                             AppConstants.GENERATE_SCHEMA_BUTTON_LABEL, variant="primary"
                         )
 
@@ -776,7 +776,7 @@ class FinancialAssetApp:
                     gr.Markdown(AppConstants.DETAILED_ASSET_INFO_MD)
                     with gr.Row():
                         with gr.Column(scale=1):
-                            asset_selector: gr.Dropdown = gr.Dropdown(
+                            asset_selector: gr.Dropdown=gr.Dropdown(
                                 label=AppConstants.SELECT_ASSET_LABEL,
                                 choices=[],
                                 interactive=True,
@@ -787,11 +787,11 @@ class FinancialAssetApp:
                     with gr.Row():
                         gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
                     with gr.Row():
-                        asset_relationships: gr.JSON = gr.JSON(
+                        asset_relationships: gr.JSON=gr.JSON(
                             label=AppConstants.RELATED_ASSETS_LABEL
                         )
                     with gr.Row():
-                        refresh_explorer_btn: gr.Button = gr.Button(
+                        refresh_explorer_btn: gr.Button=gr.Button(
                             AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
                         )
 
@@ -815,47 +815,47 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=2):
-                            formulaic_dashboard: gr.Plot = gr.Plot(
+                            formulaic_dashboard: gr.Plot=gr.Plot(
                                 label="Formulaic Analysis Dashboard"
                             )
                         with gr.Column(scale=1):
-                            formula_selector: gr.Dropdown = gr.Dropdown(
+                            formula_selector: gr.Dropdown=gr.Dropdown(
                                 label="Select Formula for Details",
                                 choices=[],
                                 value=None,
                                 interactive=True,
                             )
-                            formula_detail_view: gr.Plot = gr.Plot(
+                            formula_detail_view: gr.Plot=gr.Plot(
                                 label="Formula Details"
                             )
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            correlation_network: gr.Plot = gr.Plot(
+                            correlation_network: gr.Plot=gr.Plot(
                                 label="Asset Correlation Network"
                             )
                         with gr.Column(scale=1):
-                            metric_comparison: gr.Plot = gr.Plot(
+                            metric_comparison: gr.Plot=gr.Plot(
                                 label="Metric Comparison Chart"
                             )
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            refresh_formulas_btn: gr.Button = gr.Button(
+                            refresh_formulas_btn: gr.Button=gr.Button(
                                 "🔄 Refresh Formulaic Analysis", variant="primary"
                             )
                         with gr.Column(scale=2):
-                            formula_summary: gr.Textbox = gr.Textbox(
+                            formula_summary: gr.Textbox=gr.Textbox(
                                 label="Formula Analysis Summary",
                                 lines=5,
                                 interactive=False,
                             )
 
             # State object for the graph
-            graph_state: gr.State = gr.State(value=self.graph)
+            graph_state: gr.State=gr.State(value=self.graph)
 
             # Event handlers
-            all_refresh_outputs = [
+            all_refresh_outputs=[
                 visualization_3d,
                 asset_dist_chart,
                 rel_types_chart,
@@ -866,7 +866,7 @@ class FinancialAssetApp:
                 error_message,
             ]
 
-            refresh_buttons = [
+            refresh_buttons=[
                 refresh_metrics_btn,
                 refresh_schema_btn,
                 refresh_explorer_btn,
@@ -881,7 +881,7 @@ class FinancialAssetApp:
                 )
 
             # Visualization checkbox inputs
-            visualization_inputs = [
+            visualization_inputs=[
                 graph_state,
                 view_mode,
                 layout_type,
@@ -895,7 +895,7 @@ class FinancialAssetApp:
                 show_all_relationships,
                 toggle_arrows,
             ]
-            visualization_outputs = [visualization_3d, error_message]
+            visualization_outputs=[visualization_3d, error_message]
 
             # Wire checkboxes and layout type to visualization refresh
             for checkbox in [
@@ -954,8 +954,8 @@ class FinancialAssetApp:
 if __name__ == "__main__":
     try:
         LOGGER.info(AppConstants.APP_START_INFO)
-        app: FinancialAssetApp = FinancialAssetApp()
-        demo: gr.Blocks = app.create_interface()
+        app: FinancialAssetApp=FinancialAssetApp()
+        demo: gr.Blocks=app.create_interface()
         LOGGER.info(AppConstants.APP_LAUNCH_INFO)
         demo.launch()
     except Exception as e:
