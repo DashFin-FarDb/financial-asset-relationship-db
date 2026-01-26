@@ -354,7 +354,8 @@ class FinancialAssetApp(AssetUIController):
         self, graph_state: AssetRelationshipGraph | None
     ) -> tuple[go.Figure, go.Figure, go.Figure, Any, str, Any]:
         """Runs the complex formula discovery engine and prepares
-        the analysis dashboard."""
+        the analysis dashboard.
+        """
         try:
             LOGGER.info(AppConstants.MSG_ANALYSIS_START)
             active_graph = graph_state or self.get_valid_graph()
