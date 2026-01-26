@@ -424,7 +424,6 @@ class FinancialAssetApp:
             LOGGER.error("Error refreshing visualization", exc_info=True)
             return go.Figure(), gr.update(value=f"Error: {e}", visible=True)
 
-    class FinancialAssetApp:
     ...
 
     '''
