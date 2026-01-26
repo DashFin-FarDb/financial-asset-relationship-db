@@ -509,7 +509,7 @@ class FinancialAssetApp(AssetUIController):
                 # --- TAB 5: FORMULAIC ANALYSIS ---
                 with gr.Tab(AppConstants.TAB_FORMULAIC_ANALYSIS):
 
-                # --- TAB 6: DOCUMENTATION ---
+                    # --- TAB 6: DOCUMENTATION ---
                 with gr.Tab(AppConstants.TAB_DOCUMENTATION):
                     gr.Markdown(
                         """
@@ -636,4 +636,4 @@ if __name__ == "__main__":
         interface_demo.launch(debug=True)
 # Launching without debug to avoid exposing internal details in production
 interface_demo.launch()
-        LOGGER.critical(f"FATAL: Application crashed during startup: {fatal_error}")
+LOGGER.critical(f"FATAL: Application crashed during startup: {fatal_error}")
