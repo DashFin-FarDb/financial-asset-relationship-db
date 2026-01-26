@@ -145,7 +145,7 @@ class FinancialAssetApp:
         self._initialize_graph()
 
     def _initialize_graph(self) -> None:
-        """
+    """
         Builds and assigns the asset relationship graph from real financial data.
 
         Attempts to initialize the application's asset graph by loading real
