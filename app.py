@@ -359,7 +359,6 @@ asset_list = sorted(active_graph.assets.keys())
             LOGGER.info(AppConstants.MSG_ANALYSIS_START)
             active_graph = graph_state or self.get_valid_graph()
 
-            # --- TYPO CORRECTED IN IMPORT SOURCE : FormulaicdAnalyzer -> FormulaicAnalyzer ---
             analyzer = FormulaicAnalyzer()
             visualizer = FormulaicVisualizer()
 
