@@ -256,7 +256,11 @@ class FinancialAssetApp(AssetUIController):
             # 2. Metrics Components
             m_a, m_r, m_e, m_t = self.prepare_metrics_view(active_graph)
 
-    asset_list = sorted(active_graph.assets.keys())
+            # 3. Schema Report
+            schema_report = generate_schema_report(active_graph)
+
+            # 4. Asset List
+            asset_list = sorted(active_graph.assets.keys())
 
             LOGGER.info("UI Refresh sequence completed.")
             return (
@@ -265,10 +269,7 @@ class FinancialAssetApp(AssetUIController):
                 m_r,
                 m_e,
                 m_t,
-            # 3. Schema Report
-            schema_report=generate_schema_report(active_graph)
-
-            asset_list=sorted(active_graph.assets.keys())
+                schema_report,
                 gr.update(choices=asset_list, value=None),
                 gr.update(value="", visible=False),
             )
@@ -282,6 +283,8 @@ class FinancialAssetApp(AssetUIController):
                 "",
                 "",
                 gr.update(choices=[]),
+                gr.update(value="", visible=False),
+            )
                 gr.update(value=f"Error: {e}", visible=True),
             )
 
