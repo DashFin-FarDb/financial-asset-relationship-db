@@ -203,7 +203,16 @@ class FinancialAssetApp:
         metrics = graph.calculate_metrics()
         text: str = AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
-        text: str=AppConstants.NETWORK_STATISTICS_TEXT.format(
+        text: str = AppConstants.NETWORK_STATISTICS_TEXT.format(
+            total_assets=metrics["total_assets"],
+            total_relationships=metrics["total_relationships"],
+            average_relationship_strength=metrics["average_relationship_strength"],
+            relationship_density=metrics["relationship_density"],
+            regulatory_event_count=metrics["regulatory_event_count"],
+            asset_class_distribution=json.dumps(
+                metrics["asset_class_distribution"], indent=2
+            ),
+        )
             total_assets=metrics["total_assets"],
             total_relationships=metrics["total_relationships"],
             average_relationship_strength=metrics["average_relationship_strength"],
