@@ -77,7 +77,9 @@ class AppConstants:
     BTN_RESET: str = "Reset Graph View"
 
     # Legend & UI Context (Restored per user request)
-    LEGEND_MARKDOWN: str = "**Legend:** ↔ = Bidirectional Relationship | → = Unidirectional Relationship"
+    LEGEND_MARKDOWN: str = (
+        "**Legend:** ↔ = Bidirectional Relationship | → = Unidirectional Relationship"
+    )
 
     # Formatting Templates
     STATS_TEMPLATE: str = """Network Statistics:
@@ -109,7 +111,9 @@ class AssetUIController:
     """
 
     @staticmethod
-    def get_asset_details(asset_id: str | None, graph: AssetRelationshipGraph) -> tuple[dict[str, Any], dict[str, Any]]:
+    def get_asset_details(
+        asset_id: str | None, graph: AssetRelationshipGraph
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
         """
         Extracts detailed metadata and relationship maps for a specific asset node.
 
@@ -137,11 +141,15 @@ class AssetUIController:
             },
             "incoming": {
                 source: {"type": r_type, "strength": strength}
-                for source, r_type, strength in graph.incoming_relationships.get(asset_id, [])
+                for source, r_type, strength in graph.incoming_relationships.get(
+                    asset_id, []
+                )
             },
         }
 
-        LOGGER.debug(f"Retrieved {len(relationships['outgoing'])} outgoing connections.")
+        LOGGER.debug(
+            f"Retrieved {len(relationships['outgoing'])} outgoing connections."
+        )
         return details, relationships
 
     @staticmethod
@@ -168,7 +176,9 @@ class AssetUIController:
         if top_corr := empirical.get("strongest_correlations"):
             md_output.append("\n#### Strongest Observed Correlations:")
             for corr in top_corr[:5]:
-                md_output.append(f"- {corr['pair']}: {corr['correlation']:.3f} ({corr['strength']})")
+                md_output.append(
+                    f"- {corr['pair']}: {corr['correlation']:.3f} ({corr['strength']})"
+                )
 
         return "\n".join(md_output)
 
@@ -220,7 +230,9 @@ class FinancialAssetApp(AssetUIController):
             average_relationship_strength=metrics["average_relationship_strength"],
             relationship_density=metrics["relationship_density"],
             regulatory_event_count=metrics["regulatory_event_count"],
-            asset_class_distribution=json.dumps(metrics["asset_class_distribution"], indent=2),
+            asset_class_distribution=json.dumps(
+                metrics["asset_class_distribution"], indent=2
+            ),
         )
 
         for i, (src, tgt, r_type, strg) in enumerate(metrics["top_relationships"], 1):
@@ -228,7 +240,9 @@ class FinancialAssetApp(AssetUIController):
 
         return fig_assets, fig_rels, fig_events, stat_text
 
-    def refresh_global_state(self, current_state: AssetRelationshipGraph | None) -> tuple:
+    def refresh_global_state(
+        self, current_state: AssetRelationshipGraph | None
+    ) -> tuple:
         """
         Synchronizes all UI components across all tabs with the current graph state.
         """
@@ -332,7 +346,9 @@ class FinancialAssetApp(AssetUIController):
             return fig, gr.update(visible=False)
         except Exception as e:
             LOGGER.error(f"Visualization Filter Error: {e}")
-            return go.Figure(), gr.update(value=f"Error filtering graph: {e}", visible=True)
+            return go.Figure(), gr.update(
+                value=f"Error filtering graph: {e}", visible=True
+            )
 
     def execute_analysis_workflow(
         self, graph_state: AssetRelationshipGraph | None
@@ -351,7 +367,9 @@ class FinancialAssetApp(AssetUIController):
 
             # Generate Visuals
             dash = visualizer.create_formula_dashboard(results)
-            c_net = visualizer.create_correlation_network(results.get("empirical_relationships", {}))
+            c_net = visualizer.create_correlation_network(
+                results.get("empirical_relationships", {})
+            )
             m_comp = visualizer.create_metric_comparison_chart(results)
 
             # Prepare UI Updates
@@ -383,7 +401,9 @@ class FinancialAssetApp(AssetUIController):
             )
 
     @staticmethod
-    def show_drill_down_formula(formula_name: str, graph: AssetRelationshipGraph | None) -> tuple[go.Figure, Any]:
+    def show_drill_down_formula(
+        formula_name: str, graph: AssetRelationshipGraph | None
+    ) -> tuple[go.Figure, Any]:
         """Placeholder for detailed formula drill-down visualization."""
         LOGGER.debug(f"Drill-down: {formula_name}")
         return go.Figure(), gr.update(visible=False)
@@ -397,7 +417,9 @@ class FinancialAssetApp(AssetUIController):
             gr.Markdown(AppConstants.HEADER_MARKDOWN)
 
             # Global Error/Log Box
-            error_output = gr.Textbox(label=AppConstants.LBL_ERROR, visible=False, interactive=False)
+            error_output = gr.Textbox(
+                label=AppConstants.LBL_ERROR, visible=False, interactive=False
+            )
 
             # State management
             graph_persistence = gr.State(value=self.graph)
@@ -423,17 +445,33 @@ class FinancialAssetApp(AssetUIController):
                             )
 
                             gr.Markdown("### Visibility Filters")
-                            f_sector = gr.Checkbox(label="Same Sector Edges", value=True)
-                            f_mcap = gr.Checkbox(label="Market Cap Proximity", value=True)
-                            f_corr = gr.Checkbox(label="Price Correlation (>0.7)", value=True)
-                            f_bond = gr.Checkbox(label="Bond -> Equity Links", value=True)
-                            f_comm = gr.Checkbox(label="Commodity <-> Currency", value=True)
+                            f_sector = gr.Checkbox(
+                                label="Same Sector Edges", value=True
+                            )
+                            f_mcap = gr.Checkbox(
+                                label="Market Cap Proximity", value=True
+                            )
+                            f_corr = gr.Checkbox(
+                                label="Price Correlation (>0.7)", value=True
+                            )
+                            f_bond = gr.Checkbox(
+                                label="Bond -> Equity Links", value=True
+                            )
+                            f_comm = gr.Checkbox(
+                                label="Commodity <-> Currency", value=True
+                            )
                             f_inc = gr.Checkbox(label="Yield Comparison", value=True)
                             f_reg = gr.Checkbox(label="Regulatory Path", value=True)
-                            f_all = gr.Checkbox(label="Show All Relationships", value=False)
-                            t_arrows = gr.Checkbox(label="Enable Directed Arrows", value=True)
+                            f_all = gr.Checkbox(
+                                label="Show All Relationships", value=False
+                            )
+                            t_arrows = gr.Checkbox(
+                                label="Enable Directed Arrows", value=True
+                            )
 
-                            apply_filters_btn = gr.Button(AppConstants.BTN_REFRESH_VIZ, variant="primary")
+                            apply_filters_btn = gr.Button(
+                                AppConstants.BTN_REFRESH_VIZ, variant="primary"
+                            )
                             reset_view_btn = gr.Button(AppConstants.BTN_RESET)
 
                         with gr.Column(scale=4):
@@ -445,12 +483,16 @@ class FinancialAssetApp(AssetUIController):
                         metric_asset_plot = gr.Plot(label="Asset Distribution")
                         metric_rel_plot = gr.Plot(label="Relationship Types")
                     metric_event_plot = gr.Plot(label="Regulatory Timeline")
-                    metric_stats_text = gr.Textbox(label=AppConstants.LBL_STATS, lines=12, interactive=False)
+                    metric_stats_text = gr.Textbox(
+                        label=AppConstants.LBL_STATS, lines=12, interactive=False
+                    )
                     refresh_metrics_btn = gr.Button(AppConstants.BTN_REFRESH_METRICS)
 
                 # --- TAB 3: SCHEMA ---
                 with gr.Tab(AppConstants.TAB_SCHEMA_RULES):
-                    schema_report_text = gr.Textbox(label=AppConstants.LBL_SCHEMA, lines=25, interactive=False)
+                    schema_report_text = gr.Textbox(
+                        label=AppConstants.LBL_SCHEMA, lines=25, interactive=False
+                    )
                     generate_schema_btn = gr.Button(AppConstants.BTN_GEN_SCHEMA)
 
                 # --- TAB 4: EXPLORER ---
@@ -465,17 +507,24 @@ class FinancialAssetApp(AssetUIController):
                             with gr.Row():
                                 formula_dashboard = gr.Plot(scale=2)
                                 with gr.Column(scale=1):
-                                    formula_drilldown = gr.Dropdown(label="Drill-down Formula")
+                                    formula_drilldown = gr.Dropdown(
+                                        label="Drill-down Formula"
+                                    )
                                     formula_drill_plot = gr.Plot()
                             with gr.Row():
                                 formula_corr_plot = gr.Plot(label="Correlation Network")
                                 formula_metric_plot = gr.Plot(label="Metric Comparison")
-                            formula_md_output = gr.Markdown("Click 'Execute Formulaic Discovery' to begin.")
-                            execute_analysis_btn = gr.Button(AppConstants.BTN_RUN_ANALYSIS, variant="primary")
+                            formula_md_output = gr.Markdown(
+                                "Click 'Execute Formulaic Discovery' to begin."
+                            )
+                            execute_analysis_btn = gr.Button(
+                                AppConstants.BTN_RUN_ANALYSIS, variant="primary"
+                            )
 
                 # --- TAB 6: DOCUMENTATION ---
                 with gr.Tab(AppConstants.TAB_DOCUMENTATION):
-                    gr.Markdown("""
+                    gr.Markdown(
+                        """
             ## Application Documentation
 
             ### Overview
@@ -493,7 +542,8 @@ class FinancialAssetApp(AssetUIController):
               Validates theoretical pricing models against the graph.
             - **Regulatory Tracking**:
               Maps assets to systemic regulatory events.
-            """)
+            """
+                    )
 
                 # --- EVENT HANDLING LOGIC ---
                 # (Maintaining explicit definitions for structural volume and clarity)
