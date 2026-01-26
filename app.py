@@ -46,7 +46,7 @@ class AppConstants:
     TAB_SCHEMA_RULES: str="Schema & Rules"
     TAB_ASSET_EXPLORER: str="Asset Explorer"
     TAB_DOCUMENTATION: str="Documentation"
-    
+
     ERROR_LABEL: str="Error"
     REFRESH_BUTTON_LABEL: str="Refresh Visualization"
     GENERATE_SCHEMA_BUTTON_LABEL: str="Generate Schema Report"
@@ -212,7 +212,7 @@ class FinancialAssetApp:
             asset_class_distribution=json.dumps(
             metrics["asset_class_distribution"], indent=2
             ),
-        )           
+        )
 
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
             text += f"{idx}. {s} → {t} ({rel}): {strength:.1%}\n"
