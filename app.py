@@ -17,8 +17,7 @@ from typing import Any
 
 import gradio as gr
 import plotly.graph_objects as go
-
-from asset_graph import AssetGraph, Asset, AssetRelationshipGraph
+from asset_graph import Asset, AssetGraph, AssetRelationshipGraph
 
 # --- Managed Imports ---
 # Consolidated imports to resolve redundancies found in the original source
