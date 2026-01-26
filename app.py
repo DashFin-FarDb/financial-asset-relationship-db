@@ -208,6 +208,9 @@ class FinancialAssetApp(AssetUIController):
         if self.graph is None:
             LOGGER.warning("Graph state empty. Attempting re-initialization.")
             self._initialize_database()
+        if self.graph is None:
+            LOGGER.error("Failed to initialize graph; graph state remains None.")
+            raise RuntimeError("Failed to initialize graph")
         return self.graph
 
     def prepare_metrics_view(
