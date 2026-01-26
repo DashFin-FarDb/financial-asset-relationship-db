@@ -46,6 +46,8 @@ class AppConstants:
     A comprehensive 3D visualization of interconnected financial assets:
     **Equities, Bonds, Commodities, Currencies, and Regulatory Events**
 """
+
+
 """
 
 TAB_3D_VISUALIZATION = "3D Network Visualization"
@@ -70,7 +72,7 @@ APP_LAUNCH_INFO = "Launching Gradio interface"
 APP_START_ERROR = "Failed to start application"
 
 INTERACTIVE_3D_GRAPH_MD = """
-## Interactive 3D Network Graph
+# Interactive 3D Network Graph
 Explore asset relationships in 3D.
 Nodes represent assets; edges show relationship strength.
 **Asset Colors:** 🔵 Equities | 🟢 Bonds | 🟠 Commodities |
@@ -82,7 +84,7 @@ SCHEMA_RULES_GUIDE_MD = "## Database Schema & Business Rules"
 DETAILED_ASSET_INFO_MD = "## Asset Explorer"
 
 DOC_MARKDOWN = """
-## Documentation & Help
+# Documentation & Help
 - **3D Visualization**: Interactive network graph exploration.
 - **Metrics**: Quantitative analysis of relationships.
 - **Schema**: Data model and business rules documentation.
@@ -122,7 +124,7 @@ class FinancialAssetApp:
             raise
 
     def ensure_graph(self) -> AssetRelationshipGraph:
-        """Ensure graph is initialized, re-initializing if necessary."""
+        """Ensure graph is initialized, re - initializing if necessary."""
         if self.graph is None:
             self._initialize_graph()
             if self.graph is None:
@@ -131,7 +133,7 @@ class FinancialAssetApp:
 
     @staticmethod
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
-        """Format graph metrics into a human-readable text report."""
+        """Format graph metrics into a human - readable text report."""
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
@@ -311,7 +313,7 @@ class FinancialAssetApp:
     def show_formula_details(
         formula_name: str, graph: AssetRelationshipGraph
     ) -> tuple[go.Figure, Any]:
-        """Placeholder for formula-specific detail view."""
+        """Placeholder for formula - specific detail view."""
         return go.Figure(), gr.update(visible=False)
 
     @staticmethod
