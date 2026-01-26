@@ -502,33 +502,6 @@ asset_list = sorted(active_graph.assets.keys())
                         asset_network_json = gr.JSON(label=AppConstants.LBL_REL_JSON)
                     refresh_explorer_btn = gr.Button("Refresh Explorer Data")
 
-                # --- TAB 5: FORMULAIC ANALYSIS ---
-                with gr.Tab(AppConstants.TAB_FORMULAIC_ANALYSIS):
-                    ...  # Formulaic Analysis UI components here
-                with gr.Tab(AppConstants.TAB_ASSET_EXPLORER):
-                    asset_selector = gr.Dropdown(label=AppConstants.LBL_ASSET_SEL)
-                    with gr.Row():
-                        asset_primary_json = gr.JSON(label=AppConstants.LBL_ASSET_JSON)
-                        asset_network_json = gr.JSON(label=AppConstants.LBL_REL_JSON)
-                    refresh_explorer_btn = gr.Button("Refresh Explorer Data")
-
-                # --- TAB 5: FORMULAIC ANALYSIS ---
-                with gr.Tab(AppConstants.TAB_FORMULAIC_ANALYSIS):
-                    with gr.Row():
-                        formula_dashboard = gr.Plot(scale=2)
-                        with gr.Column(scale=1):
-                            formula_drilldown = gr.Dropdown(label="Drill-down Formula")
-                            formula_drill_plot = gr.Plot()
-                    with gr.Row():
-                        formula_corr_plot = gr.Plot(label="Correlation Network")
-                        formula_metric_plot = gr.Plot(label="Metric Comparison")
-                    formula_md_output = gr.Markdown(
-                        "Click 'Execute Formulaic Discovery' to begin."
-                    )
-                    execute_analysis_btn = gr.Button(
-                        AppConstants.BTN_RUN_ANALYSIS, variant="primary"
-                    )
-
                 # --- TAB 6: DOCUMENTATION ---
                 with gr.Tab(AppConstants.TAB_DOCUMENTATION):
                     gr.Markdown(
