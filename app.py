@@ -418,7 +418,7 @@ class FinancialAssetApp:
                     toggle_arrows=toggle_arrows,
                 )
 
-            return graph_viz
+return graph_viz, gr.update(visible=False)
 
         except Exception as e:
             LOGGER.error("Error refreshing visualization", exc_info=True)
