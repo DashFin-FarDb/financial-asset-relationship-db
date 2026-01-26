@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import gradio as gr
 import plotly.graph_objects as go
 
-from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+from src.analysis.formulaic_analysis import FormulaicAnalyzer
 from src.analysis.formulaic_visualizer import FormulaicVisualizer
 from src.constants import AppConstants
 from src.data.real_data_fetcher import create_real_database
@@ -21,7 +21,6 @@ from src.visualization.graph_3d import (
     visualize_3d_graph_with_filters,
 )
 from src.visualization.schema_report import generate_schema_report
-from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
 from src.visualizations.graph_visuals import (
     visualize_3d_graph,
