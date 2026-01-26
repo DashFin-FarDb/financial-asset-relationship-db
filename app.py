@@ -422,12 +422,12 @@ class FinancialAssetApp:
             discovered formulas,
             - formula_selector_update(gr.Dropdown): Gradio update for the formula
             selector populated with discovered formula names(selected value set to
-            the first formula when available, otherwise cleared),
+                                                             the first formula when available, otherwise cleared),
             - summary_text(str): Human - readable summary of the formulaic analysis
             and key insights,
             - error_textbox_update(gr.Textbox): Gradio update for the error textbox
             (hidden on success when an error occurs contains the error message
-            and is visible).
+             and is visible).
         """
         derived from the asset graph.
         Parameters:
