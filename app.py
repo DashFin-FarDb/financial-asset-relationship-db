@@ -25,8 +25,8 @@ from src.data.real_data_fetcher import create_real_database
 from src.logging import LOGGER
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import Asset
-from src.visualizations.formulaic_visuals import FormulaicdVisualizer
 from src.reports.schema_report import generate_schema_report
+from src.visualizations.formulaic_visuals import FormulaicdVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
 from src.visualizations.graph_visuals import (
     visualize_3d_graph,
@@ -402,7 +402,9 @@ class FinancialAssetApp(AssetUIController):
             )
 
     @staticmethod
-    def show_drill_down_formula(formula_name: str, graph: AssetRelationshipGraph | None) -> tuple[go.Figure, Any]:
+    def show_drill_down_formula(
+        formula_name: str, graph: AssetRelationshipGraph | None
+    ) -> tuple[go.Figure, Any]:
         """Placeholder for detailed formula drill-down visualization."""
         LOGGER.debug(f"Drill-down: {formula_name}")
         return go.Figure(), gr.update(visible=False)
