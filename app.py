@@ -22,12 +22,12 @@ import plotly.graph_objects as go
 # --- Managed Imports ---
 # Consolidated imports to resolve redundancies found in the original source
 from src.analysis.formulaic_analysis import FormulaicAnalyzer
-from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.data.real_data_fetcher import create_real_database
 from src.graph.asset_graph import AssetRelationshipGraph
 from src.logging import LOGGER
 from src.models.financial_models import Asset
 from src.reports.schema_report import generate_schema_report
+from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
 from src.visualizations.graph_visuals import (
     visualize_3d_graph,
