@@ -11,8 +11,8 @@ import plotly.graph_objects as go
 from src.analysis.formulaic_analysis import FormulaicAnalyzer
 from src.analysis.formulaic_visualizer import FormulaicVisualizer
 from src.data.real_data_fetcher import create_real_database
-from src.logic.asset_graph import AssetRelationshipGraph
 from src.logging import LOGGER
+from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import Asset
 from src.reports.schema_report import generate_schema_report
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
