@@ -403,7 +403,7 @@ describe("Edge Cases with Node and Edge Data", () => {
           size: 5,
         },
       ],
-      
+
       edges: [
         {
           source: "NEG",
