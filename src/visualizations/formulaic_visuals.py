@@ -38,7 +38,7 @@ class FormulaicVisualizer:
                 "Asset Class Relationships",
                 "Sector Analysis",
                 "Key Formula Examples",
-            )
+            ),
         )
 
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
@@ -46,7 +46,7 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _normalize_empirical_relationships(
-        empirical_relationships: Any
+        empirical_relationships: Any,
     ) -> Dict[str, Dict[str, float]]:
         """Normalize empirical_relationships into a nested dict of the form {row: {col: value}}."""
         if not empirical_relationships:
@@ -77,7 +77,9 @@ class FormulaicVisualizer:
                     r, c = str(row), str(col)
                     matrix.setdefault(r, {})[c] = float(value)
                     matrix.setdefault(c, {})[r] = float(value)
-        elif hasattr(empirical_relationships, "index") and hasattr(empirical_relationships, "columns"):
+        elif hasattr(empirical_relationships, "index") and hasattr(
+            empirical_relationships, "columns"
+        ):
             for row in empirical_relationships.index:
                 for col in empirical_relationships.columns:
                     matrix.setdefault(str(row), {})[str(col)] = float(
@@ -95,7 +97,9 @@ class FormulaicVisualizer:
         fig: go.Figure, empirical_relationships: Any
     ) -> None:
         """Populate the empirical correlation matrix heatmap in row 2, column 1."""
-        matrix = FormulaicVisualizer._normalize_empirical_relationships(empirical_relationships)
+        matrix = FormulaicVisualizer._normalize_empirical_relationships(
+            empirical_relationships
+        )
         if not matrix:
             # Nothing to plot if no empirical relationships are provided.
             return
@@ -558,9 +562,7 @@ class FormulaicVisualizer:
         return fig
 
     @staticmethod
-    def create_metric_comparison_chart(
-        analysis_results: Dict[str, Any]
-    ) -> go.Figure:
+    def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
         # Example logic: Compare theoretical vs empirical values if available
         # For now, we plot R-squared distribution by category
