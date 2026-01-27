@@ -286,7 +286,7 @@ class AssetUIController(FinancialAssetApp):
                             ["spring", "circular"], label="2D Layout", visible=False
                         )
                     # Mapping filters to a dict for easy passing
-                    filters = {
+                    {
                         "show_same_sector": gr.Checkbox(label="Sector", value=True),
                         "show_correlation": gr.Checkbox(
                             label="Correlation", value=True
