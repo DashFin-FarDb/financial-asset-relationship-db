@@ -67,7 +67,7 @@ describe("test-utils Mock Data Validation", () => {
 
   describe("mockSectors", () => {
     const mockSectors = {
-      sectors: ['Technology', 'Health', 'Finance'],
+      sectors: ["Technology", "Health", "Finance"],
     };
 
     it("should contain sectors array of strings", () => {
@@ -131,11 +131,7 @@ describe("test-utils Mock Data Validation", () => {
     mockVisualizationData,
     mockVizData,
   } from "./test-utils";
-  import type {
-    Asset,
-    Metrics,
-    VisualizationData,
-  } from "../app/types/api";
+  import type { Asset, Metrics, VisualizationData } from "../app/types/api";
 
   describe("test-utils Mock Data Validation", () => {
     describe("mockAssets", () => {
@@ -157,8 +153,8 @@ describe("test-utils Mock Data Validation", () => {
 
     describe("mockAsset", () => {
       const mockAsset: Asset = {
-        id: '1',
-        asset_class: 'ClassA',
+        id: "1",
+        asset_class: "ClassA",
       };
 
       it("should conform to Asset", () => {
@@ -208,11 +204,7 @@ describe("test-utils Mock Data Validation", () => {
       mockVisualizationData,
       mockVizData,
     } from "./test-utils";
-    import type {
-      Asset,
-      Metrics,
-      VisualizationData,
-    } from "../app/types/api";
+    import type { Asset, Metrics, VisualizationData } from "../app/types/api";
 
     describe("test-utils Mock Data Validation", () => {
       describe("mockAssets", () => {

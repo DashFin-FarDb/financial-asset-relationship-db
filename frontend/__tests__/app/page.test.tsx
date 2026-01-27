@@ -336,9 +336,12 @@ describe("Component Integration", () => {
 
 describe("Loading States", () => {
   it("should show loading spinner while fetching data", () => {
-    mockedApi.getMetrics.mockImplementation(() => new Promise(() => {
-        // intentionally left empty to simulate a pending promise for loading state
-    }));
+    mockedApi.getMetrics.mockImplementation(
+      () =>
+        new Promise(() => {
+          // intentionally left empty to simulate a pending promise for loading state
+        }),
+    );
     render(<Home />);
 
     expect(screen.getByText("Loading data...")).toBeInTheDocument();
