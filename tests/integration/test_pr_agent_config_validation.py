@@ -315,11 +315,7 @@ class AssetUIController(FinancialAssetApp):
                 outputs=[
                     viz_plot,
                     m_f1,
-                    m_f1,
-                    m_f1,
                     m_text,
-                    error_box,
-                    error_box,
                     error_box,
                 ],
             )
