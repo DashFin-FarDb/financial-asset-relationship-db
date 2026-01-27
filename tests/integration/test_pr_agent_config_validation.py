@@ -290,6 +290,45 @@ class TestPRAgentConfigSecurity:
 
         suspected = []
 
+        def detect_suspect_value(value):
+            stripped = value.strip()
+            rules = [
+                ("long_string", lambda s: len(s) >= 40),
+                ("prefix", lambda s: any(s.startswith(p) for p in secret_markers)),
+                ("inline_creds", lambda s: inline_creds_re.search(s)),
+            ]
+            for kind, check in rules:
+                if check(stripped):
+                    return kind, stripped
+            return None, None
+
+        def scan(obj):
+            if isinstance(obj, dict):
+                for key, val in obj.items():
+                    lower_key = key.lower() if isinstance(key, str) else ""
+                    for marker in secret_markers:
+                        if marker in lower_key:
+                            if not (isinstance(val, str) and val.startswith("{{") and val.endswith("}}")):
+                                pytest.fail(f"Sensitive key '{key}' must use a safe placeholder")
+                    scan(val)
+            elif isinstance(obj, list):
+                for item in obj:
+                    scan(item)
+            elif isinstance(obj, str):
+                kind, val = detect_suspect_value(obj)
+                if kind:
+                    suspected.append((kind, val))
+
+        scan(pr_agent_config)
+
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
+
+        suspected = []
+
         # Define detectors for credential heuristics
         def detect_long_string(s):
             if len(s) >= 40:
