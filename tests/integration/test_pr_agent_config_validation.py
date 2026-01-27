@@ -233,9 +233,10 @@ class TestPRAgentConfigSecurity:
             "SECRET_",
             "TOKEN_",
         )
-        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
+        inline_cred_pattern = re.compile(r"://[^/@:\\s]+:[^/@:\\s]+@")
 
         for value in _iter_string_values(pr_agent_config):
+            pass
 
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
@@ -246,7 +247,7 @@ class TestPRAgentConfigSecurity:
         """
         # Heuristic to detect inline creds in URLs (user:pass@)
         inline_creds_re = re.compile(
-            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
+            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE
         )
 
         # Common secret-like prefixes or markers
