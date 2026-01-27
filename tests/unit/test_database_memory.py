@@ -386,40 +386,40 @@ class TestThreadSafety:
 
         errors: list[BaseException] = []
 
-    def write_user(user_id: int) -> None:
-        """Write a user's credentials to the memory database using a separate thread."""
-        try:
-            with reloaded_database.get_connection() as conn:
-                conn.execute(
-                    "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
-                    (f"user{user_id}", f"hash{user_id}"),
-                )
-                conn.commit()
-        except Exception as exc:  # pragma: no cover - surfaced via assertion below
-            errors.append(exc)
+        def write_user(user_id: int) -> None:
+            """Write a user's credentials to the memory database using a separate thread."""
+            try:
+                with reloaded_database.get_connection() as conn:
+                    conn.execute(
+                        "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+                        (f"user{user_id}", f"hash{user_id}"),
+                    )
+                    conn.commit()
+            except Exception as exc:  # pragma: no cover - surfaced via assertion below
+                errors.append(exc)
 
-    threads = [
-        threading.Thread(target=write_user, args=(i,))
-        for i in range(5)
-    ]
+        threads = [
+            threading.Thread(target=write_user, args=(i,))
+            for i in range(5)
+        ]
 
-    for thread in threads:
-        thread.start()
+        for thread in threads:
+            thread.start()
 
-    for thread in threads:
-        thread.join()
+        for thread in threads:
+            thread.join()
 
-    assert errors == []
+        assert errors == []
 
-    with reloaded_database.get_connection() as conn:
-        count = conn.execute(
-            "SELECT COUNT(*) FROM user_credentials"
-        ).fetchone()[0]
+        with reloaded_database.get_connection() as conn:
+            count = conn.execute(
+                "SELECT COUNT(*) FROM user_credentials"
+            ).fetchone()[0]
 
-    assert count == 5
+        assert count == 5
 
-    first = self.connections[0]
-    assert all(conn is first for conn in self.connections)
+        first = self.connections[0]
+        assert all(conn is first for conn in self.connections)
 
 
 class TestEdgeCasesAndErrorHandling:
