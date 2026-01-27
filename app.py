@@ -593,7 +593,7 @@ class FinancialAssetApp:
             demo (gr.Blocks): The constructed Gradio demo Blocks instance
                 ready to be launched.
         """
-        with gr.Blocks(title=AppConstants.TITLE):
+        with gr.Blocks(title=AppConstants.TITLE) as demo:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
