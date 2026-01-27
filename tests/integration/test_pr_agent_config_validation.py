@@ -36,7 +36,11 @@ from src.visualizations.metric_visuals import visualize_metrics
 # Configure logging
 import logging
 
-    level = logging.INFO,
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+LOGGER = logging.getLogger(__name__)
     format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 LOGGER = logging.getLogger(__name__)
