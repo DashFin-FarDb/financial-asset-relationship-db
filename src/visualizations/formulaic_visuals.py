@@ -108,9 +108,6 @@ class FormulaicVisualizer:
             z=z, x=cols, y=rows, coloraxis="coloraxis", showscale=False
         )
         fig.add_trace(heatmap, row=2, col=1)
-           else:
-                       # Skip keys we don't know how to interpret safely.
-                continue
 
             row_entry = matrix.setdefault(row_label, {})
             try:
