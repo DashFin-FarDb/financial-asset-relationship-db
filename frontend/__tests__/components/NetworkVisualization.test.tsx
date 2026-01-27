@@ -199,8 +199,7 @@ describe("NetworkVisualization Component", () => {
       expect(
         screen.getByText(/invalid visualization data/i),
       ).toBeInTheDocument();
-    });
-
+  
     await waitFor(() => {
       expect(screen.getByTestId("mock-plot")).toBeInTheDocument();
     });
