@@ -1,4 +1,6 @@
-from typing import Any, Dict, List
+from __future__ import annotations
+
+from typing import Any
 
 import yaml
 
@@ -9,20 +11,23 @@ class ValidationResult:
 
     Attributes:
         is_valid (bool): True when the workflow passed validation, False otherwise.
-        errors (list[str]): List of error messages describing validation failures.
-        workflow_data (dict): Parsed YAML workflow data.
+        errors (list[str]): Error messages describing validation failures.
+        workflow_data (dict[str, Any]): Parsed YAML workflow data.
     """
 
     def __init__(
-        self, is_valid: bool, errors: List[str], workflow_data: Dict[str, Any]
-    ):
+        self,
+        is_valid: bool,
+        errors: list[str],
+        workflow_data: dict[str, Any],
+    ) -> None:
         """
-        Initialize a ValidationResult representing the outcome of validating a workflow YAML file.
+        Initialize a ValidationResult representing the outcome of validation.
 
-        Parameters:
-            is_valid (bool): True when validation passed, False when one or more validation checks failed.
-            errors (List[str]): Human-readable error messages describing validation failures; empty when is_valid is True.
-            workflow_data (Dict[str, Any]): The parsed workflow data structure from the YAML file (may be empty or partial on failure).
+        Args:
+            is_valid: True if validation passed.
+            errors: Human-readable validation error messages.
+            workflow_data: Parsed workflow YAML data.
         """
         self.is_valid = is_valid
         self.errors = errors
@@ -31,43 +36,86 @@ class ValidationResult:
 
 def validate_workflow(workflow_path: str) -> ValidationResult:
     """
-    Validate a workflow YAML file located at the given filesystem path.
+    Validate a workflow YAML file at the given filesystem path.
 
-    Performs YAML parsing and verifies the file is a mapping with a top-level 'jobs' key. On success returns a ValidationResult with is_valid set to True and the parsed workflow data; on failure returns a ValidationResult with is_valid set to False and a list of human-readable error messages describing the problem (e.g., missing file, syntax error, invalid structure).
+    Performs YAML parsing and verifies the file is a mapping with a top-level
+    'jobs' key.
 
-    Parameters:
-        workflow_path (str): Filesystem path to the workflow YAML file.
+    Args:
+        workflow_path: Filesystem path to the workflow YAML file.
 
     Returns:
-        ValidationResult: Validation outcome containing `is_valid`, `errors`, and `workflow_data`.
+        ValidationResult describing the validation outcome.
     """
     try:
-        with open(workflow_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+        with open(workflow_path, encoding="utf-8") as file_handle:
+            data = yaml.safe_load(file_handle)
 
         if data is None:
             return ValidationResult(
-                False, ["Workflow file is empty or contains only nulls."], {}
+                is_valid=False,
+                errors=["Workflow file is empty or contains only nulls."],
+                workflow_data={},
             )
-        if not isinstance(data, dict):
-            return ValidationResult(False, ["Workflow must be a dict"], data)
-        if "jobs" not in data:
-            return ValidationResult(False, ["Workflow must have a 'jobs' key"], data)
 
-        return ValidationResult(True, [], data)
+        if not isinstance(data, dict):
+            return ValidationResult(
+                is_valid=False,
+                errors=["Workflow must be a dict"],
+                workflow_data=data,
+            )
+
+        if "jobs" not in data:
+            return ValidationResult(
+                is_valid=False,
+                errors=["Workflow must have a 'jobs' key"],
+                workflow_data=data,
+            )
+
+        return ValidationResult(
+            is_valid=True,
+            errors=[],
+            workflow_data=data,
+        )
+
     except FileNotFoundError:
-        return ValidationResult(False, [f"File not found: {workflow_path}"], {})
-    except yaml.YAMLError as e:
-        return ValidationResult(False, [f"Invalid YAML syntax: {e}"], {})
-    except PermissionError as e:
-        return ValidationResult(False, [f"Permission denied: {e}"], {})
-    except IsADirectoryError as e:
         return ValidationResult(
-            False, [f"Expected a file but found a directory: {e}"], {}
+            is_valid=False,
+            errors=[f"File not found: {workflow_path}"],
+            workflow_data={},
         )
-    except NotADirectoryError as e:
+
+    except yaml.YAMLError as exc:
         return ValidationResult(
-            False, [f"Invalid path component (not a directory): {e}"], {}
+            is_valid=False,
+            errors=[f"Invalid YAML syntax: {exc}"],
+            workflow_data={},
         )
-    except UnicodeDecodeError as e:
-        return ValidationResult(False, [f"Invalid file encoding: {e}"], {})
+
+    except PermissionError as exc:
+        return ValidationResult(
+            is_valid=False,
+            errors=[f"Permission denied: {exc}"],
+            workflow_data={},
+        )
+
+    except IsADirectoryError as exc:
+        return ValidationResult(
+            is_valid=False,
+            errors=[f"Expected a file but found a directory: {exc}"],
+            workflow_data={},
+        )
+
+    except NotADirectoryError as exc:
+        return ValidationResult(
+            is_valid=False,
+            errors=[f"Invalid path component (not a directory): {exc}"],
+            workflow_data={},
+        )
+
+    except UnicodeDecodeError as exc:
+        return ValidationResult(
+            is_valid=False,
+            errors=[f"Invalid file encoding: {exc}"],
+            workflow_data={},
+        )
