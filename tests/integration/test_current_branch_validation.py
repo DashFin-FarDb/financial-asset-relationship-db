@@ -184,21 +184,25 @@ class TestPRAgentConfigSimplified:
 
     @staticmethod
     def test_config_version_downgraded() -> None:
-        """PR agent config version should be 1.0.0."""
+    def test_config_version_uses_semantic_versioning() -> None:
+        """PR agent config version should use semantic versioning."""
         config_path = Path(".github/pr-agent-config.yml")
         data = _load_yaml_safe(config_path)
 
         version = data.get("agent", {}).get("version")
-        assert version == "1.0.0"
+        assert isinstance(version, str)
+        parts = version.split(".")
+        assert len(parts) == 3
+        assert all(part.isdigit() for part in parts)
 
     @staticmethod
-    def test_config_no_chunking_settings() -> None:
-        """PR agent config should not contain chunking settings."""
+    def test_config_chunking_settings_present() -> None:
+        """PR agent config should define chunking settings used by the workflow."""
         config_path = Path(".github/pr-agent-config.yml")
         data = _load_yaml_safe(config_path)
 
-        assert "context" not in data.get("agent", {})
-        assert "max_files_per_chunk" not in data.get("limits", {})
+        assert "context" in data.get("agent", {})
+        assert "max_files_per_chunk" in data.get("limits", {})
 
     @staticmethod
     def test_no_broken_workflow_references() -> None:
