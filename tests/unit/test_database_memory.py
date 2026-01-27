@@ -572,7 +572,7 @@ class TestEdgeCasesAndErrorHandling:
 class TestUriMemoryDatabaseIntegration:
     """Integration tests for URI-style memory databases."""
 
-    @staticmethod
+    @ staticmethod
     def test_uri_memory_database_with_cache_shared(monkeypatch, restore_database_module):
         """Test URI memory database with cache=shared parameter."""
         # Note: This tests the detection logic; actual URI handling depends on SQLite build
