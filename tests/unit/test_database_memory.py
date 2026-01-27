@@ -355,67 +355,6 @@ class TestThreadSafety:
 
     def test_memory_connection_lock_prevents_race_condition(self, monkeypatch, restore_database_module):
         """Ensure concurrent calls to _connect() for an in-memory DB return a single shared connection (no races during first-connection creation)."""
-
-        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-
-    connections = []
-
-    def get_conn():
-        """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
-        connections.append(reloaded_database._connect())
-
-        # Create multiple threads trying to get connections simultaneously
-        threads = [threading.Thread(target=get_conn) for _ in range(10)]
-
-        for thread in threads:
-            thread.start()
-
-        for thread in threads:
-            thread.join()
-
-        # All connections should be the same object
-        assert len(connections) == 10
-        assert all(conn is connections[0] for conn in connections)
-
-    def test_concurrent_operations_on_memory_db(self, monkeypatch, restore_database_module):
-        """Test concurrent read/write operations on memory database."""
-        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-        reloaded_database = importlib.reload(database)
-
-        reloaded_database.initialize_schema()
-    # Shared list to collect connections in concurrency tests
-    connections = []
-
-        errors = []
-
-    def write_user(user_id):
-        """Write a user's credentials to the memory database using a separate thread."""
-        try:
-            reloaded_database = importlib.reload(database)
-            with reloaded_database.get_connection() as conn:
-                _ = (f"user{user_id}", f"hash{user_id}")
-        except Exception:
-            raise
-
-            """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
-        def get_conn():
-            self.connections.append(reloaded_database._connect())
-                    )
-        # Create multiple threads writing concurrently
-        threads = [threading.Thread(target=write_user, args=(i,)) for i in range(5)]
-
-        for thread in threads:
-            thread.start()
-
-        for thread in threads:
-            thread.join()
-
-        # No errors should have occurred
-class TestThreadSafety:
-    """Tests for thread safety of memory database connections."""
-
-    def test_memory_connection_lock_prevents_race_condition(self, monkeypatch, restore_database_module):
-        """Ensure concurrent calls to _connect() for an in-memory DB return a single shared connection (no races during first-connection creation)."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
 
