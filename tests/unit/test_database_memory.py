@@ -569,7 +569,7 @@ class TestEdgeCasesAndErrorHandling:
         assert row[1] == "bob@example.com"
 
 
-class TestUriMemoryDatabaseIntegration:
+    @staticmethod
     """Integration tests for URI-style memory databases."""
 
     @ staticmethod
