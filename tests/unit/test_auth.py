@@ -18,7 +18,6 @@ from unittest.mock import Mock, patch
 import jwt
 import pytest
 from fastapi import HTTPException, status
-from passlib.context import CryptContext
 
 from api.auth import (
     Token,
