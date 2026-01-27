@@ -393,6 +393,7 @@ class TestThreadSafety:
     @staticmethod
     connections = []
 
+
     def get_conn():
         """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
         connections.append(reloaded_database._connect())
