@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 import yaml
+from pr_agent_config_validation import _iter_string_values, has_high_entropy
 
-from pr_agent_config_validation import has_high_entropy, _iter_string_values
 
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
