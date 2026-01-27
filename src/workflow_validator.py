@@ -40,17 +40,8 @@ class ValidationResult:
     Returns:
         ValidationResult describing the validation outcome.
     """
-    filename = os.path.basename(workflow_path)
-    ALLOWED_WORKFLOWS = {"ci.yml", "publish.yml", "deploy.yml"}
-    if filename not in ALLOWED_WORKFLOWS:
-        return ValidationResult(
-            is_valid=False,
-            errors=[f"Invalid workflow filename: {filename}"],
-            workflow_data={},
-        )
-    safe_path = os.path.join("workflows", filename)
     try:
-        with open(safe_path, encoding="utf-8") as file_handle:
+        with open(workflow_path, encoding="utf-8") as file_handle:
             data = yaml.safe_load(file_handle)
 
         if data is None:
