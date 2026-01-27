@@ -34,10 +34,6 @@ reviews:
 knowledge_base:
   mcp:
     usage: enabled
-    documents:
-      - tech_spec.md
-      - DashFin-financial-asset-relationship-db-wiki-v2.md
-      - ARCHITECTURE.md
 
   code_guidelines:
     enabled: true
