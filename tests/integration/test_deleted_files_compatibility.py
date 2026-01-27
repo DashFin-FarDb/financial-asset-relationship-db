@@ -2,7 +2,6 @@
 Tests to ensure that deleted files don't break existing functionality.
 
 This test suite validates that removal of:
-"""
 - .github / scripts / context_chunker.py
 - .github / scripts / README.md
 - .github / labeler.yml
