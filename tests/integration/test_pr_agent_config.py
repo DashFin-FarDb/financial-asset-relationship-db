@@ -549,26 +549,26 @@ class TestEdgeCases:
     """Integration tests for the PR agent configuration module to enforce constraints on configuration values."""
 
     def test_no_excessively_long_values(self, config: object) -> None:
-    """Configuration values should not be excessively long."""
+        """Configuration values should not be excessively long."""
 
-    def check_length(obj: object, path: str = "") -> None:
-        """
-        Recursively ensure no string exceeds 10,000 characters
-        across dicts and lists.
-        """
-        if isinstance(obj, str):
-            assert len(obj) <= 10_000, (
-                f"String at '{path}' is excessively long ({len(obj)} chars)"
-            )
-        elif isinstance(obj, dict):
-            for key, value in obj.items():
-                next_path = f"{path}.{key}" if path else str(key)
-                check_length(value, next_path)
-        elif isinstance(obj, list):
-            for index, item in enumerate(obj):
-                check_length(item, f"{path}[{index}]")
+        def check_length(obj: object, path: str = "") -> None:
+            """
+            Recursively ensure no string exceeds 10,000 characters
+            across dicts and lists.
+            """
+            if isinstance(obj, str):
+                assert len(obj) <= 10_000, (
+                    f"String at '{path}' is excessively long ({len(obj)} chars)"
+                )
+            elif isinstance(obj, dict):
+                for key, value in obj.items():
+                    next_path = f"{path}.{key}" if path else str(key)
+                    check_length(value, next_path)
+            elif isinstance(obj, list):
+                for index, item in enumerate(obj):
+                    check_length(item, f"{path}[{index}]")
 
-    check_length(config)
+        check_length(config)
 
     def test_no_circular_references(self, config):
         """Configuration should not have circular references."""
