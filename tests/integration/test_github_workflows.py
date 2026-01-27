@@ -1,4 +1,8 @@
-"""
+            id_counts = Counter(step_ids)
+            duplicates = [sid for sid, count in id_counts.items() if count > 1]
+            assert not duplicates, (
+                f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
+            )
 Comprehensive tests for GitHub Actions workflow files.
 
 
