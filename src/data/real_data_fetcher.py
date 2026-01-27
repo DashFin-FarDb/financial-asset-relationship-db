@@ -170,8 +170,8 @@ class RealDataFetcher:
 
         Returns:
             List[Equity]: Equity instances populated with market fields including
-                id, symbol, name, asset_class, sector, price, market_cap,
-                pe_ratio, dividend_yield, earnings_per_share and book_value.
+            id, symbol, name, asset_class, sector, price, market_cap,
+            pe_ratio, dividend_yield, earnings_per_share and book_value.
         """
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
@@ -425,7 +425,8 @@ def create_real_database() -> AssetRelationshipGraph:
 
     Returns:
         AssetRelationshipGraph: The constructed graph populated with assets,
-        regulatory events and relationship mappings; the content may come from the
+        regulatory events and relationship mappings
+        the content may come from the
         cache, a real - data fetch, or the sample fallback.
     """
     fetcher = RealDataFetcher()
