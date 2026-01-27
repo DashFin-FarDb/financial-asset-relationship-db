@@ -444,6 +444,7 @@ class FormulaicVisualizer:
 
         edge_x = []
         edge_y = []
+
     def create_correlation_network_graph(self) -> go.Figure:
         for edge in self.G.edges():
             x0, y0 = self.pos[edge[0]]
@@ -472,7 +473,9 @@ class FormulaicVisualizer:
         )
         return fig
 
-    def create_metric_comparison_chart(self, analysis_results: Dict[str, Any]) -> go.Figure:
+    def create_metric_comparison_chart(
+        self, analysis_results: Dict[str, Any]
+    ) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
         # Example logic: Compare theoretical vs empirical values if available
         # For now, we plot R-squared distribution by category
