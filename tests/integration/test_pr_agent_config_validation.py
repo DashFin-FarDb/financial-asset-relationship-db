@@ -171,7 +171,9 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
+                    assert indent % 2 == 0, (
+                        f"Line {i} has inconsistent indentation: {indent} spaces"
+                    )
 
 
 class TestPRAgentConfigSecurity:
@@ -205,7 +207,9 @@ class TestPRAgentConfigSecurity:
         - Flags high - entropy or secret - like string values.
         - Ensures sensitive keys only use safe placeholders.
         """
-        inline_creds_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
+        inline_creds_re = re.compile(
+            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
+        )
         secret_markers = (
             "secret",
             "token",
@@ -255,7 +259,9 @@ class TestPRAgentConfigSecurity:
             if inline_creds_re.match(s):
                 return "inline_creds"
             lower_s = s.lower()
-            if any(lower_s.startswith(m) or lower_s.endswith(m) for m in secret_markers):
+            if any(
+                lower_s.startswith(m) or lower_s.endswith(m) for m in secret_markers
+            ):
                 return "secret_marker"
             if has_high_entropy(s):
                 return "entropy"
@@ -296,7 +302,9 @@ class TestPRAgentConfigSecurity:
                 key_l = str(k).lower()
                 new_path = f"{path}.{k}"
                 if any(pat in key_l for pat in sensitive_patterns):
-                    assert v in allowed_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                    assert v in allowed_placeholders, (
+                        f"Potential hardcoded credential at '{new_path}'"
+                    )
                 scan_for_secrets(v, new_path)
 
         def scan_list(node: list, path: str):
@@ -318,7 +326,9 @@ class TestPRAgentConfigSecurity:
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}" if path else str(k)
                     if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                        assert v in safe_placeholders, (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
                     check_node(v, new_path)
             elif isinstance(node, list):
                 for idx, item in enumerate(node):
