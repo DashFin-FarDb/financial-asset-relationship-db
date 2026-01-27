@@ -300,30 +300,10 @@ class AssetUIController(FinancialAssetApp):
                         layout = gr.Radio(
                             ["spring", "circular"], label="2D Layout", visible=False
                         )
-
                     # Mapping filters to a dict for easy passing
                     filters = {
                         "show_same_sector": gr.Checkbox(label="Sector", value=True),
-                        "show_correlation": gr.Checkbox(
-                            label="Correlation", value=True
-                        ),
-                        "show_regulatory": gr.Checkbox(label="Regulatory", value=True),
-                    }
-                        "show_same_sector": gr.Checkbox(label="Sector", value=True),
-                        "show_correlation": gr.Checkbox(
-                            refresh_btn.click(
-                                self.refresh_visualization,
-                                inputs=[
-                                    graph_state,
-                                    view_mode,
-                                    layout,
-                                    filters["show_same_sector"],
-                                    filters["show_correlation"],
-                                    filters["show_regulatory"],
-                                ],
-                                outputs=[viz_plot, error_box],
-                            )
-                        ),
+                        "show_correlation": gr.Checkbox(label="Correlation", value=True),
                         "show_regulatory": gr.Checkbox(label="Regulatory", value=True),
                     }
                     viz_plot = gr.Plot()
@@ -340,9 +320,9 @@ class AssetUIController(FinancialAssetApp):
 
             # Event Handlers
             refresh_btn.click(
-                outputs = [f_dash, f_corr, f_comp, formula_dropdown, f_sum, error_box],
-                inputs = [graph_state],
-                outputs = [
+                outputs=[f_dash, f_corr, f_comp, formula_dropdown, f_sum, error_box],
+                inputs=[graph_state],
+                outputs=[
                     viz_plot,
                     m_f1,
                     m_f1,
@@ -351,6 +331,7 @@ class AssetUIController(FinancialAssetApp):
                     error_box,
                     error_box,
                     error_box,
+                ],
                 ],
             )
 
