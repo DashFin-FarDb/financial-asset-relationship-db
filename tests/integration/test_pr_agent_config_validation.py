@@ -212,6 +212,7 @@ class TestPRAgentConfigSecurity:
         """
 
         def _iter_string_values(obj):
+            """Recursively yield all string values found in nested dicts and lists."""
             if isinstance(obj, dict):
                 for v in obj.values():
                     yield from _iter_string_values(v)

@@ -678,6 +678,7 @@ class TestRealDataFetcherFallback:
 
         # Simulate API failure that causes exception in create_real_database
         def raise_error(*args, **kwargs):
+            """Simulate an API connection failure by raising an exception."""
             raise Exception("API connection failed")
 
         mock_ticker.side_effect = raise_error

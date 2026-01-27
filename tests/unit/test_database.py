@@ -213,6 +213,7 @@ class TestSessionScope:
         factory = create_session_factory(engine)
 
         def _attempt_operation() -> None:
+            """Perform a database operation and intentionally raise an error to test rollback behavior."""
             with session_scope(factory) as session:
                 session.add(TestModel(id=1, value="should_rollback"))
                 msg = "rollback test"
@@ -346,25 +347,28 @@ class TestEdgeCases:
         assert engine is not None
 
     @staticmethod
-    def test_session_scope_with_database_error():
-        """Test session scope behavior with database-level errors."""
-        from sqlalchemy.exc import IntegrityError
+    """Unit tests for the session_scope context manager and database-level integrity error handling."""
 
-        engine = create_engine("sqlite:///:memory:")
+        def test_session_scope_with_database_error():
+            """Test session scope behavior with database-level errors."""
+            from sqlalchemy.exc import IntegrityError
 
-        class TestModel(Base):
-            __tablename__ = "test_db_error"
-            id = Column(Integer, primary_key=True)
+            engine = create_engine("sqlite:///:memory:")
 
-        init_db(engine)
-        factory = create_session_factory(engine)
+            class TestModel(Base):
+                __tablename__ = "test_db_error"
+                id = Column(Integer, primary_key=True)
 
-        def _cause_integrity_error() -> None:
-            with session_scope(factory) as session:
-                session.add(TestModel(id=1))
-                session.flush()
-                session.add(TestModel(id=1))
-                session.flush()
+            init_db(engine)
+            factory = create_session_factory(engine)
 
-        with pytest.raises(IntegrityError):
-            _cause_integrity_error()
+            def _cause_integrity_error() -> None:
+                """Cause a database integrity error by adding duplicate primary keys within a session."""
+                with session_scope(factory) as session:
+                    session.add(TestModel(id=1))
+                    session.flush()
+                    session.add(TestModel(id=1))
+                    session.flush()
+
+            with pytest.raises(IntegrityError):
+                _cause_integrity_error()

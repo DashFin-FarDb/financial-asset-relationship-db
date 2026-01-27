@@ -360,6 +360,13 @@ class FormulaicAnalyzer:
         return formulas
 
     def _calculate_empirical_relationships(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
+        """
+        Calculate empirical relationships between assets based on the provided graph.
+
+        This method analyzes the asset relationship graph and computes key empirical
+        metrics for each type of relationship, returning a dictionary that maps
+        relationship names to their calculated statistics.
+        """
         pass
 
     @staticmethod

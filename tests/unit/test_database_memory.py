@@ -271,6 +271,7 @@ class TestConnectWithMemoryDb:
         import threading
 
         def query_from_thread():
+            """Execute a simple query on the connection from a separate thread to test thread safety."""
             cursor = conn.execute("SELECT 1")
             cursor.fetchone()
 
@@ -352,6 +353,8 @@ class TestGetConnectionWithMemoryDb:
 class TestThreadSafety:
     """Tests for thread safety of memory database connections."""
 
+    """Unit tests for database memory connections ensuring thread-safety and correct behavior."""
+
     def test_memory_connection_lock_prevents_race_condition(self, monkeypatch, restore_database_module):
         """Test that the memory connection lock prevents race conditions during initialization."""
         import threading
@@ -362,6 +365,7 @@ class TestThreadSafety:
         connections = []
 
         def get_conn():
+            """Helper function that retrieves a connection from the reloaded database and appends it to the connections list."""
             conn = reloaded_database._connect()
             connections.append(conn)
 
@@ -390,6 +394,7 @@ class TestThreadSafety:
         errors = []
 
         def write_user(user_id):
+            """Write a user's credentials to the memory database using a separate thread."""
             try:
                 with reloaded_database.get_connection() as conn:
                     conn.execute(
