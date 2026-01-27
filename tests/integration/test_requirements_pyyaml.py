@@ -155,7 +155,6 @@ class TestRequirementsDevCompleteness:
             f"Invalid requirement format on line {line_num}: {line}"
         )
 
-
     @pytest.fixture
     def requirements_content(self) -> str:
         """Read requirements-dev.txt."""
