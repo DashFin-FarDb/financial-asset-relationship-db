@@ -218,14 +218,14 @@ class TestRequirementsDevCompleteness:
                 continue
 
             valid_pattern = (
-                r"^[a-zA-Z0-9._-]+\[?[a-zA-Z0-9._,-]*\]?((
+                r"^ [a - zA - Z0 - 9._-] +\[?[a - zA - Z0 - 9._,-] *\]?((
 
 
 class TestRequirementsDevVersionPinning:
     """Test version pinning strategy in requirements-dev.txt."""
 
-    @staticmethod
-    @pytest.fixture
+    @ staticmethod
+    @ pytest.fixture
     def requirements_lines() -> List[str]:
         """
         Get the non-comment, non-empty lines from requirements-dev.txt.
@@ -234,11 +234,11 @@ class TestRequirementsDevVersionPinning:
             List[str]: Cleaned requirement lines (whitespace trimmed) in file order.
         """
         with open("requirements-dev.txt", "r", encoding="utf-8") as f:
-            content = f.read()
+            content=f.read()
 
-        lines = []
+        lines=[]
         for line in content.split("\n"):
-            line = line.strip()
+            line=line.strip()
             if line and not line.startswith("#"):
                 lines.append(line)
         return lines
@@ -258,8 +258,8 @@ class TestRequirementsDevVersionPinning:
 
     def test_pyyaml_and_types_both_pinned(self, requirements_lines: List[str]):
         """Test that both PyYAML and types-PyYAML have version pins."""
-        pyyaml_pinned = any("PyYAML>=" in line for line in requirements_lines)
-        types_pinned = any("types-PyYAML>=" in line for line in requirements_lines)
+        pyyaml_pinned=any("PyYAML>=" in line for line in requirements_lines)
+        types_pinned=any("types-PyYAML>=" in line for line in requirements_lines)
 
         assert pyyaml_pinned, "PyYAML should have version pin"
         assert types_pinned, "types-PyYAML should have version pin"

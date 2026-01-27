@@ -707,8 +707,8 @@ jobs:
 """
             )
             f.flush()
-                result = validate_workflow(f.name)
-                assert result.is_valid is True
+            result = validate_workflow(f.name)
+            assert result.is_valid is True
             finally:
                 Path(f.name).unlink()
 

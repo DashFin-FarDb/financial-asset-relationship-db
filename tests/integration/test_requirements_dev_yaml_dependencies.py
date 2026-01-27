@@ -111,9 +111,7 @@ class TestPyYAMLDependencyAddition:
         assert version >= 6.0, "types-PyYAML version should be >= 6.0"
 
     @staticmethod
-    def test_pyyaml_and_types_pyyaml_versions_match(
-        requirements_lines: List[str]
-    ):
+    def test_pyyaml_and_types_pyyaml_versions_match(requirements_lines: List[str]):
         """Verify PyYAML and types-PyYAML have matching major versions."""
         pyyaml_line = next(
             (line for line in requirements_lines if line.startswith("PyYAML")), None
@@ -185,9 +183,7 @@ class TestRequirementsDevStructure:
             )
 
     @staticmethod
-    def test_requirements_are_sorted_alphabetically(
-        requirements_lines: List[str]
-    ):
+    def test_requirements_are_sorted_alphabetically(requirements_lines: List[str]):
         """Verify requirements are in alphabetical order (case-insensitive)."""
         package_names = [
             line.split(">=")[0].split("==")[0].lower().strip()
@@ -353,8 +349,7 @@ class TestPyYAMLVersionSpecifics:
         if not pyyaml_line:
             pytest.fail("PyYAML line not found")
 
-        match = re.search(r"PyYAML\s*>="
-                           r"\s*(\d+\.\d+)", pyyaml_line)
+        match = re.search(r"PyYAML\s*>=" r"\s*(\d+\.\d+)", pyyaml_line)
         assert match is not None, "Should have version constraint"
 
         version_str = match.group(1)

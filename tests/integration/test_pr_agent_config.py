@@ -547,10 +547,11 @@ class TestEdgeCases:
                 )
 
     """Integration tests for the PR agent configuration module to enforce constraints on configuration values."""
-        def test_no_excessively_long_values(self, config):
-            """Configuration values should not be excessively long."""
 
-            def check_length(obj, path=""):
+     def test_no_excessively_long_values(self, config):
+          """Configuration values should not be excessively long."""
+
+           def check_length(obj, path=""):
                 """Recursively ensure that no string in the configuration exceeds 10000 characters, traversing dicts and lists."""
                 if isinstance(obj, str):
                     assert len(obj) <= 10000, (
@@ -564,6 +565,7 @@ class TestEdgeCases:
                         check_length(item, f"{path}[{i}]")
 
             check_length(config)
+
     def test_no_circular_references(self, config):
         """Configuration should not have circular references."""
         # YAML safe_load prevents circular references, but let's be explicit

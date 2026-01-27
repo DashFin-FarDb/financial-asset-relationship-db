@@ -53,10 +53,9 @@ def workflow_raw(workflow_file: Path) -> str:
     with open(workflow_file, "r", encoding="utf-8") as f:
         return f.read()
 
+
 @staticmethod
-def test_no_duplicate_step_name_setup_python(
-    workflow_content: Dict[str, Any]
-):
+def test_no_duplicate_step_name_setup_python(workflow_content: Dict[str, Any]):
     """Test that there's no duplicate 'Setup Python' step name."""
     for job_name, job_config in workflow_content.get("jobs", {}).items():
         steps = job_config.get("steps", [])
@@ -67,6 +66,7 @@ def test_no_duplicate_step_name_setup_python(
         assert setup_python_count <= 1, (
             f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps, expected at most 1"
         )
+
 
 @staticmethod
 def test_no_duplicate_with_blocks_in_setup_python(workflow_raw: str):
@@ -88,6 +88,7 @@ def test_no_duplicate_with_blocks_in_setup_python(workflow_raw: str):
             assert with_count <= 1, (
                 f"Setup Python step at line {i + 1} has {with_count} 'with:' blocks, expected 1"
             )
+
 
 @staticmethod
 def test_setup_python_single_python_version_definition(self, workflow_raw: str):

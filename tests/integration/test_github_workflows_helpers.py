@@ -108,7 +108,7 @@ class TestGetWorkflowFiles:
             assert names == {"test1.yml", "test2.yaml"}
 
     def test_ignores_non_yaml_files(self, tmp_path):
-        """Test that non-YAML files are ignored."""
+        """Test that non - YAML files are ignored."""
         workflows_dir = tmp_path / "workflows"
         workflows_dir.mkdir()
 
@@ -125,7 +125,7 @@ class TestGetWorkflowFiles:
             assert result[0].name == "test.yml"
 
     def test_only_returns_files_not_directories(self, tmp_path):
-        """Test that directories with .yml/.yaml names are not returned."""
+        """Test that directories with .yml / .yaml names are not returned."""
         workflows_dir = tmp_path / "workflows"
         workflows_dir.mkdir()
 
@@ -205,7 +205,7 @@ level1:
             load_yaml_safe(yaml_file)
 
     def test_handles_special_yaml_types(self, tmp_path):
-        """Test that YAML special types (null, boolean) are handled."""
+        """Test that YAML special types(null, boolean) are handled."""
         yaml_content = """
 null_value: null
 true_value: true
@@ -241,10 +241,10 @@ script: |
 
     def test_handles_utf8_content(self, tmp_path):
         """
-        Verify load_yaml_safe correctly parses UTF-8 characters (emoji and non-Latin scripts) from a YAML file.
+        Verify load_yaml_safe correctly parses UTF - 8 characters(emoji and non - Latin scripts) from a YAML file.
         """
         yaml_content = """
-name: Test UTF-8
+name: Test UTF - 8
 emoji: 🚀
 chinese: 中文
 arabic: العربية
@@ -275,7 +275,7 @@ author: Someone
         assert result == []
 
     def test_detects_top_level_duplicate(self, tmp_path):
-        """Test that top-level duplicate keys are detected."""
+        """Test that top - level duplicate keys are detected."""
         yaml_content = """
 name: First
 version: 1.0
@@ -375,15 +375,15 @@ job2:
       pull_request:
     jobs:
       review:
-        runs-on: ubuntu-latest
+        runs - on: ubuntu - latest
         steps:
           - name: Checkout
-            uses: actions/checkout@v4
-            uses: actions/checkout@v3 # Duplicate key
+            uses: actions / checkout @ v4
+            uses: actions / checkout @ v3  # Duplicate key
           - name: Setup Python
-            uses: actions/setup-python@v5
+            uses: actions / setup - python @ v5
             with:
-              python-version: '3.11'
+              python - version: '3.11'
     """
         yaml_file = tmp_path / "pr_agent.yml"
         yaml_file.write_text(yaml_content)
@@ -415,7 +415,7 @@ class TestWorkflowsDirectoryConstant:
 
     @staticmethod
     def test_workflows_dir_points_to_github_workflows():
-        """Test that WORKFLOWS_DIR points to .github/workflows."""
+        """Test that WORKFLOWS_DIR points to .github / workflows."""
         assert WORKFLOWS_DIR.name == "workflows"
         assert WORKFLOWS_DIR.parent.name == ".github"
 
@@ -442,9 +442,9 @@ name: Valid Workflow
 on: push
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs - on: ubuntu - latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions / checkout @ v4
 """
         )
 
@@ -456,7 +456,7 @@ name: Another Name
 on: push
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs - on: ubuntu - latest
 """
         )
 
@@ -480,14 +480,14 @@ jobs:
                     assert "name" in duplicates
 
     def test_edge_case_workflow_with_complex_structure(self, tmp_path):
-        """Test handling of complex real-world workflow structure."""
+        """Test handling of complex real - world workflow structure."""
         workflows_dir = tmp_path / "workflows"
         workflows_dir.mkdir()
 
         complex_workflow = workflows_dir / "complex.yml"
         complex_workflow.write_text(
             """
-name: Complex CI/CD
+name: Complex CI / CD
 on:
   push:
     branches: [main, develop]
@@ -498,25 +498,25 @@ env:
   PYTHON_VERSION: '3.11'
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs - on: ubuntu - latest
     strategy:
       matrix:
-        python-version: ['3.9', '3.10', '3.11']
+        python - version: ['3.9', '3.10', '3.11']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions / checkout @ v4
         with:
-          fetch-depth: 0
+          fetch - depth: 0
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions / setup - python @ v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python - version: ${{matrix.python - version}}
           cache: 'pip'
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          pip install - r requirements.txt
+          pip install - r requirements - dev.txt
       - name: Run tests
-        run: pytest tests/ --cov
+        run: pytest tests / --cov
 """
         )
 

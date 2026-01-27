@@ -101,7 +101,12 @@ class TestWorkflowRequirementsConsistency:
 
             python_versions = []
             for step in steps:
-                if "uses" in step and "setup-python" in step["uses"] and "with" in step and "python-version" in step["with"]:
+                if (
+                    "uses" in step
+                    and "setup-python" in step["uses"]
+                    and "with" in step
+                    and "python-version" in step["with"]
+                ):
                     python_versions.append(step["with"]["python-version"])
 
             # All Python versions in a job should match

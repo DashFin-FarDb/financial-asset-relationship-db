@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+import os
 from typing import Any
 
-import os
 import yaml
 
 
@@ -28,7 +28,7 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     """
     Validate a workflow YAML file at the given filesystem path.
 
-    Performs YAML parsing and verifies the file is a mapping with a top-level
+    Performs YAML parsing and verifies the file is a mapping with a top - level
     'jobs' key.
 
     Args:

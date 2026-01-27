@@ -4,8 +4,8 @@ Tests to ensure that deleted files don't break existing functionality.
 This test suite validates that removal of:
 - .github/scripts/context_chunker.py
 """
-- .github/scripts/README.md
-- .github/labeler.yml
+- .github / scripts / README.md
+- .github / labeler.yml
 
 Does not cause any regressions or broken references.
 """
@@ -19,7 +19,7 @@ import yaml
 
 
 def _get_workflow_files() -> List[Path]:
-    """Retrieve all workflow files (.yml and .yaml)."""
+    """Retrieve all workflow files(.yml and .yaml)."""
     workflow_dir = Path(".github/workflows")
     if not workflow_dir.exists():
         return []
@@ -78,7 +78,7 @@ class TestDeletedContextChunker:
 
     @staticmethod
     def test_no_python_dependencies_for_chunking() -> None:
-        """Dev requirements should not include chunking-only dependencies."""
+        """Dev requirements should not include chunking - only dependencies."""
         req_dev = Path("requirements-dev.txt")
 
         if not req_dev.exists():
@@ -232,7 +232,7 @@ class TestWorkflowConfigConsistency:
     """Test consistency between workflows and configs after deletions."""
 
     def _contains_chunking_settings(self, obj: Union[Dict, List, str]) -> bool:
-        """Recursively detect chunking-related keys or values."""
+        """Recursively detect chunking - related keys or values."""
         if isinstance(obj, dict):
             for key, value in obj.items():
                 if "chunk" in str(key).lower():

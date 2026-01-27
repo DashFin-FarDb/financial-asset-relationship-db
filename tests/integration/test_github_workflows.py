@@ -8,9 +8,10 @@ workflows, ensuring they are properly formatted and free of common issues like
 duplicate keys, invalid syntax, and missing required fields.
 """
 
-import pytest
 from pathlib import Path
 from typing import List
+
+import pytest
 
 # Skip this module if PyYAML is not installed
 yaml = pytest.importorskip("yaml")
@@ -49,6 +50,7 @@ def load_yaml_safe(file_path: Path) -> Dict[str, Any]:
 """
 Module for detecting duplicate mapping keys in YAML files within integration tests.
 """
+
 
 def check_duplicate_keys(file_path: Path) -> List[str]:
     """
@@ -773,13 +775,13 @@ class TestRequirementsDevValidation:
 
     """Module for integration tests related to GitHub workflows, ensuring no conflicting dependencies between requirement files."""
 
-        @staticmethod
-        def test_no_conflicting_dependencies():
-            """Verify there are no package version conflicts between requirements-dev.txt and requirements.txt."""
-            req_file = Path("requirements-dev.txt")
-            main_req_file = Path("requirements.txt")
+    @staticmethod
+    def test_no_conflicting_dependencies():
+        """Verify there are no package version conflicts between requirements-dev.txt and requirements.txt."""
+         req_file = Path("requirements-dev.txt")
+          main_req_file = Path("requirements.txt")
 
-            if not (req_file.exists() and main_req_file.exists()):
+           if not (req_file.exists() and main_req_file.exists()):
                 pytest.skip("Both requirements files needed for this test")
 
             def parse_requirements(file_path):

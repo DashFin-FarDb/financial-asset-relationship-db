@@ -124,6 +124,8 @@ class TestDependencyWorkflowIntegration:
             pytest.skip("Workflows directory not found")
 
 """
+
+
 Integration tests for branch coherence and workflow validation.
 
 This module contains tests to ensure GitHub workflows and branch changes
@@ -196,7 +198,7 @@ class TestRemovedFilesIntegration:
 
     @staticmethod
     def test_pr_agent_workflow_self_contained() -> None:
-        """Check that the pull request agent workflow is self-contained without external script references."""
+        """Check that the pull request agent workflow is self - contained without external script references."""
         content = Path(".github/workflows/pr-agent.yml").read_text(encoding="utf-8")
 
         assert "context_chunker" not in content

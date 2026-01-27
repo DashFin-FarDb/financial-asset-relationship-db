@@ -223,9 +223,10 @@ class TestNoRegressionOfFixes:
         class DuplicateKeyLoader(yaml.SafeLoader):
             class DuplicateKeyLoader(yaml.SafeLoader):
                 """A YAML loader that raises an error when duplicate keys are encountered in mappings."""
+
                 def construct_mapping(self, node, deep=False):
                     """Construct a Python mapping from a YAML mapping node.
-                    
+
                     Iterates over each key-value pair in the YAML node, constructs the corresponding
                     Python objects, and raises a ConstructorError if a duplicate key is encountered.
                     """
@@ -272,6 +273,7 @@ class TestNoRegressionOfFixes:
                         assert leading_spaces % 2 == 0, (
                             f"{workflow_file.name}:{i} has odd indentation"
                         )
+
 
 class TestCleanCodebase:
     """Verify codebase is clean after removal."""

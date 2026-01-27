@@ -110,9 +110,7 @@ class TestPRAgentWorkflowSimplification:
         assert "CONTEXT_SIZE" not in script
 
     @staticmethod
-    def test_no_pyyaml_installation_in_dependencies(
-        pr_agent_workflow: Dict[str, Any]
-    ):
+    def test_no_pyyaml_installation_in_dependencies(pr_agent_workflow: Dict[str, Any]):
         """Verify PyYAML installation has been removed from workflow."""
         job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         install_step = None
@@ -188,9 +186,7 @@ class TestPRAgentWorkflowSimplification:
         assert "GITHUB_OUTPUT" in script
 
     @staticmethod
-    def test_pr_agent_still_triggered_on_events(
-        pr_agent_workflow: Dict[str, Any]
-    ):
+    def test_pr_agent_still_triggered_on_events(pr_agent_workflow: Dict[str, Any]):
         """Verify PR agent workflow still triggers on correct events."""
         triggers = pr_agent_workflow.get("on", {})
 

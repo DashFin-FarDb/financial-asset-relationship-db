@@ -113,7 +113,9 @@ class TestWorkflowCanInstallRequirements:
                 run_cmd = step.get("run", "").lower()
                 step_name = step.get("name", "").lower()
 
-                if ("pip install" in run_cmd or "requirements" in run_cmd) and install_idx is None:
+                if (
+                    "pip install" in run_cmd or "requirements" in run_cmd
+                ) and install_idx is None:
                     install_idx = i
 
                 if ("pytest" in run_cmd or "test" in step_name) and test_idx is None:

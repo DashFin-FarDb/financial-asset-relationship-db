@@ -17,7 +17,6 @@ import pytest
 import yaml
 
 
-
 class TestYAMLSyntaxAndStructure:
     """Tests for YAML syntax and structural validity."""
 
@@ -66,7 +65,7 @@ class TestYAMLSyntaxAndStructure:
                 leading_spaces = len(line) - len(stripped)
 
                 # Skip empty lines and full-line comments
-                    continue
+                continue
 
                 # If currently inside a block scalar, continue until indentation returns
                 if in_block_scalar:
@@ -86,9 +85,11 @@ class TestYAMLSyntaxAndStructure:
                     continue
 
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith(
-                    "  " * (leading_spaces // 2 + 1) + "- |"
-                ) and leading_spaces % 2 != 0:
+                if (
+                    line[0] == " "
+                    and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |")
+                    and leading_spaces % 2 != 0
+                ):
                     indentation_errors.append(
                         f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
                     )

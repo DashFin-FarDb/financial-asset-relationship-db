@@ -68,7 +68,7 @@ class TestWorkflowYAMLSyntax:
                 assert error is None, f"In {workflow_file}: {error}"
 
     def test_workflows_have_required_fields(self, workflow_files):
-        """Test that workflows have required top-level fields."""
+        """Test that workflows have required top - level fields."""
         required_fields = ["name", "on"]
 
         for workflow_file in workflow_files:
@@ -109,7 +109,7 @@ class TestWorkflowJobs:
         return workflows
 
     def test_all_jobs_have_runs_on(self, workflows_with_jobs):
-        """Test that all jobs specify a runs-on platform."""
+        """Test that all jobs specify a runs - on platform."""
         for workflow_name, data in workflows_with_jobs:
             jobs = data.get("jobs", {})
             for job_name, job_config in jobs.items():
@@ -193,7 +193,7 @@ class TestWorkflowSecurityAdvanced:
                     )
 
     def test_no_eval_or_bash_c_with_user_input(self, workflow_files):
-        """Test that workflows don't use eval or bash -c with user-controlled input."""
+        """Test that workflows don't use eval or bash - c with user - controlled input."""
         dangerous_patterns = [
             r"eval.*\$\{\{.*github\.event",
             r"bash\s+-c.*\$\{\{.*github\.event",
