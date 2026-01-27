@@ -282,7 +282,6 @@ class AssetUIController(FinancialAssetApp):
             with gr.Tabs():
                 with gr.Tab("🌐 Network"):
                     with gr.Row():
-                        view_mode = gr.Radio(["3D", "2D"], label="Mode", value="3D")
                         layout = gr.Radio(
                             ["spring", "circular"], label="2D Layout", visible=False
                         )
