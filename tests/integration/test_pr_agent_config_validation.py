@@ -15,6 +15,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from pr_agent_config_validation import has_high_entropy, _iter_string_values
 
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
@@ -204,7 +205,7 @@ class TestPRAgentConfigSecurity:
     def test_no_hardcoded_credentials(pr_agent_config):
         """
         Recursively scan configuration values and keys for suspected secrets.
-        - Flags high - entropy or secret - like string values.
+        - Flags high-entropy or secret-like string values.
         - Ensures sensitive keys only use safe placeholders.
         """
         inline_creds_re = re.compile(
@@ -222,11 +223,41 @@ class TestPRAgentConfigSecurity:
             "auth",
             "bearer ",
         )
+        secret_messages = {
+            marker: f"Contains secret marker '{marker}'"
+            for marker in secret_markers
+        }
 
         def _detect_issue(s: str) -> str | None:
-            """Detects the type of credential issue in a string.
+            if inline_creds_re.search(s):
+                return "URL with embedded credentials"
+            lower_s = s.lower()
+            marker = next((m for m in secret_markers if m in lower_s), None)
+            if marker:
+                return secret_messages[marker]
+            if len(s) >= 20 and len(set(s)) / len(s) > 0.7:
+                return "High-entropy string detected"
+            return None
 
-            Returns:
+        issues = []
+
+        def _scan(item, path=None):
+            if path is None:
+                path = []
+            if isinstance(item, dict):
+                for key, value in item.items():
+                    _scan(key, path + [str(key)])
+                    _scan(value, path + [str(key)])
+            elif isinstance(item, (list, tuple, set)):
+                for idx, element in enumerate(item):
+                    _scan(element, path + [f"[{idx}]"])
+            elif isinstance(item, str):
+                issue = _detect_issue(item)
+                if issue:
+                    issues.append({"path": ".".join(path), "value": item, "issue": issue})
+
+        _scan(pr_agent_config)
+        assert not issues, f"Hardcoded credentials found: {issues}"
                  "inline_creds" if inline credentials pattern is matched,
                  "secret_marker" if the string starts or ends with known secret markers,
                  "entropy" if the string has high entropy,
@@ -346,17 +377,20 @@ class TestPRAgentConfigSecurity:
             """Detects if the given string is long(length >= 40) and returns a detection tuple."""
             if len(s) >= 40:
                 return ("long_string", s)
+            return None
 
         def detect_prefix(s):
             """Checks if the string starts with any known secret markers and returns a detection tuple."""
             for marker in secret_markers:
                 if s.lower().startswith(marker):
                     return ("prefix", s)
+            return None
 
         def detect_inline_creds(s):
             """Searches for inline credentials patterns in the string and returns a detection tuple."""
             if inline_creds_re.search(s):
                 return ("inline_creds", s)
+            return None
 
         detectors = [detect_long_string, detect_prefix, detect_inline_creds]
 
@@ -408,6 +442,7 @@ class TestPRAgentConfigSecurity:
             return ent
 
         def looks_like_secret(val: str) -> bool:
+            """Return True if val appears to be a secret based on patterns, encoding, or entropy checks."""
             v = val.strip()
             if not v:
                 return False
@@ -435,8 +470,8 @@ class TestPRAgentConfigSecurity:
                 return True
             return False
 
-        # Walk values to detect secret-like strings
         def walk_values(obj, path="root"):
+            """Recursively traverse data structures and fail if any string resembles a secret."""
             if isinstance(obj, dict):
                 for k, v in obj.items():
                     walk_values(v, f"{path}.{k}")
@@ -469,32 +504,10 @@ class TestPRAgentConfigSecurity:
             "private_key",
         ]
 
-        allowed_placeholders = {"null", "none", "placeholder", "***"}
-
-        def scan_dict(node: dict, path: str):
-            for k, v in node.items():
-                key_l = str(k).lower()
-                new_path = f"{path}.{k}"
-                if any(pat in key_l for pat in sensitive_patterns):
-                    assert v in allowed_placeholders, (
-                        f"Potential hardcoded credential at '{new_path}'"
-                    )
-                scan_for_secrets(v, new_path)
-
-        def scan_list(node: list, path: str):
-            for idx, item in enumerate(node):
-                scan_for_secrets(item, f"{path}[{idx}]")
-
-        def scan_for_secrets(node, path="root"):
-            if isinstance(node, dict):
-                scan_dict(node, path)
-            elif isinstance(node, list):
-                scan_list(node, path)
-            # primitives ignored
-
         safe_placeholders = {None, "null", "webhook"}
 
         def check_node(node, path=""):
+            """Recursively check nodes for sensitive keys and validate their values are safe."""
             if isinstance(node, dict):
                 for k, v in node.items():
                     key_l = str(k).lower()
@@ -520,6 +533,7 @@ class TestPRAgentConfigSecurity:
         - `limits['max_execution_time']` is less than or equal to 3600 seconds.
         - `limits['max_concurrent_prs']` is less than or equal to 10.
         - `limits['rate_limit_requests']` is less than or equal to 1000.
+        """
         """
         limits = pr_agent_config["limits"]
 
