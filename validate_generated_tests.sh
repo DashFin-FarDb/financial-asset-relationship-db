@@ -44,10 +44,6 @@ echo "2. Checking TypeScript Test Syntax..."
         echo "   ✗ api-refactoring.test.ts - TypeScript validation failed"
         exit 1
     fi
-echo "   TypeScript Tests:"
-echo "   - api-refactoring.test.ts: $(grep -E -c '\b(it|test)\s*\(['\''"`]' frontend/__tests__/lib/api-refactoring.test.ts) test methods"
-echo ""
-echo "3. Test File Statistics..."
 
 echo "   Python Tests:"
 echo "   - test_auth_refactoring.py: $(grep -c 'def test_' tests/unit/test_auth_refactoring.py) test methods"
