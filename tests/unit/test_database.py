@@ -118,9 +118,11 @@ class TestSessionFactory:
 
 class TestModel(Base):
     """Internal model for database testing."""
+
     __tablename__ = "test_model"
     id = Column(Integer, primary_key=True)
     value = Column(String)
+
 
 def init_db(engine):
     """
@@ -128,6 +130,7 @@ def init_db(engine):
     In a real app, this would call Base.metadata.create_all(engine).
     """
     Base.metadata.create_all(engine)
+
 
 class TestDatabaseInitialization:
     """Test cases for database initialization using SQLAlchemy and Pytest."""
@@ -148,6 +151,7 @@ class TestDatabaseInitialization:
 
         # Use updated SQLAlchemy 2.0+ inspection if available
         from sqlalchemy import inspect
+
         inspector = inspect(engine)
         assert "test_model" in inspector.get_table_names()
 
@@ -158,6 +162,7 @@ class TestDatabaseInitialization:
         init_db(engine)
 
         from sqlalchemy import inspect
+
         inspector = inspect(engine)
         assert "test_model" in inspector.get_table_names()
 
