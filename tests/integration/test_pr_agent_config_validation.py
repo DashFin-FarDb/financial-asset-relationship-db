@@ -34,7 +34,7 @@ if __name__ == "__main__":
 # Local source imports
 
 # Configure logging
-logging.basicConfig(
+import logging
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
