@@ -507,7 +507,19 @@ class FinancialAssetApp(AssetUIController):
 
                 # --- TAB 5: FORMULAIC ANALYSIS ---
                 with gr.Tab(AppConstants.TAB_FORMULAIC_ANALYSIS):
-                    pass
+                    with gr.Row():
+                        formula_dashboard = gr.Plot(label="Formula Dashboard")
+                        formula_corr_plot = gr.Plot(label="Correlation Network")
+                    with gr.Row():
+                        formula_metric_plot = gr.Plot(label="Metric Comparison")
+                        formula_drill_plot = gr.Plot(label="Formula Drill-Down")
+                    formula_drilldown = gr.Dropdown(
+                        label="Select Formula for Drill-Down", choices=[]
+                    )
+                    formula_md_output = gr.Markdown(label="Analysis Summary")
+                    execute_analysis_btn = gr.Button(
+                        AppConstants.BTN_RUN_ANALYSIS, variant="primary"
+                    )
 
                 # --- TAB 6: DOCUMENTATION ---
                 with gr.Tab(AppConstants.TAB_DOCUMENTATION):
