@@ -202,55 +202,38 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
         """
-        Recursively scan configuration values for suspected secrets.
+    Recursively scan configuration values for suspected secrets.
 
-        This inspects values (not just serialized text) and traverses nested dicts/lists.
-        The heuristic flags:
-          - Long high-entropy strings (e.g., tokens)
-          - Obvious secret prefixes/suffixes
-          - Inline credentials in URLs (e.g., scheme://user:pass@host)
-        """
+    This inspects values (not just serialized text) and traverses nested dicts/lists.
+    The heuristic flags:
+      - Long high-entropy strings (e.g., tokens)
+      - Obvious secret prefixes/suffixes
+      - Inline credentials in URLs (e.g., scheme://user:pass@host)
+    """
 
-        def _iter_string_values(obj):
-            if isinstance(obj, dict):
-                for v in obj.values():
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, list):
-                for v in obj:
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, str):
-                yield obj
-
-        suspected = []
-
-        secret_prefixes = (
-            "sk-",
-            "AKIA",
-            "SECRET_",
-            "TOKEN_",
-        )
-        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
-
-        for value in _iter_string_values(pr_agent_config):
-            stripped = value.strip()
-            if not stripped:
-                continue
+    def _iter_string_values(obj):
+        if isinstance(obj, dict):
+            for v in obj.values():
+                yield from _iter_string_values(v)
+        elif isinstance(obj, list):
+            for v in obj:
+                yield from _iter_string_values(v)
+        elif isinstance(obj, str):
+            yield obj
 
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """
         Recursively scan configuration values and keys for suspected secrets.
-        - Flags high - entropy or secret - like string values.
+        - Flags high-entropy or secret-like string values.
         - Ensures sensitive keys only use safe placeholders.
         """
         import math
+        import re
 
-        # Heuristic to detect inline creds in URLs (user:pass@)
         inline_creds_re = re.compile(
             r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
         )
-
-        # Common secret-like prefixes or markers
         secret_markers = (
             "secret",
             "token",
@@ -264,9 +247,45 @@ class TestPRAgentConfigSecurity:
             "bearer ",
         )
 
+        def contains_inline_creds(s):
+            return bool(inline_creds_re.search(s))
+
+        def has_secret_marker(s):
+            lower = s.lower()
+            return any(marker in lower for marker in secret_markers)
+
+        def is_high_entropy(s, threshold=4.5):
+            if not s:
+                return False
+            entropy = sum(
+                -(freq := s.count(ch) / len(s)) * math.log2(freq)
+                for ch in set(s)
+            )
+            return entropy > threshold and len(s) > 20
+
+        violations = []
+        for value in _iter_string_values(pr_agent_config):
+            stripped = value.strip()
+            if not stripped:
+                continue
+            if contains_inline_creds(stripped):
+                violations.append(f"Inline credentials found in: {stripped}")
+            if has_secret_marker(stripped):
+                violations.append(f"Secret marker found in: {stripped}")
+            if is_high_entropy(stripped):
+                violations.append(f"High entropy string found: {stripped}")
+
+        assert not violations, "Hardcoded credentials detected:\n" + "\n".join(
+            violations
+        )
+
         suspected = []
 
         def check_string(value):
+            """
+            Analyze a string value for potential credentials (long strings, secret prefixes, inline credentials).
+            Returns a list of tuples indicating each finding type and the string value.
+            """
             entries = []
             stripped = value.strip()
             # Long string heuristic (possible API keys or tokens)
@@ -281,12 +300,16 @@ class TestPRAgentConfigSecurity:
             return entries
 
         def scan(obj, key=None):
+            """
+            Recursively scan objects (dict, list, str) for potential credentials.
+            Findings are appended to the 'suspected' list as (kind, value) tuples.
+            """
             if isinstance(obj, dict):
                 for k, v in obj.items():
-                    scan(v, k)
+                    scan(v)
             elif isinstance(obj, list):
                 for item in obj:
-                    scan(item, key)
+                    scan(item)
             elif isinstance(obj, str):
                 # Sensitive key placeholders check
                 if key and any(marker in key.lower() for marker in secret_markers):
@@ -353,7 +376,7 @@ class TestPRAgentConfigSecurity:
                 f"Potential hardcoded credentials found in PR agent config:\n{details}"
             )
 
-        def shannon_entropy(s: str) -> float:
+        def compute_shannon_entropy(s: str) -> float:
             if not s:
                 return 0.0
             sample = s[:256]
