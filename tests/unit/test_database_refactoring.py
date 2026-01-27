@@ -9,7 +9,6 @@ Tests focus on:
 - Connection pooling and cleanup
 """
 
-import os
 import sqlite3
 import threading
 import pytest
