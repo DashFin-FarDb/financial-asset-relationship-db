@@ -113,6 +113,11 @@ describe("test-utils Mock Data Validation", () => {
       expect(typeof metrics.total_assets).toBe("number");
       expect(typeof metrics.total_relationships).toBe("number");
     });
+    const mockVisualizationData: VisualizationData = {
+      nodes: [],
+      edges: [],
+    };
+
     it("should conform to VisualizationData", () => {
       const visualizationData: VisualizationData = mockVisualizationData;
       expect(visualizationData).toBeDefined();
@@ -122,12 +127,9 @@ describe("test-utils Mock Data Validation", () => {
   });
   import {
     mockAssets,
-    mockAsset,
     mockAssetClasses,
-    mockSectors,
     mockRelationships,
     mockAllRelationships,
-    mockMetrics,
     mockVisualizationData,
     mockVizData,
   } from "./test-utils";
@@ -176,6 +178,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     describe("mockSectors", () => {
+      const mockSectors = getMockSectors();
       it("should contain sectors array of strings", () => {
         expect(mockSectors).toHaveProperty("sectors");
         expect(Array.isArray(mockSectors.sectors)).toBe(true);
@@ -183,6 +186,15 @@ describe("test-utils Mock Data Validation", () => {
       });
     });
     describe("mockRelationships", () => {
+      const mockRelationships = [
+        {
+          source_id: "1",
+          target_id: "2",
+          relationship_type: "friend",
+          strength: 5,
+        },
+      ];
+
       it("should be an array of Relationship-like objects", () => {
         expect(Array.isArray(mockRelationships)).toBe(true);
         mockRelationships.forEach((rel) => {
