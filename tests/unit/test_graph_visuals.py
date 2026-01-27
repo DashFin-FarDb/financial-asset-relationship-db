@@ -3,9 +3,6 @@ import plotly.graph_objects as go
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
-
-"""Unit tests for the graph_visuals module, validating functions that build indices, create directional arrows, and generate 3D visualization traces for asset relationships."""
-
 from src.visualizations.graph_visuals import (
     REL_TYPE_COLORS,
     _build_asset_id_index,
