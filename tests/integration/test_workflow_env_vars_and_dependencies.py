@@ -54,6 +54,7 @@ def pr_agent_config_data() -> Dict[str, Any]:
 # --- Test Classes ---
 
 
+
 class TestWorkflowEnvironmentVariables:
     """Test environment variable usage and naming in workflows."""
 
@@ -77,7 +78,8 @@ class TestWorkflowEnvironmentVariables:
                 f"Found removed env var '{env_var}' in simplified workflow"
             )
 
-    def test_action_items_env_var_exists(self, pr_agent_workflow_data: Dict[str, Any]):
+    @staticmethod
+    def test_action_items_env_var_exists(pr_agent_workflow_data: Dict[str, Any]):
         """Verify ACTION_ITEMS environment variable is properly used."""
         job = pr_agent_workflow_data["jobs"].get("pr-agent-trigger")
         assert job, "Job 'pr-agent-trigger' not found"
@@ -97,8 +99,9 @@ class TestWorkflowEnvironmentVariables:
             "Parse step should set action_items output"
         )
 
+    @staticmethod
     def test_github_token_env_properly_scoped(
-        self, pr_agent_workflow_data: Dict[str, Any]
+        pr_agent_workflow_data: Dict[str, Any]
     ):
         """Verify GITHUB_TOKEN is only used in steps that need it."""
         job = pr_agent_workflow_data["jobs"].get("pr-agent-trigger")
@@ -114,8 +117,9 @@ class TestWorkflowEnvironmentVariables:
                     f"Step '{step_name}' uses gh api but doesn't set GITHUB_TOKEN"
                 )
 
+    @staticmethod
     def test_step_outputs_referenced_correctly(
-        self, pr_agent_workflow_data: Dict[str, Any]
+        pr_agent_workflow_data: Dict[str, Any]
     ):
         """Verify step outputs are referenced with correct syntax."""
         workflow_str = yaml.dump(pr_agent_workflow_data)
@@ -141,8 +145,9 @@ class TestWorkflowEnvironmentVariables:
 class TestWorkflowStepDependencies:
     """Test step execution order and dependencies."""
 
+    @staticmethod
     def test_checkout_before_any_code_operations(
-        self, pr_agent_workflow_data: Dict[str, Any]
+        pr_agent_workflow_data: Dict[str, Any]
     ):
         """Verify checkout happens before any code operations."""
         job = pr_agent_workflow_data["jobs"].get("pr-agent-trigger")
@@ -173,8 +178,9 @@ class TestWorkflowStepDependencies:
                 "Checkout must happen before code operations"
             )
 
+    @staticmethod
     def test_python_setup_before_python_commands(
-        self, pr_agent_workflow_data: Dict[str, Any]
+        pr_agent_workflow_data: Dict[str, Any]
     ):
         """Verify Python setup happens before Python commands."""
         job = pr_agent_workflow_data["jobs"].get("pr-agent-trigger")
@@ -201,8 +207,9 @@ class TestWorkflowStepDependencies:
                 "Python setup must happen before Python commands"
             )
 
+    @staticmethod
     def test_dependencies_installed_before_tests(
-        self, pr_agent_workflow_data: Dict[str, Any]
+        pr_agent_workflow_data: Dict[str, Any]
     ):
         """Verify dependencies are installed before running tests."""
         job = pr_agent_workflow_data["jobs"].get("pr-agent-trigger")
@@ -226,8 +233,9 @@ class TestWorkflowStepDependencies:
                 "Dependencies must be installed before running tests"
             )
 
+    @staticmethod
     def test_parse_comments_before_using_action_items(
-        self, pr_agent_workflow_data: Dict[str, Any]
+        pr_agent_workflow_data: Dict[str, Any]
     ):
         """Verify parse comments step runs before steps that use action items."""
         job = pr_agent_workflow_data["jobs"].get("pr-agent-trigger")

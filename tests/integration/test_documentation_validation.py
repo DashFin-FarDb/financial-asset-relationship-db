@@ -276,9 +276,7 @@ class TestEdgeCases:
         """
         # Check for common encoding issues
         assert "�" not in summary_content, (
-            "Document contains invalid characters"
-        )
-            "Document should not contain replacement characters (encoding issues)"
+            "Document contains invalid characters. Document should not contain replacement characters (encoding issues)"
         )
 
     @ staticmethod

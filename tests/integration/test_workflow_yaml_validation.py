@@ -29,7 +29,6 @@ class TestWorkflowYAMLSyntax:
     @pytest.fixture
     def workflows_dir(self) -> Path:
         """Get the workflows directory path."""
-
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
         try:
             # Ensure the directory exists and is accessible
@@ -46,7 +45,8 @@ class TestWorkflowYAMLSyntax:
         """Get all workflow YAML files."""
         return list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml"))
 
-    def test_all_workflows_are_valid_yaml(self, workflow_files: List[Path]):
+    @staticmethod
+    def test_all_workflows_are_valid_yaml(workflow_files: List[Path]):
         """Test that all workflow files contain valid YAML."""
         for workflow_file in workflow_files:
             with open(workflow_file, "r") as f:
@@ -90,51 +90,59 @@ class TestWorkflowYAMLSyntax:
         """
         import re
 
-        for workflow_file in workflow_files:
+        for _ in workflow_files:
             # Use PyYAML's safer duplicate key detection via custom constructor
-            def no_duplicates_constructor(loader, node, deep=False):
-                """Check for duplicate keys during YAML loading."""
 
-        def test_no_duplicate_keys_in_yaml(self, workflow_files: List[Path]):
-            """Test that YAML files don't have duplicate keys within the same object.
+    def test_no_duplicate_keys_in_yaml(_, workflow_files: List[Path]):
+        """Test that YAML files don't have duplicate keys within the same object.
 
-            Uses a custom SafeLoader to reliably detect duplicates during parsing.
+        Uses a custom SafeLoader to reliably detect duplicates during parsing.
+        """
+        for workflow_file in workflow_files:
+
             """
-            import yaml
+            Test integration for workflow YAML validation.
+            Ensures that duplicate keys in workflow YAML files are detected and cause test failures.
+            """
 
-            for workflow_file in workflow_files:
+            def no_duplicates_constructor(loader, node, deep=False):
+                """Construct a mapping from a YAML node, raising an error if duplicate keys are found."""
+                mapping = {}
+                for key_node, value_node in node.value:
+                    key = loader.construct_object(key_node, deep=deep)
+                    if key in mapping:
+                        raise yaml.constructor.ConstructorError(
+                            f"Duplicate key: {key!r}", key_node.start_mark
+                        )
+                    mapping[key] = loader.construct_object(value_node, deep=deep)
+                return mapping
 
-                def no_duplicates_constructor(loader, node, deep=False):
-                    mapping = {}
-                    for key_node, value_node in node.value:
-                        key = loader.construct_object(key_node, deep=deep)
-                        if key in mapping:
-                            raise yaml.constructor.ConstructorError(
-                                f"Duplicate key: {key!r}", key_node.start_mark
-                            )
-                        mapping[key] = loader.construct_object(value_node, deep=deep)
-                    return mapping
 
-                class UniqueKeyLoader(yaml.SafeLoader):
-                    pass
+            class UniqueKeyLoader(yaml.SafeLoader):
+                """
+                Custom YAML loader that enforces unique keys in mappings,
+                raising an error on duplicates.
+                """
+                pass
 
-                UniqueKeyLoader.add_constructor(
-                    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
-                    no_duplicates_constructor,
-                )
+            UniqueKeyLoader.add_constructor(
+                yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+                no_duplicates_constructor,
+            )
 
-                try:
-                    with open(workflow_file, "r") as f:
-                        yaml.load(f, Loader=UniqueKeyLoader)
-                except yaml.constructor.ConstructorError as e:
-                    pytest.fail(f"{workflow_file.name} has duplicate key: {e.problem}")
+            try:
+                with open(workflow_file, "r") as f:
+                    yaml.load(f, Loader=UniqueKeyLoader)
+            except yaml.constructor.ConstructorError as e:
+                pytest.fail(f"{workflow_file.name} has duplicate key: {e.problem}")
 
 
 class TestGreetingsWorkflow:
     """Test the greetings workflow specifically."""
 
     @pytest.fixture
-    def greetings_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def greetings_workflow() -> Dict[str, Any]:
         """Load the greetings workflow."""
         workflow_path = (
             Path(__file__).parent.parent.parent
@@ -206,7 +214,8 @@ class TestLabelerWorkflow:
     """Test the label workflow specifically."""
 
     @pytest.fixture
-    def labeler_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def labeler_workflow() -> Dict[str, Any]:
         """Load the labeler workflow."""
         workflow_path = (
             Path(__file__).parent.parent.parent / ".github" / "workflows" / "label.yml"
@@ -261,7 +270,8 @@ class TestAPISecWorkflow:
     """Test the APISec scan workflow."""
 
     @pytest.fixture
-    def apisec_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def apisec_workflow() -> Dict[str, Any]:
         """Load the APISec workflow."""
         workflow_path = (
             Path(__file__).parent.parent.parent
@@ -288,7 +298,7 @@ class TestAPISecWorkflow:
 
     def test_apisec_uses_apisec_action(self, apisec_workflow: Dict[str, Any]):
         """Test that APISec workflow uses the APISec action."""
-        for job_name, job_config in apisec_workflow["jobs"].items():
+        for _, job_config in apisec_workflow["jobs"].items():
             steps = job_config.get("steps", [])
 
             for step in steps:
@@ -305,7 +315,7 @@ class TestAPISecWorkflow:
         self, apisec_workflow: Dict[str, Any]
     ):
         """Test that APISec workflow no longer has redundant credential checking."""
-        for job_name, job_config in apisec_workflow["jobs"].items():
+        for _, job_config in apisec_workflow["jobs"].items():
             steps = job_config.get("steps", [])
 
             for step in steps:
@@ -320,7 +330,8 @@ class TestPRAgentWorkflow:
     """Test the PR Agent workflow."""
 
     @pytest.fixture
-    def pr_agent_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def pr_agent_workflow() -> Dict[str, Any]:
         """Load the PR Agent workflow."""
         workflow_path = (
             Path(__file__).parent.parent.parent
@@ -378,7 +389,7 @@ class TestPRAgentWorkflow:
         self, pr_agent_workflow: Dict[str, Any]
     ):
         """Test that PR Agent workflow has simplified context handling."""
-        for job_name, job_config in pr_agent_workflow["jobs"].items():
+        for _, job_config in pr_agent_workflow["jobs"].items():
             steps = job_config.get("steps", [])
 
             # Check that context chunking steps have been removed/simplified
@@ -397,7 +408,8 @@ class TestWorkflowSecurityBestPractices:
     """Test security best practices across all workflows."""
 
     @pytest.fixture
-    def all_workflows(self) -> Dict[str, Dict[str, Any]]:
+    @staticmethod
+    def all_workflows() -> Dict[str, Dict[str, Any]]:
         """Load all workflow files."""
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
         workflows: Dict[str, Dict[str, Any]] = {}
@@ -496,7 +508,8 @@ class TestWorkflowPerformance:
     """Test performance considerations in workflows."""
 
     @pytest.fixture
-    def all_workflows(self) -> Dict[str, Dict[str, Any]]:
+    @staticmethod
+    def all_workflows() -> Dict[str, Dict[str, Any]]:
         """Load all workflow files."""
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
         workflows = {}
@@ -519,11 +532,10 @@ class TestWorkflowPerformance:
                 # Jobs with many steps should have timeouts
                 steps = job_config.get("steps", [])
 
-                if len(steps) > 5:
-                    if "timeout-minutes" not in job_config:
-                        print(
-                            f"Info: {workflow_name} - {job_name} with {len(steps)} steps has no timeout"
-                        )
+                if len(steps) > 5 and "timeout-minutes" not in job_config:
+                    print(
+                        f"Info: {workflow_name} - {job_name} with {len(steps)} steps has no timeout"
+                    )
 
     def test_workflows_use_concurrency_groups(
         self, all_workflows: Dict[str, Dict[str, Any]]
@@ -533,26 +545,26 @@ class TestWorkflowPerformance:
             triggers = workflow_data.get("on", {})
 
             # If triggered on PR synchronize, should have concurrency
-            if isinstance(triggers, dict):
-                if "pull_request" in triggers or "pull_request_target" in triggers:
-                    for job_name, job_config in workflow_data["jobs"].items():
-                        # Check for concurrency at job or workflow level
-                        has_concurrency = (
-                            "concurrency" in job_config
-                            or "concurrency" in workflow_data
-                        )
+            if isinstance(triggers, dict) and ("pull_request" in triggers or "pull_request_target" in triggers):
+                for job_name, job_config in workflow_data["jobs"].items():
+                    # Check for concurrency at job or workflow level
+                    has_concurrency = (
+                        "concurrency" in job_config
+                        or "concurrency" in workflow_data
+                    )
 
-                        if not has_concurrency:
-                            print(
-                                f"Info: {workflow_name} - {job_name} may benefit from concurrency group"
-                            )
+                    if not has_concurrency:
+                        print(
+                            f"Info: {workflow_name} - {job_name} may benefit from concurrency group"
+                        )
 
 
 class TestRequirementsDevChanges:
     """Test changes to requirements-dev.txt for workflow support."""
 
     @pytest.fixture
-    def requirements_dev(self) -> List[str]:
+    @staticmethod
+    def requirements_dev() -> List[str]:
         """Load requirements-dev.txt."""
         req_path = Path(__file__).parent.parent.parent / "requirements-dev.txt"
         with open(req_path, "r") as f:
@@ -597,16 +609,5 @@ class TestRequirementsDevChanges:
             if not has_version:
                 print(f"Info: {req} has no version pin")
 
-
-"""
-Comprehensive validation tests for GitHub workflow YAML files.
-
-This module tests the structure, syntax, and best practices of all
-GitHub Actions workflow files, with special focus on recent changes:
-- Simplified greetings workflow
-- Simplified labeler workflow  
-- Simplified APIsec scan workflow
-- Simplified PR agent workflow
-"""
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -182,10 +182,10 @@ class TestRequirementsDevUpdates:
 class TestPRAgentConfigSimplified:
     """Tests covering PR agent configuration simplification."""
 
-    from pathlib import Path
-
 
 class TestConfigValidation:
+    """Tests validating the PR agent configuration file for semantic versioning, required chunking settings, and valid workflow references."""
+
     @staticmethod
     def test_config_version_uses_semantic_versioning() -> None:
         """PR agent config version should use semantic versioning."""

@@ -427,12 +427,14 @@ class TestWorkflowConsistency:
 class TestRemovedFilesNotReferenced:
     """Test suite ensuring removed files are not referenced anywhere."""
 
-    def test_no_labeler_yml_references(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_no_labeler_yml_references(pr_agent_workflow: Dict[str, Any]):
         """Verify no references to removed labeler.yml."""
         workflow_str = yaml.dump(pr_agent_workflow)
         assert "labeler.yml" not in workflow_str
 
-    def test_no_context_chunker_references(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_no_context_chunker_references(pr_agent_workflow: Dict[str, Any]):
         """Verify no references to removed context_chunker.py."""
         workflow_str = yaml.dump(pr_agent_workflow)
         assert "context_chunker" not in workflow_str

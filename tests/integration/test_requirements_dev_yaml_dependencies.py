@@ -337,14 +337,16 @@ class TestPyYAMLVersionSpecifics:
                 return line.strip()
         return ""
 
-    def test_pyyaml_uses_minimum_version_constraint(self, pyyaml_line: str):
+    @staticmethod
+    def test_pyyaml_uses_minimum_version_constraint(pyyaml_line: str):
         """Verify PyYAML uses >= constraint (not pinned)."""
         if not pyyaml_line:
             pytest.fail("PyYAML line not found")
         assert ">=" in pyyaml_line, "PyYAML should use >= for flexibility"
         assert "==" not in pyyaml_line, "PyYAML should not be pinned to exact version"
 
-    def test_pyyaml_version_is_modern(self, pyyaml_line: str):
+    @staticmethod
+    def test_pyyaml_version_is_modern(pyyaml_line: str):
         """Verify PyYAML version is 6.0 or higher."""
         if not pyyaml_line:
             pytest.fail("PyYAML line not found")
@@ -359,7 +361,8 @@ class TestPyYAMLVersionSpecifics:
             "PyYAML should be version 6.0 or higher for security and features"
         )
 
-    def test_pyyaml_no_upper_bound(self, pyyaml_line: str):
+    @staticmethod
+    def test_pyyaml_no_upper_bound(pyyaml_line: str):
         """Verify PyYAML doesn't have restrictive upper bound."""
         if not pyyaml_line:
             pytest.fail("PyYAML line not found")
@@ -372,7 +375,8 @@ class TestPyYAMLVersionSpecifics:
 class TestRequirementsFileIntegrity:
     """Test file integrity and formatting."""
 
-    def test_file_is_utf8_encoded(self):
+    @staticmethod
+    def test_file_is_utf8_encoded():
         """Verify file is UTF-8 encoded."""
         try:
             with open(REQUIREMENTS_DEV_FILE, "r", encoding="utf-8") as f:
@@ -380,7 +384,8 @@ class TestRequirementsFileIntegrity:
         except UnicodeDecodeError:
             pytest.fail("requirements-dev.txt should be UTF-8 encoded")
 
-    def test_file_has_consistent_line_endings(self):
+    @staticmethod
+    def test_file_has_consistent_line_endings():
         """Verify file uses consistent line endings (LF)."""
         with open(REQUIREMENTS_DEV_FILE, "rb") as f:
             content = f.read()

@@ -686,8 +686,9 @@ jobs:
     def test_workflow_with_multiline_strings(self):
         """Test workflow with various multiline string formats"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            try:
+                f.write(
+                    """
 name: Test
 on: push
 jobs:
@@ -705,10 +706,10 @@ jobs:
           that will be folded into
           a single line
 """
-            )
-            f.flush()
-            result = validate_workflow(f.name)
-            assert result.is_valid is True
+                )
+                f.flush()
+                result = validate_workflow(f.name)
+                assert result.is_valid is True
             finally:
                 Path(f.name).unlink()
 

@@ -246,7 +246,7 @@ class TestDocumentationConsistency:
 
         if changelog.exists():
             with open(changelog, "r") as f:
-            content = f.read()
+                content = f.read()
 
             # Should mention the deletions (soft requirement)
             removed_items = [

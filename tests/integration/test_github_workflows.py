@@ -812,9 +812,7 @@ def test_no_conflicting_dependencies() -> None:
     for pkg, dev_spec in dev_pkgs.items():
         main_spec = main_pkgs.get(pkg)
         if main_spec and dev_spec != main_spec:
-            conflicts.append(
-                f"{pkg}: dev='{dev_spec}' vs main='{main_spec}'",
-            )
+            conflicts.append(f"{pkg}: dev='{dev_spec}' vs main='{main_spec}'")
 
     assert not conflicts, f"Version conflicts: {conflicts}"
 

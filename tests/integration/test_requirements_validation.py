@@ -211,8 +211,6 @@ class TestRequirementsInstallability:
         assert (
             "error" not in result.stderr.lower()
             or "requirement already satisfied" in result.stdout.lower()
-        )
-
 
 class TestRequirementsDocumentation:
     """Test requirements documentation and comments."""

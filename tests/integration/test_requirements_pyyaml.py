@@ -123,32 +123,32 @@ class TestRequirementsDevCompleteness:
     """Test completeness and formatting of requirements-dev.txt."""
 
     def test_all_lines_valid_format(self, requirements_content: str):
-    """
-    Test that all requirement lines follow a valid PEP 440–compatible format.
+        """
+        Test that all requirement lines follow a valid PEP 440–compatible format.
 
-    Allowed forms:
-    - package
-    - package>=x.y
-    - package==x.y.z
-    - package[extra1,extra2]>=x.y
-    """
-    pattern = re.compile(
-        r"""
-        ^                                   # start of line
-        [A-Za-z0-9._-]+                     # package name
-        (\[[A-Za-z0-9._,-]+\])?             # optional extras
-        (                                   # optional version specifier
-            (==|>=)                         # allowed operators
-            [0-9]+(\.[0-9]+)*               # version number
-        )?                                  # version optional
-        $                                   # end of line
-        """,
-        re.VERBOSE,
-    )
+        Allowed forms:
+        - package
+        - package>=x.y
+        - package==x.y.z
+        - package[extra1,extra2]>=x.y
+        """
+        pattern = re.compile(
+            r"""
+            ^                                   # start of line
+            [A-Za-z0-9._-]+                     # package name
+            (\[[A-Za-z0-9._,-]+\])?             # optional extras
+            (                                   # optional version specifier
+                (==|>=)                         # allowed operators
+                [0-9]+(\.[0-9]+)*               # version number
+            )?                                  # version optional
+            $                                   # end of line
+            """,
+            re.VERBOSE,
+        )
 
-    for line_num, line in enumerate(requirements_content.splitlines(), start=1):
-        line = line.strip()
-        if not line or line.startswith("#"):
+        for line_num, line in enumerate(requirements_content.splitlines(), start=1):
+            line = line.strip()
+            if not line or line.startswith("#"):
             continue
 
         assert pattern.match(line), (

@@ -374,7 +374,8 @@ class TestNotificationSettings:
 class TestDebugConfiguration:
     """Test debug and logging configuration."""
 
-    def test_debug_section_structure(self, config):
+    @staticmethod
+    def test_debug_section_structure(config):
         """Debug section should be properly structured."""
         if "debug" not in config:
             return  # Debug section is optional
@@ -382,7 +383,8 @@ class TestDebugConfiguration:
         debug = config["debug"]
         assert isinstance(debug, dict), "'debug' should be a dictionary"
 
-    def test_log_level_valid(self, config):
+    @staticmethod
+    def test_log_level_valid(config):
         """Log level should be a valid logging level."""
         debug = config.get("debug", {})
 
@@ -394,7 +396,8 @@ class TestDebugConfiguration:
                 f"Invalid log level '{log_level}'. Must be one of {valid_levels}"
             )
 
-    def test_verbose_mode_is_boolean(self, config):
+    @staticmethod
+    def test_verbose_mode_is_boolean(config):
         """Verbose mode should be a boolean if specified."""
         debug = config.get("debug", {})
 
@@ -407,7 +410,8 @@ class TestDebugConfiguration:
 class TestConfigurationConsistency:
     """Test overall configuration consistency."""
 
-    def test_no_duplicate_keys(self):
+    @staticmethod
+    def test_no_duplicate_keys():
         """YAML should not have duplicate keys."""
         with open(CONFIG_FILE, "r") as f:
             content = f.read()
@@ -433,6 +437,7 @@ class TestConfigurationConsistency:
             Raises:
                 yaml.constructor.ConstructorError: If the node is not a mapping
                     or contains duplicate keys.
+            """
             """
             if not isinstance(node, yaml.MappingNode):
                 raise yaml.constructor.ConstructorError(
@@ -467,7 +472,8 @@ class TestConfigurationConsistency:
         except yaml.constructor.ConstructorError as e:
             pytest.fail(f"Duplicate keys found in YAML: {e}")
 
-    def test_all_sections_are_dictionaries(self, config):
+    @staticmethod
+    def test_all_sections_are_dictionaries(config):
         """Top-level sections should all be dictionaries."""
         for key, value in config.items():
             if value is not None and not isinstance(
@@ -475,7 +481,8 @@ class TestConfigurationConsistency:
             ):
                 pytest.fail(f"Section '{key}' has unexpected type: {type(value)}")
 
-    def test_config_is_not_empty(self, config):
+    @staticmethod
+    def test_config_is_not_empty(config):
         """Configuration should not be empty."""
         assert config is not None, "Configuration is None"
         assert len(config) > 0, "Configuration file is empty"
@@ -546,11 +553,10 @@ class TestEdgeCases:
                     f"Empty section '{key}' should be a list"
                 )
 
-    """Integration tests for the PR agent configuration module to enforce constraints on configuration values."""
+    # Integration tests for the PR agent configuration module to enforce constraints on configuration values.
 
     def test_no_excessively_long_values(self, config: object) -> None:
         """Configuration values should not be excessively long."""
-
         def check_length(obj: object, path: str = "") -> None:
             """
             Recursively ensure no string exceeds 10,000 characters
@@ -572,7 +578,6 @@ class TestEdgeCases:
 
     def test_no_circular_references(self, config):
         """Configuration should not have circular references."""
-
         # YAML safe_load prevents circular references, but let's be explicit
         def check_circular(obj, seen=None):
             """Recursively checks for circular references within the given object and raises an AssertionError if any are found."""

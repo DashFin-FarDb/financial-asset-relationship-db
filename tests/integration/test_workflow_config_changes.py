@@ -1,6 +1,4 @@
-"""
-6. Security best practices in workflows
-"""
+"""6. Security best practices in workflows"""
 
 from pathlib import Path
 from typing import Any, Dict, List
@@ -192,7 +190,7 @@ class TestGreetingsWorkflowChanges:
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_workflow_syntax_valid(self, greetings_workflow):
+    def test_greetings_workflow_syntax_valid(self, greetings_workflow):
         """Verify workflow has valid YAML syntax."""
         assert greetings_workflow is not None
         assert isinstance(greetings_workflow, dict)
@@ -239,81 +237,7 @@ class TestGreetingsWorkflowChanges:
             assert "✅" not in pr_message
 
 
-class TestLabelWorkflowChanges:
-    """Tests for label.yml workflow changes."""
-
-    @pytest.fixture
-    def label_workflow(self) -> Dict[str, Any]:
-        """
-        Load and parse the label GitHub Actions workflow file.
-
-        Returns:
-            workflow (dict): Parsed contents of `.github/workflows/label.yml` as a dictionary.
-        """
-        workflow_path = Path(".github/workflows/label.yml")
-        with open(workflow_path, "r") as f:
-            return yaml.safe_load(f)
-
-    def test_workflow_syntax_valid(self, label_workflow):
-        """Verify workflow has valid YAML syntax."""
-        assert label_workflow is not None
-        assert isinstance(label_workflow, dict)
-
-    def test_no_config_check_step(self, label_workflow):
-        """Verify config check step was removed."""
-        jobs = label_workflow.get("jobs", {})
-        label_job = jobs.get("label", {})
-        with open(workflow_path, "r") as f:
-            return yaml.safe_load(f)
-
-    def test_workflow_syntax_valid(self, greetings_workflow):
-        """Verify workflow has valid YAML syntax."""
-        assert greetings_workflow is not None
-        assert isinstance(greetings_workflow, dict)
-
-    def test_greetings_messages_simplified(self, greetings_workflow):
-        """Verify greeting messages were simplified."""
-        jobs = greetings_workflow.get("jobs", {})
-        greeting_job = jobs.get("greeting", {})
-        steps = greeting_job.get("steps", [])
-
-        action_step = next(
-            (s for s in steps if "actions/first-interaction" in s.get("uses", "")), None
-        )
-
-        assert action_step is not None
-        assert "with" in action_step
-
-        # Messages should be simple placeholders
-        issue_message = action_step["with"].get("issue-message", "")
-        pr_message = action_step["with"].get("pr-message", "")
-
-        # Should be simple generic messages, not multi-line detailed ones
-        assert len(issue_message) < 200, "Issue message should be simplified"
-        assert len(pr_message) < 200, "PR message should be simplified"
-
-    def test_no_complex_markdown_formatting(self, greetings_workflow):
-        """Verify messages don't contain complex markdown."""
-        jobs = greetings_workflow.get("jobs", {})
-        greeting_job = jobs.get("greeting", {})
-        steps = greeting_job.get("steps", [])
-
-        action_step = next(
-            (s for s in steps if "actions/first-interaction" in s.get("uses", "")), None
-        )
-
-        if action_step and "with" in action_step:
-            issue_message = action_step["with"].get("issue-message", "")
-            pr_message = action_step["with"].get("pr-message", "")
-
-            # Should not contain resources section or checkmarks
-            assert "**Resources:**" not in issue_message
-            assert "**Resources:**" not in pr_message
-            assert "✅" not in issue_message
-            assert "✅" not in pr_message
-
-
-class TestLabelWorkflowChanges:
+class TestLabelWorkflowConfigChanges:
     """Tests for label.yml workflow changes."""
 
     @pytest.fixture
@@ -479,7 +403,8 @@ class TestWorkflowSecurityBestPractices:
                     f"Potential hardcoded secret in {workflow_file}: {lines_with_pattern}"
                 )
 
-    def test_workflows_use_pinned_action_versions(self):
+    @staticmethod
+    def test_workflows_use_pinned_action_versions():
         """Verify workflows use pinned action versions."""
         workflow_dir = Path(".github/workflows")
 
@@ -488,7 +413,7 @@ class TestWorkflowSecurityBestPractices:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})
-            for job_name, job_config in jobs.items():
+            for _, job_config in jobs.items():
                 steps = job_config.get("steps", [])
                 for step in steps:
                     if "uses" in step:
@@ -500,7 +425,8 @@ class TestWorkflowSecurityBestPractices:
                             or "@" in action
                         ), f"Action {action} in {workflow_file} should be pinned"
 
-    def test_workflows_use_read_only_permissions_by_default(self):
+    @staticmethod
+    def test_workflows_use_read_only_permissions_by_default():
         """
         Ensure workflow files in .github/workflows limit top-level write permissions to enforce least privilege.
 
@@ -522,7 +448,6 @@ class TestWorkflowSecurityBestPractices:
                     assert len(write_perms) <= 3, (
                         f"Too many write permissions in {workflow_file}: {write_perms}"
                     )
-
 
 # ... rest of code unchanged ...
 

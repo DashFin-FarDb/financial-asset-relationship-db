@@ -65,7 +65,8 @@ class TestYAMLSyntaxAndStructure:
                 leading_spaces = len(line) - len(stripped)
 
                 # Skip empty lines and full-line comments
-                continue
+                if stripped == "" or stripped.startswith("#"):
+                    continue
 
                 # If currently inside a block scalar, continue until indentation returns
                 if in_block_scalar:
@@ -304,7 +305,8 @@ class TestConfigurationEdgeCases:
                 f"Version should follow semver (X.Y.Z): {version}"
             )
 
-    def test_empty_or_null_values_handled(self):
+    @staticmethod
+    def test_empty_or_null_values_handled():
         """
         Ensure critical YAML fields are not null in files under .github.
 
@@ -425,6 +427,10 @@ class TestConfigurationConsistency:
 
         # Should be consistent
         if checkout_versions:
+            unique_versions = set(checkout_versions.values())
+            assert len(unique_versions) <= 2, (
+                f"Inconsistent checkout action versions across workflows: {checkout_versions}"
+            )
             unique_versions = set(checkout_versions.values())
             # Allow v3 and v4, but should be mostly consistent
             assert len(unique_versions) <= 2, (

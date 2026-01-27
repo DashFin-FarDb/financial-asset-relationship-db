@@ -30,14 +30,16 @@ class TestPRAgentWorkflowChanges:
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_pr_agent_workflow_structure(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_workflow_structure(pr_agent_workflow):
         """Verify PR agent workflow has expected structure."""
         assert "name" in pr_agent_workflow
         assert pr_agent_workflow["name"] == "PR Agent Workflow"
         assert "on" in pr_agent_workflow
         assert "jobs" in pr_agent_workflow
 
-    def test_pr_agent_has_required_triggers(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_has_required_triggers(pr_agent_workflow):
         """Verify PR agent responds to correct events."""
         triggers = pr_agent_workflow["on"]
         assert "pull_request" in triggers
@@ -45,7 +47,8 @@ class TestPRAgentWorkflowChanges:
         assert "issue_comment" in triggers
         assert "check_suite" in triggers
 
-    def test_pr_agent_python_setup_simplified(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_python_setup_simplified(pr_agent_workflow):
         """
         Validate the pr-agent-trigger job uses a single Python dependency installation step and does not install PyYAML.
 
@@ -71,7 +74,8 @@ class TestPRAgentWorkflowChanges:
             "Should not explicitly install PyYAML in workflow"
         )
 
-    def test_pr_agent_no_context_chunking_references(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_no_context_chunking_references(pr_agent_workflow):
         """Verify context chunking logic removed from workflow."""
         workflow_str = yaml.dump(pr_agent_workflow)
 
@@ -80,7 +84,8 @@ class TestPRAgentWorkflowChanges:
         assert "chunking" not in workflow_str.lower()
         assert "tiktoken" not in workflow_str.lower()
 
-    def test_pr_agent_uses_gh_cli_for_parsing(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_uses_gh_cli_for_parsing(pr_agent_workflow):
         """Verify workflow uses gh CLI for PR comment parsing."""
         pr_agent_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = pr_agent_job["steps"]
@@ -89,7 +94,8 @@ class TestPRAgentWorkflowChanges:
         assert parse_step is not None
         assert "gh api" in parse_step["run"]
 
-    def test_pr_agent_has_proper_permissions(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_has_proper_permissions(pr_agent_workflow):
         """
         Verify the PR Agent workflow exposes minimal permissions.
 
@@ -119,7 +125,8 @@ class TestGreetingsWorkflowChanges:
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_greetings_workflow_simplified(self, greetings_workflow):
+    @staticmethod
+    def test_greetings_workflow_simplified(greetings_workflow):
         """Verify greetings workflow uses simple messages."""
         job = greetings_workflow["jobs"]["greeting"]
         step = job["steps"][0]

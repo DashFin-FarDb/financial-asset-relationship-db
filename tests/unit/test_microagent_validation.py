@@ -74,14 +74,8 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     @pytest.fixture
     @staticmethod
-    def repo_engineer_path(microagents_dir: Path) -> Path:
-        """Return the path to repo_engineer_lead.md."""
-        path = microagents_dir / "repo_engineer_lead.md"
-        assert path.exists(), "repo_engineer_lead.md not found"
-        return path
-
     @pytest.fixture
-    def repo_engineer_content(self, repo_engineer_path: Path) -> str:
+    def repo_engineer_content(repo_engineer_path: Path) -> str:
         """Load repo_engineer_lead.md content."""
         with open(repo_engineer_path, encoding="utf-8") as f:
             return f.read()
@@ -492,13 +486,15 @@ class TestMicroagentEdgeCases:
         """Return the path to repo_engineer_lead.md."""
         return Path(".openhands/microagents/repo_engineer_lead.md")
 
-    def test_file_size_reasonable(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_file_size_reasonable(repo_engineer_path: Path):
         """Test that file size is reasonable."""
         file_size = repo_engineer_path.stat().st_size
         assert file_size > 100, "File should have meaningful content"
         assert file_size < 50000, "File should be concise (under 50KB)"
 
-    def test_no_binary_content(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_no_binary_content(repo_engineer_path: Path):
         """Test that file contains only text (no binary data)."""
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
@@ -509,7 +505,8 @@ class TestMicroagentEdgeCases:
         except UnicodeDecodeError:
             pytest.fail("File should contain only UTF-8 text")
 
-    def test_no_control_characters(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_no_control_characters(repo_engineer_path: Path):
         """Test that file doesn't contain unexpected control characters."""
         with open(repo_engineer_path, encoding="utf-8") as f:
             content = f.read()
@@ -523,7 +520,8 @@ class TestMicroagentEdgeCases:
                     f"File should not contain control character: {repr(char)}"
                 )
 
-    def test_consistent_newlines(self, repo_engineer_path: Path):
+    @staticmethod
+    def test_consistent_newlines(repo_engineer_path: Path):
         """Test that newlines are used consistently."""
         with open(repo_engineer_path, "rb") as f:
             content = f.read()

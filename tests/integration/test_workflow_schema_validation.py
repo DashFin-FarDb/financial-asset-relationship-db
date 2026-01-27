@@ -1,23 +1,11 @@
 """
 Comprehensive YAML schema validation tests for GitHub Actions workflows.
-
 """
-Tests workflow files for:
-- Valid YAML syntax
-- GitHub Actions schema compliance
-- Security best practices
-- Performance optimization patterns
-- Proper use of GitHub Actions features
-"""
-
-import re
-from pathlib import Path
-from typing import Any, Dict, List
-
-import pytest
-"""Module to validate GitHub Actions workflow YAML files for syntax, duplicate keys, and required fields."""
 
 import yaml
+import pytest
+from pathlib import Path
+from typing import List
 
 
 class TestWorkflowYAMLSyntax:
@@ -65,6 +53,7 @@ class TestWorkflowYAMLSyntax:
                 content = f.read()
                 data = yaml.safe_load(content)
                 error = check_duplicates(data)
+                assert error is None, f"In {workflow_file}: {error}"
                 assert error is None, f"In {workflow_file}: {error}"
 
     def test_workflows_have_required_fields(self, workflow_files):

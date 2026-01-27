@@ -344,15 +344,15 @@ class TestWorkflowPermissionsHardening:
                         continue
                     # Skip local actions
                     if action.startswith('./') or action.startswith('.\\'):
-                                            continue
-                                        # Skip local actions and official actions pinned by ref without '@'
-                                        if '@' in action:
-                                            version = action.split('@', 1)[1]
-                                            # Enforce 40-character hex string (commit SHA)
-                                            assert re.match(r'^[a-f0-9]{40}$', version), (
-                                                f"Third-party action {action} in {workflow['path']} "
-                                                f"job '{job_name}' must be pinned to a commit SHA for security"
-                                            )
+                        continue
+                    # Skip local actions and official actions pinned by ref without '@'
+                    if '@' in action:
+                        version = action.split('@', 1)[1]
+                        # Enforce 40-character hex string (commit SHA)
+                        assert re.match(r'^[a-f0-9]{40}$', version), (
+                            f"Third-party action {action} in {workflow['path']} "
+                            f"job '{job_name}' must be pinned to a commit SHA for security"
+                        )
 
 
 class TestWorkflowSupplyChainSecurity:

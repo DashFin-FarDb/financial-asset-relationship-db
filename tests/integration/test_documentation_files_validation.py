@@ -13,16 +13,16 @@ import re
 from pathlib import Path
 
 for md_file in markdown_files:
-     content = md_file.read_text(encoding="utf-8")
-      code_blocks = code_block_pattern.findall(content)
+    content = md_file.read_text(encoding="utf-8")
+    code_blocks = code_block_pattern.findall(content)
 
-       if not code_blocks:
-            continue
+    if not code_blocks:
+        continue
 
-        empty_blocks = [lang for lang in code_blocks if not lang]
-        assert len(empty_blocks) < len(code_blocks) * 0.5, (
-            f"File {md_file.name} has too many code blocks without language identifiers"
-        )
+    empty_blocks = [lang for lang in code_blocks if not lang]
+    assert len(empty_blocks) < len(code_blocks) * 0.5, (
+        f"File {md_file.name} has too many code blocks without language identifiers"
+    )
 
 
 def test_markdown_tables_are_properly_formatted(

@@ -126,11 +126,12 @@ class TestDependencyWorkflowIntegration:
 """
 
 
-Integration tests for branch coherence and workflow validation.
+        """
+        Integration tests for branch coherence and workflow validation.
 
-This module contains tests to ensure GitHub workflows and branch changes
-adhere to project standards, avoid security issues, and maintain consistency.
-"""
+        This module contains tests to ensure GitHub workflows and branch changes
+        adhere to project standards, avoid security issues, and maintain consistency.
+        """
         for wf_file in workflow_dir.glob("*.yml"):
             try:
                 with open(wf_file, encoding="utf-8") as file_handle:

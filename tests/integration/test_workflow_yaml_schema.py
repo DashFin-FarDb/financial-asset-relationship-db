@@ -222,6 +222,7 @@ class TestWorkflowSecurity:
             "ghu_",
             "ghs_",
             "ghr_",
-                        warnings.warn(
-                            f"{workflow_file.name}: complex expression at line {line_num} lacks explanation: {match.group()}"
-                        )
+        ]
+        warnings.warn(
+            f"{workflow_file.name}: complex expression at line {line_num} lacks explanation: {match.group()}"
+        )

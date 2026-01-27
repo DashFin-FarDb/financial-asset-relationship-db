@@ -147,7 +147,6 @@ class TestPyYAMLAvailability:
     @staticmethod
     def test_pyyaml_can_parse_workflow_files():
         """Test that installed PyYAML can successfully parse workflow files."""
-
         workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(
             WORKFLOWS_DIR.glob("*.yaml")
         )

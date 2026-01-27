@@ -71,10 +71,8 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
                     # Normalize by joining with comma
                     version_spec = ",".join(specs)
                     requirements.append((pkg.strip(), version_spec))
-    except (FileNotFoundError, IOError) as e:
+    except IOError as e:
         raise AssertionError(f"Could not read requirements file: {file_path} ({e})")
-        version_spec = ",".join(specs)
-        requirements.append((pkg.strip(), version_spec))
 
     return requirements
 
@@ -82,20 +80,22 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 class TestRequirementsFileExists:
     """Test that requirements-dev.txt exists and is readable."""
 
-    def test_file_exists(self):
+    @staticmethod
+    def test_file_exists():
         """Test that requirements-dev.txt file exists."""
         assert REQUIREMENTS_FILE.exists()
 
-    def test_file_is_file(self):
+    @staticmethod
+    def test_file_is_file():
         """Test that the path is a file, not a directory."""
         assert REQUIREMENTS_FILE.is_file()
 
-    def test_file_is_readable(self):
+    @staticmethod
+    def test_file_is_readable():
         """Test that the file can be read."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             content = f.read()
             assert len(content) > 0
-
 
 class TestRequirementsFileFormat:
     """Test the format and structure of requirements-dev.txt."""
@@ -117,7 +117,8 @@ class TestRequirementsFileFormat:
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.readlines()
 
-    def test_file_encoding(self):
+    @staticmethod
+    def test_file_encoding():
         """Test that file uses UTF-8 encoding."""
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             f.read()
@@ -145,7 +146,8 @@ class TestRequiredPackages:
     """Test that required development packages are present."""
 
     @pytest.fixture
-    def requirements(self) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements() -> List[Tuple[str, str]]:
         """
         Load and parse the development requirements file into package/version tuples.
 
@@ -155,7 +157,8 @@ class TestRequiredPackages:
         return parse_requirements(REQUIREMENTS_FILE)
 
     @pytest.fixture
-    def package_names(self, requirements: List[Tuple[str, str]]) -> List[str]:
+    @staticmethod
+    def package_names(requirements: List[Tuple[str, str]]) -> List[str]:
         """
         Extract package names from parsed requirements.
 
@@ -200,7 +203,8 @@ class TestVersionSpecifications:
     """Test that version specifications are valid and reasonable."""
 
     @pytest.fixture
-    def requirements(self) -> List[Tuple[str, str]]:
+    @staticmethod
+    def requirements() -> List[Tuple[str, str]]:
         """
         Parse the development requirements file into a list of (package, version_spec) tuples.
 
@@ -267,7 +271,8 @@ class TestPackageConsistency:
     """Test consistency and relationships between packages."""
 
     @pytest.fixture
-    def package_names(self) -> List[str]:
+    @staticmethod
+    def package_names() -> List[str]:
         """
         Extracts package names from the parsed development requirements file.
 
@@ -364,22 +369,25 @@ class TestSpecificChanges:
         ]
         assert len(types_entries) == 1
 
-    def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
-        # Ensure expected baseline packages are still present after changes
-        package_names = [pkg for pkg, _ in requirements]
+    """Integration tests for development requirements to ensure baseline packages are preserved."""
 
-        expected_packages = [
-            "pytest",
-            "pytest-cov",
-            "flake8",
-            "black",
-            "mypy",
-            "PyYAML",
-            "types-PyYAML",
-        ]
+        def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
+            """Ensure that expected baseline packages are still present after changes."""
+            # Ensure expected baseline packages are still present after changes
+            package_names = [pkg for pkg, _ in requirements]
 
-        for expected_pkg in expected_packages:
-            assert expected_pkg in package_names
+            expected_packages = [
+                "pytest",
+                "pytest-cov",
+                "flake8",
+                "black",
+                "mypy",
+                "PyYAML",
+                "types-PyYAML",
+            ]
+
+            for expected_pkg in expected_packages:
+                assert expected_pkg in package_names
 
 
 class TestRequirementsFileFormatting:
@@ -530,7 +538,7 @@ class TestRequirementsPackageIntegrity:
         # This avoids substring matching issues (e.g., >= being counted as both >= and >)
         operator_counts = {">=": 0, "==": 0, "<=": 0, ">": 0, "<": 0, "~=": 0}
 
-        for pkg, version_spec in requirements:
+        for _, version_spec in requirements:
             if version_spec:
                 # Match operators followed by version numbers to avoid overlapping matches
                 # Pattern: operator followed by version (digits, dots, etc.)
@@ -585,7 +593,8 @@ class TestPyYAMLIntegration:
             "types-PyYAML should have version constraint >=6.0"
         )
 
-    def test_pyyaml_needed_for_workflow_tests(self):
+    @staticmethod
+    def test_pyyaml_needed_for_workflow_tests():
         """
         Verify PyYAML is declared in the development requirements and is importable for workflow validation tests.
 
@@ -611,5 +620,7 @@ class TestPyYAMLIntegration:
             )
         except ImportError:
             pytest.skip(
+                "PyYAML is not installed, skipping import test"
+            )
                 "PyYAML not installed in test environment (will be installed from requirements)"
             )

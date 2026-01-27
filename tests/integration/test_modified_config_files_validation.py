@@ -129,7 +129,8 @@ class TestWorkflowSimplifications:
     """Validate simplifications made to GitHub workflows."""
 
     @pytest.fixture
-    def workflows_dir(self) -> Path:
+    @staticmethod
+    def workflows_dir() -> Path:
         """Get workflows directory."""
         return Path(__file__).parent.parent.parent / ".github" / "workflows"
 
@@ -215,7 +216,8 @@ class TestDeletedFilesImpact:
     """Validate that deleted files are no longer referenced."""
 
     @pytest.fixture
-    def repo_root(self) -> Path:
+    @staticmethod
+    def repo_root() -> Path:
         """
         Locate the repository root directory.
 
@@ -275,7 +277,8 @@ class TestRequirementsDevChanges:
     """Validate changes to requirements-dev.txt."""
 
     @pytest.fixture
-    def req_dev_path(self) -> Path:
+    @staticmethod
+    def req_dev_path() -> Path:
         """
         Locate the repository's requirements-dev.txt file.
 
@@ -324,7 +327,8 @@ class TestGitignoreChanges:
     """Validate changes to .gitignore."""
 
     @pytest.fixture
-    def gitignore_path(self) -> Path:
+    @staticmethod
+    def gitignore_path() -> Path:
         """
         Get the Path to the repository root .gitignore file.
 
@@ -383,7 +387,8 @@ class TestCodacyInstructionsChanges:
     """Validate changes to Codacy instructions."""
 
     @pytest.fixture
-    def codacy_instructions_path(self) -> Path:
+    @staticmethod
+    def codacy_instructions_path() -> Path:
         """
         Compute the path to the repository's Codacy instructions file.
 
