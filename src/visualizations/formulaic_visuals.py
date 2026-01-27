@@ -121,7 +121,7 @@ class FormulaicVisualizer:
         )
 
         # 1. Formula Categories Pie Chart
-        categories = analysis_results.get("categories", {})
+        categories = self.analysis_results.get("categories", {})
         if categories:
             fig.add_trace(
                 go.Pie(
@@ -157,7 +157,7 @@ class FormulaicVisualizer:
 
         # 3. Empirical Correlation Heatmap
         #
-        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
+        correlation_matrix = self.empirical_relationships.get("correlation_matrix", {})
         if correlation_matrix:
             # Convert correlation matrix to heatmap format
             assets = list(
@@ -202,7 +202,7 @@ class FormulaicVisualizer:
             )
 
         # 4. Asset Class Relationships
-        asset_class_data = empirical_relationships.get("asset_class_relationships", {})
+        asset_class_data = self.empirical_relationships.get("asset_class_relationships", {})
         if asset_class_data:
             classes = list(asset_class_data.keys())
             asset_counts = [data["asset_count"] for data in asset_class_data.values()]
@@ -221,7 +221,7 @@ class FormulaicVisualizer:
             )
 
         # 5. Sector Analysis
-        sector_data = empirical_relationships.get("sector_relationships", {})
+        sector_data = self.empirical_relationships.get("sector_relationships", {})
         if sector_data:
             sectors = list(sector_data.keys())[:6]  # Limit to top 6 sectors
             sector_counts = [sector_data[sector]["asset_count"] for sector in sectors]
@@ -341,7 +341,7 @@ class FormulaicVisualizer:
             {corr["asset1"] for corr in strongest_correlations} | {corr["asset2"] for corr in strongest_correlations}
         )
         if not assets:
-            assets = list(G.nodes())
+            assets = list(correlation_matrix.keys())
         n_assets = len(assets)
         if n_assets == 0:
             positions = {}
@@ -403,11 +403,25 @@ class FormulaicVisualizer:
             hoverinfo="text",
         )
 
-        # Color nodes by degree
         node_adjacencies = []
         for _, adjacencies in enumerate(G.adjacency()):
             node_adjacencies.append(len(adjacencies[1]))
         node_trace.marker.color = node_adjacencies
+
+        edge_x = []
+        edge_y = []
+        for edge in G.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+        edge_trace = go.Scatter(
+            x=edge_x,
+            y=edge_y,
+            line=dict(width=0.5, color="#888"),
+            hoverinfo="none",
+            mode="lines",
+        )
 
         fig = go.Figure(
             data=[edge_trace, node_trace],
