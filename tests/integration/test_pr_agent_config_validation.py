@@ -274,7 +274,8 @@ class AssetUIController(FinancialAssetApp):
                 gr.update(value=str(e), visible=True),
             )
 
-     @staticmethod
+    @staticmethod
+    def _format_formula_summary(summary: Dict, results: Dict) -> str:
      def _format_formula_summary(summary: Dict, results: Dict) -> str:
          """Builds markdown summary of formulaic analysis."""
          lines = [
