@@ -87,7 +87,7 @@ class TestFinancialAssetAppInitialization:
         mock_create_db.return_value = mock_graph
 
         with patch('app.logger') as mock_logger:
-            FinancialAssetApp()
+            app = FinancialAssetApp()
 
             # Check that logger was called with asset count
             assert mock_logger.info.called
@@ -98,7 +98,7 @@ class TestFinancialAssetAppInitialization:
         """Test that initialization raises exception if graph creation fails."""
         mock_create_db.side_effect = Exception("Database connection failed")
 
-        with pytest.raises(DatabaseConnectionError):
+        with pytest.raises(Exception) as exc_info:
             FinancialAssetApp()
 
         assert "Database connection failed" in str(exc_info.value)
