@@ -551,7 +551,7 @@ class TestDeletedScriptFilesVerification:
     def test_scripts_directory_empty_or_gone(self):
         """Test that .github/scripts directory is empty or doesn't exist."""
         scripts_dir = Path(__file__).parent.parent.parent / ".github" / "scripts"
-        contents = list(scripts_dir.iterdir())
+        contents = list(scripts_dir.iterdir()) if scripts_dir.exists() else []
         # If it exists, should be empty or only contain __pycache__
         ignorable_names = {"__pycache__", ".DS_Store", ".gitkeep"}
         non_ignorable = [
