@@ -599,8 +599,6 @@ class TestEdgeCasesAndErrorHandling:
         assert row is not None
         assert row["username"] == "persistent"
 
-    assert row["username"] == "persistent"
-
     @staticmethod
     def test_multiple_memory_db_formats_detected_correctly(
         monkeypatch, restore_database_module
