@@ -66,8 +66,80 @@ class FormulaicVisualizer:
     def _plot_empirical_correlation(
         self, fig: go.Figure, empirical_relationships: Any
     ) -> None:
-        pass
+        """Populate the empirical correlation matrix heatmap in row 2, column 1."""
+        if not empirical_relationships:
+            # Nothing to plot if no empirical relationships are provided.
+            return
 
+        # Normalize empirical_relationships into a nested dict of the form:
+        # {row_label: {col_label: correlation_value}}
+        matrix: Dict[str, Dict[str, float]] = {}
+
+        if isinstance(empirical_relationships, dict):
+            # Case 1: already a nested dict {asset_i: {asset_j: value}}
+            is_nested = all(
+                isinstance(v, dict) for v in empirical_relationships.values()
+            )
+            if is_nested:
+                matrix = {
+                    str(row): {str(col): float(val) for col, val in cols.items()}
+                    for row, cols in empirical_relationships.items()
+                }
+            else:
+                # Case 2: flat dict with pair-like keys, e.g. (a, b) or "a|b"
+                for key, value in empirical_relationships.items():
+                    if isinstance(key, tuple) and len(key) == 2:
+                        row_label, col_label = map(str, key)
+                    elif isinstance(key, str) and "|" in key:
+                        row_label, col_label = key.split("|", 1)
+                        row_label, col_label = row_label.strip(), col_label.strip()
+                    else:
+                        # Skip keys we don't know how to interpret safely.
+                        continue
+
+                    row_entry = matrix.setdefault(row_label, {})
+                    try:
+                        row_entry[col_label] = float(value)
+                    except (TypeError, ValueError):
+                        # Ignore non-numeric correlations.
+                        continue
+
+        if not matrix:
+            # If we still have no usable data, nothing to draw.
+            return
+
+        # Collect sorted labels for stable ordering.
+        row_labels = sorted(matrix.keys())
+        col_label_set = set()
+        for cols in matrix.values():
+            col_label_set.update(cols.keys())
+        col_labels = sorted(col_label_set)
+
+        if not row_labels or not col_labels:
+            return
+
+        # Build the 2D correlation matrix, defaulting missing entries to 0.0.
+        z = []
+        for row_label in row_labels:
+            row_values = []
+            cols = matrix.get(row_label, {})
+            for col_label in col_labels:
+                value = cols.get(col_label, 0.0)
+                row_values.append(value)
+            z.append(row_values)
+
+        heatmap = go.Heatmap(
+            z=z,
+            x=col_labels,
+            y=row_labels,
+            colorscale="RdBu",
+            reversescale=True,
+            zmid=0,
+            colorbar=dict(title="Correlation"),
+        )
+
+        # Row 2, column 1 is specified as the "Empirical Correlation Matrix" heatmap.
+        fig.add_trace(heatmap, row=2, col=1)
     def _plot_asset_class_relationships(self, fig: go.Figure, formulas: Any) -> None:
         pass
 
