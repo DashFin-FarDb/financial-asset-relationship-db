@@ -521,7 +521,7 @@ class TestUriMemoryDatabaseIntegration:
 
         assert database._is_memory_db(uri) is True
 
-    @ staticmethod
+    @staticmethod
     def test_uri_memory_database_persists_across_connections(monkeypatch, restore_database_module):
         """Test that URI memory databases can persist across connections when properly configured."""
         # When using :memory: directly, it should use our shared connection logic
