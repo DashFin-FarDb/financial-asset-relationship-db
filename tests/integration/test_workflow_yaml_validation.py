@@ -212,8 +212,8 @@ class TestGreetingsWorkflow:
 class TestLabelerWorkflow:
     """Test the label workflow specifically."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def labeler_workflow() -> Dict[str, Any]:
         """Load the labeler workflow."""
         workflow_path = (
