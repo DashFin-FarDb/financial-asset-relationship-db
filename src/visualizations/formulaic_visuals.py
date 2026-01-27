@@ -129,7 +129,10 @@ class FormulaicVisualizer:
                     values=list(categories.values()),
                     hole=0.4,
                     marker=dict(
-                        colors=[self.color_scheme.get(cat, "#CCCCCC") for cat in categories.keys()],
+                        colors=[
+                            self.color_scheme.get(cat, "#CCCCCC")
+                            for cat in categories.keys()
+                        ],
                     ),
                     textinfo="label+percent",
                     textposition="auto",
@@ -140,9 +143,15 @@ class FormulaicVisualizer:
 
         # 2. Formula Reliability Bar Chart
         if formulas:
-            formula_names = [f.name[:20] + "..." if len(f.name) > 20 else f.name for f in formulas]
+            formula_names = [
+                f.name[:20] + "..." if len(f.name) > 20 else f.name
+                for f in formulas
+            ]
             r_squared_values = [f.r_squared for f in formulas]
-            colors = [self.color_scheme.get(f.category, "#CCCCCC") for f in formulas]
+            colors = [
+                self.color_scheme.get(f.category, "#CCCCCC")
+                for f in formulas
+            ]
 
             fig.add_trace(
                 go.Bar(
@@ -155,6 +164,7 @@ class FormulaicVisualizer:
                 ),
                 row=1,
                 col=2,
+            )
             )
 
         # 3. Empirical Correlation Heatmap

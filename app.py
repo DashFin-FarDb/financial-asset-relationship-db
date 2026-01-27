@@ -164,28 +164,27 @@ class FinancialAssetApp:
         return self.graph
 
     @staticmethod
-    def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
+    def _update_metrics_text(self, graph: AssetRelationshipGraph) -> str:
         """Generates the formatted text for network statistics."""
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
             total_relationships=metrics["total_relationships"],
-            average_relationship_strength=(metrics["average_relationship_strength"]),
+            average_relationship_strength=metrics["average_relationship_strength"],
             relationship_density=metrics["relationship_density"],
             regulatory_event_count=metrics["regulatory_event_count"],
             asset_class_distribution=json.dumps(
                 metrics["asset_class_distribution"], indent=2
             ),
         )
+        idx = None
+        s = None
+        t = None
+        rel = None
+        strength = None
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
-            text += f"{idx}. {s} 1920r {t} ({rel}): {strength:.1%}\n"
+            text += f"{idx}. {s} 1920r {t} ({rel}): {strength:.1%}\n"
         return text
-
-        f"{idx}. {s} → {t} ({rel}): {strength:.1%}\n"
-        """Updates all metric-related visualizations and text."""
-        f1, f2, f3 = visualize_metrics(graph)
-        text = self._update_metrics_text(graph)
-        return f1, f2, f3, text
 
     @staticmethod
     def update_asset_info(

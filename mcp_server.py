@@ -126,7 +126,11 @@ def main(argv: list[str] | None = None) -> int:
         # Provide a clear message for missing optional dependency
         # when invoked via the CLI.
         missing = getattr(e, "name", None) or str(e)
-        raise SystemExit(f"Missing dependency '{missing}'. " "Install the MCP package to run the server.") from e
+
+        raise SystemExit(
+            f"Missing dependency '{missing}'. "
+            "Install the MCP package to run the server."
+        ) from e
 
     mcp.run()
     return 0

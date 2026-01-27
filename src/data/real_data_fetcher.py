@@ -47,8 +47,8 @@ class RealDataFetcher:
             enable_network (bool):
                 Controls whether network access is permitted
                 for fetching live data.
-                When False, the fetcher will not attempt network calls
-                and will use the fallback dataset.
+                When False, the fetcher will not attempt network calls and will
+                use the fallback dataset.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -58,24 +58,28 @@ class RealDataFetcher:
     def create_real_database(self) -> AssetRelationshipGraph:
         """
         Create an AssetRelationshipGraph populated with real financial data.
-        Load from cache when available, otherwise fetch live data (if network
-        is enabled), and fall back to the provided factory or sample data on
-        network disablement or fetch failure.
-        Persist the freshly built graph to cache when possible.
+        Load from cache when available, otherwise fetch live data (if network is
+        enabled), and fall back to the provided factory or sample data on network
+        disablement or fetch failure. Persist the freshly built graph to cache when
+        possible.
 
         Returns:
-            graph (AssetRelationshipGraph): The constructed graph containing
-                assets, regulatory events and relationships.
+            graph (AssetRelationshipGraph): The constructed graph containing assets,
+                regulatory events and relationships.
         """
         if self.cache_path and self.cache_path.exists():
             try:
                 logger.info("Loading asset graph from cache at %s", self.cache_path)
                 return _load_from_cache(self.cache_path)
             except Exception:
-                logger.exception("Failed to load cached dataset; proceeding with standard fetch")
+                logger.exception(
+                    "Failed to load cached dataset; proceeding with standard fetch"
+                )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            logger.info(
+                "Network fetching disabled. Using fallback dataset if available."
+            )
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -106,24 +110,34 @@ class RealDataFetcher:
 
                 try:
                     cache_dir = os.path.dirname(self.cache_path)
-                    with tempfile.NamedTemporaryFile("wb", dir=cache_dir, delete=False) as tmp_file:
+                    with tempfile.NamedTemporaryFile(
+                        "wb", dir=cache_dir, delete=False
+                    ) as tmp_file:
                         tmp_path = tmp_file.name
                         _save_to_cache(graph, Path(tmp_path))
                     os.replace(tmp_path, self.cache_path)
                 except Exception:
-                    logger.exception("Failed to persist dataset cache to %s", self.cache_path)
+                    logger.exception(
+                        "Failed to persist dataset cache to %s",
+                        self.cache_path,
+                    )
 
             logger.info(
                 "Real database created with %s assets and %s relationships",
                 len(graph.assets),
-                sum(len(rels) for rels in graph.relationships.values()),
+                sum(
+                    len(rels)
+                    for rels in graph.relationships.values()
+                ),
             )
             return graph
 
         except Exception as e:
             logger.error("Failed to create real database: %s", e)
             # Fallback to sample data if real data fetch failure
-            logger.warning("Falling back to sample data due to real data fetch failure")
+            logger.warning(
+                "Falling back to sample data due to real data fetch failure"
+            )
             return self._fallback()
 
     def _fallback(self) -> AssetRelationshipGraph:
@@ -131,12 +145,16 @@ class RealDataFetcher:
         Selects a fallback AssetRelationshipGraph to use when real data cannot be
         fetched.
         If a `fallback_factory` was provided to the instance, this calls it and
-        returns its result; otherwise it constructs and returns the built-
-        in sample database.
+        returns its result; otherwise it constructs and returns the built-in sample
+        database.
 
         Returns:
             An `AssetRelationshipGraph` instance either from the provided
             fallback factory or from the module sample dataset.
+        """
+        if self.fallback_factory:
+            return self.fallback_factory()
+        return _load_sample_dataset()
         """
         if self.fallback_factory is not None:
             return self.fallback_factory()
@@ -237,7 +255,10 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=info.get("yield", 0.03),  # Default 3% if not available
+                    yield_to_maturity=info.get(
+                        "yield",
+                        0.03
+                    ),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
@@ -275,7 +296,11 @@ class RealDataFetcher:
 
                 # Calculate simple volatility from recent data
                 hist_week = ticker.history(period="5d")
-                volatility = float(hist_week["Close"].pct_change().std()) if len(hist_week) > 1 else 0.20
+                volatility = (
+                    float(hist_week["Close"].pct_change().std())
+                    if len(hist_week) > 1
+                    else 0.20
+                )
 
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
@@ -375,7 +400,10 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
+            description=(
+                "10-K Filing - Increased oil reserves and sustainability "
+                "initiatives"
+            ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -458,8 +486,14 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
               incoming relationships
     """
     return {
-        "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "assets": [
+            _serialize_dataclass(asset)
+            for asset in graph.assets.values()
+        ],
+        "regulatory_events": [
+            _serialize_dataclass(event)
+            for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
                 {
