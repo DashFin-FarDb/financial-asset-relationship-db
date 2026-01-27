@@ -271,18 +271,16 @@ class AssetUIController(FinancialAssetApp):
                 gr.update(value=str(e), visible=True),
             )
 
-    @staticmethod
-    def _format_formula_summary(summary: Dict, results: Dict) -> str:
-        """Builds markdown summary of formulaic analysis."""
-        lines = [
-            "**Formulaic Analysis Summary**",
-            f"Formulas: {len(results.get('formulas', []))}",
-            f"Avg R²: {summary.get('avg_r_squared', 0.0):.3f}",
-        ]
-        if insights := summary.get("key_insights"):
-            lines.append("\nKey Insights:")
-            lines.extend([f"- {i}" for i in insights[:3]])
-        return "\n".join(lines)
+     @staticmethod
+     def _format_formula_summary(summary: Dict, results: Dict) -> str:
+         """Builds markdown summary of formulaic analysis."""
+         lines = [
+             "**Formulaic Analysis Summary**",
+             f"Formulas: {len(results.get('formulas', []))}",
+             f"Avg R²: {summary.get('avg_r_squared', 0.0):.3f}",
+         ]
+         ...
+         return "\n".join(lines)
 
     def create_interface(self) -> gr.Blocks:
         """Constructs the Gradio UI."""
