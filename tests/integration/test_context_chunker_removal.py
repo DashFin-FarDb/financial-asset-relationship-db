@@ -221,7 +221,6 @@ class TestNoRegressionOfFixes:
             pytest.skip("PR agent workflow not found")
 
         class DuplicateKeyLoader(yaml.SafeLoader):
-            class DuplicateKeyLoader(yaml.SafeLoader):
                 """A YAML loader that raises an error when duplicate keys are encountered in mappings."""
 
                 def construct_mapping(self, node, deep=False):
