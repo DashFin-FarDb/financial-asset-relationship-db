@@ -411,7 +411,65 @@ class TestThreadSafety:
             thread.join()
 
         # No errors should have occurred
-        assert len(self.connections) == 10
+class TestThreadSafety:
+    """Tests for thread safety of memory database connections."""
+
+    def test_memory_connection_lock_prevents_race_condition(self, monkeypatch, restore_database_module):
+        """Ensure concurrent calls to _connect() for an in-memory DB return a single shared connection (no races during first-connection creation)."""
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+        reloaded_database = importlib.reload(database)
+
+        connections: list[object] = []
+        errors: list[BaseException] = []
+
+        def get_conn() -> None:
+            """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
+            try:
+                connections.append(reloaded_database._connect())
+            except BaseException as exc:  # pragma: no cover - surfaced via assertion below
+                errors.append(exc)
+
+        threads = [threading.Thread(target=get_conn) for _ in range(10)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert errors == []
+        assert len(connections) == 10
+        assert all(conn is connections[0] for conn in connections)
+
+    def test_concurrent_operations_on_memory_db(self, monkeypatch, restore_database_module):
+        """Test concurrent read/write operations on memory database."""
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+        reloaded_database = importlib.reload(database)
+        reloaded_database.initialize_schema()
+
+        errors: list[BaseException] = []
+
+        def write_user(user_id: int) -> None:
+            """Write a user's credentials to the memory database using a separate thread."""
+            try:
+                with reloaded_database.get_connection() as conn:
+                    conn.execute(
+                        "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+                        (f"user{user_id}", f"hash{user_id}"),
+                    )
+                    conn.commit()
+            except BaseException as exc:  # pragma: no cover - surfaced via assertion below
+                errors.append(exc)
+
+        threads = [threading.Thread(target=write_user, args=(i,)) for i in range(5)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert errors == []
+
+        with reloaded_database.get_connection() as conn:
+            count = conn.execute("SELECT COUNT(*) FROM user_credentials").fetchone()[0]
+            assert count == 5
         first = self.connections[0]
         assert all(conn is first for conn in self.connections)
         # Verify all users were inserted
