@@ -183,7 +183,7 @@ class FinancialAssetApp:
         rel = None
         strength = None
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
-            text += f"{idx}. {s} 1920r {t} ({rel}): {strength:.1%}\n"
+            text += f"{idx}. {s} → {t} ({rel}): {strength:.1%}\n"
         return text
 
     @staticmethod
