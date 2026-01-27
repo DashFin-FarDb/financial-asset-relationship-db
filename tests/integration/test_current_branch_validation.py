@@ -184,6 +184,7 @@ class TestPRAgentConfigSimplified:
 
     @staticmethod
     def test_config_version_downgraded() -> None:
+
     def test_config_version_uses_semantic_versioning() -> None:
         """PR agent config version should use semantic versioning."""
         config_path = Path(".github/pr-agent-config.yml")

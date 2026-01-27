@@ -30,7 +30,6 @@ class ValidationResult:
         self.workflow_data = workflow_data
 
 
-
     """
     Validate a workflow YAML file at the given filesystem path.
 
