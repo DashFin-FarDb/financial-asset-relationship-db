@@ -320,7 +320,6 @@ class AssetUIController(FinancialAssetApp):
 
             # Event Handlers
             refresh_btn.click(
-                outputs=[f_dash, f_corr, f_comp, formula_dropdown, f_sum, error_box],
                 inputs=[graph_state],
                 outputs=[
                     viz_plot,
@@ -331,7 +330,6 @@ class AssetUIController(FinancialAssetApp):
                     error_box,
                     error_box,
                     error_box,
-                ],
                 ],
             )
 
