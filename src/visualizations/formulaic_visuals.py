@@ -436,49 +436,49 @@ class FormulaicVisualizer:
             hoverinfo="text",
         )
 
-    node_adjacencies = []
-    for _, adjacencies in enumerate(self.G.adjacency()):
-        node_adjacencies.append(len(adjacencies[1]))
-    node_trace.marker.color = node_adjacencies
+        node_adjacencies = []
+        for _, adjacencies in enumerate(self.G.adjacency()):
+            node_adjacencies.append(len(adjacencies[1]))
+        node_trace.marker.color = node_adjacencies
+        edge_traces.append(node_trace)
 
-    edge_x = []
-    edge_y = []
-    for edge in self.G.edges():
-        x0, y0 = self.pos[edge[0]]
-        x1, y1 = self.pos[edge[1]]
-        edge_x.extend([x0, x1, None])
-        edge_y.extend([y0, y1, None])
-    edge_trace = go.Scatter(
-        x=edge_x,
-        y=edge_y,
-        line=dict(width=0.5, color="#888"),
-        hoverinfo="none",
-        mode="lines",
-    )
+        edge_x = []
+        edge_y = []
+    def create_correlation_network_graph(self) -> go.Figure:
+        for edge in self.G.edges():
+            x0, y0 = self.pos[edge[0]]
+            x1, y1 = self.pos[edge[1]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+        edge_trace = go.Scatter(
+            x=edge_x,
+            y=edge_y,
+            line=dict(width=0.5, color="#888"),
+            hoverinfo="none",
+            mode="lines",
+        )
 
-    fig = go.Figure(
-        data=[edge_trace, node_trace],
-        layout=go.Layout(
-            title="Correlation Network Graph",
-            titlefont_size=16,
-            showlegend=False,
-            hovermode="closest",
-            margin=dict(b=20, l=5, r=5, t=40),
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        ),
-    )
-    return fig
+        fig = go.Figure(
+            data=[edge_trace, node_trace],
+            layout=go.Layout(
+                title="Correlation Network Graph",
+                titlefont_size=16,
+                showlegend=False,
+                hovermode="closest",
+                margin=dict(b=20, l=5, r=5, t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            ),
+        )
+        return fig
 
-    def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
+    def create_metric_comparison_chart(self, analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
-        fig = go.Figure()
-
         # Example logic: Compare theoretical vs empirical values if available
         # For now, we plot R-squared distribution by category
         formulas = analysis_results.get("formulas", [])
         if not formulas:
-            return fig
+            return go.Figure()
 
         categories = {}
         for f in formulas:
