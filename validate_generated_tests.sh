@@ -48,8 +48,8 @@ echo "2. Checking TypeScript Test Syntax..."
     fi
 )
     fi
-)
-
+echo "   TypeScript Tests:"
+echo "   - api-refactoring.test.ts: $(grep -E -c '\b(it|test)\s*\(['\''"`]' frontend/__tests__/lib/api-refactoring.test.ts) test methods"
 echo ""
 echo "3. Test File Statistics..."
 
