@@ -398,7 +398,6 @@ class TestThreadSafety:
         except Exception as exc:  # pragma: no cover - surfaced via assertion below
             errors.append(exc)
 
-
     threads = [
         threading.Thread(target=write_user, args=(i,))
         for i in range(5)
@@ -513,19 +512,19 @@ class TestEdgeCasesAndErrorHandling:
         assert row[0] == "bob"
         assert row[1] == "bob@example.com"
 
-
-    @ staticmethod
+    @staticmethod
     """Integration tests for URI-style memory databases."""
 
-    @ staticmethod
+    @staticmethod
     def test_uri_memory_database_with_cache_shared(monkeypatch, restore_database_module):
         """Test URI memory database with cache=shared parameter."""
         # Note: This tests the detection logic; actual URI handling depends on SQLite build
         uri = "file::memory:?cache=shared"
-    @staticmethod
-        assert database._is_memory_db(uri) is True
 
-    @ staticmethod
+    @staticmethod
+    assert database._is_memory_db(uri) is True
+
+    @staticmethod
     def test_uri_memory_database_persists_across_connections(monkeypatch, restore_database_module):
         """Test that URI memory databases can persist across connections when properly configured."""
         # When using :memory: directly, it should use our shared connection logic
@@ -548,10 +547,11 @@ class TestEdgeCasesAndErrorHandling:
                 "SELECT username FROM user_credentials WHERE username = ?",
                 ("persistent",),
             ).fetchone()
-    @staticmethod
-            assert row["username"] == "persistent"
 
-    @ staticmethod
+    @staticmethod
+    assert row["username"] == "persistent"
+
+    @staticmethod
     def test_multiple_memory_db_formats_detected_correctly(monkeypatch, restore_database_module):
         """Test that various memory database format variations are detected correctly."""
         memory_formats = [
