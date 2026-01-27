@@ -44,7 +44,9 @@ class TestYAMLSyntaxAndStructure:
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
         """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(
+            Path(".github").rglob("*.yaml")
+        )
         indentation_errors = []
 
         for yaml_file in yaml_files:
@@ -95,7 +97,9 @@ class TestYAMLSyntaxAndStructure:
 
             # Reset flags per file (handled by reinitialization each loop)
 
-        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
+            indentation_errors
+        )
 
     def test_no_duplicate_keys_in_yaml(self):
         """
@@ -106,9 +110,13 @@ class TestYAMLSyntaxAndStructure:
         try:
             from ruamel.yaml import YAML
         except ImportError:
-            pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
+            pytest.skip(
+                "ruamel.yaml not installed; skip strict duplicate key detection"
+            )
 
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(
+            Path(".github").rglob("*.yaml")
+        )
         parser = YAML(typ="safe")
         parse_errors = []
         for yaml_file in yaml_files:
@@ -118,7 +126,9 @@ class TestYAMLSyntaxAndStructure:
             except Exception as e:
                 parse_errors.append(f"{yaml_file}: {e}")
 
-        assert not parse_errors, "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+        assert not parse_errors, (
+            "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+        )
 
 
 class TestWorkflowSchemaCompliance:
@@ -148,10 +158,14 @@ class TestWorkflowSchemaCompliance:
         checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
-                assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
+                assert key in workflow["content"], (
+                    f"Workflow {workflow['path']} missing required key: {key}"
+                )
             unique_versions = set(checkout_versions.values())
             # Allow v3 and v4, but should be mostly consistent
-            assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
+            assert len(unique_versions) <= 2, (
+                f"Too many different checkout versions: {checkout_versions}"
+            )
 
 
 class TestDefaultValueHandling:
@@ -192,8 +206,12 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(timeout, int), f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    assert 1 <= timeout <= 360, f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    assert isinstance(timeout, int), (
+                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    )
+                    assert 1 <= timeout <= 360, (
+                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    )
 
 
 if __name__ == "__main__":
