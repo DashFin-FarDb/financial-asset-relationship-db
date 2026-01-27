@@ -194,12 +194,8 @@ class TestWorkflowActions:
         for job_name, job_config in jobs.items():
             steps = job_config.get("steps", [])
 
-            for idx, step in enumerate(steps):
-                if "uses" in step:
-                    action = step["uses"]
-                    # Local actions (starting with ./) don't need version tags
-                    if action.startswith("./"):
-                        continue
+if action.startswith(("./", ".github/")):
+    continue
                     # Action should have a version tag (e.g., @v1, @v3.5.2, or @<commit-sha>)
                     assert "@" in action, (
                         f"Step {idx} in job '{job_name}' of {workflow_file.name} "
