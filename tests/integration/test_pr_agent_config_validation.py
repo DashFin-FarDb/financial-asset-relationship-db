@@ -6,7 +6,7 @@ Optimized for Python 3.12+ with standard linting and formatting.
 import json
 import logging
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, Optional, Tuple
 
 import gradio as gr
 import plotly.graph_objects as go
