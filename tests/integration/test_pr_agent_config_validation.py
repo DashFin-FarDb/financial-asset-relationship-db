@@ -226,16 +226,18 @@ class TestPRAgentConfigSecurity:
         def _detect_issue(s: str) -> str | None:
             """Detects the type of credential issue in a string.
 
-           Returns:
-                "inline_creds" if inline credentials pattern is matched,
-                "secret_marker" if the string starts or ends with known secret markers,
-                "entropy" if the string has high entropy,
-                None if no issue is found.
+            Returns:
+                 "inline_creds" if inline credentials pattern is matched,
+                 "secret_marker" if the string starts or ends with known secret markers,
+                 "entropy" if the string has high entropy,
+                 None if no issue is found.
             """
             if inline_creds_re.match(s):
                 return "inline_creds"
             lower_s = s.lower()
-            if any(lower_s.startswith(m) or lower_s.endswith(m) for m in secret_markers):
+            if any(
+                lower_s.startswith(m) or lower_s.endswith(m) for m in secret_markers
+            ):
                 return "secret_marker"
             if has_high_entropy(s):
                 return "entropy"
