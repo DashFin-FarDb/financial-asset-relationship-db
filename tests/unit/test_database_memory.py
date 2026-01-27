@@ -388,7 +388,6 @@ class TestThreadSafety:
 
 
         errors = []
-
         def write_user(user_id):
             """Write a user's credentials to the memory database using a separate thread."""
             try:
