@@ -29,14 +29,6 @@ class AppConstants:
     # ...
 
 
-class FinancialAssetApp:
-    # ... application logic ...
-
-
-class AssetUIController(FinancialAssetApp):
-    # ... UI logic ...
-
-
 if __name__ == "__main__":
     app_inst = AssetUIController()
     app_inst.create_interface().launch()
