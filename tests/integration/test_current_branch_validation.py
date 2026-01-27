@@ -184,8 +184,6 @@ class TestPRAgentConfigSimplified:
 
     from pathlib import Path
 
-import yaml
-
 
 class TestConfigValidation:
     @staticmethod
@@ -247,14 +245,14 @@ class TestConfigValidation:
 class TestDocumentationConsistency:
     """Tests ensuring documentation matches current functionality."""
 
-    @ staticmethod
+    @staticmethod
     def test_summary_files_exist() -> None:
         """Summary documentation files must exist and be non-empty."""
         summary_path = Path("COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md")
         assert summary_path.is_file()
         assert summary_path.stat().st_size > 0
 
-    @ staticmethod
+    @staticmethod
     def test_no_misleading_documentation() -> None:
         """Documentation should not present removed features as active."""
         readme = Path("README.md")
@@ -264,4 +262,6 @@ class TestDocumentationConsistency:
                 content = handle.read().lower()
 
             # Historical mentions are acceptable
-            assert "chunking" not in content, "Removed feature 'chunking' should not be mentioned in README.md"
+            assert "chunking" not in content, (
+                "Removed feature 'chunking' should not be mentioned in README.md"
+            )
