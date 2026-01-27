@@ -334,65 +334,6 @@ class FormulaicVisualizer:
             strongest_correlations,
             correlation_matrix,
         )
-                color = "lightgray"
-                width = 2
-
-            edge_traces.append(
-                go.Scatter(
-                    x=[x0, x1, None],
-                    y=[y0, y1, None],
-                    mode="lines",
-                    line=dict(color=color, width=width),
-                    hoverinfo="none",
-                    showlegend=False,
-                )
-            )
-
-        # Create node trace
-        node_x = [positions[asset][0] for asset in assets]
-        node_y = [positions[asset][1] for asset in assets]
-        node_text = assets
-
-        node_trace = go.Scatter(
-            x=node_x,
-            y=node_y,
-            mode="markers+text",
-            text=node_text,
-            textposition="top center",
-            marker=dict(
-                showscale=True,
-                colorscale="YlGnBu",
-                size=10,
-                colorbar=dict(
-                    thickness=15,
-                    title="Node Connections",
-                    xanchor="left",
-                    titleside="right",
-                ),
-                line_width=2,
-            ),
-            hoverinfo="text",
-        )
-
-        # Color nodes by degree
-        node_adjacencies = []
-        for _, adjacencies in enumerate(G.adjacency()):
-            node_adjacencies.append(len(adjacencies[1]))
-        node_trace.marker.color = node_adjacencies
-
-        fig = go.Figure(
-            data=[edge_trace, node_trace],
-            layout=go.Layout(
-                title="Correlation Network Graph",
-                titlefont_size=16,
-                showlegend=False,
-                hovermode="closest",
-                margin=dict(b=20, l=5, r=5, t=40),
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            ),
-        )
-        return fig
 
     @staticmethod
     def create_metric_comparison_chart(analysis_results: Dict[str, Any]) -> go.Figure:
