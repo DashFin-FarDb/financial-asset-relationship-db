@@ -391,15 +391,13 @@ class TestThreadSafety:
         reloaded_database = importlib.reload(database)
 
         connections: list[object] = []
-        errors: list[BaseException] = []
+        errors: list[Exception] = []
 
         def get_conn() -> None:
             """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
             try:
                 connections.append(reloaded_database._connect())
-            except (
-                BaseException
-            ) as exc:  # pragma: no cover - surfaced via assertion below
+            except Exception as exc:  # pragma: no cover - surfaced via assertion below
                 errors.append(exc)
 
         threads = [threading.Thread(target=get_conn) for _ in range(10)]
