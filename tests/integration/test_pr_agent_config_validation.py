@@ -26,7 +26,7 @@ from src.visualizations.metric_visuals import visualize_metrics
 # ... other imports for a new app ...
 
 
-if __name__ == "__main__":
+# Move this after class definitions or define AssetUIController first
     app_inst = AssetUIController()
     app_inst.create_interface().launch()
 
