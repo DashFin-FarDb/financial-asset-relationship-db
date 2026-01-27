@@ -69,7 +69,7 @@ class TestDeletedContextChunker:
             lines_with_term = [
                 line
                 for line in content.splitlines()
-                if term in line and not line.strip().startsWith("#")
+                if term in line and not line.strip().startswith("#")
             ]
 
             assert not lines_with_term, (
