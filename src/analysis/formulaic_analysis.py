@@ -391,7 +391,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _calculate_empirical_relationships(
-        graph: AssetRelationshipGraph
+        graph: AssetRelationshipGraph,
     ) -> Dict[str, Any]:
         """
         Stub for calculating empirical relationships between assets.

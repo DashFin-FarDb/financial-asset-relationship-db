@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import importlib
 import os
+import threading
 from typing import Iterator
 
 import pytest
-import threading
 
 import api.database as database
 
@@ -359,7 +359,6 @@ class TestGetConnectionWithMemoryDb:
         try:
             monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}")
             reloaded_database = importlib.reload(database)
-
 
             reloaded_database.initialize_schema()
 
