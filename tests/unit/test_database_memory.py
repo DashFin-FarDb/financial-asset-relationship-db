@@ -383,21 +383,24 @@ class TestThreadSafety:
         reloaded_database = importlib.reload(database)
 
         reloaded_database.initialize_schema()
+    # Shared list to collect connections in concurrency tests
+    connections = []
+
 
         errors = []
 
         def write_user(user_id):
             """Write a user's credentials to the memory database using a separate thread."""
             try:
+        reloaded_database = importlib.reload(database)
                 with reloaded_database.get_connection() as conn:
-                    conn.execute(
-                        "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
+        # Reset connections before running the test
+        self.connections = []
                         (f"user{user_id}", f"hash{user_id}"),
+        def get_conn():
+            """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
+            self.connections.append(reloaded_database._connect())
                     )
-                    conn.commit()
-            except Exception as e:
-                errors.append(e)
-
         # Create multiple threads writing concurrently
         threads = [threading.Thread(target=write_user, args=(i,)) for i in range(5)]
 
@@ -408,8 +411,9 @@ class TestThreadSafety:
             thread.join()
 
         # No errors should have occurred
-        assert len(errors) == 0
-
+        assert len(self.connections) == 10
+        first = self.connections[0]
+        assert all(conn is first for conn in self.connections)
         # Verify all users were inserted
         with reloaded_database.get_connection() as conn:
             count = conn.execute("SELECT COUNT(*) FROM user_credentials").fetchone()[0]
