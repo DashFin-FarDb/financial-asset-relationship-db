@@ -130,9 +130,7 @@ class TestDeletedLabelerConfig:
 
     def test_labeler_yml_deleted(self) -> None:
         """Labeler configuration file should be deleted."""
-        assert not Path(".github/labeler.yml").exists(), (
-            "labeler.yml should be deleted"
-        )
+        assert not Path(".github/labeler.yml").exists(), "labeler.yml should be deleted"
 
     def test_label_workflow_still_functional(self) -> None:
         """Label workflow should exist and be valid YAML."""
