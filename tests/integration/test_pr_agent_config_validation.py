@@ -117,7 +117,8 @@ class FinancialAssetApp:
     """Main application logic for the Asset Database."""
 
     def __init__(self) -> None:
-        self.graph: Optional[AssetRelationshipGraph] = None
+from typing import Optional, Tuple, Dict, Any
+from dataclasses import asdict
         self._initialize_graph()
 
     def _initialize_graph(self) -> None:
