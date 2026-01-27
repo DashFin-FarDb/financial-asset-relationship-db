@@ -296,7 +296,10 @@ class TestPRAgentConfigSecurity:
                 for key, val in obj.items():
                     if any(marker in key.lower() for marker in secret_markers):
                         val_stripped = str(val).strip()
-                        if not (val_stripped.startswith("{{") and val_stripped.endswith("}}")):
+                        if not (
+                            val_stripped.startswith("{{")
+                            and val_stripped.endswith("}}")
+                        ):
                             suspected.append(("unsafe_key", f"{key}: {val}"))
                     scan_config(val, f"{path}.{key}" if path else key, suspected)
             elif isinstance(obj, list):
@@ -362,14 +365,17 @@ class TestPRAgentConfigSecurity:
                     lower_key = str(k).lower() if isinstance(k, str) else ""
                     if any(marker in lower_key for marker in secret_markers):
                         # Ensure sensitive keys use safe placeholders
-                        if not (
-                            isinstance(v, str)
-                            and (
-                                v.startswith("{{")
-                                and v.endswith("}}")
-                                or v in {"null", "none", "placeholder", "***"}
+                        if (
+                            not (
+                                isinstance(v, str)
+                                and (
+                                    v.startswith("{{")
+                                    and v.endswith("}}")
+                                    or v in {"null", "none", "placeholder", "***"}
+                                )
                             )
-                        ) and v is not None:
+                            and v is not None
+                        ):
                             pytest.fail(
                                 f"Sensitive key '{k}' at '{path}.{k}' must use a safe placeholder, got: {v}"
                             )
