@@ -282,7 +282,7 @@ class AssetUIController(FinancialAssetApp):
             with gr.Tabs():
                 with gr.Tab("🌐 Network"):
                     with gr.Row():
-                        layout = gr.Radio(
+                        gr.Radio(
                             ["spring", "circular"], label="2D Layout", visible=False
                         )
                     # Mapping filters to a dict for easy passing
