@@ -139,8 +139,8 @@ class TestWorkflowYAMLSyntax:
 class TestGreetingsWorkflow:
     """Test the greetings workflow specifically."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def greetings_workflow() -> Dict[str, Any]:
         """Load the greetings workflow."""
         workflow_path = (
