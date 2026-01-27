@@ -10,6 +10,7 @@ This module tests all API endpoints including:
 - Error handling and edge cases
 """
 
+from unittest.mock import PropertyMock
 from unittest.mock import patch
 
 import pytest
@@ -281,16 +282,17 @@ class TestAssetsEndpoint:
         assert equity["additional_fields"]["pe_ratio"] == 25.5
 
     @patch("api.main.graph")
-    def test_assets_error_handling(self, mock_graph_instance, client):
-        """Test error handling in assets endpoint."""
-        # Make graph.assets raise exception
-        type(mock_graph_instance).assets = property(
-            lambda self: (_ for _ in ()).throw(Exception("Database error"))
-        )
+def test_assets_error_handling(self, mock_graph_instance, client):
+    """Test error handling in assets endpoint."""
+    # Make graph.assets raise an exception when accessed
+    type(mock_graph_instance).assets = PropertyMock(
+        side_effect=Exception("Database error")
+    )
 
-        response = client.get("/api/assets")
-        assert response.status_code == 500
-        assert "detail" in response.json()
+    response = client.get("/api/assets")
+
+    assert response.status_code == 500
+    assert "detail" in response.json()
 
 
 class TestAssetDetailEndpoint:
