@@ -199,7 +199,15 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     @staticmethod
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
-        """Update an AssetORM instance with data from an Asset model, resetting optional fields to prevent stale values."""
+        """
+        Populate an existing AssetORM row from an Asset (or subclass) instance.
+
+        This method always updates the common Asset fields (id/symbol/name/class/sector/price/etc.).
+        It also clears and repopulates optional, asset-class-specific columns by reading attributes
+        from `asset` via `getattr(..., None)` so that missing attributes are written as NULL.
+        This prevents stale values from remaining in the database when an asset's type/available
+        fields change between updates.
+        """
         orm.symbol = asset.symbol
         orm.name = asset.name
         orm.asset_class = asset.asset_class.value
