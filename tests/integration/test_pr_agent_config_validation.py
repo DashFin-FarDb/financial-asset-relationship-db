@@ -138,13 +138,17 @@ class FinancialAssetApp:
             average_relationship_strength=metrics["average_relationship_strength"],
             relationship_density=metrics["relationship_density"],
             regulatory_event_count=metrics["regulatory_event_count"],
-            asset_class_distribution=json.dumps(metrics["asset_class_distribution"], indent=2),
+            asset_class_distribution=json.dumps(
+                metrics["asset_class_distribution"], indent=2
+            ),
         )
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
             text += f"{idx}. {s} → {t} ({rel}): {strength:.1%}\n"
         return text
 
-    def update_all_metrics_outputs(self, graph: AssetRelationshipGraph) -> Tuple[go.Figure, go.Figure, go.Figure, str]:
+    def update_all_metrics_outputs(
+        self, graph: AssetRelationshipGraph
+    ) -> Tuple[go.Figure, go.Figure, go.Figure, str]:
         """Generates all metric charts and summary text."""
         f1, f2, f3 = visualize_metrics(graph)
         text = self._update_metrics_text(graph)
@@ -168,7 +172,10 @@ class AssetUIController(FinancialAssetApp):
         asset_dict["asset_class"] = asset.asset_class.value
 
         def get_rels(rel_map: Dict) -> Dict:
-            return {tid: {"type": rtype, "strength": strg} for tid, rtype, strg in rel_map.get(selected_asset, [])}
+            return {
+                tid: {"type": rtype, "strength": strg}
+                for tid, rtype, strg in rel_map.get(selected_asset, [])
+            }
 
         return asset_dict, {
             "outgoing": get_rels(graph.relationships),
@@ -208,7 +215,9 @@ class AssetUIController(FinancialAssetApp):
                 gr.update(value=f"Error: {e}", visible=True),
             )
 
-    def refresh_visualization(self, graph_state: AssetRelationshipGraph, **kwargs) -> Tuple:
+    def refresh_visualization(
+        self, graph_state: AssetRelationshipGraph, **kwargs
+    ) -> Tuple:
         """Filters and updates the 2D or 3D network plot."""
         try:
             graph = graph_state or self.ensure_graph()
@@ -222,7 +231,9 @@ class AssetUIController(FinancialAssetApp):
             LOGGER.exception("Viz Error")
             return go.Figure(), gr.update(value=str(e), visible=True)
 
-    def generate_formulaic_analysis(self, graph_state: Optional[AssetRelationshipGraph]) -> Tuple:
+    def generate_formulaic_analysis(
+        self, graph_state: Optional[AssetRelationshipGraph]
+    ) -> Tuple:
         """Performs mathematical relationship extraction."""
         try:
             graph = graph_state or self.ensure_graph()
@@ -232,7 +243,9 @@ class AssetUIController(FinancialAssetApp):
 
             return (
                 visualizer.create_formula_dashboard(results),
-                visualizer.create_correlation_network(results.get("empirical_relationships", {})),
+                visualizer.create_correlation_network(
+                    results.get("empirical_relationships", {})
+                ),
                 visualizer.create_metric_comparison_chart(results),
                 gr.update(choices=[f.name for f in results.get("formulas", [])]),
                 self._format_formula_summary(results.get("summary", {}), results),
@@ -269,11 +282,15 @@ class AssetUIController(FinancialAssetApp):
             with gr.Tabs():
                 with gr.Tab("🌐 Network"):
                     with gr.Row():
-                        gr.Radio(["spring", "circular"], label="2D Layout", visible=False)
+                        gr.Radio(
+                            ["spring", "circular"], label="2D Layout", visible=False
+                        )
                     # Mapping filters to a dict for easy passing
                     filters = {
                         "show_same_sector": gr.Checkbox(label="Sector", value=True),
-                        "show_correlation": gr.Checkbox(label="Correlation", value=True),
+                        "show_correlation": gr.Checkbox(
+                            label="Correlation", value=True
+                        ),
                         "show_regulatory": gr.Checkbox(label="Regulatory", value=True),
                     }
                     viz_plot = gr.Plot()
