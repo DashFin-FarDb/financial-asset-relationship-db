@@ -182,9 +182,13 @@ class TestRequirementsDevUpdates:
 class TestPRAgentConfigSimplified:
     """Tests covering PR agent configuration simplification."""
 
-    @staticmethod
-    def test_config_version_downgraded() -> None:
+    from pathlib import Path
 
+import yaml
+
+
+class TestConfigValidation:
+    @staticmethod
     def test_config_version_uses_semantic_versioning() -> None:
         """PR agent config version should use semantic versioning."""
         config_path = Path(".github/pr-agent-config.yml")
@@ -192,6 +196,7 @@ class TestPRAgentConfigSimplified:
 
         version = data.get("agent", {}).get("version")
         assert isinstance(version, str)
+
         parts = version.split(".")
         assert len(parts) == 3
         assert all(part.isdigit() for part in parts)
@@ -214,8 +219,7 @@ class TestPRAgentConfigSimplified:
         for workflow_file in workflow_files:
             with open(workflow_file, "r", encoding="utf-8") as handle:
                 content = handle.read()
-                handle.seek(0)
-                data = yaml.safe_load(handle) or {}
+                data = yaml.safe_load(content) or {}
 
             for uses in _iter_uses_values(data):
                 if not uses.startswith("./"):
@@ -232,7 +236,6 @@ class TestPRAgentConfigSimplified:
                     assert any(
                         (target / name).exists()
                         for name in ("action.yml", "action.yaml", "Dockerfile")
-                    )
                     )
                 else:
                     assert target.suffix in {".yml", ".yaml"}
