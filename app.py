@@ -601,6 +601,15 @@ class FinancialAssetApp(AssetUIController):
                 outputs=[asset_primary_json, asset_network_json],
             )
 
+            # Analysis Components
+            execute_analysis_btn = gr.Button("Execute Analysis")
+            formula_dashboard = gr.Markdown(label="Analysis Dashboard")
+            formula_corr_plot = gr.Plot(label="Correlation Plot")
+            formula_metric_plot = gr.Plot(label="Metric Plot")
+            formula_drilldown = gr.Dropdown(label="Drilldown Options", choices=[])
+            formula_md_output = gr.Markdown(label="Analysis Details")
+            formula_drill_plot = gr.Plot(label="Drilldown Plot")
+
             #  Analysis Actions
             execute_analysis_btn.click(
                 self.execute_analysis_workflow,
