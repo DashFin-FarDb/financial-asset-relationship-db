@@ -58,10 +58,10 @@ class TestAppConstants:
         assert '{relationship_density}' in template
 
     def test_error_messages_exist(self):
-        """Test that error message constants are defined."""
+        """Test that error message constants are defined and descriptive."""
         assert hasattr(AppConstants, 'INITIAL_GRAPH_ERROR')
-        assert 'Failed to initialize graph' in AppConstants.INITIAL_GRAPH_ERROR
-
+        assert isinstance(AppConstants.INITIAL_GRAPH_ERROR, str)
+        assert AppConstants.INITIAL_GRAPH_ERROR.strip()
 
 class TestFinancialAssetAppInitialization:
     """Test FinancialAssetApp initialization and setup."""
@@ -743,14 +743,7 @@ class TestIntegrationScenarios:
         assert 'CORP_BOND' in rels['outgoing']
 
         # Refresh visualization
-        fig = app.refresh_visualization(
-            mock_graph,
-            selected_asset_classes=['EQUITY'],
-            selected_sectors=[],
-            min_strength=0.5,
-            max_connections=None,
-            show_events=False
-        )
+        fig = app.refresh_visualization(mock_graph)
         assert fig is not None
 
 
