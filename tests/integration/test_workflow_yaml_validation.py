@@ -328,8 +328,8 @@ class TestAPISecWorkflow:
 class TestPRAgentWorkflow:
     """Test the PR Agent workflow."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def pr_agent_workflow() -> Dict[str, Any]:
         """Load the PR Agent workflow."""
         workflow_path = (
