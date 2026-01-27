@@ -40,10 +40,11 @@ class FormulaicVisualizer:
                 "Key Formula Examples",
             )
         )
+
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
         pass
 
-    @ staticmethod
+    @staticmethod
     def _normalize_empirical_relationships(
         empirical_relationships: Any
     ) -> Dict[str, Dict[str, float]]:
@@ -51,35 +52,35 @@ class FormulaicVisualizer:
         if not empirical_relationships:
             return {}
 
-        matrix: Dict[str, Dict[str, float]]={}
+        matrix: Dict[str, Dict[str, float]] = {}
 
         if isinstance(empirical_relationships, dict):
-            is_nested=all(
+            is_nested = all(
                 isinstance(v, dict) for v in empirical_relationships.values()
             )
             if is_nested:
                 for row, cols in empirical_relationships.items():
-                    row_key=str(row)
-                    matrix[row_key]={
+                    row_key = str(row)
+                    matrix[row_key] = {
                         str(col): float(val) for col, val in cols.items()
                     }
             else:
                 for key, value in empirical_relationships.items():
                     if isinstance(key, (tuple, list)) and len(key) == 2:
-                        row, col=key
+                        row, col = key
                     else:
-                        parts=str(key).split("|")
+                        parts = str(key).split("|")
                         if len(parts) == 2:
-                            row, col=parts
+                            row, col = parts
                         else:
                             continue
-                    r, c=str(row), str(col)
-                    matrix.setdefault(r, {})[c]=float(value)
-                    matrix.setdefault(c, {})[r]=float(value)
+                    r, c = str(row), str(col)
+                    matrix.setdefault(r, {})[c] = float(value)
+                    matrix.setdefault(c, {})[r] = float(value)
         elif hasattr(empirical_relationships, "index") and hasattr(empirical_relationships, "columns"):
             for row in empirical_relationships.index:
                 for col in empirical_relationships.columns:
-                    matrix.setdefault(str(row), {})[str(col)]=float(
+                    matrix.setdefault(str(row), {})[str(col)] = float(
                         empirical_relationships.loc[row, col]
                     )
         else:
@@ -89,25 +90,25 @@ class FormulaicVisualizer:
 
         return matrix
 
-    @ staticmethod
+    @staticmethod
     def _plot_empirical_correlation(
         fig: go.Figure, empirical_relationships: Any
     ) -> None:
         """Populate the empirical correlation matrix heatmap in row 2, column 1."""
-        matrix=FormulaicVisualizer._normalize_empirical_relationships(empirical_relationships)
+        matrix = FormulaicVisualizer._normalize_empirical_relationships(empirical_relationships)
         if not matrix:
             # Nothing to plot if no empirical relationships are provided.
             return
 
-        rows=sorted(matrix.keys())
-        cols=sorted({col for cols in matrix.values() for col in cols})
-        z=[[matrix[row].get(col, math.nan) for col in cols] for row in rows]
+        rows = sorted(matrix.keys())
+        cols = sorted({col for cols in matrix.values() for col in cols})
+        z = [[matrix[row].get(col, math.nan) for col in cols] for row in rows]
 
-        heatmap=go.Heatmap(
+        heatmap = go.Heatmap(
             z=z, x=cols, y=rows, coloraxis="coloraxis", showscale=False
         )
         fig.add_trace(heatmap, row=2, col=1)
-                        row_label, col_label=map(str, key)
+                        row_label, col_label = map(str, key)
                     elif isinstance(key, str) and "|" in key:
                         row_label, col_label=key.split("|", 1)
                         row_label, col_label=row_label.strip(), col_label.strip()
