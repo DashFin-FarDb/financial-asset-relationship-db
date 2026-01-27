@@ -154,7 +154,8 @@ class RealDataFetcher:
         """
         if self.fallback_factory:
             return self.fallback_factory()
-        return _load_sample_dataset()
+from src.data.sample_data import create_sample_data()
+return create_sample_data()
         """
         if self.fallback_factory is not None:
             return self.fallback_factory()
