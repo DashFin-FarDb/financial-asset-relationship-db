@@ -109,8 +109,8 @@ class FormulaicVisualizer:
         )
         fig.add_trace(heatmap, row=2, col=1)
 
-            row_entry = matrix.setdefault(row_label, {})
-            try:
+          row_entry = matrix.setdefault(row_label, {})
+           try:
                 row_entry[col_label] = float(value)
             except (TypeError, ValueError):
                 # Ignore non-numeric correlations.
@@ -140,7 +140,7 @@ class FormulaicVisualizer:
                 row_values.append(value)
             z.append(row_values)
 
-        heatmap =go.Heatmap(
+        heatmap = go.Heatmap(
             z=z,
             x=col_labels,
             y=row_labels,
@@ -167,7 +167,7 @@ class FormulaicVisualizer:
 
         # Sort formulas by reliability (R-squared) in descending order and take top 10
         try:
-            sorted_formulas =sorted(
+            sorted_formulas = sorted(
                 formulas,
                 key=lambda f: getattr(f, "r_squared", float("-inf")),
                 reverse=True,
@@ -232,7 +232,7 @@ class FormulaicVisualizer:
 
         # 2. Formula Reliability Bar Chart
         if formulas:
-            formula_names =[
+            formula_names = [
                 f.name[:20] + "..." if len(f.name) > 20 else f.name for f in formulas
             ]
             r_squared_values = [f.r_squared for f in formulas]
@@ -256,7 +256,7 @@ class FormulaicVisualizer:
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
         if correlation_matrix:
             # Convert correlation matrix to heatmap format
-            assets =list(
+            assets = list(
                 set(
                     [pair.split("-")[0] for pair in correlation_matrix.keys()]
                     + [pair.split("-")[1] for pair in correlation_matrix.keys()]
@@ -276,7 +276,7 @@ class FormulaicVisualizer:
                     else:
                         key1 = f"{asset1}-{asset2}"
                         key2 = f"{asset2}-{asset1}"
-                        corr =correlation_matrix.get(
+                        corr = correlation_matrix.get(
                             key1, correlation_matrix.get(key2, 0.5)
                         )
                     row.append(corr)
@@ -300,7 +300,7 @@ class FormulaicVisualizer:
             )
 
         # 4. Asset Class Relationships
-        asset_class_data =self.empirical_relationships.get(
+        asset_class_data = self.empirical_relationships.get(
             "asset_class_relationships", {}
         )
         if asset_class_data:
@@ -342,7 +342,7 @@ class FormulaicVisualizer:
         if formulas:
             top_formulas = sorted(formulas, key=lambda f: f.r_squared, reverse=True)[:5]
 
-            table_data ={
+            table_data = {
                 "Formula": [f.name for f in top_formulas],
                 "Category": [f.category for f in top_formulas],
                 "R²": [f"{f.r_squared:.3f}" for f in top_formulas],
@@ -429,7 +429,7 @@ class FormulaicVisualizer:
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
         """Create a network graph showing asset correlations"""
-        strongest_correlations =empirical_relationships.get(
+        strongest_correlations = empirical_relationships.get(
             "strongest_correlations", []
         )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
@@ -444,7 +444,7 @@ class FormulaicVisualizer:
 
         # Create positions in a circle
         # Create positions in a circle based on strongest correlations
-        assets =sorted(
+        assets = sorted(
             {corr["asset1"] for corr in strongest_correlations}
             | {corr["asset2"] for corr in strongest_correlations}
         )
@@ -462,7 +462,7 @@ class FormulaicVisualizer:
             positions = {}
         else:
             angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
-            positions ={
+            positions = {
                 asset: (math.cos(angle), math.sin(angle))
                 for asset, angle in zip(assets, angles)
             }
@@ -500,7 +500,7 @@ class FormulaicVisualizer:
         node_y = [positions[asset][1] for asset in assets]
         node_text = assets
 
-        self.node_trace =go.Scatter(
+        self.node_trace = go.Scatter(
             x=node_x,
             y=node_y,
             mode="markers+text",
@@ -542,7 +542,7 @@ class FormulaicVisualizer:
             x1, y1 = self.pos[edge[1]]
             edge_x.extend([x0, x1, None])
             edge_y.extend([y0, y1, None])
-        edge_trace =go.Scatter(
+        edge_trace = go.Scatter(
             x=edge_x,
             y=edge_y,
             line=dict(width=0.5, color="#888"),
@@ -550,7 +550,7 @@ class FormulaicVisualizer:
             mode="lines",
         )
 
-        fig =go.Figure(
+        fig = go.Figure(
             data=[edge_trace, self.node_trace],
             layout=go.Layout(
                 title="Correlation Network Graph",
@@ -590,7 +590,7 @@ class FormulaicVisualizer:
 
         for category in category_names:
             category_formulas = categories[category]
-            avg_r_squared =sum(f.r_squared for f in category_formulas) / len(
+            avg_r_squared = sum(f.r_squared for f in category_formulas) / len(
                 category_formulas
             )
             r_squared_by_category.append(avg_r_squared)
