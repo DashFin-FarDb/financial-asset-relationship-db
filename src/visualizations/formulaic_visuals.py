@@ -38,57 +38,73 @@ class FormulaicVisualizer:
                 "Asset Class Relationships",
                 "Sector Analysis",
                 "Key Formula Examples",
-            ),
-            specs=[
-                [{"type": "pie"}, {"type": "bar"}],
-                [{"type": "heatmap"}, {"type": "bar"}],
-                [{"type": "bar"}, {"type": "table"}],
-            ],
-            vertical_spacing=0.12,
-            horizontal_spacing=0.1,
-        )
-
-        self._plot_category_distribution(fig, formulas)
-        self._plot_reliability(fig, formulas)
-        self._plot_empirical_correlation(fig, empirical_relationships)
-        self._plot_asset_class_relationships(fig, formulas)
-        self._plot_sector_analysis(fig, formulas)
-        self._plot_key_formula_examples(fig, formulas)
-
-        return fig
-
-    def _plot_category_distribution(self, fig: go.Figure, formulas: Any) -> None:
-        pass
-
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
         pass
 
-    def _plot_empirical_correlation(
-        self, fig: go.Figure, empirical_relationships: Any
-    ) -> None:
-        """Populate the empirical correlation matrix heatmap in row 2, column 1."""
+    @staticmethod
+    def _normalize_empirical_relationships(
+        empirical_relationships: Any
+    ) -> Dict[str, Dict[str, float]]:
+        """Normalize empirical_relationships into a nested dict of the form {row: {col: value}}."""
         if not empirical_relationships:
-            # Nothing to plot if no empirical relationships are provided.
-            return
+            return {}
 
-        # Normalize empirical_relationships into a nested dict of the form:
-        # {row_label: {col_label: correlation_value}}
         matrix: Dict[str, Dict[str, float]] = {}
 
         if isinstance(empirical_relationships, dict):
-            # Case 1: already a nested dict {asset_i: {asset_j: value}}
             is_nested = all(
                 isinstance(v, dict) for v in empirical_relationships.values()
             )
             if is_nested:
-                matrix = {
-                    str(row): {str(col): float(val) for col, val in cols.items()}
-                    for row, cols in empirical_relationships.items()
-                }
+                for row, cols in empirical_relationships.items():
+                    row_key = str(row)
+                    matrix[row_key] = {
+                        str(col): float(val) for col, val in cols.items()
+                    }
             else:
-                # Case 2: flat dict with pair-like keys, e.g. (a, b) or "a|b"
                 for key, value in empirical_relationships.items():
-                    if isinstance(key, tuple) and len(key) == 2:
+                    if isinstance(key, (tuple, list)) and len(key) == 2:
+                        row, col = key
+                    else:
+                        parts = str(key).split("|")
+                        if len(parts) == 2:
+                            row, col = parts
+                        else:
+                            continue
+                    r, c = str(row), str(col)
+                    matrix.setdefault(r, {})[c] = float(value)
+                    matrix.setdefault(c, {})[r] = float(value)
+        elif hasattr(empirical_relationships, "index") and hasattr(empirical_relationships, "columns"):
+            for row in empirical_relationships.index:
+                for col in empirical_relationships.columns:
+                    matrix.setdefault(str(row), {})[str(col)] = float(
+                        empirical_relationships.loc[row, col]
+                    )
+        else:
+            raise ValueError(
+                f"Unsupported type for empirical relationships: {type(empirical_relationships)}"
+            )
+
+        return matrix
+
+    @staticmethod
+    def _plot_empirical_correlation(
+        fig: go.Figure, empirical_relationships: Any
+    ) -> None:
+        """Populate the empirical correlation matrix heatmap in row 2, column 1."""
+        matrix = FormulaicVisualizer._normalize_empirical_relationships(empirical_relationships)
+        if not matrix:
+            # Nothing to plot if no empirical relationships are provided.
+            return
+
+        rows = sorted(matrix.keys())
+        cols = sorted({col for cols in matrix.values() for col in cols})
+        z = [[matrix[row].get(col, math.nan) for col in cols] for row in rows]
+
+        heatmap = go.Heatmap(
+            z=z, x=cols, y=rows, coloraxis="coloraxis", showscale=False
+        )
+        fig.add_trace(heatmap, row=2, col=1)
                         row_label, col_label = map(str, key)
                     elif isinstance(key, str) and "|" in key:
                         row_label, col_label = key.split("|", 1)
@@ -488,7 +504,7 @@ class FormulaicVisualizer:
         node_y = [positions[asset][1] for asset in assets]
         node_text = assets
 
-        node_trace = go.Scatter(
+        self.node_trace = go.Scatter(
             x=node_x,
             y=node_y,
             mode="markers+text",
@@ -512,13 +528,19 @@ class FormulaicVisualizer:
         node_adjacencies = []
         for _, adjacencies in enumerate(self.G.adjacency()):
             node_adjacencies.append(len(adjacencies[1]))
-        node_trace.marker.color = node_adjacencies
-        edge_traces.append(node_trace)
-
-        edge_x = []
-        edge_y = []
+        self.node_trace.marker.color = node_adjacencies
+        edge_traces.append(self.node_trace)
 
     def create_correlation_network_graph(self) -> go.Figure:
+        """
+        Create a correlation network graph figure.
+
+        Builds edge traces based on the graph's edges and node positions, then
+        returns a Plotly Figure combining the edge trace with the existing node
+        trace and configured layout for visualization.
+        """
+        edge_x = []
+        edge_y = []
         for edge in self.G.edges():
             x0, y0 = self.pos[edge[0]]
             x1, y1 = self.pos[edge[1]]
@@ -533,7 +555,7 @@ class FormulaicVisualizer:
         )
 
         fig = go.Figure(
-            data=[edge_trace, node_trace],
+            data=[edge_trace, self.node_trace],
             layout=go.Layout(
                 title="Correlation Network Graph",
                 titlefont_size=16,
@@ -546,8 +568,9 @@ class FormulaicVisualizer:
         )
         return fig
 
+    @staticmethod
     def create_metric_comparison_chart(
-        self, analysis_results: Dict[str, Any]
+        analysis_results: Dict[str, Any]
     ) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
         # Example logic: Compare theoretical vs empirical values if available
