@@ -213,6 +213,9 @@ class TestPRAgentConfigSecurity:
         """
 
         def _iter_string_values(obj):
+            """
+            Recursively yield all string values from nested dictionaries and lists.
+            """
             if isinstance(obj, dict):
                 for v in obj.values():
                     yield from _iter_string_values(v)
@@ -233,30 +236,6 @@ class TestPRAgentConfigSecurity:
         inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
 
         for value in _iter_string_values(pr_agent_config):
-            stripped = value.strip()
-            if not stripped:
-                continue
-
-            # Long string heuristic (possible API keys or tokens)
-            if len(stripped) >= 40:
-                suspected.append(("long_string", stripped))
-                continue
-
-            # Obvious secret-like prefixes
-            if any(stripped.startswith(p) for p in secret_prefixes):
-                suspected.append(("prefix", stripped))
-                continue
-
-            # Inline credentials in URLs
-            if inline_cred_pattern.search(stripped):
-                suspected.append(("inline_creds", stripped))
-
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
-
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """
@@ -284,6 +263,51 @@ class TestPRAgentConfigSecurity:
         )
 
         def shannon_entropy(s: str) -> float:
+            # existing entropy calculation logic
+            freq = collections.Counter(s)
+            entropy = 0.0
+            for count in freq.values():
+                p = count / len(s)
+                entropy -= p * math.log2(p)
+            return entropy
+
+        def detect_secret_kind(value: str):
+            s = value.strip()
+            if not s:
+                return None
+            if len(s) >= 40:
+                return ("long_string", s)
+            if any(s.startswith(prefix) for prefix in secret_markers):
+                return ("prefix", s)
+            if inline_creds_re.search(s):
+                return ("inline_creds", s)
+            return None
+
+        def scan_config(obj, path="", suspected=None):
+            if suspected is None:
+                suspected = []
+            if isinstance(obj, str):
+                result = detect_secret_kind(obj)
+                if result:
+                    suspected.append(result)
+            elif isinstance(obj, dict):
+                for key, val in obj.items():
+                    if any(marker in key.lower() for marker in secret_markers):
+                        val_stripped = str(val).strip()
+                        if not (val_stripped.startswith("{{") and val_stripped.endswith("}}")):
+                            suspected.append(("unsafe_key", f"{key}: {val}"))
+                    scan_config(val, f"{path}.{key}" if path else key, suspected)
+            elif isinstance(obj, list):
+                for idx, item in enumerate(obj):
+                    scan_config(item, f"{path}[{idx}]", suspected)
+            return suspected
+
+        suspected = scan_config(pr_agent_config)
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
             """Calculate Shannon entropy of a string to detect high-entropy values."""
             if not s:
                 return 0.0
@@ -343,11 +367,10 @@ class TestPRAgentConfigSecurity:
                                 and v.endswith("}}")
                                 or v in {"null", "none", "placeholder", "***"}
                             )
-                        ):
-                            if v is not None:
-                                pytest.fail(
-                                    f"Sensitive key '{k}' at '{path}.{k}' must use a safe placeholder, got: {v}"
-                                )
+                        ) and v is not None:
+                            pytest.fail(
+                                f"Sensitive key '{k}' at '{path}.{k}' must use a safe placeholder, got: {v}"
+                            )
                     walk_values(v, f"{path}.{k}")
             elif isinstance(obj, list):
                 for i, item in enumerate(obj):
@@ -379,6 +402,7 @@ class TestPRAgentConfigSecurity:
         allowed_placeholders = {"null", "none", "placeholder", "***"}
 
         def scan_dict(node: dict, path: str):
+            """Recursively scans a dictionary for keys containing sensitive patterns and verifies allowed placeholders."""
             for k, v in node.items():
                 key_l = str(k).lower()
                 new_path = f"{path}.{k}"
@@ -389,19 +413,15 @@ class TestPRAgentConfigSecurity:
                 scan_for_secrets(v, new_path)
 
         def scan_list(node: list, path: str):
+            """Recursively scans a list for sensitive items by invoking scan_for_secrets on each element."""
             for idx, item in enumerate(node):
                 scan_for_secrets(item, f"{path}[{idx}]")
 
-        def scan_for_secrets(node, path="root"):
-            if isinstance(node, dict):
-                scan_dict(node, path)
-            elif isinstance(node, list):
-                scan_list(node, path)
-            # primitives ignored
 
         safe_placeholders = {None, "null", "webhook"}
 
         def check_node(node, path=""):
+            """Recursively checks configuration nodes for sensitive keys and ensures they use safe placeholders."""
             if isinstance(node, dict):
                 for k, v in node.items():
                     key_l = str(k).lower()
@@ -427,6 +447,7 @@ class TestPRAgentConfigSecurity:
         - `limits['max_execution_time']` is less than or equal to 3600 seconds.
         - `limits['max_concurrent_prs']` is less than or equal to 10.
         - `limits['rate_limit_requests']` is less than or equal to 1000.
+        """
         """
         limits = pr_agent_config["limits"]
 
