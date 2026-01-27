@@ -1,4 +1,5 @@
-/**
+      expect(Array.isArray(mockAllRelationships)).toBe(true);
+      mockAllRelationships.forEach((rel) => {
  * Comprehensive tests for test-utils.ts
  *
  * This test suite validates all mock data objects used across the frontend test suite,
