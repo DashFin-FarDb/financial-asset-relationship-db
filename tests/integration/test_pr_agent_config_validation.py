@@ -327,7 +327,7 @@ class AssetUIController(FinancialAssetApp):
             f_btn.click(
                 self.generate_formulaic_analysis,
                 inputs=[graph_state],
-                outputs=[f_dash, error_box, f_sum, error_box],
+                outputs=[f_dash, f_corr_network, f_metric_chart, f_formula_dropdown, f_sum, error_box],
             )
 
         return demo_ui
