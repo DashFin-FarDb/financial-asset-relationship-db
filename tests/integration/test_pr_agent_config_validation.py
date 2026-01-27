@@ -170,9 +170,7 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
+                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
@@ -231,9 +229,7 @@ class TestPRAgentConfigSecurity:
         import math
         import re
 
-        inline_creds_re = re.compile(
-            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
-        )
+        inline_creds_re = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
         secret_markers = (
             "secret",
             "token",
@@ -257,9 +253,7 @@ class TestPRAgentConfigSecurity:
         def is_high_entropy(s, threshold=4.5):
             if not s:
                 return False
-            entropy = sum(
-                -(freq := s.count(ch) / len(s)) * math.log2(freq) for ch in set(s)
-            )
+            entropy = sum(-(freq := s.count(ch) / len(s)) * math.log2(freq) for ch in set(s))
             return entropy > threshold and len(s) > 20
 
         violations = []
@@ -274,9 +268,7 @@ class TestPRAgentConfigSecurity:
             if is_high_entropy(stripped):
                 violations.append(f"High entropy string found: {stripped}")
 
-        assert not violations, "Hardcoded credentials detected:\n" + "\n".join(
-            violations
-        )
+        assert not violations, "Hardcoded credentials detected:\n" + "\n".join(violations)
 
         suspected = []
 
@@ -323,9 +315,7 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
         suspected = []
 
@@ -371,9 +361,7 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
         def compute_shannon_entropy(s: str) -> float:
             if not s:
@@ -469,9 +457,7 @@ class TestPRAgentConfigSecurity:
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}" if path else str(k)
                     if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
                     check_node(v, new_path)
             elif isinstance(node, list):
                 for idx, item in enumerate(node):
