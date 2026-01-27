@@ -38,6 +38,8 @@ class FormulaicVisualizer:
                 "Asset Class Relationships",
                 "Sector Analysis",
                 "Key Formula Examples",
+            )
+        )
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
         pass
 
