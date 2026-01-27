@@ -184,7 +184,7 @@ class TestDeletedLabelerConfig:
 class TestDeletedScriptsReadme:
     """Validate that scripts README removal doesn't break documentation."""
 
-    @staticmethod
+    @ staticmethod
     def test_main_docs_dont_reference_scripts_readme() -> None:
         """Main documentation should not reference deleted scripts README."""
         doc_files = [
