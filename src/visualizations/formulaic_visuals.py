@@ -109,13 +109,6 @@ class FormulaicVisualizer:
         )
         fig.add_trace(heatmap, row=2, col=1)
 
-          row_entry = matrix.setdefault(row_label, {})
-           try:
-                row_entry[col_label] = float(value)
-            except (TypeError, ValueError):
-                # Ignore non-numeric correlations.
-                continue
-
         if not matrix:
             # If we still have no usable data, nothing to draw.
             return
