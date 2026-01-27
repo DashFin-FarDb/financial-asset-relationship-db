@@ -12,7 +12,6 @@ Tests focus on:
 import os
 import sqlite3
 import threading
-from pathlib import Path
 import pytest
 
 from api.database import (
