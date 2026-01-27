@@ -24,6 +24,8 @@ import type {
 
 describe("test-utils Mock Data Validation", () => {
   describe("mockAssets", () => {
+    const mockAssets = getMockAssets();
+
     it("should be an array with valid Asset objects", () => {
       expect(Array.isArray(mockAssets)).toBe(true);
       expect(mockAssets.length).toBeGreaterThan(0);
@@ -91,8 +93,8 @@ describe("test-utils Mock Data Validation", () => {
 
   describe("mockAllRelationships", () => {
     it("should be an array of Relationship-like objects", () => {
-      expect(Array.isArray(mockAllRelationships)).toBe(true);
-      mockAllRelationships.forEach((rel) => {
+      expect(Array.isArray(mockRelationships)).toBe(true);
+      mockRelationships.forEach((rel) => {
         expect(rel).toHaveProperty("source_id");
         expect(rel).toHaveProperty("target_id");
         expect(rel).toHaveProperty("relationship_type");
@@ -130,8 +132,6 @@ describe("test-utils Mock Data Validation", () => {
     mockAssetClasses,
     mockRelationships,
     mockAllRelationships,
-    mockVisualizationData,
-    mockVizData,
   } from "./test-utils";
   import type { Asset, Metrics, VisualizationData } from "../app/types/api";
 
