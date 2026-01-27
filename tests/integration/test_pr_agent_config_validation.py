@@ -233,7 +233,7 @@ class TestPRAgentConfigSecurity:
             "SECRET_",
             "TOKEN_",
         )
-        inline_cred_pattern = re.compile(r"://[^/@:\\s]+:[^/@:\\s]+@")
+        re.compile(r"://[^/@:\\s]+:[^/@:\\s]+@")
 
         for value in _iter_string_values(pr_agent_config):
             pass
