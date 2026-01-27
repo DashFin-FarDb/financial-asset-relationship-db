@@ -773,11 +773,8 @@ class TestCreateInterface:
 
         # This will try to create the interface
         # We just verify it doesn't crash
-        try:
-            interface = app.create_interface()
-            # Should return something (Gradio Blocks context manager)
-            assert interface is not None
-        except Exception:
-            # If Gradio mocking is complex, at least verify the method exists
-            assert hasattr(app, 'create_interface')
+       
+        interface = app.create_interface()
+        # Should return something (Gradio Blocks context manager)
+        assert interface is not None
             assert callable(app.create_interface)
