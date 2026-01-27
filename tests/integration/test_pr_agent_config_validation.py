@@ -410,7 +410,7 @@ class TestPRAgentConfigSecurity:
             if any(m in v.lower() for m in secret_markers) and len(v) >= 12:
                 return True
             # Base64/URL-safe like long strings
-            if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
+            if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and compute_shannon_entropy(v) >= 3.5:
                 return True
             # Hex-encoded long strings (e.g., keys)
             if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
