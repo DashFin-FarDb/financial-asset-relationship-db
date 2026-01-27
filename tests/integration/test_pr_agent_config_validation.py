@@ -1,6 +1,7 @@
 # file: tests/integration/test_pr_agent_config_validation.py
 
 import json
+import logging
 from dataclasses import asdict
 from typing import Any, Dict, Optional, Tuple
 
@@ -25,14 +26,13 @@ from src.visualizations.metric_visuals import visualize_metrics
 
 
 # Move this after class definitions or define AssetUIController first
-    app_inst = AssetUIController()
-    app_inst.create_interface().launch()
+app_inst = AssetUIController()
+app_inst.create_interface().launch()
 
 
 # Local source imports
 
 # Configure logging
-import logging
 
 logging.basicConfig(
     level=logging.INFO,
@@ -133,12 +133,12 @@ class FinancialAssetApp:
         """Formats network statistics into a human-readable string."""
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
-            total_assets = metrics["total_assets"],
-            total_relationships = metrics["total_relationships"],
-            average_relationship_strength = metrics["average_relationship_strength"],
-            relationship_density = metrics["relationship_density"],
-            regulatory_event_count = metrics["regulatory_event_count"],
-            asset_class_distribution = json.dumps(
+            total_assets=metrics["total_assets"],
+            total_relationships=metrics["total_relationships"],
+            average_relationship_strength=metrics["average_relationship_strength"],
+            relationship_density=metrics["relationship_density"],
+            regulatory_event_count=metrics["regulatory_event_count"],
+            asset_class_distribution=json.dumps(
                 metrics["asset_class_distribution"], indent=2
             ),
         )
@@ -320,7 +320,14 @@ class AssetUIController(FinancialAssetApp):
             f_btn.click(
                 self.generate_formulaic_analysis,
                 inputs=[graph_state],
-                outputs=[f_dash, f_corr_network, f_metric_chart, f_formula_dropdown, f_sum, error_box],
+                outputs=[
+                    f_dash,
+                    f_corr_network,
+                    f_metric_chart,
+                    f_formula_dropdown,
+                    f_sum,
+                    error_box,
+                ],
             )
 
         return demo_ui
