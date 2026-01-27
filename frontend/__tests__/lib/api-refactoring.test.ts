@@ -10,7 +10,7 @@
  */
 
 import axios, { AxiosError } from 'axios';
-import { api } from '../../app/lib/api';
+let api: typeof import('../../app/lib/api').api;
 import type { Asset, Relationship, Metrics, VisualizationData } from '../../app/types/api';
 
 // Mock axios
@@ -32,6 +32,7 @@ describe('API Client Refactoring Tests', () => {
     };
 
     mockedAxios.create.mockReturnValue(mockAxiosInstance);
+    api = require('../../app/lib/api').api;
   });
 
   describe('Client Configuration', () => {
