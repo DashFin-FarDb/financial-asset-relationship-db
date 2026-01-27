@@ -658,7 +658,7 @@ class TestWorkflowStepConfiguration:
         for job_name, job_config in jobs.items():
             steps = job_config.get("steps", [])
             step_ids = [s.get("id") for s in steps if "id" in s]
-            id_counts = Counter(step_ids)
+from collections import Counter
             duplicates = [sid for sid, count in id_counts.items() if count > 1]
             assert not duplicates, (
                 f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
