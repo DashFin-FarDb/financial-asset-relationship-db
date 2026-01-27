@@ -13,7 +13,6 @@ import os
 import sqlite3
 import threading
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 import pytest
 
 from api.database import (
