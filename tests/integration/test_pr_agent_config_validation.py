@@ -449,7 +449,6 @@ class TestPRAgentConfigSecurity:
         - `limits['max_concurrent_prs']` is less than or equal to 10.
         - `limits['rate_limit_requests']` is less than or equal to 1000.
         """
-        """
         limits = pr_agent_config["limits"]
 
         # Check for reasonable numeric limits
@@ -465,17 +464,16 @@ class TestPRAgentConfigRemovedComplexity:
     @staticmethod
     def pr_agent_config_content():
         """
-        Return the contents of .github / pr - agent - config.yml as a string.
+        Return the contents of .github/pr-agent-config.yml as a string.
 
         Reads the PR agent configuration file from the repository root and returns its raw text.
 
         Returns:
-            """
             str: Raw YAML content of .github/pr-agent-config.yml.
-            """
-            config_path = Path(".github/pr-agent-config.yml")
-            with open(config_path, "r") as f:
-                return f.read()
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, "r") as f:
+            return f.read()
 
     @staticmethod
     def test_no_summarization_settings(pr_agent_config_content):
