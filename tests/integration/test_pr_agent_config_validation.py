@@ -308,13 +308,9 @@ class AssetUIController(FinancialAssetApp):
 
             # Event Handlers
             refresh_btn.click(
+                fn=self.refresh_all_outputs,
                 inputs=[graph_state],
-                outputs=[
-                    viz_plot,
-                    m_f1,
-                    m_text,
-                    error_box,
-                ],
+                outputs=[...],
             )
 
             f_btn.click(
