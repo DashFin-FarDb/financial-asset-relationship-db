@@ -289,11 +289,18 @@ class AssetUIController(FinancialAssetApp):
                     {
                         "show_same_sector": gr.Checkbox(label="Sector", value=True),
                         "show_correlation": gr.Checkbox(
-            refresh_btn.click(
-                self.refresh_visualization,
-                inputs=[graph_state, view_mode, layout, filters["show_same_sector"], filters["show_correlation"], filters["show_regulatory"]],
-                outputs=[viz_plot, error_box],
-            )
+                            refresh_btn.click(
+                                self.refresh_visualization,
+                                inputs=[
+                                    graph_state,
+                                    view_mode,
+                                    layout,
+                                    filters["show_same_sector"],
+                                    filters["show_correlation"],
+                                    filters["show_regulatory"],
+                                ],
+                                outputs=[viz_plot, error_box],
+                            )
                         ),
                         "show_regulatory": gr.Checkbox(label="Regulatory", value=True),
                     }
