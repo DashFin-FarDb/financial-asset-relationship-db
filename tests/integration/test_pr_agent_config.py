@@ -575,6 +575,7 @@ class TestEdgeCases:
 
 
 
+
         # YAML safe_load prevents circular references, but let's be explicit
         def check_circular(obj, seen=None):
             """Recursively checks for circular references within the given object and raises an AssertionError if any are found."""
