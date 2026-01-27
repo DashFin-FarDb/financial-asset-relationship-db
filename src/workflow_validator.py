@@ -44,9 +44,11 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
 
 
     Performs YAML parsing and verifies the file is a mapping with a top-level
-    'jobs' key. On success returns a ValidationResult with is_valid set to True
+    'jobs' key. On success returns a ValidationResult
+    with is_valid set to True
     and the parsed workflow data; on failure returns a ValidationResult with
-    is_valid set to False and a list of human-readable error messages describing
+    is_valid set to False
+    and a list of human-readable error messages describing
     the problem (e.g., missing file, syntax error, invalid structure).
 
     Parameters:

@@ -48,13 +48,31 @@ class AssetRelationshipGraph:
 
                 # Rule 2: Sector Affinity
                 if asset1.sector == asset2.sector and asset1.sector != "Unknown":
-                    self.add_relationship(id1, id2, "same_sector", 0.7, bidirectional=True)
+                    self.add_relationship(
+                        id1,
+                        id2,
+                        "same_sector",
+                        0.7,
+                        bidirectional=True,
+                    )
 
                 # Rule 1: Corporate Bond Linkage
                 if isinstance(asset1, Bond) and asset1.issuer_id == id2:
-                    self.add_relationship(id1, id2, "corporate_link", 0.9, bidirectional=False)
+                    self.add_relationship(
+                        id1,
+                        id2,
+                        "corporate_link",
+                        0.9,
+                        bidirectional=False,
+                    )
                 elif isinstance(asset2, Bond) and asset2.issuer_id == id1:
-                    self.add_relationship(id2, id1, "corporate_link", 0.9, bidirectional=False)
+                    self.add_relationship(
+                        id2,
+                        id1,
+                        "corporate_link",
+                        0.9,
+                        bidirectional=False,
+                    )
 
         # Rule: Event Impact
         for event in self.regulatory_events:
@@ -83,19 +101,30 @@ class AssetRelationshipGraph:
             self.relationships[source_id] = []
 
         # Avoid duplicates
-        if not any(r[0] == target_id and r[1] == rel_type for r in self.relationships[source_id]):
-            self.relationships[source_id].append((target_id, rel_type, strength))
+        if not any(
+            r[0] == target_id and r[1] == rel_type
+            for r in self.relationships[source_id]
+        ):
+            self.relationships[source_id].append(
+                (target_id, rel_type, strength)
+            )
 
         if bidirectional:
             if target_id not in self.relationships:
                 self.relationships[target_id] = []
-            if not any(r[0] == source_id and r[1] == rel_type for r in self.relationships[target_id]):
-                self.relationships[target_id].append((source_id, rel_type, strength))
+            if not any(
+                r[0] == source_id and r[1] == rel_type
+                for r in self.relationships[target_id]
+            ):
+                self.relationships[target_id].append(
+                    (source_id, rel_type, strength)
+                )
 
     def calculate_metrics(self) -> Dict[str, Any]:
         """Calculate network statistics and distributions."""
         total_assets = len(self.assets)
-        # For total_assets if no assets were explicitly added but exist in relationships
+        # For total_assets if no assets were explicitly added
+        # but exist in relationships
         all_ids = set(self.assets.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
@@ -103,7 +132,9 @@ class AssetRelationshipGraph:
 
         effective_assets_count = max(total_assets, len(all_ids))
 
-        total_relationships = sum(len(rels) for rels in self.relationships.values())
+        total_relationships = sum(
+            len(rels) for rels in self.relationships.values()
+        )
 
         strengths = [r[2] for rels in self.relationships.values() for r in rels]
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
@@ -156,7 +187,14 @@ class AssetRelationshipGraph:
         asset_ids = sorted(all_ids)
         n = len(asset_ids)
         theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
-        positions = np.stack([np.cos(theta), np.sin(theta), np.zeros_like(theta)], axis=1)
+        positions = np.stack(
+            [
+                np.cos(theta),
+                np.sin(theta),
+                np.zeros_like(theta),
+            ],
+            axis=1,
+        )
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]
         return positions, asset_ids, colors, hover

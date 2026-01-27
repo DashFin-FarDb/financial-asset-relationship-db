@@ -210,7 +210,8 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME "
+        "and ADMIN_PASSWORD or pre-populate the database."
     )
 
 
