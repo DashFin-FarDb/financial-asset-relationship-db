@@ -276,15 +276,15 @@ class AssetUIController(FinancialAssetApp):
 
     @staticmethod
     def _format_formula_summary(summary: Dict, results: Dict) -> str:
-     def _format_formula_summary(summary: Dict, results: Dict) -> str:
-         """Builds markdown summary of formulaic analysis."""
-         lines = [
-             "**Formulaic Analysis Summary**",
-             f"Formulas: {len(results.get('formulas', []))}",
-             f"Avg R²: {summary.get('avg_r_squared', 0.0):.3f}",
-         ]
-         ...
-         return "\n".join(lines)
+        def _format_formula_summary(summary: Dict, results: Dict) -> str:
+            """Builds markdown summary of formulaic analysis."""
+            lines = [
+                "**Formulaic Analysis Summary**",
+                f"Formulas: {len(results.get('formulas', []))}",
+                f"Avg R²: {summary.get('avg_r_squared', 0.0):.3f}",
+            ]
+            ...
+            return "\n".join(lines)
 
     def create_interface(self) -> gr.Blocks:
         """Constructs the Gradio UI."""
@@ -335,8 +335,8 @@ class AssetUIController(FinancialAssetApp):
 
             f_btn.click(
                 self.generate_formulaic_analysis,
-                inputs = [graph_state],
-                outputs = [f_dash, f_dash, f_dash, error_box, f_sum, error_box],
+                inputs=[graph_state],
+                outputs=[f_dash, f_dash, f_dash, error_box, f_sum, error_box],
             )
 
         return demo_ui
