@@ -79,7 +79,9 @@ class TestResolveSqlitePath:
     def test_resolve_uri_memory_db(self):
         """Should handle URI-style memory databases."""
         result = _resolve_sqlite_path("sqlite:///file::memory:?cache=shared")
-        assert ":memory:" in result or "file:" in result
+        assert isinstance(result, str), f"Expected string, got {type(result)}"
+        assert result.startswith("file:") or result == ":memory:", f"Unexpected SQLite path: {result}"
+
 
     def test_resolve_percent_encoded_path(self):
         """Should decode percent-encoded paths."""
