@@ -24,10 +24,20 @@ from api.database import (
     get_connection,
     execute,
     fetch_one,
-    fetch_all,
     fetch_value,
     initialize_schema,
 )
+
+
+def fetch_all(query, parameters=None):
+    """
+    Test-only helper that executes a query and returns all rows.
+
+    Uses the real database connection context manager from api.database.
+    """
+    with get_connection() as conn:
+        cursor = conn.execute(query, parameters or ())
+        return cursor.fetchall()
 
 
 class TestGetDatabaseURL:
