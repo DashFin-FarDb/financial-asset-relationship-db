@@ -125,7 +125,7 @@ class FormulaicVisualizer:
         )
 
         # 1. Formula Categories Pie Chart
-        categories = self.analysis_results.get("categories", {})
+        categories = analysis_results.get("categories", {})
         if categories:
             fig.add_trace(
                 go.Pie(
