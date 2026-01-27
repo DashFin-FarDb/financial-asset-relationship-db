@@ -64,7 +64,7 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
  * @returns A JSX element rendering the 3D network plot when data is valid, or a centred status message when data is missing, invalid or too large.
  */
 export default function NetworkVisualization({ data }: NetworkVisualizationProps) {
-const [plotData, setPlotData] = useState<Data[]>([]);
+const [plotData, setPlotData] = useState<Array<EdgeTrace | NodeTrace>>([]);
   const [status, setStatus] = useState<'loading' | 'ready' | 'empty' | 'tooLarge'>('loading');
   const [message, setMessage] = useState('Loading visualization...');
 
@@ -95,30 +95,6 @@ const [plotData, setPlotData] = useState<Data[]>([]);
       return;
     }
 
-    // Create node trace
-    const nodeTrace: NodeTrace = {
-      type: 'scatter3d',
-      mode: 'markers+text',
-      x: nodes.map(n => n.x),
-      y: nodes.map(n => n.y),
-      z: nodes.map(n => n.z),
-      text: nodes.map(n => n.symbol),
-      hovertext: nodes.map(n => `${n.name} (${n.symbol})<br>Class: ${n.asset_class}`),
-      hoverinfo: 'text',
-      marker: {
-        size: nodes.map(n => n.size),
-        color: nodes.map(n => n.color),
-        line: {
-          color: 'white',
-          width: 0.5
-        }
-      },
-      textposition: 'top center',
-      textfont: {
-        size: 8,
-      }
-    };
-
     // Create node lookup map for O(1) access
     const nodeMap = new Map(nodes.map(node => [node.id, node]));
 
@@ -148,7 +124,7 @@ const [plotData, setPlotData] = useState<Data[]>([]);
       return acc;
     }, []);
 
-    setPlotData([...edgeTraces, nodeTrace] as Data[]);
+    setPlotData([...edgeTraces, nodeTrace]);
     setStatus('ready');
     setMessage('');
   }, [data]);
