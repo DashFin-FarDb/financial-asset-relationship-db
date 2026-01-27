@@ -250,7 +250,7 @@ class TestPRAgentConfigSecurity:
         def _detect_issue(s: str) -> str | None:
             """Detects the type of credential issue in a string.
 
-            Returns:
+           Returns:
                 "inline_creds" if inline credentials pattern is matched,
                 "secret_marker" if the string starts or ends with known secret markers,
                 "entropy" if the string has high entropy,
@@ -283,7 +283,7 @@ class TestPRAgentConfigSecurity:
         """
         Traverse the parsed YAML and ensure that any key or value containing sensitive
         indicators has a safe placeholder value(None, 'null', 'none', 'placeholder',
-        or a templated variable like '${VAR}').
+                                                or a templated variable like '${VAR}').
         """
         sensitive_patterns = [
             "password",
