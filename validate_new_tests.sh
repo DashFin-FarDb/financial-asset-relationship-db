@@ -53,7 +53,11 @@ else
 fi
 
 echo ""
-echo "✅ Validation complete!"
+if [ "$exit_code" -eq 0 ]; then
+    echo "✅ Validation complete!"
+else
+    echo "❌ Validation completed with errors (see messages above)."
+fi
 echo ""
 echo "To run the new tests:"
 echo "  pytest tests/integration/test_pr_agent_config.py -v"
