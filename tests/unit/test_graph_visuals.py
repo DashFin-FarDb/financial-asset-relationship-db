@@ -18,35 +18,47 @@ class DummyGraph(AssetRelationshipGraph):
         super().__init__()
         self.relationships = relationships
 
-    def get_3d_visualization_data_enhanced(self):
-        """Generate enhanced 3D visualization data including positions, sorted asset IDs, colors, and hover texts."""
-        # Return positions (n,3), asset_ids, colors, hover_texts
-        asset_ids = sorted(
-            set(self.relationships.keys())
-            | {t for v in self.relationships.values() for t, _, _ in v}
-        )
-        n = len(asset_ids)
-        positions = np.arange(n * 3, dtype=float).reshape(n, 3)
-        colors = ["#000000"] * n
-        hover_texts = asset_ids
-        return positions, asset_ids, colors, hover_texts
+
+def get_3d_visualization_data_enhanced(self):
+    # Return positions (n,3), asset_ids, colors, hover_texts
+    """
+    Return visualization data for 3D plotting of assets.
+
+    Positions are an (n, 3) NumPy array of float coordinates for each asset, arranged row-major with values 0 through n*3 - 1. Asset IDs are a sorted list of unique asset identifiers present as sources or targets in the graph. Colors is a list of hex color strings, one per asset (defaulting to "#000000"). Hover_texts is the list of labels for each asset (identical to `asset_ids`), in the same order as the rows of `positions`.
+
+    Returns:
+        tuple: A 4-tuple (positions, asset_ids, colors, hover_texts) where
+            positions (numpy.ndarray): Array of shape (n, 3) of floats.
+            asset_ids (list[str]): Sorted list of n unique asset identifiers.
+            colors (list[str]): List of n hex color strings.
+            hover_texts (list[str]): List of n hover label strings.
+    """
+    asset_ids = sorted(
+        set(self.relationships.keys())
+        | {t for v in self.relationships.values() for t, _, _ in v}
+    )
+    n = len(asset_ids)
+    positions = np.arange(n * 3, dtype=float).reshape(n, 3)
+    colors = ["#000000"] * n
+    hover_texts = asset_ids
+    return positions, asset_ids, colors, hover_texts
 
 
 def test_rel_type_colors_default():
-    """Test that the default relationship type colors mapping returns fallback color for unknown types."""
+    """Test that REL_TYPE_COLORS provides a default color for unknown types and supports direct indexing without KeyError."""
     # Ensure defaultdict provides fallback color, and direct indexing works without KeyError
     assert REL_TYPE_COLORS["unknown_type"] == "#888888"
 
 
 def test_build_asset_id_index():
-    """Test building an index mapping asset IDs to their positions."""
+    """Test that _build_asset_id_index maps a list of asset IDs to their correct integer indices."""
     ids = ["A", "B", "C"]
     idx = _build_asset_id_index(ids)
     assert idx == {"A": 0, "B": 1, "C": 2}
 
 
 def test_build_relationship_index_filters_to_asset_ids():
-    """Test filtering of relationship index to only include specified asset IDs."""
+    """Test that _build_relationship_index includes only relationships where both ends are in the provided asset list."""
     graph = DummyGraph(
         {
             "A": [("B", "correlation", 0.9), ("X", "correlation", 0.5)],
@@ -61,7 +73,7 @@ def test_build_relationship_index_filters_to_asset_ids():
 
 
 def test_create_relationship_traces_basic():
-    """Test creation of relationship traces, grouping by type and direction."""
+    """Test that _create_relationship_traces correctly creates bidirectional and unidirectional traces with proper naming and coloring."""
     graph = DummyGraph(
         {
             "A": [("B", "correlation", 0.9)],

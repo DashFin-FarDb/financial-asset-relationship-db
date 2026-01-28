@@ -378,7 +378,6 @@ class TestShellScripts:
         """Test that bash scripts have no obvious syntax errors."""
         with open(script_file) as f:
             content = f.read()
-
         # Check for common syntax issues
         # Balanced quotes
         single_quotes = content.count("'")
@@ -392,7 +391,8 @@ class TestShellScripts:
         fi_count = content.count("fi")
         assert if_count == fi_count, f"{script_file} has unbalanced if/fi statements"
 
-    def test_cleanup_branches_references_documentation(self):
+    @staticmethod
+    def test_cleanup_branches_references_documentation():
         """Test that cleanup-branches.sh references relevant documentation."""
         with open("cleanup-branches.sh") as f:
             content = f.read()
@@ -400,8 +400,13 @@ class TestShellScripts:
         # Should reference the analysis document
         assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
 
-    def test_shell_scripts_consistent_style(self):
-        """Test that shell scripts use consistent coding style."""
+    @staticmethod
+    def test_shell_scripts_consistent_style():
+        """
+        Verify shell scripts use a consistent variable-naming style for global variables.
+
+        Checks that cleanup-branches.sh and run-dev.sh use uppercase names for global variables (for example, BACKEND_PID and FRONTEND_PID) and that any defined PID variables are actually referenced in the script.
+        """
         for script in ["cleanup-branches.sh", "run-dev.sh"]:
             with open(script) as f:
                 content = f.read()

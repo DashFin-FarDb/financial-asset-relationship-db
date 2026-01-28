@@ -44,7 +44,20 @@ class TestFormulaicVisualizer:
 
     @pytest.fixture
     def sample_analysis_results(self, sample_formula):
-        """Create sample analysis results."""
+        """
+        Builds a representative analysis_results dictionary used by tests.
+
+        Parameters:
+            sample_formula (Formula): A Formula instance to include as the first entry in the returned `formulas` list.
+
+        Returns:
+            dict: A sample analysis results mapping with keys:
+                - `formulas`: list of formula entries (includes `sample_formula` and a second sample formula dict).
+                - `categories`: mapping of category names to counts.
+                - `empirical_relationships`: dict containing `correlation_matrix` (pairwise correlations) and `strongest_correlations` (list of top correlations with asset names, correlation value, and strength).
+                - `asset_class_relationships`: mapping of asset class statistics.
+                - `sector_relationships`: mapping of sector statistics.
+        """
         return {
             "formulas": [
                 sample_formula,
@@ -499,4 +512,163 @@ class TestFormulaicVisualizer:
         # Average should be (0.9 + 0.7) / 2 = 0.8
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
-        assert abs(avg_value - 0.8) < 0.01, "Should correctly calculate average R-squared"
+        assert abs(avg_value - 0.8) < 0.01, (
+            "Should correctly calculate average R-squared"
+        )
+
+
+class TestFormulaDashboardEdgeCases:
+    """Test edge cases for formula dashboard creation."""
+
+    @staticmethod
+    def test_create_dashboard_with_empty_analysis():
+        """Test dashboard creation with empty analysis results."""
+        visualizer = FormulaicVisualizer()
+        analysis_results = {
+            "formulas": [],
+            "empirical_relationships": {},
+            "categories": {},
+        }
+
+        fig = visualizer.create_formula_dashboard(analysis_results)
+
+        assert fig is not None
+        assert hasattr(fig, "layout")
+
+    @staticmethod
+    def test_create_dashboard_with_single_formula():
+        """Test dashboard with only one formula."""
+        visualizer = FormulaicVisualizer()
+        formula = Formula(
+            name="Test Formula",
+            formula="x = y",
+            latex=r"x = y",
+            description="Test",
+            variables={},
+            category="Test",
+            r_squared=0.95,
+        )
+
+        analysis_results = {
+            "formulas": [formula],
+            "empirical_relationships": {},
+            "categories": {"Test": 1},
+        }
+
+        fig = visualizer.create_formula_dashboard(analysis_results)
+
+        assert fig is not None
+
+    @staticmethod
+    def test_create_dashboard_with_many_formulas():
+        """Test dashboard with large number of formulas."""
+        visualizer = FormulaicVisualizer()
+        formulas = [
+            Formula(
+                name=f"Formula {i}",
+                formula=f"x{i} = y{i}",
+                latex=f"x_{i} = y_{i}",
+                description=f"Formula {i}",
+                variables={},
+                category=f"Category {i % 3}",
+                r_squared=0.8 + (i % 20) * 0.01,
+            )
+            for i in range(50)
+        ]
+
+        categories = {}
+        for f in formulas:
+            categories[f.category] = categories.get(f.category, 0) + 1
+
+        analysis_results = {
+            "formulas": formulas,
+            "empirical_relationships": {},
+            "categories": categories,
+        }
+
+        fig = visualizer.create_formula_dashboard(analysis_results)
+
+        assert fig is not None
+
+    @staticmethod
+    def test_correlation_network_with_empty_relationships():
+        """Test correlation network with no relationships."""
+        visualizer = FormulaicVisualizer()
+
+        fig = visualizer.create_correlation_network({})
+
+        assert fig is not None
+
+    @staticmethod
+    def test_correlation_network_with_single_pair():
+        """Test correlation network with one correlation pair."""
+        visualizer = FormulaicVisualizer()
+        relationships = {"correlation_matrix": {"ASSET1-ASSET2": 0.85}}
+
+        fig = visualizer.create_correlation_network(relationships)
+
+        assert fig is not None
+
+    @staticmethod
+    def test_metric_comparison_with_missing_data():
+        """Test metric comparison chart with missing data fields."""
+        visualizer = FormulaicVisualizer()
+        analysis_results = {
+            "formulas": [],
+            # Missing 'summary' and other expected fields
+        }
+
+        # Should handle gracefully
+        fig = visualizer.create_metric_comparison_chart(analysis_results)
+
+        assert fig is not None
+
+
+class TestColorScheme:
+    """Test color scheme handling."""
+
+    @staticmethod
+    def test_color_scheme_completeness():
+        """Test that all expected categories have colors."""
+        visualizer = FormulaicVisualizer()
+
+        expected_categories = [
+            "Valuation",
+            "Income",
+            "Fixed Income",
+            "Risk Management",
+            "Portfolio Theory",
+            "Statistical Analysis",
+            "Currency Markets",
+            "Cross-Asset",
+        ]
+
+        for category in expected_categories:
+            assert category in visualizer.color_scheme
+            assert visualizer.color_scheme[category].startswith("#")
+
+    @staticmethod
+    def test_color_scheme_fallback():
+        """Test that unknown categories get fallback color."""
+        visualizer = FormulaicVisualizer()
+        formulas = [
+            Formula(
+                name="Test",
+                formula="x=y",
+                latex="x=y",
+                description="Test",
+                variables={},
+                category="UnknownCategory",
+                r_squared=0.9,
+            )
+        ]
+
+        analysis_results = {
+            "formulas": formulas,
+            "categories": {"UnknownCategory": 1},
+            "empirical_relationships": {},
+        }
+
+        # Should use fallback color #CCCCCC
+        fig = visualizer.create_formula_dashboard(analysis_results)
+        assert fig is not None

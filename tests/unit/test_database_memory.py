@@ -15,9 +15,9 @@ import api.database as database
 @pytest.fixture()
 def restore_database_module(monkeypatch) -> Iterator[None]:
     """
-    Preserve and restore api.database state and the DATABASE_URL environment variable around a test.
+    Preserves api.database state and the DATABASE_URL environment variable for the duration of a test.
 
-    Yields control to the test. After the test completes, closes and clears any in-memory SQLite connection on api.database (if present), restores DATABASE_URL to its original value or removes it if it was not set, and reloads the api.database module to reset its state.
+    Yields to the test; after the test completes, closes and clears api.database._MEMORY_CONNECTION if present, restores DATABASE_URL to its original value (or removes it if it was unset), and reloads the api.database module to reset its state.
     """
 
     original_url = os.environ.get("DATABASE_URL")
@@ -45,7 +45,6 @@ def test_in_memory_database_persists_schema_and_data(
 
     Sets DATABASE_URL to use an in-memory SQLite database, reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
     """
-
     monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
 
     reloaded_database = importlib.reload(database)
@@ -82,7 +81,6 @@ def test_uri_style_memory_database_persists_schema_and_data(
 
     Sets DATABASE_URL to use a URI-style in-memory SQLite database (file::memory:?cache=shared), reloads the database module and initialises the schema, inserts a user row using one connection, then reads it using a second connection. Asserts the inserted row is present and that both context-managed connections are the same object.
     """
-
     monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 
     reloaded_database = importlib.reload(database)
@@ -112,9 +110,8 @@ def test_uri_style_memory_database_persists_schema_and_data(
 class TestIsMemoryDb:
     """Comprehensive tests for the _is_memory_db function."""
 
-    def test_is_memory_db_with_literal_memory(
-        self, monkeypatch, restore_database_module
-    ):
+    @staticmethod
+    def test_is_memory_db_with_literal_memory(monkeypatch, restore_database_module):
         """Test that _is_memory_db returns True for literal ':memory:' string."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
@@ -122,9 +119,8 @@ class TestIsMemoryDb:
         assert reloaded_database._is_memory_db() is True
         assert reloaded_database._is_memory_db(":memory:") is True
 
-    def test_is_memory_db_with_file_uri_memory(
-        self, monkeypatch, restore_database_module
-    ):
+    @staticmethod
+    def test_is_memory_db_with_file_uri_memory(monkeypatch, restore_database_module):
         """Test that _is_memory_db returns True for file::memory: URI format."""
         # Test file::memory: pattern
         assert database._is_memory_db("file::memory:") is True
@@ -299,7 +295,7 @@ class TestConnectWithMemoryDb:
         # by attempting to execute a query (would fail if check_same_thread=True)
 
         def query_from_thread():
-            """Execute a simple query on the connection from a separate thread to test thread safety."""
+            """Execute a simple SELECT query using the shared connection in a separate thread to verify thread safety."""
             cursor = conn.execute("SELECT 1")
             cursor.fetchone()
 
@@ -393,12 +389,10 @@ class TestThreadSafety:
         connections: list[object] = []
         errors: list[Exception] = []
 
-        def get_conn() -> None:
-            """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
-            try:
-                connections.append(reloaded_database._connect())
-            except Exception as exc:  # pragma: no cover - surfaced via assertion below
-                errors.append(exc)
+        def get_conn():
+            """Retrieve a database connection using the reloaded database module and append it to the connections list."""
+            conn = reloaded_database._connect()
+            connections.append(conn)
 
         threads = [threading.Thread(target=get_conn) for _ in range(10)]
         for thread in threads:
@@ -420,8 +414,8 @@ class TestThreadSafety:
 
         errors: list[BaseException] = []
 
-        def write_user(user_id: int) -> None:
-            """Write a user's credentials to the memory database using a separate thread."""
+        def write_user(user_id):
+            """Insert a user with the given user_id into the memory database concurrently."""
             try:
                 with reloaded_database.get_connection() as conn:
                     conn.execute(
@@ -454,7 +448,11 @@ class TestEdgeCasesAndErrorHandling:
     def test_resolve_sqlite_path_with_memory(
         self, monkeypatch, restore_database_module
     ):
-        """Test that _resolve_sqlite_path correctly handles :memory: URLs."""
+        """
+        Verify that _resolve_sqlite_path maps SQLite memory URLs to ':memory:'.
+
+        Asserts that both "sqlite:///:memory:" and "sqlite://:memory:" resolve to ":memory:."
+        """
         from api.database import _resolve_sqlite_path
 
         # Test various memory URL formats
