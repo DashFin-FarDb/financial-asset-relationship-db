@@ -10,7 +10,6 @@ This module tests the refactored authentication module, focusing on:
 """
 
 import threading
-from unittest.mock import Mock, patch, MagicMock
 import pytest
 from api.auth import (
     UserRepository,
