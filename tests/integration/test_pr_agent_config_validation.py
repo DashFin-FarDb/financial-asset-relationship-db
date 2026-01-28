@@ -15,6 +15,35 @@ import ruamel.yaml
 import yaml
 
 
+class DuplicateKeyLoader(yaml.SafeLoader):
+    """Custom YAML loader that detects duplicate keys.
+    
+    Extends SafeLoader to maintain security while adding duplicate key detection.
+    """
+    pass
+
+
+def _check_duplicate_keys(loader, node, deep=False):
+    """Check for duplicate keys in YAML mappings."""
+    mapping = {}
+    for key_node, value_node in node.value:
+        key = loader.construct_object(key_node, deep=deep)
+        if key in mapping:
+            raise yaml.constructor.ConstructorError(
+                "while constructing a mapping", node.start_mark,
+                f"found duplicate key ({key})", key_node.start_mark
+            )
+        value = loader.construct_object(value_node, deep=deep)
+        mapping[key] = value
+    return mapping
+
+
+DuplicateKeyLoader.add_constructor(
+    yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG,
+    _check_duplicate_keys
+)
+
+
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
 
@@ -170,7 +199,7 @@ class TestPRAgentConfigYAMLValidity:
 
         with open(config_path, 'r') as f:
             try:
-                yaml.safe_load(f)
+                yaml.load(f, Loader=DuplicateKeyLoader)
             except yaml.YAMLError as e:
                 pytest.fail(f"PR agent config has invalid YAML: {e}")
 
@@ -227,16 +256,41 @@ class TestPRAgentConfigYAMLValidity:
         if duplicates:
             pytest.fail(f"Duplicate keys found at paths: {', '.join(duplicates)}")
                 key = line.split(':')[0].strip()
-                if key in seen_keys:
-                    pytest.fail(f"Duplicate key found: {key}")
-                seen_keys.add(key)
 
+                # Skip list items (only when the first non-space character is '-')
+                if line.lstrip().startswith('-'):
+                    continue
+
+                # Normalize indentation: expand tabs to spaces to avoid mixed indent issues
+                expanded = line.expandtabs(2)
+                indent = len(expanded) - len(expanded.lstrip(' '))
+                # Ensure indentation uses only spaces (no stray tabs remain after expand)
+                if '\t' in line:
+                    pytest.fail("Tabs are not allowed for indentation in YAML config")
+                # Pop stack entries that are at same or deeper indentation
+                # (we've moved back up or sideways in the hierarchy)
+                while path_stack and path_stack[-1][0] >= indent:
+                    path_stack.pop()
+
+                # Build full path from stack + current key
+                parent_path = '.'.join(item[1] for item in path_stack)
+                full_path = f"{parent_path}.{key}" if parent_path else key
+
+                if full_path in seen_full_paths:
+                    pytest.fail(f"Duplicate key at path '{full_path}'")
+                seen_full_paths.add(full_path)
+
+                # Push current key onto stack for potential children
+                path_stack.append((indent, key))
+    
     def test_consistent_indentation(self):
-        """
-        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
-
-        Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
-        """
+        """Verify consistent 2-space indentation."""
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, 'r', encoding='utf-8') as f:
+            try:
+                yaml.load(f, Loader=NoDuplicateKeyLoader)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Duplicate key detected or invalid YAML: {e}")
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, 'r') as f:
             lines = f.readlines()
