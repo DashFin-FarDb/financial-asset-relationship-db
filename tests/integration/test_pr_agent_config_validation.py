@@ -346,28 +346,28 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     """Module for validating PR agent configuration and scanning for hardcoded secrets."""
 
-        def test_no_hardcoded_secrets(pr_agent_config):
-            """
+    def test_no_hardcoded_secrets(pr_agent_config):
+        """
             Recursively scan for secrets in nested structures.
             Traverse the parsed YAML and ensure that any key containing sensitive indicators
             has a safe placeholder value (None, 'null', 'none', 'placeholder', '***', or a
             templated variable like '${VAR}').
             """
-            sensitive_patterns = (
-                "password",
-                "secret",
-                "token",
+        sensitive_patterns = (
+             "password",
+              "secret",
+             "token",
                 "api_key",
                 "apikey",
                 "access_key",
                 "private_key",
-            )
+             )
 
-            allowed_placeholders = {None, "null", "none", "placeholder", "***"}
+         allowed_placeholders = {None, "null", "none", "placeholder", "***"}
 
-            templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
+          templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
-            def is_allowed_placeholder(v) -> bool:
+           def is_allowed_placeholder(v) -> bool:
                 """Check if the value v is an allowed placeholder or templated variable."""
                 if v in allowed_placeholders:
                     return True
