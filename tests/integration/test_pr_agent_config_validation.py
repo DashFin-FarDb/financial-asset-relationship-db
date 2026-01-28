@@ -393,6 +393,13 @@ class TestPRAgentConfigSecurity:
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
+    """Recursively scan for secrets in nested structures."""
+    if isinstance(val, dict):
+        scan_dict(val, path)
+    elif isinstance(val, (list, tuple)):
+        for i, item in enumerate(val):
+            scan_for_secrets(item, f"{path}[{i}]")
+    # For non-container values, the check is already performed by scan_dict
         """
         Traverse the parsed YAML and ensure that any key or value containing sensitive
         indicators has a safe placeholder value (None, 'null', 'none', 'placeholder',
