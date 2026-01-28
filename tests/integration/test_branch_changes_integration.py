@@ -263,7 +263,7 @@ class TestDocumentationConsistency:
 
             # Extract markdown links
             links = re.findall(r"\[([^\]]+)\]\([^\)]+\)", content)
-
+            links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
             for _, link_target in links:
                 # Skip external links
                 if link_target.startswith("http://") or link_target.startswith(
