@@ -22,6 +22,7 @@ pytest.importorskip("sqlalchemy")
 
 
 def _apply_migration(database_path: Path) -> None:
+    """Apply database migrations by executing the initial SQL script on the given database path."""
     sql = Path("migrations/001_initial.sql").read_text(encoding="utf-8")
     with sqlite3.connect(database_path) as connection:
         connection.executescript(sql)
@@ -29,6 +30,7 @@ def _apply_migration(database_path: Path) -> None:
 
 @pytest.fixture
 def session(tmp_path):
+    """Provide a SQLAlchemy session connected to a temporary SQLite database with initial migrations applied."""
     db_path = tmp_path / "repository.db"
     _apply_migration(db_path)
     engine = create_engine(f"sqlite:///{db_path}")
@@ -42,6 +44,7 @@ def session(tmp_path):
 
 
 def test_asset_crud_flow(session):
+    """Test the CRUD operations for Asset entities: create, read, update, and delete in the repository."""
     repo = AssetGraphRepository(session)
 
     equity = Equity(
@@ -90,6 +93,7 @@ def test_asset_crud_flow(session):
 
 
 def test_relationship_and_event_crud_flow(session):
+    """Test the CRUD operations for asset relationships and regulatory events in the repository."""
     repo = AssetGraphRepository(session)
 
     parent_equity = Equity(

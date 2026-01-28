@@ -21,7 +21,7 @@ class Formula:
     r_squared: float = 0.0  # Correlation strength if applicable
 
 
-class FormulaicdAnalyzer:
+class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
 
     def __init__(self):
@@ -83,9 +83,7 @@ class FormulaicdAnalyzer:
                 name="Price-to-Earnings Ratio",
                 formula="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
-                description=(
-                    "Valuation metric comparing stock price to earnings per share"
-                ),
+                description="Valuation metric comparing stock price to earnings per share",
                 variables={
                     "PE": "Price-to-Earnings Ratio",
                     "P": "Current Stock Price ($)",
@@ -391,10 +389,17 @@ class FormulaicdAnalyzer:
 
         return formulas
 
+    @staticmethod
     def _calculate_empirical_relationships(
-        self, graph: AssetRelationshipGraph
+        graph: AssetRelationshipGraph,
     ) -> Dict[str, Any]:
-        pass
+        """
+        Stub for calculating empirical relationships between assets.
+
+        Returns:
+            Empty dictionary. Actual implementation pending.
+        """
+        return {}
 
     @staticmethod
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
