@@ -328,22 +328,26 @@ class TestPRAgentConfigSecurity:
 
     @staticmethod
     def scan(obj):
-        if isinstance(obj, dict):
-            for _, value in obj.items():
-                TestPRAgentConfigYAMLValidity.scan(value)
-        elif isinstance(obj, (list, tuple)):
-            for item in obj:
-                TestPRAgentConfigYAMLValidity.scan(item)
-        else:
-            result = TestPRAgentConfigYAMLValidity.scan_value(obj)
-            if result:
-                suspected.append(result)
+    if isinstance(obj, dict):
+        for _, value in obj.items():
+            TestPRAgentConfigYAMLValidity.scan(value)
+    elif isinstance(obj, (list, tuple)):
+        for item in obj:
+            TestPRAgentConfigYAMLValidity.scan(item)
+    else:
+        result = TestPRAgentConfigYAMLValidity.scan_value(obj)
+        if result:
+            suspected.append(result)
 
-    scan(pr_agent_config)
 
-            if suspected:
-                details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-                pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+    TestPRAgentConfigYAMLValidity.scan(pr_agent_config)
+
+    if suspected:
+        details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+        pytest.fail(
+            "Potential hardcoded credentials found in PR agent config:\n"
+            f"{details}"
+         )
 
         def shannon_entropy(s: str) -> float:
             if not s:
