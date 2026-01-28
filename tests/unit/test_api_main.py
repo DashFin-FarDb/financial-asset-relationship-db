@@ -232,7 +232,6 @@ class TestAPIEndpoints:
 
     def test_root_endpoint(self, client):
         """Test the root endpoint returns API information."""
-
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
@@ -243,7 +242,6 @@ class TestAPIEndpoints:
 
     def test_health_check_endpoint(self, client):
         """Test the health check endpoint."""
-
         response = client.get("/api/health")
         assert response.status_code == 200
         data = response.json()
@@ -251,7 +249,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_all(self, client):
         """Test getting all assets without filters."""
-
         response = client.get("/api/assets")
         assert response.status_code == 200
         assets = response.json()
@@ -269,7 +266,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_filter_by_class(self, client):
         """Test filtering assets by asset class."""
-
         response = client.get("/api/assets?asset_class=EQUITY")
         assert response.status_code == 200
         assets = response.json()

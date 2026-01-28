@@ -22,7 +22,6 @@ def _cov_plugin_available() -> bool:
     Returns:
         `True` if the pytest-cov plugin is importable, `False` otherwise.
     """
-
     return importlib.util.find_spec("pytest_cov") is not None
 
 
@@ -43,7 +42,6 @@ def pytest_load_initial_conftests(
         args (List[str]): Mutable list of command-line arguments;
             coverage-related options are removed from this list in-place.
     """
-
     if _cov_plugin_available():
         return
 

@@ -333,9 +333,7 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
         def shannon_entropy(s: str) -> float:
             if not s:
@@ -408,7 +406,29 @@ class TestPRAgentConfigSecurity:
 
         def check_sensitive_keys(node, path="root"):
             if isinstance(node, dict):
-                pass
+                for k, v in node.items():
+                    key_l = str(k).lower()
+                    new_path = f"{path}.{k}"
+                    if any(p in key_l for p in sensitive_patterns):
+                        assert v in safe_placeholders, (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
+                    check_sensitive_keys(v, new_path)
+            elif isinstance(node, list):
+                for idx, item in enumerate(node):
+                    check_sensitive_keys(item, f"{path}[{idx}]")
+            # primitives ignored
+
+        check_sensitive_keys(pr_agent_config)
+
+        # Final serialized scan to ensure sensitive markers aren't embedded in values
+        config_str = yaml.dump(pr_agent_config)
+        for pat in sensitive_patterns:
+            # If marker appears in the string, ensure we also see an allowed placeholder somewhere
+            if pat in config_str:
+                assert (" null" in config_str) or ("webhook" in config_str), (
+                    f"Potential hardcoded credential found around pattern: {pat}"
+                )
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
@@ -440,9 +460,7 @@ class TestPRAgentConfigSecurity:
                 key_l = str(k).lower()
                 new_path = f"{path}.{k}"
                 if any(pat in key_l for pat in sensitive_patterns):
-                    assert v in allowed_placeholders, (
-                        f"Potential hardcoded credential at '{new_path}'"
-                    )
+                    assert v in allowed_placeholders, f"Potential hardcoded credential at '{new_path}'"
                 scan_for_secrets(v, new_path)
 
         def scan_list(node: list, path: str):
@@ -453,8 +471,16 @@ class TestPRAgentConfigSecurity:
             if isinstance(node, dict):
                 scan_dict(node, path)
             elif isinstance(node, list):
-                scan_list(node, path)
-            # primitives ignored
+                for idx, item in enumerate(node):
+                    scan_for_secrets(item, f"{path}[{idx}]")
+            elif isinstance(node, str):
+                # Fail if a string value looks like it may contain a secret
+                assert not value_contains_secret(node), (
+                    f"Potential hardcoded credential value at {path}"
+                )
+            # Non-string scalars (int, float, bool, None) are safe to ignore
+
+        scan_for_secrets(pr_agent_config)
 
         safe_placeholders = {None, "null", "webhook"}
 
