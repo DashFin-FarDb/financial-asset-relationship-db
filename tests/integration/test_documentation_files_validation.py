@@ -29,11 +29,11 @@ for md_file in markdown_files:
     )
 
 
-def test_markdown_tables_are_properly_formatted(
-    self, markdown_files: List[Path]
-) -> None:
+def test_markdown_tables_are_properly_formatted() -> None:
     """Verify markdown tables have consistent column counts."""
     table_row_pattern = re.compile(r"^\|(.+)\|$", re.MULTILINE)
+
+    markdown_files: List[Path] = list(Path().rglob("*.md"))
 
     for md_file in markdown_files:
         content = md_file.read_text(encoding="utf-8")
