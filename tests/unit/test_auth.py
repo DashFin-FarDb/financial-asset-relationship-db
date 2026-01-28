@@ -694,18 +694,17 @@ class TestSeedCredentialsFromEnv:
         # Check that password was hashed
         assert call_kwargs['hashed_password'] != 'securepass123'
 
-    def test_seed_credentials_minimal_env_vars(self, mock_repository):
+    def test_seed_credentials_minimal_env_vars(self, mock_repository, monkeypatch):
         """Test seeding credentials with only username and password."""
         env_vars = {
             'ADMIN_USERNAME': 'admin',
             'ADMIN_PASSWORD': 'securepass123'
         }
-        
+    
         # Clear optional env vars if they exist
         for key in ['ADMIN_EMAIL', 'ADMIN_FULL_NAME', 'ADMIN_DISABLED']:
-            if key in os.environ:
-                del os.environ[key]
-        
+            monkeypatch.delenv(key, raising=False)
+    
         with patch.dict(os.environ, env_vars, clear=False):
             _seed_credentials_from_env(mock_repository)
         
