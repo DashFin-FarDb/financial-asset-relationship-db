@@ -10,6 +10,7 @@ Tests focus on:
 """
 
 import pytest
+import sqlite3
 
 from api.database import (
     _get_database_url,
