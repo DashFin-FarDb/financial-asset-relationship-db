@@ -263,24 +263,24 @@ class TestPRAgentConfigSecurity:
         import math
 
         # Heuristic to detect inline creds in URLs (user:pass@)
-    inline_creds_re = re.compile(
-        r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@",
-        re.IGNORECASE,
-    )
+        inline_creds_re = re.compile(
+            r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@",
+            re.IGNORECASE,
+        )
 
-    # Common secret-like prefixes or markers
-    secret_markers = (
-        "secret",
-        "token",
-        "apikey",
-        "api_key",
-        "access_key",
-        "private_key",
-        "pwd",
-        "password",
-        "auth",
-        "bearer ",
-    )
+        # Common secret-like prefixes or markers
+        secret_markers = (
+            "secret",
+            "token",
+            "apikey",
+            "api_key",
+            "access_key",
+            "private_key",
+            "pwd",
+            "password",
+            "auth",
+            "bearer ",
+        )
 
     @staticmethod
     def has_secret_prefix(val):
@@ -290,7 +290,7 @@ class TestPRAgentConfigSecurity:
     def has_inline_creds(val):
         return inline_creds_re.search(val)
 
-    suspected = []
+        suspected = []
 
     # Define detectors for credential heuristics
     @staticmethod
@@ -312,9 +312,8 @@ class TestPRAgentConfigSecurity:
                 return ("inline_creds", s)
             return None
 
-        detectors = [detect_long_string, detect_prefix, detect_inline_creds]
+    detectors = [detect_long_string, detect_prefix, detect_inline_creds]
 
-        @staticmethod
         def scan_value(val):
             stripped = str(val).strip()
             if not stripped:
@@ -325,7 +324,6 @@ class TestPRAgentConfigSecurity:
                     return result
             return None
 
-        @staticmethod
         def scan(obj):
             if isinstance(obj, dict):
                 for _, value in obj.items():
@@ -338,11 +336,11 @@ class TestPRAgentConfigSecurity:
                 if result:
                     suspected.append(result)
 
-        scan(pr_agent_config)
+                scan(pr_agent_config)
 
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+            if suspected:
+                details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+                pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
         def shannon_entropy(s: str) -> float:
             if not s:
@@ -446,7 +444,7 @@ class TestPRAgentConfigSecurity:
                     scan_for_secrets(item, f"{path}[{i}]")
             # primitives are ignored unless they are values of sensitive keys checked above
 
-        scan_for_secrets(pr_agent_config)
+            scan_for_secrets(pr_agent_config)
 
 
 def test_safe_configuration_values(pr_agent_config):
