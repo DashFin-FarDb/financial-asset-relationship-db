@@ -194,8 +194,7 @@ describe('API Client Refactoring Tests', () => {
       const networkError = new Error('Network Error');
       mockAxiosInstance.get.mockRejectedValue(networkError);
 
-      const result = await api.healthCheck();
-      await expect(result).rejects.toThrow('Network Error');
+      await expect(api.healthCheck()).rejects.toThrow('Network Error');
     });
 
     it('should propagate HTTP errors', async () => {
