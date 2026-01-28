@@ -501,7 +501,7 @@ class TestRefreshVisualization:
         assert error_state is not None
 
 
-class TestGenerateFormulaicdAnalysis:
+class TestGenerateFormulaicAnalysis:
     """Test the generate_formulaic_analysis method."""
 
     @patch('app.create_real_database')
