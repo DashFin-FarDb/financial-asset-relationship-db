@@ -295,15 +295,18 @@ class TestPRAgentConfigSecurity:
                 def detect_long_string(s):
                     if len(s) >= 40:
                         return ("long_string", s)
+                    return None
 
                 def detect_prefix(s):
                     for marker in secret_markers:
                         if s.lower().startswith(marker):
                             return ("prefix", s)
+                    return None
 
                 def detect_inline_creds(s):
                     if inline_creds_re.search(s):
                         return ("inline_creds", s)
+                    return None
 
                 detectors = [detect_long_string, detect_prefix, detect_inline_creds]
 
