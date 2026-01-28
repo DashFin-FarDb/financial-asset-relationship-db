@@ -23,7 +23,7 @@ from api.auth import (
     get_user,
     create_access_token,
 )
-from api.database import execute, fetch_one, fetch_value, initialize_schema
+from api.database import initialize_schema
 
 
 class TestUserInDBModel:
