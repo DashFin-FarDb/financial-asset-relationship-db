@@ -869,7 +869,11 @@ class TestEdgeCasesAndSecurity:
         
         # This should be handled safely by parameterized queries
         malicious_username = "admin' OR '1'='1"
-        result = authenticate_user(malicious_username, "password", repository=mock_repo)
+with patch.dict(os.environ, env_vars, clear=True):
+            # Clear optional env vars if they exist
+            for key in ['ADMIN_EMAIL', 'ADMIN_FULL_NAME', 'ADMIN_DISABLED']:
+                monkeypatch.delenv(key, raising=False)
+            _seed_credentials_from_env(mock_repository)
 
         assert result is False
         mock_repo.get_user.assert_called_once_with(malicious_username)
