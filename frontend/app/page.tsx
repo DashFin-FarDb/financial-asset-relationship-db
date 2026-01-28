@@ -22,30 +22,40 @@ export default function Home() {
   >("visualization");
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [vizData, setVizData] = useState<VisualizationData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  /**
+   * Loads metrics and visualization data from the API.
+   * Sets loading states during fetch and handles errors by logging and setting error message.
+   */
+  const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
+
     try {
       const [metricsData, visualizationData] = await Promise.all([
         api.getMetrics(),
         api.getVisualizationData(),
       ]);
+
       setMetrics(metricsData);
       setVizData(visualizationData);
     } catch (err) {
-      console.error("Error loading data:", err);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("Error loading data:", err);
+      } else {
+        console.error("Error loading data");
+      }
       setError("Failed to load data. Please ensure the API server is running.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleVisualizationTabClick = useCallback(() => {
     setActiveTab("visualization");
@@ -115,7 +125,7 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8">
         {loading && (
           <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
             <p className="mt-4 text-gray-600">Loading data...</p>
           </div>
         )}

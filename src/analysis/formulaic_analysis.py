@@ -21,7 +21,7 @@ class Formula:
     r_squared: float = 0.0  # Correlation strength if applicable
 
 
-class FormulaicdAnalyzer:
+class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
 
     def __init__(self):
@@ -359,8 +359,17 @@ class FormulaicdAnalyzer:
 
         return formulas
 
-    def _calculate_empirical_relationships(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
-        pass
+    @staticmethod
+    def _calculate_empirical_relationships(
+        graph: AssetRelationshipGraph,
+    ) -> Dict[str, Any]:
+        """
+        Stub for calculating empirical relationships between assets.
+
+        Returns:
+            Empty dictionary. Actual implementation pending.
+        """
+        return {}
 
     @staticmethod
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
