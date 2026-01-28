@@ -90,7 +90,7 @@ describe('API Client Refactoring Tests', () => {
         per_page: 20,
       };
 
-      mockAxiosInstance.get.mockResolvedValue({ data: mockPaginatedResponse });
+      mockAxiosInstance.get.mockResolvedValue({ data: { items: mockPaginatedResponse.items, total: mockPaginatedResponse.total, page: mockPaginatedResponse.page, per_page: mockPaginatedResponse.per_page } });
 
       const result = await api.getAssets({ page: 1, per_page: 20 });
       
