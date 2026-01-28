@@ -170,7 +170,9 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
+                    assert indent % 2 == 0, (
+                        f"Line {i} has inconsistent indentation: {indent} spaces"
+                    )
 
 
 class TestPRAgentConfigSecurity:
@@ -251,7 +253,9 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
 
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
@@ -343,7 +347,9 @@ class TestPRAgentConfigSecurity:
 
     if suspected:
         details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-        pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+        pytest.fail(
+            f"Potential hardcoded credentials found in PR agent config:\n{details}"
+        )
 
         def shannon_entropy(s: str) -> float:
             if not s:
@@ -438,7 +444,9 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(pat in key_l for pat in sensitive_patterns):
-                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
+                        assert is_allowed_placeholder(v), (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
 
                     scan_for_secrets(v, new_path)
 
