@@ -479,7 +479,6 @@ def scan_node(node, path: str = "root") -> None:
 
     # primitives intentionally ignored
 
-
     # Constants
     SAFE_PLACEHOLDERS = {None, "null", "webhook"}
 
