@@ -10,8 +10,9 @@ Tests focus on:
 """
 
 import pytest
-import sqlite3
-import threading
+
+from api.database import (
+    _get_database_url,
 
 from api.database import (
     _get_database_url,
