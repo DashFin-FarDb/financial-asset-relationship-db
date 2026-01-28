@@ -307,7 +307,7 @@ class TestPRAgentConfigSecurity:
         return None
 
     @staticmethod
-       def detect_inline_creds(s):
+    def detect_inline_creds(s):
             if inline_creds_re.search(s):
                 return ("inline_creds", s)
             return None
