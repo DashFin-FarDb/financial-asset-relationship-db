@@ -283,9 +283,6 @@ class TestPRAgentConfigSecurity:
            )
 
        @staticmethod
-       def is_long_string(val):
-            return len(val) >= 40
-
         def has_secret_prefix(val):
             return any(val.startswith(p) for p in secret_markers)
 
