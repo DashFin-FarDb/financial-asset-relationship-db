@@ -13,9 +13,6 @@ import pytest
 
 from api.database import (
     _get_database_url,
-
-from api.database import (
-    _get_database_url,
     _resolve_sqlite_path,
     _is_memory_db,
     _connect,
