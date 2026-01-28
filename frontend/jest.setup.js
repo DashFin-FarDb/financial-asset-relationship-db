@@ -22,6 +22,9 @@ Object.defineProperty(window, 'matchMedia', {
  */
 global.IntersectionObserver = class IntersectionObserver {
   /**
+   * Constructs the mock IntersectionObserver.
+   */
+  /**
    * Disconnects the observer instance (no-op placeholder for teardown if needed).
    * @returns {void}
    */
@@ -35,6 +38,10 @@ global.IntersectionObserver = class IntersectionObserver {
    * @returns {void}
    */
   static observe (_target) {
+    // Intentionally left empty; placeholder method required by interface
+  }
+
+  static unobserve (_target) {
     // Intentionally left empty; placeholder method required by interface
   }
 
