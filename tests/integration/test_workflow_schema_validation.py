@@ -1,11 +1,12 @@
-    """Comprehensive YAML schema validation tests for GitHub Actions workflows."""
+"""Comprehensive YAML schema validation tests for GitHub Actions workflows."""
 
-    from pathlib import Path
-    from typing import List
+import re
+from pathlib import Path
+from typing import List
 
-    import pytest
-    import yaml
-    import re
+import pytest
+import yaml
+
 
 class TestWorkflowYAMLSyntax:
     """Test basic YAML syntax and structure of workflow files."""
@@ -157,6 +158,7 @@ class TestWorkflowSecurityAdvanced:
     def test_no_hardcoded_secrets(self, workflow_files):
         """Test that workflows don't contain hardcoded secrets."""
         import re
+
         secret_patterns = [
             r'password\s*[:=]\s*["\'](?!.*\$\{\{)[\w-]+["\']',
             r'token\s*[:=]\s*["\'](?!.*\$\{\{)[\w-]+["\']',

@@ -36,15 +36,15 @@ class TestPyYAMLDependencyAddition:
 
     def test_pyyaml_present(self, requirements_lines: List[str]) -> None:
         """Test that PyYAML is in requirements-dev.txt."""
-        assert any(
-            line.startswith("PyYAML") for line in requirements_lines
-        ), "PyYAML should be present in requirements-dev.txt"
+        assert any(line.startswith("PyYAML") for line in requirements_lines), (
+            "PyYAML should be present in requirements-dev.txt"
+        )
 
     def test_types_pyyaml_present(self, requirements_lines: List[str]) -> None:
         """Test that types-PyYAML is in requirements-dev.txt."""
-        assert any(
-            line.startswith("types-PyYAML") for line in requirements_lines
-        ), "types-PyYAML should be present in requirements-dev.txt"
+        assert any(line.startswith("types-PyYAML") for line in requirements_lines), (
+            "types-PyYAML should be present in requirements-dev.txt"
+        )
 
     def test_pyyaml_version_specified(self, requirements_lines: List[str]) -> None:
         """Test that PyYAML has a version specifier."""
@@ -201,9 +201,7 @@ class TestRequirementsDevVersionPinning:
                     f"Package should have version specifier: {line}"
                 )
 
-    def test_pyyaml_and_types_both_pinned(
-        self, requirements_lines: List[str]
-    ) -> None:
+    def test_pyyaml_and_types_both_pinned(self, requirements_lines: List[str]) -> None:
         """Ensure PyYAML and types-PyYAML are both pinned."""
         assert any("PyYAML>=" in line for line in requirements_lines)
         assert any("types-PyYAML>=" in line for line in requirements_lines)

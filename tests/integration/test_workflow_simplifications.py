@@ -21,11 +21,11 @@ import yaml
 
 
 class TestPRAgentWorkflowSimplification:
-    """Test that pr-agent.yml has been properly simplified."""
+    """Test that pr - agent.yml has been properly simplified."""
 
     @pytest.fixture
     def pr_agent_workflow(self) -> Dict[str, Any]:
-        """Load pr-agent.yml workflow."""
+        """Load pr - agent.yml workflow."""
         workflow_path = (
             Path(__file__).parent.parent.parent
             / ".github"
@@ -37,7 +37,7 @@ class TestPRAgentWorkflowSimplification:
 
     def test_no_context_chunking_dependencies(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Test that pr-agent workflow no longer installs context chunking dependencies.
+        Test that pr - agent workflow no longer installs context chunking dependencies.
 
         The simplified workflow should not install PyYAML or tiktoken for context management.
         """
@@ -346,11 +346,11 @@ class TestLabelerWorkflowSimplification:
 
 
 class TestAPISecWorkflowSimplification:
-    """Test that apisec-scan.yml has been simplified."""
+    """Test that apisec - scan.yml has been simplified."""
 
     @pytest.fixture
     def apisec_workflow(self) -> Dict[str, Any]:
-        """Load apisec-scan.yml workflow."""
+        """Load apisec - scan.yml workflow."""
         workflow_path = (
             Path(__file__).parent.parent.parent
             / ".github"
@@ -379,7 +379,7 @@ class TestAPISecWorkflowSimplification:
 
     def test_no_conditional_job_execution(self, apisec_workflow: Dict[str, Any]):
         """
-        Test that APIsec scan job no longer has credential-based conditional execution.
+        Test that APIsec scan job no longer has credential - based conditional execution.
 
         Job should not have 'if' condition checking for secret availability.
         """
@@ -416,11 +416,11 @@ class TestAPISecWorkflowSimplification:
 
 
 class TestPRAgentConfigSimplification:
-    """Test that pr-agent-config.yml has been simplified."""
+    """Test that pr - agent - config.yml has been simplified."""
 
     @pytest.fixture
     def pr_agent_config(self) -> Dict[str, Any]:
-        """Load pr-agent-config.yml."""
+        """Load pr - agent - config.yml."""
         config_path = (
             Path(__file__).parent.parent.parent / ".github" / "pr-agent-config.yml"
         )
@@ -473,7 +473,7 @@ class TestPRAgentConfigSimplification:
             )
 
     def test_no_chunking_limits(self, pr_agent_config: Dict[str, Any]):
-        """Test that config doesn't have chunking-specific limits."""
+        """Test that config doesn't have chunking - specific limits."""
         limits = pr_agent_config.get("limits", {})
 
         if limits:
@@ -517,7 +517,7 @@ class TestDeletedScriptFilesVerification:
     """Verify that script files meant to be deleted are actually gone."""
 
     def test_context_chunker_script_deleted(self):
-        """Test that .github/scripts/context_chunker.py has been deleted."""
+        """Test that .github / scripts / context_chunker.py has been deleted."""
         chunker_script = (
             Path(__file__).parent.parent.parent
             / ".github"
@@ -530,7 +530,7 @@ class TestDeletedScriptFilesVerification:
         )
 
     def test_scripts_readme_deleted(self):
-        """Test that .github/scripts/README.md has been deleted."""
+        """Test that .github / scripts / README.md has been deleted."""
         scripts_readme = (
             Path(__file__).parent.parent.parent / ".github" / "scripts" / "README.md"
         )
@@ -540,7 +540,7 @@ class TestDeletedScriptFilesVerification:
         )
 
     def test_scripts_directory_empty_or_gone(self):
-        """Test that .github/scripts directory is empty or doesn't exist."""
+        """Test that .github / scripts directory is empty or doesn't exist."""
         scripts_dir = Path(__file__).parent.parent.parent / ".github" / "scripts"
         contents = list(scripts_dir.iterdir()) if scripts_dir.exists() else []
         # If it exists, should be empty or only contain __pycache__

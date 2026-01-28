@@ -1,3 +1,9 @@
+from collections import Counter
+from pathlib import Path
+from typing import Any, Dict, List
+
+import pytest
+
 id_counts = Counter(step_ids)
 duplicates = [sid for sid, count in id_counts.items() if count > 1]
 assert not duplicates, (
@@ -10,17 +16,13 @@ workflows, ensuring they are properly formatted and free of common issues like
 duplicate keys, invalid syntax, and missing required fields.
 """
 
-from collections import Counter
-from pathlib import Path
-from typing import Any, Dict, List
-
-import pytest
 
 # Skip this module if PyYAML is not installed
 yaml = pytest.importorskip("yaml")
 
 # Define workflows directory path used across tests
 WORKFLOWS_DIR = Path(".github") / "workflows"
+
 
 def get_workflow_files() -> List[Path]:
     """

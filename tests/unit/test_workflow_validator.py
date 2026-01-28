@@ -26,6 +26,7 @@ class TestValidationResult:
     @staticmethod
     def test_validation_result_creation_valid():
         """Test creating a valid ValidationResult"""
+
     @staticmethod
     def test_validation_result_creation_valid():
         """Test creating a valid ValidationResult"""

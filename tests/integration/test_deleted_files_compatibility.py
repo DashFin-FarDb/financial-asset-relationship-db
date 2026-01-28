@@ -183,7 +183,7 @@ class TestDeletedLabelerConfig:
 class TestDeletedScriptsReadme:
     """Validate that scripts README removal doesn't break documentation."""
 
-    @ staticmethod
+    @staticmethod
     def test_main_docs_dont_reference_scripts_readme() -> None:
         """Main documentation should not reference deleted scripts README."""
         doc_files = [
@@ -269,7 +269,7 @@ class TestWorkflowConfigConsistency:
                 "Config contains chunking settings unused by workflow"
             )
 
-    @staticmethod
+    @ staticmethod
     def test_no_missing_config_files_referenced() -> None:
         """Workflows should not reference missing config files."""
         for workflow_file in _get_workflow_files():

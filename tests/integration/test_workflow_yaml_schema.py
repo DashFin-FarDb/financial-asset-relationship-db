@@ -213,6 +213,7 @@ This module contains tests to verify that workflow files conform to the expected
 and do not include hardcoded secrets or other security vulnerabilities.
 """
 
+
 class TestWorkflowSecurity:
     """Security-focused tests for GitHub workflows."""
 
