@@ -348,7 +348,7 @@ class TestPRAgentConfigSecurity:
     def test_no_hardcoded_secrets(pr_agent_config):
         """
         Module for validating PR agent configuration and scanning for hardcoded secrets.
-        
+
         Recursively scan for secrets in nested structures.
         Traverse the parsed YAML and ensure that any key containing sensitive indicators
         has a safe placeholder value (None, 'null', 'none', 'placeholder', '***', or a
