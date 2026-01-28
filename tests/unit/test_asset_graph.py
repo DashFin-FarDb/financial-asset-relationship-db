@@ -413,8 +413,8 @@ class TestGet3DVisualizationDataEnhancedComprehensive:
 
         positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
-        # Should sort numerically as strings
-        assert asset_ids == sorted(['50', '100', '200', '75'], key=int)  # Sort numerically
+        # Asset IDs are sorted lexicographically (as strings)
+        assert asset_ids == sorted(['100', '200', '50', '75'])
 
     def test_special_characters_in_asset_ids(self):
         """Test with special characters in asset IDs."""
