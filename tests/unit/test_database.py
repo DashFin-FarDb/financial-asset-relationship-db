@@ -14,6 +14,7 @@ from unittest.mock import patch
 
 import pytest
 from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
@@ -213,6 +214,7 @@ class TestSessionScope:
         factory = create_session_factory(engine)
 
         def _attempt_operation() -> None:
+            """Perform a database operation and intentionally raise an error to test rollback behavior."""
             with session_scope(factory) as session:
                 session.add(TestModel(id=1, value="should_rollback"))
                 msg = "rollback test"
@@ -348,8 +350,6 @@ class TestEdgeCases:
     @staticmethod
     def test_session_scope_with_database_error():
         """Test session scope behavior with database-level errors."""
-        from sqlalchemy.exc import IntegrityError
-
         engine = create_engine("sqlite:///:memory:")
 
         class TestModel(Base):
@@ -360,6 +360,7 @@ class TestEdgeCases:
         factory = create_session_factory(engine)
 
         def _cause_integrity_error() -> None:
+            """Cause a database integrity error by adding duplicate primary keys within a session."""
             with session_scope(factory) as session:
                 session.add(TestModel(id=1))
                 session.flush()

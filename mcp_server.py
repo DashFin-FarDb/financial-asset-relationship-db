@@ -18,6 +18,11 @@ class _ThreadSafeGraph:
         self._lock = lock
 
     def __getattr__(self, name: str):
+        """
+        Dynamically resolves attribute access under a lock to avoid race conditions.
+        If the attribute is callable, returns a wrapper that locks around calls;
+        otherwise, returns a defensive deep copy of the attribute.
+        """
         # Resolve the attribute under lock to avoid races.
         with self._lock:
             attr = getattr(self._graph, name)
@@ -25,6 +30,10 @@ class _ThreadSafeGraph:
             if callable(attr):
 
                 def _wrapped(*args, **kwargs):
+                    """
+                    Thread-safe wrapper for callable attributes that acquires the lock
+                    before invocation.
+                    """
                     with self._lock:
                         return attr(*args, **kwargs)
 
@@ -110,6 +119,10 @@ def _build_mcp_app():
 
 
 def main(argv: list[str] | None = None) -> int:
+    """
+    Entry point for the MCP server CLI. Parses command-line arguments,
+    handles version flag, and runs the server.
+    """
     parser = argparse.ArgumentParser(
         prog="mcp_server.py",
         description="DashFin MCP server",
