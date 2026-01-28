@@ -516,6 +516,7 @@ class TestThreadSafety:
             t.start()
         for t in threads:
             t.join()
+            t.join()
         
         assert len(errors) == 0
         
