@@ -44,7 +44,8 @@ class TestPRAgentConfigChanges:
         with open(config_path, "r") as f:
             return yaml.safe_load(f)
 
-    def test_version_is_correct(self, config_data: Dict[str, Any]):
+    @staticmethod
+    def test_version_is_correct(config_data: Dict[str, Any]):
         """
         Verify the PR agent configuration declares agent.version equal to "1.0.0".
 
@@ -55,7 +56,8 @@ class TestPRAgentConfigChanges:
         assert "version" in config_data["agent"]
         assert config_data["agent"]["version"] == "1.0.0"
 
-    def test_no_context_chunking_config(self, config_data: Dict[str, Any]):
+    @staticmethod
+    def test_no_context_chunking_config(config_data: Dict[str, Any]):
         """Verify context chunking configuration has been removed."""
         # Should not have context configuration
         if "agent" in config_data:
@@ -63,7 +65,8 @@ class TestPRAgentConfigChanges:
                 "Context chunking config should be removed in v1.0.0"
             )
 
-    def test_no_fallback_strategies(self, config_data: Dict[str, Any]):
+    @staticmethod
+    def test_no_fallback_strategies(config_data: Dict[str, Any]):
         """
         Verify the PR Agent configuration does not define a 'fallback' key under the top-level 'limits' mapping.
 
@@ -74,7 +77,8 @@ class TestPRAgentConfigChanges:
         if isinstance(limits, dict):
             assert "fallback" not in limits, "Fallback strategies should be removed"
 
-    def test_basic_sections_present(self, config_data: Dict[str, Any]):
+    @staticmethod
+    def test_basic_sections_present(config_data: Dict[str, Any]):
         """
         Check that the PR agent YAML configuration includes the essential top-level sections.
 
@@ -88,7 +92,8 @@ class TestPRAgentConfigChanges:
                 f"Required section '{section}' missing from config"
             )
 
-    def test_no_complex_token_management(self, config_data: Dict[str, Any]):
+    @staticmethod
+    def test_no_complex_token_management(config_data: Dict[str, Any]):
         """
         Check that the PR agent configuration does not contain complex token-chunking or explicit token-limit settings.
 
@@ -105,7 +110,8 @@ class TestPRAgentConfigChanges:
             "limits", {}
         ).get("max_execution_time"), "Token management should be simplified"
 
-    def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
+    @staticmethod
+    def test_quality_standards_preserved(config_data: Dict[str, Any]):
         """
         Validate that the configuration preserves required quality settings for supported languages and Python tooling.
 
@@ -135,83 +141,83 @@ class TestWorkflowSimplifications:
         """Get workflows directory."""
         return Path(__file__).parent.parent.parent / ".github" / "workflows"
 
-    @staticmethod
-    def test_pr_agent_workflow_simplified(workflows_dir: Path):
-        """
-        Validate that the PR Agent GitHub Actions workflow has been simplified.
+@staticmethod
+def test_pr_agent_workflow_simplified(workflows_dir: Path):
+    """
+    Validate that the PR Agent GitHub Actions workflow has been simplified.
 
-        Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
-        """
-        workflow_file = workflows_dir / "pr-agent.yml"
-        assert workflow_file.exists()
+    Checks that .github/workflows/pr-agent.yml exists, does not reference `context_chunker` or inline `tiktoken` usage with nearby `pip install`, and includes a simplified Python dependency installation that references `requirements.txt`.
+    """
+    workflow_file = workflows_dir / "pr-agent.yml"
+    assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
-            content = f.read()
+    with open(workflow_file, "r") as f:
+        content = f.read()
 
-        # Should not contain context chunking references
-        assert "context_chunker" not in content
-        assert (
-            "tiktoken" not in content
-            or "pip install" not in content.split("tiktoken")[0][-200:]
-        )
+    # Should not contain context chunking references
+    assert "context_chunker" not in content
+    assert (
+        "tiktoken" not in content
+        or "pip install" not in content.split("tiktoken")[0][-200:]
+    )
 
-        # Should have simplified Python dependency installation
-        assert "pip install" in content
-        assert "requirements.txt" in content
+    # Should have simplified Python dependency installation
+    assert "pip install" in content
+    assert "requirements.txt" in content
 
-    def test_apisec_workflow_no_conditional_skip(self, workflows_dir: Path):
-        """
-        Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
+@staticmethod
+def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
+    """
+    Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
 
-        Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
-        """
-        workflow_file = workflows_dir / "apisec-scan.yml"
-        assert workflow_file.exists()
+    Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
+    """
+    workflow_file = workflows_dir / "apisec-scan.yml"
+    assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
-            content = f.read()
+    with open(workflow_file, "r") as f:
+        content = f.read()
 
-        # Should not have "if: secrets.apisec_username != ''" type conditions
-        assert "apisec_username != ''" not in content
-        assert "apisec_password != ''" not in content
+    # Should not have "if: secrets.apisec_username != ''" type conditions
+    assert "apisec_username != ''" not in content
+    assert "apisec_password != ''" not in content
 
-    def test_label_workflow_simplified(self, workflows_dir: Path):
-        """
-        Validate that the label workflow uses a simplified configuration.
+@staticmethod
+def test_label_workflow_simplified(workflows_dir: Path):
+    """
+    Validate that the label workflow uses a simplified configuration.
 
-        Asserts that .github/workflows/label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
-        """
-        workflow_file = workflows_dir / "label.yml"
-        assert workflow_file.exists()
+    Asserts that .github/workflows/label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
+    """
+    workflow_file = workflows_dir / "label.yml"
+    assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
-            content = f.read()
+    with open(workflow_file, "r") as f:
+        content = f.read()
 
-        # Should be simple and not check for config existence
-        assert "check-config" not in content.lower()
-        assert "labeler.yml not found" not in content
+    # Should be simple and not check for config existence
+    assert "check-config" not in content.lower()
+    assert "labeler.yml not found" not in content
 
-    def test_greetings_workflow_simple_messages(self, workflows_dir: Path):
-        """Verify greetings workflow has simple placeholder messages."""
-        workflow_file = workflows_dir / "greetings.yml"
-        assert workflow_file.exists()
+@staticmethod
+def test_greetings_workflow_simple_messages(workflows_dir: Path):
+    """Verify greetings workflow has simple placeholder messages."""
+    workflow_file = workflows_dir / "greetings.yml"
+    assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
-            workflow_data = yaml.safe_load(f)
+    with open(workflow_file, "r") as f:
+        workflow_data = yaml.safe_load(f)
 
-        # Check for simple messages (not elaborate multi-line messages)
-        steps = workflow_data["jobs"]["greeting"]["steps"]
-        first_interaction_step = next(
-            (s for s in steps if "first-interaction" in str(s)), None
-        )
+    # Check for simple messages (not elaborate multi-line messages)
+    steps = workflow_data["jobs"]["greeting"]["steps"]
+    first_interaction_step = next(
+        (s for s in steps if "first-interaction" in str(s)), None
+    )
 
-        assert first_interaction_step is not None
-        issue_msg = first_interaction_step["with"].get("issue-message", "")
-        pr_msg = first_interaction_step["with"].get("pr-message", "")
+    assert first_interaction_step is not None
+    issue_msg = first_interaction_step["with"].get("issue-message", "")
+    pr_msg = first_interaction_step["with"].get("pr-message", "")
 
-        # Messages should be short placeholders
-        assert len(issue_msg) < 200, "Issue message should be a simple placeholder"
-        assert len(pr_msg) < 200, "PR message should be a simple placeholder"
-
-
-# ... rest of the code unchanged ...
+    # Messages should be short placeholders
+    assert len(issue_msg) < 200, "Issue message should be a simple placeholder"
+    assert len(pr_msg) < 200, "PR message should be a simple placeholder"

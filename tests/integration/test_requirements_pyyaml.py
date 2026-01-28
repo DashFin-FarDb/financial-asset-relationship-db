@@ -87,7 +87,8 @@ class TestPyYAMLDependencyAddition:
 class TestRequirementsDevYAMLUsage:
     """Test that PyYAML is actually used."""
 
-    def test_pyyaml_used_in_workflow_tests(self) -> None:
+    @staticmethod
+    def test_pyyaml_used_in_workflow_tests() -> None:
         """Test that PyYAML is imported in workflow test files."""
         workflow_tests = [
             Path("tests/integration/test_github_workflows.py"),

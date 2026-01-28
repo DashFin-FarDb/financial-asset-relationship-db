@@ -163,57 +163,56 @@ class TestWorkflowGitHubActionsSchema:
     def test_jobs_have_runs_on(workflow_data):
         """All jobs should specify runs-on."""
         for filename, data in workflow_data.items():
-            jobs = data.get("jobs", {})
+        jobs = data.get("jobs", {})
 
-            for job_name, job_data in jobs.items():
-                assert "runs-on" in job_data, (
-                    f"{filename} job '{job_name}' missing 'runs-on'"
-                )
+        for job_name, job_data in jobs.items():
+            assert "runs-on" in job_data, (
+                f"{filename} job '{job_name}' missing 'runs-on'"
+            )
 
-                runs_on = job_data["runs-on"]
-                valid_runners = [
-                    "ubuntu-latest",
-                    "ubuntu-22.04",
-                    "ubuntu-20.04",
-                    "ubuntu-18.04",
-                    "windows-latest",
-                    "windows-2022",
-                    "windows-2019",
-                    "macos-latest",
-                    "macos-13",
-                    "macos-12",
-                    "macos-11",
-                ]
+            runs_on = job_data["runs-on"]
+            valid_runners = [
+                "ubuntu-latest",
+                "ubuntu-22.04",
+                "ubuntu-20.04",
+                "ubuntu-18.04",
+                "windows-latest",
+                "windows-2022",
+                "windows-2019",
+                "macos-latest",
+                "macos-13",
+                "macos-12",
+                "macos-11",
+            ]
 
-                if isinstance(runs_on, str):
-                    # Can be expression or literal
-                    if not runs_on.startswith("${{"):
-                        assert any(runner in runs_on for runner in valid_runners), (
-    @ staticmethod
-    def test_jobs_have_steps_or_uses(workflow_data):
-        """Jobs should have either steps or uses (for reusable workflows)."""
-        for filename, data in workflow_data.items():
-            jobs=data.get("jobs", {})
-
-            for job_name, job_data in jobs.items():
-                has_steps="steps" in job_data
-                has_uses="uses" in job_data
-
-                assert has_steps or has_uses, (
-                    f"{filename} job '{job_name}' has neither 'steps' nor 'uses'"
-                )
-
-                if has_steps:
-                    assert isinstance(job_data["steps"], list), (
-                        f"{filename} job '{job_name}' steps should be a list"
-                    )
-                    assert len(job_data["steps"]) > 0, (
-                        f"{filename} job '{job_name}' has empty steps"
+            if isinstance(runs_on, str):
+                # Can be expression or literal
+                if not runs_on.startswith("${{"):
+                    assert any(runner in runs_on for runner in valid_runners), (
+                        f"{filename} job '{job_name}' has invalid 'runs-on': {runs_on}"
                     )
 
-# Integration tests for GitHub workflow YAML schema and security.
-#
-# This module contains tests to verify that workflow files conform to the expected schema
+@ staticmethod
+def test_jobs_have_steps_or_uses(workflow_data):
+    """Jobs should have either steps or uses (for reusable workflows)."""
+    for filename, data in workflow_data.items():
+        jobs=data.get("jobs", {})
+
+        for job_name, job_data in jobs.items():
+            has_steps="steps" in job_data
+            has_uses="uses" in job_data
+
+            assert has_steps or has_uses, (
+                f"{filename} job '{job_name}' has neither 'steps' nor 'uses'"
+            )
+
+            if has_steps:
+                assert isinstance(job_data["steps"], list), (
+                    f"{filename} job '{job_name}' steps should be a list"
+                )
+                assert len(job_data["steps"]) > 0, (
+                    f"{filename} job '{job_name}' has empty steps"
+                )
 # and do not include hardcoded secrets or other security vulnerabilities.
 
 class TestWorkflowSecurity:

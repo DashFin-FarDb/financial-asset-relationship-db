@@ -154,7 +154,8 @@ class TestWorkflowSchemaCompliance:
                 workflows.append({"path": workflow_file, "content": yaml.safe_load(f)})
         return workflows
 
-    def test_workflows_have_required_top_level_keys(self, all_workflows):
+    @staticmethod
+    def test_workflows_have_required_top_level_keys(all_workflows):
         """Verify workflows have all required top-level keys."""
         required_keys = ["name", "jobs"]
 
@@ -164,7 +165,8 @@ class TestWorkflowSchemaCompliance:
                     f"Workflow {workflow['path']} missing required key: {key}"
                 )
 
-    def test_workflow_triggers_valid_format(self, all_workflows):
+    @staticmethod
+    def test_workflow_triggers_valid_format(all_workflows):
         """Verify workflow triggers use valid format."""
         for workflow in all_workflows:
             # Check for 'on' or '"on"' key
@@ -180,7 +182,8 @@ class TestWorkflowSchemaCompliance:
                 f"Workflow {workflow['path']} has invalid trigger format"
             )
 
-    def test_job_definitions_valid(self, all_workflows):
+    @staticmethod
+    def test_job_definitions_valid(all_workflows):
         """
         Validate that each workflow defines at least one job and that each job contains required fields.
 

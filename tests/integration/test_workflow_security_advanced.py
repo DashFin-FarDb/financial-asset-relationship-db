@@ -45,7 +45,8 @@ class TestWorkflowInjectionPrevention:
                 )
         return workflows
 
-    def test_no_unquoted_github_context_in_run_commands(self, all_workflows):
+    @staticmethod
+    def test_no_unquoted_github_context_in_run_commands(all_workflows):
         """
         Ensure GitHub context variables in 'run' steps are enclosed in quotes.
 
@@ -74,7 +75,8 @@ class TestWorkflowInjectionPrevention:
                                     f"job '{job_name}' step {step_idx}: {match}"
                                 )
 
-    def test_no_eval_with_user_input(self, all_workflows):
+    @staticmethod
+    def test_no_eval_with_user_input(all_workflows):
         """Verify workflows don't use eval with user-controllable input."""
         dangerous_commands = ["eval", "exec", "source"]
 
@@ -93,7 +95,8 @@ class TestWorkflowInjectionPrevention:
                                     f"{workflow['path']} job '{job_name}' step {step_idx}"
                                 )
 
-    def test_script_injection_prevention_in_pr_title_body(self, all_workflows):
+    @staticmethod
+    def test_script_injection_prevention_in_pr_title_body(all_workflows):
         """
         Ensure workflow run steps do not directly interpolate pull request, issue, or comment title/body into script content.
 
@@ -123,7 +126,8 @@ class TestWorkflowInjectionPrevention:
                                     f"Use environment variables instead."
                                 )
 
-    def test_no_curl_with_unvalidated_input(self, all_workflows):
+    @staticmethod
+    def test_no_curl_with_unvalidated_input(all_workflows):
         """Verify curl commands don't use unvalidated user input."""
         for workflow in all_workflows:
             jobs = workflow["content"].get("jobs", {})
@@ -172,7 +176,8 @@ class TestWorkflowSecretHandling:
                 )
         return workflows
 
-    def test_secrets_not_echoed_in_logs(self, all_workflows):
+    @staticmethod
+    def test_secrets_not_echoed_in_logs(all_workflows):
         """
         Scan each workflow's raw YAML for `secrets.NAME` references and assert that no line containing a secret reference invokes `echo`, `print`, or `printf`, which would expose the secret in logs.
         """
@@ -196,7 +201,8 @@ class TestWorkflowSecretHandling:
                             f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
                         )
 
-    def test_secrets_not_in_artifact_uploads(self, all_workflows):
+    @staticmethod
+    def test_secrets_not_in_artifact_uploads(all_workflows):
         """Verify secrets are not uploaded as artifacts."""
         for workflow in all_workflows:
             jobs = workflow["content"].get("jobs", {})
@@ -211,7 +217,8 @@ class TestWorkflowSecretHandling:
                             f"job '{job_name}' step {step_idx}"
                         )
 
-    def test_secrets_not_in_pr_comments(self, all_workflows):
+    @staticmethod
+    def test_secrets_not_in_pr_comments(all_workflows):
         """Verify secrets are not posted in PR comments."""
         for workflow in all_workflows:
             jobs = workflow["content"].get("jobs", {})
@@ -229,7 +236,8 @@ class TestWorkflowSecretHandling:
                                 f"job '{job_name}' step {step_idx}"
                             )
 
-    def test_sensitive_env_vars_marked_as_secrets(self, all_workflows):
+    @staticmethod
+    def test_sensitive_env_vars_marked_as_secrets(all_workflows):
         """
         Ensure environment variables with sensitive names reference repository secrets.
 
@@ -255,6 +263,10 @@ class TestWorkflowSecretHandling:
                 for env_name, env_value in job_env.items():
                     if any(
                         pattern in env_name.upper() for pattern in sensitive_patterns
+                    ):
+                        assert isinstance(env_value, str) and env_value.startswith("secrets."), (
+                            f"Sensitive env var {env_name} in {workflow['path']} job '{job_name}' must reference a secret"
+                        )
                     ):
                         assert isinstance(env_value, str) and env_value.startswith(
                             "secrets."
@@ -372,7 +384,8 @@ class TestWorkflowPermissionsHardening:
                                 f"Third-party action '{action}' in workflow {workflow['path']} is not pinned to a commit SHA"
                             )
 
-    def test_third_party_actions_pinned_to_commit_sha(self, all_workflows):
+    @staticmethod
+    def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """
         Ensure third-party actions referenced with '@' are pinned to a 40-character lowercase hex commit SHA.
 
@@ -403,6 +416,7 @@ class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
 
     @pytest.fixture
+    @staticmethod
     @staticmethod
     def all_workflows() -> List[Dict[str, Any]]:
         """
@@ -501,7 +515,6 @@ class TestWorkflowSupplyChainSecurity:
                                 f"Pip installing from insecure index in {workflow['path']} "
                                 f"job '{job_name}' step {step_idx}"
                             )
-
 
 class TestWorkflowIsolationAndSandboxing:
     """Tests for workflow isolation and sandboxing."""

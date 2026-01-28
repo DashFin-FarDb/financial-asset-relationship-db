@@ -18,7 +18,8 @@ class TestWorkflowYAMLSyntax:
         workflow_dir = Path(".github/workflows")
         return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
 
-    def test_all_workflows_are_valid_yaml(self, workflow_files):
+    @staticmethod
+    def test_all_workflows_are_valid_yaml(workflow_files):
         """Test that all workflow files contain valid YAML."""
         for workflow_file in workflow_files:
             try:
@@ -27,7 +28,8 @@ class TestWorkflowYAMLSyntax:
             except yaml.YAMLError as e:
                 pytest.fail(f"Invalid YAML in {workflow_file}: {e}")
 
-    def test_no_duplicate_keys_in_workflows(self, workflow_files):
+    @staticmethod
+    def test_no_duplicate_keys_in_workflows(workflow_files):
         """Test that workflow files don't have duplicate keys at any level."""
 
         def check_duplicates(data, path=""):
@@ -56,7 +58,8 @@ class TestWorkflowYAMLSyntax:
                 assert error is None, f"In {workflow_file}: {error}"
                 assert error is None, f"In {workflow_file}: {error}"
 
-    def test_workflows_have_required_fields(self, workflow_files):
+    @staticmethod
+    def test_workflows_have_required_fields(workflow_files):
         """Test that workflows have required top - level fields."""
         required_fields = ["name", "on"]
 
@@ -68,7 +71,8 @@ class TestWorkflowYAMLSyntax:
                         f"{workflow_file} missing required field: {field}"
                     )
 
-    def test_workflow_names_are_descriptive(self, workflow_files):
+    @staticmethod
+    def test_workflow_names_are_descriptive(workflow_files):
         """Test that workflow names are descriptive and unique."""
         names = []
         for workflow_file in workflow_files:
@@ -98,7 +102,8 @@ class TestWorkflowJobs:
                     workflows.append((workflow_file.name, data))
         return workflows
 
-    def test_all_jobs_have_runs_on(self, workflows_with_jobs):
+    @staticmethod
+    def test_all_jobs_have_runs_on(workflows_with_jobs):
         """Test that all jobs specify a runs - on platform."""
         for workflow_name, data in workflows_with_jobs:
             jobs = data.get("jobs", {})
@@ -107,7 +112,8 @@ class TestWorkflowJobs:
                     f"{workflow_name}: Job '{job_name}' missing runs-on"
                 )
 
-    def test_job_names_are_descriptive(self, workflows_with_jobs):
+    @staticmethod
+    def test_job_names_are_descriptive(workflows_with_jobs):
         """Test that job names follow conventions and are descriptive."""
         for workflow_name, data in workflows_with_jobs:
             jobs = data.get("jobs", {})
@@ -119,7 +125,8 @@ class TestWorkflowJobs:
                     f"{workflow_name}: Job name contains spaces: '{job_name}'"
                 )
 
-    def test_jobs_with_steps_have_at_least_one_step(self, workflows_with_jobs):
+    @staticmethod
+    def test_jobs_with_steps_have_at_least_one_step(workflows_with_jobs):
         """Test that jobs with steps array have at least one step."""
         for workflow_name, data in workflows_with_jobs:
             jobs = data.get("jobs", {})
@@ -130,7 +137,8 @@ class TestWorkflowJobs:
                         f"{workflow_name}: Job '{job_name}' has empty steps"
                     )
 
-    def test_checkout_action_uses_specific_version(self, workflows_with_jobs):
+    @staticmethod
+    def test_checkout_action_uses_specific_version(workflows_with_jobs):
         """Test that checkout actions use pinned versions."""
         for workflow_name, data in workflows_with_jobs:
             jobs = data.get("jobs", {})
@@ -155,9 +163,9 @@ class TestWorkflowSecurityAdvanced:
         workflow_dir = Path(".github/workflows")
         return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
 
-    def test_no_hardcoded_secrets(self, workflow_files):
+    @staticmethod
+    def test_no_hardcoded_secrets(workflow_files):
         """Test that workflows don't contain hardcoded secrets."""
-
         secret_patterns = [
             r'password\s*[:=]\s*["\'](?!.*\$\{\{)[\w-]+["\']',
             r'token\s*[:=]\s*["\'](?!.*\$\{\{)[\w-]+["\']',
@@ -173,7 +181,8 @@ class TestWorkflowSecurityAdvanced:
                         f"{workflow_file} may contain hardcoded secrets"
                     )
 
-    def test_secrets_use_github_secrets(self, workflow_files):
+    @staticmethod
+    def test_secrets_use_github_secrets(workflow_files):
         """Test that secret references use proper GitHub secrets syntax."""
         for workflow_file in workflow_files:
             with open(workflow_file, "r") as f:
@@ -184,7 +193,8 @@ class TestWorkflowSecurityAdvanced:
                         f"{workflow_file}: Secret '{secret_ref}' should be uppercase"
                     )
 
-    def test_no_eval_or_bash_c_with_user_input(self, workflow_files):
+    @staticmethod
+    def test_no_eval_or_bash_c_with_user_input(workflow_files):
         """Test that workflows don't use eval or bash - c with user - controlled input."""
         dangerous_patterns = [
             r"eval.*\$\{\{.*github\.event",
@@ -218,7 +228,8 @@ class TestWorkflowPerformanceOptimization:
                     workflows.append((workflow_file.name, data))
         return workflows
 
-    def test_concurrent_jobs_use_needs(self, workflows_with_jobs):
+    @staticmethod
+    def test_concurrent_jobs_use_needs(workflows_with_jobs):
         """Test that dependent jobs properly use 'needs' to run sequentially."""
         for workflow_name, data in workflows_with_jobs:
             jobs = data.get("jobs", {})
@@ -234,7 +245,8 @@ class TestWorkflowPerformanceOptimization:
                         f"{workflow_name}: Job '{job_name}' needs non-existent job '{needed_job}'"
                     )
 
-    def test_matrix_strategies_are_reasonable(self, workflows_with_jobs):
+    @staticmethod
+    def test_matrix_strategies_are_reasonable(workflows_with_jobs):
         """Test that matrix strategies don't create excessive job combinations."""
         MAX_MATRIX_SIZE = 50
 
@@ -260,6 +272,16 @@ class TestWorkflowTriggerValidation:
 
     @staticmethod
     @pytest.fixture
+    def workflows_with_triggers() -> List[tuple]:
+        """Get all workflows with their trigger definitions."""
+        workflow_dir = Path(".github/workflows")
+        workflows = []
+        for workflow_file in workflow_dir.glob("*.yml"):
+            with open(workflow_file, "r") as f:
+                data = yaml.safe_load(f)
+                if "on" in data:
+                    workflows.append((workflow_file.name, data))
+        return workflows
     def workflow_files() -> List[Path]:
         """Get all workflow YAML files."""
         workflow_dir = Path(".github/workflows")

@@ -776,32 +776,32 @@ class TestRequirementsDevValidation:
 
     @staticmethod
     def test_no_conflicting_dependencies() -> None:
-    """Verify there are no package version conflicts between requirements - dev.txt and requirements.txt."""
-    req_file = Path("requirements-dev.txt")
-    main_req_file = Path("requirements.txt")
+        """Verify there are no package version conflicts between requirements - dev.txt and requirements.txt."""
+        req_file = Path("requirements-dev.txt")
+        main_req_file = Path("requirements.txt")
 
-    if not (req_file.exists() and main_req_file.exists()):
-        pytest.skip("Both requirements files needed for this test")
+        if not (req_file.exists() and main_req_file.exists()):
+            pytest.skip("Both requirements files needed for this test")
 
-    def parse_requirements(file_path: Path) -> dict[str, str]:
-        """
-        Parse a requirements file and return a mapping of package names
-        to their full version specifier lines.
-        """
-        packages: dict[str, str] = {}
-        with file_path.open(encoding="utf-8") as file_handle:
-            for line in file_handle:
-                stripped = line.strip()
-                if stripped and not stripped.startswith("#"):
-                    pkg = (
-                        stripped.split("==")[0]
-                        .split(">=")[0]
-                        .split("<=")[0]
-                        .split("[")[0]
-                        .strip()
-                        .lower()
-                    )
-                    packages[pkg] = stripped
+        def parse_requirements(file_path: Path) -> dict[str, str]:
+            """
+            Parse a requirements file and return a mapping of package names
+            to their full version specifier lines.
+            """
+            packages: dict[str, str] = {}
+            with file_path.open(encoding="utf-8") as file_handle:
+                for line in file_handle:
+                    stripped = line.strip()
+                    if stripped and not stripped.startswith("#"):
+                        pkg = (
+                            stripped.split("==")[0]
+                            .split(">=")[0]
+                            .split("<=")[0]
+                            .split("[")[0]
+                            .strip()
+                            .lower()
+                        )
+                        packages[pkg] = stripped
         return packages
 
     dev_pkgs = parse_requirements(req_file)

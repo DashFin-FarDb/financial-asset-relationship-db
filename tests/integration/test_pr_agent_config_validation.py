@@ -266,20 +266,21 @@ class TestPRAgentConfigSecurity:
 
         Returns:
             The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
+        """
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
         Recursively scan configuration values for suspected secrets.
 
         This inspects values(not just serialized text) and traverses nested dicts / lists.
         The heuristic flags:
-            """
-          Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
-          If the file is missing, contains invalid YAML, or the top-level content is not a mapping, this fixture fails test collection. Empty files return None.
+        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
-          Returns:
-              The parsed YAML content (typically a dict) or `None` if the file is empty.
-          """
+        If the file is missing, contains invalid YAML, or the top-level content is not a mapping, this fixture fails test collection. Empty files return None.
+
+        Returns:
+            The parsed YAML content (typically a dict) or `None` if the file is empty.
+        """
         - Long high - entropy strings(e.g., tokens)
         - Obvious secret prefixes / suffixes
         - Inline credentials in URLs(e.g., scheme: // user:pass @ host)

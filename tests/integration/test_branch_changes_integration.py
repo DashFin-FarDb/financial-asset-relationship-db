@@ -87,7 +87,8 @@ class TestWorkflowConfigurationIntegration:
                                     f"{workflow_file.name} run uses '{tool}' without preceding setup step '{setup_info[0]}'."
                                 )
 
-    def test_consistent_python_versions(self):
+    @staticmethod
+    def test_consistent_python_versions():
         """Python versions should be consistent across workflows."""
         python_versions = set()
 
@@ -111,7 +112,8 @@ class TestWorkflowConfigurationIntegration:
             f"Too many different Python versions used: {python_versions}"
         )
 
-    def test_consistent_node_versions(self):
+    @staticmethod
+    def test_consistent_node_versions():
         """Node.js versions should be consistent across workflows."""
         node_versions = set()
 
@@ -139,7 +141,8 @@ class TestWorkflowConfigurationIntegration:
 class TestRequirementsConsistency:
     """Test consistency between requirements files and workflow usage."""
 
-    def test_requirements_dev_matches_workflow_installs(self):
+    @staticmethod
+    def test_requirements_dev_matches_workflow_installs():
         """Packages installed in workflows should be in requirements - dev.txt."""
         req_dev_path = Path("requirements-dev.txt")
 
@@ -184,7 +187,8 @@ class TestRequirementsConsistency:
                                     f"Package '{pkg_name}' installed in workflow '{workflow_file}' not in requirements-dev.txt"
                                 )
 
-    def test_no_duplicate_dependencies(self):
+    @staticmethod
+    def test_no_duplicate_dependencies():
         """Requirements files should not have duplicate dependencies."""
         req_files = ["requirements.txt", "requirements-dev.txt"]
 
@@ -248,7 +252,8 @@ class TestDocumentationConsistency:
                             f"README references removed chunking feature outside removed/deprecated context at line {line_num}: {line.strip()}"
                         )
 
-    def test_changelog_documents_deletions(self):
+    @staticmethod
+    def test_changelog_documents_deletions():
         """CHANGELOG should document deleted files and features."""
         changelog = Path("CHANGELOG.md")
 
@@ -260,7 +265,8 @@ class TestDocumentationConsistency:
             # At least one deletion should be documented
             # (This is a documentation quality check, not strict requirement)
 
-    def test_no_broken_internal_links(self):
+    @staticmethod
+    def test_no_broken_internal_links():
         """Markdown files should not have broken internal links."""
         md_files = list(Path(".").glob("*.md"))
 
