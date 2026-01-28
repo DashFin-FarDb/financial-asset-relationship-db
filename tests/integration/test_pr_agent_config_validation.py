@@ -267,6 +267,7 @@ class TestPRAgentConfigSecurity:
         Returns:
             The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
         """
+
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
         Recursively scan configuration values for suspected secrets.

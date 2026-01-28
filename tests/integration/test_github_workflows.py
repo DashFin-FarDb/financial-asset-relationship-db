@@ -70,6 +70,7 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
     # Parse with a custom constructor that detects duplicates
     class DuplicateKeySafeLoader(yaml.SafeLoader):
         """SafeLoader subclass that detects duplicate keys in YAML mappings."""
+
         pass
 
     def constructor_with_dup_check(loader, node):
@@ -138,7 +139,9 @@ class TestWorkflowSyntax:
 
 class TestWorkflowStructure:
     """Test suite for GitHub Actions workflow structure validation."""
+
     """Check that a workflow file exists, is a regular file and contains non-empty UTF-8 text."""
+
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_has_name(self, workflow_file: Path):
         """Verify the workflow YAML defines a non - empty top - level name."""
@@ -802,6 +805,7 @@ class TestRequirementsDevValidation:
                             .lower()
                         )
                         packages[pkg] = stripped
+
         return packages
 
     dev_pkgs = parse_requirements(req_file)

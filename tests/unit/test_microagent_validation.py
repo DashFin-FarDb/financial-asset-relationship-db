@@ -94,6 +94,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     @staticmethod
     def test_file_exists(repo_engineer_path: Path):
+
     @staticmethod
     def test_file_exists(repo_engineer_path: Path):
         """Test that repo_engineer_lead.md exists."""

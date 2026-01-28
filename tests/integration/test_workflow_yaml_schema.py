@@ -192,15 +192,16 @@ class TestWorkflowGitHubActionsSchema:
                         f"{filename} job '{job_name}' has invalid 'runs-on': {runs_on}"
                     )
 
-@ staticmethod
+
+@staticmethod
 def test_jobs_have_steps_or_uses(workflow_data):
     """Jobs should have either steps or uses (for reusable workflows)."""
     for filename, data in workflow_data.items():
-        jobs=data.get("jobs", {})
+        jobs = data.get("jobs", {})
 
         for job_name, job_data in jobs.items():
-            has_steps="steps" in job_data
-            has_uses="uses" in job_data
+            has_steps = "steps" in job_data
+            has_uses = "uses" in job_data
 
             assert has_steps or has_uses, (
                 f"{filename} job '{job_name}' has neither 'steps' nor 'uses'"
@@ -215,16 +216,17 @@ def test_jobs_have_steps_or_uses(workflow_data):
                 )
 # and do not include hardcoded secrets or other security vulnerabilities.
 
+
 class TestWorkflowSecurity:
     """Security-focused tests for GitHub workflows."""
 
-    @ staticmethod
-    @ pytest.fixture
+    @staticmethod
+    @pytest.fixture
     def workflow_files():
         """Retrieve all workflow files for security tests."""
         return _get_workflow_files()
 
-    @ staticmethod
+    @staticmethod
     def test_no_hardcoded_secrets(workflow_files):
         """Workflows should not contain hardcoded secrets."""
         warnings.warn("Workflows should not contain hardcoded secrets.")

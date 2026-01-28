@@ -282,6 +282,7 @@ class TestWorkflowTriggerValidation:
                 if "on" in data:
                     workflows.append((workflow_file.name, data))
         return workflows
+
     def workflow_files() -> List[Path]:
         """Get all workflow YAML files."""
         workflow_dir = Path(".github/workflows")
