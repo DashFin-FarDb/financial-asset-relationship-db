@@ -702,8 +702,11 @@ class TestSeedCredentialsFromEnv:
         }
     
         # Clear optional env vars if they exist
-        for key in ['ADMIN_EMAIL', 'ADMIN_FULL_NAME', 'ADMIN_DISABLED']:
-            monkeypatch.delenv(key, raising=False)
+        with patch.dict(os.environ, env_vars, clear=True):
+            # Clear optional env vars if they exist
+            for key in ['ADMIN_EMAIL', 'ADMIN_FULL_NAME', 'ADMIN_DISABLED']:
+                monkeypatch.delenv(key, raising=False)
+            _seed_credentials_from_env(mock_repository)
     
         mock_repository.create_or_update_user.assert_called_once()
         call_kwargs = mock_repository.create_or_update_user.call_args.kwargs
