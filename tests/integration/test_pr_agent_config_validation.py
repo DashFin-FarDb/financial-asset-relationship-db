@@ -14,7 +14,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-INLINE_CREDS_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
+INLINE_CREDS_RE = re.compile(
+    r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
+)
 SECRET_MARKERS = (
     "secret",
     "token",
@@ -27,6 +29,7 @@ SECRET_MARKERS = (
     "auth",
     "bearer",
 )
+
 
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
@@ -282,7 +285,6 @@ class TestPRAgentConfigSecurity:
         # Module-level / shared compiled regexes and markers (defined below)
         # These are module-level constants declared outside classes further down in the file.
         # We'll reference them indirectly here by using the module-level names.
-
 
         def shannon_entropy(s: str) -> float:
             if not s:
