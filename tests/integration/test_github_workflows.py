@@ -782,7 +782,7 @@ class TestRequirementsDevValidation:
     """Module for integration tests related to GitHub workflows, ensuring no conflicting dependencies between requirement files."""
 
     @staticmethod
-def test_no_conflicting_dependencies() -> None:
+    def test_no_conflicting_dependencies() -> None:
     """Verify there are no package version conflicts between requirements - dev.txt and requirements.txt."""
     req_file = Path("requirements-dev.txt")
     main_req_file = Path("requirements.txt")
