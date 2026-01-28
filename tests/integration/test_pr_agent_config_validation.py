@@ -453,6 +453,7 @@ class TestPRAgentConfigSecurity:
             elif isinstance(node, (list, tuple)):
                 for i, item in enumerate(node):
                     scan_for_secrets(item, f"{path}[{i}]")
+
         # primitives are ignored unless they are values of sensitive keys checked above
 
         scan_for_secrets(pr_agent_config)
