@@ -268,42 +268,45 @@ class TestPRAgentConfigSecurity:
         re.IGNORECASE,
     )
 
-       # Common secret-like prefixes or markers
-       secret_markers = (
-            "secret",
-            "token",
-            "apikey",
-            "api_key",
-               "access_key",
-               "private_key",
-               "pwd",
-               "password",
-               "auth",
-               "bearer ",
-        )
+    # Common secret-like prefixes or markers
+    secret_markers = (
+        "secret",
+        "token",
+        "apikey",
+        "api_key",
+        "access_key",
+        "private_key",
+        "pwd",
+        "password",
+        "auth",
+        "bearer ",
+    )
 
-           def has_secret_prefix(val):
-                return any(val.startswith(p) for p in secret_markers)
+    @staticmethod
+    def has_secret_prefix(val):
+        return any(val.startswith(p) for p in secret_markers)
 
-            def has_inline_creds(val):
-                return inline_creds_re.search(val)
+    @staticmethod
+    def has_inline_creds(val):
+        return inline_creds_re.search(val)
 
-            suspected = []
+    suspected = []
 
-            # Define detectors for credential heuristics
-            @staticmethod
-            def detect_long_string(s):
-                if len(s) >= 40:
-                    return ("long_string", s)
-                return None
+    # Define detectors for credential heuristics
+    @staticmethod
+    def detect_long_string(s):
+        if len(s) >= 40:
+            return ("long_string", s)
+        return None
 
-            def detect_prefix(s):
-                for marker in secret_markers:
-                    if s.lower().startswith(marker):
-                        return ("prefix", s)
-                return None
+    @staticmethod
+    def detect_prefix(s):
+        for marker in secret_markers:
+            if s.lower().startswith(marker):
+                return ("prefix", s)
+        return None
 
-            @staticmethod
+    @staticmethod
             def detect_inline_creds(s):
                 if inline_creds_re.search(s):
                     return ("inline_creds", s)
