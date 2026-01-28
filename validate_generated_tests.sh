@@ -26,7 +26,7 @@ else
     echo "   ✗ test_database_refactoring.py - Syntax Error"
     status=1
 fi
-else
+
     echo "   ✗ test_database_refactoring.py - Syntax Error"
     status=1
 fi
