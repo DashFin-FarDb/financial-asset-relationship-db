@@ -9,7 +9,6 @@ This module tests the refactored authentication module, focusing on:
 - Thread safety of repository methods
 """
 
-import sqlite3
 import threading
 from unittest.mock import Mock, patch, MagicMock
 import pytest
