@@ -438,12 +438,12 @@ class TestPRAgentConfigSecurity:
                     scan_for_secrets(item, f"{path}[{i}]")
             # primitives are ignored unless they are values of sensitive keys checked above
 
-        scan_for_secrets(pr_agent_config)
-        scan_dict(val, path)
-    elif isinstance(val, (list, tuple)):
-        for i, item in enumerate(val):
-            scan_for_secrets(item, f"{path}[{i}]")
-    # For non-container values, the check is already performed by scan_dict
+            scan_for_secrets(pr_agent_config)
+            scan_dict(val, path)
+            elif isinstance(val, (list, tuple)):
+                for i, item in enumerate(val):
+                    scan_for_secrets(item, f"{path}[{i}]")
+            # For non-container values, the check is already performed by scan_dict
 
     sensitive_patterns = [
         "password",
