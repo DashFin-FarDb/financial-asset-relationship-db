@@ -195,7 +195,8 @@ class TestUserRepositoryInstanceMethods:
             except Exception as e:
                 errors.append(e)
         
-        threads = [threading.Thread(target=create_user, args=(f"user{i}",)) for i in range(10)]
+        with ThreadPoolExecutor(max_workers=10) as executor:
+        threads = [executor.submit(create_user, f"user{i}") for i in range(10)]
         for thread in threads:
             thread.start()
         for thread in threads:
@@ -354,7 +355,7 @@ class TestPasswordOperations:
         password = "mypassword123"
         hashed = get_password_hash(password)
         assert hashed != password
-        assert len(hashed) > len(password)
+        assert len(hashed) > len(password) and len(hashed) >= 60, "Hashed password does not meet security standards."
 
     def test_password_hash_is_not_deterministic_per_call(self):
         """Same password should produce different hashes (due to salt)."""
