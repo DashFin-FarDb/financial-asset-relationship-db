@@ -20,6 +20,7 @@ from app import AppConstants, FinancialAssetApp
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Equity
 
+`@pytest.mark.unit`
 class TestUpdateAssetInfo:
     """Test the update_asset_info method."""
 
