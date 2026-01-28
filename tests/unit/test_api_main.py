@@ -545,6 +545,7 @@ class TestErrorHandling:
 
         # Make graph.assets raise exception
         def raise_database_error(self):
+            """Function to raise a database exception for testing."""
             raise Exception("Database error")
 
         type(mock_graph_instance).assets = property(raise_database_error)

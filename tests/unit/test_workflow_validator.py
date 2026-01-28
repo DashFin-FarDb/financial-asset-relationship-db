@@ -496,6 +496,7 @@ class TestValidationResultDataStructure:
 
         @staticmethod
         def test_validation_result_attributes():
+            """Test that ValidationResult attributes are accessible within a static method."""
             data = {"name": "Test", "jobs": {"build": {}}}
             result = ValidationResult(True, [], data)
 

@@ -199,6 +199,20 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     @staticmethod
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
+        """
+        Populate an existing AssetORM row from an Asset (or subclass)
+        instance.
+
+        This method always updates the common Asset fields
+        (id/symbol/name/class/sector/price/etc.).
+
+        It also clears and repopulates optional, asset-class-specific columns
+        by reading attributes from `asset` via `getattr(..., None)` so that
+        missing attributes are written as NULL.
+
+        This prevents stale values from remaining in the database when an
+        asset's type/available fields change between updates.
+        """
         orm.symbol = asset.symbol
         orm.name = asset.name
         orm.asset_class = asset.asset_class.value
@@ -231,6 +245,7 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
+        """Convert an AssetORM database object to an Asset domain model instance."""
         asset_class = AssetClass(orm.asset_class)
         base_kwargs = {
             "id": orm.id,
@@ -278,6 +293,10 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
+        """
+        Convert a RegulatoryEventORM database object to a RegulatoryEvent
+        domain model instance.
+        """
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(
             id=orm.id,
