@@ -38,9 +38,8 @@ else
     exit 1
 fi
     
-echo "   Python Tests:"
-echo "   - test_auth_refactoring.py: $(grep -c 'def test_' tests/unit/test_auth_refactoring.py) test methods"
-echo "   - test_database_refactoring.py: $(grep -c 'def test_' tests/unit/test_database_refactoring.py) test methods"
+echo "   TypeScript Tests:"
+echo "   - api-refactoring.test.ts: $(grep -E -c '\b(it|test)\s*\(['\''"`]' frontend/__tests__/lib/api-refactoring.test.ts) test methods"
 
 echo "   TypeScript Tests:"
 echo "   - api-refactoring.test.ts: $(grep -E -c '\b(it|test)\s*\(['\''"`]'
