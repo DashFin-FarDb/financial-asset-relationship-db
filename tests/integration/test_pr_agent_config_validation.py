@@ -282,6 +282,7 @@ class TestPRAgentConfigSecurity:
             "bearer ",
            )
 
+       @staticmethod
        def is_long_string(val):
             return len(val) >= 40
 
