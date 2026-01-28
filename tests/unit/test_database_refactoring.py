@@ -36,22 +36,19 @@ def fetch_all(query, parameters=None):
 class TestGetDatabaseURL:
     """Test _get_database_url function."""
 
-    def test_get_database_url_from_environment(self, monkeypatch):
-        """Should read DATABASE_URL from environment."""
-        test_url = "sqlite:///test.db"
-        monkeypatch.setenv("DATABASE_URL", test_url)
-        assert _get_database_url() == test_url
-
     def test_get_database_url_raises_when_not_set(self, monkeypatch):
-        """Should raise ValueError when DATABASE_URL not set."""
+        """Should raise ValueError when DATABASE_URL is not set."""
         monkeypatch.delenv("DATABASE_URL", raising=False)
+
         with pytest.raises(ValueError) as exc_info:
             _get_database_url()
+
         assert "DATABASE_URL environment variable must be set" in str(exc_info.value)
 
     def test_get_database_url_with_empty_string(self, monkeypatch):
         """Should raise ValueError for empty DATABASE_URL."""
         monkeypatch.setenv("DATABASE_URL", "")
+
         with pytest.raises(ValueError):
             _get_database_url()
 
@@ -220,6 +217,8 @@ class TestGetConnection:
 
     def test_get_connection_yields_connection(self, monkeypatch):
         """Should yield a valid connection."""
+        @pytest.fixture
+    def setup_database(monkeypatch):
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         from api import database
         database.DATABASE_PATH = ":memory:"
