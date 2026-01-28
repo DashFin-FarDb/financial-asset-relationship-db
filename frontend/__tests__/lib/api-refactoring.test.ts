@@ -212,7 +212,7 @@ describe('API Client Refactoring Tests', () => {
 
       mockAxiosInstance.get.mockRejectedValue(httpError);
 
-      await expect(api.getAssetDetail('NONEXISTENT')).rejects.toThrow(); // Generalize to cover all error types
+      await expect(api.getAssetDetail('NONEXISTENT')).rejects.toMatchObject({
         response: expect.objectContaining({
           status: 404,
         }),
