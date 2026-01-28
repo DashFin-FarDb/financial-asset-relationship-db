@@ -766,7 +766,7 @@ class TestCreateInterface:
 
         # This will try to create the interface
         # We just verify it doesn't crash
-       
+
         interface = app.create_interface()
         # Should return something (Gradio Blocks context manager)
         assert interface is not None
