@@ -770,4 +770,4 @@ class TestCreateInterface:
         interface = app.create_interface()
         # Should return something (Gradio Blocks context manager)
         assert interface is not None
-            assert callable(app.create_interface)
+        assert callable(app.create_interface)
