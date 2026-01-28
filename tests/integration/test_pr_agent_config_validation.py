@@ -487,9 +487,9 @@ SAFE_PLACEHOLDERS = {None, "null", "webhook"}
 scan_node(pr_agent_config)
 
 
-@staticmethod
-def test_safe_configuration_values(pr_agent_config):
-    """
+    @staticmethod
+    def test_safe_configuration_values(pr_agent_config):
+        """
         Assert that key numeric limits in the PR agent configuration fall within safe bounds.
 
         Checks that:
