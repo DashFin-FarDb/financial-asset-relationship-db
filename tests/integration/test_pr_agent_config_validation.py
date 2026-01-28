@@ -268,9 +268,9 @@ class TestPRAgentConfigSecurity:
         re.IGNORECASE,
     )
 
-        # Common secret-like prefixes or markers
-        secret_markers = (
-            "secret",
+      # Common secret-like prefixes or markers
+      secret_markers = (
+           "secret",
             "token",
             "apikey",
             "api_key",
@@ -280,9 +280,9 @@ class TestPRAgentConfigSecurity:
             "password",
             "auth",
             "bearer ",
-        )
+           )
 
-        def is_long_string(val):
+       def is_long_string(val):
             return len(val) >= 40
 
         def has_secret_prefix(val):
