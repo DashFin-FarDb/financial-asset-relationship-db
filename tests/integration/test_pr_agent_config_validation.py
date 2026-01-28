@@ -268,21 +268,21 @@ class TestPRAgentConfigSecurity:
         re.IGNORECASE,
     )
 
-        # Common secret-like prefixes or markers
-        secret_markers = (
+       # Common secret-like prefixes or markers
+       secret_markers = (
             "secret",
-             "token",
+            "token",
             "apikey",
-               "api_key",
+            "api_key",
                "access_key",
                "private_key",
                "pwd",
                "password",
                "auth",
                "bearer ",
-            )
+        )
 
-            def has_secret_prefix(val):
+           def has_secret_prefix(val):
                 return any(val.startswith(p) for p in secret_markers)
 
             def has_inline_creds(val):
