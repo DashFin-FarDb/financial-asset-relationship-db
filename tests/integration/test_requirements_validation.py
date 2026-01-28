@@ -220,7 +220,7 @@ class TestRequirementsDocumentation:
     @staticmethod
     def test_requirements_has_helpful_comments():
         """
-        Verify that requirements-dev.txt contains at least one comment line.
+        Verify that requirements - dev.txt contains at least one comment line.
 
         Asserts the file has at least one line which, after trimming leading whitespace, begins with '#', indicating an explanatory comment for the dependency list.
         """
