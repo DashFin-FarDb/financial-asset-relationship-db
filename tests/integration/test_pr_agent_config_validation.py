@@ -337,7 +337,7 @@ class TestPRAgentConfigSecurity:
                 if result:
                     suspected.append(result)
 
-                scan(pr_agent_config)
+        scan(pr_agent_config)
 
             if suspected:
                 details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
