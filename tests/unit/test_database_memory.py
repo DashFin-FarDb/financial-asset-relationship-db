@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import os
+import threading
 from typing import Iterator
 
 import pytest
@@ -296,9 +297,9 @@ class TestConnectWithMemoryDb:
 
         # Verify we can use the connection from different threads
         # by attempting to execute a query (would fail if check_same_thread=True)
-        import threading
 
         def query_from_thread():
+            """Execute a simple query on the connection from a separate thread to test thread safety."""
             cursor = conn.execute("SELECT 1")
             cursor.fetchone()
 
@@ -385,28 +386,27 @@ class TestThreadSafety:
     def test_memory_connection_lock_prevents_race_condition(
         self, monkeypatch, restore_database_module
     ):
-        """Test that the memory connection lock prevents race conditions during initialization."""
-        import threading
-
+        """Ensure concurrent calls to _connect() for an in-memory DB return a single shared connection (no races during first-connection creation)."""
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
 
-        connections = []
+        connections: list[object] = []
+        errors: list[Exception] = []
 
-        def get_conn():
-            conn = reloaded_database._connect()
-            connections.append(conn)
+        def get_conn() -> None:
+            """Worker for the concurrency test: obtain a connection and record it so we can assert all threads receive the same shared instance."""
+            try:
+                connections.append(reloaded_database._connect())
+            except Exception as exc:  # pragma: no cover - surfaced via assertion below
+                errors.append(exc)
 
-        # Create multiple threads trying to get connections simultaneously
         threads = [threading.Thread(target=get_conn) for _ in range(10)]
-
         for thread in threads:
             thread.start()
-
         for thread in threads:
             thread.join()
 
-        # All connections should be the same object
+        assert errors == []
         assert len(connections) == 10
         assert all(conn is connections[0] for conn in connections)
 
@@ -414,16 +414,14 @@ class TestThreadSafety:
         self, monkeypatch, restore_database_module
     ):
         """Test concurrent read/write operations on memory database."""
-        import threading
-
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
-
         reloaded_database.initialize_schema()
 
-        errors = []
+        errors: list[BaseException] = []
 
-        def write_user(user_id):
+        def write_user(user_id: int) -> None:
+            """Write a user's credentials to the memory database using a separate thread."""
             try:
                 with reloaded_database.get_connection() as conn:
                     conn.execute(
@@ -431,10 +429,9 @@ class TestThreadSafety:
                         (f"user{user_id}", f"hash{user_id}"),
                     )
                     conn.commit()
-            except Exception as e:
-                errors.append(e)
+            except Exception as exc:  # pragma: no cover - surfaced via assertion below
+                errors.append(exc)
 
-        # Create multiple threads writing concurrently
         threads = [threading.Thread(target=write_user, args=(i,)) for i in range(5)]
 
         for thread in threads:
@@ -443,13 +440,12 @@ class TestThreadSafety:
         for thread in threads:
             thread.join()
 
-        # No errors should have occurred
-        assert len(errors) == 0
+        assert errors == []
 
-        # Verify all users were inserted
         with reloaded_database.get_connection() as conn:
             count = conn.execute("SELECT COUNT(*) FROM user_credentials").fetchone()[0]
-            assert count == 5
+
+        assert count == 5
 
 
 class TestEdgeCasesAndErrorHandling:
@@ -497,7 +493,6 @@ class TestEdgeCasesAndErrorHandling:
         reloaded_database = importlib.reload(database)
 
         reloaded_database.initialize_schema()
-
         # Use execute to insert data
         reloaded_database.execute(
             "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
@@ -560,18 +555,15 @@ class TestEdgeCasesAndErrorHandling:
         assert row[0] == "bob"
         assert row[1] == "bob@example.com"
 
-
-class TestUriMemoryDatabaseIntegration:
-    """Integration tests for URI-style memory databases."""
-
     @staticmethod
     def test_uri_memory_database_with_cache_shared(
         monkeypatch, restore_database_module
     ):
-        """Test URI memory database with cache=shared parameter."""
-        # Note: This tests the detection logic; actual URI handling depends on SQLite build
-        uri = "file::memory:?cache=shared"
+        """Test URI memory database with cache=shared parameter.
 
+        Note: This tests the detection logic; actual URI handling depends on the SQLite build.
+        """
+        uri = "file::memory:?cache=shared"
         assert database._is_memory_db(uri) is True
 
     @staticmethod
@@ -599,8 +591,9 @@ class TestUriMemoryDatabaseIntegration:
                 "SELECT username FROM user_credentials WHERE username = ?",
                 ("persistent",),
             ).fetchone()
-            assert row is not None
-            assert row["username"] == "persistent"
+
+        assert row is not None
+        assert row["username"] == "persistent"
 
     @staticmethod
     def test_multiple_memory_db_formats_detected_correctly(
