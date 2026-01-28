@@ -307,99 +307,99 @@ class TestPRAgentConfigSecurity:
         return None
 
     @staticmethod
-            def detect_inline_creds(s):
-                if inline_creds_re.search(s):
-                    return ("inline_creds", s)
+       def detect_inline_creds(s):
+            if inline_creds_re.search(s):
+                return ("inline_creds", s)
+            return None
+
+        detectors = [detect_long_string, detect_prefix, detect_inline_creds]
+
+        @staticmethod
+        def scan_value(val):
+            stripped = str(val).strip()
+            if not stripped:
                 return None
+            for detector in detectors:
+                result = detector(stripped)
+                if result:
+                    return result
+            return None
 
-            detectors = [detect_long_string, detect_prefix, detect_inline_creds]
+        @staticmethod
+        def scan(obj):
+            if isinstance(obj, dict):
+                for _, value in obj.items():
+                    scan(value)
+            elif isinstance(obj, (list, tuple)):
+                for item in obj:
+                    scan(item)
+            else:
+                result = scan_value(obj)
+                if result:
+                    suspected.append(result)
 
-            @staticmethod
-            def scan_value(val):
-                stripped = str(val).strip()
-                if not stripped:
-                    return None
-                for detector in detectors:
-                    result = detector(stripped)
-                    if result:
-                        return result
-                return None
+        scan(pr_agent_config)
 
-            @staticmethod
-            def scan(obj):
-                if isinstance(obj, dict):
-                    for _, value in obj.items():
-                        scan(value)
-                elif isinstance(obj, (list, tuple)):
-                    for item in obj:
-                        scan(item)
-                else:
-                    result = scan_value(obj)
-                    if result:
-                        suspected.append(result)
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
-            scan(pr_agent_config)
+        def shannon_entropy(s: str) -> float:
+            if not s:
+                return 0.0
+            sample = s[:256]
+            freq = {}
+            for ch in sample:
+                freq[ch] = freq.get(ch, 0) + 1
+            ent = 0.0
+            length = len(sample)
+            for c in freq.values():
+                p = c / length
+                ent -= p * math.log2(p)
+            return ent
 
-            if suspected:
-                details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-                pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
-
-            def shannon_entropy(s: str) -> float:
-                if not s:
-                    return 0.0
-                sample = s[:256]
-                freq = {}
-                for ch in sample:
-                    freq[ch] = freq.get(ch, 0) + 1
-                ent = 0.0
-                length = len(sample)
-                for c in freq.values():
-                    p = c / length
-                    ent -= p * math.log2(p)
-                return ent
-
-            def looks_like_secret(val: str) -> bool:
-                v = val.strip()
-                if not v:
-                    return False
-                placeholders = {
-                    "<token>",
-                    "<secret>",
-                    "changeme",
-                    "your-token-here",
-                    "dummy",
-                    "placeholder",
-                    "null",
-                    "none",
-                }
-                if v.lower() in placeholders:
-                    return False
-                if inline_creds_re.search(v):
-                    return True
-                if any(m in v.lower() for m in secret_markers) and len(v) >= 12:
-                    return True
-                # Base64/URL-safe like long strings
-                if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
-                    return True
-                # Hex-encoded long strings (e.g., keys)
-                if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
-                    return True
+        def looks_like_secret(val: str) -> bool:
+            v = val.strip()
+            if not v:
                 return False
+            placeholders = {
+                "<token>",
+                "<secret>",
+                "changeme",
+                "your-token-here",
+                "dummy",
+                "placeholder",
+                "null",
+                "none",
+            }
+            if v.lower() in placeholders:
+                return False
+            if inline_creds_re.search(v):
+                return True
+            if any(m in v.lower() for m in secret_markers) and len(v) >= 12:
+                return True
+            # Base64/URL-safe like long strings
+            if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
+                return True
+            # Hex-encoded long strings (e.g., keys)
+            if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
+                return True
+            return False
 
-            # Walk values to detect secret-like strings
-            def walk_values(obj, path="root"):
-                if isinstance(obj, dict):
-                    for k, v in obj.items():
-                        walk_values(v, f"{path}.{k}")
-                elif isinstance(obj, list):
-                    for i, item in enumerate(obj):
-                        walk_values(item, f"{path}[{i}]")
-                elif isinstance(obj, str):
-                    if looks_like_secret(obj):
-                        pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
-                # Non-string scalars ignored
+        # Walk values to detect secret-like strings
+        def walk_values(obj, path="root"):
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    walk_values(v, f"{path}.{k}")
+            elif isinstance(obj, list):
+                for i, item in enumerate(obj):
+                    walk_values(item, f"{path}[{i}]")
+            elif isinstance(obj, str):
+                if looks_like_secret(obj):
+                    pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
+            # Non-string scalars ignored
 
-            walk_values(pr_agent_config)
+        walk_values(pr_agent_config)
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
