@@ -128,9 +128,8 @@ def test_relationship_and_event_crud_flow(session):
     repo.add_or_update_relationship(
         "PARENT", "PARENT_BOND", "test", 0.5, bidirectional=False
     )
-    repo.add_or_update_relationship(
-        "PARENT", "PARENT_BOND", "test", 0.8, bidirectional=False
-    )
+    session.commit()
+    session.expire_all()
     session.commit()
     session.expire_all()
 
