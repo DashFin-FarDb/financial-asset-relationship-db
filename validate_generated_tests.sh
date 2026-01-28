@@ -26,6 +26,10 @@ else
     echo "   ✗ test_database_refactoring.py - Syntax Error"
     status=1
 fi
+else
+    echo "   ✗ test_database_refactoring.py - Syntax Error"
+    status=1
+fi
 
 echo ""
 echo "2. Checking TypeScript Test Syntax..."
