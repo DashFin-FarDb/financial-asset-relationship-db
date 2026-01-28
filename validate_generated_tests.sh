@@ -11,16 +11,20 @@ echo ""
 # 1. Check Python test syntax
 echo "1. Validating Python Test Syntax..."
 
+status=0
+
 if python -m py_compile tests/unit/test_auth_refactoring.py 2>/dev/null; then
     echo "   ✓ test_auth_refactoring.py - Syntax OK"
 else
     echo "   ✗ test_auth_refactoring.py - Syntax Error"
+    status=1
 fi
 
 if python -m py_compile tests/unit/test_database_refactoring.py 2>/dev/null; then
     echo "   ✓ test_database_refactoring.py - Syntax OK"
 else
     echo "   ✗ test_database_refactoring.py - Syntax Error"
+    status=1
 fi
 
 echo ""
