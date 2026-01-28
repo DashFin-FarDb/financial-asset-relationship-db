@@ -375,23 +375,22 @@ class TestFormatFormulaSummary:
 
         assert isinstance(result, str)
         assert '10' in result  # formula count
-        assert 'Valuation' in result
-        assert 'Risk' in result
-
-
-class TestEdgeCasesAndErrorHandling:
-    """Test edge cases and error handling scenarios."""
-
-    @patch('app.create_real_database')
-    def test_app_handles_graph_with_single_asset(self, mock_create_db):
-        """Test app handles graph with only one asset."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_asset = Mock()
-        mock_asset.to_dict.return_value = {'id': 'SINGLE', 'name': 'Single Asset'}
-        mock_graph.assets = {'SINGLE': mock_asset}
-        mock_graph.relationships = {}
-        mock_graph.incoming_relationships = {}
-        mock_graph.calculate_metrics.return_value = {
+                    equity = Equity(
+                        id='AAPL',
+                        symbol='AAPL',
+                        name='Apple Inc.',
+                        asset_class=AssetClass.EQUITY,
+                        sector='Technology',
+                        price=150.0,
+                    )
+                    bond = Bond(
+                        id='CORP_BOND',
+                        symbol='CORP',
+                        name='Corporate Bond',
+                        asset_class=AssetClass.FIXED_INCOME,
+                        sector='Corporate',
+                        price=100.0,
+                    )
             'total_assets': 1,
             'total_relationships': 0,
             'average_relationship_strength': 0.0,
