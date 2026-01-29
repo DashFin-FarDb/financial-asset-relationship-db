@@ -54,6 +54,12 @@ def _iter_string_values(node, path: str = ""):
         for index, item in enumerate(node):
             child_path = f"[{index}]" if not path else f"{path}[{index}]"
             yield from _iter_string_values(item, child_path)
+            child_path = str(key) if not path else f"{path}.{key}"
+            yield from _iter_string_values(value, child_path)
+    elif isinstance(node, (list, tuple, set)):
+        for index, item in enumerate(node):
+            child_path = f"[{index}]" if not path else f"{path}[{index}]"
+            yield from _iter_string_values(item, child_path)
 
 
 # Known lambda threshold keys used in configuration validation.
