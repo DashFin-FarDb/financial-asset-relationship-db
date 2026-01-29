@@ -278,6 +278,7 @@ class TestPRAgentConfigSecurity:
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
         import math
 
+
         from pr_agent_config_validation import INLINE_CREDS_RE
 
         def shannon_entropy(s: str) -> float:
