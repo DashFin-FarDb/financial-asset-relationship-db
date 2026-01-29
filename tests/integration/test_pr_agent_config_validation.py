@@ -205,13 +205,13 @@ class TestPRAgentConfigYAMLValidity:
         with open(config_path, "r") as f:
             lines = f.readlines()
 
-        for line in lines:
+        for line_number, line in enumerate(lines, 1):
             stripped = line.lstrip()
             if not stripped or stripped.startswith("#"):
                 continue
             num_spaces = len(line) - len(stripped)
             assert num_spaces % 2 == 0, (
-                f"{num_spaces} leading spaces, which is not a multiple of 2"
+                f"Line {line_number}: {num_spaces} leading spaces, which is not a multiple of 2"
             )
 
 
