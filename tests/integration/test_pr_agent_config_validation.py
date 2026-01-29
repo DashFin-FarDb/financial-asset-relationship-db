@@ -255,6 +255,7 @@ class TestPRAgentConfigSecurity:
 
                 Checks if the string is long, has a secret prefix, or contains inline credentials.
                 Returns the kind of secret or None if no match."""
+
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
@@ -294,6 +295,7 @@ class TestPRAgentConfigSecurity:
 
         def scan_config(obj):
             suspects = []
+
             def _scan(o):
                 if isinstance(o, dict):
                     for key, val in o.items():
@@ -311,6 +313,7 @@ class TestPRAgentConfigSecurity:
                     kind = classify_stripped(stripped)
                     if kind:
                         suspects.append((kind, stripped))
+
             _scan(obj)
             return suspects
 
