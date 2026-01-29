@@ -197,7 +197,7 @@ class TestUserRepositoryInstanceMethods:
                 errors.append(e)
         
         with ThreadPoolExecutor(max_workers=10) as executor:
-        threads = [executor.submit(create_user, f"user{i}") for i in range(10)]
+            threads = [executor.submit(create_user, f"user{i}") for i in range(10)]
         for thread in threads:
             thread.start()
         for thread in threads:
