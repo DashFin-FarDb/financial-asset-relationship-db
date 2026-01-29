@@ -1,19 +1,19 @@
-        """
-        Validation tests for PR agent configuration changes.
+"""
+Validation tests for PR agent configuration changes.
 
-        Tests the simplified PR agent configuration, ensuring:
-        - Version downgrade from 1.1.0 to 1.0.0
-        - Removal of context chunking features
-        - Removal of tiktoken dependencies
-        - Simplified configuration structure
-        """
+Tests the simplified PR agent configuration, ensuring:
+- Version downgrade from 1.1.0 to 1.0.0
+- Removal of context chunking features
+- Removal of tiktoken dependencies
+- Simplified configuration structure
+"""
 
-        import re
-        from pathlib import Path
+import re
+from pathlib import Path
 
-        import pytest
-        import yaml
-        from pr_agent_config_validation import SECRET_MARKERS, INLINE_CREDS_RE
+import pytest
+import yaml
+from pr_agent_config_validation import INLINE_CREDS_RE, SECRET_MARKERS
 
 # Default entropy threshold used by tests when checking for potentially
 # secret-like configuration values.
