@@ -185,6 +185,7 @@ class TestPRAgentConfigYAMLValidity:
         for i, line in enumerate(lines, 1):
             pass
 
+
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
