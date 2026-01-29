@@ -244,7 +244,7 @@ class TestUserRepository:
         
         Yields the patched mock object replacing api.auth.execute within the test scope.
         
-        Returns:
+        Yields:
             mock: The patched mock object for `api.auth.execute`.
         """
         with patch('api.auth.execute') as mock:
