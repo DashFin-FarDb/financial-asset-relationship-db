@@ -241,24 +241,6 @@ class TestPRAgentConfigSecurity:
             if not s_stripped:
                 return None
             checks = [
-                ("inline_credentials", INLINE_CREDS_RE.search),
-                *[
-                    (name, lambda v, name=name: v.lower().endswith(name))
-                    for name in lambda_thresholds
-                ],
-                ("high_entropy", lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
-            ]
-            for label, check in checks:
-                if check(s_stripped):
-                    return label
-            return None
-
-        def classify_value(s: str):
-            """Classify a string value to detect inline credentials, lambda threshold names, or high-entropy patterns."""
-            s_stripped = s.strip()
-            if not s_stripped:
-                return None
-            checks = [
                 ("inline_credential", INLINE_CREDS_RE.match),
                 ("lambda_threshold", lambda v: v in lambda_thresholds),
                 ("high_entropy", lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
