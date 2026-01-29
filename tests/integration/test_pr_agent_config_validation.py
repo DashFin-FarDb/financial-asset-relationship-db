@@ -269,8 +269,6 @@ class TestPRAgentConfigSecurity:
         if not isinstance(config, dict):
             pytest.fail(f"Expected a mapping (dict) in {config_path}, " f"got {type(config).__name__!r} instead")
 
-        return config
-
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
