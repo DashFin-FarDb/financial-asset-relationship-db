@@ -302,7 +302,6 @@ class TestPRAgentConfigSecurity:
                 p = count / length
                 ent -= p * math.log2(p)
             return ent
-
         def classify_value(s: str):
             """Classify a string value to detect inline credentials, lambda threshold names, or high-entropy patterns."""
             s_stripped = s.strip()
