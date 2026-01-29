@@ -48,6 +48,8 @@ def lambda_thresholds(value: str) -> float:
     return ENTROPY_THRESHOLD
 
 
+
+
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
 )
