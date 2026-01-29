@@ -227,14 +227,15 @@ class TestPRAgentConfigSecurity:
           - Inline credentials in URLs (e.g., scheme://user:pass@host)
         """
 
+    @staticmethod
     def _iter_string_values(obj):
         """Recursively yield all string values found in nested dicts and lists."""
         if isinstance(obj, dict):
             for v in obj.values():
-                yield from _iter_string_values(v)
+                yield from TestPRAgentConfigSecurity._iter_string_values(v)
         elif isinstance(obj, list):
             for v in obj:
-                yield from _iter_string_values(v)
+                yield from TestPRAgentConfigSecurity._iter_string_values(v)
         elif isinstance(obj, str):
             yield obj
 
