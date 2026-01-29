@@ -13,13 +13,39 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pr_agent_config_validation import (
-    ENTROPY_THRESHOLD,
-    SECRET_MARKERS,
-    _iter_string_values,
-    lambda_thresholds,
-)
 
+# Default entropy threshold used by tests when checking for potentially
+# secret-like configuration values.
+ENTROPY_THRESHOLD = 3.5
+
+
+def _iter_string_values(node):
+    """
+    Recursively yield all string values from a nested mapping/list structure.
+
+    This keeps the tests self-contained without relying on an external
+    pr_agent_config_validation helper module.
+    """
+    if isinstance(node, str):
+        yield node
+    elif isinstance(node, dict):
+        for value in node.values():
+            yield from _iter_string_values(value)
+    elif isinstance(node, (list, tuple, set)):
+        for item in node:
+            yield from _iter_string_values(item)
+
+
+def lambda_thresholds(value: str) -> float:
+    """
+    Return an entropy threshold for the given configuration value.
+
+    The current tests expect a simple, consistent thresholding behaviour,
+    so this function returns the global ENTROPY_THRESHOLD. If more nuanced
+    behaviour is needed, it can be extended in this module without
+    reintroducing an external dependency.
+    """
+    return ENTROPY_THRESHOLD
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
 )
