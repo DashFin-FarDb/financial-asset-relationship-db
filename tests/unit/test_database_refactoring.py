@@ -299,18 +299,6 @@ class TestExecuteFunction:
         
         result = fetch_one("SELECT username FROM user_credentials WHERE username=?", ("testuser",))
         assert result is not None
-def test_execute_insert_statement(self, monkeypatch):
-    """Should execute INSERT statements."""
-    monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-    from api import database
-    database.DATABASE_PATH = ":memory:"
-    database._MEMORY_CONNECTION = None
-    initialize_schema()
-    
-    execute(
-        "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
-        ("testuser", "hash123")
-    )
 
     def test_execute_update_statement(self, monkeypatch):
         """
