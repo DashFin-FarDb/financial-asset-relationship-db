@@ -88,9 +88,7 @@ class TestRealDataFetcherInitialization:
             """Factory function that creates and returns a new AssetRelationshipGraph instance."""
             return AssetRelationshipGraph()
 
-        fetcher = RealDataFetcher(
-            cache_path=cache_path, fallback_factory=custom_factory, enable_network=False
-        )
+        fetcher = RealDataFetcher(cache_path=cache_path, fallback_factory=custom_factory, enable_network=False)
 
         assert fetcher.cache_path == Path(cache_path)
         assert fetcher.fallback_factory is custom_factory
@@ -115,9 +113,7 @@ class TestCreateRealDatabase:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    def test_create_database_with_network(
-        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
-    ):
+    def test_create_database_with_network(self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
         """Test database creation with network enabled."""
         # Setup mocks
         mock_equity.return_value = [
@@ -240,9 +236,7 @@ class TestFetchMethods:
         mock_hist = Mock(empty=False)
         mock_close = Mock()
         mock_close.pct_change.return_value.std.return_value = 0.02
-        mock_hist.__getitem__ = (
-            lambda self, key: mock_close if key == "Close" else Mock()
-        )
+        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
@@ -535,10 +529,11 @@ class TestDeserialization:
         assert "TEST" in graph.assets
         assert len(graph.regulatory_events) == 1
 
+
 class TestCacheOperations:
     """Test cache loading and saving."""
 
-    @ staticmethod
+    @staticmethod
     def test_save_to_cache(tmp_path):
         """Test saving graph to cache file."""
         cache_path = tmp_path / "cache.json"
@@ -561,7 +556,7 @@ class TestCacheOperations:
         assert "assets" in data
         assert len(data["assets"]) == 1
 
-    @ staticmethod
+    @staticmethod
     def test_load_from_cache(tmp_path):
         """Test loading graph from cache file."""
         cache_path = tmp_path / "cache.json"
@@ -586,7 +581,7 @@ class TestCacheOperations:
         assert "CACHED" in loaded_graph.assets
         assert loaded_graph.assets["CACHED"].name == "Cached Asset"
 
-    @ staticmethod
+    @staticmethod
     def test_save_to_cache_creates_parent_dirs(tmp_path):
         """Test that save_to_cache creates parent directories."""
         cache_path = tmp_path / "subdir" / "deep" / "cache.json"
@@ -601,8 +596,8 @@ class TestCacheOperations:
 class TestCreateRealDatabaseFunction:
     """Test the module-level create_real_database function."""
 
-    @ patch("src.data.real_data_fetcher.RealDataFetcher")
-    @ staticmethod
+    @patch("src.data.real_data_fetcher.RealDataFetcher")
+    @staticmethod
     def test_create_real_database_function(mock_fetcher_class):
         """Test that create_real_database function creates fetcher and calls method."""
         mock_instance = Mock()
@@ -620,7 +615,7 @@ class TestCreateRealDatabaseFunction:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    @ staticmethod
+    @staticmethod
     def test_cache_load_with_corrupted_file(tmp_path):
         """Test loading from corrupted cache file."""
         cache_path = tmp_path / "corrupted.json"
@@ -630,7 +625,7 @@ class TestEdgeCases:
         with pytest.raises(json.JSONDecodeError):
             _load_from_cache(cache_path)
 
-    @ staticmethod
+    @staticmethod
     def test_create_database_cache_load_failure_continues(tmp_path):
         """Test that cache load failure doesn't prevent database creation."""
         cache_path = tmp_path / "bad_cache.json"
@@ -642,13 +637,13 @@ class TestEdgeCases:
         # Should fall back to sample data despite cache error
         assert isinstance(graph, AssetRelationshipGraph)
 
-    @ patch("src.data.real_data_fetcher._save_to_cache")
-    @ patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    @ patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
-    @ patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
-    @ patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
-    @ patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    @ staticmethod
+    @patch("src.data.real_data_fetcher._save_to_cache")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
+    @staticmethod
     def test_cache_save_failure_doesnt_prevent_return(
         mock_events,
         mock_currency,
@@ -674,7 +669,7 @@ class TestEdgeCases:
         # Should still return a graph even if save fails
         assert isinstance(graph, AssetRelationshipGraph)
 
-    @ staticmethod
+    @staticmethod
     def test_deserialize_asset_with_missing_type():
         """Test deserializing asset without __type__ field."""
         data = {
@@ -694,7 +689,7 @@ class TestEdgeCases:
         asset = _deserialize_asset(data)
         assert isinstance(asset, Asset)
 
-    @ staticmethod
+    @staticmethod
     def test_serialize_graph_with_complex_relationships():
         """Test serializing graph with bidirectional relationships."""
         graph = AssetRelationshipGraph()
@@ -741,7 +736,7 @@ class TestRegressionCases:
         loaded = _load_from_cache(cache_path)
         assert isinstance(loaded, AssetRelationshipGraph)
 
-    @ staticmethod
+    @staticmethod
     def test_enum_serialization_consistency():
         """Test that enums serialize and deserialize consistently."""
         original = Equity(

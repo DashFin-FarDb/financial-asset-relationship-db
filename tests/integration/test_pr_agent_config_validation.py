@@ -14,9 +14,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-INLINE_CREDS_RE = re.compile(
-    r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
-)
+INLINE_CREDS_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
 SECRET_MARKERS = (
     "secret",
     "token",
@@ -186,9 +184,7 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
+                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
@@ -276,9 +272,7 @@ class TestPRAgentConfigSecurity:
 
     if suspected:
         details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-        pytest.fail(
-            f"Potential hardcoded credentials found in PR agent config:\n{details}"
-        )
+        pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
         """
         Recursively scan configuration values and keys for suspected secrets.
         - Flags high - entropy or secret - like string values.
@@ -385,9 +379,7 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(pat in key_l for pat in sensitive_patterns):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
 
                     scan_for_secrets(v, new_path)
 
