@@ -260,7 +260,7 @@ class TestPRAgentConfigSecurity:
                 return None
             checks = {
                 "long_string": lambda x: len(x) >= 40,
-                "prefix": lambda x: any(x.startswith(p) for p in SECRET_PREFIXES),
+                "prefix": lambda x: any(x.startswith(p) for p in SECRET_MARKERS),
                 "inline_creds": lambda x: bool(INLINE_CRED_PATTERN.search(x)),
             }
             for kind, predicate in checks.items():
