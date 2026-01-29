@@ -312,6 +312,7 @@ class TestPRAgentConfigSecurity:
                 ("inline_credential", INLINE_CREDS_RE.search),
                 ("lambda_threshold", lambda v: v in LAMBDA_THRESHOLD_NAMES),
                 ("high_entropy", lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
+
             ]
             for label, check in checks:
                 if check(s_stripped):
@@ -347,7 +348,9 @@ class TestPRAgentConfigSecurity:
                 continue
             entropy = shannon_entropy(s)
             threshold = lambda_thresholds(s)
-            if (threshold is not None and entropy > threshold) or entropy > ENTROPY_THRESHOLD:
+            if (
+                threshold is not None and entropy > threshold
+            ) or entropy > ENTROPY_THRESHOLD:
                 flagged.append((s, classification, entropy))
 
         if flagged:
