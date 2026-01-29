@@ -284,7 +284,6 @@ class TestPRAgentConfigSecurity:
             if kind:
                 suspected.append((kind, stripped))
 
-
     def test_no_hardcoded_credentials(pr_agent_config):
         """
         Ensure no hardcoded credentials or secret-like values appear
