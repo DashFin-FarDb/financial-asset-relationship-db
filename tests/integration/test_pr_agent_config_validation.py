@@ -36,6 +36,15 @@ def _iter_string_values(node):
             yield from _iter_string_values(item)
 
 
+# Known lambda threshold keys used in configuration validation.
+# These should mirror the names supported by the production configuration logic.
+LAMBDA_THRESHOLD_NAMES = {
+    "low",
+    "medium",
+    "high",
+}
+
+
 def lambda_thresholds(value: str) -> float:
     """
     Return an entropy threshold for the given configuration value.
@@ -258,7 +267,7 @@ class TestPRAgentConfigSecurity:
                 return None
             checks = [
                 ("inline_credential", INLINE_CREDS_RE.match),
-                ("lambda_threshold", lambda v: v in lambda_thresholds),
+                ("lambda_threshold", lambda v: v in LAMBDA_THRESHOLD_NAMES),
                 ("high_entropy", lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
             ]
             for label, check in checks:
