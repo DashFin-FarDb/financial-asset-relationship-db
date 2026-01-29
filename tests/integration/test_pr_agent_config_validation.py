@@ -381,8 +381,8 @@ class TestPRAgentConfigSecurity:
         """
         Recursively scan for secrets in nested structures.
         Traverse the parsed YAML and ensure that any key containing sensitive indicators
-        has a safe placeholder value(None, 'null', 'none', 'placeholder', '***', or a
-                                     templated variable like '${VAR}').
+        has a safe placeholder value (None, 'null', 'none', 'placeholder', '***', or a
+        templated variable like '${VAR}').
         """
         sensitive_patterns = (
             "password",
