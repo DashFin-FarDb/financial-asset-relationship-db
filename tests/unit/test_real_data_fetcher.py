@@ -525,6 +525,8 @@ class TestDeserialization:
                     "date": "2024-01-01",
                     "description": "Test event",
                     "impact_score": 0.5,
+                }
+            ],
         }
 
         graph = _deserialize_graph(payload)
@@ -532,7 +534,6 @@ class TestDeserialization:
         assert isinstance(graph, AssetRelationshipGraph)
         assert "TEST" in graph.assets
         assert len(graph.regulatory_events) == 1
-
 
 class TestCacheOperations:
     """Test cache loading and saving."""
