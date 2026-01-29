@@ -191,7 +191,19 @@ class TestConnect:
         connections = []
         errors = []
         
-        def get_connection():
+def get_connection():
+    """
+    Thread target: attempt to obtain a database connection via `_connect()`.
+    
+    Side Effects:
+        - On success: appends the obtained `sqlite3.Connection` object to the outer scope `connections` list.
+        - On exception: appends the exception to the outer scope `errors` list.
+    """
+    try:
+        conn = _connect()
+        connections.append(conn)
+    except Exception as e:
+        errors.append(e)
             """
             Record the result of attempting to obtain a database connection.
             
