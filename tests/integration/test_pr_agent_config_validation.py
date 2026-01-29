@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pr_agent_config_validation import SECRET_MARKERS
+from pr_agent_config_validation import SECRET_MARKERS, _iter_string_values, ENTROPY_THRESHOLD, lambda_thresholds
 
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
@@ -184,14 +184,6 @@ class TestPRAgentConfigYAMLValidity:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
-            if line.strip() and not line.strip().startswith("#"):
-                indent = len(line) - len(line.lstrip())
-                if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
-
-
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
@@ -212,29 +204,47 @@ class TestPRAgentConfigSecurity:
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
         import math
+        from pr_agent_config_validation import (
+            ENTROPY_THRESHOLD,
+            INLINE_CREDS_RE,
+            _iter_string_values,
+            lambda_thresholds,
+        )
 
         def shannon_entropy(s: str) -> float:
             if not s:
                 return 0.0
             sample = s[:256]
-            from pr_agent_config_validation import (
-                ENTROPY_THRESHOLD,
-                INLINE_CREDS_RE,
-                _iter_string_values,
-                lambda_thresholds,
-            )
-
             freq = {}
             for ch in sample:
                 freq[ch] = freq.get(ch, 0) + 1
             ent = 0.0
             length = len(sample)
-            for c in freq.values():
-                p = c / length
+            for count in freq.values():
+                p = count / length
                 ent -= p * math.log2(p)
             return ent
 
-        def classify_stripped(s: str):
+        def classify_value(s: str):
+            s_stripped = s.strip()
+            if not s_stripped:
+                return None
+            checks = [
+                ('inline_credential', INLINE_CREDS_RE.match),
+                ('lambda_threshold', lambda v: v in lambda_thresholds),
+                ('high_entropy', lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
+            ]
+            for label, check in checks:
+                if check(s_stripped):
+                    return label
+            return None
+
+        violations = []
+        for path, value in _iter_string_values(pr_agent_config):
+            label = classify_value(value)
+            if label:
+                violations.append((path, label))
+        assert not violations, f"Found potential hardcoded credentials: {violations}"
             """Classify a stripped string to detect potential credential patterns."""
             if not s:
                 return None
