@@ -300,7 +300,6 @@ class TestPRAgentConfigSecurity:
             pytest.fail(
                 f"Potential hardcoded credentials found in PR agent config:\n{details}"
             )
-            )
 
         def looks_like_secret(val: str) -> bool:
             v = val.strip()
