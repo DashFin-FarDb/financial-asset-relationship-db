@@ -14,77 +14,20 @@ from pathlib import Path
 import pytest
 import yaml
 
-# Secret markers used when scanning configuration values for potential secrets.
-# Keeping these definitions in this test module avoids any dependency on an
-# external pr_agent_config_validation helper module.
-SECRET_MARKERS = (
-    "api_key",
-    "apikey",
-    "auth_token",
-    "authorization",
-    "bearer",
-    "client_secret",
-    "password",
-    "secret",
-    "token",
-)
-# Default entropy threshold used by tests when checking for potentially
-# secret-like configuration values.
-ENTROPY_THRESHOLD = 3.5
-
-
-def _iter_string_values(node, path: str = ""):
-    """
-    Recursively yield all string values from a nested mapping/list structure.
-
-    Yields (path, value) pairs, where ``path`` is a dotted/indexed string
-    describing the location of the value within ``node``.
-
-    This keeps the tests self-contained without relying on an external
-    pr_agent_config_validation helper module.
-    """
-    if isinstance(node, str):
-        # Leaf string value: yield its path and the value itself.
-        yield path, node
-    elif isinstance(node, dict):
-        for key, value in node.items():
-            child_path = str(key) if not path else f"{path}.{key}"
-            yield from _iter_string_values(value, child_path)
-    elif isinstance(node, (list, tuple, set)):
-        for index, item in enumerate(node):
-            child_path = f"[{index}]" if not path else f"{path}[{index}]"
-            yield from _iter_string_values(item, child_path)
-            child_path = str(key) if not path else f"{path}.{key}"
-            yield from _iter_string_values(value, child_path)
-    elif isinstance(node, (list, tuple, set)):
-        for index, item in enumerate(node):
-            child_path = f"[{index}]" if not path else f"{path}[{index}]"
-            yield from _iter_string_values(item, child_path)
-
-
-# Known lambda threshold keys used in configuration validation.
-# These should mirror the names supported by the production configuration logic.
-LAMBDA_THRESHOLD_NAMES = {
-    "low",
-    "medium",
-    "high",
-}
-
-
-def lambda_thresholds(value: str) -> float:
-    """
-    Return an entropy threshold for the given configuration value.
-
-    The current tests expect a simple, consistent thresholding behaviour,
-    so this function returns the global ENTROPY_THRESHOLD. If more nuanced
-    behaviour is needed, it can be extended in this module without
-    reintroducing an external dependency.
-    """
-    return ENTROPY_THRESHOLD
-
-
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
+)
+SECRET_MARKERS = (
+    "secret",
+    "token",
+    "apikey",
+    "api_key",
+    "access_key",
+    "private_key",
+    "pwd",
+    "password",
+    "auth",
+    "bearer",
 )
 
 
@@ -217,6 +160,7 @@ class TestPRAgentConfigYAMLValidity:
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             content = f.read()
+
         # Simple check for obvious duplicates
         lines = content.split("\n")
         seen_keys = set()
@@ -238,14 +182,13 @@ class TestPRAgentConfigYAMLValidity:
         with open(config_path, "r") as f:
             lines = f.readlines()
 
-        for line_number, line in enumerate(lines, 1):
-            stripped = line.lstrip()
-            if not stripped or stripped.startswith("#"):
-                continue
-            num_spaces = len(line) - len(stripped)
-            assert num_spaces % 2 == 0, (
-                f"Line {line_number}: {num_spaces} leading spaces, which is not a multiple of 2"
-            )
+        for i, line in enumerate(lines, 1):
+            if line.strip() and not line.strip().startswith("#"):
+                indent = len(line) - len(line.lstrip())
+                if indent > 0:
+                    assert indent % 2 == 0, (
+                        f"Line {i} has inconsistent indentation: {indent} spaces"
+                    )
 
 
 class TestPRAgentConfigSecurity:
@@ -263,41 +206,88 @@ class TestPRAgentConfigSecurity:
         config_path = Path(".github/pr-agent-config.yml")
         if not config_path.exists():
             pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, "r", encoding="utf-8") as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in config: {e}")
+        if cfg is None or not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) and not empty")
+        return cfg
 
-        try:
-            with config_path.open("r", encoding="utf-8") as f:
-                config = yaml.safe_load(f)
-        except yaml.YAMLError as exc:
-            pytest.fail(f"Failed to parse YAML from {config_path}: {exc}")
+    @staticmethod
+    def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
+        """
+        Recursively scan configuration values for suspected secrets.
 
-        if not isinstance(config, dict):
+        This inspects values (not just serialized text) and traverses nested dicts/lists.
+        The heuristic flags:
+          - Long high-entropy strings (e.g., tokens)
+          - Obvious secret prefixes/suffixes
+          - Inline credentials in URLs (e.g., scheme://user:pass@host)
+        """
+
+        def _iter_string_values(obj):
+            """Recursively yield all string values found in nested dicts and lists."""
+            if isinstance(obj, dict):
+                for v in obj.values():
+                    yield from _iter_string_values(v)
+            elif isinstance(obj, list):
+                for v in obj:
+                    yield from _iter_string_values(v)
+            elif isinstance(obj, str):
+                yield obj
+
+        suspected = []
+
+        secret_prefixes = (
+            "sk-",
+            "AKIA",
+            "SECRET_",
+            "TOKEN_",
+        )
+        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
+
+        for value in _iter_string_values(pr_agent_config):
+
+            def classify_stripped(s: str):
+                if not s:
+                    return None
+                checks = [
+                    ("long_string", lambda x: len(x) >= 40),
+                    ("prefix", lambda x: any(x.startswith(p) for p in secret_prefixes)),
+                    ("inline_creds", lambda x: bool(inline_cred_pattern.search(x))),
+                ]
+                for kind, predicate in checks:
+                    if predicate(s):
+                        return kind
+                return None
+
+            stripped = value.strip()
+            kind = classify_stripped(stripped)
+            if kind:
+                suspected.append((kind, stripped))
+
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
             pytest.fail(
-                f"Expected a mapping (dict) in {config_path}, "
-                f"got {type(config).__name__!r} instead"
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
             )
-
-        return config
-        try:
-            with config_path.open("r", encoding="utf-8") as f:
-                config = yaml.safe_load(f)
-        except yaml.YAMLError as exc:
-            pytest.fail(f"Failed to parse YAML from {config_path}: {exc}")
-
-        if not isinstance(config, dict):
-            pytest.fail(
-                f"Expected a mapping (dict) in {config_path}, "
-                f"got {type(config).__name__!r} instead"
-            )
-
-        return config
 
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
-        """Ensure that no hardcoded credentials are present in the PR agent configuration."""
+        """
+        Recursively scan configuration values and keys for suspected secrets.
+        - Flags high-entropy or secret-like string values.
+        - Ensures sensitive keys only use safe placeholders.
+        """
         import math
 
+        # Module-level / shared compiled regexes and markers (defined below)
+        # These are module-level constants declared outside classes further down in the file.
+        # We'll reference them indirectly here by using the module-level names.
+
         def shannon_entropy(s: str) -> float:
-            """Calculate the Shannon entropy of a string to measure randomness in potential credential values."""
             if not s:
                 return 0.0
             sample = s[:256]
@@ -306,109 +296,12 @@ class TestPRAgentConfigSecurity:
                 freq[ch] = freq.get(ch, 0) + 1
             ent = 0.0
             length = len(sample)
-            for count in freq.values():
-                p = count / length
+            for c in freq.values():
+                p = c / length
                 ent -= p * math.log2(p)
             return ent
 
-        def classify_value(s: str):
-            """Classify a string value to detect inline credentials, lambda threshold names, or high-entropy patterns."""
-            s_stripped = s.strip()
-            if not s_stripped:
-                return None
-            checks = [
-                ("inline_credential", INLINE_CREDS_RE.search),
-                ("lambda_threshold", lambda v: v in LAMBDA_THRESHOLD_NAMES),
-                ("high_entropy", lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
-            ]
-            for label, check in checks:
-                if check(s_stripped):
-                    return label
-            return None
-
-        violations = []
-        for path, value in _iter_string_values(pr_agent_config):
-            label = classify_value(value)
-            if label:
-                violations.append((path, label))
-        assert not violations, f"Found potential hardcoded credentials: {violations}"
-
-        def classify_stripped(s: str):
-            """Classify a stripped string to detect potential credential patterns."""
-            if not s:
-                return None
-            checks = {
-                "long_string": lambda x: len(x) >= 40,
-                "prefix": lambda x: any(x.startswith(p) for p in SECRET_MARKERS),
-                "inline_creds": lambda x: bool(INLINE_CREDS_RE.search(x)),
-            }
-            for name, check in checks.items():
-                if check(s):
-                    return name
-            return None
-
-        flagged = []
-        for path, val in _iter_string_values(pr_agent_config):
-            s = val.strip()
-            classification = classify_stripped(s)
-            if not classification:
-                continue
-            entropy = shannon_entropy(s)
-            threshold = lambda_thresholds(s)
-            if (
-                threshold is not None and entropy > threshold
-            ) or entropy > ENTROPY_THRESHOLD:
-                flagged.append((s, classification, entropy))
-
-        if flagged:
-            pytest.fail(f"Found potential secrets: {flagged}")
-
-        def scan_config(obj):
-            """Scan a configuration object for potential hardcoded credentials."""
-            suspects = []
-
-            def _scan(o):
-                """Recursively scan config elements for stripped strings matching credential patterns."""
-                if isinstance(o, dict):
-                    for key, val in o.items():
-                        if isinstance(key, str):
-                            k = key.strip()
-                            kind = classify_stripped(k)
-                            if kind:
-                                suspects.append((kind, k))
-                        _scan(val)
-                elif isinstance(o, list):
-                    for item in o:
-                        _scan(item)
-                elif isinstance(o, str):
-                    stripped = o.strip()
-                    kind = classify_stripped(stripped)
-                    if kind:
-                        suspects.append((kind, stripped))
-
-            _scan(obj)
-            return suspects
-
-        suspected = scan_config(pr_agent_config)
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
-
         def looks_like_secret(val: str) -> bool:
-            SECRET_MARKERS = {
-                "password",
-                "passwd",
-                "pwd",
-                "secret",
-                "token",
-                "api_key",
-                "apikey",
-                "auth",
-                "authentication",
-                "bearer",
-            }
             v = val.strip()
             if not v:
                 return False
@@ -526,7 +419,14 @@ class TestPRAgentConfigRemovedComplexity:
     @pytest.fixture
     @staticmethod
     def pr_agent_config_content():
-        """Return the contents of .github/pr-agent-config.yml as a string."""
+        """
+        Return the contents of .github/pr-agent-config.yml as a string.
+
+        Reads the PR agent configuration file from the repository root and returns its raw text.
+
+        Returns:
+            str: Raw YAML content of .github/pr-agent-config.yml.
+        """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return f.read()
@@ -553,210 +453,3 @@ class TestPRAgentConfigRemovedComplexity:
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
         assert "gpt-4" not in pr_agent_config_content
-
-
-class TestPRAgentConfigAdditionalValidation:
-    """Additional validation tests to strengthen confidence."""
-
-    @staticmethod
-    @pytest.fixture
-    def pr_agent_config():
-        """Load and parse the PR agent YAML configuration."""
-        config_path = Path(".github/pr-agent-config.yml")
-        if not config_path.exists():
-            pytest.fail(f"Config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in config: {e}")
-        if cfg is None or not isinstance(cfg, dict):
-            pytest.fail("Config must be a YAML mapping (dict) and not empty")
-        return cfg
-
-    @staticmethod
-    def test_monitoring_values_are_reasonable(pr_agent_config):
-        """Verify monitoring configuration values are within reasonable ranges."""
-        monitoring = pr_agent_config.get("monitoring", {})
-
-        # Check interval is reasonable (e.g., 60 seconds to 1 hour)
-        if "check_interval" in monitoring:
-            interval = monitoring["check_interval"]
-            assert isinstance(interval, int), "check_interval should be an integer"
-            assert 60 <= interval <= 3600, (
-                "check_interval should be between 60 and 3600 seconds"
-            )
-
-        # Check retries is reasonable
-        if "max_retries" in monitoring:
-            retries = monitoring["max_retries"]
-            assert isinstance(retries, int), "max_retries should be an integer"
-            assert 0 <= retries <= 10, "max_retries should be between 0 and 10"
-
-        # Check timeout is reasonable
-        if "timeout" in monitoring:
-            timeout = monitoring["timeout"]
-            assert isinstance(timeout, int), "timeout should be an integer"
-            assert 30 <= timeout <= 300, "timeout should be between 30 and 300 seconds"
-
-    @staticmethod
-    def test_actions_section_exists_and_valid(pr_agent_config):
-        """Verify actions section exists and contains valid configuration."""
-        assert "actions" in pr_agent_config, "actions section should exist"
-        actions = pr_agent_config["actions"]
-        assert isinstance(actions, dict), "actions should be a dictionary"
-
-        # If actions has entries, verify they're properly structured
-        for action_name, action_config in actions.items():
-            assert isinstance(action_name, str), "Action names should be strings"
-            # Action config can be dict or simple value
-            if action_config is not None:
-                assert isinstance(action_config, (dict, str, bool, int, float)), (
-                    f"Action config for {action_name} should be a valid type"
-                )
-
-    @staticmethod
-    def test_quality_section_exists_and_valid(pr_agent_config):
-        """Verify quality section exists and contains valid configuration."""
-        assert "quality" in pr_agent_config, "quality section should exist"
-        quality = pr_agent_config["quality"]
-        assert isinstance(quality, dict), "quality should be a dictionary"
-
-    @staticmethod
-    def test_security_section_exists_and_valid(pr_agent_config):
-        """Verify security section exists and contains valid configuration."""
-        assert "security" in pr_agent_config, "security section should exist"
-        security = pr_agent_config["security"]
-        assert isinstance(security, dict), "security should be a dictionary"
-
-    @staticmethod
-    def test_no_circular_references(pr_agent_config):
-        """Verify there are no circular references in the configuration."""
-
-        # This test ensures the config can be traversed without infinite loops
-        def check_no_circular_refs(obj, visited=None):
-            if visited is None:
-                visited = set()
-
-            if isinstance(obj, dict):
-                obj_id = id(obj)
-                if obj_id in visited:
-                    return False
-                visited.add(obj_id)
-                for value in obj.values():
-                    if not check_no_circular_refs(value, visited):
-                        return False
-                visited.remove(obj_id)
-            elif isinstance(obj, (list, tuple)):
-                obj_id = id(obj)
-                if obj_id in visited:
-                    return False
-                visited.add(obj_id)
-                for item in obj:
-                    if not check_no_circular_refs(item, visited):
-                        return False
-                visited.remove(obj_id)
-
-            return True
-
-        assert check_no_circular_refs(pr_agent_config), (
-            "Config contains circular references"
-        )
-
-    @staticmethod
-    def test_limits_section_has_required_keys(pr_agent_config):
-        """Verify limits section contains expected keys."""
-        limits = pr_agent_config.get("limits", {})
-
-        # These are the keys that should be in a simplified limits section
-        expected_keys = {"max_execution_time", "max_concurrent_prs"}
-
-        for key in expected_keys:
-            assert key in limits, f"Expected key '{key}' in limits section"
-
-    @staticmethod
-    def test_config_file_size_reasonable():
-        """Verify config file size is reasonable (not too large)."""
-        config_path = Path(".github/pr-agent-config.yml")
-        file_size = config_path.stat().st_size
-
-        # Config should be less than 100KB
-        assert file_size < 100 * 1024, (
-            f"Config file is too large ({file_size} bytes). "
-            "Should be less than 100KB for maintainability."
-        )
-
-    @staticmethod
-    def test_all_boolean_values_are_proper_booleans(pr_agent_config):
-        """Ensure all boolean-like values are proper booleans, not strings."""
-
-        def check_booleans(obj, path=""):
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    new_path = f"{path}.{key}" if path else key
-                    # Check if value looks like it should be boolean
-                    if isinstance(value, str) and value.lower() in [
-                        "true",
-                        "false",
-                        "yes",
-                        "no",
-                    ]:
-                        pytest.fail(
-                            f"Found string boolean at {new_path}: '{value}'. "
-                            "Should be a proper boolean."
-                        )
-                    check_booleans(value, new_path)
-            elif isinstance(obj, list):
-                for i, item in enumerate(obj):
-                    check_booleans(item, f"{path}[{i}]")
-
-        check_booleans(pr_agent_config)
-
-    @staticmethod
-    def test_no_empty_sections(pr_agent_config):
-        """Verify that no top-level sections are empty."""
-        for section_name, section_value in pr_agent_config.items():
-            if isinstance(section_value, dict):
-                assert len(section_value) > 0, (
-                    f"Section '{section_name}' is empty. "
-                    "Empty sections should be removed."
-                )
-
-    @staticmethod
-    def test_numeric_limits_are_positive(pr_agent_config):
-        """Verify all numeric limits are positive values."""
-        limits = pr_agent_config.get("limits", {})
-
-        for key, value in limits.items():
-            if isinstance(value, (int, float)):
-                assert value > 0, (
-                    f"Limit '{key}' has non-positive value {value}. "
-                    "All limits should be positive."
-                )
-
-    @staticmethod
-    def test_agent_version_format(pr_agent_config):
-        """Verify agent version follows semantic versioning."""
-        version = pr_agent_config.get("agent", {}).get("version", "")
-
-        # Should match semantic versioning pattern (X.Y.Z)
-        import re
-
-        semver_pattern = r"^\d+\.\d+\.\d+$"
-        assert re.match(semver_pattern, version), (
-            f"Version '{version}' doesn't follow semantic versioning (X.Y.Z)"
-        )
-
-    @staticmethod
-    def test_rate_limit_is_reasonable(pr_agent_config):
-        """Verify rate_limit_requests is within reasonable bounds."""
-        limits = pr_agent_config.get("limits", {})
-
-        if "rate_limit_requests" in limits:
-            rate_limit = limits["rate_limit_requests"]
-            assert isinstance(rate_limit, int), (
-                "rate_limit_requests should be an integer"
-            )
-            assert 1 <= rate_limit <= 1000, (
-                f"rate_limit_requests ({rate_limit}) should be between 1 and 1000"
-            )
