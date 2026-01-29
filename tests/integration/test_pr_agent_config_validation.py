@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pr_agent_config_validation import SECRET_MARKERS, _iter_string_values, ENTROPY_THRESHOLD, lambda_thresholds
+from pr_agent_config_validation import ENTROPY_THRESHOLD, SECRET_MARKERS, _iter_string_values, lambda_thresholds
 
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
@@ -184,6 +184,8 @@ class TestPRAgentConfigYAMLValidity:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
+
+
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
@@ -204,6 +206,7 @@ class TestPRAgentConfigSecurity:
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
         import math
+
         from pr_agent_config_validation import (
             ENTROPY_THRESHOLD,
             INLINE_CREDS_RE,
@@ -245,8 +248,8 @@ class TestPRAgentConfigSecurity:
             if label:
                 violations.append((path, label))
         assert not violations, f"Found potential hardcoded credentials: {violations}"
-            """Classify a stripped string to detect potential credential patterns."""
-            if not s:
+          """Classify a stripped string to detect potential credential patterns."""
+           if not s:
                 return None
             checks = {
                 "long_string": lambda x: len(x) >= 40,
