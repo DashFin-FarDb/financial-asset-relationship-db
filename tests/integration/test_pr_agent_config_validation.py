@@ -337,7 +337,7 @@ class TestPRAgentConfigSecurity:
             if isinstance(obj, dict):
                 for k, v in obj.items():
                     walk_values(v, f"{path}.{k}")
-            elif isinstance(node, (list, tuple)):
+            elif isinstance(obj, (list, tuple)):
                 for i, item in enumerate(obj):
                     walk_values(item, f"{path}[{i}]")
             elif isinstance(obj, str):
