@@ -29,7 +29,6 @@ from api.auth import (
     _seed_credentials_from_env,
     authenticate_user,
     create_access_token,
-    get_current_active_user,
     get_current_user,
     get_password_hash,
     get_user,
@@ -747,40 +746,35 @@ class TestSeedCredentialsFromEnv:
             call_kwargs = mock_repository.create_or_update_user.call_args.kwargs
             assert call_kwargs['disabled'] is True, f"Failed for value: {truthy_value}"
 
-    def test_seed_credentials_missing_username(self, mock_repository):
+    def test_seed_credentials_missing_username(self, mock_repository, monkeypatch):
         """Test seeding does nothing when username is missing."""
         env_vars = {
             'ADMIN_PASSWORD': 'securepass123'
         }
-        
-        if 'ADMIN_USERNAME' in os.environ:
-            del os.environ['ADMIN_USERNAME']
-        
+        monkeypatch.delenv('ADMIN_USERNAME', raising=False)
+    
         with patch.dict(os.environ, env_vars, clear=False):
             _seed_credentials_from_env(mock_repository)
-        
+    
         mock_repository.create_or_update_user.assert_not_called()
 
-    def test_seed_credentials_missing_password(self, mock_repository):
+    def test_seed_credentials_missing_password(self, mock_repository, monkeypatch):
         """Test seeding does nothing when password is missing."""
         env_vars = {
             'ADMIN_USERNAME': 'admin'
         }
-        
-        if 'ADMIN_PASSWORD' in os.environ:
-            del os.environ['ADMIN_PASSWORD']
-        
+        monkeypatch.delenv('ADMIN_PASSWORD', raising=False)
+    
         with patch.dict(os.environ, env_vars, clear=False):
             _seed_credentials_from_env(mock_repository)
-        
+    
         mock_repository.create_or_update_user.assert_not_called()
 
-    def test_seed_credentials_missing_both(self, mock_repository):
+    def test_seed_credentials_missing_both(self, mock_repository, monkeypatch):
         """Test seeding does nothing when both username and password are missing."""
-        for key in ['ADMIN_USERNAME', 'ADMIN_PASSWORD']:
-            if key in os.environ:
-                del os.environ[key]
-        
+        monkeypatch.delenv('ADMIN_USERNAME', raising=False)
+        monkeypatch.delenv('ADMIN_PASSWORD', raising=False)
+    
         _seed_credentials_from_env(mock_repository)
         
         mock_repository.create_or_update_user.assert_not_called()

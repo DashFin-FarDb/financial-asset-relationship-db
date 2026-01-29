@@ -194,8 +194,7 @@ describe('API Client Refactoring Tests', () => {
       const networkError = new Error('Network Error');
       mockAxiosInstance.get.mockRejectedValue(networkError);
 
-      const result = await api.healthCheck();
-      await expect(result).rejects.toThrow('Network Error');
+      await expect(api.healthCheck()).rejects.toThrow('Network Error');
     });
 
     it('should propagate HTTP errors', async () => {
@@ -285,7 +284,6 @@ describe('API Client Refactoring Tests', () => {
       });
       await api.getAssetDetail(specialId);
       expect(mockAxiosInstance.get).toHaveBeenCalledWith(`/api/assets/${encodeURIComponent(specialId)}`);
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith(`/api/assets/${specialId}`);
     });
 
     it('should handle very large numbers in metrics', async () => {
@@ -354,7 +352,7 @@ describe('API Client Refactoring Tests', () => {
       mockAxiosInstance.get.mockResolvedValue({ data: 'unexpected string response' });
 
       const result = await api.healthCheck();
-      expect(result).toMatchObject({}); // Adjust to match expected structure
+      expect(result).toBe('unexpected string response');
     });
   });
 

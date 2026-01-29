@@ -9,10 +9,7 @@ This module tests the refactored authentication module, focusing on:
 - Thread safety of repository methods
 """
 
-import os
-import sqlite3
 import threading
-from unittest.mock import Mock, patch, MagicMock
 import pytest
 from api.auth import (
     UserRepository,
@@ -26,7 +23,7 @@ from api.auth import (
     get_user,
     create_access_token,
 )
-from api.database import execute, fetch_one, fetch_value, initialize_schema
+from api.database import initialize_schema
 
 
 class TestUserInDBModel:
@@ -566,6 +563,7 @@ class TestEdgeCasesAndBoundaryConditions:
             disabled=True
         )
         user = repository.get_user("user")
+        assert user.disabled is True
         assert user.disabled is True
 
     def test_concurrent_user_creation(self, repository):

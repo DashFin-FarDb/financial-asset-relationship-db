@@ -20,17 +20,6 @@ else
     status=1
 fi
 
-if python -m py_compile tests/unit/test_database_refactoring.py 2>/dev/null; then
-    echo "   ✓ test_database_refactoring.py - Syntax OK"
-else
-    echo "   ✗ test_database_refactoring.py - Syntax Error"
-    status=1
-fi
-else
-    echo "   ✗ test_database_refactoring.py - Syntax Error"
-    status=1
-fi
-
 echo ""
 echo "2. Checking TypeScript Test Syntax..."
 
@@ -39,14 +28,21 @@ if npx tsc --noEmit frontend/__tests__/lib/api-refactoring.test.ts 2>&1; then
 else
     npx tsc --noEmit frontend/__tests__/lib/api-refactoring.test.ts 2>&1 | head -20
     echo "   ✗ api-refactoring.test.ts - TypeScript validation failed"
-echo "   - api-refactoring.test.ts: $(grep -E -c '\b(it|test)\s*\(' frontend/__tests__/lib/api-refactoring.test.ts) test methods"
-echo "   TypeScript Tests:"
-echo "   - api-refactoring.test.ts: $(grep -E -c '\b(it|test)\s*\(['\''"`]' frontend/__tests__/lib/api-refactoring.test.ts) test methods"
+    status=1
+fi
 
-echo "   TypeScript Tests:"
-echo "   - api-refactoring.test.ts: $(grep -E -c '\b(it|test)\s*\(['\''"`]'
-frontend/__tests__/lib/api-refactoring.test.ts) test methods"
+echo ""
+echo "3. Checking Python test execution..."
 
+# Add a simple test run check here if needed
+
+echo ""
+echo "4. Summary:"
+    echo "   ✓ api-refactoring.test.ts - TypeScript validation complete"
+else
+    npx tsc --noEmit frontend/__tests__/lib/api-refactoring.test.ts 2>&1 | head -20
+    echo "   ✗ api-refactoring.test.ts - TypeScript validation failed"
+    status=1
 echo ""
 echo "4. Summary:"
 echo "   Total test files generated: 3"

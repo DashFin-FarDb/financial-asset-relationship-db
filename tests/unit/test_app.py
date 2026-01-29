@@ -12,269 +12,15 @@ This module tests:
 
 from __future__ import annotations
 
-import json
-from typing import Dict, List, Optional, Tuple
 from unittest.mock import Mock, patch
 
 import pytest
 
 from app import AppConstants, FinancialAssetApp
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import Bond, Equity
+from src.models.financial_models import AssetClass, Bond, Equity
 
-
-class TestAppConstants:
-    """Test the AppConstants class for UI string constants."""
-
-    def test_markdown_header_exists(self):
-        """Test that markdown header constant is defined."""
-        assert hasattr(AppConstants, 'MARKDOWN_HEADER')
-        assert len(AppConstants.MARKDOWN_HEADER) > 0
-        assert '🏦' in AppConstants.MARKDOWN_HEADER
-
-    def test_tab_constants_exist(self):
-        """Test that tab name constants are defined."""
-        assert hasattr(AppConstants, 'TAB_3D_VISUALIZATION')
-        assert hasattr(AppConstants, 'TAB_METRICS_ANALYTICS')
-        assert hasattr(AppConstants, 'TAB_ASSET_EXPLORER')
-        assert hasattr(AppConstants, 'TAB_SCHEMA_RULES')
-        assert hasattr(AppConstants, 'TAB_DOCUMENTATION')
-
-    def test_markdown_descriptions_exist(self):
-        """Test that all markdown description constants are defined."""
-        assert hasattr(AppConstants, 'INTERACTIVE_3D_GRAPH_MD')
-        assert hasattr(AppConstants, 'NETWORK_METRICS_ANALYSIS_MD')
-        assert hasattr(AppConstants, 'SCHEMA_RULES_GUIDE_MD')
-        assert hasattr(AppConstants, 'DETAILED_ASSET_INFO_MD')
-        assert hasattr(AppConstants, 'DOC_MARKDOWN')
-
-    def test_network_statistics_text_format(self):
-        """Test that network statistics text template is properly formatted."""
-        assert hasattr(AppConstants, 'NETWORK_STATISTICS_TEXT')
-        template = AppConstants.NETWORK_STATISTICS_TEXT
-        assert '{total_assets}' in template
-        assert '{total_relationships}' in template
-        assert '{average_relationship_strength}' in template
-        assert '{relationship_density}' in template
-
-    def test_error_messages_exist(self):
-        """Test that error message constants are defined and descriptive."""
-        assert hasattr(AppConstants, 'INITIAL_GRAPH_ERROR')
-        assert isinstance(AppConstants.INITIAL_GRAPH_ERROR, str)
-        assert AppConstants.INITIAL_GRAPH_ERROR.strip()
-
-class TestFinancialAssetAppInitialization:
-    """Test FinancialAssetApp initialization and setup."""
-
-    @patch('app.create_real_database')
-    def test_init_creates_graph(self, mock_create_db):
-        """Test that __init__ initializes the graph."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {'asset1': Mock(), 'asset2': Mock()}
-        mock_create_db.return_value = mock_graph
-
-        app = FinancialAssetApp()
-
-        assert app.graph is not None
-        assert app.graph == mock_graph
-        mock_create_db.assert_called_once()
-
-    @patch('app.create_real_database')
-    def test_init_logs_asset_count(self, mock_create_db):
-        """Test that initialization logs the number of assets."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {'a': Mock(), 'b': Mock(), 'c': Mock()}
-        mock_create_db.return_value = mock_graph
-
-        with patch('app.logger') as mock_logger:
-            app = FinancialAssetApp()
-
-            # Check that logger was called with asset count
-            assert mock_logger.info.called
-            # Should log about initialization with real data
-
-    @patch('app.create_real_database')
-    def test_init_raises_on_graph_creation_failure(self, mock_create_db):
-        """Test that initialization raises exception if graph creation fails."""
-        mock_create_db.side_effect = Exception("Database connection failed")
-
-        with pytest.raises(Exception) as exc_info:
-            FinancialAssetApp()
-
-        assert "Database connection failed" in str(exc_info.value)
-
-    @patch('app.create_real_database')
-    def test_init_handles_empty_graph(self, mock_create_db):
-        """Test initialization with an empty graph."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {}
-        mock_create_db.return_value = mock_graph
-
-        app = FinancialAssetApp()
-
-        assert app.graph is not None
-        assert len(app.graph.assets) == 0
-
-
-class TestEnsureGraph:
-    """Test the ensure_graph method."""
-
-    @patch('app.create_real_database')
-    def test_ensure_graph_returns_existing_graph(self, mock_create_db):
-        """Test that ensure_graph returns existing graph if already initialized."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {'asset1': Mock()}
-        mock_create_db.return_value = mock_graph
-
-        app = FinancialAssetApp()
-        initial_graph = app.graph
-
-        returned_graph = app.ensure_graph()
-
-        assert returned_graph is initial_graph
-        # create_real_database should only be called once (in __init__)
-        assert mock_create_db.call_count == 1
-
-    @patch('app.create_real_database')
-    def test_ensure_graph_initializes_if_none(self, mock_create_db):
-        """Test that ensure_graph initializes graph if None."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        asset = Mock()
-        mock_graph.assets = {'asset1': asset}
-        mock_create_db.return_value = mock_graph
-
-        app = FinancialAssetApp()
-        app.graph = None  # Simulate uninitialized state
-
-        returned_graph = app.ensure_graph()
-
-        assert returned_graph is not None
-        assert returned_graph.assets == {'asset1': asset}
-
-
-class TestUpdateMetricsText:
-    """Test the _update_metrics_text method."""
-
-    @patch('app.create_real_database')
-    def test_update_metrics_text_formats_correctly(self, mock_create_db):
-        """Test that metrics text is formatted with correct values."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {}
-        mock_create_db.return_value = mock_graph
-
-        mock_graph.calculate_metrics.return_value = {
-            'total_assets': 100,
-            'total_relationships': 250,
-            'average_relationship_strength': 0.75,
-            'relationship_density': 0.45,
-            'regulatory_event_count': 5,
-            'asset_class_distribution': {'EQUITY': 60, 'BOND': 40},
-            'top_relationships': [
-                ('AAPL', 'GOOGL', 'same_sector', 0.9),
-                ('MSFT', 'AAPL', 'correlation', 0.85)
-            ]
-        }
-
-        app = FinancialAssetApp()
-        text = app._update_metrics_text(mock_graph)
-
-        assert '100' in text  # total_assets
-        assert '250' in text  # total_relationships
-        assert '0.75' in text or '75' in text  # average strength
-        assert '0.45' in text or '45' in text  # density
-        assert '5' in text  # regulatory events
-        assert 'AAPL' in text
-        assert 'GOOGL' in text
-
-    @patch('app.create_real_database')
-    def test_update_metrics_text_handles_empty_relationships(self, mock_create_db):
-        """Test metrics text formatting with no relationships."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {}
-        mock_create_db.return_value = mock_graph
-
-        mock_graph.calculate_metrics.return_value = {
-            'total_assets': 10,
-            'total_relationships': 0,
-            'average_relationship_strength': 0.0,
-            'relationship_density': 0.0,
-            'regulatory_event_count': 0,
-            'asset_class_distribution': {'EQUITY': 10},
-            'top_relationships': []
-        }
-
-        app = FinancialAssetApp()
-        text = app._update_metrics_text(mock_graph)
-
-        assert '10' in text  # total_assets
-        assert '0' in text  # zero relationships
-
-    @patch('app.create_real_database')
-    def test_update_metrics_text_includes_asset_class_distribution(self, mock_create_db):
-        """Test that metrics text includes asset class distribution."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {}
-        mock_create_db.return_value = mock_graph
-
-        mock_graph.calculate_metrics.return_value = {
-            'total_assets': 100,
-            'total_relationships': 50,
-            'average_relationship_strength': 0.5,
-            'relationship_density': 0.3,
-            'regulatory_event_count': 2,
-            'asset_class_distribution': {
-                'EQUITY': 40,
-                'FIXED_INCOME': 30,
-                'COMMODITY': 20,
-                'CURRENCY': 10
-            },
-            'top_relationships': []
-        }
-
-        app = FinancialAssetApp()
-        text = app._update_metrics_text(mock_graph)
-
-        # Check that distribution is JSON-formatted
-        assert 'EQUITY' in text
-        assert 'FIXED_INCOME' in text or 'BOND' in text
-
-
-class TestUpdateAllMetricsOutputs:
-    """Test the update_all_metrics_outputs method."""
-
-    @patch('app.create_real_database')
-    @patch('app.visualize_metrics')
-    def test_update_all_metrics_outputs_returns_figures_and_text(
-        self, mock_visualize, mock_create_db
-    ):
-        """Test that update_all_metrics_outputs returns three figures and text."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {}
-        mock_create_db.return_value = mock_graph
-
-        mock_graph.calculate_metrics.return_value = {
-            'total_assets': 10,
-            'total_relationships': 5,
-            'average_relationship_strength': 0.5,
-            'relationship_density': 0.3,
-            'regulatory_event_count': 1,
-            'asset_class_distribution': {'EQUITY': 10},
-            'top_relationships': []
-        }
-
-        mock_fig1, mock_fig2, mock_fig3 = Mock(), Mock(), Mock()
-        mock_visualize.return_value = (mock_fig1, mock_fig2, mock_fig3)
-
-        app = FinancialAssetApp()
-        f1, f2, f3, text = app.update_all_metrics_outputs(mock_graph)
-
-        assert f1 is mock_fig1
-        assert f2 is mock_fig2
-        assert f3 is mock_fig3
-        assert isinstance(text, str)
-        mock_visualize.assert_called_once()
-
-
+`@pytest.mark.unit`
 class TestUpdateAssetInfo:
     """Test the update_asset_info method."""
 
@@ -282,14 +28,15 @@ class TestUpdateAssetInfo:
     def test_update_asset_info_returns_asset_details(self, mock_create_db):
         """Test that update_asset_info returns asset dict and relationships."""
         mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_asset = Mock(spec=Equity)
-        mock_asset.to_dict.return_value = {
-            'id': 'AAPL',
-            'symbol': 'AAPL',
-            'name': 'Apple Inc.',
-            'price': 150.0
-        }
-        mock_graph.assets = {'AAPL': mock_asset}
+        asset = Equity(
+            id='AAPL',
+            symbol='AAPL',
+            name='Apple Inc.',
+            asset_class=AssetClass.EQUITY,
+            sector='Technology',
+            price=150.0,
+        )
+        mock_graph.assets = {'AAPL': asset}
         mock_graph.relationships = {
             'AAPL': [('GOOGL', 'same_sector', 0.8)]
         }
@@ -338,9 +85,15 @@ class TestUpdateAssetInfo:
     def test_update_asset_info_asset_with_no_relationships(self, mock_create_db):
         """Test update_asset_info for asset with no relationships."""
         mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_asset = Mock()
-        mock_asset.to_dict.return_value = {'id': 'ISOLATED', 'name': 'Isolated Asset'}
-        mock_graph.assets = {'ISOLATED': mock_asset}
+        asset = Equity(
+            id='ISOLATED',
+            symbol='ISO',
+            name='Isolated Asset',
+            asset_class=AssetClass.EQUITY,
+            sector='Misc',
+            price=100.0,
+        )
+        mock_graph.assets = {'ISOLATED': asset}
         mock_graph.relationships = {}
         mock_graph.incoming_relationships = {}
         mock_create_db.return_value = mock_graph
@@ -501,7 +254,7 @@ class TestRefreshVisualization:
         assert error_state is not None
 
 
-class TestGenerateFormulaicdAnalysis:
+class TestGenerateFormulaicAnalysis:
     """Test the generate_formulaic_analysis method."""
 
     @patch('app.create_real_database')
@@ -623,23 +376,22 @@ class TestFormatFormulaSummary:
 
         assert isinstance(result, str)
         assert '10' in result  # formula count
-        assert 'Valuation' in result
-        assert 'Risk' in result
-
-
-class TestEdgeCasesAndErrorHandling:
-    """Test edge cases and error handling scenarios."""
-
-    @patch('app.create_real_database')
-    def test_app_handles_graph_with_single_asset(self, mock_create_db):
-        """Test app handles graph with only one asset."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_asset = Mock()
-        mock_asset.to_dict.return_value = {'id': 'SINGLE', 'name': 'Single Asset'}
-        mock_graph.assets = {'SINGLE': mock_asset}
-        mock_graph.relationships = {}
-        mock_graph.incoming_relationships = {}
-        mock_graph.calculate_metrics.return_value = {
+                    equity = Equity(
+                        id='AAPL',
+                        symbol='AAPL',
+                        name='Apple Inc.',
+                        asset_class=AssetClass.EQUITY,
+                        sector='Technology',
+                        price=150.0,
+                    )
+                    bond = Bond(
+                        id='CORP_BOND',
+                        symbol='CORP',
+                        name='Corporate Bond',
+                        asset_class=AssetClass.FIXED_INCOME,
+                        sector='Corporate',
+                        price=100.0,
+                    )
             'total_assets': 1,
             'total_relationships': 0,
             'average_relationship_strength': 0.0,

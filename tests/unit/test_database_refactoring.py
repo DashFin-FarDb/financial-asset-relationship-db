@@ -10,9 +10,7 @@ Tests focus on:
 """
 
 import pytest
-
-from api.database import (
-    _get_database_url,
+import sqlite3
 
 from api.database import (
     _get_database_url,
@@ -215,6 +213,7 @@ def get_connection():
             except Exception as e:
                 errors.append(e)
         
+        import threading
         threads = [threading.Thread(target=get_connection) for _ in range(10)]
         for t in threads:
             t.start()
@@ -290,7 +289,8 @@ class TestExecuteFunction:
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         from api import database
         database.DATABASE_PATH = ":memory:"
-        # Call initialize_schema() in a fixture or setup method
+        database._MEMORY_CONNECTION = None
+        initialize_schema()
         
         execute(
             "INSERT INTO user_credentials (username, hashed_password) VALUES (?, ?)",
@@ -508,6 +508,7 @@ class TestThreadSafety:
             except Exception as e:
                 errors.append(e)
         
+        import threading
         threads = [threading.Thread(target=read_user) for _ in range(20)]
         for t in threads:
             t.start()
@@ -545,10 +546,12 @@ class TestThreadSafety:
             except Exception as e:
                 errors.append(e)
         
+        import threading
         threads = [threading.Thread(target=write_user, args=(f"user{i}",)) for i in range(10)]
         for t in threads:
             t.start()
         for t in threads:
+            t.join()
             t.join()
         
         assert len(errors) == 0

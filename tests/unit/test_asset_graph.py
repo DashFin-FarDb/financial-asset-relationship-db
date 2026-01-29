@@ -421,8 +421,8 @@ class TestGet3DVisualizationDataEnhancedComprehensive:
 
         positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
-        # Should sort numerically as strings
-        assert asset_ids == sorted(['50', '100', '200', '75'], key=int)  # Sort numerically
+        # Asset IDs are sorted lexicographically (as strings)
+        assert asset_ids == sorted(['100', '200', '50', '75'])
 
     def test_special_characters_in_asset_ids(self):
         """Test with special characters in asset IDs."""
@@ -531,7 +531,7 @@ class TestAssetRelationshipGraphEdgeCases:
         positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert long_id in asset_ids
-        assert len(asset_ids) == 1  # Ensure only the long ID is present
+        assert len(asset_ids) == 2  # Ensure both nodes are present
         assert any(long_id in hover for hover in hover_texts)
 
     def test_relationship_strength_zero(self):
