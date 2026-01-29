@@ -226,7 +226,6 @@ class TestPRAgentConfigSecurity:
           - Obvious secret prefixes/suffixes
           - Inline credentials in URLs (e.g., scheme://user:pass@host)
     """
-    Test that the PR agent config does not contain potential hardcoded credentials.
     """
 
     def _iter_string_values(obj):
