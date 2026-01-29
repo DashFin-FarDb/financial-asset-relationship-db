@@ -194,74 +194,74 @@ class TestPRAgentConfigYAMLValidity:
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
-    @staticmethod
-    @pytest.fixture
-    def pr_agent_config():
-        """
-        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+        @staticmethod
+        @pytest.fixture
+        def pr_agent_config():
+            """
+            Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
-        Returns:
-            dict: The parsed YAML content as a Python mapping.
-        """
-        config_path = Path(".github/pr-agent-config.yml")
-        if not config_path.exists():
-            pytest.fail(f"Config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in config: {e}")
-        if cfg is None or not isinstance(cfg, dict):
-            pytest.fail("Config must be a YAML mapping (dict) and not empty")
-        return cfg
+            Returns:
+                dict: The parsed YAML content as a Python mapping.
+            """
+            config_path = Path(".github/pr-agent-config.yml")
+            if not config_path.exists():
+                pytest.fail(f"Config file not found: {config_path}")
+            with open(config_path, "r", encoding="utf-8") as f:
+                try:
+                    cfg = yaml.safe_load(f)
+                except yaml.YAMLError as e:
+                    pytest.fail(f"Invalid YAML in config: {e}")
+            if cfg is None or not isinstance(cfg, dict):
+                pytest.fail("Config must be a YAML mapping (dict) and not empty")
+            return cfg
 
-    @staticmethod
-    def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
-        """
-        Recursively scan configuration values for suspected secrets.
+        @staticmethod
+        def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
+            """
+            Recursively scan configuration values for suspected secrets.
 
-        This inspects values (not just serialized text) and traverses nested dicts/lists.
-        The heuristic flags:
-          - Long high-entropy strings (e.g., tokens)
-          - Obvious secret prefixes/suffixes
-          - Inline credentials in URLs (e.g., scheme://user:pass@host)
-        """
+            This inspects values (not just serialized text) and traverses nested dicts/lists.
+            The heuristic flags:
+              - Long high-entropy strings (e.g., tokens)
+              - Obvious secret prefixes/suffixes
+              - Inline credentials in URLs (e.g., scheme://user:pass@host)
+            """
 
-    @staticmethod
-    def _iter_string_values(obj):
-        """Recursively yield all string values found in nested dicts and lists."""
-        if isinstance(obj, dict):
-            for v in obj.values():
-                yield from TestPRAgentConfigSecurity._iter_string_values(v)
-        elif isinstance(obj, list):
-            for v in obj:
-                yield from TestPRAgentConfigSecurity._iter_string_values(v)
-        elif isinstance(obj, str):
-            yield obj
+        @staticmethod
+        def _iter_string_values(obj):
+            """Recursively yield all string values found in nested dicts and lists."""
+            if isinstance(obj, dict):
+                for v in obj.values():
+                    yield from TestPRAgentConfigSecurity._iter_string_values(v)
+            elif isinstance(obj, list):
+                for v in obj:
+                    yield from TestPRAgentConfigSecurity._iter_string_values(v)
+            elif isinstance(obj, str):
+                yield obj
 
-    suspected = []
+        suspected = []
 
-    secret_prefixes = (
-        "sk-",
-        "AKIA",
-        "SECRET_",
-        "TOKEN_",
-    )
-    inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
+        secret_prefixes = (
+            "sk-",
+            "AKIA",
+            "SECRET_",
+            "TOKEN_",
+        )
+        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
 
-    # Helper functions for credential detection
-    def _classify_stripped(self: str):
-        """Classify a stripped string as a potential credential kind or return None."""
-        if not s:
+        # Helper functions for credential detection
+        def _classify_stripped(self: str):
+            """Classify a stripped string as a potential credential kind or return None."""
+            if not s:
+                return None
+            for kind, predicate in [
+                ("long_string", lambda x: len(x) >= 40),
+                ("prefix", lambda x: any(x.startswith(p) for p in secret_prefixes)),
+                ("inline_creds", lambda x: bool(inline_cred_pattern.search(x))),
+            ]:
+                if predicate(s):
+                    return kind
             return None
-        for kind, predicate in [
-            ("long_string", lambda x: len(x) >= 40),
-            ("prefix", lambda x: any(x.startswith(p) for p in secret_prefixes)),
-            ("inline_creds", lambda x: bool(inline_cred_pattern.search(x))),
-        ]:
-            if predicate(s):
-                return kind
-        return None
 
     def scan(obj, suspected):
         """
@@ -284,147 +284,147 @@ class TestPRAgentConfigSecurity:
             if kind:
                 suspected.append((kind, stripped))
 
-    def test_no_hardcoded_credentials(pr_agent_config):
-        """
-        Ensure no hardcoded credentials or secret-like values appear
-        in the PR agent configuration.
-        """
-        suspected = []
-        scan(pr_agent_config, suspected)
+        def test_no_hardcoded_credentials(pr_agent_config):
+            """
+            Ensure no hardcoded credentials or secret-like values appear
+            in the PR agent configuration.
+            """
+            suspected = []
+            scan(pr_agent_config, suspected)
 
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            if suspected:
+                details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+                pytest.fail(
+                    f"Potential hardcoded credentials found in PR agent config:\n{details}"
+                )
+            # Module-level / shared compiled regexes and markers (defined below)
+            # These are module-level constants declared outside classes further down in the file.
+            # We'll reference them indirectly here by using the module-level names.
+
+            def shannon_entropy(s: str) -> float:
+                if not s:
+                    return 0.0
+                sample = s[:256]
+                freq = {}
+                for ch in sample:
+                    freq[ch] = freq.get(ch, 0) + 1
+                ent = 0.0
+                length = len(sample)
+                for c in freq.values():
+                    p = c / length
+                    ent -= p * math.log2(p)
+                return ent
+
+            def looks_like_secret(val: str) -> bool:
+                v = val.strip()
+                if not v:
+                    return False
+                placeholders = {
+                    "<token>",
+                    "<secret>",
+                    "changeme",
+                    "your-token-here",
+                    "dummy",
+                    "placeholder",
+                    "null",
+                    "none",
+                }
+                if v.lower() in placeholders:
+                    return False
+                if INLINE_CREDS_RE.search(v):
+                    return True
+                if any(m in v.lower() for m in SECRET_MARKERS) and len(v) >= 12:
+                    return True
+                # Base64/URL-safe like long strings
+                if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
+                    return True
+                # Hex-encoded long strings (e.g., keys)
+                if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
+                    return True
+                return False
+
+            # Walk values to detect secret-like strings
+            def walk_values(obj, path="root"):
+                if isinstance(obj, dict):
+                    for k, v in obj.items():
+                        walk_values(v, f"{path}.{k}")
+                elif isinstance(obj, (list, tuple)):
+                    for i, item in enumerate(obj):
+                        walk_values(item, f"{path}[{i}]")
+                elif isinstance(obj, str):
+                    if looks_like_secret(obj):
+                        pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
+                # Non-string scalars ignored
+
+            walk_values(pr_agent_config)
+
+        @staticmethod
+        def test_no_hardcoded_secrets(pr_agent_config):
+            """
+            Recursively scan for secrets in nested structures.
+            Traverse the parsed YAML and ensure that any key containing sensitive indicators
+            has a safe placeholder value(None, 'null', 'none', 'placeholder', '***', or a
+            templated variable like '${VAR}').
+            """
+            sensitive_patterns = (
+                "password",
+                "secret",
+                "token",
+                "api_key",
+                "apikey",
+                "access_key",
+                "private_key",
             )
-        # Module-level / shared compiled regexes and markers (defined below)
-        # These are module-level constants declared outside classes further down in the file.
-        # We'll reference them indirectly here by using the module-level names.
 
-        def shannon_entropy(s: str) -> float:
-            if not s:
-                return 0.0
-            sample = s[:256]
-            freq = {}
-            for ch in sample:
-                freq[ch] = freq.get(ch, 0) + 1
-            ent = 0.0
-            length = len(sample)
-            for c in freq.values():
-                p = c / length
-                ent -= p * math.log2(p)
-            return ent
+            allowed_placeholders = {None, "null", "none", "placeholder", "***"}
 
-        def looks_like_secret(val: str) -> bool:
-            v = val.strip()
-            if not v:
+            templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
+
+            def is_allowed_placeholder(v) -> bool:
+                """Check if the value v is an allowed placeholder or templated variable."""
+                if v in allowed_placeholders:
+                    return True
+                if isinstance(v, str) and templated_var_re.match(v.strip()):
+                    return True
                 return False
-            placeholders = {
-                "<token>",
-                "<secret>",
-                "changeme",
-                "your-token-here",
-                "dummy",
-                "placeholder",
-                "null",
-                "none",
-            }
-            if v.lower() in placeholders:
-                return False
-            if INLINE_CREDS_RE.search(v):
-                return True
-            if any(m in v.lower() for m in SECRET_MARKERS) and len(v) >= 12:
-                return True
-            # Base64/URL-safe like long strings
-            if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
-                return True
-            # Hex-encoded long strings (e.g., keys)
-            if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
-                return True
-            return False
 
-        # Walk values to detect secret-like strings
-        def walk_values(obj, path="root"):
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    walk_values(v, f"{path}.{k}")
-            elif isinstance(obj, (list, tuple)):
-                for i, item in enumerate(obj):
-                    walk_values(item, f"{path}[{i}]")
-            elif isinstance(obj, str):
-                if looks_like_secret(obj):
-                    pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
-            # Non-string scalars ignored
+            def scan_for_secrets(node, path: str = "root") -> None:
+                """Recursively scan the node for sensitive keys and validate placeholder values."""
+                if isinstance(node, dict):
+                    for k, v in node.items():
+                        key_l = str(k).lower()
+                        new_path = f"{path}.{k}"
 
-        walk_values(pr_agent_config)
+                        if any(pat in key_l for pat in sensitive_patterns):
+                            assert is_allowed_placeholder(v), (
+                                f"Potential hardcoded credential at '{new_path}'"
+                            )
 
-    @staticmethod
-    def test_no_hardcoded_secrets(pr_agent_config):
+                        scan_for_secrets(v, new_path)
+
+                elif isinstance(node, (list, tuple)):
+                    for i, item in enumerate(node):
+                        scan_for_secrets(item, f"{path}[{i}]")
+
+            # primitives are ignored unless they are values of sensitive keys checked above
+
+            scan_for_secrets(pr_agent_config)
+
+
+    def test_safe_configuration_values(pr_agent_config):
         """
-        Recursively scan for secrets in nested structures.
-        Traverse the parsed YAML and ensure that any key containing sensitive indicators
-        has a safe placeholder value(None, 'null', 'none', 'placeholder', '***', or a
-        templated variable like '${VAR}').
+        Assert that key numeric limits in the PR agent configuration fall within safe bounds.
+        Checks that:
+        - `limits['max_execution_time']` is less than or equal to 3600 seconds.
+        - `limits['max_concurrent_prs']` is less than or equal to 10.
+        - `limits['rate_limit_requests']` is less than or equal to 1000.
         """
-        sensitive_patterns = (
-            "password",
-            "secret",
-            "token",
-            "api_key",
-            "apikey",
-            "access_key",
-            "private_key",
-        )
+        limits = pr_agent_config["limits"]
 
-        allowed_placeholders = {None, "null", "none", "placeholder", "***"}
-
-        templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
-
-        def is_allowed_placeholder(v) -> bool:
-            """Check if the value v is an allowed placeholder or templated variable."""
-            if v in allowed_placeholders:
-                return True
-            if isinstance(v, str) and templated_var_re.match(v.strip()):
-                return True
-            return False
-
-        def scan_for_secrets(node, path: str = "root") -> None:
-            """Recursively scan the node for sensitive keys and validate placeholder values."""
-            if isinstance(node, dict):
-                for k, v in node.items():
-                    key_l = str(k).lower()
-                    new_path = f"{path}.{k}"
-
-                    if any(pat in key_l for pat in sensitive_patterns):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
-
-                    scan_for_secrets(v, new_path)
-
-            elif isinstance(node, (list, tuple)):
-                for i, item in enumerate(node):
-                    scan_for_secrets(item, f"{path}[{i}]")
-
-        # primitives are ignored unless they are values of sensitive keys checked above
-
-        scan_for_secrets(pr_agent_config)
-
-
-def test_safe_configuration_values(pr_agent_config):
-    """
-    Assert that key numeric limits in the PR agent configuration fall within safe bounds.
-    Checks that:
-    - `limits['max_execution_time']` is less than or equal to 3600 seconds.
-    - `limits['max_concurrent_prs']` is less than or equal to 10.
-    - `limits['rate_limit_requests']` is less than or equal to 1000.
-    """
-    limits = pr_agent_config["limits"]
-
-    # Check for reasonable numeric limits
-    assert limits["max_execution_time"] <= 3600, "Execution time too high"
-    assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
-    assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
+        # Check for reasonable numeric limits
+        assert limits["max_execution_time"] <= 3600, "Execution time too high"
+        assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
+        assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
 
 
 class TestPRAgentConfigRemovedComplexity:
