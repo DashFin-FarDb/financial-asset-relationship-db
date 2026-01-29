@@ -251,7 +251,7 @@ class TestPRAgentConfigSecurity:
             for label, check in checks:
                 if check(s_stripped):
                     return label
-
+            return None
 
         def classify_value(s: str):
             """Classify a string value to detect inline credentials, lambda threshold names, or high-entropy patterns."""
