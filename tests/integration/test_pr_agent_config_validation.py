@@ -253,11 +253,6 @@ class TestPRAgentConfigSecurity:
 
         if flagged:
             pytest.fail(f"Found potential secrets: {flagged}")
-            }
-            for kind, predicate in checks.items():
-                if predicate(s):
-                    return kind
-            return None
 
         def scan_config(obj):
             """Scan a configuration object for potential hardcoded credentials."""
