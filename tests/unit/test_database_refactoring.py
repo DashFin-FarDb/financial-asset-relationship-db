@@ -202,16 +202,6 @@ def get_connection():
         connections.append(conn)
     except Exception as e:
         errors.append(e)
-            """
-            Record the result of attempting to obtain a database connection.
-            
-            Attempts to obtain a connection using the module's connection factory and records the outcome by appending the successful sqlite3.Connection to the module-level `connections` list or appending the raised exception to the module-level `errors` list.
-            """
-            try:
-                conn = _connect()
-                connections.append(conn)
-            except Exception as e:
-                errors.append(e)
         
         import threading
         threads = [threading.Thread(target=get_connection) for _ in range(10)]
