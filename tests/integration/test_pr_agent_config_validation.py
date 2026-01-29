@@ -427,8 +427,7 @@ class TestPRAgentConfigRemovedComplexity:
         Reads the PR agent configuration file from the repository root and returns its raw text.
 
         Returns:
-            str: Raw YAML content of .github / pr - agent - config.yml.
-        """
+        """Raw YAML content of .github/pr-agent-config.yml."""
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return f.read()
