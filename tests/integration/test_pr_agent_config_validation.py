@@ -288,7 +288,7 @@ class TestPRAgentConfigSecurity:
             return None
 
         flagged = []
-        for val in _iter_string_values(pr_agent_config):
+        for path, val in _iter_string_values(pr_agent_config):
             s = val.strip()
             classification = classify_stripped(s)
             if not classification:
