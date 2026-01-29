@@ -874,7 +874,7 @@ class TestEdgeCasesAndSecurity:
         
         # This should be handled safely by parameterized queries
         malicious_username = "admin' OR '1'='1"
-        result = authenticate_user(malicious_username, "password", repository=mock_repo)
+        mock_repo.get_user.assert_called_once_with(malicious_username)
 
         assert result is False
         mock_repo.get_user.assert_called_once_with(malicious_username)
