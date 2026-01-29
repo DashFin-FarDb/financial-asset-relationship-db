@@ -250,7 +250,7 @@ class TestPRAgentConfigSecurity:
     inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
 
     # Helper functions for credential detection
-    def _classify_stripped(s: str):
+    def _classify_stripped(self: str):
         """Classify a stripped string as a potential credential kind or return None."""
         if not s:
             return None
