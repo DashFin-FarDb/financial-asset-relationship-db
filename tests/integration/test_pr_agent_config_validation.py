@@ -83,9 +83,7 @@ def lambda_thresholds(value: str) -> float:
     return ENTROPY_THRESHOLD
 
 
-INLINE_CREDS_RE = re.compile(
-    r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
-)
+INLINE_CREDS_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
 
 
 class TestPRAgentConfigSimplification:
@@ -243,9 +241,7 @@ class TestPRAgentConfigYAMLValidity:
             if not stripped or stripped.startswith("#"):
                 continue
             num_spaces = len(line) - len(stripped)
-            assert num_spaces % 2 == 0, (
-                f"Line {line_number}: {num_spaces} leading spaces, which is not a multiple of 2"
-            )
+            assert num_spaces % 2 == 0, f"Line {line_number}: {num_spaces} leading spaces, which is not a multiple of 2"
 
 
 class TestPRAgentConfigSecurity:
@@ -271,10 +267,7 @@ class TestPRAgentConfigSecurity:
             pytest.fail(f"Failed to parse YAML from {config_path}: {exc}")
 
         if not isinstance(config, dict):
-            pytest.fail(
-                f"Expected a mapping (dict) in {config_path}, "
-                f"got {type(config).__name__!r} instead"
-            )
+            pytest.fail(f"Expected a mapping (dict) in {config_path}, " f"got {type(config).__name__!r} instead")
 
         return config
         try:
@@ -284,10 +277,7 @@ class TestPRAgentConfigSecurity:
             pytest.fail(f"Failed to parse YAML from {config_path}: {exc}")
 
         if not isinstance(config, dict):
-            pytest.fail(
-                f"Expected a mapping (dict) in {config_path}, "
-                f"got {type(config).__name__!r} instead"
-            )
+            pytest.fail(f"Expected a mapping (dict) in {config_path}, " f"got {type(config).__name__!r} instead")
 
         return config
 
@@ -312,6 +302,7 @@ class TestPRAgentConfigSecurity:
                 p = count / length
                 ent -= p * math.log2(p)
             return ent
+
         def classify_value(s: str):
             """Classify a string value to detect inline credentials, lambda threshold names, or high-entropy patterns."""
             s_stripped = s.strip()
@@ -391,9 +382,7 @@ class TestPRAgentConfigSecurity:
         suspected = scan_config(pr_agent_config)
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
         def looks_like_secret(val: str) -> bool:
             SECRET_MARKERS = {
@@ -488,9 +477,7 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(pat in key_l for pat in sensitive_patterns):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
 
                     scan_for_secrets(v, new_path)
 
