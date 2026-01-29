@@ -13,8 +13,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-
-from pr_agent_config_validation import SECRET_MARKERS, INLINE_CRED_PATTERN
+from pr_agent_config_validation import INLINE_CRED_PATTERN, SECRET_MARKERS
 
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
@@ -220,6 +219,7 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
         """Recursively scan configuration values for suspected secrets."""
+
         def _iter_string_values(obj):
             """Recursively yield all string values found in nested dicts and lists."""
             if isinstance(obj, dict):
