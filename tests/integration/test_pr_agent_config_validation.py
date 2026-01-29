@@ -264,6 +264,19 @@ class TestPRAgentConfigSecurity:
         if not config_path.exists():
             pytest.fail(f"Config file not found: {config_path}")
 
+        try:
+            with config_path.open("r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            pytest.fail(f"Failed to parse YAML from {config_path}: {exc}")
+
+        if not isinstance(config, dict):
+            pytest.fail(
+                f"Expected a mapping (dict) in {config_path}, "
+                f"got {type(config).__name__!r} instead"
+            )
+
+        return config
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
