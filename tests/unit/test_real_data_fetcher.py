@@ -526,9 +526,9 @@ class TestDeserialization:
                     "description": "Test event",
                     "impact_score": 0.5,
         }
-                
-        graph= _deserialize_graph(payload)
- 
+
+        graph = _deserialize_graph(payload)
+
         assert isinstance(graph, AssetRelationshipGraph)
         assert "TEST" in graph.assets
         assert len(graph.regulatory_events) == 1
@@ -540,9 +540,9 @@ class TestCacheOperations:
     @ staticmethod
     def test_save_to_cache(tmp_path):
         """Test saving graph to cache file."""
-        cache_path= tmp_path / "cache.json"
-        graph= AssetRelationshipGraph()
-        equity= Equity(
+        cache_path = tmp_path / "cache.json"
+        graph = AssetRelationshipGraph()
+        equity = Equity(
             id="TEST",
             symbol="TEST",
             name="Test",
@@ -556,18 +556,18 @@ class TestCacheOperations:
 
         assert cache_path.exists()
         with cache_path.open("r") as f:
-            data= json.load(f)
+            data = json.load(f)
         assert "assets" in data
         assert len(data["assets"]) == 1
 
     @ staticmethod
     def test_load_from_cache(tmp_path):
         """Test loading graph from cache file."""
-        cache_path= tmp_path / "cache.json"
+        cache_path = tmp_path / "cache.json"
 
         # Create and save a graph
-        graph= AssetRelationshipGraph()
-        equity= Equity(
+        graph = AssetRelationshipGraph()
+        equity = Equity(
             id="CACHED",
             symbol="CACHED",
             name="Cached Asset",
@@ -579,7 +579,7 @@ class TestCacheOperations:
         _save_to_cache(graph, cache_path)
 
         # Load it back
-        loaded_graph= _load_from_cache(cache_path)
+        loaded_graph = _load_from_cache(cache_path)
 
         assert isinstance(loaded_graph, AssetRelationshipGraph)
         assert "CACHED" in loaded_graph.assets
@@ -588,8 +588,8 @@ class TestCacheOperations:
     @ staticmethod
     def test_save_to_cache_creates_parent_dirs(tmp_path):
         """Test that save_to_cache creates parent directories."""
-        cache_path= tmp_path / "subdir" / "deep" / "cache.json"
-        graph= AssetRelationshipGraph()
+        cache_path = tmp_path / "subdir" / "deep" / "cache.json"
+        graph = AssetRelationshipGraph()
 
         _save_to_cache(graph, cache_path)
 
@@ -604,12 +604,12 @@ class TestCreateRealDatabaseFunction:
     @ staticmethod
     def test_create_real_database_function(mock_fetcher_class):
         """Test that create_real_database function creates fetcher and calls method."""
-        mock_instance= Mock()
-        mock_graph= AssetRelationshipGraph()
-        mock_instance.create_real_database.return_value= mock_graph
-        mock_fetcher_class.return_value= mock_instance
+        mock_instance = Mock()
+        mock_graph = AssetRelationshipGraph()
+        mock_instance.create_real_database.return_value = mock_graph
+        mock_fetcher_class.return_value = mock_instance
 
-        result= create_real_database()
+        result = create_real_database()
 
         mock_fetcher_class.assert_called_once_with()
         mock_instance.create_real_database.assert_called_once()
@@ -622,7 +622,7 @@ class TestEdgeCases:
     @ staticmethod
     def test_cache_load_with_corrupted_file(tmp_path):
         """Test loading from corrupted cache file."""
-        cache_path= tmp_path / "corrupted.json"
+        cache_path = tmp_path / "corrupted.json"
         cache_path.write_text("{ invalid json")
 
         # Should raise an exception
@@ -632,11 +632,11 @@ class TestEdgeCases:
     @ staticmethod
     def test_create_database_cache_load_failure_continues(tmp_path):
         """Test that cache load failure doesn't prevent database creation."""
-        cache_path= tmp_path / "bad_cache.json"
+        cache_path = tmp_path / "bad_cache.json"
         cache_path.write_text("{ invalid")
 
-        fetcher= RealDataFetcher(cache_path=str(cache_path), enable_network=False)
-        graph= fetcher.create_real_database()
+        fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        graph = fetcher.create_real_database()
 
         # Should fall back to sample data despite cache error
         assert isinstance(graph, AssetRelationshipGraph)
@@ -659,16 +659,16 @@ class TestEdgeCases:
     ):
         """Test that cache save failure doesn't prevent returning the graph."""
         # Setup mocks
-        mock_equity.return_value= []
-        mock_bond.return_value= []
-        mock_commodity.return_value= []
-        mock_currency.return_value= []
-        mock_events.return_value= []
-        mock_save.side_effect= Exception("Save failed")
+        mock_equity.return_value = []
+        mock_bond.return_value = []
+        mock_commodity.return_value = []
+        mock_currency.return_value = []
+        mock_events.return_value = []
+        mock_save.side_effect = Exception("Save failed")
 
-        cache_path= tmp_path / "cache.json"
-        fetcher= RealDataFetcher(cache_path=str(cache_path), enable_network=True)
-        graph= fetcher.create_real_database()
+        cache_path = tmp_path / "cache.json"
+        fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=True)
+        graph = fetcher.create_real_database()
 
         # Should still return a graph even if save fails
         assert isinstance(graph, AssetRelationshipGraph)
@@ -676,7 +676,7 @@ class TestEdgeCases:
     @ staticmethod
     def test_deserialize_asset_with_missing_type():
         """Test deserializing asset without __type__ field."""
-        data= {
+        data = {
             "id": "TEST",
             "symbol": "TEST",
             "name": "Test",
@@ -690,14 +690,14 @@ class TestEdgeCases:
         # Should default to base Asset class
         from src.models.financial_models import Asset
 
-        asset= _deserialize_asset(data)
+        asset = _deserialize_asset(data)
         assert isinstance(asset, Asset)
 
     @ staticmethod
     def test_serialize_graph_with_complex_relationships():
         """Test serializing graph with bidirectional relationships."""
-        graph= AssetRelationshipGraph()
-        equity1= Equity(
+        graph = AssetRelationshipGraph()
+        equity1 = Equity(
             id="TEST1",
             symbol="TEST1",
             name="Test 1",
@@ -705,7 +705,7 @@ class TestEdgeCases:
             sector="Technology",
             price=100.0,
         )
-        equity2= Equity(
+        equity2 = Equity(
             id="TEST2",
             symbol="TEST2",
             name="Test 2",
@@ -717,7 +717,7 @@ class TestEdgeCases:
         graph.add_asset(equity2)
         graph.add_relationship("TEST1", "TEST2", "same_sector", 0.7, bidirectional=True)
 
-        serialized= _serialize_graph(graph)
+        serialized = _serialize_graph(graph)
 
         # Should have relationships in both directions
         assert "TEST1" in serialized["relationships"]
@@ -729,21 +729,21 @@ class TestRegressionCases:
 
     def test_atomic_cache_write(self, tmp_path):
         """Test that cache writes are atomic using temp file + rename."""
-        cache_path= tmp_path / "cache.json"
-        graph= AssetRelationshipGraph()
+        cache_path = tmp_path / "cache.json"
+        graph = AssetRelationshipGraph()
 
         # Save to cache
         _save_to_cache(graph, cache_path)
 
         # File should exist and be valid
         assert cache_path.exists()
-        loaded= _load_from_cache(cache_path)
+        loaded = _load_from_cache(cache_path)
         assert isinstance(loaded, AssetRelationshipGraph)
 
     @ staticmethod
     def test_enum_serialization_consistency():
         """Test that enums serialize and deserialize consistently."""
-        original= Equity(
+        original = Equity(
             id="TEST",
             symbol="TEST",
             name="Test",
@@ -753,8 +753,8 @@ class TestRegressionCases:
         )
 
         # Serialize then deserialize
-        serialized= _serialize_dataclass(original)
-        deserialized= _deserialize_asset(serialized)
+        serialized = _serialize_dataclass(original)
+        deserialized = _deserialize_asset(serialized)
 
         assert deserialized.asset_class == original.asset_class
         assert isinstance(deserialized.asset_class, AssetClass)
