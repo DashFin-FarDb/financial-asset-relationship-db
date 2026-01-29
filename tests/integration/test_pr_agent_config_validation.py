@@ -301,10 +301,10 @@ class TestPRAgentConfigSecurity:
                 f"Potential hardcoded credentials found in PR agent config:\n{details}"
 
         def looks_like_secret(val: str) -> bool:
-            v = val.strip()
+            v=val.strip()
             if not v:
                 return False
-            placeholders = {
+            placeholders={
                 "<token>",
                 "<secret>",
                 "changeme",
@@ -343,7 +343,7 @@ class TestPRAgentConfigSecurity:
 
         walk_values(pr_agent_config)
 
-    @staticmethod
+    @ staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """
         Recursively scan for secrets in nested structures.
@@ -351,7 +351,7 @@ class TestPRAgentConfigSecurity:
         has a safe placeholder value(None, 'null', 'none', 'placeholder', '***', or a
                                      templated variable like '${VAR}').
         """
-        sensitive_patterns = (
+        sensitive_patterns=(
             "password",
             "secret",
             "token",
@@ -361,9 +361,9 @@ class TestPRAgentConfigSecurity:
             "private_key",
         )
 
-        allowed_placeholders = {None, "null", "none", "placeholder", "***"}
+        allowed_placeholders={None, "null", "none", "placeholder", "***"}
 
-        templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
+        templated_var_re=re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
         def is_allowed_placeholder(v) -> bool:
             """Check if the value v is an allowed placeholder or templated variable."""
@@ -373,12 +373,12 @@ class TestPRAgentConfigSecurity:
                 return True
             return False
 
-        def scan_for_secrets(node, path: str = "root") -> None:
+        def scan_for_secrets(node, path: str="root") -> None:
             """Recursively scan the node for sensitive keys and validate placeholder values."""
             if isinstance(node, dict):
                 for k, v in node.items():
-                    key_l = str(k).lower()
-                    new_path = f"{path}.{k}"
+                    key_l=str(k).lower()
+                    new_path=f"{path}.{k}"
 
                     if any(pat in key_l for pat in sensitive_patterns):
                         assert is_allowed_placeholder(v), (
@@ -404,7 +404,7 @@ def test_safe_configuration_values(pr_agent_config):
     - `limits['max_concurrent_prs']` is less than or equal to 10.
     - `limits['rate_limit_requests']` is less than or equal to 1000.
     """
-    limits = pr_agent_config["limits"]
+    limits=pr_agent_config["limits"]
 
     # Check for reasonable numeric limits
     assert limits["max_execution_time"] <= 3600, "Execution time too high"
@@ -415,8 +415,8 @@ def test_safe_configuration_values(pr_agent_config):
 class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
-    @pytest.fixture
-    @staticmethod
+    @ pytest.fixture
+    @ staticmethod
     def pr_agent_config_content():
         """
     Return the contents of .github / pr - agent - config.yml as a string.
