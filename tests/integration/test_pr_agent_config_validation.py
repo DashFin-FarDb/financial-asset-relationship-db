@@ -220,15 +220,9 @@ class TestPRAgentConfigSecurity:
         """
         Recursively scan configuration values for suspected secrets.
 
-        This inspects values (not just serialized text) and traverses nested dicts/lists.
-        The heuristic flags:
-          - Long high-entropy strings (e.g., tokens)
-          - Obvious secret prefixes/suffixes
-          - Inline credentials in URLs (e.g., scheme://user:pass@host)
-        """
-
         def _iter_string_values(obj):
-            """Recursively yield all string values found in nested dicts and lists."""
+            """Recursively yield all string values found in nested dicts and lists.
+            """
             if isinstance(obj, dict):
                 for v in obj.values():
                     yield from _iter_string_values(v)
@@ -238,32 +232,13 @@ class TestPRAgentConfigSecurity:
             elif isinstance(obj, str):
                 yield obj
 
-        suspected = []
-
-        secret_prefixes = (
-            "sk-",
-            "AKIA",
-            "SECRET_",
-            "TOKEN_",
-        )
-        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
-
-        for value in _iter_string_values(pr_agent_config):
-
-            def classify_stripped(s: str):
-                """Classify a stripped string and return the type of secret if found.
-
-                Checks if the string is long, has a secret prefix, or contains inline credentials.
-                Returns the kind of secret or None if no match."""
+        for _ in _iter_string_values(pr_agent_config):
+            pass
 
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
-        """
-        Recursively scan configuration values and keys for suspected secrets.
-        - Flags high-entropy or secret-like string values.
-        - Ensures sensitive keys only use safe placeholders.
-        """
+
         import math
 
         def shannon_entropy(s: str) -> float:
@@ -281,12 +256,13 @@ class TestPRAgentConfigSecurity:
             return ent
 
         def classify_stripped(s: str):
+            """Classify a stripped string to detect potential credential patterns."""
             if not s:
                 return None
             checks = {
                 "long_string": lambda x: len(x) >= 40,
-                "prefix": lambda x: any(x.startswith(p) for p in secret_prefixes),
-                "inline_creds": lambda x: bool(inline_cred_pattern.search(x)),
+                "prefix": lambda x: any(x.startswith(p) for p in SECRET_PREFIXES),
+                "inline_creds": lambda x: bool(INLINE_CRED_PATTERN.search(x)),
             }
             for kind, predicate in checks.items():
                 if predicate(s):
@@ -294,9 +270,11 @@ class TestPRAgentConfigSecurity:
             return None
 
         def scan_config(obj):
+            """Scan a configuration object for potential hardcoded credentials."""
             suspects = []
 
             def _scan(o):
+                """Recursively scan config elements for stripped strings matching credential patterns."""
                 if isinstance(o, dict):
                     for key, val in o.items():
                         if isinstance(key, str):
@@ -322,6 +300,7 @@ class TestPRAgentConfigSecurity:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
             pytest.fail(
                 f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
             )
 
         def looks_like_secret(val: str) -> bool:
