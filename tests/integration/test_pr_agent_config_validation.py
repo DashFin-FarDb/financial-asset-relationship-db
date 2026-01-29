@@ -286,6 +286,7 @@ class TestPRAgentConfigSecurity:
                 freq[ch] = freq.get(ch, 0) + 1
             ent = 0.0
             length = len(sample)
+
             for count in freq.values():
                 p = count / length
                 ent -= p * math.log2(p)
