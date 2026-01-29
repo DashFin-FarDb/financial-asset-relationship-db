@@ -13,7 +13,12 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pr_agent_config_validation import ENTROPY_THRESHOLD, SECRET_MARKERS, _iter_string_values, lambda_thresholds
+from pr_agent_config_validation import (
+    ENTROPY_THRESHOLD,
+    SECRET_MARKERS,
+    _iter_string_values,
+    lambda_thresholds,
+)
 
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
@@ -233,9 +238,9 @@ class TestPRAgentConfigSecurity:
             if not s_stripped:
                 return None
             checks = [
-                ('inline_credential', INLINE_CREDS_RE.match),
-                ('lambda_threshold', lambda v: v in lambda_thresholds),
-                ('high_entropy', lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
+                ("inline_credential", INLINE_CREDS_RE.match),
+                ("lambda_threshold", lambda v: v in lambda_thresholds),
+                ("high_entropy", lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
             ]
             for label, check in checks:
                 if check(s_stripped):
