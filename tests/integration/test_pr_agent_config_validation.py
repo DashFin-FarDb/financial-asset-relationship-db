@@ -351,7 +351,7 @@ class TestPRAgentConfigSecurity:
         """
         Recursively scan for secrets in nested structures.
         Traverse the parsed YAML and ensure that any key containing sensitive indicators
-        has a safe placeholder value (None, 'null', 'none', 'placeholder', '***', or a
+        has a safe placeholder value(None, 'null', 'none', 'placeholder', '***', or a
         templated variable like '${VAR}').
         """
         sensitive_patterns = (
@@ -422,12 +422,12 @@ class TestPRAgentConfigRemovedComplexity:
     @staticmethod
     def pr_agent_config_content():
         """
-        Return the contents of .github/pr-agent-config.yml as a string.
+        Return the contents of .github / pr - agent - config.yml as a string.
 
         Reads the PR agent configuration file from the repository root and returns its raw text.
 
         Returns:
-            str: Raw YAML content of .github/pr-agent-config.yml.
+            str: Raw YAML content of .github / pr - agent - config.yml.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
@@ -451,7 +451,7 @@ class TestPRAgentConfigRemovedComplexity:
         Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
 
         Parameters:
-            pr_agent_config_content(str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
+            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
         assert "gpt-4" not in pr_agent_config_content
