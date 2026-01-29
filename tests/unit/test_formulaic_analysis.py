@@ -31,7 +31,8 @@ from src.models.financial_models import (
 class TestFormula:
     """Test the Formula dataclass."""
 
-    def test_formula_creation(self):
+    @staticmethod
+    def test_formula_creation():
         """Test creating a Formula instance with all fields."""
         formula = Formula(
             name="Test Formula",
@@ -53,7 +54,8 @@ class TestFormula:
         assert formula.category == "Test"
         assert formula.r_squared == 0.95
 
-    def test_formula_default_r_squared(self):
+    @staticmethod
+    def test_formula_default_r_squared():
         """Test that r_squared defaults to 0.0."""
         formula = Formula(
             name="Test",
@@ -70,7 +72,8 @@ class TestFormula:
 class TestFormulaicAnalyzerInitialization:
     """Test FormulaicAnalyzer initialization."""
 
-    def test_analyzer_init(self):
+    @staticmethod
+    def test_analyzer_init():
         """Test that FormulaicAnalyzer initializes with empty formulas list."""
         analyzer = FormulaicAnalyzer()
         assert analyzer.formulas == []
@@ -317,7 +320,8 @@ class TestExtractFundamentalFormulas:
 class TestAnalyzeCorrelationPatterns:
     """Test _analyze_correlation_patterns method."""
 
-    def test_correlation_patterns_basic(self):
+    @staticmethod
+    def test_correlation_patterns_basic():
         """Test basic correlation pattern analysis."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -331,7 +335,8 @@ class TestAnalyzeCorrelationPatterns:
         assert "Beta (Systematic Risk)" in formula_names
         assert "Correlation Coefficient" in formula_names
 
-    def test_beta_formula_properties(self):
+    @staticmethod
+    def test_beta_formula_properties():
         """Test beta formula has correct properties."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -344,7 +349,8 @@ class TestAnalyzeCorrelationPatterns:
         assert "β" in beta_formula.variables
         assert beta_formula.r_squared > 0
 
-    def test_correlation_formula_properties(self):
+    @staticmethod
+    def test_correlation_formula_properties():
         """Test correlation coefficient formula properties."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -360,7 +366,8 @@ class TestAnalyzeCorrelationPatterns:
 class TestExtractValuationRelationships:
     """Test _extract_valuation_relationships method."""
 
-    def test_valuation_with_equities(self):
+    @staticmethod
+    def test_valuation_with_equities():
         """Test valuation formulas with equity assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -382,7 +389,8 @@ class TestExtractValuationRelationships:
         assert "Price-to-Book Ratio" in formula_names
         assert "Enterprise Value" in formula_names
 
-    def test_valuation_without_equities(self):
+    @staticmethod
+    def test_valuation_without_equities():
         """Test valuation formulas without equity assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -404,7 +412,8 @@ class TestExtractValuationRelationships:
         formula_names = [f.name for f in formulas]
         assert "Enterprise Value" in formula_names
 
-    def test_pb_ratio_formula_category(self):
+    @staticmethod
+    def test_pb_ratio_formula_category():
         """Test P/B ratio formula is in Valuation category."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -429,7 +438,8 @@ class TestExtractValuationRelationships:
 class TestAnalyzeRiskReturnRelationships:
     """Test _analyze_risk_return_relationships method."""
 
-    def test_risk_return_formulas_exist(self):
+    @staticmethod
+    def test_risk_return_formulas_exist():
         """Test that risk-return formulas are generated."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -441,7 +451,8 @@ class TestAnalyzeRiskReturnRelationships:
         assert "Sharpe Ratio" in formula_names
         assert any("Volatility" in name for name in formula_names)
 
-    def test_sharpe_ratio_formula(self):
+    @staticmethod
+    def test_sharpe_ratio_formula():
         """Test Sharpe Ratio formula properties."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -453,7 +464,8 @@ class TestAnalyzeRiskReturnRelationships:
         assert sharpe_formula.category == "Risk Management"
         assert "Sharpe" in sharpe_formula.variables
 
-    def test_volatility_formula(self):
+    @staticmethod
+    def test_volatility_formula():
         """Test volatility formula properties."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -592,7 +604,8 @@ class TestAnalyzeCrossAssetRelationships:
 class TestHelperMethods:
     """Test helper and utility methods."""
 
-    def test_calculate_empirical_relationships(self):
+    @staticmethod
+    def test_calculate_empirical_relationships():
         """Test _calculate_empirical_relationships returns empty dict."""
         graph = AssetRelationshipGraph()
         result = FormulaicAnalyzer._calculate_empirical_relationships(graph)
@@ -950,9 +963,9 @@ class TestRegressionCases:
 class TestNegativeCases:
     """Test negative scenarios and error conditions."""
 
-    def test_analyze_graph_with_zero_price_asset(self):
+    @staticmethod
+    def test_analyze_graph_with_zero_price_asset():
         """Test handling asset with zero price."""
-        graph = AssetRelationshipGraph()
 
         # Try to create asset with zero price - should be rejected by validation
         with pytest.raises(ValueError):
@@ -967,7 +980,6 @@ class TestNegativeCases:
 
     def test_analyze_graph_with_negative_price(self):
         """Test handling asset with negative price."""
-        analyzer = FormulaicAnalyzer()
 
         # Should be rejected by Asset validation
         with pytest.raises(ValueError):

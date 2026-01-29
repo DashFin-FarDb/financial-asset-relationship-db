@@ -14,7 +14,7 @@ Tests cover:
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -45,7 +45,8 @@ from src.models.financial_models import (
 class TestRealDataFetcherInitialization:
     """Test RealDataFetcher initialization."""
 
-    def test_init_with_defaults(self):
+    @staticmethod
+    def test_init_with_defaults():
         """Test initialization with default parameters."""
         fetcher = RealDataFetcher()
 
@@ -66,6 +67,7 @@ class TestRealDataFetcherInitialization:
         """Test initialization with custom fallback factory."""
 
         def custom_factory():
+            """Create and return a new AssetRelationshipGraph instance."""
             return AssetRelationshipGraph()
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory)
@@ -83,6 +85,7 @@ class TestRealDataFetcherInitialization:
         cache_path = str(tmp_path / "cache.json")
 
         def custom_factory():
+            """Factory function that creates and returns a new AssetRelationshipGraph instance."""
             return AssetRelationshipGraph()
 
         fetcher = RealDataFetcher(
@@ -248,8 +251,9 @@ class TestFetchMethods:
 
         assert isinstance(commodities, list)
 
+    @staticmethod
     @patch("yfinance.Ticker")
-    def test_fetch_currency_data_success(self, mock_ticker_class):
+    def test_fetch_currency_data_success(mock_ticker_class):
         """Test successful currency data fetching."""
         mock_ticker = Mock()
         mock_ticker.history.return_value = Mock(empty=False)
@@ -262,7 +266,8 @@ class TestFetchMethods:
 
         assert isinstance(currencies, list)
 
-    def test_create_regulatory_events(self):
+    @staticmethod
+    def test_create_regulatory_events():
         """Test regulatory event creation."""
         events = RealDataFetcher._create_regulatory_events()
 
@@ -293,6 +298,7 @@ class TestFallback:
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():
+            """Return a custom AssetRelationshipGraph for fallback when network is disabled."""
             return custom_graph
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
@@ -519,21 +525,6 @@ class TestDeserialization:
                     "date": "2024-01-01",
                     "description": "Test event",
                     "impact_score": 0.5,
-                    "related_assets": [],
-                }
-            ],
-            "relationships": {
-                "TEST": [
-                    {
-                        "target": "TEST2",
-                        "relationship_type": "test_rel",
-                        "strength": 0.5,
-                    }
-                ]
-            },
-            "incoming_relationships": {},
-        }
-
         graph = _deserialize_graph(payload)
 
         assert isinstance(graph, AssetRelationshipGraph)
@@ -544,7 +535,8 @@ class TestDeserialization:
 class TestCacheOperations:
     """Test cache loading and saving."""
 
-    def test_save_to_cache(self, tmp_path):
+    @staticmethod
+    def test_save_to_cache(tmp_path):
         """Test saving graph to cache file."""
         cache_path = tmp_path / "cache.json"
         graph = AssetRelationshipGraph()
@@ -566,7 +558,8 @@ class TestCacheOperations:
         assert "assets" in data
         assert len(data["assets"]) == 1
 
-    def test_load_from_cache(self, tmp_path):
+    @staticmethod
+    def test_load_from_cache(tmp_path):
         """Test loading graph from cache file."""
         cache_path = tmp_path / "cache.json"
 
@@ -590,7 +583,8 @@ class TestCacheOperations:
         assert "CACHED" in loaded_graph.assets
         assert loaded_graph.assets["CACHED"].name == "Cached Asset"
 
-    def test_save_to_cache_creates_parent_dirs(self, tmp_path):
+    @staticmethod
+    def test_save_to_cache_creates_parent_dirs(tmp_path):
         """Test that save_to_cache creates parent directories."""
         cache_path = tmp_path / "subdir" / "deep" / "cache.json"
         graph = AssetRelationshipGraph()
@@ -605,7 +599,8 @@ class TestCreateRealDatabaseFunction:
     """Test the module-level create_real_database function."""
 
     @patch("src.data.real_data_fetcher.RealDataFetcher")
-    def test_create_real_database_function(self, mock_fetcher_class):
+    @staticmethod
+    def test_create_real_database_function(mock_fetcher_class):
         """Test that create_real_database function creates fetcher and calls method."""
         mock_instance = Mock()
         mock_graph = AssetRelationshipGraph()
@@ -622,7 +617,8 @@ class TestCreateRealDatabaseFunction:
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
-    def test_cache_load_with_corrupted_file(self, tmp_path):
+    @staticmethod
+    def test_cache_load_with_corrupted_file(tmp_path):
         """Test loading from corrupted cache file."""
         cache_path = tmp_path / "corrupted.json"
         cache_path.write_text("{ invalid json")
@@ -631,7 +627,8 @@ class TestEdgeCases:
         with pytest.raises(json.JSONDecodeError):
             _load_from_cache(cache_path)
 
-    def test_create_database_cache_load_failure_continues(self, tmp_path):
+    @staticmethod
+    def test_create_database_cache_load_failure_continues(tmp_path):
         """Test that cache load failure doesn't prevent database creation."""
         cache_path = tmp_path / "bad_cache.json"
         cache_path.write_text("{ invalid")
@@ -648,8 +645,8 @@ class TestEdgeCases:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
+    @staticmethod
     def test_cache_save_failure_doesnt_prevent_return(
-        self,
         mock_events,
         mock_currency,
         mock_commodity,
@@ -674,7 +671,8 @@ class TestEdgeCases:
         # Should still return a graph even if save fails
         assert isinstance(graph, AssetRelationshipGraph)
 
-    def test_deserialize_asset_with_missing_type(self):
+    @staticmethod
+    def test_deserialize_asset_with_missing_type():
         """Test deserializing asset without __type__ field."""
         data = {
             "id": "TEST",
@@ -693,7 +691,8 @@ class TestEdgeCases:
         asset = _deserialize_asset(data)
         assert isinstance(asset, Asset)
 
-    def test_serialize_graph_with_complex_relationships(self):
+    @staticmethod
+    def test_serialize_graph_with_complex_relationships():
         """Test serializing graph with bidirectional relationships."""
         graph = AssetRelationshipGraph()
         equity1 = Equity(
@@ -739,7 +738,8 @@ class TestRegressionCases:
         loaded = _load_from_cache(cache_path)
         assert isinstance(loaded, AssetRelationshipGraph)
 
-    def test_enum_serialization_consistency(self):
+    @staticmethod
+    def test_enum_serialization_consistency():
         """Test that enums serialize and deserialize consistently."""
         original = Equity(
             id="TEST",

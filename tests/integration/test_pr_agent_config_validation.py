@@ -225,57 +225,61 @@ class TestPRAgentConfigSecurity:
           - Long high-entropy strings (e.g., tokens)
           - Obvious secret prefixes/suffixes
           - Inline credentials in URLs (e.g., scheme://user:pass@host)
-        """
+    """
+    Test that the PR agent config does not contain potential hardcoded credentials.
+    """
 
-        def _iter_string_values(obj):
-            """Recursively yield all string values found in nested dicts and lists."""
-            if isinstance(obj, dict):
-                for v in obj.values():
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, list):
-                for v in obj:
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, str):
-                yield obj
+    def _iter_string_values(obj):
+        """Recursively yield all string values found in nested dicts and lists."""
+        if isinstance(obj, dict):
+            for v in obj.values():
+                yield from _iter_string_values(v)
+        elif isinstance(obj, list):
+            for v in obj:
+                yield from _iter_string_values(v)
+        elif isinstance(obj, str):
+            yield obj
 
+    suspected = []
+
+    secret_prefixes = (
+        "sk-",
+        "AKIA",
+        "SECRET_",
+        "TOKEN_",
+    )
+    inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
+
+    # Helper functions for credential detection
+    def _classify_stripped(s: str):
+        """Classify a stripped string as a potential credential kind or return None."""
+        if not s:
+            return None
+        for kind, predicate in [
+            ("long_string", lambda x: len(x) >= 40),
+            ("prefix", lambda x: any(x.startswith(p) for p in secret_prefixes)),
+            ("inline_creds", lambda x: bool(inline_cred_pattern.search(x))),
+        ]:
+            if predicate(s):
+                return kind
+        return None
+
+    def _find_potential_credentials(config):
         suspected = []
-
-        secret_prefixes = (
-            "sk-",
-            "AKIA",
-            "SECRET_",
-            "TOKEN_",
-        )
-        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
-
-        for value in _iter_string_values(pr_agent_config):
-
-            def classify_stripped(s: str):
-                if not s:
-                    return None
-                checks = [
-                    ("long_string", lambda x: len(x) >= 40),
-                    ("prefix", lambda x: any(x.startswith(p) for p in secret_prefixes)),
-                    ("inline_creds", lambda x: bool(inline_cred_pattern.search(x))),
-                ]
-                for kind, predicate in checks:
-                    if predicate(s):
-                        return kind
-                return None
-
+        for value in _iter_string_values(config):
             stripped = value.strip()
-            kind = classify_stripped(stripped)
+            kind = _classify_stripped(stripped)
             if kind:
                 suspected.append((kind, stripped))
+        return suspected
 
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+    suspected = _find_potential_credentials(pr_agent_config)
 
-    @staticmethod
-    def test_no_hardcoded_credentials(pr_agent_config):
+    if suspected:
+        details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+        pytest.fail(
+            f"Potential hardcoded credentials found in PR agent config:\n{details}"
+        )
         """
         Recursively scan configuration values and keys for suspected secrets.
         - Flags high-entropy or secret-like string values.
