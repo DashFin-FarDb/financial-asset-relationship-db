@@ -701,7 +701,7 @@ class TestAssetRelationshipGraphTypeValidation:
         }
 
         positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
-
+        assert positions.shape[0] == len(asset_ids)
         assert len(asset_ids) == len(colors)
         assert len(colors) == len(hover_texts)
         assert positions.shape[0] == len(asset_ids)
