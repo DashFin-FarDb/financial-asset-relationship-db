@@ -49,18 +49,6 @@ def lambda_thresholds(value: str) -> float:
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
 )
-SECRET_MARKERS = (
-    "secret",
-    "token",
-    "apikey",
-    "api_key",
-    "access_key",
-    "private_key",
-    "pwd",
-    "password",
-    "auth",
-    "bearer",
-)
 
 
 class TestPRAgentConfigSimplification:
