@@ -123,6 +123,7 @@ class TestUserRepositoryInstanceMethods:
         initialize_schema()
         return UserRepository()
 
+    @pytest.fixture
     def sample_user_data(self):
         """
         Provide a representative user payload for tests.
