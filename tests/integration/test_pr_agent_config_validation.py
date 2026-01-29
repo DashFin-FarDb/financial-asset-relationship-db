@@ -207,6 +207,7 @@ class TestPRAgentConfigSecurity:
         config_path = Path(".github/pr-agent-config.yml")
         if not config_path.exists():
             pytest.fail(f"Config file not found: {config_path}")
+
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
@@ -334,7 +335,7 @@ class TestPRAgentConfigSecurity:
 
         walk_values(pr_agent_config)
 
-    @staticmethod
+    @ staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """
         Recursively scan for secrets in nested structures.
@@ -364,7 +365,7 @@ class TestPRAgentConfigSecurity:
                 return True
             return False
 
-        def scan_for_secrets(node, path: str = "root") -> None:
+        def scan_for_secrets(node, path: str="root") -> None:
             """Recursively scan the node for sensitive keys and validate placeholder values."""
             if isinstance(node, dict):
                 for k, v in node.items():
