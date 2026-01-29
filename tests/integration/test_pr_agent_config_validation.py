@@ -267,7 +267,7 @@ class TestPRAgentConfigSecurity:
             if not s_stripped:
                 return None
             checks = [
-                ("inline_credential", INLINE_CREDS_RE.match),
+                ("inline_credential", INLINE_CREDS_RE.search),
                 ("lambda_threshold", lambda v: v in LAMBDA_THRESHOLD_NAMES),
                 ("high_entropy", lambda v: shannon_entropy(v) > ENTROPY_THRESHOLD),
             ]
