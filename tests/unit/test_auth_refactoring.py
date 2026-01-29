@@ -621,7 +621,7 @@ class TestSecurityConfiguration:
         """Password context should use pbkdf2_sha256."""
         from api.auth import pwd_context
         assert "pbkdf2_sha256" in pwd_context.schemes()
-
+    pytest.main([__file__, "-v"])
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
