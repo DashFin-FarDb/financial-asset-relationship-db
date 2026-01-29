@@ -952,7 +952,6 @@ class TestNegativeCases:
 
     def test_analyze_graph_with_zero_price_asset(self):
         """Test handling asset with zero price."""
-        analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
 
         # Try to create asset with zero price - should be rejected by validation
