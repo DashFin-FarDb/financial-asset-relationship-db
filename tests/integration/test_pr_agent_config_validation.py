@@ -187,8 +187,12 @@ class TestPRAgentConfigYAMLValidity:
         with open(config_path, "r") as f:
             lines = f.readlines()
 
-        for i, line in enumerate(lines, 1):
-            pass
+        for line in lines:
+            stripped = line.lstrip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            num_spaces = len(line) - len(stripped)
+            assert num_spaces % 2 == 0, f"{num_spaces} leading spaces, which is not a multiple of 2"
 
 
 class TestPRAgentConfigSecurity:
@@ -212,14 +216,10 @@ class TestPRAgentConfigSecurity:
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
         import math
 
-        from pr_agent_config_validation import (
-            ENTROPY_THRESHOLD,
-            INLINE_CREDS_RE,
-            _iter_string_values,
-            lambda_thresholds,
-        )
+        from pr_agent_config_validation import INLINE_CREDS_RE
 
         def shannon_entropy(s: str) -> float:
+            """Calculate the Shannon entropy of a string to measure randomness in potential credential values."""
             if not s:
                 return 0.0
             sample = s[:256]
@@ -234,6 +234,7 @@ class TestPRAgentConfigSecurity:
             return ent
 
         def classify_value(s: str):
+            """Classify a string value to detect inline credentials, lambda threshold names, or high-entropy patterns."""
             s_stripped = s.strip()
             if not s_stripped:
                 return None
