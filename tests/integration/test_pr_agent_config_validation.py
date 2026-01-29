@@ -222,7 +222,7 @@ class TestPRAgentConfigSecurity:
 
         def _iter_string_values(obj):
             """Recursively yield all string values found in nested dicts and lists.
-            """
+        """
             if isinstance(obj, dict):
                 for v in obj.values():
                     yield from _iter_string_values(v)
@@ -352,7 +352,7 @@ class TestPRAgentConfigSecurity:
         Recursively scan for secrets in nested structures.
         Traverse the parsed YAML and ensure that any key containing sensitive indicators
         has a safe placeholder value(None, 'null', 'none', 'placeholder', '***', or a
-        templated variable like '${VAR}').
+                                     templated variable like '${VAR}').
         """
         sensitive_patterns = (
             "password",
@@ -422,11 +422,11 @@ class TestPRAgentConfigRemovedComplexity:
     @staticmethod
     def pr_agent_config_content():
         """
-        Return the contents of .github / pr - agent - config.yml as a string.
+    Return the contents of .github / pr - agent - config.yml as a string.
 
-        Reads the PR agent configuration file from the repository root and returns its raw text.
+    Reads the PR agent configuration file from the repository root and returns its raw text.
 
-        Returns:
+    Returns:
         """Raw YAML content of .github/pr-agent-config.yml."""
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
