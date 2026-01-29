@@ -83,7 +83,9 @@ def lambda_thresholds(value: str) -> float:
     return ENTROPY_THRESHOLD
 
 
-INLINE_CREDS_RE = re.compile(r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE)
+INLINE_CREDS_RE = re.compile(
+    r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
+)
 
 
 class TestPRAgentConfigSimplification:
@@ -241,7 +243,9 @@ class TestPRAgentConfigYAMLValidity:
             if not stripped or stripped.startswith("#"):
                 continue
             num_spaces = len(line) - len(stripped)
-            assert num_spaces % 2 == 0, f"Line {line_number}: {num_spaces} leading spaces, which is not a multiple of 2"
+            assert num_spaces % 2 == 0, (
+                f"Line {line_number}: {num_spaces} leading spaces, which is not a multiple of 2"
+            )
 
 
 class TestPRAgentConfigSecurity:
@@ -267,7 +271,25 @@ class TestPRAgentConfigSecurity:
             pytest.fail(f"Failed to parse YAML from {config_path}: {exc}")
 
         if not isinstance(config, dict):
-            pytest.fail(f"Expected a mapping (dict) in {config_path}, " f"got {type(config).__name__!r} instead")
+            pytest.fail(
+                f"Expected a mapping (dict) in {config_path}, "
+                f"got {type(config).__name__!r} instead"
+            )
+
+        return config
+        try:
+            with config_path.open("r", encoding="utf-8") as f:
+                config = yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            pytest.fail(f"Failed to parse YAML from {config_path}: {exc}")
+
+        if not isinstance(config, dict):
+            pytest.fail(
+                f"Expected a mapping (dict) in {config_path}, "
+                f"got {type(config).__name__!r} instead"
+            )
+
+        return config
 
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
@@ -277,15 +299,13 @@ class TestPRAgentConfigSecurity:
         def shannon_entropy(s: str) -> float:
             """Calculate the Shannon entropy of a string to measure randomness in potential credential values."""
             if not s:
-
-        def shannon_entropy(s: str) -> float:
+                return 0.0
             sample = s[:256]
             freq = {}
             for ch in sample:
                 freq[ch] = freq.get(ch, 0) + 1
             ent = 0.0
             length = len(sample)
-
             for count in freq.values():
                 p = count / length
                 ent -= p * math.log2(p)
@@ -335,7 +355,9 @@ class TestPRAgentConfigSecurity:
                 continue
             entropy = shannon_entropy(s)
             threshold = lambda_thresholds(s)
-            if (threshold is not None and entropy > threshold) or entropy > ENTROPY_THRESHOLD:
+            if (
+                threshold is not None and entropy > threshold
+            ) or entropy > ENTROPY_THRESHOLD:
                 flagged.append((s, classification, entropy))
 
         if flagged:
@@ -370,7 +392,9 @@ class TestPRAgentConfigSecurity:
         suspected = scan_config(pr_agent_config)
         if suspected:
             details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
 
         def looks_like_secret(val: str) -> bool:
             SECRET_MARKERS = {
@@ -465,7 +489,9 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(pat in key_l for pat in sensitive_patterns):
-                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
+                        assert is_allowed_placeholder(v), (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
 
                     scan_for_secrets(v, new_path)
 
@@ -527,3 +553,196 @@ class TestPRAgentConfigRemovedComplexity:
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
         assert "gpt-4" not in pr_agent_config_content
+
+
+class TestPRAgentConfigAdditionalValidation:
+    """Additional validation tests to strengthen confidence."""
+
+    @staticmethod
+    @pytest.fixture
+    def pr_agent_config():
+        """Load and parse the PR agent YAML configuration."""
+        config_path = Path(".github/pr-agent-config.yml")
+        if not config_path.exists():
+            pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, "r", encoding="utf-8") as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in config: {e}")
+        if cfg is None or not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) and not empty")
+        return cfg
+
+    @staticmethod
+    def test_monitoring_values_are_reasonable(pr_agent_config):
+        """Verify monitoring configuration values are within reasonable ranges."""
+        monitoring = pr_agent_config.get("monitoring", {})
+
+        # Check interval is reasonable (e.g., 60 seconds to 1 hour)
+        if "check_interval" in monitoring:
+            interval = monitoring["check_interval"]
+            assert isinstance(interval, int), "check_interval should be an integer"
+            assert 60 <= interval <= 3600, "check_interval should be between 60 and 3600 seconds"
+
+        # Check retries is reasonable
+        if "max_retries" in monitoring:
+            retries = monitoring["max_retries"]
+            assert isinstance(retries, int), "max_retries should be an integer"
+            assert 0 <= retries <= 10, "max_retries should be between 0 and 10"
+
+        # Check timeout is reasonable
+        if "timeout" in monitoring:
+            timeout = monitoring["timeout"]
+            assert isinstance(timeout, int), "timeout should be an integer"
+            assert 30 <= timeout <= 300, "timeout should be between 30 and 300 seconds"
+
+    @staticmethod
+    def test_actions_section_exists_and_valid(pr_agent_config):
+        """Verify actions section exists and contains valid configuration."""
+        assert "actions" in pr_agent_config, "actions section should exist"
+        actions = pr_agent_config["actions"]
+        assert isinstance(actions, dict), "actions should be a dictionary"
+
+        # If actions has entries, verify they're properly structured
+        for action_name, action_config in actions.items():
+            assert isinstance(action_name, str), "Action names should be strings"
+            # Action config can be dict or simple value
+            if action_config is not None:
+                assert isinstance(action_config, (dict, str, bool, int, float)), (
+                    f"Action config for {action_name} should be a valid type"
+                )
+
+    @staticmethod
+    def test_quality_section_exists_and_valid(pr_agent_config):
+        """Verify quality section exists and contains valid configuration."""
+        assert "quality" in pr_agent_config, "quality section should exist"
+        quality = pr_agent_config["quality"]
+        assert isinstance(quality, dict), "quality should be a dictionary"
+
+    @staticmethod
+    def test_security_section_exists_and_valid(pr_agent_config):
+        """Verify security section exists and contains valid configuration."""
+        assert "security" in pr_agent_config, "security section should exist"
+        security = pr_agent_config["security"]
+        assert isinstance(security, dict), "security should be a dictionary"
+
+    @staticmethod
+    def test_no_circular_references(pr_agent_config):
+        """Verify there are no circular references in the configuration."""
+        # This test ensures the config can be traversed without infinite loops
+        def check_no_circular_refs(obj, visited=None):
+            if visited is None:
+                visited = set()
+
+            if isinstance(obj, dict):
+                obj_id = id(obj)
+                if obj_id in visited:
+                    return False
+                visited.add(obj_id)
+                for value in obj.values():
+                    if not check_no_circular_refs(value, visited):
+                        return False
+                visited.remove(obj_id)
+            elif isinstance(obj, (list, tuple)):
+                obj_id = id(obj)
+                if obj_id in visited:
+                    return False
+                visited.add(obj_id)
+                for item in obj:
+                    if not check_no_circular_refs(item, visited):
+                        return False
+                visited.remove(obj_id)
+
+            return True
+
+        assert check_no_circular_refs(pr_agent_config), "Config contains circular references"
+
+    @staticmethod
+    def test_limits_section_has_required_keys(pr_agent_config):
+        """Verify limits section contains expected keys."""
+        limits = pr_agent_config.get("limits", {})
+
+        # These are the keys that should be in a simplified limits section
+        expected_keys = {"max_execution_time", "max_concurrent_prs"}
+
+        for key in expected_keys:
+            assert key in limits, f"Expected key '{key}' in limits section"
+
+    @staticmethod
+    def test_config_file_size_reasonable():
+        """Verify config file size is reasonable (not too large)."""
+        config_path = Path(".github/pr-agent-config.yml")
+        file_size = config_path.stat().st_size
+
+        # Config should be less than 100KB
+        assert file_size < 100 * 1024, (
+            f"Config file is too large ({file_size} bytes). "
+            "Should be less than 100KB for maintainability."
+        )
+
+    @staticmethod
+    def test_all_boolean_values_are_proper_booleans(pr_agent_config):
+        """Ensure all boolean-like values are proper booleans, not strings."""
+        def check_booleans(obj, path=""):
+            if isinstance(obj, dict):
+                for key, value in obj.items():
+                    new_path = f"{path}.{key}" if path else key
+                    # Check if value looks like it should be boolean
+                    if isinstance(value, str) and value.lower() in ["true", "false", "yes", "no"]:
+                        pytest.fail(
+                            f"Found string boolean at {new_path}: '{value}'. "
+                            "Should be a proper boolean."
+                        )
+                    check_booleans(value, new_path)
+            elif isinstance(obj, list):
+                for i, item in enumerate(obj):
+                    check_booleans(item, f"{path}[{i}]")
+
+        check_booleans(pr_agent_config)
+
+    @staticmethod
+    def test_no_empty_sections(pr_agent_config):
+        """Verify that no top-level sections are empty."""
+        for section_name, section_value in pr_agent_config.items():
+            if isinstance(section_value, dict):
+                assert len(section_value) > 0, (
+                    f"Section '{section_name}' is empty. "
+                    "Empty sections should be removed."
+                )
+
+    @staticmethod
+    def test_numeric_limits_are_positive(pr_agent_config):
+        """Verify all numeric limits are positive values."""
+        limits = pr_agent_config.get("limits", {})
+
+        for key, value in limits.items():
+            if isinstance(value, (int, float)):
+                assert value > 0, (
+                    f"Limit '{key}' has non-positive value {value}. "
+                    "All limits should be positive."
+                )
+
+    @staticmethod
+    def test_agent_version_format(pr_agent_config):
+        """Verify agent version follows semantic versioning."""
+        version = pr_agent_config.get("agent", {}).get("version", "")
+
+        # Should match semantic versioning pattern (X.Y.Z)
+        import re
+        semver_pattern = r"^\d+\.\d+\.\d+$"
+        assert re.match(semver_pattern, version), (
+            f"Version '{version}' doesn't follow semantic versioning (X.Y.Z)"
+        )
+
+    @staticmethod
+    def test_rate_limit_is_reasonable(pr_agent_config):
+        """Verify rate_limit_requests is within reasonable bounds."""
+        limits = pr_agent_config.get("limits", {})
+
+        if "rate_limit_requests" in limits:
+            rate_limit = limits["rate_limit_requests"]
+            assert isinstance(rate_limit, int), "rate_limit_requests should be an integer"
+            assert 1 <= rate_limit <= 1000, (
+                f"rate_limit_requests ({rate_limit}) should be between 1 and 1000"
+            )
