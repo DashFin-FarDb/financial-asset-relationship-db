@@ -304,7 +304,7 @@ class TestPRAgentConfigSecurity:
             if not classification:
                 continue
             entropy = shannon_entropy(s)
-            if lambda_thresholds[classification](s) or entropy > ENTROPY_THRESHOLD:
+            if lambda_thresholds(s) or entropy > ENTROPY_THRESHOLD:
                 flagged.append((s, classification, entropy))
 
         if flagged:
