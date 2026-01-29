@@ -231,7 +231,7 @@ class TestUserRepository:
         """
         Provides a patched `api.auth.fetch_value` mock for tests.
         
-        Returns:
+        Yields:
             mock: The `unittest.mock` patch object for `api.auth.fetch_value` that tests can configure.
         """
         with patch('api.auth.fetch_value') as mock:
