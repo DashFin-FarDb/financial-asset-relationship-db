@@ -533,7 +533,7 @@ class TestThreadSafety:
         # Verify all users were created
         count = fetch_value("SELECT COUNT(*) FROM user_credentials")
         assert count == 10
-
+    pytest.main([__file__, "-v"])
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
