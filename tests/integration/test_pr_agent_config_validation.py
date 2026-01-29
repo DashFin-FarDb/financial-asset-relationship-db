@@ -217,6 +217,7 @@ class TestPRAgentConfigSecurity:
             if not s:
                 return 0.0
             sample = s[:256]
+            from pr_agent_config_validation import ENTROPY_THRESHOLD, lambda_thresholds, _iter_string_values, INLINE_CREDS_RE
             freq = {}
             for ch in sample:
                 freq[ch] = freq.get(ch, 0) + 1
