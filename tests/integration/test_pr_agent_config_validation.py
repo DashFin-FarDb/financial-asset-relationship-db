@@ -33,21 +33,27 @@ SECRET_MARKERS = (
 ENTROPY_THRESHOLD = 3.5
 
 
-def _iter_string_values(node):
+def _iter_string_values(node, path: str = ""):
     """
     Recursively yield all string values from a nested mapping/list structure.
+
+    Yields (path, value) pairs, where ``path`` is a dotted/indexed string
+    describing the location of the value within ``node``.
 
     This keeps the tests self-contained without relying on an external
     pr_agent_config_validation helper module.
     """
     if isinstance(node, str):
-        yield node
+        # Leaf string value: yield its path and the value itself.
+        yield path, node
     elif isinstance(node, dict):
-        for value in node.values():
-            yield from _iter_string_values(value)
+        for key, value in node.items():
+            child_path = str(key) if not path else f"{path}.{key}"
+            yield from _iter_string_values(value, child_path)
     elif isinstance(node, (list, tuple, set)):
-        for item in node:
-            yield from _iter_string_values(item)
+        for index, item in enumerate(node):
+            child_path = f"[{index}]" if not path else f"{path}[{index}]"
+            yield from _iter_string_values(item, child_path)
 
 
 # Known lambda threshold keys used in configuration validation.
