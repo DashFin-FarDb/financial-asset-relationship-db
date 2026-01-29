@@ -248,8 +248,10 @@ class TestPRAgentConfigSecurity:
             if label:
                 violations.append((path, label))
         assert not violations, f"Found potential hardcoded credentials: {violations}"
-          """Classify a stripped string to detect potential credential patterns."""
-           if not s:
+
+        def classify_stripped(s: str):
+            """Classify a stripped string to detect potential credential patterns."""
+            if not s:
                 return None
             checks = {
                 "long_string": lambda x: len(x) >= 40,
