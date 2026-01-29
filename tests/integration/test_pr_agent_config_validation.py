@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pr_agent_config_validation import INLINE_CREDS_RE, SECRET_MARKERS
+from pr_agent_config_validation import SECRET_MARKERS
 
 # Default entropy threshold used by tests when checking for potentially
 # secret-like configuration values.
