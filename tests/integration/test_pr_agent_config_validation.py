@@ -194,9 +194,9 @@ class TestPRAgentConfigYAMLValidity:
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
-        @staticmethod
-        @pytest.fixture
-        def pr_agent_config():
+     @staticmethod
+      @pytest.fixture
+       def pr_agent_config():
             """
             Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
@@ -409,7 +409,6 @@ class TestPRAgentConfigSecurity:
             # primitives are ignored unless they are values of sensitive keys checked above
 
             scan_for_secrets(pr_agent_config)
-
 
     def test_safe_configuration_values(pr_agent_config):
         """
