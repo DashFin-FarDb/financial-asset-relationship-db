@@ -13,8 +13,21 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pr_agent_config_validation import SECRET_MARKERS
 
+# Secret markers used when scanning configuration values for potential secrets.
+# Keeping these definitions in this test module avoids any dependency on an
+# external pr_agent_config_validation helper module.
+SECRET_MARKERS = (
+    "api_key",
+    "apikey",
+    "auth_token",
+    "authorization",
+    "bearer",
+    "client_secret",
+    "password",
+    "secret",
+    "token",
+)
 # Default entropy threshold used by tests when checking for potentially
 # secret-like configuration values.
 ENTROPY_THRESHOLD = 3.5
