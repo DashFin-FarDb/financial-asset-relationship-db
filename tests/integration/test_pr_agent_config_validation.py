@@ -194,9 +194,9 @@ class TestPRAgentConfigYAMLValidity:
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
-        @staticmethod
-        @pytest.fixture
-        def pr_agent_config():
+     @staticmethod
+      @pytest.fixture
+       def pr_agent_config():
             """
             Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
