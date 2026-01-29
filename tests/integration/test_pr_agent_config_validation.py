@@ -161,7 +161,6 @@ class TestPRAgentConfigYAMLValidity:
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             content = f.read()
-
         # Simple check for obvious duplicates
         lines = content.split("\n")
         seen_keys = set()
@@ -184,7 +183,7 @@ class TestPRAgentConfigYAMLValidity:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
-
+            pass
 
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
