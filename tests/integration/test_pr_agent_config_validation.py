@@ -583,7 +583,9 @@ class TestPRAgentConfigAdditionalValidation:
         if "check_interval" in monitoring:
             interval = monitoring["check_interval"]
             assert isinstance(interval, int), "check_interval should be an integer"
-            assert 60 <= interval <= 3600, "check_interval should be between 60 and 3600 seconds"
+            assert 60 <= interval <= 3600, (
+                "check_interval should be between 60 and 3600 seconds"
+            )
 
         # Check retries is reasonable
         if "max_retries" in monitoring:
@@ -630,6 +632,7 @@ class TestPRAgentConfigAdditionalValidation:
     @staticmethod
     def test_no_circular_references(pr_agent_config):
         """Verify there are no circular references in the configuration."""
+
         # This test ensures the config can be traversed without infinite loops
         def check_no_circular_refs(obj, visited=None):
             if visited is None:
@@ -656,7 +659,9 @@ class TestPRAgentConfigAdditionalValidation:
 
             return True
 
-        assert check_no_circular_refs(pr_agent_config), "Config contains circular references"
+        assert check_no_circular_refs(pr_agent_config), (
+            "Config contains circular references"
+        )
 
     @staticmethod
     def test_limits_section_has_required_keys(pr_agent_config):
@@ -684,12 +689,18 @@ class TestPRAgentConfigAdditionalValidation:
     @staticmethod
     def test_all_boolean_values_are_proper_booleans(pr_agent_config):
         """Ensure all boolean-like values are proper booleans, not strings."""
+
         def check_booleans(obj, path=""):
             if isinstance(obj, dict):
                 for key, value in obj.items():
                     new_path = f"{path}.{key}" if path else key
                     # Check if value looks like it should be boolean
-                    if isinstance(value, str) and value.lower() in ["true", "false", "yes", "no"]:
+                    if isinstance(value, str) and value.lower() in [
+                        "true",
+                        "false",
+                        "yes",
+                        "no",
+                    ]:
                         pytest.fail(
                             f"Found string boolean at {new_path}: '{value}'. "
                             "Should be a proper boolean."
@@ -730,6 +741,7 @@ class TestPRAgentConfigAdditionalValidation:
 
         # Should match semantic versioning pattern (X.Y.Z)
         import re
+
         semver_pattern = r"^\d+\.\d+\.\d+$"
         assert re.match(semver_pattern, version), (
             f"Version '{version}' doesn't follow semantic versioning (X.Y.Z)"
@@ -742,7 +754,9 @@ class TestPRAgentConfigAdditionalValidation:
 
         if "rate_limit_requests" in limits:
             rate_limit = limits["rate_limit_requests"]
-            assert isinstance(rate_limit, int), "rate_limit_requests should be an integer"
+            assert isinstance(rate_limit, int), (
+                "rate_limit_requests should be an integer"
+            )
             assert 1 <= rate_limit <= 1000, (
                 f"rate_limit_requests ({rate_limit}) should be between 1 and 1000"
             )

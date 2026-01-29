@@ -715,7 +715,9 @@ class TestHelperMethods:
     def test_calculate_avg_correlation_strength_from_empirical(self):
         """Test _calculate_avg_correlation_strength_from_empirical."""
         # Empty empirical data
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical({})
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            {}
+        )
         assert result == 0.5
 
         # With correlation matrix
