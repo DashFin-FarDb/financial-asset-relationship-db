@@ -263,29 +263,41 @@ class TestPRAgentConfigSecurity:
                 return kind
         return None
 
-    def _find_potential_credentials(config):
-        suspected = []
-        for value in _iter_string_values(config):
-            stripped = value.strip()
+    def scan(obj, suspected):
+        """
+        Recursively scan configuration objects for suspected secrets.
+
+        - Traverses dicts, lists, tuples
+        - Inspects string values for high-entropy or secret-like content
+        """
+        if isinstance(obj, dict):
+            for value in obj.values():
+                scan(value, suspected)
+
+        elif isinstance(obj, (list, tuple)):
+            for item in obj:
+                scan(item, suspected)
+
+        elif isinstance(obj, str):
+            stripped = obj.strip()
             kind = _classify_stripped(stripped)
             if kind:
                 suspected.append((kind, stripped))
-        return suspected
 
-    suspected = _find_potential_credentials(pr_agent_config)
 
-    if suspected:
-        details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-        pytest.fail(
-            f"Potential hardcoded credentials found in PR agent config:\n{details}"
-        )
+    def test_no_hardcoded_credentials(pr_agent_config):
         """
-        Recursively scan configuration values and keys for suspected secrets.
-        - Flags high - entropy or secret - like string values.
-        - Ensures sensitive keys only use safe placeholders.
+        Ensure no hardcoded credentials or secret-like values appear
+        in the PR agent configuration.
         """
-        import math
+        suspected = []
+        scan(pr_agent_config, suspected)
 
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
         # Module-level / shared compiled regexes and markers (defined below)
         # These are module-level constants declared outside classes further down in the file.
         # We'll reference them indirectly here by using the module-level names.
