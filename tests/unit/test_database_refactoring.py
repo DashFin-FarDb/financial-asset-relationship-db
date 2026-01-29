@@ -189,23 +189,13 @@ class TestConnect:
         connections = []
         errors = []
         
-def get_connection():
-    """
-    Thread target: attempt to obtain a database connection via `_connect()`.
-    
-    Side Effects:
-        - On success: appends the obtained `sqlite3.Connection` object to the outer scope `connections` list.
-        - On exception: appends the exception to the outer scope `errors` list.
-    """
-    try:
-        conn = _connect()
-        connections.append(conn)
-    except Exception as e:
-        errors.append(e)
+        def get_connection():
             """
-            Record the result of attempting to obtain a database connection.
+            Thread target: attempt to obtain a database connection via `_connect()`.
             
-            Attempts to obtain a connection using the module's connection factory and records the outcome by appending the successful sqlite3.Connection to the module-level `connections` list or appending the raised exception to the module-level `errors` list.
+            Side Effects:
+                - On success: appends the obtained `sqlite3.Connection` object to the outer scope `connections` list.
+                - On exception: appends the exception to the outer scope `errors` list.
             """
             try:
                 conn = _connect()
