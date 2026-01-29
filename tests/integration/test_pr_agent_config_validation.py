@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from pr_agent_config_validation import INLINE_CRED_PATTERN, SECRET_MARKERS
+from pr_agent_config_validation import SECRET_MARKERS
 
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
