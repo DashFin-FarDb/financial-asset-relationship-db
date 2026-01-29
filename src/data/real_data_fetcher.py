@@ -111,14 +111,17 @@ class RealDataFetcher:
                 try:
                     cache_dir = os.path.dirname(self.cache_path)
                     with tempfile.NamedTemporaryFile(
-                        "wb", dir=cache_dir, delete=False
+                        "wb",
+                        dir=cache_dir,
+                        delete=False,
                     ) as tmp_file:
                         tmp_path = tmp_file.name
                         _save_to_cache(graph, Path(tmp_path))
                     os.replace(tmp_path, self.cache_path)
                 except Exception:
                     logger.exception(
-                        "Failed to persist dataset cache to %s", self.cache_path
+                        "Failed to persist dataset cache to %s",
+                        self.cache_path,
                     )
 
             logger.info(

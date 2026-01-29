@@ -13,6 +13,23 @@ from pathlib import Path
 
 import pytest
 import yaml
+from pr_agent_config_validation import INLINE_CRED_PATTERN, SECRET_MARKERS
+
+INLINE_CREDS_RE = re.compile(
+    r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
+)
+SECRET_MARKERS = (
+    "secret",
+    "token",
+    "apikey",
+    "api_key",
+    "access_key",
+    "private_key",
+    "pwd",
+    "password",
+    "auth",
+    "bearer",
+)
 
 
 class TestPRAgentConfigSimplification:
@@ -201,15 +218,7 @@ class TestPRAgentConfigSecurity:
 
     @staticmethod
     def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
-        """
-        Recursively scan configuration values for suspected secrets.
-
-        This inspects values (not just serialized text) and traverses nested dicts/lists.
-        The heuristic flags:
-          - Long high-entropy strings (e.g., tokens)
-          - Obvious secret prefixes/suffixes
-          - Inline credentials in URLs (e.g., scheme://user:pass@host)
-        """
+        """Recursively scan configuration values for suspected secrets."""
 
         def _iter_string_values(obj):
             """Recursively yield all string values found in nested dicts and lists."""
@@ -222,120 +231,10 @@ class TestPRAgentConfigSecurity:
             elif isinstance(obj, str):
                 yield obj
 
-        suspected = []
-
-        secret_prefixes = (
-            "sk-",
-            "AKIA",
-            "SECRET_",
-            "TOKEN_",
-        )
-        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
-
-        for value in _iter_string_values(pr_agent_config):
-            stripped = value.strip()
-            if not stripped:
-                continue
-
-            # Long string heuristic (possible API keys or tokens)
-            if len(stripped) >= 40:
-                suspected.append(("long_string", stripped))
-                continue
-
-            # Obvious secret-like prefixes
-            if any(stripped.startswith(p) for p in secret_prefixes):
-                suspected.append(("prefix", stripped))
-                continue
-
-            # Inline credentials in URLs
-            if inline_cred_pattern.search(stripped):
-                suspected.append(("inline_creds", stripped))
-
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
-        import math
-
-        # Heuristic to detect inline creds in URLs (user:pass@)
-        re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE)
-
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
-        """
-        Recursively scan configuration values and keys for suspected secrets.
-        - Flags high - entropy or secret - like string values.
-        - Ensures sensitive keys only use safe placeholders.
-        """
+        """Ensure that no hardcoded credentials are present in the PR agent configuration."""
         import math
-
-        # Heuristic to detect inline creds in URLs (user:pass@)
-        inline_creds_re = re.compile(
-            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
-        )
-
-        # Common secret-like prefixes or markers
-        secret_markers = (
-            "secret",
-            "token",
-            "apikey",
-            "api_key",
-            "access_key",
-            "private_key",
-            "pwd",
-            "password",
-            "auth",
-            "bearer ",
-        )
-
-        suspected = []
-
-        # Define detectors for credential heuristics
-        def detect_long_string(s):
-            if len(s) >= 40:
-                return ("long_string", s)
-
-        def detect_prefix(s):
-            for marker in secret_markers:
-                if s.lower().startswith(marker):
-                    return ("prefix", s)
-
-        def detect_inline_creds(s):
-            if inline_creds_re.search(s):
-                return ("inline_creds", s)
-
-        detectors = [detect_long_string, detect_prefix, detect_inline_creds]
-
-        def scan_value(val):
-            stripped = str(val).strip()
-            if not stripped:
-                return None
-            for detector in detectors:
-                result = detector(stripped)
-                if result:
-                    return result
-            return None
-
-        def scan(obj):
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    scan(value)
-            elif isinstance(obj, (list, tuple)):
-                for item in obj:
-                    scan(item)
-            else:
-                result = scan_value(obj)
-                if result:
-                    suspected.append(result)
-
-        scan(pr_agent_config)
-
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
 
         def shannon_entropy(s: str) -> float:
             if not s:
@@ -350,6 +249,53 @@ class TestPRAgentConfigSecurity:
                 p = c / length
                 ent -= p * math.log2(p)
             return ent
+
+        def classify_stripped(s: str):
+            """Classify a stripped string to detect potential credential patterns."""
+            if not s:
+                return None
+            checks = {
+                "long_string": lambda x: len(x) >= 40,
+                "prefix": lambda x: any(x.startswith(p) for p in SECRET_MARKERS),
+                "inline_creds": lambda x: bool(INLINE_CREDS_RE.search(x)),
+            }
+            for kind, predicate in checks.items():
+                if predicate(s):
+                    return kind
+            return None
+
+        def scan_config(obj):
+            """Scan a configuration object for potential hardcoded credentials."""
+            suspects = []
+
+            def _scan(o):
+                """Recursively scan config elements for stripped strings matching credential patterns."""
+                if isinstance(o, dict):
+                    for key, val in o.items():
+                        if isinstance(key, str):
+                            k = key.strip()
+                            kind = classify_stripped(k)
+                            if kind:
+                                suspects.append((kind, k))
+                        _scan(val)
+                elif isinstance(o, list):
+                    for item in o:
+                        _scan(item)
+                elif isinstance(o, str):
+                    stripped = o.strip()
+                    kind = classify_stripped(stripped)
+                    if kind:
+                        suspects.append((kind, stripped))
+
+            _scan(obj)
+            return suspects
+
+        suspected = scan_config(pr_agent_config)
+        if suspected:
+            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
 
         def looks_like_secret(val: str) -> bool:
             v = val.strip()
@@ -367,9 +313,9 @@ class TestPRAgentConfigSecurity:
             }
             if v.lower() in placeholders:
                 return False
-            if inline_creds_re.search(v):
+            if INLINE_CREDS_RE.search(v):
                 return True
-            if any(m in v.lower() for m in secret_markers) and len(v) >= 12:
+            if any(m in v.lower() for m in SECRET_MARKERS) and len(v) >= 12:
                 return True
             # Base64/URL-safe like long strings
             if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
@@ -394,30 +340,15 @@ class TestPRAgentConfigSecurity:
 
         walk_values(pr_agent_config)
 
-        # Enforce safe placeholders for sensitive keys
-        sensitive_patterns = [
-            "password",
-            "secret",
-            "token",
-            "api_key",
-            "apikey",
-            "access_key",
-            "private_key",
-        ]
-        safe_placeholders = {None, "null", "webhook"}
-
-        def check_sensitive_keys(node, path="root"):
-            if isinstance(node, dict):
-                pass
-
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """
-        Traverse the parsed YAML and ensure that any key or value containing sensitive
-        indicators has a safe placeholder value (None, 'null', 'none', 'placeholder',
-        or a templated variable like '${VAR}').
+        Recursively scan for secrets in nested structures.
+        Traverse the parsed YAML and ensure that any key containing sensitive indicators
+        has a safe placeholder value(None, 'null', 'none', 'placeholder', '***', or a
+                                     templated variable like '${VAR}').
         """
-        sensitive_patterns = [
+        sensitive_patterns = (
             "password",
             "secret",
             "token",
@@ -425,72 +356,57 @@ class TestPRAgentConfigSecurity:
             "apikey",
             "access_key",
             "private_key",
-        ]
+        )
 
-        allowed_placeholders = {"null", "none", "placeholder", "***"}
+        allowed_placeholders = {None, "null", "none", "placeholder", "***"}
 
-        def value_contains_secret(val: str) -> bool:
-            low = val.lower()
-            if low in allowed_placeholders or ("${" in val and "}" in val):
-                return False
-            return any(pat in low for pat in sensitive_patterns)
+        templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
-        def scan_dict(node: dict, path: str):
-            for k, v in node.items():
-                key_l = str(k).lower()
-                new_path = f"{path}.{k}"
-                if any(pat in key_l for pat in sensitive_patterns):
-                    assert v in allowed_placeholders, (
-                        f"Potential hardcoded credential at '{new_path}'"
-                    )
-                scan_for_secrets(v, new_path)
+        def is_allowed_placeholder(v) -> bool:
+            """Check if the value v is an allowed placeholder or templated variable."""
+            if v in allowed_placeholders:
+                return True
+            if isinstance(v, str) and templated_var_re.match(v.strip()):
+                return True
+            return False
 
-        def scan_list(node: list, path: str):
-            for idx, item in enumerate(node):
-                scan_for_secrets(item, f"{path}[{idx}]")
-
-        def scan_for_secrets(node, path="root"):
-            if isinstance(node, dict):
-                scan_dict(node, path)
-            elif isinstance(node, list):
-                scan_list(node, path)
-            # primitives ignored
-
-        safe_placeholders = {None, "null", "webhook"}
-
-        def check_node(node, path=""):
+        def scan_for_secrets(node, path: str = "root") -> None:
+            """Recursively scan the node for sensitive keys and validate placeholder values."""
             if isinstance(node, dict):
                 for k, v in node.items():
                     key_l = str(k).lower()
-                    new_path = f"{path}.{k}" if path else str(k)
-                    if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, (
+                    new_path = f"{path}.{k}"
+
+                    if any(pat in key_l for pat in sensitive_patterns):
+                        assert is_allowed_placeholder(v), (
                             f"Potential hardcoded credential at '{new_path}'"
                         )
-                    check_node(v, new_path)
-            elif isinstance(node, list):
-                for idx, item in enumerate(node):
-                    check_node(item, f"{path}[{idx}]")
-            # primitives are ignored unless hit via a sensitive key above
 
-        check_node(pr_agent_config)
+                    scan_for_secrets(v, new_path)
 
-    @staticmethod
-    def test_safe_configuration_values(pr_agent_config):
-        """
-        Assert that key numeric limits in the PR agent configuration fall within safe bounds.
+            elif isinstance(node, (list, tuple)):
+                for i, item in enumerate(node):
+                    scan_for_secrets(item, f"{path}[{i}]")
 
-        Checks that:
-        - `limits['max_execution_time']` is less than or equal to 3600 seconds.
-        - `limits['max_concurrent_prs']` is less than or equal to 10.
-        - `limits['rate_limit_requests']` is less than or equal to 1000.
-        """
-        limits = pr_agent_config["limits"]
+        # primitives are ignored unless they are values of sensitive keys checked above
 
-        # Check for reasonable numeric limits
-        assert limits["max_execution_time"] <= 3600, "Execution time too high"
-        assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
-        assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
+        scan_for_secrets(pr_agent_config)
+
+
+def test_safe_configuration_values(pr_agent_config):
+    """
+    Assert that key numeric limits in the PR agent configuration fall within safe bounds.
+    Checks that:
+    - `limits['max_execution_time']` is less than or equal to 3600 seconds.
+    - `limits['max_concurrent_prs']` is less than or equal to 10.
+    - `limits['rate_limit_requests']` is less than or equal to 1000.
+    """
+    limits = pr_agent_config["limits"]
+
+    # Check for reasonable numeric limits
+    assert limits["max_execution_time"] <= 3600, "Execution time too high"
+    assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
+    assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
 
 
 class TestPRAgentConfigRemovedComplexity:
@@ -499,14 +415,7 @@ class TestPRAgentConfigRemovedComplexity:
     @pytest.fixture
     @staticmethod
     def pr_agent_config_content():
-        """
-        Return the contents of .github / pr - agent - config.yml as a string.
-
-        Reads the PR agent configuration file from the repository root and returns its raw text.
-
-        Returns:
-            str: Raw YAML content of .github / pr - agent - config.yml.
-        """
+        """Return the contents of .github/pr-agent-config.yml as a string."""
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return f.read()
@@ -529,7 +438,7 @@ class TestPRAgentConfigRemovedComplexity:
         Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
 
         Parameters:
-            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
+            pr_agent_config_content(str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
         assert "gpt-4" not in pr_agent_config_content

@@ -126,7 +126,10 @@ class AssetGraphRepository:
         ]
 
     def get_relationship(
-        self, source_id: str, target_id: str, rel_type: str
+        self,
+        source_id: str,
+        target_id: str,
+        rel_type: str,
     ) -> Optional[RelationshipRecord]:
         """Fetch a single relationship if it exists."""
 
@@ -147,7 +150,10 @@ class AssetGraphRepository:
         )
 
     def delete_relationship(
-        self, source_id: str, target_id: str, rel_type: str
+        self,
+        source_id: str,
+        target_id: str,
+        rel_type: str,
     ) -> None:
         """Remove a relationship."""
 
@@ -204,14 +210,15 @@ class AssetGraphRepository:
         instance.
 
         This method always updates the common Asset fields
-        (id/symbol/name/class/sector/price/etc.).
+        (id/symbol/name/class/sector/price/etc).
 
-        It also clears and repopulates optional, asset-class-specific columns
-        by reading attributes from `asset` via `getattr(..., None)` so that
-        missing attributes are written as NULL.
+        It also clears and repopulates optional,
+        asset-class-specific columns by reading attributes from `asset`
+        via `getattr(..., None)`
+        so that missing attributes are written as NULL.
 
-        This prevents stale values from remaining in the database when an
-        asset's type/available fields change between updates.
+        This prevents stale values from remaining in the database
+        when an asset's type/available fields change between updates.
         """
         orm.symbol = asset.symbol
         orm.name = asset.name
