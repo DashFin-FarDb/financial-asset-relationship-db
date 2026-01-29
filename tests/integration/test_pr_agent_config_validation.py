@@ -263,6 +263,7 @@ class TestPRAgentConfigSecurity:
                     return kind
             return None
 
+    @staticmethod
     def scan(self, suspected):
         """
         Recursively scan configuration objects for suspected secrets.
