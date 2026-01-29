@@ -14,6 +14,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from pr_agent_config_validation import SECRET_MARKERS, INLINE_CRED_PATTERN
+
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
 )
@@ -217,10 +219,7 @@ class TestPRAgentConfigSecurity:
 
     @staticmethod
     def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
-        """
-        Recursively scan configuration values for suspected secrets.
-        """
-
+        """Recursively scan configuration values for suspected secrets."""
         def _iter_string_values(obj):
             """Recursively yield all string values found in nested dicts and lists."""
             if isinstance(obj, dict):
@@ -232,13 +231,9 @@ class TestPRAgentConfigSecurity:
             elif isinstance(obj, str):
                 yield obj
 
-        for _ in _iter_string_values(pr_agent_config):
-            pass
-
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
-
         import math
 
         def shannon_entropy(s: str) -> float:
@@ -420,9 +415,7 @@ class TestPRAgentConfigRemovedComplexity:
     @pytest.fixture
     @staticmethod
     def pr_agent_config_content():
-        """
-        Return the contents of .github/pr-agent-config.yml as a string.
-        """
+        """Return the contents of .github/pr-agent-config.yml as a string."""
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
             return f.read()
