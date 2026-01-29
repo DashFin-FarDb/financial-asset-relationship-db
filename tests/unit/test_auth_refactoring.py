@@ -123,13 +123,6 @@ class TestUserRepositoryInstanceMethods:
         initialize_schema()
         return UserRepository()
 
-Returns:
-    dict: A user dictionary with the following keys:
-        - username (str): "testuser"
-        - hashed_password (str): hashed form of "password123"
-        - email (str): "test@example.com"
-        - full_name (str): "Test User"
-        - disabled (bool): False
     def sample_user_data(self):
         """
         Provide a representative user payload for tests.
