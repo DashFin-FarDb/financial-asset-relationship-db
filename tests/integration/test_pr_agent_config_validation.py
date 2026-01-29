@@ -279,6 +279,7 @@ class TestPRAgentConfigSecurity:
         def shannon_entropy(s: str) -> float:
             """Calculate the Shannon entropy of a string to measure randomness in potential credential values."""
             if not s:
+
         def shannon_entropy(s: str) -> float:
             sample = s[:256]
             freq = {}
