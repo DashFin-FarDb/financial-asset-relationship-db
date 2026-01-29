@@ -421,11 +421,13 @@ class TestPRAgentConfigRemovedComplexity:
         """
     Return the contents of .github / pr - agent - config.yml as a string.
 
-    Reads the PR agent configuration file from the repository root and returns its raw text.
-    """Raw YAML content of .github / pr - agent - config.yml."""
-    config_path = Path(".github/pr-agent-config.yml")
-    with open(config_path, "r") as f:
-        return f.read()
+        """
+        Reads the PR agent configuration file from the repository root and returns its raw text.
+        Raw YAML content of .github/pr-agent-config.yml.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, "r") as f:
+            return f.read()
 
     @staticmethod
     def test_no_summarization_settings(pr_agent_config_content):
@@ -445,7 +447,7 @@ class TestPRAgentConfigRemovedComplexity:
         Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
 
         Parameters:
-            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
+            pr_agent_config_content(str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
         assert "gpt-4" not in pr_agent_config_content
