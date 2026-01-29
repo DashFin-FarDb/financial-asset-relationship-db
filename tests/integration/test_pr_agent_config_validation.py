@@ -207,30 +207,6 @@ class TestPRAgentConfigSecurity:
         config_path = Path(".github/pr-agent-config.yml")
         if not config_path.exists():
             pytest.fail(f"Config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in config: {e}")
-        if cfg is None or not isinstance(cfg, dict):
-            pytest.fail("Config must be a YAML mapping (dict) and not empty")
-        return cfg
-
-    @staticmethod
-    def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
-        """Recursively scan configuration values for suspected secrets."""
-
-        def _iter_string_values(obj):
-            """Recursively yield all string values found in nested dicts and lists."""
-            if isinstance(obj, dict):
-                for v in obj.values():
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, list):
-                for v in obj:
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, str):
-                yield obj
-
     @staticmethod
     def test_no_hardcoded_credentials(pr_agent_config):
         """Ensure that no hardcoded credentials are present in the PR agent configuration."""
@@ -258,6 +234,24 @@ class TestPRAgentConfigSecurity:
                 "long_string": lambda x: len(x) >= 40,
                 "prefix": lambda x: any(x.startswith(p) for p in SECRET_MARKERS),
                 "inline_creds": lambda x: bool(INLINE_CREDS_RE.search(x)),
+            }
+            for name, check in checks.items():
+                if check(s):
+                    return name
+            return None
+
+        flagged = []
+        for val in _iter_string_values(pr_agent_config):
+            s = val.strip()
+            classification = classify_stripped(s)
+            if not classification:
+                continue
+            entropy = shannon_entropy(s)
+            if lambda_thresholds[classification](s) or entropy > ENTROPY_THRESHOLD:
+                flagged.append((s, classification, entropy))
+
+        if flagged:
+            pytest.fail(f"Found potential secrets: {flagged}")
             }
             for kind, predicate in checks.items():
                 if predicate(s):
