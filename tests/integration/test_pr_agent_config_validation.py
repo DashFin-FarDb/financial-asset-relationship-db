@@ -225,9 +225,7 @@ class TestPRAgentConfigSecurity:
           - Long high-entropy strings (e.g., tokens)
           - Obvious secret prefixes/suffixes
           - Inline credentials in URLs (e.g., scheme://user:pass@host)
-    """
-    """
-
+        """
     def _iter_string_values(obj):
         """Recursively yield all string values found in nested dicts and lists."""
         if isinstance(obj, dict):
