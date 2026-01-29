@@ -192,7 +192,9 @@ class TestPRAgentConfigYAMLValidity:
             if not stripped or stripped.startswith("#"):
                 continue
             num_spaces = len(line) - len(stripped)
-            assert num_spaces % 2 == 0, f"{num_spaces} leading spaces, which is not a multiple of 2"
+            assert num_spaces % 2 == 0, (
+                f"{num_spaces} leading spaces, which is not a multiple of 2"
+            )
 
 
 class TestPRAgentConfigSecurity:
