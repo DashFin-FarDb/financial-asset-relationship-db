@@ -276,7 +276,77 @@ class TestPRAgentConfigSecurity:
                 violations.append(f"Inline credentials found in: {stripped}")
             if has_secret_marker(stripped):
                 violations.append(f"Secret marker found in: {stripped}")
-            if is_high_entropy(stripped):
+            def test_no_hardcoded_credentials(pr_agent_config):
+                """
+                Recursively scan configuration values for suspected secrets.
+
+                Flags:
+                  - Inline credentials in URLs (scheme://user:pass@host)
+                  - Secret markers in string values (heuristic)
+                  - High-entropy long strings (heuristic)
+                """
+                import math
+                import re
+
+                inline_creds_re = re.compile(
+                    r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@",
+                    re.IGNORECASE,
+                )
+                secret_markers = (
+                    "secret",
+                    "token",
+                    "apikey",
+                    "api_key",
+                    "access_key",
+                    "private_key",
+                    "pwd",
+                    "password",
+                    "auth",
+                    "bearer ",
+                )
+
+                def contains_inline_creds(s: str) -> bool:
+                    return bool(inline_creds_re.search(s))
+
+                def has_secret_marker(s: str) -> bool:
+                    lower = s.lower()
+                    return any(marker in lower for marker in secret_markers)
+
+                def is_high_entropy(s: str, threshold: float = 4.5) -> bool:
+                    if not s:
+                        return False
+                    # Shannon entropy
+                    entropy = 0.0
+                    length = len(s)
+                    for ch in set(s):
+                        freq = s.count(ch) / length
+                        entropy -= freq * math.log2(freq)
+                    return entropy > threshold and length > 20
+
+                def iter_string_values(obj):
+                    if isinstance(obj, dict):
+                        for v in obj.values():
+                            yield from iter_string_values(v)
+                    elif isinstance(obj, list):
+                        for v in obj:
+                            yield from iter_string_values(v)
+                    elif isinstance(obj, str):
+                        yield obj
+
+                violations = []
+                for value in iter_string_values(pr_agent_config):
+                    stripped = value.strip()
+                    if not stripped:
+                        continue
+
+                    if contains_inline_creds(stripped):
+                        violations.append(f"Inline credentials found in: {stripped}")
+                    if has_secret_marker(stripped):
+                        violations.append(f"Secret marker found in: {stripped}")
+                    if is_high_entropy(stripped):
+                        violations.append(f"High entropy string found: {stripped}")
+
+                assert not violations, "Hardcoded credentials detected:\n" + "\n".join(violations)
                 violations.append(f"High entropy string found: {stripped}")
 
         assert not violations, "Hardcoded credentials detected:\n" + "\n".join(violations)
