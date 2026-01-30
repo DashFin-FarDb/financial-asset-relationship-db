@@ -162,7 +162,6 @@ class RealDataFetcher:
                 id, symbol, name, asset_class, sector, price, market_cap,
                 pe_ratio, dividend_yield, earnings_per_share and book_value.
         """
-
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
