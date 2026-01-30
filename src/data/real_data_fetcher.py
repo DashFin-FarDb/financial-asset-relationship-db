@@ -166,7 +166,7 @@ try:
 
         return create_sample_database()
 
-@ staticmethod
+    @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
         Fetches current market data for a predefined set of major equities and
@@ -234,7 +234,7 @@ try:
 
         return equities
 
-    @ staticmethod
+    @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond / treasury data"""
         # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
@@ -291,7 +291,7 @@ try:
 
         return bonds
 
-    @ staticmethod
+    @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity data"""
         commodity_symbols= {
@@ -340,7 +340,7 @@ try:
 
         return commodities
 
-    @ staticmethod
+    @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
         currency_symbols= {
@@ -382,7 +382,7 @@ try:
 
         return currencies
 
-    @ staticmethod
+    @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """Create realistic regulatory events for the fetched assets"""
         # Create some realistic recent events
