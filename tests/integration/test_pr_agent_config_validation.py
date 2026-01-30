@@ -473,6 +473,26 @@ def test_no_hardcoded_credentials(pr_agent_config):
                 for k, v in node.items():
                     key_l = str(k).lower()
                     new_path = f"{path}.{k}" if path else str(k)
+
+                    if any(p in key_l for p in sensitive_patterns):
+                        assert v in safe_placeholders, (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
+
+                    # Recurse into nested values
+                    check_node(v, new_path)
+
+            elif isinstance(node, list):
+                for idx, item in enumerate(node):
+                    check_node(item, f"{path}[{idx}]")
+
+            # primitives are ignored unless hit via a sensitive key above
+
+        check_node(pr_agent_config)
+            if isinstance(node, dict):
+                for k, v in node.items():
+                    key_l = str(k).lower()
+                    new_path = f"{path}.{k}" if path else str(k)
                     if any(p in key_l for p in sensitive_patterns):
                         assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
                     check_node(v, new_path)
