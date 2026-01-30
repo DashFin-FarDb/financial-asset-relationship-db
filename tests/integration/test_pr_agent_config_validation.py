@@ -271,7 +271,7 @@ class TestPRAgentConfigYAMLValidity:
                 return mapping
 
         try:
-            yaml.load(content, Loader=DuplicateKeyLoader)
+            yaml.load(content, Loader=DuplicateKeyLoader)  # nosec B506
         except yaml.YAMLError as e:
             pytest.fail(f"Failed to parse YAML or found duplicate entries: {e}")
 
