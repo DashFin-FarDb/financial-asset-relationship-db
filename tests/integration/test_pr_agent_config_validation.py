@@ -248,19 +248,19 @@ class TestPRAgentConfigSecurity:
         )
         inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
 
-        # Helper functions for credential detection
-        def _classify_stripped(self: str):
-            """Classify a stripped string as a potential credential kind or return None."""
-            if not s:
-                return None
-            for kind, predicate in [
-                ("long_string", lambda x: len(x) >= 40),
-                ("prefix", lambda x: any(x.startswith(p) for p in secret_prefixes)),
-                ("inline_creds", lambda x: bool(inline_cred_pattern.search(x))),
-            ]:
-                if predicate(s):
-                    return kind
-            return None
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @staticmethod
     def scan(self, suspected):
