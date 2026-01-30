@@ -190,6 +190,7 @@ class TestPRAgentConfigYAMLValidity:
                         f"Line {i} has inconsistent indentation: {indent} spaces"
                     )
 
+
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
@@ -335,7 +336,10 @@ class TestPRAgentConfigSecurity:
                 if any(m in v.lower() for m in SECRET_MARKERS) and len(v) >= 12:
                     return True
                 # Base64/URL-safe like long strings
-                if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
+                if (
+                    re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v)
+                    and shannon_entropy(v) >= 3.5
+                ):
                     return True
                 # Hex-encoded long strings (e.g., keys)
                 if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
@@ -352,7 +356,9 @@ class TestPRAgentConfigSecurity:
                         walk_values(item, f"{path}[{i}]")
                 elif isinstance(obj, str):
                     if looks_like_secret(obj):
-                        pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
+                        pytest.fail(
+                            f"Suspected secret value at '{path}': {obj[:20]}..."
+                        )
                 # Non-string scalars ignored
 
             walk_values(pr_agent_config)

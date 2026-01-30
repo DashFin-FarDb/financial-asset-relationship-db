@@ -121,7 +121,9 @@ class TestCreateRealDatabase:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
     @staticmethod
-    def test_create_database_with_network(mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
+    def test_create_database_with_network(
+        mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
+    ):
         """Test database creation with network enabled."""
         # Setup mocks
         mock_equity.return_value = [
