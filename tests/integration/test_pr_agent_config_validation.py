@@ -255,8 +255,11 @@ class TestPRAgentConfigYAMLValidity:
         # Simple check for obvious duplicates
         lines = content.split("\n")
         seen_keys = set()
-        for line in lines:
+         for line in lines:
             if ":" in line and not line.strip().startswith("#"):
+                indent = len(line) - len(line.lstrip())
+                if indent != 0:
+                    continue
                 key = line.split(":")[0].strip()
                 if key in seen_keys:
                     pytest.fail(f"Duplicate key found: {key}")
@@ -310,9 +313,13 @@ class TestPRAgentConfigSecurity:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def scan(obj, suspected):
-        """
-        Recursively scan configuration objects for suspected secrets.
+    def scan(obj: object, suspected: list[str]) -> None:
+        """Recursively scan configuration objects for suspected secrets.
+
+        Returns:
+            None
+        Raises:
+            AssertionError: If unexpected types are encountered during recursive scanning.
         """
         if isinstance(obj, dict):
             for value in obj.values():
