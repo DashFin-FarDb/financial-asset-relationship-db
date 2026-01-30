@@ -317,7 +317,7 @@ class RealDataFetcher:
 
         return commodities
 
-    @ staticmethod
+    @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
         currency_symbols={
