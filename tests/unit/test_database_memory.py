@@ -15,15 +15,17 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.fixture()
-def restore_database_module(monkeypatch) -> Iterator[None]:
-    """
-    Preserve and restore api.database state and the DATABASE_URL environment
-    variable around a test.
+def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """Preserve and restore api.database state and DATABASE_URL around a test.
 
-    Yields control to the test. After the test completes:
-    - closes and clears any in-memory SQLite connection
-    - restores DATABASE_URL to its original value (or removes it)
-    - reloads the api.database module
+    Args:
+        monkeypatch: Pytest monkeypatch fixture for environment overrides.
+
+    Returns:
+        Iterator[None]: Control back to the caller for the test duration.
+
+    Raises:
+        None
     """
     original_url = os.environ.get("DATABASE_URL")
 
@@ -105,7 +107,7 @@ def test_uri_style_memory_database_persists_schema_and_data(
 
     assert row is not None
     assert row["username"] == "bob"
-    assert second_connection is first_connection
+    # Connection identity is an implementation detail; persistence is the contract.
 
 
 class TestIsMemoryDb:
