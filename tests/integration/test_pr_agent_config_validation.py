@@ -360,8 +360,8 @@ class TestPRAgentConfigSecurity:
     # ------------------------------------------------------------------
 
 
-@staticmethod
-def test_no_hardcoded_secrets(pr_agent_config):
+    @staticmethod
+    def test_no_hardcoded_secrets(pr_agent_config):
         """Ensure sensitive keys only use safe placeholders or templated values."""
         sensitive_patterns = (
             "password",
