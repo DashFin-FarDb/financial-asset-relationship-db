@@ -1029,7 +1029,7 @@ class TestAssetTypeConversions:
         repository.session.commit()
 
         # Retrieve and verify bond-specific fields are None
-        retrieved = repository.list_assets()[0]
+        retrieved = repository.get_asset_by_id("MORPH1")
         assert isinstance(retrieved, Equity)
         assert retrieved.pe_ratio == 25.0
         # Verify that old Bond-specific fields are now None
