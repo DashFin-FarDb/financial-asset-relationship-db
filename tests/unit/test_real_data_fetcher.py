@@ -618,8 +618,8 @@ class TestCacheOperations:
 class TestCreateRealDatabaseFunction:
     """Test the module-level create_real_database function."""
 
-    @patch("src.data.real_data_fetcher.RealDataFetcher")
     @staticmethod
+    @patch("src.data.real_data_fetcher.RealDataFetcher")
     def test_create_real_database_function(mock_fetcher_class):
         """Test that create_real_database function creates fetcher and calls method."""
         mock_instance = Mock()
