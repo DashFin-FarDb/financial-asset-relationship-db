@@ -41,6 +41,7 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
+pytestmark = pytest.mark.unit
 
 class TestRealDataFetcherInitialization:
     """Test RealDataFetcher initialization."""
