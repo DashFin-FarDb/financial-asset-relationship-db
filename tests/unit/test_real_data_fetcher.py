@@ -303,19 +303,6 @@ class TestFallback:
         custom_graph = AssetRelationshipGraph()
         custom_asset = Equity(
             id="CUSTOM",
-            symbol="CUSTOM",
-            name="Custom Asset",
-            asset_class=AssetClass.EQUITY,
-            sector="Custom",
-            price=99.0,
-        )
-
-    @staticmethod
-    def test_fallback_with_custom_factory():
-        """Test fallback uses custom factory when provided."""
-        custom_graph = AssetRelationshipGraph()
-        custom_asset = Equity(
-            id="CUSTOM",
             symbol="CUST",
             name="Custom Asset",
             asset_class=AssetClass.EQUITY,
