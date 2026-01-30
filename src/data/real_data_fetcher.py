@@ -112,7 +112,7 @@ class RealDataFetcher:
                     cache_dir = os.path.dirname(self.cache_path)
                     with tempfile.NamedTemporaryFile(
             try:
-                cache_dir = os.path.dirname(self.cache_path)
+                cache_dir=os.path.dirname(self.cache_path)
                 Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
                 with tempfile.NamedTemporaryFile(
                     "wb",
@@ -166,7 +166,7 @@ class RealDataFetcher:
 
         return create_sample_database()
 
-    @staticmethod
+    @ staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
         Fetches current market data for a predefined set of major equities and
@@ -185,7 +185,7 @@ class RealDataFetcher:
             "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
         }
 
-        equities = []
+        equities=[]
         for symbol, (name, sector) in equity_symbols.items():
             try:
                 ticker=yf.Ticker(symbol)
@@ -196,7 +196,7 @@ class RealDataFetcher:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-                current_price = float(hist["Close"].iloc[-1])
+                current_price=float(hist["Close"].iloc[-1])
 
                 equity=Equity(
                     id=symbol,
@@ -222,7 +222,7 @@ class RealDataFetcher:
 
         return equities
 
-    @staticmethod
+    @ staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond / treasury data"""
         # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
@@ -242,12 +242,12 @@ class RealDataFetcher:
             ),
         }
 
-        bonds = []
+        bonds=[]
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             try:
-                ticker = yf.Ticker(symbol)
-                info = ticker.info
-                hist = ticker.history(period="1d")
+                ticker=yf.Ticker(symbol)
+                info=ticker.info
+                hist=ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
@@ -255,7 +255,7 @@ class RealDataFetcher:
 
                 current_price=float(hist["Close"].iloc[-1])
 
-                bond = Bond(
+                bond=Bond(
                     id=symbol,
                     symbol=symbol,
                     name=name,
@@ -279,7 +279,7 @@ class RealDataFetcher:
 
         return bonds
 
-    @staticmethod
+    @ staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity data"""
         commodity_symbols={
@@ -288,7 +288,7 @@ class RealDataFetcher:
             "SI=F": ("Silver Futures", "Precious Metals", 5000),
         }
 
-        commodities = []
+        commodities=[]
         for symbol, (name, sector, contract_size) in commodity_symbols.items():
             try:
                 ticker=yf.Ticker(symbol)
@@ -328,7 +328,7 @@ class RealDataFetcher:
 
         return commodities
 
-    @staticmethod
+    @ staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
         currency_symbols={
@@ -337,7 +337,7 @@ class RealDataFetcher:
             "JPYUSD=X": ("Japanese Yen", "Japan", "JPY"),
         }
 
-        currencies = []
+        currencies=[]
         for symbol, (name, country, currency_code) in currency_symbols.items():
             try:
                 ticker=yf.Ticker(symbol)
@@ -347,7 +347,7 @@ class RealDataFetcher:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-                current_rate = float(hist["Close"].iloc[-1])
+                current_rate=float(hist["Close"].iloc[-1])
 
                 currency=Currency(
                     id=symbol.replace("=X", ""),
@@ -370,11 +370,11 @@ class RealDataFetcher:
 
         return currencies
 
-    @staticmethod
+    @ staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """Create realistic regulatory events for the fetched assets"""
         # Create some realistic recent events
-        events = []
+        events=[]
 
         # Apple earnings event
         apple_earnings=RegulatoryEvent(
