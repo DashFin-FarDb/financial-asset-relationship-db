@@ -27,6 +27,8 @@ def _cov_plugin_available() -> bool:
 
 
 def pytest_load_initial_conftests(
+    args: List[str], _early_config: object, _parser: object
+) -> None:  # pragma: no cover - exercised via pytest
     _early_config,
     _parser,
     argument list when the pytest-cov plugin is not available.
