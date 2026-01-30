@@ -155,12 +155,7 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
     ) -> Optional[RelationshipRecord]:
-        """Fetch a single relationship if it exists."""
-        """
-        Fetch a single relationship if it exists.
-
-        Returns:
-            Optional[RelationshipRecord]: The relationship, if found.
+        """Fetch a single relationship if it exists.
         Raises:
             None
         """
