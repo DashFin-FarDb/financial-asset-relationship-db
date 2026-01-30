@@ -269,6 +269,8 @@ class TestPRAgentConfigYAMLValidity:
                     mapping[entry] = value
                 return mapping
 
+        # Using yaml.load() with custom Loader is required for duplicate key detection.
+        # DuplicateKeyLoader extends SafeLoader, so this is secure.
         yaml.load(content, Loader=DuplicateKeyLoader)
 
     @staticmethod
