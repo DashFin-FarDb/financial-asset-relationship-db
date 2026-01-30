@@ -461,3 +461,219 @@ class FormulaicAnalyzer:
                 else 0.5
             )
         return 0.5
+
+    @staticmethod
+    def _has_equities(graph: AssetRelationshipGraph) -> bool:
+        """Check if graph contains equity assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_bonds(graph: AssetRelationshipGraph) -> bool:
+        """Check if graph contains bond/fixed income assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.FIXED_INCOME
+            for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_commodities(graph: AssetRelationshipGraph) -> bool:
+        """Check if graph contains commodity assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.COMMODITY
+            for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_currencies(graph: AssetRelationshipGraph) -> bool:
+        """Check if graph contains currency assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
+        """Check if graph contains equity assets with dividend yields."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.EQUITY
+            and hasattr(asset, "dividend_yield")
+            and asset.dividend_yield is not None
+            and asset.dividend_yield > 0
+            for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example P/E ratio calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "pe_ratio")
+                and asset.pe_ratio is not None
+            ):
+                examples.append(
+                    f"{asset.symbol}: PE = {asset.price:.2f} / EPS = {asset.pe_ratio:.2f}"
+                )
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: AAPL PE = 150 / 6 = 25.0"
+
+    @staticmethod
+    def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example dividend yield calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "dividend_yield")
+                and asset.dividend_yield is not None
+            ):
+                yield_pct = asset.dividend_yield * 100
+                examples.append(
+                    f"{asset.symbol}: Yield = {yield_pct:.2f}% at price ${asset.price:.2f}"
+                )
+                if len(examples) >= 2:
+                    break
+        return (
+            "; ".join(examples) if examples else "Example: Div Yield = 2.00 / 100 = 2%"
+        )
+
+    @staticmethod
+    def _calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example YTM calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.FIXED_INCOME
+                and hasattr(asset, "yield_to_maturity")
+                and asset.yield_to_maturity is not None
+            ):
+                ytm_pct = asset.yield_to_maturity * 100
+                examples.append(f"{asset.symbol}: YTM ≈ {ytm_pct:.2f}%")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: YTM ≈ 3.0%"
+
+    @staticmethod
+    def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example market cap calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "market_cap")
+                and asset.market_cap is not None
+            ):
+                cap_billions = asset.market_cap / 1e9
+                examples.append(
+                    f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B"
+                )
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: Market Cap = $1.5T"
+
+    @staticmethod
+    def _calculate_beta_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example beta calculations."""
+        return "Beta calculated from historical returns vs market index"
+
+    @staticmethod
+    def _calculate_correlation_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example correlation calculations from graph relationships."""
+        if graph.relationships:
+            count = sum(len(rels) for rels in graph.relationships.values())
+            return f"Calculated from {count} asset pair relationships"
+        return "Correlation between asset pairs calculated from price movements"
+
+    @staticmethod
+    def _calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example P/B ratio calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "book_value")
+                and asset.book_value is not None
+            ):
+                pb_ratio = asset.price / asset.book_value if asset.book_value else 0
+                examples.append(f"{asset.symbol}: P/B = {pb_ratio:.2f}")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: P/B = 150 / 50 = 3.0"
+
+    @staticmethod
+    def _calculate_sharpe_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example Sharpe ratio calculations."""
+        return "Sharpe = (10% - 2%) / 15% = 0.53"
+
+    @staticmethod
+    def _calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example volatility calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.COMMODITY
+                and hasattr(asset, "volatility")
+                and asset.volatility is not None
+            ):
+                vol_pct = asset.volatility * 100
+                examples.append(f"{asset.symbol}: σ = {vol_pct:.2f}%")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: σ = 20% annualized"
+
+    @staticmethod
+    def _calculate_portfolio_return_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example portfolio return calculations."""
+        return "Example: E(Rp) = 0.6 × 10% + 0.4 × 5% = 8%"
+
+    @staticmethod
+    def _calculate_portfolio_variance_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example portfolio variance calculations."""
+        return "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + (2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
+
+    @staticmethod
+    def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example exchange rate calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        currencies = [
+            asset
+            for asset in graph.assets.values()
+            if asset.asset_class == AssetClass.CURRENCY
+        ]
+        if len(currencies) >= 2:
+            c1, c2 = currencies[0], currencies[1]
+            return (
+                f"{c1.symbol}/USD × USD/{c2.symbol} = {c1.symbol}/{c2.symbol}"
+            )
+        return "Example: USD/EUR × EUR/GBP = USD/GBP"
+
+    @staticmethod
+    def _calculate_commodity_currency_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example commodity-currency relationship calculations."""
+        return "Example: As oil prices rise, USD strengthens (inverse relationship)"

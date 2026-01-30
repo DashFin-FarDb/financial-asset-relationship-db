@@ -70,6 +70,14 @@ class AssetGraphRepository:
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
+    def get_asset_by_id(self, asset_id: str) -> Optional[Asset]:
+        """Return a single asset by its ID, or None if not found."""
+
+        orm = self.session.get(AssetORM, asset_id)
+        if orm is None:
+            return None
+        return self._to_asset_model(orm)
+
     def delete_asset(self, asset_id: str) -> None:
         """Delete an asset and cascading relationships/events."""
 
@@ -90,18 +98,19 @@ class AssetGraphRepository:
     ) -> None:
         """
         Add or update a relationship between two assets.
-        Strength must be a float in the inclusive range [0.0, 1.0].
+        Strength must be a float in the inclusive range [-1.0, 1.0].
+        Negative values represent negative correlations.
 
         Returns:
             None
         Raises:
-            ValueError: If strength is not numeric or outside [0.0, 1.0].
+            ValueError: If strength is not numeric or outside [-1.0, 1.0].
         """
         # Validate strength range
         if not isinstance(strength, (int, float)):
-            raise ValueError("strength must be a numeric value between 0.0 and 1.0")
-        if strength < 0.0 or strength > 1.0:
-            raise ValueError("strength must be between 0.0 and 1.0 (inclusive)")
+            raise ValueError("strength must be a numeric value between -1.0 and 1.0")
+        if strength < -1.0 or strength > 1.0:
+            raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
 
         # ... existing code continues
         # e.g. lookup/create relationship ORM object, set strength, commit, handle bidirectional case, etc.

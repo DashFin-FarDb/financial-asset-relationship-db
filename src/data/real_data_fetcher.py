@@ -478,6 +478,14 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             - "incoming_relationships": mapping from target id to a list of
               incoming relationships
     """
+    # Compute incoming_relationships from relationships
+    incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
+    for source, rels in graph.relationships.items():
+        for target, rel_type, strength in rels:
+            if target not in incoming_relationships:
+                incoming_relationships[target] = []
+            incoming_relationships[target].append((source, rel_type, strength))
+
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
         "regulatory_events": [
@@ -503,7 +511,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
                 }
                 for source, rel_type, strength in rels
             ]
-            for target, rels in graph.incoming_relationships.items()
+            for target, rels in incoming_relationships.items()
         },
     }
 

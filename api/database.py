@@ -53,6 +53,10 @@ def _resolve_sqlite_path(url: str) -> str:
     if parsed.scheme != "sqlite":
         raise ValueError(f"Not a valid sqlite URI: {url}")
 
+    # Handle case where :memory: is the netloc (e.g., sqlite://:memory:)
+    if parsed.netloc == ":memory:":
+        return ":memory:"
+
     memory_db_paths = {":memory:", "/:memory:"}
     normalized_path = parsed.path.rstrip("/")
     if normalized_path in memory_db_paths:

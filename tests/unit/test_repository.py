@@ -582,9 +582,9 @@ class TestRegulatoryEventOperations:
         event = RegulatoryEvent(
             id="EVENT003",
             asset_id="MAIN",
-            event_type=RegulatoryActivity.MERGER,
+            event_type=RegulatoryActivity.ACQUISITION,
             date="2024-03-01",
-            description="Merger announcement",
+            description="Acquisition announcement",
             impact_score=0.9,
             related_assets=["REL1", "REL2"],
         )
