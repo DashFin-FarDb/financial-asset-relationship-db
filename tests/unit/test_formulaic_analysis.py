@@ -988,7 +988,6 @@ class TestRegressionCases:
         manual_category_count = sum(result["categories"].values())
         assert manual_category_count == len(result["formulas"])
 
-
         equity = Equity(
             id="ZERO",
             symbol="ZERO",
