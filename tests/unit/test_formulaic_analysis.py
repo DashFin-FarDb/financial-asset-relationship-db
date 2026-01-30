@@ -989,6 +989,11 @@ class TestRegressionCases:
         # Verify category counts match
         manual_category_count = sum(result["categories"].values())
         assert manual_category_count == len(result["formulas"])
+        # zero-price handling moved to a dedicated test below
+
+    @staticmethod
+    def test_zero_price_equity_handling():
+        """Test behaviour for a zero‑price equity."""
         equity = Equity(
             id="ZERO",
             symbol="ZERO",
