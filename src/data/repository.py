@@ -84,7 +84,7 @@ class AssetGraphRepository:
         self,
         source_id: str,
         target_id: str,
-        relationship_type: str,
+        rel_type: str,
         strength: float,
         bidirectional: bool = False,
     ):
