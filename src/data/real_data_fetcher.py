@@ -166,7 +166,7 @@ class RealDataFetcher:
 
         return create_sample_database()
 
-    @ staticmethod
+    @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
         Fetches current market data for a predefined set of major equities and
@@ -177,19 +177,7 @@ class RealDataFetcher:
                 id, symbol, name, asset_class, sector, price, market_cap,
                 pe_ratio, dividend_yield, earnings_per_share and book_value.
         """
-        equity_symbols={
-            "AAPL": ("Apple Inc.", "Technology"),
-        equities= []
-    def _fetch_equity_data() -> List[Equity]:
-        """
-        Fetches current market data for a predefined set of major equities and
-        returns them as Equity objects.
-
-        Returns:
-            List[Equity]: Equity instances populated with market fields including
-                id, symbol, name, asset_class, sector, price, market_cap,
-                pe_ratio, dividend_yield, earnings_per_share and book_value.
-        """
+     
         equity_symbols= {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -234,7 +222,7 @@ class RealDataFetcher:
 
         return equities
 
-    @ staticmethod
+    @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond / treasury data"""
         # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
@@ -291,7 +279,7 @@ class RealDataFetcher:
 
         return bonds
 
-    @ staticmethod
+    @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity data"""
         commodity_symbols= {
@@ -340,7 +328,7 @@ class RealDataFetcher:
 
         return commodities
 
-    @ staticmethod
+    @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
         currency_symbols= {
@@ -382,7 +370,7 @@ class RealDataFetcher:
 
         return currencies
 
-    @ staticmethod
+    @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """Create realistic regulatory events for the fetched assets"""
         # Create some realistic recent events
