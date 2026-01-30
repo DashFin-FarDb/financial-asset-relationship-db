@@ -21,7 +21,7 @@ pytestmark = pytest.mark.integration
 # Character classes are intentionally minimal and deduplicated to satisfy
 # radarlint (S5869) while preserving strict userinfo detection semantics.
 INLINE_CREDS_RE = re.compile(
-    r"^[A-Za-z][A-Za-z0-9+.-]*://[^@:\s]+:[^@\s]+@",
+    r"[A-Za-z][A-Za-z0-9+.-]*://[^@:\s]+:[^@\s]+@",
     re.IGNORECASE,
 )
 
