@@ -39,6 +39,27 @@ SECRET_MARKERS = (
     "bearer",
 )
 
+@pytest.fixture
+def pr_agent_config():
+    """
+    Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+
+    If the file is missing, contains invalid YAML, or does not contain a top-level mapping, the fixture will call pytest.fail to abort the test.
+
+    Returns:
+        dict: The parsed YAML content as a Python mapping.
+    """
+    config_path = Path(".github/pr-agent-config.yml")
+    if not config_path.exists():
+        pytest.fail(f"Config file not found: {config_path}")
+    with open(config_path, "r", encoding="utf-8") as f:
+        try:
+            cfg = yaml.safe_load(f)
+        except yaml.YAMLError as e:
+            pytest.fail(f"Invalid YAML in config: {e}")
+    if cfg is None or not isinstance(cfg, dict):
+        pytest.fail("Config must be a YAML mapping (dict) and not empty")
+    return cfg
 
 def _shannon_entropy(value: str) -> float:
     """
@@ -124,29 +145,6 @@ def _looks_like_secret(value: str) -> bool:
 
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
-
-    @staticmethod
-    @pytest.fixture
-    def pr_agent_config():
-        """
-        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
-
-        If the file is missing, contains invalid YAML, or does not contain a top-level mapping, the fixture will call pytest.fail to abort the test.
-
-        Returns:
-            dict: The parsed YAML content as a Python mapping.
-        """
-        config_path = Path(".github/pr-agent-config.yml")
-        if not config_path.exists():
-            pytest.fail(f"Config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in config: {e}")
-        if cfg is None or not isinstance(cfg, dict):
-            pytest.fail("Config must be a YAML mapping (dict) and not empty")
-        return cfg
 
     @staticmethod
     def test_version_reverted_to_1_0_0(pr_agent_config):
@@ -294,30 +292,6 @@ except yaml.YAMLError as e:
 
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
-
-    @staticmethod
-    @pytest.fixture
-    def pr_agent_config():
-        """
-        Load and parse the PR agent YAML configuration from
-        .github/pr-agent-config.yml.
-        """
-        config_path = Path(".github/pr-agent-config.yml")
-        if not config_path.exists():
-            pytest.fail(f"Config file not found: {config_path}")
-
-        with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as exc:
-                pytest.fail(f"Invalid YAML in config: {exc}")
-
-        if not isinstance(cfg, dict):
-            pytest.fail("Config must be a non-empty YAML mapping")
-
-        return cfg
-
-    # ------------------------------------------------------------------
 
     @staticmethod
     def scan(obj: object, suspected: list[tuple[str, str]]) -> None:
