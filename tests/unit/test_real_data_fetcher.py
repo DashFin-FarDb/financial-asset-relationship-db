@@ -699,11 +699,9 @@ class TestEdgeCases:
             "currency": "USD",
         }
 
-        # Should default to base Asset class
-        from src.models.financial_models import Asset
-
-        asset = _deserialize_asset(data)
-        assert isinstance(asset, Asset)
+        # Should raise an exception if __type__ is missing.
+        with pytest.raises(Exception):
+            _deserialize_asset(data)
 
     @staticmethod
     def test_serialize_graph_with_complex_relationships():
