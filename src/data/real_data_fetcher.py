@@ -268,7 +268,7 @@ class RealDataFetcher:
 
         return bonds
 
-    @ staticmethod
+    @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity data"""
         commodity_symbols={
