@@ -111,7 +111,17 @@ class RealDataFetcher:
                 try:
                     cache_dir = os.path.dirname(self.cache_path)
                     with tempfile.NamedTemporaryFile(
-                        "wb",
+try:
+                cache_dir = os.path.dirname(self.cache_path)
+                Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
+                with tempfile.NamedTemporaryFile(
+                    "wb",
+                    dir=cache_dir,
+                    delete=False,
+                ) as tmp_file:
+                    tmp_path = tmp_file.name
+                    _save_to_cache(graph, Path(tmp_path))
+                os.replace(tmp_path, self.cache_path)
                         dir=cache_dir,
                         delete=False,
                         Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
