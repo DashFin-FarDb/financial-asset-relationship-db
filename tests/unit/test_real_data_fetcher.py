@@ -252,6 +252,7 @@ class TestFetchMethods:
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
+        mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         mock_close.pct_change.return_value.std.return_value = 0.02
         mock_hist.__getitem__ = (
             lambda self, key: mock_close if key == "Close" else Mock()
@@ -263,6 +264,7 @@ class TestFetchMethods:
         commodities = RealDataFetcher._fetch_commodity_data()
 
         assert isinstance(commodities, list)
+        assert len(commodities) > 0, "Expected successful commodity fetches"
 
     @staticmethod
     @patch("yfinance.Ticker")
@@ -1147,8 +1149,8 @@ class TestSerializationEdgeCases:
         assert "E2" in serialized["relationships"]
 
 
-class TestConcurrentCacheOperations:
-    """Test cache operations under concurrent scenarios."""
+class TestCacheOverwriteOperations:
+    """Test cache overwrite operations squentially."""
 
     @staticmethod
     def test_cache_overwrite_preserves_data(tmp_path):
@@ -1216,6 +1218,7 @@ class TestFetchMethodsErrorHandling:
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
+        mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         # Simulate error in std calculation
         mock_close.pct_change.return_value.std.side_effect = Exception("Calc error")
         mock_hist.__getitem__ = (
