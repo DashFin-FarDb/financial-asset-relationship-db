@@ -356,19 +356,9 @@ class TestPRAgentConfigSecurity:
 
     # ------------------------------------------------------------------
 
-    @staticmethod
-    """
-    This module provides tests to validate PR agent configurations by scanning for hardcoded secrets
-    and ensuring only safe placeholders or templated values are used for sensitive keys.
-    """
-
+    `@staticmethod`
     def test_no_hardcoded_secrets(pr_agent_config):
-        """
-        Ensure sensitive keys only use safe placeholders or templated values.
-
-        Scans PR agent configurations for hardcoded secrets and validates that
-        only safe placeholders or templated variables are used for sensitive keys.
-        """
+        """Ensure sensitive keys only use safe placeholders or templated values."""
         sensitive_patterns = (
             "password",
             "secret",
