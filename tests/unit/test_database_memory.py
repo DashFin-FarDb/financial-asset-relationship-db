@@ -127,7 +127,7 @@ class TestIsMemoryDb:
         self, monkeypatch, restore_database_module
     ):
         """Test that _is_memory_db returns True for valid file::memory: URI formats.
-        
+
         Valid SQLite in-memory URI patterns use file::memory: where :memory:
         is the path component itself, not part of a longer file path.
         """

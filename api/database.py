@@ -105,11 +105,11 @@ def _is_memory_db(path: str | None = None) -> bool:
     - ":memory:" - standard in-memory database
     - "file::memory:" - URI-style in-memory database
     - "file::memory:?cache=shared" - shared memory database with URI parameters
-    
+
     Does NOT recognize patterns where :memory: is part of a file path:
     - "file:///path/:memory:" - treated as a file path, not memory database
     - "/path/to/:memory:" - treated as a file path, not memory database
-    
+
     Per SQLite documentation, :memory: must be the entire path component for
     URI-style databases, not embedded within a longer path.
 
