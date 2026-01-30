@@ -994,7 +994,7 @@ class TestNegativeCases:
                 price=0.0,
                     # Asset with zero price should be allowed by validation
                     Equity(
-    @staticmethod
+    @ staticmethod
     def test_analyze_graph_with_negative_price():
         """Test handling asset with negative price."""
         # Should be rejected by Asset validation
@@ -1014,10 +1014,10 @@ class TestBoundaryConditions:
 
     def test_very_high_pe_ratio(self):
         """Test formula extraction with very high P/E ratio."""
-        analyzer = FormulaicAnalyzer()
-        graph = AssetRelationshipGraph()
+        analyzer=FormulaicAnalyzer()
+        graph=AssetRelationshipGraph()
 
-        equity = Equity(
+        equity=Equity(
             id="HIGH_PE",
             symbol="HPE",
             name="High PE",
@@ -1028,15 +1028,15 @@ class TestBoundaryConditions:
         )
         graph.add_asset(equity)
 
-        result = analyzer.analyze_graph(graph)
+        result=analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
 
     def test_very_low_prices(self):
         """Test with very low asset prices."""
-        analyzer = FormulaicAnalyzer()
-        graph = AssetRelationshipGraph()
+        analyzer=FormulaicAnalyzer()
+        graph=AssetRelationshipGraph()
 
-        equity = Equity(
+        equity=Equity(
             id="PENNY",
             symbol="PENNY",
             name="Penny Stock",
@@ -1046,17 +1046,17 @@ class TestBoundaryConditions:
         )
         graph.add_asset(equity)
 
-        result = analyzer.analyze_graph(graph)
+        result=analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
 
     def test_large_number_of_assets(self):
         """Test analyzer with large number of assets."""
-        analyzer = FormulaicAnalyzer()
-        graph = AssetRelationshipGraph()
+        analyzer=FormulaicAnalyzer()
+        graph=AssetRelationshipGraph()
 
         # Add 50 assets
         for i in range(50):
-            equity = Equity(
+            equity=Equity(
                 id=f"ASSET{i}",
                 symbol=f"A{i}",
                 name=f"Asset {i}",
@@ -1066,17 +1066,17 @@ class TestBoundaryConditions:
             )
             graph.add_asset(equity)
 
-        result = analyzer.analyze_graph(graph)
+        result=analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
         assert "summary" in result
 
     def test_correlation_strength_bounds(self):
         """Test correlation strength calculation stays within bounds."""
-        graph = AssetRelationshipGraph()
+        graph=AssetRelationshipGraph()
 
         # Add many assets and relationships
         for i in range(10):
-            equity = Equity(
+            equity=Equity(
                 id=f"CORR{i}",
                 symbol=f"C{i}",
                 name=f"Corr {i}",
@@ -1088,7 +1088,7 @@ class TestBoundaryConditions:
 
         graph.build_relationships()
 
-        strength = FormulaicAnalyzer._calculate_avg_correlation_strength(graph)
+        strength=FormulaicAnalyzer._calculate_avg_correlation_strength(graph)
         assert 0 <= strength <= 1.0
 
 
@@ -1097,11 +1097,11 @@ class TestIntegrationScenarios:
 
     def test_diversified_portfolio_analysis(self):
         """Test analysis of a diversified portfolio."""
-        analyzer = FormulaicAnalyzer()
-        graph = AssetRelationshipGraph()
+        analyzer=FormulaicAnalyzer()
+        graph=AssetRelationshipGraph()
 
         # Add diverse assets
-        equity = Equity(
+        equity=Equity(
             id="AAPL",
             symbol="AAPL",
             name="Apple",
@@ -1110,7 +1110,7 @@ class TestIntegrationScenarios:
             price=150.0,
             dividend_yield=0.005,
         )
-        bond = Bond(
+        bond=Bond(
             id="BOND",
             symbol="BOND",
             name="Gov Bond",
@@ -1119,7 +1119,7 @@ class TestIntegrationScenarios:
             price=1000.0,
             yield_to_maturity=0.03,
         )
-        commodity = Commodity(
+        commodity=Commodity(
             id="GOLD",
             symbol="GC",
             name="Gold",
@@ -1127,7 +1127,7 @@ class TestIntegrationScenarios:
             sector="Precious Metals",
             price=2000.0,
         )
-        currency = Currency(
+        currency=Currency(
             id="EUR",
             symbol="EUR",
             name="Euro",
@@ -1141,26 +1141,26 @@ class TestIntegrationScenarios:
 
         graph.build_relationships()
 
-        result = analyzer.analyze_graph(graph)
+        result=analyzer.analyze_graph(graph)
 
         # Should have formulas from all categories
         assert result["formula_count"] > 10
-        categories = result["categories"]
+        categories=result["categories"]
         assert "Valuation" in categories
         assert "Risk Management" in categories
         assert "Portfolio Theory" in categories
 
-    @staticmethod
+    @ staticmethod
     def test_sector_correlation_analysis():
         """Test correlation analysis for same-sector assets."""
-        analyzer = FormulaicAnalyzer()
-        graph = AssetRelationshipGraph()
+        analyzer=FormulaicAnalyzer()
+        graph=AssetRelationshipGraph()
 
         # Add multiple tech stocks
         for i, (symbol, name) in enumerate(
             [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
         ):
-            equity = Equity(
+            equity=Equity(
                 id=symbol,
                 symbol=symbol,
                 name=name,
@@ -1172,11 +1172,11 @@ class TestIntegrationScenarios:
 
         graph.build_relationships()
 
-        result = analyzer.analyze_graph(graph)
+        result=analyzer.analyze_graph(graph)
 
         # Should identify correlations
-        formulas = result["formulas"]
-        correlation_formulas = [
+        formulas=result["formulas"]
+        correlation_formulas=[
             f for f in formulas if "Correlation" in f.name or "Beta" in f.name
         ]
         assert len(correlation_formulas) > 0
