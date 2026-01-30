@@ -256,9 +256,9 @@ class TestPRAgentConfigYAMLValidity:
         lines = content.split("\n")
         seen_keys = set()
         for line in lines:
-             if ":" in line and not line.strip().startswith("#"):
-                  indent = len(line) - len(line.lstrip())
-                   if indent != 0:
+              if ":" in line and not line.strip().startswith("#"):
+                    indent = len(line) - len(line.lstrip())
+                    if indent != 0:
                         continue
                     key = line.split(":")[0].strip()
                     if key in seen_keys:
