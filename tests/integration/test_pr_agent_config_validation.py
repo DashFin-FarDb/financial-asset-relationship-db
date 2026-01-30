@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 import yaml
+from enum import Enum
 
 pytestmark = pytest.mark.integration
 
@@ -25,19 +26,23 @@ INLINE_CREDS_RE = re.compile(
     re.IGNORECASE,
 )
 
+BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
+HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
+
 # Common secret / credential indicators used across heuristics
-SECRET_MARKERS = (
-    "secret",
-    "token",
-    "apikey",
-    "api_key",
-    "access_key",
-    "private_key",
-    "pwd",
-    "password",
-    "auth",
-    "bearer",
-)
+class SecretMarker(str, Enum):
+    """Fixed set of secret/credential indicator keywords."""
+
+    SECRET = "secret"
+    TOKEN = "token"
+    APIKEY = "apikey"
+    API_KEY = "api_key"
+    ACCESS_KEY = "access_key"
+    PRIVATE_KEY = "private_key"
+    PWD = "pwd"
+    PASSWORD = "password"
+    AUTH = "auth"
+    BEARER = "bearer"
 
 
 @pytest.fixture
@@ -129,17 +134,15 @@ def _looks_like_secret(value: str) -> bool:
         return True
 
     # Keyword-based secret indicators
-    if any(marker in v.lower() for marker in SECRET_MARKERS) and len(v) >= 12:
+    if any(marker.value in v.lower() for marker in SecretMarker) and len(v) >= 12:
         return True
 
     # High-entropy base64 / URL-safe strings
-    base64_like_re = re.compile(r"^[A-Za-z0-9+/=_-]{20,}$")
-    if base64_like_re.fullmatch(v) and _shannon_entropy(v) >= 3.5:
+    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
         return True
 
     # Hex-encoded secrets (e.g. hashes, keys)
-    hex_re = re.compile(r"^[0-9a-fA-F]{16,}$")
-    if hex_re.fullmatch(v):
+    if HEX_RE.fullmatch(v):
         return True
 
     return False
@@ -296,7 +299,7 @@ class TestPRAgentConfigSecurity:
         Returns:
             None
         Raises:
-            AssertionError: If unexpected types are encountered during recursive scanning.
+            None
         """
         if isinstance(obj, dict):
             for value in obj.values():
