@@ -41,7 +41,7 @@ SECRET_MARKERS = (
 
 
 @pytest.fixture
-def pr_agent_config():
+def pr_agent_config() -> dict[str, object]:
     """
     Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
@@ -252,9 +252,7 @@ class TestPRAgentConfigYAMLValidity:
         Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
+        
         with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -352,7 +350,7 @@ class TestPRAgentConfigSecurity:
         allowed_placeholders = {None, "null", "none", "placeholder", "***"}
         templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
-        def is_allowed_placeholder(v) -> bool:
+        def is_allowed_placeholder(v: object) -> bool:
             """
             Determine if a value v is an allowed placeholder or templated variable.
             """
@@ -366,7 +364,7 @@ class TestPRAgentConfigSecurity:
                     return True
             return False
 
-        def scan_for_secrets(node, path="root"):
+        def scan_for_secrets(node: object, path: str = "root") -> None:
             """
             Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
             """
@@ -403,7 +401,7 @@ class TestPRAgentConfigRemovedComplexity:
 
     @pytest.fixture
     @staticmethod
-    def pr_agent_config_content():
+    def pr_agent_config_content() -> str:
         """
         Return the contents of .github / pr - agent - config.yml as a string.
 
