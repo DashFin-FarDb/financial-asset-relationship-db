@@ -806,8 +806,13 @@ class TestComplexScenarios:
     """Test complex real-world scenarios."""
 
     @staticmethod
-    def test_complete_portfolio_workflow(repository):
-        """Test complete workflow of building a diversified portfolio."""
+    def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
+        """Test complete workflow of building a diversified portfolio.
+        Returns:
+            None
+        Raises:
+            AssertionError: If any portfolio assertions fail.
+        """
         # Add diverse assets
         assets = [
             Equity(
