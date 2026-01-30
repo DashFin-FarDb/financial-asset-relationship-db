@@ -653,13 +653,13 @@ class TestEdgeCases:
         # Should fall back to sample data despite cache error
         assert isinstance(graph, AssetRelationshipGraph)
 
+    @staticmethod
     @patch("src.data.real_data_fetcher._save_to_cache")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    @staticmethod
     def test_cache_save_failure_doesnt_prevent_return(
         mock_events,
         mock_currency,
