@@ -84,12 +84,22 @@ class AssetGraphRepository:
         self,
         source_id: str,
         target_id: str,
-        rel_type: str,
+        relationship_type: str,
         strength: float,
-        *,
-        bidirectional: bool,
-    ) -> None:
-        """Insert or update a relationship between two assets."""
+        bidirectional: bool = False,
+    ):
+        """
+        Add or update a relationship between two assets.
+        Strength must be a float in the inclusive range [0.0, 1.0].
+        """
+        # Validate strength range
+        if not isinstance(strength, (int, float)):
+            raise ValueError("strength must be a numeric value between 0.0 and 1.0")
+        if strength < 0.0 or strength > 1.0:
+            raise ValueError("strength must be between 0.0 and 1.0 (inclusive)")
+
+        # ... existing code continues
+        # e.g. lookup/create relationship ORM object, set strength, commit, handle bidirectional case, etc.
 
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
