@@ -101,6 +101,18 @@ def _is_memory_db(path: str | None = None) -> bool:
     Determine whether the given or configured database refers to an in-memory
     SQLite database.
 
+    Recognizes valid SQLite in-memory database patterns:
+    - ":memory:" - standard in-memory database
+    - "file::memory:" - URI-style in-memory database
+    - "file::memory:?cache=shared" - shared memory database with URI parameters
+    
+    Does NOT recognize patterns where :memory: is part of a file path:
+    - "file:///path/:memory:" - treated as a file path, not memory database
+    - "/path/to/:memory:" - treated as a file path, not memory database
+    
+    Per SQLite documentation, :memory: must be the entire path component for
+    URI-style databases, not embedded within a longer path.
+
     Parameters:
         path (str | None): Optional database path or URI to evaluate.
         If omitted, the configured DATABASE_PATH is used.
@@ -113,6 +125,7 @@ def _is_memory_db(path: str | None = None) -> bool:
         return True
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
+    # The :memory: token must be the entire path component (not part of a longer path).
     parsed = urlparse(target)
     if parsed.scheme == "file" and (
         parsed.path == ":memory:" or ":memory:" in parsed.query

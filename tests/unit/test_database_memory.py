@@ -126,14 +126,23 @@ class TestIsMemoryDb:
     def test_is_memory_db_with_file_uri_memory(
         self, monkeypatch, restore_database_module
     ):
-        """Test that _is_memory_db returns True for file::memory: URI format."""
-        # Test file::memory: pattern
+        """Test that _is_memory_db returns True for valid file::memory: URI formats.
+        
+        Valid SQLite in-memory URI patterns use file::memory: where :memory:
+        is the path component itself, not part of a longer file path.
+        """
+        # Test file::memory: pattern - valid memory DB URI
         assert database._is_memory_db("file::memory:") is True
 
-        # Test file::memory:?cache=shared pattern
+        # Test file::memory:?cache=shared pattern - valid shared memory DB URI
         assert database._is_memory_db("file::memory:?cache=shared") is True
 
-        # Test file:///path/to/:memory: pattern — this is not treated as a memory DB by _is_memory_db
+        # Test file:///path/:memory: pattern - NOT a valid memory DB URI
+        # This represents a file path "/path/:memory:" where :memory: is part
+        # of the path name, not the database identifier. Should be treated as
+        # a regular file path, not an in-memory database.
+        # Per SQLite docs, in-memory databases use :memory: as the entire path,
+        # not as part of a directory or file name.
         assert database._is_memory_db("file:///path/:memory:") is False
 
     def test_is_memory_db_with_regular_file_path(
