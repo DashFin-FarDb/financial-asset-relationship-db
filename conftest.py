@@ -32,7 +32,6 @@ def pytest_load_initial_conftests(
     """
     Remove pytest-cov related command-line options from the provided
     argument list when the pytest-cov plugin is not available.
-    with their following parameters.
     Also remove any inline forms starting with --cov= or --cov-report=.
     The original `args` list is updated in-place.
 
