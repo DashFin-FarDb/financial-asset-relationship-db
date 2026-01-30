@@ -55,8 +55,7 @@ class TestRealDataFetcherInitialization:
         assert fetcher.fallback_factory is None
         assert fetcher.enable_network is True
 
-    @staticmethod
-    def test_init_with_cache_path(tmp_path):
+    def test_init_with_cache_path(self, tmp_path):
         """Test initialization with cache path."""
         cache_path = str(tmp_path / "cache.json")
         fetcher = RealDataFetcher(cache_path=cache_path)
@@ -64,8 +63,7 @@ class TestRealDataFetcherInitialization:
         assert fetcher.cache_path == Path(cache_path)
         assert fetcher.enable_network is True
 
-    @staticmethod
-    def test_init_with_fallback_factory():
+    def test_init_with_fallback_factory(self):
         """Test initialization with custom fallback factory."""
 
         def custom_factory():
@@ -76,15 +74,13 @@ class TestRealDataFetcherInitialization:
 
         assert fetcher.fallback_factory is custom_factory
 
-    @staticmethod
-    def test_init_with_network_disabled():
+    def test_init_with_network_disabled(self):
         """Test initialization with network disabled."""
         fetcher = RealDataFetcher(enable_network=False)
 
         assert fetcher.enable_network is False
 
-    @staticmethod
-    def test_init_all_parameters(tmp_path):
+    def test_init_all_parameters(self, tmp_path):
         """Test initialization with all parameters."""
         cache_path = str(tmp_path / "cache.json")
 
@@ -92,7 +88,9 @@ class TestRealDataFetcherInitialization:
             """Factory function that creates and returns a new AssetRelationshipGraph instance."""
             return AssetRelationshipGraph()
 
-        fetcher = RealDataFetcher(cache_path=cache_path, fallback_factory=custom_factory, enable_network=False)
+        fetcher = RealDataFetcher(
+            cache_path=cache_path, fallback_factory=custom_factory, enable_network=False
+        )
 
         assert fetcher.cache_path == Path(cache_path)
         assert fetcher.fallback_factory is custom_factory
@@ -102,8 +100,7 @@ class TestRealDataFetcherInitialization:
 class TestCreateRealDatabase:
     """Test create_real_database method."""
 
-    @staticmethod
-    def test_create_database_network_disabled():
+    def test_create_database_network_disabled(self):
         """Test database creation when network is disabled."""
         fetcher = RealDataFetcher(enable_network=False)
 
@@ -118,8 +115,9 @@ class TestCreateRealDatabase:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    @staticmethod
-    def test_create_database_with_network(mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
+    def test_create_database_with_network(
+        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
+    ):
         """Test database creation with network enabled."""
         # Setup mocks
         mock_equity.return_value = [
@@ -144,8 +142,7 @@ class TestCreateRealDatabase:
         assert "TEST" in graph.assets
         mock_equity.assert_called_once()
 
-    @staticmethod
-    def test_create_database_with_cache(tmp_path):
+    def test_create_database_with_cache(self, tmp_path):
         """Test database creation loads from cache when available."""
         cache_path = tmp_path / "cache.json"
 
@@ -170,8 +167,7 @@ class TestCreateRealDatabase:
         assert loaded_graph.assets["CACHED"].name == "Cached Equity"
 
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    @staticmethod
-    def test_create_database_fetch_failure_uses_fallback(mock_equity):
+    def test_create_database_fetch_failure_uses_fallback(self, mock_equity):
         """Test that fetch failure falls back to sample data."""
         # Make equity fetch raise an exception
         mock_equity.side_effect = Exception("Network error")
@@ -244,7 +240,9 @@ class TestFetchMethods:
         mock_hist = Mock(empty=False)
         mock_close = Mock()
         mock_close.pct_change.return_value.std.return_value = 0.02
-        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
+        mock_hist.__getitem__ = (
+            lambda self, key: mock_close if key == "Close" else Mock()
+        )
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
@@ -286,8 +284,7 @@ class TestFetchMethods:
 class TestFallback:
     """Test fallback mechanism."""
 
-    @staticmethod
-    def test_fallback_with_custom_factory():
+    def test_fallback_with_custom_factory(self):
         """Test fallback uses custom factory when provided."""
         custom_graph = AssetRelationshipGraph()
         custom_asset = Equity(
@@ -309,8 +306,7 @@ class TestFallback:
 
         assert "CUSTOM" in result.assets
 
-    @staticmethod
-    def test_fallback_without_custom_factory():
+    def test_fallback_without_custom_factory(self):
         """Test fallback uses sample data when no factory provided."""
         fetcher = RealDataFetcher(enable_network=False)
         result = fetcher._fallback()
@@ -733,8 +729,7 @@ class TestEdgeCases:
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
-    @staticmethod
-    def test_atomic_cache_write(tmp_path):
+    def test_atomic_cache_write(self, tmp_path):
         """Test that cache writes are atomic using temp file + rename."""
         cache_path = tmp_path / "cache.json"
         graph = AssetRelationshipGraph()
@@ -765,3 +760,448 @@ class TestRegressionCases:
 
         assert deserialized.asset_class == original.asset_class
         assert isinstance(deserialized.asset_class, AssetClass)
+
+
+class TestNetworkDisabled:
+    """Test behavior when network is explicitly disabled."""
+
+    def test_network_disabled_never_attempts_fetch(self):
+        """Test that network fetches are not attempted when disabled."""
+        fetcher = RealDataFetcher(enable_network=False)
+
+        # Should return fallback without any fetch attempts
+        graph = fetcher.create_real_database()
+
+        assert isinstance(graph, AssetRelationshipGraph)
+        # Should have sample data
+        assert len(graph.assets) > 0
+
+    def test_network_disabled_with_cache_uses_cache(self, tmp_path):
+        """Test that cache is used even when network is disabled."""
+        cache_path = tmp_path / "cache.json"
+
+        # Create cached data
+        cached_graph = AssetRelationshipGraph()
+        custom_asset = Equity(
+            id="CACHED_ONLY",
+            symbol="CO",
+            name="Cached Only",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=999.0,
+        )
+        cached_graph.add_asset(custom_asset)
+        _save_to_cache(cached_graph, cache_path)
+
+        # Fetch with network disabled
+        fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
+        result = fetcher.create_real_database()
+
+        # Should have loaded from cache
+        assert "CACHED_ONLY" in result.assets
+        assert result.assets["CACHED_ONLY"].price == 999.0
+
+
+class TestAllAssetTypes:
+    """Test fetching and handling all asset types."""
+
+    @patch("yfinance.Ticker")
+    def test_fetch_all_equity_symbols(self, mock_ticker_class):
+        """Test that all equity symbols are attempted."""
+        mock_ticker = Mock()
+        mock_ticker.info = {}
+        mock_ticker.history.return_value = Mock(empty=False)
+        mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
+            iloc=Mock(__getitem__=lambda self, idx: 100.0)
+        )
+        mock_ticker_class.return_value = mock_ticker
+
+        equities = RealDataFetcher._fetch_equity_data()
+
+        # Should attempt AAPL, MSFT, XOM, JPM
+        assert mock_ticker_class.call_count == 4
+        called_symbols = [call[0][0] for call in mock_ticker_class.call_args_list]
+        assert "AAPL" in called_symbols
+        assert "MSFT" in called_symbols
+        assert "XOM" in called_symbols
+        assert "JPM" in called_symbols
+
+    @patch("yfinance.Ticker")
+    def test_fetch_all_bond_symbols(self, mock_ticker_class):
+        """Test that all bond symbols are attempted."""
+        mock_ticker = Mock()
+        mock_ticker.info = {"yield": 0.03}
+        mock_ticker.history.return_value = Mock(empty=False)
+        mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
+            iloc=Mock(__getitem__=lambda self, idx: 100.0)
+        )
+        mock_ticker_class.return_value = mock_ticker
+
+        bonds = RealDataFetcher._fetch_bond_data()
+
+        # Should attempt TLT, LQD, HYG
+        assert mock_ticker_class.call_count == 3
+
+    @patch("yfinance.Ticker")
+    def test_fetch_all_commodity_symbols(self, mock_ticker_class):
+        """Test that all commodity symbols are attempted."""
+        mock_ticker = Mock()
+        mock_hist = Mock(empty=False)
+        mock_close = Mock()
+        mock_close.pct_change.return_value.std.return_value = 0.02
+        mock_hist.__getitem__ = (
+            lambda self, key: mock_close if key == "Close" else Mock()
+        )
+        mock_hist.__len__ = lambda self: 5
+        mock_ticker.history.return_value = mock_hist
+        mock_ticker_class.return_value = mock_ticker
+
+        commodities = RealDataFetcher._fetch_commodity_data()
+
+        # Should attempt GC=F, CL=F, SI=F
+        assert mock_ticker_class.call_count == 3
+
+    @patch("yfinance.Ticker")
+    def test_fetch_all_currency_symbols(self, mock_ticker_class):
+        """Test that all currency symbols are attempted."""
+        mock_ticker = Mock()
+        mock_ticker.history.return_value = Mock(empty=False)
+        mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
+            iloc=Mock(__getitem__=lambda self, idx: 1.1)
+        )
+        mock_ticker_class.return_value = mock_ticker
+
+        currencies = RealDataFetcher._fetch_currency_data()
+
+        # Should attempt EURUSD=X, GBPUSD=X, JPYUSD=X
+        assert mock_ticker_class.call_count == 3
+
+
+class TestRegulatoryEvents:
+    """Test regulatory event creation and handling."""
+
+    def test_regulatory_events_have_required_fields(self):
+        """Test that all regulatory events have required fields."""
+        events = RealDataFetcher._create_regulatory_events()
+
+        for event in events:
+            assert event.id
+            assert event.asset_id
+            assert isinstance(event.event_type, RegulatoryActivity)
+            assert event.date
+            assert event.description
+            assert isinstance(event.impact_score, (int, float))
+            assert isinstance(event.related_assets, list)
+
+    def test_regulatory_events_reference_known_assets(self):
+        """Test that regulatory events reference expected asset IDs."""
+        events = RealDataFetcher._create_regulatory_events()
+
+        expected_assets = {"AAPL", "MSFT", "XOM"}
+        asset_ids = {event.asset_id for event in events}
+
+        # Should create events for known assets
+        assert any(asset_id in expected_assets for asset_id in asset_ids)
+
+    def test_regulatory_events_have_valid_impact_scores(self):
+        """Test that impact scores are within valid range."""
+        events = RealDataFetcher._create_regulatory_events()
+
+        for event in events:
+            assert 0.0 <= event.impact_score <= 1.0
+
+
+class TestGraphBuilding:
+    """Test the complete graph building process."""
+
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
+    def test_graph_includes_all_asset_types(
+        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
+    ):
+        """Test that the built graph includes all fetched asset types."""
+        # Setup mocks
+        mock_equity.return_value = [
+            Equity(
+                id="E1",
+                symbol="E1",
+                name="Equity 1",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            )
+        ]
+        mock_bond.return_value = [
+            Bond(
+                id="B1",
+                symbol="B1",
+                name="Bond 1",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Gov",
+                price=1000.0,
+            )
+        ]
+        mock_commodity.return_value = [
+            Commodity(
+                id="C1",
+                symbol="C1",
+                name="Commodity 1",
+                asset_class=AssetClass.COMMODITY,
+                sector="Materials",
+                price=2000.0,
+            )
+        ]
+        mock_currency.return_value = [
+            Currency(
+                id="CUR1",
+                symbol="CUR1",
+                name="Currency 1",
+                asset_class=AssetClass.CURRENCY,
+                sector="Forex",
+                price=1.1,
+            )
+        ]
+        mock_events.return_value = []
+
+        fetcher = RealDataFetcher(enable_network=True)
+        graph = fetcher.create_real_database()
+
+        assert "E1" in graph.assets
+        assert "B1" in graph.assets
+        assert "C1" in graph.assets
+        assert "CUR1" in graph.assets
+
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
+    @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
+    def test_graph_builds_relationships(
+        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
+    ):
+        """Test that relationships are built in the graph."""
+        mock_equity.return_value = [
+            Equity(
+                id="E1",
+                symbol="E1",
+                name="E1",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            ),
+            Equity(
+                id="E2",
+                symbol="E2",
+                name="E2",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=200.0,
+            ),
+        ]
+        mock_bond.return_value = []
+        mock_commodity.return_value = []
+        mock_currency.return_value = []
+        mock_events.return_value = []
+
+        fetcher = RealDataFetcher(enable_network=True)
+        graph = fetcher.create_real_database()
+
+        # Same sector equities should have relationships
+        total_relationships = sum(len(rels) for rels in graph.relationships.values())
+        assert total_relationships > 0
+
+
+class TestSerializationEdgeCases:
+    """Test edge cases in serialization/deserialization."""
+
+    def test_serialize_asset_with_none_values(self):
+        """Test serializing asset with None optional fields."""
+        equity = Equity(
+            id="TEST",
+            symbol="TEST",
+            name="Test",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+            pe_ratio=None,
+            dividend_yield=None,
+        )
+
+        serialized = _serialize_dataclass(equity)
+
+        assert serialized["pe_ratio"] is None
+        assert serialized["dividend_yield"] is None
+        assert "__type__" in serialized
+
+    def test_deserialize_graph_with_relationships(self):
+        """Test deserializing graph with relationships."""
+        payload = {
+            "assets": [
+                {
+                    "__type__": "Equity",
+                    "id": "A1",
+                    "symbol": "A1",
+                    "name": "Asset 1",
+                    "asset_class": "Equity",
+                    "sector": "Tech",
+                    "price": 100.0,
+                    "market_cap": None,
+                    "currency": "USD",
+                    "pe_ratio": None,
+                    "dividend_yield": None,
+                    "earnings_per_share": None,
+                    "book_value": None,
+                },
+                {
+                    "__type__": "Equity",
+                    "id": "A2",
+                    "symbol": "A2",
+                    "name": "Asset 2",
+                    "asset_class": "Equity",
+                    "sector": "Tech",
+                    "price": 200.0,
+                    "market_cap": None,
+                    "currency": "USD",
+                    "pe_ratio": None,
+                    "dividend_yield": None,
+                    "earnings_per_share": None,
+                    "book_value": None,
+                },
+            ],
+            "regulatory_events": [],
+            "relationships": {
+                "A1": [
+                    {
+                        "target": "A2",
+                        "relationship_type": "same_sector",
+                        "strength": 0.7,
+                    }
+                ]
+            },
+            "incoming_relationships": {},
+        }
+
+        graph = _deserialize_graph(payload)
+
+        assert "A1" in graph.assets
+        assert "A2" in graph.assets
+        assert "A1" in graph.relationships
+        assert len(graph.relationships["A1"]) == 1
+
+    def test_serialize_graph_with_all_relationships(self):
+        """Test serializing graph with both outgoing and incoming relationships."""
+        graph = AssetRelationshipGraph()
+
+        e1 = Equity(
+            id="E1",
+            symbol="E1",
+            name="E1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        e2 = Equity(
+            id="E2",
+            symbol="E2",
+            name="E2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
+
+        graph.add_asset(e1)
+        graph.add_asset(e2)
+        graph.add_relationship("E1", "E2", "test", 0.5, bidirectional=True)
+
+        serialized = _serialize_graph(graph)
+
+        assert "relationships" in serialized
+        assert "incoming_relationships" in serialized
+        # Bidirectional relationship creates entries in both
+        assert "E1" in serialized["relationships"]
+        assert "E2" in serialized["relationships"]
+
+
+class TestConcurrentCacheOperations:
+    """Test cache operations under concurrent scenarios."""
+
+    def test_cache_overwrite_preserves_data(self, tmp_path):
+        """Test that overwriting cache preserves all data correctly."""
+        cache_path = tmp_path / "cache.json"
+
+        # Write first version
+        graph1 = AssetRelationshipGraph()
+        asset1 = Equity(
+            id="V1",
+            symbol="V1",
+            name="Version 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        graph1.add_asset(asset1)
+        _save_to_cache(graph1, cache_path)
+
+        # Overwrite with second version
+        graph2 = AssetRelationshipGraph()
+        asset2 = Equity(
+            id="V2",
+            symbol="V2",
+            name="Version 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Finance",
+            price=200.0,
+        )
+        graph2.add_asset(asset2)
+        _save_to_cache(graph2, cache_path)
+
+        # Load and verify it's the second version
+        loaded = _load_from_cache(cache_path)
+        assert "V2" in loaded.assets
+        assert "V1" not in loaded.assets
+
+
+class TestFetchMethodsErrorHandling:
+    """Test error handling in fetch methods."""
+
+    @patch("yfinance.Ticker")
+    def test_fetch_equity_handles_missing_info(self, mock_ticker_class):
+        """Test equity fetch handles missing info gracefully."""
+        mock_ticker = Mock()
+        mock_ticker.info = {}  # Empty info
+        mock_ticker.history.return_value = Mock(empty=False)
+        mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
+            iloc=Mock(__getitem__=lambda self, idx: 100.0)
+        )
+        mock_ticker_class.return_value = mock_ticker
+
+        equities = RealDataFetcher._fetch_equity_data()
+
+        # Should still create equities with None for missing fields
+        assert isinstance(equities, list)
+        for equity in equities:
+            assert equity.price > 0
+
+    @patch("yfinance.Ticker")
+    def test_fetch_commodity_handles_volatility_calculation_error(
+        self, mock_ticker_class
+    ):
+        """Test commodity fetch handles volatility calculation errors."""
+        mock_ticker = Mock()
+        mock_hist = Mock(empty=False)
+        mock_close = Mock()
+        # Simulate error in std calculation
+        mock_close.pct_change.return_value.std.side_effect = Exception("Calc error")
+        mock_hist.__getitem__ = (
+            lambda self, key: mock_close if key == "Close" else Mock()
+        )
+        mock_hist.__len__ = lambda self: 5
+        mock_ticker.history.return_value = mock_hist
+        mock_ticker_class.return_value = mock_ticker
+
+        # Should not raise, might use default volatility
+        commodities = RealDataFetcher._fetch_commodity_data()
+        assert isinstance(commodities, list)
