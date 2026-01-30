@@ -983,21 +983,21 @@ class TestNegativeCases:
     @staticmethod
     def test_analyze_graph_with_zero_price_asset():
         """Test handling asset with zero price."""
-        # Try to create asset with zero price - should be rejected by validation
+        # Asset with zero price should be rejected by validation
         with pytest.raises(ValueError):
-            equity = Equity(
+            Equity(
                 id="ZERO",
                 symbol="ZERO",
                 name="Zero Price",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
                 price=0.0,
-                    # Asset with zero price should be allowed by validation
-                    Equity(
-    @ staticmethod
+            )
+
+    @staticmethod
     def test_analyze_graph_with_negative_price():
         """Test handling asset with negative price."""
-        # Should be rejected by Asset validation
+        # Asset with negative price should be rejected by validation
         with pytest.raises(ValueError):
             Equity(
                 id="NEG",
@@ -1007,7 +1007,6 @@ class TestNegativeCases:
                 sector="Technology",
                 price=-100.0,
             )
-
 
 class TestBoundaryConditions:
     """Test boundary conditions and extreme values."""
