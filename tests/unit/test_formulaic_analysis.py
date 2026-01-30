@@ -983,7 +983,6 @@ class TestNegativeCases:
     @staticmethod
     def test_analyze_graph_with_zero_price_asset():
         """Test handling asset with zero price."""
-        # Asset with zero price should be rejected by validation
         with pytest.raises(ValueError):
             Equity(
                 id="ZERO",
@@ -996,8 +995,6 @@ class TestNegativeCases:
 
     @staticmethod
     def test_analyze_graph_with_negative_price():
-        """Test handling asset with negative price."""
-        # Asset with negative price should be rejected by validation
         with pytest.raises(ValueError):
             Equity(
                 id="NEG",
