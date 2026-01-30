@@ -1044,6 +1044,7 @@ class TestAssetTypeConversions:
         assert getattr(retrieved, "coupon_rate", None) is None
 
 
+@pytest.mark.slow
 class TestPerformance:
     """Test performance with large datasets."""
 
