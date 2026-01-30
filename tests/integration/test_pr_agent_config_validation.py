@@ -258,6 +258,7 @@ class TestPRAgentConfigYAMLValidity:
         for line in lines:
             if ":" in line and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
+                # Only consider top-level keys; skip any indented (nested) mappings.
                 if indent != 0:
                     continue
                 key = line.split(":")[0].strip()
