@@ -256,14 +256,14 @@ class TestPRAgentConfigYAMLValidity:
         lines = content.split("\n")
         seen_keys = set()
         for line in lines:
-              if ":" in line and not line.strip().startswith("#"):
-                    indent = len(line) - len(line.lstrip())
-                    if indent != 0:
-                        continue
-                    key = line.split(":")[0].strip()
-                    if key in seen_keys:
-                        pytest.fail(f"Duplicate key found: {key}")
-                    seen_keys.add(key)
+            if ":" in line and not line.strip().startswith("#"):
+                indent = len(line) - len(line.lstrip())
+                if indent != 0:
+                    continue
+                key = line.split(":")[0].strip()
+                if key in seen_keys:
+                    pytest.fail(f"Duplicate key found: {key}")
+                seen_keys.add(key)
 
     @staticmethod
     def test_consistent_indentation():
@@ -280,9 +280,7 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
+                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
@@ -349,9 +347,7 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {value}" for kind, value in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
     # ------------------------------------------------------------------
 
@@ -391,9 +387,7 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(p in key_lower for p in sensitive_patterns):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
 
                     scan_for_secrets(v, new_path)
 
