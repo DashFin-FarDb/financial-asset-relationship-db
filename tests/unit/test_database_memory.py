@@ -14,7 +14,6 @@ import api.database as database
 pytestmark = pytest.mark.unit
 
 
-
 @pytest.fixture()
 def restore_database_module(monkeypatch) -> Iterator[None]:
     """

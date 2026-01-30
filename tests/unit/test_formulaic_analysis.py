@@ -29,6 +29,7 @@ from src.models.financial_models import (
 
 pytestmark = pytest.mark.unit
 
+
 class TestFormula:
     """Test the Formula dataclass."""
 
