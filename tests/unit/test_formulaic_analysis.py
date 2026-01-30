@@ -83,7 +83,8 @@ class TestFormulaicAnalyzerInitialization:
 class TestAnalyzeGraph:
     """Test the main analyze_graph method."""
 
-    def test_analyze_empty_graph(self):
+    @staticmethod
+    def test_analyze_empty_graph():
         """Test analyzing an empty graph."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -99,7 +100,8 @@ class TestAnalyzeGraph:
         assert isinstance(result["empirical_relationships"], dict)
         assert result["formula_count"] == len(result["formulas"])
 
-    def test_analyze_graph_with_equities(self):
+    @staticmethod
+    def test_analyze_graph_with_equities():
         """Test analyzing a graph with equity assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -126,7 +128,8 @@ class TestAnalyzeGraph:
         assert any("Price-to-Earnings" in name for name in formula_names)
         assert any("Market Capitalization" in name for name in formula_names)
 
-    def test_analyze_graph_with_bonds(self):
+    @staticmethod
+    def test_analyze_graph_with_bonds():
         """Test analyzing a graph with bond assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -150,7 +153,8 @@ class TestAnalyzeGraph:
         # Should include bond-related formulas
         assert any("Yield-to-Maturity" in name for name in formula_names)
 
-    def test_analyze_graph_with_commodities(self):
+    @staticmethod
+    def test_analyze_graph_with_commodities():
         """Test analyzing a graph with commodity assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -169,7 +173,8 @@ class TestAnalyzeGraph:
 
         assert result["formula_count"] > 0
 
-    def test_analyze_graph_with_currencies(self):
+    @staticmethod
+    def test_analyze_graph_with_currencies():
         """Test analyzing a graph with currency assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -193,7 +198,8 @@ class TestAnalyzeGraph:
         # Should include currency-related formulas
         assert any("Exchange Rate" in name for name in formula_names)
 
-    def test_analyze_graph_formula_count_matches(self):
+    @staticmethod
+    def test_analyze_graph_formula_count_matches():
         """Test that formula_count matches the length of formulas list."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -216,7 +222,8 @@ class TestAnalyzeGraph:
 class TestExtractFundamentalFormulas:
     """Test _extract_fundamental_formulas method."""
 
-    def test_extract_with_no_assets(self):
+    @staticmethod
+    def test_extract_with_no_assets():
         """Test extracting formulas from empty graph."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -226,7 +233,8 @@ class TestExtractFundamentalFormulas:
         # Should return correlation and risk formulas even without assets
         assert isinstance(formulas, list)
 
-    def test_extract_with_equity(self):
+    @staticmethod
+    def test_extract_with_equity():
         """Test extracting formulas with equity assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -248,7 +256,8 @@ class TestExtractFundamentalFormulas:
         assert "Price-to-Earnings Ratio" in formula_names
         assert "Market Capitalization" in formula_names
 
-    def test_extract_with_dividend_stock(self):
+    @staticmethod
+    def test_extract_with_dividend_stock():
         """Test extracting dividend yield formula."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -269,7 +278,8 @@ class TestExtractFundamentalFormulas:
         formula_names = [f.name for f in formulas]
         assert "Dividend Yield" in formula_names
 
-    def test_extract_with_bond(self):
+    @staticmethod
+    def test_extract_with_bond():
         """Test extracting bond formulas."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -289,7 +299,8 @@ class TestExtractFundamentalFormulas:
         formula_names = [f.name for f in formulas]
         assert any("Yield-to-Maturity" in name for name in formula_names)
 
-    def test_formula_has_required_fields(self):
+    @staticmethod
+    def test_formula_has_required_fields():
         """Test that extracted formulas have all required fields."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -613,7 +624,8 @@ class TestHelperMethods:
         assert isinstance(result, dict)
         assert len(result) == 0
 
-    def test_calculate_avg_correlation_strength(self):
+    @staticmethod
+    def test_calculate_avg_correlation_strength():
         """Test _calculate_avg_correlation_strength calculation."""
         graph = AssetRelationshipGraph()
 
@@ -622,7 +634,8 @@ class TestHelperMethods:
         assert isinstance(strength, float)
         assert 0 <= strength <= 1
 
-    def test_calculate_avg_correlation_strength_with_relationships(self):
+    @staticmethod
+    def test_calculate_avg_correlation_strength_with_relationships():
         """Test correlation strength with relationships."""
         graph = AssetRelationshipGraph()
 
@@ -649,7 +662,8 @@ class TestHelperMethods:
         strength = FormulaicAnalyzer._calculate_avg_correlation_strength(graph)
         assert isinstance(strength, float)
 
-    def test_categorize_formulas(self):
+    @staticmethod
+    def test_categorize_formulas():
         """Test _categorize_formulas method."""
         analyzer = FormulaicAnalyzer()
 
@@ -688,7 +702,8 @@ class TestHelperMethods:
         assert categories["Valuation"] == 2
         assert categories["Risk Management"] == 1
 
-    def test_generate_formula_summary(self):
+    @staticmethod
+    def test_generate_formula_summary():
         """Test _generate_formula_summary method."""
         analyzer = FormulaicAnalyzer()
 
@@ -716,7 +731,8 @@ class TestHelperMethods:
         assert summary["total_formulas"] == 1
         assert summary["avg_r_squared"] == 0.9
 
-    def test_generate_formula_summary_empty(self):
+    @staticmethod
+    def test_generate_formula_summary_empty():
         """Test summary generation with no formulas."""
         analyzer = FormulaicAnalyzer()
 
@@ -725,7 +741,8 @@ class TestHelperMethods:
         assert summary["total_formulas"] == 0
         assert summary["avg_r_squared"] == 0
 
-    def test_calculate_avg_correlation_strength_from_empirical(self):
+    @staticmethod
+    def test_calculate_avg_correlation_strength_from_empirical():
         """Test _calculate_avg_correlation_strength_from_empirical."""
         # Empty empirical data
         result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
@@ -966,7 +983,6 @@ class TestNegativeCases:
     @staticmethod
     def test_analyze_graph_with_zero_price_asset():
         """Test handling asset with zero price."""
-
         # Try to create asset with zero price - should be rejected by validation
         with pytest.raises(ValueError):
             equity = Equity(
@@ -978,9 +994,9 @@ class TestNegativeCases:
                 price=0.0,
             )
 
-    def test_analyze_graph_with_negative_price(self):
+    @staticmethod
+    def test_analyze_graph_with_negative_price():
         """Test handling asset with negative price."""
-
         # Should be rejected by Asset validation
         with pytest.raises(ValueError):
             Equity(
@@ -1105,7 +1121,6 @@ class TestIntegrationScenarios:
             yield_to_maturity=0.03,
         )
         commodity = Commodity(
-            id="GOLD",
             symbol="GC",
             name="Gold",
             asset_class=AssetClass.COMMODITY,
@@ -1135,7 +1150,8 @@ class TestIntegrationScenarios:
         assert "Risk Management" in categories
         assert "Portfolio Theory" in categories
 
-    def test_sector_correlation_analysis(self):
+    @staticmethod
+    def test_sector_correlation_analysis():
         """Test correlation analysis for same-sector assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()

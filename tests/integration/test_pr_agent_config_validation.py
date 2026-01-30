@@ -336,13 +336,12 @@ class TestPRAgentConfigSecurity:
 
     @staticmethod
     def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
-        """
-        Recursively scan configuration values for suspected secrets.
-        """
+        """Recursively scan configuration values for suspected secrets."""
         suspected = []
         TestPRAgentConfigSecurity.scan(pr_agent_config, suspected)
 
         def _redact(value: str) -> str:
+            """Redact a string by obscuring all but the first and last four characters."""
             if len(value) <= 8:
                 return "***"
             return f"{value[:4]}...{value[-4:]}"
@@ -360,6 +359,11 @@ class TestPRAgentConfigSecurity:
     # ------------------------------------------------------------------
 
     @staticmethod
+    """
+    This module provides tests to validate PR agent configurations by scanning for hardcoded secrets
+    and ensuring only safe placeholders or templated values are used for sensitive keys.
+    """
+
     def test_no_hardcoded_secrets(pr_agent_config):
         """
         Ensure sensitive keys only use safe placeholders or templated values.
@@ -378,6 +382,9 @@ class TestPRAgentConfigSecurity:
         templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
         def is_allowed_placeholder(v) -> bool:
+            """
+            Determine if a value v is an allowed placeholder or templated variable.
+            """
             if v is None:
                 return True
             if isinstance(v, str):
@@ -389,6 +396,9 @@ class TestPRAgentConfigSecurity:
             return False
 
         def scan_for_secrets(node, path="root"):
+            """
+            Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
+            """
             if isinstance(node, dict):
                 for k, v in node.items():
                     key_lower = str(k).lower()
@@ -411,9 +421,7 @@ class TestPRAgentConfigSecurity:
 
     @staticmethod
     def test_safe_configuration_values(pr_agent_config):
-        """
-        Assert numeric configuration limits fall within safe bounds.
-        """
+        """Assert numeric configuration limits fall within safe bounds."""
         limits = pr_agent_config["limits"]
 
         assert limits["max_execution_time"] <= 3600

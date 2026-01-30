@@ -55,7 +55,8 @@ class TestRealDataFetcherInitialization:
         assert fetcher.fallback_factory is None
         assert fetcher.enable_network is True
 
-    def test_init_with_cache_path(self, tmp_path):
+    @staticmethod
+    def test_init_with_cache_path(tmp_path):
         """Test initialization with cache path."""
         cache_path = str(tmp_path / "cache.json")
         fetcher = RealDataFetcher(cache_path=cache_path)
@@ -63,7 +64,8 @@ class TestRealDataFetcherInitialization:
         assert fetcher.cache_path == Path(cache_path)
         assert fetcher.enable_network is True
 
-    def test_init_with_fallback_factory(self):
+    @staticmethod
+    def test_init_with_fallback_factory():
         """Test initialization with custom fallback factory."""
 
         def custom_factory():
@@ -74,13 +76,15 @@ class TestRealDataFetcherInitialization:
 
         assert fetcher.fallback_factory is custom_factory
 
-    def test_init_with_network_disabled(self):
+    @staticmethod
+    def test_init_with_network_disabled():
         """Test initialization with network disabled."""
         fetcher = RealDataFetcher(enable_network=False)
 
         assert fetcher.enable_network is False
 
-    def test_init_all_parameters(self, tmp_path):
+    @staticmethod
+    def test_init_all_parameters(tmp_path):
         """Test initialization with all parameters."""
         cache_path = str(tmp_path / "cache.json")
 
@@ -100,7 +104,8 @@ class TestRealDataFetcherInitialization:
 class TestCreateRealDatabase:
     """Test create_real_database method."""
 
-    def test_create_database_network_disabled(self):
+    @staticmethod
+    def test_create_database_network_disabled():
         """Test database creation when network is disabled."""
         fetcher = RealDataFetcher(enable_network=False)
 
@@ -110,13 +115,14 @@ class TestCreateRealDatabase:
         # Should use fallback data
         assert len(graph.assets) > 0
 
+    @staticmethod
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_bond_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
     def test_create_database_with_network(
-        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
+        mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
     ):
         """Test database creation with network enabled."""
         # Setup mocks
@@ -142,7 +148,8 @@ class TestCreateRealDatabase:
         assert "TEST" in graph.assets
         mock_equity.assert_called_once()
 
-    def test_create_database_with_cache(self, tmp_path):
+    @staticmethod
+    def test_create_database_with_cache(tmp_path):
         """Test database creation loads from cache when available."""
         cache_path = tmp_path / "cache.json"
 
@@ -166,8 +173,9 @@ class TestCreateRealDatabase:
         assert "CACHED" in loaded_graph.assets
         assert loaded_graph.assets["CACHED"].name == "Cached Equity"
 
+    @staticmethod
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_create_database_fetch_failure_uses_fallback(self, mock_equity):
+    def test_create_database_fetch_failure_uses_fallback(mock_equity):
         """Test that fetch failure falls back to sample data."""
         # Make equity fetch raise an exception
         mock_equity.side_effect = Exception("Network error")
@@ -284,7 +292,8 @@ class TestFetchMethods:
 class TestFallback:
     """Test fallback mechanism."""
 
-    def test_fallback_with_custom_factory(self):
+    @staticmethod
+    def test_fallback_with_custom_factory():
         """Test fallback uses custom factory when provided."""
         custom_graph = AssetRelationshipGraph()
         custom_asset = Equity(
@@ -306,7 +315,8 @@ class TestFallback:
 
         assert "CUSTOM" in result.assets
 
-    def test_fallback_without_custom_factory(self):
+    @staticmethod
+    def test_fallback_without_custom_factory():
         """Test fallback uses sample data when no factory provided."""
         fetcher = RealDataFetcher(enable_network=False)
         result = fetcher._fallback()
@@ -729,7 +739,8 @@ class TestEdgeCases:
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
-    def test_cache_roundtrip(self, tmp_path):
+    @staticmethod
+    def test_cache_roundtrip(tmp_path):
         """Test that a saved graph can be loaded back correctly."""
         cache_path = tmp_path / "cache.json"
         graph = AssetRelationshipGraph()
@@ -765,7 +776,8 @@ class TestRegressionCases:
 class TestNetworkDisabled:
     """Test behavior when network is explicitly disabled."""
 
-    def test_network_disabled_never_attempts_fetch(self):
+    @staticmethod
+    def test_network_disabled_never_attempts_fetch():
         """Test that network fetches are not attempted when disabled."""
         fetcher = RealDataFetcher(enable_network=False)
 
@@ -776,7 +788,8 @@ class TestNetworkDisabled:
         # Should have sample data
         assert len(graph.assets) > 0
 
-    def test_network_disabled_with_cache_uses_cache(self, tmp_path):
+    @staticmethod
+    def test_network_disabled_with_cache_uses_cache(tmp_path):
         """Test that cache is used even when network is disabled."""
         cache_path = tmp_path / "cache.json"
 
@@ -816,7 +829,7 @@ class TestAllAssetTypes:
         )
         mock_ticker_class.return_value = mock_ticker
 
-        equities = RealDataFetcher._fetch_equity_data()
+        RealDataFetcher._fetch_equity_data()
 
         # Should attempt AAPL, MSFT, XOM, JPM
         assert mock_ticker_class.call_count == 4
@@ -837,7 +850,7 @@ class TestAllAssetTypes:
         )
         mock_ticker_class.return_value = mock_ticker
 
-        bonds = RealDataFetcher._fetch_bond_data()
+        RealDataFetcher._fetch_bond_data()
 
         # Should attempt TLT, LQD, HYG
         assert mock_ticker_class.call_count == 3
@@ -856,7 +869,7 @@ class TestAllAssetTypes:
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
 
-        commodities = RealDataFetcher._fetch_commodity_data()
+        RealDataFetcher._fetch_commodity_data()
 
         # Should attempt GC=F, CL=F, SI=F
         assert mock_ticker_class.call_count == 3
@@ -871,7 +884,7 @@ class TestAllAssetTypes:
         )
         mock_ticker_class.return_value = mock_ticker
 
-        currencies = RealDataFetcher._fetch_currency_data()
+        _ = RealDataFetcher._fetch_currency_data()
 
         # Should attempt EURUSD=X, GBPUSD=X, JPYUSD=X
         assert mock_ticker_class.call_count == 3
@@ -880,7 +893,8 @@ class TestAllAssetTypes:
 class TestRegulatoryEvents:
     """Test regulatory event creation and handling."""
 
-    def test_regulatory_events_have_required_fields(self):
+    @staticmethod
+    def test_regulatory_events_have_required_fields():
         """Test that all regulatory events have required fields."""
         events = RealDataFetcher._create_regulatory_events()
 
@@ -893,7 +907,8 @@ class TestRegulatoryEvents:
             assert isinstance(event.impact_score, (int, float))
             assert isinstance(event.related_assets, list)
 
-    def test_regulatory_events_reference_known_assets(self):
+    @staticmethod
+    def test_regulatory_events_reference_known_assets():
         """Test that regulatory events reference expected asset IDs."""
         events = RealDataFetcher._create_regulatory_events()
 
@@ -903,7 +918,8 @@ class TestRegulatoryEvents:
         # Should create events for known assets
         assert any(asset_id in expected_assets for asset_id in asset_ids)
 
-    def test_regulatory_events_have_valid_impact_scores(self):
+    @staticmethod
+    def test_regulatory_events_have_valid_impact_scores():
         """Test that impact scores are within valid range."""
         events = RealDataFetcher._create_regulatory_events()
 
@@ -1017,7 +1033,8 @@ class TestGraphBuilding:
 class TestSerializationEdgeCases:
     """Test edge cases in serialization/deserialization."""
 
-    def test_serialize_asset_with_none_values(self):
+    @staticmethod
+    def test_serialize_asset_with_none_values():
         """Test serializing asset with None optional fields."""
         equity = Equity(
             id="TEST",
@@ -1036,7 +1053,8 @@ class TestSerializationEdgeCases:
         assert serialized["dividend_yield"] is None
         assert "__type__" in serialized
 
-    def test_deserialize_graph_with_relationships(self):
+    @staticmethod
+    def test_deserialize_graph_with_relationships():
         """Test deserializing graph with relationships."""
         payload = {
             "assets": [
@@ -1091,7 +1109,8 @@ class TestSerializationEdgeCases:
         assert "A1" in graph.relationships
         assert len(graph.relationships["A1"]) == 1
 
-    def test_serialize_graph_with_all_relationships(self):
+    @staticmethod
+    def test_serialize_graph_with_all_relationships():
         """Test serializing graph with both outgoing and incoming relationships."""
         graph = AssetRelationshipGraph()
 
@@ -1128,7 +1147,8 @@ class TestSerializationEdgeCases:
 class TestConcurrentCacheOperations:
     """Test cache operations under concurrent scenarios."""
 
-    def test_cache_overwrite_preserves_data(self, tmp_path):
+    @staticmethod
+    def test_cache_overwrite_preserves_data(tmp_path):
         """Test that overwriting cache preserves all data correctly."""
         cache_path = tmp_path / "cache.json"
 
