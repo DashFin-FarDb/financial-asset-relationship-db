@@ -1072,7 +1072,6 @@ class TestBoundaryConditions:
 
     def test_correlation_strength_bounds(self):
         """Test correlation strength calculation stays within bounds."""
-        FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
 
         # Add many assets and relationships
