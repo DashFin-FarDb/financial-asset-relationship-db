@@ -252,7 +252,6 @@ class TestPRAgentConfigSecurity:
             "bearer ",
         )
 
-        def contains_inline_creds(s):
             return bool(inline_creds_re.search(s))
 
         def has_secret_marker(s):
