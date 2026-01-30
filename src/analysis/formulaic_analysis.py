@@ -460,13 +460,4 @@ class FormulaicAnalyzer:
                 if valid_correlations
                 else 0.5
             )
-            """Calculate average correlation strength from empirical data"""
-            correlations = empirical_relationships.get("correlation_matrix", {})
-            if correlations:
-                valid_correlations = [
-                    abs(v)
-                    for v in correlations.values()
-                    if isinstance(v, (int, float)) and abs(v) < 1.0
-                ]
-                if valid_correlations:
-                    return sum(valid_correlations) / len(valid_correlations)
+        return 0.5
