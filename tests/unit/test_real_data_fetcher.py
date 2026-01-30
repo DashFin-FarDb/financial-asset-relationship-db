@@ -32,8 +32,8 @@ from src.data.real_data_fetcher import (
 )
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
-    AssetClass,
     Asset,
+    AssetClass,
     Bond,
     Commodity,
     Currency,
@@ -309,6 +309,7 @@ class TestFallback:
             sector="Custom",
             price=99.0,
         )
+
     @staticmethod
     def test_fallback_with_custom_factory():
         """Test fallback uses custom factory when provided."""
