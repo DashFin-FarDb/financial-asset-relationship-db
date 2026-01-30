@@ -983,7 +983,7 @@ class TestNegativeCases:
 
         # Should be rejected by Asset validation
         with pytest.raises(ValueError):
-            equity = Equity(
+            Equity(
                 id="NEG",
                 symbol="NEG",
                 name="Negative Price",
