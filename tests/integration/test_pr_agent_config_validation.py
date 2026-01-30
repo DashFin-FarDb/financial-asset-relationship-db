@@ -289,7 +289,7 @@ class TestPRAgentConfigSecurity:
             entropy = sum(-(freq := s.count(ch) / len(s)) * math.log2(freq) for ch in set(s))
             return entropy > threshold and len(s) > 20
 
-        violations = []
+        # (removed unused variable)
 
         for value in _iter_string_values(pr_agent_config):
             stripped = value.strip()
