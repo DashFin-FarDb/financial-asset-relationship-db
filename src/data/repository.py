@@ -59,9 +59,7 @@ class AssetGraphRepository:
     def list_assets(self) -> List[Asset]:
         """Return all assets as dataclass instances ordered by id."""
 
-        result = (
-            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
-        )
+        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -87,10 +85,15 @@ class AssetGraphRepository:
         rel_type: str,
         strength: float,
         bidirectional: bool = False,
-    ):
+    ) -> None:
         """
         Add or update a relationship between two assets.
         Strength must be a float in the inclusive range [0.0, 1.0].
+
+        Returns:
+            None
+        Raises:
+            ValueError: If strength is not numeric or outside [0.0, 1.0].
         """
         # Validate strength range
         if not isinstance(strength, (int, float)):
@@ -142,7 +145,14 @@ class AssetGraphRepository:
         rel_type: str,
     ) -> Optional[RelationshipRecord]:
         """Fetch a single relationship if it exists."""
+        """
+        Fetch a single relationship if it exists.
 
+        Returns:
+            Optional[RelationshipRecord]: The relationship, if found.
+        Raises:
+            None
+        """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -165,7 +175,14 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
     ) -> None:
-        """Remove a relationship."""
+        """
+        Remove a relationship.
+
+        Returns:
+            None
+        Raises:
+            None
+        """
 
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
@@ -235,9 +252,7 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = (
-            float(asset.market_cap) if asset.market_cap is not None else None
-        )
+        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
         orm.currency = asset.currency
 
         # Reset all optional fields to avoid stale values
