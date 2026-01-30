@@ -994,7 +994,7 @@ class TestNegativeCases:
                 price=0.0,
                     # Asset with zero price should be allowed by validation
                     Equity(
-    @ staticmethod
+    @staticmethod
     def test_analyze_graph_with_negative_price():
         """Test handling asset with negative price."""
         # Should be rejected by Asset validation
@@ -1150,7 +1150,7 @@ class TestIntegrationScenarios:
         assert "Risk Management" in categories
         assert "Portfolio Theory" in categories
 
-    @ staticmethod
+    @staticmethod
     def test_sector_correlation_analysis():
         """Test correlation analysis for same-sector assets."""
         analyzer=FormulaicAnalyzer()
