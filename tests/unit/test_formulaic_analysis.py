@@ -27,6 +27,7 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
+pytestmark = pytest.mark.unit
 
 class TestFormula:
     """Test the Formula dataclass."""
