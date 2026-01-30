@@ -729,8 +729,8 @@ class TestEdgeCases:
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
-    def test_atomic_cache_write(self, tmp_path):
-        """Test that cache writes are atomic using temp file + rename."""
+    def test_cache_roundtrip(self, tmp_path):
+        """Test that a saved graph can be loaded back correctly."""
         cache_path = tmp_path / "cache.json"
         graph = AssetRelationshipGraph()
 
