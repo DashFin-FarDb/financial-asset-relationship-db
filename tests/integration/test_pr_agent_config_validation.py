@@ -75,7 +75,7 @@ def _shannon_entropy(value: str) -> float:
     Returns:
         float: Shannon entropy value (bits per character).
     """
-   if not value:
+    if not value:
         return 0.0
 
     sample = str(value)
