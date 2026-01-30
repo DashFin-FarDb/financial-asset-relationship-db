@@ -258,6 +258,31 @@ class TestPRAgentConfigSecurity:
             lower = s.lower()
             return any(marker in lower for marker in secret_markers)
 
+        def _iter_string_values(obj):
+            if isinstance(obj, dict):
+                for v in obj.values():
+                    yield from _iter_string_values(v)
+            elif isinstance(obj, list):
+                for v in obj:
+                    yield from _iter_string_values(v)
+            elif isinstance(obj, str):
+                yield obj
+
+        for value in _iter_string_values(pr_agent_config):
+            stripped = value.strip()
+            if not stripped:
+                continue
+            if contains_inline_creds(stripped):
+                violations.append(f"Inline credentials found in: {stripped}")
+            if has_secret_marker(stripped):
+                violations.append(f"Secret marker found in: {stripped}")
+            if is_high_entropy(stripped):
+                violations.append(f"High entropy string found: {stripped}")
+
+        assert not violations, "Hardcoded credentials detected:\n" + "\n".join(violations)
+            lower = s.lower()
+            return any(marker in lower for marker in secret_markers)
+
         def is_high_entropy(s, threshold=4.5):
             if not s:
                 return False
