@@ -53,11 +53,8 @@ def _shannon_entropy(value: str) -> float:
         float: Shannon entropy value (bits per character).
     """
     if not value:
-        return 0.0
-
-    sample = value[:256]
-    freq = {}
-
+        @pytest.fixture
+        def pr_agent_config(self):
     for ch in sample:
         freq[ch] = freq.get(ch, 0) + 1
 
