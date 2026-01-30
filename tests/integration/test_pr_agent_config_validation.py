@@ -254,25 +254,25 @@ class TestPRAgentConfigYAMLValidity:
         with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-       # Use a custom loader to detect duplicate keys at any nesting level
+        with open(config_path, "r", encoding="utf-8") as f:
+            content = f.read()
 
+        # Custom loader to detect duplicate YAML entries at any nesting level
+        class DuplicateKeyLoader(yaml.SafeLoader):
+            def construct_mapping(self, node, deep=False):
+                mapping = {}
+                for entry_node, val_node in node.value:
+                    entry = self.construct_object(entry_node, deep=deep)
+                    if entry in mapping:
+                        pytest.fail(f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}")
+                    value = self.construct_object(val_node, deep=deep)
+                    mapping[entry] = value
+                return mapping
 
-class DuplicateKeyLoader(yaml.SafeLoader):
-    def construct_mapping(self, node, deep=False):
-        mapping = {}
-        for key_node, value_node in node.value:
-            key = self.construct_object(key_node, deep=deep)
-            if key in mapping:
-                pytest.fail(f"Duplicate key found: {key} at line {node.start_mark.line + 1}")
-            value = self.construct_object(value_node, deep=deep)
-            mapping[key] = value
-        return mapping
-
-
-try:
-    yaml.load(content, Loader=DuplicateKeyLoader)
-except yaml.YAMLError as e:
-    pytest.fail(f"Failed to parse YAML or found duplicate keys: {e}")
+        try:
+            yaml.load(content, Loader=DuplicateKeyLoader)
+        except yaml.YAMLError as e:
+            pytest.fail(f"Failed to parse YAML or found duplicate entries: {e}")
 
     @staticmethod
     def test_consistent_indentation():
