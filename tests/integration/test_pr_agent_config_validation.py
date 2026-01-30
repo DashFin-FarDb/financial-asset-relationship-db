@@ -77,22 +77,24 @@ def _shannon_entropy(value: str) -> float:
     Returns:
         float: Shannon entropy value (bits per character).
     """
-    if not value:
+   if not value:
         return 0.0
 
     sample = str(value)
+    length = len(sample)
+    if length == 0:
+        return 0.0
+
     freq = {}
     for ch in sample:
+        freq[ch] = freq.get(ch, 0) + 1
 
     entropy = 0.0
-    length = len(sample)
-
     for count in freq.values():
         p = count / length
         entropy -= p * math.log2(p)
 
     return entropy
-
 
 def _looks_like_secret(value: str) -> bool:
     """
