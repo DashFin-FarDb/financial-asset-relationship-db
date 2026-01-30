@@ -992,8 +992,8 @@ class TestNegativeCases:
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
                 price=0.0,
-            )
-
+                    # Asset with zero price should be allowed by validation
+                    Equity(
     @staticmethod
     def test_analyze_graph_with_negative_price():
         """Test handling asset with negative price."""
