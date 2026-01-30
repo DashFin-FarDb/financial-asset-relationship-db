@@ -40,7 +40,6 @@ SECRET_MARKERS = (
 )
 
 
-
 @pytest.fixture
 def pr_agent_config():
     """
@@ -62,7 +61,6 @@ def pr_agent_config():
     if cfg is None or not isinstance(cfg, dict):
         pytest.fail("Config must be a YAML mapping (dict) and not empty")
     return cfg
-
 
 
 def _shannon_entropy(value: str) -> float:
