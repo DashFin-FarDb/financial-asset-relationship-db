@@ -107,6 +107,7 @@ def test_uri_style_memory_database_persists_schema_and_data(
     assert row["username"] == "bob"
     assert second_connection is first_connection
 
+
 class TestIsMemoryDb:
     """Comprehensive tests for the _is_memory_db function."""
 
