@@ -43,6 +43,7 @@ from src.models.financial_models import (
 
 pytestmark = pytest.mark.unit
 
+
 class TestRealDataFetcherInitialization:
     """Test RealDataFetcher initialization."""
 
