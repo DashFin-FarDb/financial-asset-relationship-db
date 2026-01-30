@@ -359,7 +359,7 @@ class RealDataFetcher:
 
         return currencies
 
-    @ staticmethod
+    @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """Create realistic regulatory events for the fetched assets"""
         # Create some realistic recent events
