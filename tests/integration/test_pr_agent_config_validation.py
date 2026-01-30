@@ -356,7 +356,7 @@ class TestPRAgentConfigSecurity:
             )
 
     # ------------------------------------------------------------------
-
+@staticmethod
 
     `@staticmethod`
     def test_no_hardcoded_secrets(pr_agent_config):
