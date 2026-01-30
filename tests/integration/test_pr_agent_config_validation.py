@@ -314,7 +314,7 @@ class TestPRAgentConfigSecurity:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def scan(obj: object, suspected: list[str]) -> None:
+    def scan(obj: object, suspected: list[tuple[str, str]]) -> None:
         """Recursively scan configuration objects for suspected secrets.
 
         Returns:
