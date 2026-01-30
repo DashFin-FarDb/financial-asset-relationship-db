@@ -29,12 +29,9 @@ def _cov_plugin_available() -> bool:
 def pytest_load_initial_conftests(
     args: List[str], _early_config: object, _parser: object
 ) -> None:  # pragma: no cover - exercised via pytest
-    _early_config,
-    _parser,
+    """
+    Remove pytest-cov related command-line options from the provided
     argument list when the pytest-cov plugin is not available.
-
-    If the plugin is present the argument list is left unchanged.
-    Otherwise, remove occurrences of --cov and --cov-report together
     with their following parameters.
     Also remove any inline forms starting with --cov= or --cov-report=.
     The original `args` list is updated in-place.
