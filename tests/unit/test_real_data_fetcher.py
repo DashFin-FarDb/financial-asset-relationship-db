@@ -55,7 +55,8 @@ class TestRealDataFetcherInitialization:
         assert fetcher.fallback_factory is None
         assert fetcher.enable_network is True
 
-    def test_init_with_cache_path(self, tmp_path):
+    @staticmethod
+    def test_init_with_cache_path(tmp_path):
         """Test initialization with cache path."""
         cache_path = str(tmp_path / "cache.json")
         fetcher = RealDataFetcher(cache_path=cache_path)
@@ -63,7 +64,8 @@ class TestRealDataFetcherInitialization:
         assert fetcher.cache_path == Path(cache_path)
         assert fetcher.enable_network is True
 
-    def test_init_with_fallback_factory(self):
+    @staticmethod
+    def test_init_with_fallback_factory():
         """Test initialization with custom fallback factory."""
 
         def custom_factory():
@@ -74,13 +76,15 @@ class TestRealDataFetcherInitialization:
 
         assert fetcher.fallback_factory is custom_factory
 
-    def test_init_with_network_disabled(self):
+    @staticmethod
+    def test_init_with_network_disabled():
         """Test initialization with network disabled."""
         fetcher = RealDataFetcher(enable_network=False)
 
         assert fetcher.enable_network is False
 
-    def test_init_all_parameters(self, tmp_path):
+    @staticmethod
+    def test_init_all_parameters(tmp_path):
         """Test initialization with all parameters."""
         cache_path = str(tmp_path / "cache.json")
 
@@ -100,7 +104,8 @@ class TestRealDataFetcherInitialization:
 class TestCreateRealDatabase:
     """Test create_real_database method."""
 
-    def test_create_database_network_disabled(self):
+    @staticmethod
+    def test_create_database_network_disabled():
         """Test database creation when network is disabled."""
         fetcher = RealDataFetcher(enable_network=False)
 
@@ -115,9 +120,8 @@ class TestCreateRealDatabase:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    def test_create_database_with_network(
-        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
-    ):
+    @staticmethod
+    def test_create_database_with_network(mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
         """Test database creation with network enabled."""
         # Setup mocks
         mock_equity.return_value = [
@@ -142,7 +146,8 @@ class TestCreateRealDatabase:
         assert "TEST" in graph.assets
         mock_equity.assert_called_once()
 
-    def test_create_database_with_cache(self, tmp_path):
+    @staticmethod
+    def test_create_database_with_cache(tmp_path):
         """Test database creation loads from cache when available."""
         cache_path = tmp_path / "cache.json"
 
@@ -167,7 +172,8 @@ class TestCreateRealDatabase:
         assert loaded_graph.assets["CACHED"].name == "Cached Equity"
 
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    def test_create_database_fetch_failure_uses_fallback(self, mock_equity):
+    @staticmethod
+    def test_create_database_fetch_failure_uses_fallback(mock_equity):
         """Test that fetch failure falls back to sample data."""
         # Make equity fetch raise an exception
         mock_equity.side_effect = Exception("Network error")
@@ -284,7 +290,8 @@ class TestFetchMethods:
 class TestFallback:
     """Test fallback mechanism."""
 
-    def test_fallback_with_custom_factory(self):
+    @staticmethod
+    def test_fallback_with_custom_factory():
         """Test fallback uses custom factory when provided."""
         custom_graph = AssetRelationshipGraph()
         custom_asset = Equity(
@@ -306,7 +313,8 @@ class TestFallback:
 
         assert "CUSTOM" in result.assets
 
-    def test_fallback_without_custom_factory(self):
+    @staticmethod
+    def test_fallback_without_custom_factory():
         """Test fallback uses sample data when no factory provided."""
         fetcher = RealDataFetcher(enable_network=False)
         result = fetcher._fallback()
@@ -729,7 +737,8 @@ class TestEdgeCases:
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
-    def test_atomic_cache_write(self, tmp_path):
+    @staticmethod
+    def test_atomic_cache_write(tmp_path):
         """Test that cache writes are atomic using temp file + rename."""
         cache_path = tmp_path / "cache.json"
         graph = AssetRelationshipGraph()

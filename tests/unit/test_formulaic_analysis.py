@@ -613,7 +613,8 @@ class TestHelperMethods:
         assert isinstance(result, dict)
         assert len(result) == 0
 
-    def test_calculate_avg_correlation_strength(self):
+    @staticmethod
+    def test_calculate_avg_correlation_strength():
         """Test _calculate_avg_correlation_strength calculation."""
         graph = AssetRelationshipGraph()
 
@@ -966,7 +967,6 @@ class TestNegativeCases:
     @staticmethod
     def test_analyze_graph_with_zero_price_asset():
         """Test handling asset with zero price."""
-
         # Try to create asset with zero price - should be rejected by validation
         with pytest.raises(ValueError):
             equity = Equity(
@@ -978,9 +978,9 @@ class TestNegativeCases:
                 price=0.0,
             )
 
-    def test_analyze_graph_with_negative_price(self):
+    @staticmethod
+    def test_analyze_graph_with_negative_price():
         """Test handling asset with negative price."""
-
         # Should be rejected by Asset validation
         with pytest.raises(ValueError):
             equity = Equity(

@@ -190,56 +190,54 @@ class TestPRAgentConfigYAMLValidity:
                         f"Line {i} has inconsistent indentation: {indent} spaces"
                     )
 
-
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
     @staticmethod
     @pytest.fixture
     def pr_agent_config():
-            """
-            Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+        """
+        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
-            Returns:
-                dict: The parsed YAML content as a Python mapping.
-            """
-            config_path = Path(".github/pr-agent-config.yml")
-            if not config_path.exists():
-                pytest.fail(f"Config file not found: {config_path}")
-            with open(config_path, "r", encoding="utf-8") as f:
-                try:
-                    cfg = yaml.safe_load(f)
-                except yaml.YAMLError as e:
-                    pytest.fail(f"Invalid YAML in config: {e}")
-            if cfg is None or not isinstance(cfg, dict):
-                pytest.fail("Config must be a YAML mapping (dict) and not empty")
-            return cfg
+        Returns:
+            dict: The parsed YAML content as a Python mapping.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        if not config_path.exists():
+            pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, "r", encoding="utf-8") as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in config: {e}")
+        if cfg is None or not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) and not empty")
+        return cfg
 
-        @staticmethod
-        def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
-            """
-            Recursively scan configuration values for suspected secrets.
+    @staticmethod
+    def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
+        """
+        Recursively scan configuration values for suspected secrets.
 
-            This inspects values (not just serialized text) and traverses nested dicts/lists.
-            The heuristic flags:
-              - Long high-entropy strings (e.g., tokens)
-              - Obvious secret prefixes/suffixes
-              - Inline credentials in URLs (e.g., scheme://user:pass@host)
-            """
-
-        @staticmethod
-        def _iter_string_values(obj):
-            """Recursively yield all string values found in nested dicts and lists."""
-            if isinstance(obj, dict):
-                for v in obj.values():
-                    yield from TestPRAgentConfigSecurity._iter_string_values(v)
-            elif isinstance(obj, list):
-                for v in obj:
-                    yield from TestPRAgentConfigSecurity._iter_string_values(v)
-            elif isinstance(obj, str):
-                yield obj
-
+        This inspects values (not just serialized text) and traverses nested dicts/lists.
+        The heuristic flags:
+          - Long high-entropy strings (e.g., tokens)
+          - Obvious secret prefixes/suffixes
+          - Inline credentials in URLs (e.g., scheme://user:pass@host)
+        """
         suspected = []
+
+    @staticmethod
+    def _iter_string_values(obj):
+        """Recursively yield all string values found in nested dicts and lists."""
+        if isinstance(obj, dict):
+            for v in obj.values():
+                yield from TestPRAgentConfigSecurity._iter_string_values(v)
+        elif isinstance(obj, list):
+            for v in obj:
+                yield from TestPRAgentConfigSecurity._iter_string_values(v)
+        elif isinstance(obj, str):
+            yield obj
 
         secret_prefixes = (
             "sk-",
