@@ -54,7 +54,7 @@ def _shannon_entropy(value: str) -> float:
     """
     if not value:
         return 0.0
-    
+
     sample = str(value)
     freq = {}
     for ch in sample:
