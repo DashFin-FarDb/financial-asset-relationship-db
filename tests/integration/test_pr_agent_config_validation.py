@@ -355,7 +355,6 @@ class TestPRAgentConfigSecurity:
                 f"{kind}: {_redact(value)}" for kind, value in suspected
             )
 
-
     # ------------------------------------------------------------------
 
     @staticmethod
