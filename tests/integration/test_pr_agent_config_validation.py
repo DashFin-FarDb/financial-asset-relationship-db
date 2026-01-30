@@ -279,7 +279,6 @@ def _iter_string_values(obj):
         yield obj
 
 
-@staticmethod
 def test_no_hardcoded_credentials(pr_agent_config):
             for value in _iter_string_values(pr_agent_config):
                 stripped = value.strip()
