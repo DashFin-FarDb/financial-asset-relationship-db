@@ -233,7 +233,7 @@ class TestPRAgentConfigYAMLValidity:
         Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
-            with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             try:
                 yaml.safe_load(f)
             except yaml.YAMLError as e:
@@ -247,7 +247,7 @@ class TestPRAgentConfigYAMLValidity:
         Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
-            with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Simple check for obvious duplicates
@@ -268,7 +268,7 @@ class TestPRAgentConfigYAMLValidity:
         Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
         """
         config_path = Path(".github/pr-agent-config.yml")
-            with open(config_path, "r", encoding="utf-8") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
@@ -340,7 +340,10 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(f"{kind}: {value}" for kind, value in suspected)
-            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
+
     # ------------------------------------------------------------------
 
     @staticmethod
