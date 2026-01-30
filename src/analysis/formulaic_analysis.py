@@ -487,8 +487,7 @@ class FormulaicAnalyzer:
         from src.models.financial_models import AssetClass
 
         return any(
-            asset.asset_class == AssetClass.COMMODITY
-            for asset in graph.assets.values()
+            asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values()
         )
 
     @staticmethod
@@ -585,9 +584,7 @@ class FormulaicAnalyzer:
                 and asset.market_cap is not None
             ):
                 cap_billions = asset.market_cap / 1e9
-                examples.append(
-                    f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B"
-                )
+                examples.append(f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B")
                 if len(examples) >= 2:
                     break
         return "; ".join(examples) if examples else "Example: Market Cap = $1.5T"
@@ -668,9 +665,7 @@ class FormulaicAnalyzer:
         ]
         if len(currencies) >= 2:
             c1, c2 = currencies[0], currencies[1]
-            return (
-                f"{c1.symbol}/USD × USD/{c2.symbol} = {c1.symbol}/{c2.symbol}"
-            )
+            return f"{c1.symbol}/USD × USD/{c2.symbol} = {c1.symbol}/{c2.symbol}"
         return "Example: USD/EUR × EUR/GBP = USD/GBP"
 
     @staticmethod

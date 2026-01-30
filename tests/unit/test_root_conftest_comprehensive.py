@@ -12,11 +12,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import conftest
+
 pytestmark = pytest.mark.unit
 
 
 # Import the functions we want to test
-import conftest
 
 
 class TestCovPluginAvailable:
