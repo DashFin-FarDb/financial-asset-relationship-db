@@ -1120,7 +1120,7 @@ class TestIntegrationScenarios:
             yield_to_maturity=0.03,
         )
         commodity = Commodity(
-            id="GOLD", 
+            id="GOLD",
             symbol="GC",
             name="Gold",
             asset_class=AssetClass.COMMODITY,
