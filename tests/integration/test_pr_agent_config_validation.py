@@ -312,8 +312,17 @@ class TestPRAgentConfigSecurity:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
-        """Recursively scan configuration values for suspected secrets."""
+    def test_config_values_have_no_hardcoded_credentials(
+        pr_agent_config: dict[str, object],
+    ) -> None:
+        """
+        Recursively scan configuration values for suspected secrets.
+
+        Returns:
+            None
+        Raises:
+            AssertionError: If suspected secrets are found.
+        """
         suspected = []
         TestPRAgentConfigSecurity.scan(pr_agent_config, suspected)
 
@@ -324,12 +333,8 @@ class TestPRAgentConfigSecurity:
             return f"{value[:4]}...{value[-4:]}"
 
         if suspected:
-            details = "\n".join(
-                f"{kind}: {_redact(value)}" for kind, value in suspected
-            )
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            details = "\n".join(f"{kind}: {_redact(value)}" for kind, value in suspected)
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
     # ------------------------------------------------------------------
 
