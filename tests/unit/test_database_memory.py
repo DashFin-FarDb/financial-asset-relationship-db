@@ -78,9 +78,7 @@ def test_in_memory_database_persists_schema_and_data(
 def test_uri_style_memory_database_persists_schema_and_data(
     monkeypatch, restore_database_module
 ):
-    """
-    Verify URI-style in-memory SQLite configuration preserves schema and data.
-    """
+    """Verify URI-style in-memory SQLite configuration preserves schema and data."""
     monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 
     reloaded_database = importlib.reload(database)

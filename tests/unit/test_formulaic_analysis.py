@@ -492,7 +492,8 @@ class TestAnalyzeRiskReturnRelationships:
 class TestExtractPortfolioTheoryFormulas:
     """Test _extract_portfolio_theory_formulas method."""
 
-    def test_portfolio_formulas_exist(self):
+    @staticmethod
+    def test_portfolio_formulas_exist():
         """Test that portfolio theory formulas are generated."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -504,7 +505,8 @@ class TestExtractPortfolioTheoryFormulas:
         assert any("Portfolio Expected Return" in name for name in formula_names)
         assert any("Portfolio Variance" in name for name in formula_names)
 
-    def test_portfolio_return_formula(self):
+    @staticmethod
+    def test_portfolio_return_formula():
         """Test portfolio expected return formula."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -516,7 +518,8 @@ class TestExtractPortfolioTheoryFormulas:
         assert ret_formula.category == "Portfolio Theory"
         assert "E(R_p)" in ret_formula.variables
 
-    def test_portfolio_variance_formula(self):
+    @staticmethod
+    def test_portfolio_variance_formula():
         """Test portfolio variance formula."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -531,7 +534,8 @@ class TestExtractPortfolioTheoryFormulas:
 class TestAnalyzeCrossAssetRelationships:
     """Test _analyze_cross_asset_relationships method."""
 
-    def test_cross_asset_without_currencies(self):
+    @staticmethod
+    def test_cross_asset_without_currencies():
         """Test cross-asset analysis without currencies."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -551,7 +555,8 @@ class TestAnalyzeCrossAssetRelationships:
         # Should return empty list or no currency formulas
         assert isinstance(formulas, list)
 
-    def test_cross_asset_with_currencies(self):
+    @staticmethod
+    def test_cross_asset_with_currencies():
         """Test cross-asset analysis with currencies."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -581,7 +586,8 @@ class TestAnalyzeCrossAssetRelationships:
         formula_names = [f.name for f in formulas]
         assert any("Exchange Rate" in name for name in formula_names)
 
-    def test_cross_asset_with_commodities_and_currencies(self):
+    @staticmethod
+    def test_cross_asset_with_commodities_and_currencies():
         """Test cross-asset analysis with both commodities and currencies."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -820,7 +826,8 @@ class TestEdgeCases:
         categories = result["categories"]
         assert len(categories) > 0
 
-    def test_analyze_graph_with_relationships(self):
+    @staticmethod
+    def test_analyze_graph_with_relationships():
         """Test analyzing a graph with relationships."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -851,7 +858,8 @@ class TestEdgeCases:
         # Should handle relationships when calculating correlations
         assert result["formula_count"] > 0
 
-    def test_analyze_graph_with_regulatory_events(self):
+    @staticmethod
+    def test_analyze_graph_with_regulatory_events():
         """Test analyzing a graph with regulatory events."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -880,7 +888,8 @@ class TestEdgeCases:
 
         assert result["formula_count"] > 0
 
-    def test_multiple_same_sector_assets(self):
+    @staticmethod
+    def test_multiple_same_sector_assets():
         """Test with multiple assets in the same sector."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -906,7 +915,8 @@ class TestEdgeCases:
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
-    def test_formula_latex_escaping(self):
+    @staticmethod
+    def test_formula_latex_escaping():
         """Test that LaTeX formulas are properly formatted."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -930,7 +940,8 @@ class TestRegressionCases:
             if "frac" in formula.latex or "times" in formula.latex:
                 assert "\\" in formula.latex
 
-    def test_r_squared_bounds(self):
+    @staticmethod
+    def test_r_squared_bounds():
         """Test that all r_squared values are within valid bounds."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -952,7 +963,8 @@ class TestRegressionCases:
                 f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
             )
 
-    def test_summary_consistency(self):
+    @staticmethod
+    def test_summary_consistency():
         """Test that summary statistics are consistent with formulas."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -995,6 +1007,7 @@ class TestNegativeCases:
 
     @staticmethod
     def test_analyze_graph_with_negative_price():
+        """Test that instantiating an Equity with a negative price raises a ValueError."""
         with pytest.raises(ValueError):
             Equity(
                 id="NEG",
@@ -1067,7 +1080,8 @@ class TestBoundaryConditions:
         assert result["formula_count"] > 0
         assert "summary" in result
 
-    def test_correlation_strength_bounds(self):
+    @staticmethod
+    def test_correlation_strength_bounds():
         """Test correlation strength calculation stays within bounds."""
         graph = AssetRelationshipGraph()
 

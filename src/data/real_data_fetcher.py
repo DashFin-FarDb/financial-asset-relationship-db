@@ -110,24 +110,14 @@ class RealDataFetcher:
 
                 try:
                     cache_dir = os.path.dirname(self.cache_path)
+                    Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
                     with tempfile.NamedTemporaryFile(
-            try:
-                cache_dir=os.path.dirname(self.cache_path)
-                Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
-                with tempfile.NamedTemporaryFile(
-                    "wb",
-                    dir=cache_dir,
-                    delete=False,
-                ) as tmp_file:
-                    tmp_path=tmp_file.name
-                    _save_to_cache(graph, Path(tmp_path))
-                os.replace(tmp_path, self.cache_path)
+                        "wb",
                         dir=cache_dir,
                         delete=False,
-                        Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
-                        with tempfile.NamedTemporaryFile(
-                            "wb",
-                            dir=cache_dir or ".",
+                    ) as tmp_file:
+                        tmp_path = tmp_file.name
+                        _save_to_cache(graph, Path(tmp_path))
                     os.replace(tmp_path, self.cache_path)
                 except Exception:
                     logger.exception(
