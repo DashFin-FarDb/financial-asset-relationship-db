@@ -252,6 +252,8 @@ class TestPRAgentConfigYAMLValidity:
             content = f.read()
 
        # Use a custom loader to detect duplicate keys at any nesting level
+
+
 class DuplicateKeyLoader(yaml.SafeLoader):
     def construct_mapping(self, node, deep=False):
         mapping = {}
@@ -262,12 +264,12 @@ class DuplicateKeyLoader(yaml.SafeLoader):
             value = self.construct_object(value_node, deep=deep)
             mapping[key] = value
         return mapping
- 
+
+
 try:
     yaml.load(content, Loader=DuplicateKeyLoader)
 except yaml.YAMLError as e:
     pytest.fail(f"Failed to parse YAML or found duplicate keys: {e}")
-
 
     @staticmethod
     def test_consistent_indentation():
