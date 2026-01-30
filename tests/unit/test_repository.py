@@ -1032,6 +1032,9 @@ class TestAssetTypeConversions:
         retrieved = repository.list_assets()[0]
         assert isinstance(retrieved, Equity)
         assert retrieved.pe_ratio == 25.0
+        # Verify that old Bond-specific fields are now None
+        assert retrieved.yield_to_maturity is None
+        assert retrieved.coupon_rate is None
 
 
 class TestPerformance:
