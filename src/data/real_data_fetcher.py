@@ -111,7 +111,7 @@ class RealDataFetcher:
                 try:
                     cache_dir = os.path.dirname(self.cache_path)
                     with tempfile.NamedTemporaryFile(
-try:
+            try:
                 cache_dir=os.path.dirname(self.cache_path)
                 Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
                 with tempfile.NamedTemporaryFile(
