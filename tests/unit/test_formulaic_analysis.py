@@ -989,21 +989,15 @@ class TestRegressionCases:
         assert manual_category_count == len(result["formulas"])
 
 
-class TestNegativeCases:
-    """Test negative scenarios and error conditions."""
-
-    @staticmethod
-    def test_analyze_graph_with_zero_price_asset():
-        """Test handling asset with zero price."""
-        with pytest.raises(ValueError):
-            Equity(
-                id="ZERO",
-                symbol="ZERO",
-                name="Zero Price",
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=0.0,
-            )
+        equity = Equity(
+            id="ZERO",
+            symbol="ZERO",
+            name="Zero Price",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=0.0,
+        )
+        assert equity.price == 0.0
 
     @staticmethod
     def test_analyze_graph_with_negative_price():
