@@ -276,6 +276,7 @@ class TestPRAgentConfigSecurity:
                 violations.append(f"Inline credentials found in: {stripped}")
             if has_secret_marker(stripped):
                 violations.append(f"Secret marker found in: {stripped}")
+
             def test_no_hardcoded_credentials(pr_agent_config):
                 """
                 Recursively scan configuration values for suspected secrets.
