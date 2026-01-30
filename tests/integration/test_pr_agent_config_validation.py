@@ -15,7 +15,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-
 # Inline credentials embedded in URLs, e.g. scheme://user:password@host
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@",
@@ -262,9 +261,7 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
+                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
@@ -323,10 +320,7 @@ class TestPRAgentConfigSecurity:
 
         if suspected:
             details = "\n".join(suspected)
-            pytest.fail(
-                "Potential hardcoded credentials found in PR agent config:\n"
-                f"{details}"
-            )
+            pytest.fail("Potential hardcoded credentials found in PR agent config:\n" f"{details}")
 
     # ------------------------------------------------------------------
 
@@ -362,9 +356,7 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(p in key_lower for p in sensitive_patterns):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
 
                     scan_for_secrets(v, new_path)
 
