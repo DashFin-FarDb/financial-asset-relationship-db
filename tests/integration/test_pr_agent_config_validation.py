@@ -119,6 +119,7 @@ def _looks_like_secret(value: str) -> bool:
     # Hex-encoded secrets (e.g. hashes, keys)
     hex_re = re.compile(r"^[0-9a-fA-F]{16,}$")
     if hex_re.fullmatch(v):
+        return True
 
     return False
 
