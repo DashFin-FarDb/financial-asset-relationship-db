@@ -166,7 +166,20 @@ try:
 
         return create_sample_database()
 
-    @ staticmethod
+@staticmethod
+    def _fetch_equity_data() -> List[Equity]:
+        """
+        Fetches current market data for a predefined set of major equities and
+        returns them as Equity objects.
+
+        Returns:
+            List[Equity]: Equity instances populated with market fields including
+                id, symbol, name, asset_class, sector, price, market_cap,
+                pe_ratio, dividend_yield, earnings_per_share and book_value.
+        """
+        equity_symbols = {
+            "AAPL": ("Apple Inc.", "Technology"),
+        equities = []
     def _fetch_equity_data() -> List[Equity]:
         """
         Fetches current market data for a predefined set of major equities and
