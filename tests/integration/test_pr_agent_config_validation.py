@@ -252,7 +252,7 @@ class TestPRAgentConfigYAMLValidity:
         Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        
+
         with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
