@@ -910,7 +910,7 @@ class TestComplexScenarios:
         event = RegulatoryEvent(
             id="MERGER001",
             asset_id="MAIN",
-            event_type=RegulatoryActivity.MERGER,
+            event_type=RegulatoryActivity.ACQUISITION,
             date="2024-06-15",
             description="Major acquisition announcement",
             impact_score=0.85,
