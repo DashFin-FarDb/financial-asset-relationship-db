@@ -54,10 +54,7 @@ def pr_agent_config() -> dict[str, object]:
     if not config_path.exists():
         pytest.fail(f"Config file not found: {config_path}")
     with open(config_path, "r", encoding="utf-8") as f:
-        try:
-            cfg = yaml.safe_load(f)
-        except yaml.YAMLError as e:
-            pytest.fail(f"Invalid YAML in config: {e}")
+       cfg = yaml.safe_load(f)
     if cfg is None or not isinstance(cfg, dict):
         pytest.fail("Config must be a YAML mapping (dict) and not empty")
     return cfg
@@ -239,10 +236,7 @@ class TestPRAgentConfigYAMLValidity:
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"PR agent config has invalid YAML: {e}")
+           yaml.safe_load(f)
 
     @staticmethod
     def test_no_duplicate_keys():
@@ -270,11 +264,8 @@ class TestPRAgentConfigYAMLValidity:
                     mapping[entry] = value
                 return mapping
 
-        try:
-            yaml.load(content, Loader=DuplicateKeyLoader)  # nosec B506
-        except yaml.YAMLError as e:
-            pytest.fail(f"Failed to parse YAML or found duplicate entries: {e}")
-
+        yaml.load(content, Loader=DuplicateKeyLoader)
+        
     @staticmethod
     def test_consistent_indentation():
         """
