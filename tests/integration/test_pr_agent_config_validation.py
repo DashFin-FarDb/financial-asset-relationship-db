@@ -248,20 +248,6 @@ class TestPRAgentConfigSecurity:
         )
         inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     @staticmethod
     def scan(self, suspected):
         """
