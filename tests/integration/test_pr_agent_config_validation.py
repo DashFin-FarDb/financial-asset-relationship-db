@@ -291,6 +291,29 @@ class TestPRAgentConfigSecurity:
 
         violations = []
 
+        for value in _iter_string_values(pr_agent_config):
+            stripped = value.strip()
+            if not stripped:
+                continue
+
+            if contains_inline_creds(stripped):
+                violations.append(f"Inline credentials found in: {stripped}")
+            if has_secret_marker(stripped):
+                violations.append(f"Secret marker found in: {stripped}")
+            if is_high_entropy(stripped):
+                violations.append(f"High entropy string found: {stripped}")
+
+        if violations:
+            pytest.fail("Hardcoded credentials detected:\n" + "\n".join(violations))
+
+        return
+            if not s:
+                return False
+            entropy = sum(-(freq := s.count(ch) / len(s)) * math.log2(freq) for ch in set(s))
+            return entropy > threshold and len(s) > 20
+
+        violations = []
+
 
 def _iter_string_values(obj):
     if isinstance(obj, dict):
