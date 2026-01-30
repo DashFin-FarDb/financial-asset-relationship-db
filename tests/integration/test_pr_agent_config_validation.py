@@ -257,6 +257,8 @@ class TestPRAgentConfigSecurity:
             return entropy > threshold and len(s) > 20
 
         violations = []
+
+
 def _iter_string_values(obj):
     if isinstance(obj, dict):
         for v in obj.values():
@@ -266,6 +268,7 @@ def _iter_string_values(obj):
             yield from _iter_string_values(v)
     elif isinstance(obj, str):
         yield obj
+
 
 @staticmethod
 def test_no_hardcoded_credentials(pr_agent_config):
