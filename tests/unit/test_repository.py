@@ -26,6 +26,8 @@ from src.models.financial_models import (
 
 pytest.importorskip("sqlalchemy")
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def repository(tmp_path):
