@@ -17,7 +17,7 @@ import yaml
 
 # Inline credentials embedded in URLs, e.g. scheme://user:password@host
 INLINE_CREDS_RE = re.compile(
-    r"^[A-Za-z][A-Za-z0-9+.-]*://[^/@:\s]+:[^/@\s]+@",
+    r"^[A-Za-z][A-Za-z0-9+.-]*://[^@:\s]+:[^@\s]+@",
     re.IGNORECASE,
 )
 
@@ -306,9 +306,8 @@ class TestPRAgentConfigSecurity:
             for item in obj:
                 TestPRAgentConfigSecurity.scan(item, suspected)
 
-        elif isinstance(obj, str):
-            if _looks_like_secret(obj):
-                suspected.append(obj)
+        elif isinstance(obj, str) and _looks_like_secret(obj):
+            suspected.append(("secret", obj))
 
     # ------------------------------------------------------------------
 
