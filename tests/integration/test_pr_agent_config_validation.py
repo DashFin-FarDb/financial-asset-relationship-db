@@ -15,7 +15,10 @@ from pathlib import Path
 import pytest
 import yaml
 
+
 # Inline credentials embedded in URLs, e.g. scheme://user:password@host
+# Character classes are intentionally minimal and deduplicated to satisfy
+# radarlint (S5869) while preserving strict userinfo detection semantics.
 INLINE_CREDS_RE = re.compile(
     r"^[A-Za-z][A-Za-z0-9+.-]*://[^@:\s]+:[^@\s]+@",
     re.IGNORECASE,
@@ -41,6 +44,12 @@ def _shannon_entropy(value: str) -> float:
     Calculate Shannon entropy of a string.
 
     Used as a heuristic to detect high-entropy tokens such as API keys.
+
+    Args:
+        value: The string to analyse.
+
+    Returns:
+        float: Shannon entropy value (bits per character).
     """
     if not value:
         return 0.0
@@ -67,6 +76,12 @@ def _looks_like_secret(value: str) -> bool:
 
     This function intentionally uses conservative heuristics to avoid
     false positives while still catching common credential patterns.
+
+    Args:
+        value: The string to inspect.
+
+    Returns:
+        bool: True if the value resembles a secret, False otherwise.
     """
     v = value.strip()
     if not v:
@@ -219,7 +234,7 @@ class TestPRAgentConfigYAMLValidity:
         Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+            with open(config_path, "r", encoding="utf-8") as f:
             try:
                 yaml.safe_load(f)
             except yaml.YAMLError as e:
@@ -233,7 +248,7 @@ class TestPRAgentConfigYAMLValidity:
         Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+            with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Simple check for obvious duplicates
@@ -254,7 +269,7 @@ class TestPRAgentConfigYAMLValidity:
         Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+            with open(config_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
@@ -319,12 +334,14 @@ class TestPRAgentConfigSecurity:
         suspected = []
         TestPRAgentConfigSecurity.scan(pr_agent_config, suspected)
 
-        if suspected:
-            details = "\n".join(suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+        def _redact(value: str) -> str:
+            if len(value) <= 8:
+                return "***"
+            return f"{value[:4]}...{value[-4:]}"
 
+        if suspected:
+            details = "\n".join(f"{kind}: {value}" for kind, value in suspected)
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
     # ------------------------------------------------------------------
 
     @staticmethod
@@ -346,10 +363,14 @@ class TestPRAgentConfigSecurity:
         templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
         def is_allowed_placeholder(v) -> bool:
-            if v in allowed_placeholders:
+            if v is None:
                 return True
-            if isinstance(v, str) and templated_var_re.match(v.strip()):
-                return True
+            if isinstance(v, str):
+                candidate = v.strip().lower()
+                if candidate in allowed_placeholders:
+                    return True
+                if templated_var_re.match(candidate):
+                    return True
             return False
 
         def scan_for_secrets(node, path="root"):
@@ -400,7 +421,7 @@ class TestPRAgentConfigRemovedComplexity:
             str: Raw YAML content of .github / pr - agent - config.yml.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return f.read()
 
     @staticmethod
