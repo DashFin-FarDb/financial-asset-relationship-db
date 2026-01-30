@@ -200,9 +200,9 @@ try:
         equities = []
         for symbol, (name, sector) in equity_symbols.items():
             try:
-                ticker = yf.Ticker(symbol)
-                info = ticker.info
-                hist = ticker.history(period="1d")
+                ticker=yf.Ticker(symbol)
+                info=ticker.info
+                hist=ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
