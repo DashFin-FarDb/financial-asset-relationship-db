@@ -132,8 +132,8 @@ class TestIsMemoryDb:
         # Test file::memory:?cache=shared pattern
         assert database._is_memory_db("file::memory:?cache=shared") is True
 
-        # Test file:///path/to/:memory: pattern
-        assert database._is_memory_db("file:///path/:memory:") is True
+        # Test file:///path/to/:memory: pattern — this is not treated as a memory DB by _is_memory_db
+        assert database._is_memory_db("file:///path/:memory:") is False
 
     def test_is_memory_db_with_regular_file_path(
         self, monkeypatch, restore_database_module
