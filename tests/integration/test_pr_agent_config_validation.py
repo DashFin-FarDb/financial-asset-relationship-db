@@ -15,7 +15,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-
 # Inline credentials embedded in URLs, e.g. scheme://user:password@host
 # Character classes are intentionally minimal and deduplicated to satisfy
 # radarlint (S5869) while preserving strict userinfo detection semantics.
