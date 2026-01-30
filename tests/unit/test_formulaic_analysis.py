@@ -775,7 +775,7 @@ class TestHelperMethods:
 
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
-
+    @staticmethod
     def test_analyze_graph_with_all_asset_types(self):
         """Test analyzing a graph with all asset types."""
         analyzer = FormulaicAnalyzer()
@@ -993,7 +993,10 @@ class TestRegressionCases:
 
     @staticmethod
     def test_zero_price_equity_handling():
-        """Test behaviour for a zero‑price equity."""
+        """Test analyser behaviour for a zero‑price equity."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+
         equity = Equity(
             id="ZERO",
             symbol="ZERO",
@@ -1002,7 +1005,13 @@ class TestRegressionCases:
             sector="Technology",
             price=0.0,
         )
-        assert equity.price == 0.0
+        graph.add_asset(equity)
+
+        result = analyzer.analyze_graph(graph)
+
+        # Should handle zero-price equity without errors
+        assert result["formula_count"] > 0
+        assert "formulas" in result
 
     @staticmethod
     def test_analyze_graph_with_negative_price():
@@ -1020,8 +1029,8 @@ class TestRegressionCases:
 
 class TestBoundaryConditions:
     """Test boundary conditions and extreme values."""
-
-    def test_very_high_pe_ratio(self):
+    @staticmethod
+    def test_very_high_pe_ratio():
         """Test formula extraction with very high P/E ratio."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1040,7 +1049,8 @@ class TestBoundaryConditions:
         result = analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
 
-    def test_very_low_prices(self):
+    @staticmethod
+    def test_very_low_prices:
         """Test with very low asset prices."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1058,7 +1068,8 @@ class TestBoundaryConditions:
         result = analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
 
-    def test_large_number_of_assets(self):
+    @staticmethod
+    def test_large_number_of_assets:
         """Test analyzer with large number of assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
