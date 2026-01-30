@@ -157,7 +157,6 @@ class RealDataFetcher:
         """
         Fetches current market data for a predefined set of major equities and
         returns them as Equity objects.
-
         Returns:
             List[Equity]: Equity instances populated with market fields including
                 id, symbol, name, asset_class, sector, price, market_cap,
