@@ -209,9 +209,9 @@ class TestFetchMethods:
         mock_ticker_class.return_value = mock_ticker
 
         equities = RealDataFetcher._fetch_equity_data()
-
         assert isinstance(equities, list)
-        # Should try to fetch AAPL, MSFT, XOM, JPM
+        assert equities, "Expected at least one fetched equity"
+        assert all(isinstance(eq, Equity) for eq in equities), "All items should be Equity instances"
         assert mock_ticker_class.call_count == 4
 
     @patch("yfinance.Ticker")
