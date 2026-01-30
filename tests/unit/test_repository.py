@@ -1033,8 +1033,8 @@ class TestAssetTypeConversions:
         assert isinstance(retrieved, Equity)
         assert retrieved.pe_ratio == 25.0
         # Verify that old Bond-specific fields are now None
-        assert retrieved.yield_to_maturity is None
-        assert retrieved.coupon_rate is None
+        assert getattr(retrieved, "yield_to_maturity", None) is None
+        assert getattr(retrieved, "coupon_rate", None) is None
 
 
 class TestPerformance:
