@@ -30,6 +30,8 @@ def pytest_load_initial_conftests(
     args: List[str], _early_config: object, _parser: object
 ) -> None:
     args: List[str], _early_config: object, _parser: object
+
+
 ) -> None:
     args: List[str],
 ) -> None:  # pragma: no cover - exercised via pytest
