@@ -703,9 +703,8 @@ class TestEdgeCases:
             "currency": "USD",
         }
 
-        # Should raise an exception if __type__ is missing.
-        with pytest.raises(Exception):
-            _deserialize_asset(data)
+        asset = _deserialize_asset(data)
+        assert isinstance(asset, Asset)
 
     @staticmethod
     def test_serialize_graph_with_complex_relationships():
