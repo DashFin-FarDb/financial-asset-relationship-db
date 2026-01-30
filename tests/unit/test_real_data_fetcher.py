@@ -92,9 +92,7 @@ class TestRealDataFetcherInitialization:
             """Factory function that creates and returns a new AssetRelationshipGraph instance."""
             return AssetRelationshipGraph()
 
-        fetcher = RealDataFetcher(
-            cache_path=cache_path, fallback_factory=custom_factory, enable_network=False
-        )
+        fetcher = RealDataFetcher(cache_path=cache_path, fallback_factory=custom_factory, enable_network=False)
 
         assert fetcher.cache_path == Path(cache_path)
         assert fetcher.fallback_factory is custom_factory
@@ -121,9 +119,7 @@ class TestCreateRealDatabase:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
     @staticmethod
-    def test_create_database_with_network(
-        mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
-    ):
+    def test_create_database_with_network(mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
         """Test database creation with network enabled."""
         # Setup mocks
         mock_equity.return_value = [
@@ -248,9 +244,7 @@ class TestFetchMethods:
         mock_hist = Mock(empty=False)
         mock_close = Mock()
         mock_close.pct_change.return_value.std.return_value = 0.02
-        mock_hist.__getitem__ = (
-            lambda self, key: mock_close if key == "Close" else Mock()
-        )
+        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
