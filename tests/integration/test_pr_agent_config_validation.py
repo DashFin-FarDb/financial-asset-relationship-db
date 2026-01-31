@@ -119,18 +119,11 @@ def _shannon_entropy(value: str) -> float:
     probs = counts[counts > 0] / sample.size
     return float(-np.sum(probs * np.log2(probs)))
 
-    def test_agent_version_matches_config(pr_agent_config):
-        """Check that the PR agent's configured version matches the current config ('1.1.0')."""
-        assert pr_agent_config["agent"]["version"] == "1.1.0"
 
-    """
-    Determine whether a string value appears to be a secret.
+def test_agent_version_matches_config(pr_agent_config):
+    """Check that the PR agent's configured version matches the current config ('1.1.0')."""
+    assert pr_agent_config["agent"]["version"] == "1.1.0"
 
-    This function intentionally uses conservative heuristics to avoid
-    false positives while still catching common credential patterns.
-
-    Args:
-        value: The string to inspect.
 
 def test_context_configuration_present(pr_agent_config):
     """
