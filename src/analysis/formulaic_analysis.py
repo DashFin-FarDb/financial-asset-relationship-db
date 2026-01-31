@@ -531,7 +531,9 @@ class FormulaicAnalyzer:
         return (
             "; ".join(examples)
             if examples
-            else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
+            "; ".join(examples)
+            if examples
+            else "Example: PE = 150 / 10 = 15.0"
         )
 
     @staticmethod
