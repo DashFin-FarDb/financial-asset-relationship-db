@@ -194,7 +194,7 @@ class TestIsMemoryDb:
 
     @staticmethod
     def test_is_memory_db_with_empty_string(
-        monkeypatch: pytest / MonkeyPatch,
+        monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
     ) -> None:
         """Test that _is_memory_db returns False for empty string."""
