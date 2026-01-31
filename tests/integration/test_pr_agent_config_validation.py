@@ -285,11 +285,9 @@ class TestPRAgentConfigYAMLValidity:
                     mapping[entry] = value
                 return mapping
 
-        loader = DuplicateKeyLoader(content)
-        try:
-            loader.get_single_data()
-        finally:
-            loader.dispose()
+        # Using yaml.load() with custom Loader is required for duplicate key detection.
+        # DuplicateKeyLoader extends SafeLoader, so this is secure.
+        yaml.load(content, Loader=DuplicateKeyLoader)
 
     @staticmethod
     def test_consistent_indentation():
