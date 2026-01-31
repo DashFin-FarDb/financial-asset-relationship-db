@@ -220,7 +220,7 @@ def _connect() -> sqlite3.Connection:
     return _db_manager.connect()
 
 
-@ contextmanager
+@contextmanager
 def get_connection() -> Iterator[sqlite3.Connection]:
     """
     Provide a context-managed SQLite connection for the configured database.
