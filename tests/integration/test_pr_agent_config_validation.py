@@ -269,7 +269,11 @@ class TestPRAgentConfigYAMLValidity:
                     mapping[entry] = value
                 return mapping
 
-        yaml.load(content, Loader=DuplicateKeyLoader)
+        loader = DuplicateKeyLoader(content)
+        try:
+            loader.get_single_data()
+        finally:
+            loader.dispose()
 
     @staticmethod
     def test_consistent_indentation():
