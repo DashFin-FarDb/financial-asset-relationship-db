@@ -1103,6 +1103,7 @@ class TestBoundaryConditions:
     @staticmethod
     @staticmethod
     @staticmethod
+    @staticmethod
     def test_correlation_strength_bounds():
         """Test correlation strength calculation stays within bounds."""
         graph = AssetRelationshipGraph()
@@ -1153,7 +1154,6 @@ class TestIntegrationScenarios:
             yield_to_maturity=0.03,
         )
         commodity = Commodity(
-            id="GOLD",
             symbol="GC",
             name="Gold",
             asset_class=AssetClass.COMMODITY,
