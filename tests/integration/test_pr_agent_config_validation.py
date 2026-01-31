@@ -31,26 +31,17 @@ INLINE_CREDS_RE = re.compile(
 BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
 HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
 
-        sensitive_patterns = (
-            "password",
-            "secret",
-            "token",
-            "api_key",
-            "apikey",
-            "access_key",
-            "private_key",
-        )
+sensitive_patterns = (
+    "password",
+    "secret",
+    "token",
+    "api_key",
+    "apikey",
+    "access_key",
+    "private_key",
+)
 
-        SAFE_PLACEHOLDERS = {
-            "<token>",
-            "<secret>",
-            "changeme",
-            "your-token-here",
-            "dummy",
-            "placeholder",
-            "null",
-            "none",
-        }
+SAFE_PLACEHOLDERS = {
     "<token>",
     "<secret>",
     "changeme",
