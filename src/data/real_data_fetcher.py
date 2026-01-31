@@ -217,7 +217,8 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond / treasury data"""
-        # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
+        # For bonds, we'll use Treasury ETFs and bond proxies since
+        # individual bonds are harder to access
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
