@@ -181,7 +181,7 @@ class TestIsMemoryDb:
 
     @staticmethod
     def test_is_memory_db_with_none_uses_module_database_path(
-        monkeypatch: pytest.MonekyPatch,
+        monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
     ) -> None:
         """Test that _is_memory_db with None parameter uses the module's DATABASE_PATH."""
