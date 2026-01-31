@@ -240,7 +240,9 @@ def get_connection() -> Iterator[sqlite3.Connection]:
             connection.close()
 
 
-class _DatabaseConnectionManager:
+# Register cleanup for the shared in-memory connection when the program exits.
+atexit.register(_db_manager.close)
+atexit.register(_cleanup_memory_connection)
     def __init__(self, database_path: str):
         self._database_path = database_path
         self._memory_connection = None
