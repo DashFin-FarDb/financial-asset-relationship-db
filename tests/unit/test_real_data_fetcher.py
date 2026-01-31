@@ -128,8 +128,7 @@ class TestCreateRealDatabase:
         mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
     ):
         """Test database creation with network enabled."""
-        def test_create_database_with_network(mock_equity, mock_bond, mock_commodity, mock_currency, mock_events):
-        mock_equity.return_value = [
+            mock_equity.return_value = [
             Equity(
                 id="TEST",
                 symbol="TEST",
@@ -261,14 +260,6 @@ class TestFetchMethods:
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
 
-        commodities = RealDataFetcher._fetch_commodity_data()
-
-
-mock_hist.__getitem__ = lambda key: mock_close if key == "Close" else Mock()
-
- @staticmethod
-  @patch("yfinance.Ticker")
-   def test_fetch_currency_data_success(mock_ticker_class):
         """Test successful currency data fetching."""
         mock_ticker = Mock()
         mock_ticker.history.return_value = Mock(empty=False)
