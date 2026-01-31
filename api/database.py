@@ -182,6 +182,20 @@ class _DatabaseConnectionManager:
             uri=self._database_path.startswith("file:"),
         )
         connection.row_factory = sqlite3.Row
+
+        # Legacy/backwards-compatible reference for callers that previously relied on a
+        # module-level connection object. This does not change the per-call connection
+        # behavior for file-backed databases.
+        global LEGACY_CONNECTION  # type: ignore[global-variable-not-assigned]
+        LEGACY_CONNECTION = connection
+
+        return connection
+            self._database_path,
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False,
+            uri=self._database_path.startswith("file:"),
+        )
+        connection.row_factory = sqlite3.Row
         return connection
 
 
