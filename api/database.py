@@ -150,48 +150,48 @@ class _DatabaseConnectionManager:
     LEGACY_CONNECTION = None
 
     def connect(self) -> sqlite3.Connection:
-            """
-            Open a configured SQLite connection for the module's database path.
+        """
+        Open a configured SQLite connection for the module's database path.
 
-            Returns a persistent shared connection when the configured database is
-            in-memory; for file-backed databases, returns a new connection instance.
-            The connection has type detection enabled (PARSE_DECLTYPES), allows use from
-            multiple threads (check_same_thread=False) and uses sqlite3.Row for rows.
-            When the database path is a URI beginning with "file:" the connection is
-            opened with URI handling enabled.
+        Returns a persistent shared connection when the configured database is
+        in-memory; for file-backed databases, returns a new connection instance.
+        The connection has type detection enabled (PARSE_DECLTYPES), allows use from
+        multiple threads (check_same_thread=False) and uses sqlite3.Row for rows.
+        When the database path is a URI beginning with "file:" the connection is
+        opened with URI handling enabled.
 
-            Returns:
-                sqlite3.Connection: A sqlite3 connection to the configured
-                    DATABASE_PATH (shared for in-memory, new per call for file-backed).
-            """
-            if _is_memory_db(self._database_path):
-                with self._memory_connection_lock:
-                    if self._memory_connection is None:
-                        self._memory_connection = sqlite3.connect(
-                            self._database_path,
-                            detect_types=sqlite3.PARSE_DECLTYPES,
-                            check_same_thread=False,
-                            uri=self._database_path.startswith("file:"),
-                        )
-                        self._memory_connection.row_factory = sqlite3.Row
-                return self._memory_connection
+        Returns:
+            sqlite3.Connection: A sqlite3 connection to the configured
+                DATABASE_PATH (shared for in-memory, new per call for file-backed).
+        """
+        if _is_memory_db(self._database_path):
+            with self._memory_connection_lock:
+                if self._memory_connection is None:
+                    self._memory_connection = sqlite3.connect(
+                        self._database_path,
+                        detect_types=sqlite3.PARSE_DECLTYPES,
+                        check_same_thread=False,
+                        uri=self._database_path.startswith("file:"),
+                    )
+                    self._memory_connection.row_factory = sqlite3.Row
+            return self._memory_connection
 
             # For file-backed databases, create a new connection each time
-                connection = sqlite3.connect(
+            connection = sqlite3.connect(
                 self._database_path,
                 detect_types=sqlite3.PARSE_DECLTYPES,
                 check_same_thread=False,
                 uri=self._database_path.startswith("file:"),
             )
-            connection.row_factory = sqlite3.Row
+        connection.row_factory = sqlite3.Row
 
-            # Legacy/backwards-compatible reference for callers that previously relied on a
-            # module-level connection object. This does not change the per-call connection
-            # behavior for file-backed databases.
-            global LEGACY_CONNECTION  # type: ignore[global-variable-not-assigned]
-            LEGACY_CONNECTION = connection
+        # Legacy/backwards-compatible reference for callers that previously relied on a
+        # module-level connection object. This does not change the per-call connection
+        # behavior for file-backed databases.
+        global LEGACY_CONNECTION  # type: ignore[global-variable-not-assigned]
+        LEGACY_CONNECTION = connection
 
-            return connection
+        return connection
 
 
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
@@ -241,7 +241,7 @@ _ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False
 if not _ATEXIT_DB_CLOSE_REGISTERED:
     atexit.register(_db_manager.close)
     globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
-    
+
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
