@@ -198,9 +198,9 @@ class _DatabaseConnectionManager:
         )
         connection.row_factory = sqlite3.Row
                 self._database_path,
-                detect_types=sqlite3.PARSE_DECLTYPES,
-                check_same_thread=False,
-                uri=self._database_path.startswith("file:"),
+                detect_types = sqlite3.PARSE_DECLTYPES,
+                check_same_thread = False,
+                uri = self._database_path.startswith("file:"),
             )
         connection.row_factory = sqlite3.Row
 
