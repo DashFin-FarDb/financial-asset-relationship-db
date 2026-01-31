@@ -1050,7 +1050,7 @@ class TestBoundaryConditions:
         assert result["formula_count"] > 0
 
     @staticmethod
-    def test_very_low_prices:
+    def test_very_low_prices():
         """Test with very low asset prices."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
