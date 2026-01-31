@@ -84,8 +84,6 @@ def _shannon_entropy(value: str) -> float:
 
     sample = str(value)
     length = len(sample)
-    if length == 0:
-        return 0.0
 
     freq = {}
     for ch in sample:
@@ -308,10 +306,9 @@ class TestPRAgentConfigSecurity:
     def scan(obj: object, suspected: list[tuple[str, str]]) -> None:
         """Recursively scan configuration objects for suspected secrets.
 
-        Returns:
-            None
-        Raises:
-            None
+        Args:
+            obj: Configuration object to scan (dict, list, or scalar).
+            suspected: List to append (kind, value) tuples when secrets are found.
         """
         if isinstance(obj, dict):
             for value in obj.values():
