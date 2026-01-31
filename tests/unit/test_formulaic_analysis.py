@@ -1117,6 +1117,7 @@ class TestBoundaryConditions:
         strength = FormulaicAnalyzer._calculate_avg_correlation_strength(graph)
         assert 0 <= strength <= 1.0
 
+
 class TestIntegrationScenarios:
     """Test integrated scenarios with multiple components."""
 
