@@ -775,6 +775,7 @@ class TestHelperMethods:
 
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
+
     @staticmethod
     def test_analyze_graph_with_all_asset_types():
         """Test analyzing a graph with all asset types."""
@@ -1029,6 +1030,7 @@ class TestRegressionCases:
 
 class TestBoundaryConditions:
     """Test boundary conditions and extreme values."""
+
     @staticmethod
     def test_very_high_pe_ratio():
         """Test formula extraction with very high P/E ratio."""
