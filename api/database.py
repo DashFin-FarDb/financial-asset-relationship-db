@@ -216,9 +216,7 @@ class _DatabaseConnectionManager:
         # Legacy/backwards-compatible reference for callers that previously relied on a
         # module-level connection object. This does not change the per-call connection
         # behavior for file-backed databases.
-        global LEGACY_CONNECTION  # type: ignore[global-variable-not-assigned]
-        LEGACY_CONNECTION = connection
-
+        
         return connection
 
 
