@@ -95,9 +95,7 @@ class TestRealDataFetcherInitialization:
             """Factory function that creates and returns a new AssetRelationshipGraph instance."""
             return AssetRelationshipGraph()
 
-        fetcher = RealDataFetcher(
-            cache_path=cache_path, fallback_factory=custom_factory, enable_network=False
-        )
+        fetcher = RealDataFetcher(cache_path=cache_path, fallback_factory=custom_factory, enable_network=False)
 
         assert fetcher.cache_path == Path(cache_path)
         assert fetcher.fallback_factory is custom_factory
@@ -124,9 +122,7 @@ class TestCreateRealDatabase:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    def test_create_database_with_network(
-        mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
-    ):
+    def test_create_database_with_network(mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
         """Test database creation with network enabled."""
         # Setup mocks
         mock_equity.return_value = [
@@ -214,9 +210,7 @@ class TestFetchMethods:
         equities = RealDataFetcher._fetch_equity_data()
         assert isinstance(equities, list)
         assert equities, "Expected at least one fetched equity"
-        assert all(isinstance(eq, Equity) for eq in equities), (
-            "All items should be Equity instances"
-        )
+        assert all(isinstance(eq, Equity) for eq in equities), "All items should be Equity instances"
         assert mock_ticker_class.call_count == 4
 
     @patch("yfinance.Ticker")
@@ -254,9 +248,7 @@ class TestFetchMethods:
         mock_close = Mock()
         mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         mock_close.pct_change.return_value.std.return_value = 0.02
-        mock_hist.__getitem__ = (
-            lambda self, key: mock_close if key == "Close" else Mock()
-        )
+        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
@@ -869,9 +861,7 @@ class TestAllAssetTypes:
         mock_hist = Mock(empty=False)
         mock_close = Mock()
         mock_close.pct_change.return_value.std.return_value = 0.02
-        mock_hist.__getitem__ = (
-            lambda self, key: mock_close if key == "Close" else Mock()
-        )
+        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
@@ -942,9 +932,7 @@ class TestGraphBuilding:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    def test_graph_includes_all_asset_types(
-        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
-    ):
+    def test_graph_includes_all_asset_types(self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
         """Test that the built graph includes all fetched asset types."""
         # Setup mocks
         mock_equity.return_value = [
@@ -1002,9 +990,7 @@ class TestGraphBuilding:
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_commodity_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_currency_data")
     @patch("src.data.real_data_fetcher.RealDataFetcher._create_regulatory_events")
-    def test_graph_builds_relationships(
-        self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
-    ):
+    def test_graph_builds_relationships(self, mock_events, mock_currency, mock_commodity, mock_bond, mock_equity):
         """Test that relationships are built in the graph."""
         mock_equity.return_value = [
             Equity(
@@ -1213,9 +1199,7 @@ class TestFetchMethodsErrorHandling:
             assert equity.price > 0
 
     @patch("yfinance.Ticker")
-    def test_fetch_commodity_handles_volatility_calculation_error(
-        self, mock_ticker_class
-    ):
+    def test_fetch_commodity_handles_volatility_calculation_error(self, mock_ticker_class):
         """Test commodity fetch handles volatility calculation errors."""
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
@@ -1223,9 +1207,7 @@ class TestFetchMethodsErrorHandling:
         mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         # Simulate error in std calculation
         mock_close.pct_change.return_value.std.side_effect = Exception("Calc error")
-        mock_hist.__getitem__ = (
-            lambda self, key: mock_close if key == "Close" else Mock()
-        )
+        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
