@@ -323,7 +323,7 @@ def initialize_schema() -> None:
     """
     execute(
         """
-        CREATE TABLE IF NOT EXISTS user_credentials (
+        CREATE TABLE IF NOT EXISTS user_credentials(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             email TEXT,
