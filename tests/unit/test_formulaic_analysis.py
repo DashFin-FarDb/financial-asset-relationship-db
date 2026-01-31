@@ -1069,7 +1069,7 @@ class TestBoundaryConditions:
         assert result["formula_count"] > 0
 
     @staticmethod
-    def test_large_number_of_assets:
+    def test_large_number_of_assets():
         """Test analyzer with large number of assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
