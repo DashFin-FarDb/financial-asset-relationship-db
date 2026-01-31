@@ -103,7 +103,28 @@ class AssetGraphRepository:
         rel_type: str,
         strength: float,
         *,
-        bidirectional: bool = False,  # Keep keyword-only
+    # Check if relationship already exists
+    existing = (
+        self.session.query(RelationshipORM)
+        .filter_by(source_id=source_id, target_id=target_id, relationship_type=rel_type)
+        .first()
+    )
+    
+    if existing:
+        existing.strength = strength
+    else:
+        new_rel = RelationshipORM(
+            source_id=source_id,
+            target_id=target_id,
+            relationship_type=rel_type,
+            strength=strength,
+        )
+        self.session.add(new_rel)
+    
+    if bidirectional:
+        self.add_or_update_relationship(
+            target_id, source_id, rel_type, strength, bidirectional=False
+        )
     ) -> None:
         if not isinstance(strength, (int, float)):
             raise ValueError("strength must be numeric")
