@@ -776,7 +776,7 @@ class TestHelperMethods:
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
     @staticmethod
-    def test_analyze_graph_with_all_asset_types:
+    def test_analyze_graph_with_all_asset_types():
         """Test analyzing a graph with all asset types."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
