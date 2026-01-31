@@ -245,11 +245,6 @@ if not _ATEXIT_DB_CLOSE_REGISTERED:
     # `_db_manager` initialization/atexit registration. The module should define
     # `_DatabaseConnectionManager` only once and create/register `_db_manager` once.
 
-    def __init__(self, database_path: str):
-        self._database_path = database_path
-        self._memory_connection: sqlite3.Connection | None = None
-        self._memory_connection_lock = threading.Lock()
-
     def connect(self) -> sqlite3.Connection:
         """
         Open a configured SQLite connection for the module's database path.
