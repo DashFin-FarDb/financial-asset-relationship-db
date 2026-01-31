@@ -10,10 +10,11 @@ This module contains additional comprehensive tests including:
 import pytest
 from sqlalchemy import create_engine
 
-pytest.importorskip("sqlalchemy")
-
 from src.data.repository import AssetGraphRepository
 from src.models.financial_models import AssetClass, Equity
+
+pytest.importorskip("sqlalchemy")
+
 
 pytestmark = pytest.mark.unit
 

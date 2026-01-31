@@ -516,6 +516,7 @@ class FormulaicAnalyzer:
     @staticmethod
     @staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
+
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P/E ratio calculations from graph data."""
         from src.models.financial_models import AssetClass
