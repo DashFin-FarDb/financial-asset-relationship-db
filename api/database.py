@@ -286,10 +286,6 @@ if not _ATEXIT_DB_CLOSE_REGISTERED:
             self._memory_connection.close()
             self._memory_connection = None
 
-
-atexit.register(_db_manager.close)
-
-
 def _cleanup_memory_connection() -> None:
     """Clean up the shared in-memory connection when the program exits."""
     connection = getattr(_db_manager, "_memory_connection", None)
@@ -372,6 +368,6 @@ def initialize_schema() -> None:
             full_name TEXT,
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
-        )
+        )      
         """
     )
