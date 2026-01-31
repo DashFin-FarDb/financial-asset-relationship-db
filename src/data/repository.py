@@ -99,24 +99,17 @@ class AssetGraphRepository:
     def add_or_update_relationship(
         self,
         source_id: str,
-        def add_or_update_relationship(
-            self,
-            source_id: str,
-            target_id: str,
-            rel_type: str,
-            strength: float,
-            *,
-            bidirectional: bool,  # Keep keyword-only
-        ) -> None:
-        if not isinstance(strength, (int, float)):
-        raise ValueError("strength must be numeric")
-        if not (0.0 <= strength <= 1.0):
-        raise ValueError("strength must be between 0.0 and 1.0 inclusive")
-        # ... existing code
+        target_id: str,
         rel_type: str,
         strength: float,
-        bidirectional: bool = False,
+        *,
+        bidirectional: bool = False,  # Keep keyword-only
     ) -> None:
+        if not isinstance(strength, (int, float)):
+            raise ValueError("strength must be numeric")
+        if not (0.0 <= strength <= 1.0):
+            raise ValueError("strength must be between 0.0 and 1.0 inclusive")
+        # ... existing code
         """
         Add or update a relationship between two assets.
         Strength must be a float in the inclusive range [-1.0, 1.0].
