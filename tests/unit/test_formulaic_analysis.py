@@ -1095,6 +1095,7 @@ class TestBoundaryConditions:
     @staticmethod
     @staticmethod
     @staticmethod
+    @staticmethod
     def test_correlation_strength_bounds():
         """Test correlation strength calculation stays within bounds."""
         graph = AssetRelationshipGraph()
@@ -1115,7 +1116,6 @@ class TestBoundaryConditions:
 
         strength = FormulaicAnalyzer._calculate_avg_correlation_strength(graph)
         assert 0 <= strength <= 1.0
-
 
 class TestIntegrationScenarios:
     """Test integrated scenarios with multiple components."""
