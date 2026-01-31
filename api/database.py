@@ -178,7 +178,9 @@ class _DatabaseConnectionManager:
         connection.row_factory = sqlite3.Row
         return connection
 
+
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+
 
 def _connect() -> sqlite3.Connection:
     """
