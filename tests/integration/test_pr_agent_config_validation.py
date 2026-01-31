@@ -119,6 +119,7 @@ def _shannon_entropy(value: str) -> float:
     probs = counts[counts > 0] / sample.size
     return float(-np.sum(probs * np.log2(probs)))
 
+
     def test_agent_version_matches_config(pr_agent_config):
         """Check that the PR agent's configured version matches the current config ('1.1.0')."""
         assert pr_agent_config["agent"]["version"] == "1.1.0"
@@ -136,7 +137,7 @@ def test_context_configuration_present(pr_agent_config):
     """
     Assert that the 'agent' section contains a 'context' key for context management settings.
 
-    The test fails if the parsed PR agent configuration omits a 'context' key under the top-level 'agent' section.
+    The test fails if the parsed PR agent configuration omits a 'context' key under the top - level 'agent' section.
     """
     agent_config = pr_agent_config["agent"]
     assert "context" in agent_config
@@ -176,7 +177,7 @@ class TestPRAgentConfigSimplification:
         """
         Assert that the 'agent' section does not contain a 'context' key.
 
-        The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
+        The test fails if the parsed PR agent configuration includes a 'context' key under the top - level 'agent' section.
         """
         agent_config = pr_agent_config["agent"]
         assert "context" not in agent_config
@@ -184,9 +185,9 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_no_chunking_settings(pr_agent_config):
         """
-        Assert the configuration contains no chunking-related settings.
+        Assert the configuration contains no chunking - related settings.
 
-        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string (case-insensitive).
+        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string(case-insensitive).
         """
         config_str = yaml.dump(pr_agent_config)
         assert "chunking" not in config_str.lower()
@@ -218,10 +219,10 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_monitoring_config_present(pr_agent_config):
         """
-        Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
+        Ensure the top - level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
 
         Parameters:
-            pr_agent_config (dict): Parsed PR agent configuration mapping.
+            pr_agent_config(dict): Parsed PR agent configuration mapping.
         """
         monitoring = pr_agent_config["monitoring"]
         assert "check_interval" in monitoring
@@ -248,9 +249,9 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_config_is_valid_yaml():
         """
-        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
+        Fail the test if .github / pr - agent - config.yml contains invalid YAML.
 
-        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+        Attempts to parse the repository file at .github / pr - agent - config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
@@ -259,9 +260,9 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_no_duplicate_keys():
         """
-        Fail the test if any top-level YAML key appears more than once in the file.
+        Fail the test if any top - level YAML key appears more than once in the file.
 
-        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        Scans .github / pr - agent - config.yml, ignores comment lines, and for each non - comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
 
@@ -293,7 +294,7 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_consistent_indentation():
         """
-        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
+        Verify that every non - empty, non - comment line in the PR agent YAML uses 2 - space indentation increments.
 
         Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
         """
@@ -316,8 +317,8 @@ class TestPRAgentConfigSecurity:
         """Recursively scan configuration objects for suspected secrets.
 
         Args:
-            obj: Configuration object to scan (dict, list, or scalar).
-            suspected: List to append (kind, value) tuples when secrets are found.
+            obj: Configuration object to scan(dict, list, or scalar).
+            suspected: List to append(kind, value) tuples when secrets are found.
         Returns:
             None
         Raises:
@@ -432,12 +433,12 @@ class TestPRAgentConfigRemovedComplexity:
     @pytest.fixture
     def pr_agent_config_content(self) -> str:
         """
-        Return the contents of .github/pr-agent-config.yml as a string.
+        Return the contents of .github / pr - agent - config.yml as a string.
 
         Reads the PR agent configuration file from the repository root and returns its raw text.
 
         Returns:
-            str: Raw YAML content of .github/pr-agent-config.yml.
+            str: Raw YAML content of .github / pr - agent - config.yml.
         Raises:
             FileNotFoundError: If the configuration file cannot be found.
         """
