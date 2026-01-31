@@ -321,7 +321,7 @@ class TestFallback:
     def test_fallback_with_custom_factory_returns_its_custom_graph():
         """Test fallback uses provided custom factory when network is disabled and returns its graph."""
         custom_graph = AssetRelationshipGraph()
-        custom_asset = Equity("CUSTOM")
+        Equity("CUSTOM")
 
     @staticmethod
     def test_fallback():
