@@ -531,7 +531,7 @@ class FormulaicAnalyzer:
         return (
             "; ".join(examples)
             if examples
-    return "; ".join(examples) if examples else "Example: PE = 150 / 10 = 15.0"
+            return "; ".join(examples) if examples else "Example: PE = 150 / 10 = 15.0"
             if examples
             else "Example: PE = 150 / 10 = 15.0"
         )
