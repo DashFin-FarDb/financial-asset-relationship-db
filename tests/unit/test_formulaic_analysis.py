@@ -1096,6 +1096,7 @@ class TestBoundaryConditions:
     @staticmethod
     @staticmethod
     @staticmethod
+    @staticmethod
     def test_correlation_strength_bounds():
         """Test correlation strength calculation stays within bounds."""
         graph = AssetRelationshipGraph()
@@ -1121,7 +1122,8 @@ class TestBoundaryConditions:
 class TestIntegrationScenarios:
     """Test integrated scenarios with multiple components."""
 
-    def test_diversified_portfolio_analysis(self):
+    @staticmethod
+    def test_diversified_portfolio_analysis():
         """Test analysis of a diversified portfolio."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
