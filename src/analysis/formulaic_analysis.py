@@ -537,7 +537,7 @@ class FormulaicAnalyzer:
             else "Example: PE = 100.00 / 5.00 = 20.00"
         )
 
-    @staticmethod
+    @ staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example dividend yield calculations from graph data."""
         from src.models.financial_models import AssetClass
