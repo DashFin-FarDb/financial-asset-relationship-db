@@ -30,6 +30,16 @@ INLINE_CREDS_RE = re.compile(
 BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
 HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
 
+SAFE_PLACEHOLDERS = {
+    "<token>",
+    "<secret>",
+    "changeme",
+    "your-token-here",
+    "dummy",
+    "placeholder",
+    "null",
+    "none",
+}
 
 # Common secret / credential indicators used across heuristics
 class SecretMarker(str, Enum):
@@ -56,6 +66,8 @@ def pr_agent_config() -> dict[str, object]:
 
     Returns:
         dict: The parsed YAML content as a Python mapping.
+    Raises:
+       Failed: If the file is missing, invalid YAML, or not a mapping.
     """
     config_path = Path(".github/pr-agent-config.yml")
     if not config_path.exists():
@@ -115,18 +127,7 @@ def _looks_like_secret(value: str) -> bool:
         return False
 
     # Known safe placeholders
-    placeholders = {
-        "<token>",
-        "<secret>",
-        "changeme",
-        "your-token-here",
-        "dummy",
-        "placeholder",
-        "null",
-        "none",
-    }
-
-    if v.lower() in placeholders:
+    if v.lower() in SAFE_PLACEHOLDERS:
         return False
 
     # Inline credentials in URLs
@@ -357,17 +358,18 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """Ensure sensitive keys only use safe placeholders or templated values."""
-        sensitive_patterns = (
-            "password",
-            "secret",
-            "token",
-            "api_key",
-            "apikey",
-            "access_key",
-            "private_key",
-        )
+        SAFE_PLACEHOLDERS = {
+            "<token>",
+            "<secret>",
+            "changeme",
+            "your-token-here",
+            "dummy",
+            "placeholder",
+            "null",
+            "none",
+        }
 
-        allowed_placeholders = {None, "null", "none", "placeholder", "***"}
+        allowed_placeholders = {None, "***"} | SAFE_PLACEHOLDERS
         templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
         def is_allowed_placeholder(v: object) -> bool:
@@ -430,6 +432,8 @@ class TestPRAgentConfigRemovedComplexity:
 
         Returns:
             str: Raw YAML content of .github / pr - agent - config.yml.
+       Raises:
+           FileNotFoundError: If the configuration file cannot be found.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
