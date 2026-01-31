@@ -59,7 +59,9 @@ class AssetGraphRepository:
     def list_assets(self) -> List[Asset]:
         """Return all assets as dataclass instances ordered by id."""
 
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = self.session.execute(
+            select(AssetORM).order_by(AssetORM.id)
+        ).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -77,7 +79,6 @@ class AssetGraphRepository:
 
     def delete_asset(self, asset_id: str) -> None:
         """Delete an asset and cascading relationships/events."""
-
         asset = self.session.get(AssetORM, asset_id)
         if asset is not None:
             self.session.delete(asset)
@@ -132,7 +133,6 @@ class AssetGraphRepository:
 
     def list_relationships(self) -> List[RelationshipRecord]:
         """Return all relationships from the database."""
-
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
             RelationshipRecord(
@@ -189,7 +189,6 @@ class AssetGraphRepository:
         Raises:
             None
         """
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -204,7 +203,6 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_regulatory_event(self, event: RegulatoryEvent) -> None:
         """Create or update a regulatory event record."""
-
         existing = self.session.get(RegulatoryEventORM, event.id)
         if existing is None:
             existing = RegulatoryEventORM(id=event.id)
@@ -222,13 +220,11 @@ class AssetGraphRepository:
 
     def list_regulatory_events(self) -> List[RegulatoryEvent]:
         """Return all regulatory events."""
-
         result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
         """Delete a regulatory event."""
-
         record = self.session.get(RegulatoryEventORM, event_id)
         if record is not None:
             self.session.delete(record)
@@ -258,7 +254,11 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap)
+            if asset.market_cap is not None
+            else None
+        )
         orm.currency = asset.currency
 
         # Reset all optional fields to avoid stale values

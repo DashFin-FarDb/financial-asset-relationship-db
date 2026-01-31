@@ -69,10 +69,15 @@ class RealDataFetcher:
         """
         if self.cache_path and self.cache_path.exists():
             try:
-                logger.info("Loading asset graph from cache at %s", self.cache_path)
+                logger.info(
+                    "Loading asset graph from cache at %s",
+                    self.cache_path
+                )
                 return _load_from_cache(self.cache_path)
             except Exception:
-                logger.exception("Failed to load cached dataset; proceeding with standard fetch")
+                logger.exception(
+                    "Failed to load cached dataset; proceeding with standard fetch"
+                )
 
         if not self.enable_network:
             logger.info("Network fetching disabled. Using fallback dataset if available.")
@@ -158,9 +163,10 @@ class RealDataFetcher:
         Fetches current market data for a predefined set of major equities and
         returns them as Equity objects.
         Returns:
-            List[Equity]: Equity instances populated with market fields including
-                id, symbol, name, asset_class, sector, price, market_cap,
-                pe_ratio, dividend_yield, earnings_per_share and book_value.
+            List[Equity]: Equity instances populated with market fields
+                including id, symbol, name, asset_class, sector, price,
+                market_cap, pe_ratio, dividend_yield, earnings_per_share,
+                and book_value.
         """
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
@@ -196,7 +202,12 @@ class RealDataFetcher:
                     book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info("Fetched price for %s (%s): %s", symbol, name, current_price)
+                logger.info(
+                    "Fetched price for %s (%s): %s",
+                    symbol,
+                    name,
+                    current_price,
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch data for %s: %s", symbol, e)
@@ -282,7 +293,10 @@ class RealDataFetcher:
 
                 # Calculate simple volatility from recent data
                 hist_week = ticker.history(period="5d")
-                volatility = float(hist_week["Close"].pct_change().std()) if len(hist_week) > 1 else 0.20
+                volatility = (
+                    float(hist_week["Close"].pct_change().std())
+                    if len(hist_week) > 1 else 0.20
+                )
 
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
@@ -296,7 +310,12 @@ class RealDataFetcher:
                     volatility=volatility,
                 )
                 commodities.append(commodity)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
@@ -382,7 +401,10 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
+            description=(
+                "10-K Filing - Increased oil reserves and sustainability "
+                "initiatives"
+            ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -473,8 +495,14 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             incoming_relationships[target].append((source, rel_type, strength))
 
     return {
-        "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "assets": [
+            _serialize_dataclass(asset)
+            for asset in graph.assets.values()
+        ],
+        "regulatory_events": [
+            _serialize_dataclass(event)
+            for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
                 {

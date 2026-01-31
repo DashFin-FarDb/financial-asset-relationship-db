@@ -98,22 +98,6 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
-def _is_memory_db(path: str | None = None) -> bool:
-    """
-    Recognizes valid SQLite in -memory database patterns:
-    - ":memory:" - standard in -memory database
-    - "file::memory:" - URI - style in -memory database
-    - "file::memory:?cache=shared" - shared memory database with URI parameters
-
-    Does NOT recognize patterns where :memory: is part of a file path:
-    - "file:///path/:memory:" - treated as a file path, not memory database
-
-    Note: The `mode = memory` URI parameter(e.g., "file:memdb1?mode=memory") is
-    NOT detected as an in -memory database by this function. Use the standard
-    patterns above for reliable detection.
-    """
-    SQLite database.
-
     Recognizes valid SQLite in-memory database patterns:
     - ":memory:" - standard in-memory database
     - "file::memory:" - URI-style in-memory database
@@ -126,12 +110,15 @@ def _is_memory_db(path: str | None = None) -> bool:
     Per SQLite documentation, :memory: must be the entire path component for
     URI-style databases, not embedded within a longer path.
 
+    Note: The `mode = memory` URI parameter (e.g., "file:memdb1?mode=memory") is
+    NOT detected as an in-memory database by this function. Use the standard
+    patterns above for reliable detection.
+
     Parameters:
         path (str | None): Optional database path or URI to evaluate.
         If omitted, the configured DATABASE_PATH is used.
     Returns:
         True if the path (or configured database) is an in-memory SQLite database.
-        For example, ":memory:" or "file::memory:?cache=shared", False otherwise.
     """
     target = DATABASE_PATH if path is None else path
     if target == ":memory":
