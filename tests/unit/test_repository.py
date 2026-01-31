@@ -1241,14 +1241,10 @@ class TestBoundaryValues:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False
-        )
-        repository.session.commit()
-
-        rel = repository.get_relationship("NEG1", "NEG2", "negative_corr")
-        assert rel is not None
-        assert rel.strength == -0.8
+        with pytest.raises(ValueError):
+            repository.add_or_update_relationship(
+                "NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False
+            )
 
 
 class TestSpecialCharacters:
