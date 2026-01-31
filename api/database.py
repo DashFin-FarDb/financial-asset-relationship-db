@@ -213,8 +213,9 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     for in-memory databases the shared connection is kept open.
 
     Returns:
-        sqlite3.Connection: The SQLite connection — closed on context exit for
-            file-backed databases, kept open for in-memory databases.
+        sqlite3.Connection: The SQLite connection. For file-backed databases, the
+            connection is closed on context exit;
+            for in-memory databases, it is kept open.
     """
     connection = _connect()
     try:
@@ -234,8 +235,8 @@ def _close_shared_memory_connection() -> None:
     manager's internal `_memory_connection` safely under its lock.
     """
     close_fn = getattr(_db_manager, "close", None)
-    if callable(close_fn):
-        close_fn()
+    if close_fn is not None:
+        close_fn
         return
 
     lock = getattr(_db_manager, "_memory_connection_lock", None)
@@ -278,6 +279,7 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """
     Retrieve the first row produced by an SQL query.
+    """
 
     Parameters:
         query (str): SQL statement to execute.
