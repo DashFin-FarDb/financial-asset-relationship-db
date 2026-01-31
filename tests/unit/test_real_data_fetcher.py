@@ -302,7 +302,7 @@ class TestFallback:
     @staticmethod
     def test_fallback_with_custom_factory():
         """Test fallback uses custom factory when provided."""
-        custom_graph = AssetRelationshipGraph()
+        AssetRelationshipGraph()
         custom_asset = Equity(
             id="CUSTOM",
             symbol="CUST",
