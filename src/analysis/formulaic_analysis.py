@@ -377,7 +377,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
         """Calculate average correlation strength in the graph"""
-        total_relationships = sum(len(rels) for rels in graph.relationships.values())
         strengths = [strength for rels in graph.relationships.values() for _, _, strength in rels]
         if strengths:
             avg_strength = sum(strengths) / len(strengths)
