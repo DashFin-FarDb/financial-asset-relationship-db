@@ -526,7 +526,7 @@ class FormulaicAnalyzer:
                 and asset.pe_ratio is not None
             ):
                 examples.append(
-                    f"{asset.symbol}: PE = {asset.price:.2f} / EPS = {asset.pe_ratio:.2f}"
+                    f"{asset.symbol}: PE = {asset.pe_ratio:.2f}"
                 )
                 if len(examples) >= 2:
                     break
