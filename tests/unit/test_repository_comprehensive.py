@@ -14,6 +14,9 @@ from src.data.database import create_session_factory, init_db
 from src.data.repository import AssetGraphRepository
 from src.models.financial_models import AssetClass, Equity
 
+pytest.importorskip("sqlalchemy")
+
+
 pytestmark = pytest.mark.unit
 
 

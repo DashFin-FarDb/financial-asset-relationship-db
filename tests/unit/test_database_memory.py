@@ -24,8 +24,6 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     Returns:
         Iterator[None]: Control back to the caller for the test duration.
 
-    Raises:
-        None
     """
     original_url = os.environ.get("DATABASE_URL")
 
@@ -558,7 +556,7 @@ class TestEdgeCasesAndErrorHandling:
 
     @staticmethod
     def test_uri_memory_database_with_cache_shared(
-        monkeypatch, restore_database_module
+        restore_database_module,
     ):
         """Test URI memory database with cache=shared parameter.
 
@@ -598,7 +596,7 @@ class TestEdgeCasesAndErrorHandling:
 
     @staticmethod
     def test_multiple_memory_db_formats_detected_correctly(
-        monkeypatch, restore_database_module
+        restore_database_module,
     ):
         """Test that various memory database format variations are detected correctly."""
         memory_formats = [

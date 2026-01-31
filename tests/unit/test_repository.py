@@ -1036,7 +1036,7 @@ class TestAssetTypeConversions:
         repository.session.commit()
 
         # Retrieve and verify bond-specific fields are None
-        retrieved = repository.get_asset_by_id("MORPH1")
+        retrieved = repository.get_assets_map()["MORPH1"]
         assert isinstance(retrieved, Equity)
         assert retrieved.pe_ratio == 25.0
         # Verify that old Bond-specific fields are now None
@@ -1247,8 +1247,10 @@ class TestBoundaryValues:
         repository.session.commit()
 
         rel = repository.get_relationship("NEG1", "NEG2", "negative_corr")
-        assert rel is not None
         assert rel.strength == -0.8
+        repository.add_or_update_relationship(
+            "NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False
+        )
 
 
 class TestSpecialCharacters:

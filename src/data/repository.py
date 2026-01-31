@@ -72,7 +72,6 @@ class AssetGraphRepository:
 
     def get_asset_by_id(self, asset_id: str) -> Optional[Asset]:
         """Return a single asset by its ID, or None if not found."""
-
         orm = self.session.get(AssetORM, asset_id)
         if orm is None:
             return None
@@ -154,7 +153,11 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
     ) -> Optional[RelationshipRecord]:
-        """Fetch a single relationship if it exists.
+        """
+        Fetch a single relationship if it exists.
+
+        Returns:
+            Optional[RelationshipRecord]: The relationship, if found.
         Raises:
             None
         """
