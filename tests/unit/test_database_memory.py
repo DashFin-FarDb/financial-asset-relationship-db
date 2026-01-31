@@ -391,7 +391,7 @@ class TestGetConnectionWithMemoryDb:
         import tempfile
 
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
-        tmp_path = tmp_file.name
+            tmp_path = tmp_file.name
 
         try:
             monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}")
