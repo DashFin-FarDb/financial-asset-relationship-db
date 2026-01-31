@@ -529,9 +529,11 @@ class FormulaicAnalyzer:
                 examples.append(f"{asset.symbol}: PE = {asset.pe_ratio:.2f}")
                 if len(examples) >= 2:
                     break
-        return "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
+        return (
+            "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
+        )
 
-    @ staticmethod
+    @staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P/E ratio calculations from graph data."""
         from src.models.financial_models import AssetClass
@@ -546,7 +548,9 @@ class FormulaicAnalyzer:
                 examples.append(f"{asset.symbol}: PE = {asset.pe_ratio:.2f}")
                 if len(examples) >= 2:
                     break
-        return "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
+        return (
+            "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
+        )
 
     @staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
@@ -566,7 +570,11 @@ class FormulaicAnalyzer:
                 )
                 if len(examples) >= 2:
                     break
-        return "; ".join(examples) if examples else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
+        return (
+            "; ".join(examples)
+            if examples
+            else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
+        )
 
     @staticmethod
     def _calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
