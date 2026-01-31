@@ -309,6 +309,13 @@ atexit.register(_db_manager.close)
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
 atexit.register(_db_manager.close)
 
+def _cleanup_memory_connection() -> None:
+    """Clean up the shared in-memory connection when the program exits."""
+    connection = getattr(_db_manager, "_memory_connection", None)
+    if connection is not None:
+        connection.close()
+
+
 atexit.register(_cleanup_memory_connection)
 
 
