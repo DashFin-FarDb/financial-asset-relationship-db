@@ -260,17 +260,10 @@ class TestFetchMethods:
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
 
-        # Test successful currency data fetching.
-        mock_ticker = Mock()
-        mock_ticker.history.return_value = Mock(empty=False)
-        mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
-            iloc=Mock(__getitem__=lambda self, idx: 1.1)
-        )
-        mock_ticker_class.return_value = mock_ticker
+        commodities = RealDataFetcher._fetch_commodity_data()
 
-        currencies = RealDataFetcher._fetch_currency_data()
-
-        assert isinstance(currencies, list)
+        assert isinstance(commodities, list)
+        assert all(isinstance(c, Commodity) for c in commodities)
 
     @staticmethod
     def test_create_regulatory_events():
