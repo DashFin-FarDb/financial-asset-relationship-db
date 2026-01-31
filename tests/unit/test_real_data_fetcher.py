@@ -524,7 +524,7 @@ class TestDeserialization:
         assert isinstance(event, RegulatoryEvent)
         assert event.id == "EVENT1"
         assert event.asset_id == "TEST"
-        assert event.event_type == "Earnings Report"
+        assert event.event_type == RegulatoryActivity.EARNINGS_REPORT
         assert event.description == "Test event"
         assert event.impact_score == 0.5
 
