@@ -191,9 +191,9 @@ class _DatabaseConnectionManager:
 
         return connection
             self._database_path,
-            detect_types=sqlite3.PARSE_DECLTYPES,
-            check_same_thread=False,
-            uri=self._database_path.startswith("file:"),
+            detect_types = sqlite3.PARSE_DECLTYPES,
+            check_same_thread = False,
+            uri = self._database_path.startswith("file:"),
         )
         connection.row_factory = sqlite3.Row
         return connection
@@ -220,7 +220,7 @@ def _connect() -> sqlite3.Connection:
     return _db_manager.connect()
 
 
-@contextmanager
+@ contextmanager
 def get_connection() -> Iterator[sqlite3.Connection]:
     """
     Provide a context-managed SQLite connection for the configured database.
@@ -259,7 +259,7 @@ atexit.register(_db_manager.close)
 atexit.register(_cleanup_memory_connection)
 
 
-def execute(query: str, parameters: tuple | list | None = None) -> None:
+def execute(query: str, parameters: tuple | list | None=None) -> None:
     """
     Execute a SQL write statement and commit the transaction using the module's
     managed SQLite connection.
@@ -274,7 +274,7 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
         connection.commit()
 
 
-def fetch_one(query: str, parameters: tuple | list | None = None):
+def fetch_one(query: str, parameters: tuple | list | None=None):
     """
     Retrieve the first row produced by an SQL query.
 
@@ -292,7 +292,7 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
         return cursor.fetchone()
 
 
-def fetch_value(query: str, parameters: tuple | list | None = None):
+def fetch_value(query: str, parameters: tuple | list | None=None):
     """
     Fetches the first column value from the first row of a query result.
 
