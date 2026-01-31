@@ -190,12 +190,6 @@ class _DatabaseConnectionManager:
         LEGACY_CONNECTION = connection
 
         return connection
-            detect_types = sqlite3.PARSE_DECLTYPES,
-            check_same_thread = False,
-            uri = self._database_path.startswith("file:"),
-        )
-        connection.row_factory = sqlite3.Row
-        return connection
 
 
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
