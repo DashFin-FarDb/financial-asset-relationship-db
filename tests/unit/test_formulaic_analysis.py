@@ -1152,7 +1152,7 @@ class TestIntegrationScenarios:
         )
         currency = Currency(
             id="EUR",
-            symbol="EUR",
+                id="GOLD",
             name="Euro",
             asset_class=AssetClass.CURRENCY,
             sector="Forex",
