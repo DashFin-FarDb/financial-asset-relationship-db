@@ -162,9 +162,10 @@ class RealDataFetcher:
         Fetches current market data for a predefined set of major equities and
         returns them as Equity objects.
         Returns:
-            List[Equity]: Equity instances populated with market fields including
-                id, symbol, name, asset_class, sector, price, market_cap,
-                pe_ratio, dividend_yield, earnings_per_share and book_value.
+            List[Equity]: Equity instances populated with market fields
+                including id, symbol, name, asset_class, sector, price,
+                market_cap, pe_ratio, dividend_yield, earnings_per_share,
+                and book_value.
         """
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
@@ -201,7 +202,10 @@ class RealDataFetcher:
                 )
                 equities.append(equity)
                 logger.info(
-                    "Fetched price for %s (%s): %s", symbol, name, current_price
+                    "Fetched price for %s (%s): %s",
+                    symbol,
+                    name,
+                    current_price,
                 )
 
             except Exception as e:
@@ -213,7 +217,8 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond / treasury data"""
-        # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
+        # For bonds, we'll use Treasury ETFs and bond proxies since
+        # individual bonds are harder to access
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
@@ -308,7 +313,12 @@ class RealDataFetcher:
                     volatility=volatility,
                 )
                 commodities.append(commodity)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)

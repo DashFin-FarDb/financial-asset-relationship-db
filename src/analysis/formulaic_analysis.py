@@ -67,7 +67,8 @@ class FormulaicAnalyzer:
             "formula_count": len(all_formulas),
             "categories": self._categorize_formulas(all_formulas),
             "summary": self._generate_formula_summary(
-                all_formulas, empirical_relationships
+                all_formulas,
+                empirical_relationships,
             ),
         }
 
@@ -414,7 +415,8 @@ class FormulaicAnalyzer:
             return min(0.75, total_relationships / effective_asset_count * 0.1)
         return 0.5
 
-    def _categorize_formulas(self, formulas: List[Formula]) -> Dict[str, int]:
+    @staticmethod
+    def _categorize_formulas(formulas: List[Formula]) -> Dict[str, int]:
         """Categorize formulas by type"""
         categories = {}
         for formula in formulas:
