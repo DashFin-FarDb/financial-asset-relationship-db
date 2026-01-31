@@ -304,8 +304,6 @@ atexit.register(_cleanup_memory_connection)
 
 
 atexit.register(_db_manager.close)
-_db_manager = _DatabaseConnectionManager(DATABASE_PATH)
-atexit.register(_db_manager.close)
 
 
 def _cleanup_memory_connection() -> None:
