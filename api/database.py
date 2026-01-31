@@ -240,7 +240,11 @@ def get_connection() -> Iterator[sqlite3.Connection]:
 
 
 # Register cleanup for the shared in-memory connection when the program exits.
-atexit.register(_db_manager.close)
+# Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
+_ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False)
+if not _ATEXIT_DB_CLOSE_REGISTERED:
+    atexit.register(_db_manager.close)
+    globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
 atexit.register(_cleanup_memory_connection)
     def __init__(self, database_path: str):
         self._database_path = database_path
