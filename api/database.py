@@ -149,8 +149,8 @@ class _DatabaseConnectionManager:
 
     LEGACY_CONNECTION = None
 
-        def connect(self) -> sqlite3.Connection:
-            """
+     def connect(self) -> sqlite3.Connection:
+          """
             Open a configured SQLite connection for the module's database path.
 
             Returns a persistent shared connection when the configured database is
@@ -164,7 +164,7 @@ class _DatabaseConnectionManager:
                 sqlite3.Connection: A sqlite3 connection to the configured
                     DATABASE_PATH (shared for in-memory, new per call for file-backed).
             """
-            if _is_memory_db(self._database_path):
+           if _is_memory_db(self._database_path):
                 with self._memory_connection_lock:
                     if self._memory_connection is None:
                         self._memory_connection = sqlite3.connect(
