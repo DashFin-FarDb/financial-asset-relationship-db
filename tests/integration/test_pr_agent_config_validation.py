@@ -119,7 +119,6 @@ def _shannon_entropy(value: str) -> float:
     probs = counts[counts > 0] / sample.size
     return float(-np.sum(probs * np.log2(probs)))
 
-
 def _looks_like_secret(value: str) -> bool:
     """
     Determine whether a string value appears to be a secret.
