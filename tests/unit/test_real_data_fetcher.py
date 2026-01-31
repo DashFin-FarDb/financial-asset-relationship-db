@@ -303,7 +303,7 @@ class TestFallback:
     def test_fallback_with_custom_factory():
         """Test fallback uses custom factory when provided."""
         AssetRelationshipGraph()
-        custom_asset = Equity(
+        Equity(
             id="CUSTOM",
             symbol="CUST",
             name="Custom Asset",
