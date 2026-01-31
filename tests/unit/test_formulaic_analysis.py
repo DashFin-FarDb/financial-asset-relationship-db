@@ -753,24 +753,31 @@ class TestHelperMethods:
     def test_calculate_avg_correlation_strength_from_empirical():
         """Test _calculate_avg_correlation_strength_from_empirical."""
         # Empty empirical data
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical({})
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            {}
+        )
         assert result == 0.5
 
         # With correlation matrix
         empirical = {"correlation_matrix": {"pair1": 0.8, "pair2": 0.6}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            empirical
+        )
         assert 0 <= result <= 1
 
         # With perfect correlation (should filter out)
         empirical = {"correlation_matrix": {"pair1": 1.0, "pair2": 0.8}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            empirical
+        )
         assert 0 <= result <= 1
 
 
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
-    def test_analyze_graph_with_all_asset_types(self):
+    @staticmethod
+    def test_analyze_graph_with_all_asset_types():
         """Test analyzing a graph with all asset types."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -955,7 +962,9 @@ class TestRegressionCases:
         result = analyzer.analyze_graph(graph)
 
         for formula in result["formulas"]:
-            assert 0 <= formula.r_squared <= 1, f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
+            assert 0 <= formula.r_squared <= 1, (
+                f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
+            )
 
     @staticmethod
     def test_summary_consistency():
@@ -985,7 +994,10 @@ class TestRegressionCases:
 
     @staticmethod
     def test_zero_price_equity_handling():
-        """Test behaviour for a zero‑price equity."""
+        """Test analyser behaviour for a zero‑price equity."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+
         equity = Equity(
             id="ZERO",
             symbol="ZERO",
@@ -994,7 +1006,13 @@ class TestRegressionCases:
             sector="Technology",
             price=0.0,
         )
-        assert equity.price == 0.0
+        graph.add_asset(equity)
+
+        result = analyzer.analyze_graph(graph)
+
+        # Should handle zero-price equity without errors
+        assert result["formula_count"] > 0
+        assert "formulas" in result
 
     @staticmethod
     def test_analyze_graph_with_negative_price():
@@ -1013,7 +1031,8 @@ class TestRegressionCases:
 class TestBoundaryConditions:
     """Test boundary conditions and extreme values."""
 
-    def test_very_high_pe_ratio(self):
+    @staticmethod
+    def test_very_high_pe_ratio():
         """Test formula extraction with very high P/E ratio."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1032,7 +1051,8 @@ class TestBoundaryConditions:
         result = analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
 
-    def test_very_low_prices(self):
+    @staticmethod
+    def test_very_low_prices():
         """Test with very low asset prices."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1050,7 +1070,8 @@ class TestBoundaryConditions:
         result = analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
 
-    def test_large_number_of_assets(self):
+    @staticmethod
+    def test_large_number_of_assets():
         """Test analyzer with large number of assets."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
@@ -1071,6 +1092,7 @@ class TestBoundaryConditions:
         assert result["formula_count"] > 0
         assert "summary" in result
 
+    @staticmethod
     @staticmethod
     def test_correlation_strength_bounds():
         """Test correlation strength calculation stays within bounds."""
@@ -1122,7 +1144,6 @@ class TestIntegrationScenarios:
             yield_to_maturity=0.03,
         )
         commodity = Commodity(
-            id="GOLD",
             symbol="GC",
             name="Gold",
             asset_class=AssetClass.COMMODITY,
@@ -1159,7 +1180,9 @@ class TestIntegrationScenarios:
         graph = AssetRelationshipGraph()
 
         # Add multiple tech stocks
-        for i, (symbol, name) in enumerate([("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]):
+        for i, (symbol, name) in enumerate(
+            [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
+        ):
             equity = Equity(
                 id=symbol,
                 symbol=symbol,
@@ -1176,5 +1199,7 @@ class TestIntegrationScenarios:
 
         # Should identify correlations
         formulas = result["formulas"]
-        correlation_formulas = [f for f in formulas if "Correlation" in f.name or "Beta" in f.name]
+        correlation_formulas = [
+            f for f in formulas if "Correlation" in f.name or "Beta" in f.name
+        ]
         assert len(correlation_formulas) > 0
