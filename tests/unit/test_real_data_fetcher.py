@@ -301,6 +301,7 @@ Tests for the RealDataFetcher fallback behavior.
 This module contains unit tests that verify the fallback mechanism when fetching data without network access.
 """
 
+
 class TestFallback:
     """Test fallback mechanism."""
 
@@ -327,6 +328,7 @@ class TestFallback:
         """Test fallback uses provided custom factory to produce a custom graph when network is disabled."""
         custom_graph = AssetRelationshipGraph()
         custom_asset = Asset(name="CUSTOM", asset_class=AssetClass.EQUITY)
+
         @staticmethod
         def test_fallback_with_custom_factory():
             """Test fallback uses provided factory when custom factory provided."""
