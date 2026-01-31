@@ -226,14 +226,21 @@ def get_connection() -> Iterator[sqlite3.Connection]:
             connection.close()
 
 
-def _cleanup_memory_connection(connection):
-    """Clean up the memory connection when the program exits."""
-    if connection is not None:
-        connection.close()
-
+class _DatabaseConnectionManager:
+    def __init__(self, database_path: str):
+        self._database_path = database_path
+        self._memory_connection = None
+        self._memory_connection_lock = threading.Lock()
+ 
+    def close(self):
+        """Clean up the memory connection when the program exits."""
+        if self._memory_connection is not None:
+            self._memory_connection.close()
+...
+_db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+atexit.register(_db_manager.close)
 
 atexit.register(_cleanup_memory_connection)
-
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
