@@ -296,12 +296,6 @@ class TestFetchMethods:
             assert event.date
 
 
-"""
-Tests for the RealDataFetcher fallback behavior.
-This module contains unit tests that verify the fallback mechanism when fetching data without network access.
-"""
-
-
 class TestFallback:
     """Test fallback mechanism."""
 
@@ -359,17 +353,20 @@ class TestFallback:
 class TestSerialization:
     """Test serialization functions."""
 
-    def test_enum_to_value_with_enum(self):
+    @staticmethod
+    def test_enum_to_value_with_enum():
         """Test _enum_to_value with enum."""
         result = _enum_to_value(AssetClass.EQUITY)
         assert result == "Equity"
 
-    def test_enum_to_value_with_non_enum(self):
+    @staticmethod
+    def test_enum_to_value_with_non_enum():
         """Test _enum_to_value with non-enum value."""
         result = _enum_to_value("test_string")
         assert result == "test_string"
 
-    def test_serialize_dataclass_equity(self):
+    @staticmethod
+    def test_serialize_dataclass_equity():
         """Test serializing an Equity dataclass."""
         equity = Equity(
             id="TEST",
@@ -388,7 +385,8 @@ class TestSerialization:
         assert serialized["__type__"] == "Equity"
         assert serialized["price"] == 100.0
 
-    def test_serialize_graph(self):
+    @staticmethod
+    def test_serialize_graph():
         """Test serializing a complete graph."""
         graph = AssetRelationshipGraph()
         equity = Equity(
@@ -425,7 +423,8 @@ class TestSerialization:
 class TestDeserialization:
     """Test deserialization functions."""
 
-    def test_deserialize_asset_equity(self):
+    @staticmethod
+    def test_deserialize_asset_equity():
         """Test deserializing an Equity asset."""
         data = {
             "__type__": "Equity",
@@ -450,7 +449,8 @@ class TestDeserialization:
         assert asset.asset_class == AssetClass.EQUITY
         assert asset.pe_ratio == 20.0
 
-    def test_deserialize_asset_bond(self):
+    @staticmethod
+    def test_deserialize_asset_bond():
         """Test deserializing a Bond asset."""
         data = {
             "__type__": "Bond",
@@ -474,7 +474,8 @@ class TestDeserialization:
         assert isinstance(asset, Bond)
         assert asset.yield_to_maturity == 0.03
 
-    def test_deserialize_asset_commodity(self):
+    @staticmethod
+    def test_deserialize_asset_commodity():
         """Test deserializing a Commodity asset."""
         data = {
             "__type__": "Commodity",
@@ -496,7 +497,8 @@ class TestDeserialization:
         assert isinstance(asset, Commodity)
         assert asset.contract_size == 100
 
-    def test_deserialize_asset_currency(self):
+    @staticmethod
+    def test_deserialize_asset_currency():
         """Test deserializing a Currency asset."""
         data = {
             "__type__": "Currency",
@@ -518,7 +520,8 @@ class TestDeserialization:
         assert isinstance(asset, Currency)
         assert asset.exchange_rate == 1.1
 
-    def test_deserialize_event(self):
+    @staticmethod
+    def test_deserialize_event():
         """Test deserializing a regulatory event."""
         data = {
             "id": "EVENT1",

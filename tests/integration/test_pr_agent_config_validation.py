@@ -439,7 +439,7 @@ class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
     @pytest.fixture
-    def pr_agent_config_content() -> str:
+    def pr_agent_config_content(self) -> str:
         """
         Return the contents of .github/pr-agent-config.yml as a string.
 
