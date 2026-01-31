@@ -514,7 +514,22 @@ class FormulaicAnalyzer:
         )
 
     @staticmethod
+    @staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example P/E ratio calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "pe_ratio")
+                and asset.pe_ratio is not None
+            ):
+                examples.append(f"{asset.symbol}: PE = {asset.pe_ratio:.2f}")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
 
     @staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
