@@ -421,7 +421,6 @@ class TestPRAgentConfigSecurity:
 class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
-    @staticmethod
     @pytest.fixture
     def pr_agent_config_content() -> str:
         """
