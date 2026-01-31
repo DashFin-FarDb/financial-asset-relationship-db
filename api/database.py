@@ -257,7 +257,9 @@ atexit.register(_cleanup_memory_connection)
             self._memory_connection.close()
 
 
-class _DatabaseConnectionManager:
+# NOTE: Removed duplicate `_DatabaseConnectionManager` definition and duplicate
+# `_db_manager` initialization/atexit registration. The module should define
+# `_DatabaseConnectionManager` only once and create/register `_db_manager` once.
     def __init__(self, database_path: str):
         self._database_path = database_path
         self._memory_connection: sqlite3.Connection | None = None
