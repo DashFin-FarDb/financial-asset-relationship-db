@@ -523,18 +523,18 @@ class TestDeserialization:
             "asset_id": "TEST",
             "event_type": "Earnings Report",
             "date": "2024-01-01",
-        }
-                    "description": "Test event",
-                    "impact_score": 0.5,
-                }
-            ],
+            "description": "Test event",
+            "impact_score": 0.5,
         }
 
-        graph = _deserialize_graph(payload)
+        event = _deserialize_event(data)
 
-        assert isinstance(graph, AssetRelationshipGraph)
-        assert "TEST" in graph.assets
-        assert len(graph.regulatory_events) == 1
+        assert isinstance(event, RegulatoryEvent)
+        assert event.id == "EVENT1"
+        assert event.asset_id == "TEST"
+        assert event.event_type == "Earnings Report"
+        assert event.description == "Test event"
+        assert event.impact_score == 0.5
 
 
 class TestCacheOperations:
