@@ -1094,6 +1094,7 @@ class TestBoundaryConditions:
 
     @staticmethod
     @staticmethod
+    @staticmethod
     def test_correlation_strength_bounds():
         """Test correlation strength calculation stays within bounds."""
         graph = AssetRelationshipGraph()

@@ -260,7 +260,7 @@ class TestFetchMethods:
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
 
-        """Test successful currency data fetching."""
+        # Test successful currency data fetching.
         mock_ticker = Mock()
         mock_ticker.history.return_value = Mock(empty=False)
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
