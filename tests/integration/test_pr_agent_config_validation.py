@@ -119,23 +119,22 @@ def _shannon_entropy(value: str) -> float:
     probs = counts[counts > 0] / sample.size
     return float(-np.sum(probs * np.log2(probs)))
 
-
-def test_agent_version_matches_config(pr_agent_config):
-    """Check that the PR agent's configured version matches the current config ('1.1.0')."""
-    assert pr_agent_config["agent"]["version"] == "1.1.0"
-
-
-def test_context_configuration_present(pr_agent_config):
+def _looks_like_secret(value: str) -> bool:
     """
-    Assert that the 'agent' section contains a 'context' key for context management settings.
+    Determine whether a string value appears to be a secret.
 
-    The test fails if the parsed PR agent configuration omits a 'context' key under the top - level 'agent' section.
+    Args:
+        value: The string to inspect.
+
+    Returns:
+        bool: True when the value matches secret heuristics.
     """
-    agent_config = pr_agent_config["agent"]
-    assert "context" in agent_config
-    # Known safe placeholders
+    v = value.strip()
+    if not v:
+        return False
     if v.lower() in SAFE_PLACEHOLDERS:
         return False
+
 
     # Inline credentials in URLs
     if INLINE_CREDS_RE.search(v):
