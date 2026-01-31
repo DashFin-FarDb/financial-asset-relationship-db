@@ -9,6 +9,7 @@ Tests the simplified PR agent configuration, ensuring:
 """
 
 import math
+import numpy as np
 import re
 from enum import Enum
 from pathlib import Path
@@ -44,7 +45,14 @@ SAFE_PLACEHOLDERS = {
 
 # Common secret / credential indicators used across heuristics
 class SecretMarker(str, Enum):
-    """Fixed set of secret/credential indicator keywords."""
+    """
+    Fixed set of secret/credential indicator keywords.
+
+    Returns:
+        SecretMarker: Enum member representing a secret marker.
+    Raises:
+        None
+    """
 
     SECRET = "secret"
     TOKEN = "token"
@@ -95,20 +103,12 @@ def _shannon_entropy(value: str) -> float:
     if not value:
         return 0.0
 
-    sample = str(value)
-    length = len(sample)
-
-    freq = {}
-    for ch in sample:
-        freq[ch] = freq.get(ch, 0) + 1
-
-    entropy = 0.0
-    for count in freq.values():
-        p = count / length
-        entropy -= p * math.log2(p)
-
-    return entropy
-
+    sample = np.frombuffer(value.encode("utf-8"), dtype=np.uint8)
+    if sample.size == 0:
+        return 0.0
+    counts = np.bincount(sample)
+    probs = counts[counts > 0] / sample.size
+    return float(-np.sum(probs * np.log2(probs)))
 
 def _looks_like_secret(value: str) -> bool:
     """
@@ -311,6 +311,10 @@ class TestPRAgentConfigSecurity:
         Args:
             obj: Configuration object to scan (dict, list, or scalar).
             suspected: List to append (kind, value) tuples when secrets are found.
+        Returns:
+            None
+        Raises:
+            None
         """
         if isinstance(obj, dict):
             for value in obj.values():
@@ -427,12 +431,12 @@ class TestPRAgentConfigRemovedComplexity:
     @pytest.fixture
     def pr_agent_config_content() -> str:
         """
-         Return the contents of .github / pr - agent - config.yml as a string.
+        Return the contents of .github/pr-agent-config.yml as a string.
 
-         Reads the PR agent configuration file from the repository root and returns its raw text.
+        Reads the PR agent configuration file from the repository root and returns its raw text.
 
-         Returns:
-             str: Raw YAML content of .github / pr - agent - config.yml.
+        Returns:
+            str: Raw YAML content of .github/pr-agent-config.yml.
         Raises:
             FileNotFoundError: If the configuration file cannot be found.
         """
