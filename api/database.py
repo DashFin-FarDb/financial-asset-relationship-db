@@ -166,6 +166,8 @@ class _DatabaseConnectionManager:
                         uri=self._database_path.startswith("file:"),
                     )
                     self._memory_connection.row_factory = sqlite3.Row
+                    global _MEMORY_CONNECTION
+                    _MEMORY_CONNECTION = self._memory_connection
             return self._memory_connection
 
         # For file-backed databases, create a new connection each time
