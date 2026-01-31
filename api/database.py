@@ -233,14 +233,8 @@ def _close_shared_memory_connection() -> None:
     """
     Close the shared in-memory connection on process exit.
 
-    Uses `_db_manager.close()` when available; otherwise, falls back to closing the
-    manager's internal `_memory_connection` safely under its lock.
+    Safely closes the manager's internal `_memory_connection` under its lock.
     """
-    close_fn = getattr(_db_manager, "close", None)
-    if close_fn is not None:
-        close_fn
-        return
-
     lock = getattr(_db_manager, "_memory_connection_lock", None)
     if lock is None:
         conn = getattr(_db_manager, "_memory_connection", None)
