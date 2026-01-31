@@ -213,7 +213,7 @@ def _connect() -> sqlite3.Connection:
     return _db_manager.connect()
 
 
-@ contextmanager
+@contextmanager
 def get_connection() -> Iterator[sqlite3.Connection]:
     """
     Provide a context-managed SQLite connection for the configured database.
@@ -240,7 +240,7 @@ if not _ATEXIT_DB_CLOSE_REGISTERED:
     atexit.register(_db_manager.close)
     globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
 atexit.register(_cleanup_memory_connection)
-    def __init__(self, database_path: str):
+   def __init__(self, database_path: str):
         self._database_path = database_path
         self._memory_connection = None
         self._memory_connection_lock = threading.Lock()
@@ -254,6 +254,7 @@ atexit.register(_cleanup_memory_connection)
 # NOTE: Removed duplicate `_DatabaseConnectionManager` definition and duplicate
 # `_db_manager` initialization/atexit registration. The module should define
 # `_DatabaseConnectionManager` only once and create/register `_db_manager` once.
+
     def __init__(self, database_path: str):
         self._database_path = database_path
         self._memory_connection: sqlite3.Connection | None = None
@@ -279,9 +280,9 @@ atexit.register(_cleanup_memory_connection)
                 if self._memory_connection is None:
                     self._memory_connection = sqlite3.connect(
                         self._database_path,
-                        detect_types = sqlite3.PARSE_DECLTYPES,
-                        check_same_thread = False,
-                        uri = self._database_path.startswith("file:"),
+                        detect_types= sqlite3.PARSE_DECLTYPES,
+                        check_same_thread= False,
+                        uri= self._database_path.startswith("file:"),
                     )
                     self._memory_connection.row_factory = sqlite3.Row
             return self._memory_connection
@@ -304,7 +305,7 @@ atexit.register(_cleanup_memory_connection)
 
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
 atexit.register(_db_manager.close)
-    def __init__(self, database_path: str):
+   def __init__(self, database_path: str):
         self._database_path = database_path
         self._memory_connection = None
         self._memory_connection_lock = threading.Lock()
@@ -329,9 +330,9 @@ atexit.register(_db_manager.close)
                 if self._memory_connection is None:
                     self._memory_connection = sqlite3.connect(
                         self._database_path,
-                        detect_types = sqlite3.PARSE_DECLTYPES,
-                        check_same_thread = False,
-                        uri = self._database_path.startswith("file:"),
+                        detect_types= sqlite3.PARSE_DECLTYPES,
+                        check_same_thread= False,
+                        uri= self._database_path.startswith("file:"),
                     )
                     self._memory_connection.row_factory = sqlite3.Row
             return self._memory_connection
@@ -358,6 +359,7 @@ atexit.register(_db_manager.close)
 _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
 atexit.register(_db_manager.close)
 
+
 def _cleanup_memory_connection() -> None:
     """Clean up the shared in-memory connection when the program exits."""
     connection = getattr(_db_manager, "_memory_connection", None)
@@ -368,7 +370,7 @@ def _cleanup_memory_connection() -> None:
 atexit.register(_cleanup_memory_connection)
 
 
-def execute(query: str, parameters: tuple | list | None=None) -> None:
+def execute(query: str, parameters: tuple | list | None =None) -> None:
     """
     Execute a SQL write statement and commit the transaction using the module's
     managed SQLite connection.
@@ -383,7 +385,7 @@ def execute(query: str, parameters: tuple | list | None=None) -> None:
         connection.commit()
 
 
-def fetch_one(query: str, parameters: tuple | list | None=None):
+def fetch_one(query: str, parameters: tuple | list | None =None):
     """
     Retrieve the first row produced by an SQL query.
 
@@ -401,7 +403,7 @@ def fetch_one(query: str, parameters: tuple | list | None=None):
         return cursor.fetchone()
 
 
-def fetch_value(query: str, parameters: tuple | list | None=None):
+def fetch_value(query: str, parameters: tuple | list | None =None):
     """
     Fetches the first column value from the first row of a query result.
 
