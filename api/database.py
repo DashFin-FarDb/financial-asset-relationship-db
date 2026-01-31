@@ -149,7 +149,7 @@ class _DatabaseConnectionManager:
 
     LEGACY_CONNECTION = None
 
-     def connect(self) -> sqlite3.Connection:
+    def connect(self) -> sqlite3.Connection:
           """
             Open a configured SQLite connection for the module's database path.
 
