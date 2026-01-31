@@ -160,7 +160,7 @@ class TestIsMemoryDb:
 
     @staticmethod
     def test_is_memory_db_with_file_prefix_but_not_memory(
-        monkeypatch: pytest.MonekyPatch,
+        monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
     ) -> None:
         """Test that _is_memory_db returns False for file: URIs that aren't memory databases."""
