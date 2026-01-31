@@ -286,8 +286,8 @@ class TestFallback:
     @staticmethod
     def test_fallback_with_custom_factory():
         """Test fallback uses custom factory when provided."""
-        AssetRelationshipGraph()
-        Equity(
+        custom_graph = AssetRelationshipGraph()
+        custom_asset = Equity(
             id="CUSTOM",
             symbol="CUST",
             name="Custom Asset",
@@ -295,34 +295,18 @@ class TestFallback:
             sector="Technology",
             price=50.0,
         )
+        custom_graph.add_asset(custom_asset)
 
-    @staticmethod
-    def test_fallback_with_custom_factory_returns_its_custom_graph():
-        """Test fallback uses provided custom factory when network is disabled and returns its graph."""
-        Equity("CUSTOM")
+        def custom_factory():
+            """Return a custom AssetRelationshipGraph for fallback."""
+            return custom_graph
 
-    @staticmethod
-    def test_fallback():
-        """Test fallback uses provided custom factory to produce a custom graph when network is disabled."""
-        custom_graph = AssetRelationshipGraph()
-        custom_asset = Asset(name="CUSTOM", asset_class=AssetClass.EQUITY)
+        fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
+        result = fetcher._fallback()
 
-        @staticmethod
-        def test_fallback_with_custom_factory():
-            """Test fallback uses provided factory when custom factory provided."""
-            custom_graph.add_asset(custom_asset)
-
-            def custom_factory():
-                """Return a custom AssetRelationshipGraph for fallback when network is disabled."""
-                return custom_graph
-
-            fetcher = RealDataFetcher(
-                fallback_factory=custom_factory, enable_network=False
-            )
-            result = fetcher._fallback()
-
-            assert "CUSTOM" in result.assets
-
+        assert "CUSTOM" in result.assets
+        assert result.assets["CUSTOM"].name == "Custom Asset"
+    
     @staticmethod
     def test_fallback_without_custom_factory():
         """Test fallback uses sample data when no factory provided."""
