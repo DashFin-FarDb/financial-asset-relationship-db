@@ -237,6 +237,37 @@ def get_connection() -> Iterator[sqlite3.Connection]:
 
 # Register cleanup for the shared in-memory connection when the program exits.
 # Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
+def _close_shared_memory_connection() -> None:
+    """
+    Close the shared in-memory connection on process exit.
+
+    Uses `_db_manager.close()` when available; otherwise, falls back to closing the
+    manager's internal `_memory_connection` safely under its lock.
+    """
+    close_fn = getattr(_db_manager, "close", None)
+    if callable(close_fn):
+        close_fn()
+        return
+
+    lock = getattr(_db_manager, "_memory_connection_lock", None)
+    if lock is None:
+        conn = getattr(_db_manager, "_memory_connection", None)
+        if conn is not None:
+            conn.close()
+            setattr(_db_manager, "_memory_connection", None)
+        return
+
+    with lock:
+        conn = getattr(_db_manager, "_memory_connection", None)
+        if conn is not None:
+            conn.close()
+            _db_manager._memory_connection = None  # type: ignore[attr-defined]
+
+_ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False)
+if not _ATEXIT_DB_CLOSE_REGISTERED:
+    atexit.register(_close_shared_memory_connection)
+    globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
+# Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
 _ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False)
 if not _ATEXIT_DB_CLOSE_REGISTERED:
     atexit.register(_db_manager.close)
