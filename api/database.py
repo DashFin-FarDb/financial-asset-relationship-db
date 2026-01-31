@@ -239,7 +239,6 @@ _ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False
 if not _ATEXIT_DB_CLOSE_REGISTERED:
     atexit.register(_db_manager.close)
     globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
-atexit.register(_cleanup_memory_connection)
    def __init__(self, database_path: str):
        self._database_path = database_path
        self._memory_connection = None
