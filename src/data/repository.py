@@ -176,11 +176,6 @@ class AssetGraphRepository:
     ) -> Optional[RelationshipRecord]:
         """
         Fetch a single relationship if it exists.
-
-        Returns:
-            Optional[RelationshipRecord]: The relationship, if found.
-        Raises:
-            None
         """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
