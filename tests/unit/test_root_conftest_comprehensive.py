@@ -6,7 +6,6 @@ This module tests the pytest configuration helpers including:
 - Edge cases and error handling
 """
 
-import importlib.util
 from typing import List
 from unittest.mock import MagicMock, patch
 
