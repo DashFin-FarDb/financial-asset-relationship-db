@@ -118,9 +118,9 @@ def _shannon_entropy(value: str) -> float:
     counts = np.bincount(sample)
     probs = counts[counts > 0] / sample.size
     return float(-np.sum(probs * np.log2(probs)))
-
-
-def _looks_like_secret(value: str) -> bool:
+    def test_agent_version_matches_config(pr_agent_config):
+        """Check that the PR agent's configured version matches the current config ('1.1.0')."""
+        assert pr_agent_config["agent"]["version"] == "1.1.0"
     """
     Determine whether a string value appears to be a secret.
 
