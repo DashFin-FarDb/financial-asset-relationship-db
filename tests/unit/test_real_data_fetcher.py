@@ -312,6 +312,8 @@ class TestFallback:
             price=50.0,
         )
 
+    @staticmethod
+    def test_fallback_with_custom_factory():
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():

@@ -257,7 +257,12 @@ class TestPRAgentConfigYAMLValidity:
 
         # Custom loader to detect duplicate YAML entries at any nesting level
         class DuplicateKeyLoader(yaml.SafeLoader):
+            """YAML loader subclass that fails on duplicate keys.
+
+            Overrides construct_mapping to detect duplicate entries at any nesting level and fails the test if found.
+            """
             def construct_mapping(self, node, deep=False):
+                """Construct a mapping from a YAML node, failing if duplicate keys are found."""
                 mapping = {}
                 for entry_node, val_node in node.value:
                     entry = self.construct_object(entry_node, deep=deep)

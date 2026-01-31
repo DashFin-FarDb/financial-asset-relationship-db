@@ -547,10 +547,6 @@ class FormulaicAnalyzer:
                 if len(examples) >= 2:
                     break
         return "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
-            "; ".join(examples)
-            if examples
-            else "Example: PE = 100.00 / 5.00 = 20.00"
-        )
 
     @staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
