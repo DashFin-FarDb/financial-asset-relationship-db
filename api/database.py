@@ -121,7 +121,7 @@ def _is_memory_db(path: str | None = None) -> bool:
         For example, ":memory:" or "file::memory:?cache=shared", False otherwise.
     """
     target = DATABASE_PATH if path is None else path
-    if target == ":memory:":
+    if target == ":memory":
         return True
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
@@ -136,6 +136,12 @@ def _is_memory_db(path: str | None = None) -> bool:
 
 
 class _DatabaseConnectionManager:
+    """Manages SQLite connections to a configured database path.
+
+    Provides a persistent shared connection for in-memory databases and creates
+    new connections for file-backed databases. Thread-safe for in-memory usage.
+    """
+
     def __init__(self, database_path: str):
         self._database_path = database_path
         self._memory_connection = None
