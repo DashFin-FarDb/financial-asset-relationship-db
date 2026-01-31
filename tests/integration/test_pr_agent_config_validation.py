@@ -120,6 +120,7 @@ def _shannon_entropy(value: str) -> float:
     return float(-np.sum(probs * np.log2(probs)))
 
 
+
 def _looks_like_secret(value: str) -> bool:
     """
     Determine whether a string value appears to be a secret.
@@ -135,7 +136,6 @@ def _looks_like_secret(value: str) -> bool:
         return False
     if v.lower() in SAFE_PLACEHOLDERS:
         return False
-
     # Inline credentials in URLs
     if INLINE_CREDS_RE.search(v):
         return True
