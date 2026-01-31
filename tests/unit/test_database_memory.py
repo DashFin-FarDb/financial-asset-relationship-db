@@ -640,7 +640,7 @@ class TestEdgeCasesAndErrorHandling:
     def test_uri_memory_database_persists_across_connections(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) - > None:
+    ) -> None:
         """Test that URI memory databases can persist across connections when properly configured."""
         # When using :memory: directly, it should use our shared connection logic
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
