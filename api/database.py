@@ -121,7 +121,7 @@ def _is_memory_db(path: str | None = None) -> bool:
         True if the path (or configured database) is an in-memory SQLite database.
     """
     target = DATABASE_PATH if path is None else path
-    if target == ":memory":
+    if target == ":memory:":
         return True
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
