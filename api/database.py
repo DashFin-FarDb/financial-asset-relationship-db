@@ -177,6 +177,21 @@ class _DatabaseConnectionManager:
             return self._memory_connection
 
             # For file-backed databases, create a new connection each time
+            connection = sqlite3.connect(
+                self._database_path,
+                detect_types=sqlite3.PARSE_DECLTYPES,
+                check_same_thread=False,
+                uri=self._database_path.startswith("file:"),
+            )
+            connection.row_factory = sqlite3.Row
+
+            # Legacy/backwards-compatible reference for callers that previously relied on a
+            # module-level connection object. This does not change the per-call connection
+            # behavior for file-backed databases.
+            global LEGACY_CONNECTION  # type: ignore[global-variable-not-assigned]
+            LEGACY_CONNECTION = connection
+
+            return connection
         if _is_memory_db(self._database_path):
             with self._memory_connection_lock:
                 if self._memory_connection is None:
