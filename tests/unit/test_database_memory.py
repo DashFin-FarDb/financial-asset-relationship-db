@@ -255,11 +255,11 @@ class TestConnectWithMemoryDb:
     def test_connect_with_uri_memory_database(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) -> None
-     """Test that _connect properly handles URI-style memory databases."""
-      # Test with file::memory:?cache=shared format
-      monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
-       reloaded_database = importlib.reload(database)
+    ) -> None:
+        """Test that _connect properly handles URI-style memory databases."""
+        # Test with file::memory:?cache=shared format
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
+        reloaded_database = importlib.reload(database)
 
         conn1 = reloaded_database._connect()
         assert conn1 is not None
@@ -304,11 +304,11 @@ class TestConnectWithMemoryDb:
     def test_connect_sets_row_factory(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) -> None
-     """Test that _connect sets sqlite3.Row as the row factory."""
-      import sqlite3
+    ) -> None:
+        """Test that _connect sets sqlite3.Row as the row factory."""
+        import sqlite3
 
-       monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
 
         conn = reloaded_database._connect()
@@ -342,10 +342,10 @@ class TestConnectWithMemoryDb:
     def test_connect_with_uri_parameter(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) -> None
-     """Test that _connect correctly sets uri parameter for file: URIs."""
-      monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
-       reloaded_database = importlib.reload(database)
+    ) -> None:
+        """Test that _connect correctly sets uri parameter for file: URIs."""
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
+        reloaded_database = importlib.reload(database)
 
         # This should not raise an exception
         conn = reloaded_database._connect()
@@ -386,12 +386,12 @@ class TestGetConnectionWithMemoryDb:
     def test_get_connection_closes_file_db(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) -> None
-     """Test that get_connection closes file database connections."""
-      import tempfile
+    ) -> None:
+        """Test that get_connection closes file database connections."""
+        import tempfile
 
-       with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
-            tmp_path = tmp_file.name
+        with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp_file:
+        tmp_path = tmp_file.name
 
         try:
             monkeypatch.setenv("DATABASE_URL", f"sqlite:///{tmp_path}")
@@ -453,10 +453,10 @@ class TestThreadSafety:
     def test_concurrent_operations_on_memory_db(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) -> None
-     """Test concurrent read/write operations on memory database."""
-      monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-       reloaded_database = importlib.reload(database)
+    ) -> None:
+        """Test concurrent read/write operations on memory database."""
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+        reloaded_database = importlib.reload(database)
         reloaded_database.initialize_schema()
 
         errors: list[BaseException] = []
@@ -496,12 +496,12 @@ class TestEdgeCasesAndErrorHandling:
     def test_resolve_sqlite_path_with_memory(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) -> None
-     """Test that _resolve_sqlite_path correctly handles :memory: URLs."""
-      from api.database import _resolve_sqlite_path
+    ) -> None:
+        """Test that _resolve_sqlite_path correctly handles :memory: URLs."""
+        from api.database import _resolve_sqlite_path
 
-       # Test various memory URL formats
-       assert _resolve_sqlite_path("sqlite:///:memory:") == ":memory:"
+        # Test various memory URL formats
+        assert _resolve_sqlite_path("sqlite:///:memory:") == ":memory:"
         assert _resolve_sqlite_path("sqlite://:memory:") == ":memory:"
 
     @staticmethod
@@ -556,10 +556,10 @@ class TestEdgeCasesAndErrorHandling:
     def test_fetch_value_with_memory_db(
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
-    ) -> None
-     """Test that fetch_value works correctly with memory database."""
-      monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
-       reloaded_database = importlib.reload(database)
+    ) -> None:
+        """Test that fetch_value works correctly with memory database."""
+        monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
+        reloaded_database = importlib.reload(database)
 
         reloaded_database.initialize_schema()
         reloaded_database.execute(
