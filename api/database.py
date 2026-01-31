@@ -368,6 +368,6 @@ def initialize_schema() -> None:
             full_name TEXT,
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
-        )      
+        )
         """
     )
