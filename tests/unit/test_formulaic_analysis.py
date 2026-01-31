@@ -1136,6 +1136,7 @@ class TestIntegrationScenarios:
             yield_to_maturity=0.03,
         )
         commodity = Commodity(
+            id="GOLD",
             symbol="GC",
             name="Gold",
             asset_class=AssetClass.COMMODITY,
@@ -1144,7 +1145,7 @@ class TestIntegrationScenarios:
         )
         currency = Currency(
             id="EUR",
-            id="GOLD",
+            symbol="EUR",
             name="Euro",
             asset_class=AssetClass.CURRENCY,
             sector="Forex",
