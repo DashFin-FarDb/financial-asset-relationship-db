@@ -24,9 +24,7 @@ def _get_database_url() -> str:
     """
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError(
-            "DATABASE_URL environment variable must be set before using the database"
-        )
+        raise ValueError("DATABASE_URL environment variable must be set before using the database")
     return database_url
 
 
@@ -127,9 +125,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
     # The :memory: token must be the entire path component (not part of a longer path).
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (
-        parsed.path == ":memory:" or ":memory:" in parsed.query
-    ):
+    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
         return True
 
     return False
@@ -239,9 +235,9 @@ _ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False
 if not _ATEXIT_DB_CLOSE_REGISTERED:
     atexit.register(_db_manager.close)
     globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
-# NOTE: Removed duplicate `_DatabaseConnectionManager` definition and duplicate
-# `_db_manager` initialization/atexit registration. The module should define
-# `_DatabaseConnectionManager` only once and create/register `_db_manager` once.
+    # NOTE: Removed duplicate `_DatabaseConnectionManager` definition and duplicate
+    # `_db_manager` initialization/atexit registration. The module should define
+    # `_DatabaseConnectionManager` only once and create/register `_db_manager` once.
 
     def __init__(self, database_path: str):
         self._database_path = database_path
@@ -304,7 +300,7 @@ def _cleanup_memory_connection() -> None:
 atexit.register(_cleanup_memory_connection)
 
 
-def execute(query: str, parameters: tuple | list | None =None) -> None:
+def execute(query: str, parameters: tuple | list | None = None) -> None:
     """
     Execute a SQL write statement and commit the transaction using the module's
     managed SQLite connection.
@@ -319,7 +315,7 @@ def execute(query: str, parameters: tuple | list | None =None) -> None:
         connection.commit()
 
 
-def fetch_one(query: str, parameters: tuple | list | None =None):
+def fetch_one(query: str, parameters: tuple | list | None = None):
     """
     Retrieve the first row produced by an SQL query.
 
@@ -337,7 +333,7 @@ def fetch_one(query: str, parameters: tuple | list | None =None):
         return cursor.fetchone()
 
 
-def fetch_value(query: str, parameters: tuple | list | None =None):
+def fetch_value(query: str, parameters: tuple | list | None = None):
     """
     Fetches the first column value from the first row of a query result.
 
@@ -367,8 +363,7 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    execute(
-        """
+    execute("""
         CREATE TABLE IF NOT EXISTS user_credentials (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -377,5 +372,4 @@ def initialize_schema() -> None:
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
         )
-        """
-    )
+        """)
