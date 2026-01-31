@@ -8,16 +8,16 @@ This module contains additional comprehensive tests including:
 """
 
 import pytest
-from sqlalchemy import create_engine
-
-from src.data.repository import AssetGraphRepository
-from src.models.financial_models import AssetClass, Equity
 
 pytest.importorskip("sqlalchemy")
 
+from sqlalchemy import create_engine
+
+from src.data.database import create_session_factory, init_db
+from src.data.repository import AssetGraphRepository
+from src.models.financial_models import AssetClass, Equity
 
 pytestmark = pytest.mark.unit
-
 
 @pytest.fixture
 def repository(tmp_path):
