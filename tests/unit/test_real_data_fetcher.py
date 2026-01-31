@@ -128,7 +128,7 @@ class TestCreateRealDatabase:
         mock_events, mock_currency, mock_commodity, mock_bond, mock_equity
     ):
         """Test database creation with network enabled."""
-        # Setup mocks
+        def test_create_database_with_network(mock_equity, mock_bond, mock_commodity, mock_currency, mock_events):
         mock_equity.return_value = [
             Equity(
                 id="TEST",
