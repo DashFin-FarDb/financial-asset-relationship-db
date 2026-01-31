@@ -525,9 +525,7 @@ class FormulaicAnalyzer:
                 and hasattr(asset, "pe_ratio")
                 and asset.pe_ratio is not None
             ):
-                examples.append(
-                    f"{asset.symbol}: PE = {asset.pe_ratio:.2f}"
-                )
+                examples.append(f"{asset.symbol}: PE = {asset.pe_ratio:.2f}")
                 if len(examples) >= 2:
                     break
         return (
