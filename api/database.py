@@ -282,8 +282,8 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
     """
 
     Parameters:
-        query (str): SQL statement to execute.
-        parameters (tuple | list | None): Optional sequence of parameters
+        query(str): SQL statement to execute.
+        parameters(tuple | list | None): Optional sequence of parameters
             to bind into the query.
 
     Returns:
@@ -300,8 +300,8 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     Fetches the first column value from the first row of a query result.
 
     Parameters:
-        query (str): SQL query to execute; may include parameter placeholders.
-        parameters (tuple | list | None): Sequence of parameters for the query
+        query(str): SQL query to execute; may include parameter placeholders.
+        parameters(tuple | list | None): Sequence of parameters for the query
             placeholders.
 
     Returns:
@@ -327,7 +327,7 @@ def initialize_schema() -> None:
     """
     execute(
         """
-        CREATE TABLE IF NOT EXISTS user_credentials (
+        CREATE TABLE IF NOT EXISTS user_credentials(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             email TEXT,
