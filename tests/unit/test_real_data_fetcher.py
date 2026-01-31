@@ -296,6 +296,10 @@ class TestFetchMethods:
             assert event.date
 
 
+"""
+Unit tests for RealDataFetcher fallback behavior. Ensures fallback uses custom factory when provided and uses sample data when no custom factory is given.
+"""
+
 class TestFallback:
     """Test fallback mechanism."""
 
@@ -313,7 +317,12 @@ class TestFallback:
         )
 
     @staticmethod
-    def test_fallback_with_custom_factory():
+    def test_fallback_with_custom_factory_returns_its_custom_graph():
+        """Test fallback uses provided custom factory when network is disabled and returns its graph."""
+        custom_graph = AssetRelationshipGraph()
+        custom_asset = Equity("CUSTOM")
+    @staticmethod
+    def test_fallback():
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():

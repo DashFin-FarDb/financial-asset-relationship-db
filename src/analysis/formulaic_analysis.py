@@ -566,7 +566,8 @@ class FormulaicAnalyzer:
             ):
                 yield_pct = asset.dividend_yield * 100
                 examples.append(
-                    f"{asset.symbol}: Yield = {yield_pct:.2f}% at price ${asset.price:.2f}"
+                    f"{asset.symbol}: Yield = {yield_pct:.2f}% "
+                    f"at price ${asset.price:.2f}"
                 )
                 if len(examples) >= 2:
                     break
@@ -674,7 +675,10 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_portfolio_variance_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example portfolio variance calculations."""
-        return "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + (2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
+        return (
+            "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + "
+            "(2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
+        )
 
     @staticmethod
     def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
