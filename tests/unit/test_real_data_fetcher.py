@@ -1163,7 +1163,7 @@ class TestSerializationEdgeCases:
 
 
 class TestCacheOverwriteOperations:
-    """Test cache overwrite operations squentially."""
+    """Test cache overwrite operations sequentially."""
 
     @staticmethod
     def test_cache_overwrite_preserves_data(tmp_path):
