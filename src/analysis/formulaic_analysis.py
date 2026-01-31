@@ -515,6 +515,8 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
+    @staticmethod
+    def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P/E ratio calculations from graph data."""
         from src.models.financial_models import AssetClass
 
@@ -531,9 +533,7 @@ class FormulaicAnalyzer:
         return (
             "; ".join(examples)
             if examples
-            return "; ".join(examples) if examples else "Example: PE = 150 / 10 = 15.0"
-            if examples
-            else "Example: PE = 150 / 10 = 15.0"
+            else "Example: PE = 100.00 / 5.00 = 20.00"
         )
 
     @staticmethod
