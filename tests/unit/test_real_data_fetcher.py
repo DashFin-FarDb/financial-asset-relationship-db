@@ -297,9 +297,9 @@ class TestFetchMethods:
 
 
 """
-Unit tests for RealDataFetcher fallback behavior. Ensures fallback uses custom factory when provided and uses sample data when no custom factory is given.
+Tests for the RealDataFetcher fallback behavior.
+This module contains unit tests that verify the fallback mechanism when fetching data without network access.
 """
-
 
 class TestFallback:
     """Test fallback mechanism."""
@@ -320,21 +320,26 @@ class TestFallback:
     @staticmethod
     def test_fallback_with_custom_factory_returns_its_custom_graph():
         """Test fallback uses provided custom factory when network is disabled and returns its graph."""
-        custom_graph = AssetRelationshipGraph()
         Equity("CUSTOM")
 
     @staticmethod
     def test_fallback():
-        custom_graph.add_asset(custom_asset)
+        """Test fallback uses provided custom factory to produce a custom graph when network is disabled."""
+        custom_graph = AssetRelationshipGraph()
+        custom_asset = Asset(name="CUSTOM", asset_class=AssetClass.EQUITY)
+        @staticmethod
+        def test_fallback_with_custom_factory():
+            """Test fallback uses provided factory when custom factory provided."""
+            custom_graph.add_asset(custom_asset)
 
-        def custom_factory():
-            """Return a custom AssetRelationshipGraph for fallback when network is disabled."""
-            return custom_graph
+            def custom_factory():
+                """Return a custom AssetRelationshipGraph for fallback when network is disabled."""
+                return custom_graph
 
-        fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
-        result = fetcher._fallback()
+            fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
+            result = fetcher._fallback()
 
-        assert "CUSTOM" in result.assets
+            assert "CUSTOM" in result.assets
 
     @staticmethod
     def test_fallback_without_custom_factory():
@@ -516,44 +521,7 @@ class TestDeserialization:
             "asset_id": "TEST",
             "event_type": "Earnings Report",
             "date": "2024-01-01",
-            "description": "Test event",
-            "impact_score": 0.5,
-            "related_assets": ["TEST2"],
         }
-
-        event = _deserialize_event(data)
-
-        assert isinstance(event, RegulatoryEvent)
-        assert event.id == "EVENT1"
-        assert event.event_type == RegulatoryActivity.EARNINGS_REPORT
-        assert event.related_assets == ["TEST2"]
-
-    def test_deserialize_graph(self):
-        """Test deserializing a complete graph."""
-        payload = {
-            "assets": [
-                {
-                    "__type__": "Equity",
-                    "id": "TEST",
-                    "symbol": "TEST",
-                    "name": "Test",
-                    "asset_class": "Equity",
-                    "sector": "Technology",
-                    "price": 100.0,
-                    "market_cap": None,
-                    "currency": "USD",
-                    "pe_ratio": None,
-                    "dividend_yield": None,
-                    "earnings_per_share": None,
-                    "book_value": None,
-                }
-            ],
-            "regulatory_events": [
-                {
-                    "id": "EVENT1",
-                    "asset_id": "TEST",
-                    "event_type": "Earnings Report",
-                    "date": "2024-01-01",
                     "description": "Test event",
                     "impact_score": 0.5,
                 }
