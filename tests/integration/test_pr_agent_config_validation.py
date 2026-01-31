@@ -130,13 +130,14 @@ def _shannon_entropy(value: str) -> float:
     Args:
         value: The string to inspect.
 
-    Returns:
-        bool: True if the value resembles a secret, False otherwise.
+def test_context_configuration_present(pr_agent_config):
     """
-    v = value.strip()
-    if not v:
-        return False
+    Assert that the 'agent' section contains a 'context' key for context management settings.
 
+    The test fails if the parsed PR agent configuration omits a 'context' key under the top-level 'agent' section.
+    """
+    agent_config = pr_agent_config["agent"]
+    assert "context" in agent_config
     # Known safe placeholders
     if v.lower() in SAFE_PLACEHOLDERS:
         return False
