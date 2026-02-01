@@ -81,7 +81,6 @@ class AssetGraphRepository:
         Raises:
             None
         """
-
         orm = self.session.get(AssetORM, asset_id)
         if orm is None:
             return None
@@ -169,9 +168,7 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
     ) -> Optional[RelationshipRecord]:
-        """
-        Fetch a single relationship if it exists.
-        """
+        """Fetch a single relationship if it exists."""
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
