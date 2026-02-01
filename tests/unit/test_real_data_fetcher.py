@@ -94,6 +94,8 @@ def sample_graph():
 
 
 `@pytest.mark.unit`
+
+
 class TestRealDataFetcherInitialization:
     """Tests for RealDataFetcher initialization."""
 
