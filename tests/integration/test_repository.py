@@ -28,7 +28,7 @@ def _apply_migration(database_path: Path) -> None:
     # The migration script is static, trusted, and not user-controlled.
     # executescript() is required for multi-statement DDL migrations.
     with sqlite3.connect(database_path) as connection:
-        connection.executescript(sql) # nosec pythonsecurity:S3649
+        connection.executescript(sql)  # nosec pythonsecurity:S3649
 
 
 @pytest.fixture
