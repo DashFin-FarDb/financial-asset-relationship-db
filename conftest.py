@@ -27,7 +27,7 @@ def _cov_plugin_available() -> bool:
 
 
 def pytest_load_initial_conftests(
-    _early_config, _parser, args: List[str]
+    early_config, parser, args: List[str]
 ) -> None:  # pragma: no cover - exercised via pytest
     """
     Remove pytest-cov related command-line options from the provided
@@ -36,10 +36,16 @@ def pytest_load_initial_conftests(
     The original `args` list is updated in-place.
 
     Parameters:
-        _early_config: pytest early config object
-        _parser: pytest parser object
+        early_config: pytest early config object
+        parser: pytest parser object
         args (List[str]): Mutable list of command-line arguments;
             coverage-related options are removed from this list in-place.
+
+    Returns:
+        None
+
+    Raises:
+        None
     """
 
     if _cov_plugin_available():
