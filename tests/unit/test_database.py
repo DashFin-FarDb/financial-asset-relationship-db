@@ -50,7 +50,7 @@ def isolated_base() -> Iterator[type[Base]]:
     cross-test interference when defining ad-hoc models.
     """
     existing_tables = set(Base.metadata.tables)
-    
+
     class _IsolatedBase(Base):
         __abstract__ = True
 
