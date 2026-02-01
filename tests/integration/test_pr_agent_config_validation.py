@@ -460,27 +460,27 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
 
             return False
 
-    def scan_for_secrets(node: object, path: str = "root") -> None:
+        def scan_for_secrets(node: object, path: str = "root") -> None:
         """
         Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
         """
-        if isinstance(node, dict):
+            if isinstance(node, dict):
             for k, v in node.items():
-                key_lower = str(k).lower()
+                    key_lower = str(k).lower()
                 new_path = f"{path}.{k}"
 
-                if any(p in key_lower for p in SENSITIVE_PATTERNS):
-                    assert is_allowed_placeholder(v), (
-                        f"Potential hardcoded credential at '{new_path}'"
-                    )
+                    if any(p in key_lower for p in SENSITIVE_PATTERNS):
+                        assert is_allowed_placeholder(v), (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
 
-                scan_for_secrets(v, new_path)
+                    scan_for_secrets(v, new_path)
 
-        elif isinstance(node, (list, tuple)):
-            for i, item in enumerate(node):
-                scan_for_secrets(item, f"{path}[{i}]")
+            elif isinstance(node, (list, tuple)):
+                for i, item in enumerate(node):
+                    scan_for_secrets(item, f"{path}[{i}]")
 
-    scan_for_secrets(pr_agent_config)
+        scan_for_secrets(pr_agent_config)
 
     # ------------------------------------------------------------------
 
