@@ -294,7 +294,7 @@ class TestPRAgentConfigYAMLValidity:
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
             yaml.safe_load(f)
-    
+
     @staticmethod
     def test_no_duplicate_keys():
         """
@@ -308,6 +308,7 @@ class TestPRAgentConfigYAMLValidity:
             content = f.read()
 
         # Custom loader to detect duplicate YAML entries at any nesting level
+
     class DuplicateKeyLoader(yaml.SafeLoader):
         """YAML loader subclass that fails on duplicate keys.
 
