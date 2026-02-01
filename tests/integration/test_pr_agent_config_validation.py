@@ -455,44 +455,44 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
 
             return False
 
-        def scan_for_secrets(node: object, path: str = "root") -> None:
-            """
-            Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
-            """
-            if isinstance(node, dict):
-                for k, v in node.items():
-                    key_lower = str(k).lower()
-                    new_path = f"{path}.{k}"
+    def scan_for_secrets(node: object, path: str = "root") -> None:
+        """
+        Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
+        """
+        if isinstance(node, dict):
+            for k, v in node.items():
+                key_lower = str(k).lower()
+                new_path = f"{path}.{k}"
 
-                    if any(p in key_lower for p in SENSITIVE_PATTERNS):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                if any(p in key_lower for p in SENSITIVE_PATTERNS):
+                    assert is_allowed_placeholder(v), (
+                        f"Potential hardcoded credential at '{new_path}'"
+                    )
 
-                    scan_for_secrets(v, new_path)
+                scan_for_secrets(v, new_path)
 
-            elif isinstance(node, (list, tuple)):
-                for i, item in enumerate(node):
-                    scan_for_secrets(item, f"{path}[{i}]")
+        elif isinstance(node, (list, tuple)):
+            for i, item in enumerate(node):
+                scan_for_secrets(item, f"{path}[{i}]")
 
-        scan_for_secrets(pr_agent_config)
+    scan_for_secrets(pr_agent_config)
 
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def test_safe_configuration_values(pr_agent_config):
-        """Assert numeric configuration limits fall within safe bounds."""
-        limits = pr_agent_config["limits"]
+@staticmethod
+def test_safe_configuration_values(pr_agent_config):
+    """Assert numeric configuration limits fall within safe bounds."""
+    limits = pr_agent_config["limits"]
 
-        assert limits["max_execution_time"] <= 3600, (
-            "max_execution_time exceeds safe bound (<= 3600 seconds)"
-        )
-        assert limits["max_concurrent_prs"] <= 10, (
-            "max_concurrent_prs exceeds safe bound (<= 10)"
-        )
-        assert limits["rate_limit_requests"] <= 1000, (
-            "rate_limit_requests exceeds safe bound (<= 1000 per period)"
-        )
+    assert limits["max_execution_time"] <= 3600, (
+        "max_execution_time exceeds safe bound (<= 3600 seconds)"
+    )
+    assert limits["max_concurrent_prs"] <= 10, (
+        "max_concurrent_prs exceeds safe bound (<= 10)"
+    )
+    assert limits["rate_limit_requests"] <= 1000, (
+        "rate_limit_requests exceeds safe bound (<= 1000 per period)"
+    )
 
 
 class TestPRAgentConfigRemovedComplexity:
