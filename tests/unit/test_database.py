@@ -1,4 +1,5 @@
-"""Unit tests for database configuration helpers.
+"""
+Unit tests for database configuration helpers.
 
 This module contains comprehensive unit tests for database configuration including:
 - Engine creation with various database URLs
@@ -9,13 +10,17 @@ This module contains comprehensive unit tests for database configuration includi
 - Error handling and rollback behavior
 """
 
+from __future__ import annotations
+
 import os
+from contextlib import contextmanager
+from typing import Iterator
 from unittest.mock import patch
 
 import pytest
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.data.database import (
@@ -30,171 +35,191 @@ from src.data.database import (
 pytest.importorskip("sqlalchemy")
 
 
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture()
+def isolated_base() -> Iterator[type[Base]]:
+    """
+    Provide an isolated SQLAlchemy declarative base for each test.
+
+    This prevents table metadata leakage across test cases and avoids
+    cross-test interference when defining ad-hoc models.
+    """
+    class _IsolatedBase(Base):
+        __abstract__ = True
+
+    yield _IsolatedBase
+
+    _IsolatedBase.metadata.clear()
+
+
+@pytest.fixture()
+def engine() -> Iterator:
+    """Provide an in-memory SQLite engine."""
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    yield engine
+    engine.dispose()
+
+
+@pytest.fixture()
+def session_factory(engine):
+    """Provide a SQLAlchemy session factory bound to the test engine."""
+    return sessionmaker(bind=engine)
+
+
+# ---------------------------------------------------------------------------
+# Engine creation tests
+# ---------------------------------------------------------------------------
+
+
 class TestEngineCreation:
     """Test cases for database engine creation."""
 
-    @staticmethod
-    def test_create_engine_with_default_url():
-        """Test engine creation using default database URL."""
+    def test_create_engine_with_default_url(self):
+        """Engine creation should fall back to the default URL."""
         with patch.dict(os.environ, {}, clear=True):
             engine = create_engine_from_url()
             assert engine is not None
             assert "sqlite" in str(engine.url).lower()
 
-    @staticmethod
-    def test_create_engine_with_custom_url():
-        """Test engine creation with a custom URL."""
+    def test_create_engine_with_custom_url(self):
+        """Engine creation with an explicit database URL."""
         custom_url = "sqlite:///test_custom.db"
         engine = create_engine_from_url(custom_url)
-        assert engine is not None
         assert "test_custom.db" in str(engine.url)
 
-    @staticmethod
-    def test_create_engine_with_in_memory_sqlite():
-        """Test engine creation for in-memory SQLite database."""
-        memory_url = "sqlite:///:memory:"
-        engine = create_engine_from_url(memory_url)
-        assert engine is not None
+    def test_create_engine_with_in_memory_sqlite(self):
+        """In-memory SQLite should use StaticPool."""
+        engine = create_engine_from_url("sqlite:///:memory:")
         assert isinstance(engine.pool, StaticPool)
 
-    @staticmethod
-    def test_create_engine_with_env_variable():
-        """Test engine creation using environment variable."""
+    def test_create_engine_with_env_variable(self):
+        """Environment variable should override default database URL."""
         test_url = "sqlite:///env_test.db"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": test_url}):
             engine = create_engine_from_url()
             assert "env_test.db" in str(engine.url)
 
-    @staticmethod
-    def test_create_engine_with_postgres_url():
-        """Test engine creation with PostgreSQL URL."""
+    def test_create_engine_with_postgres_url(self):
+        """PostgreSQL URLs should be accepted."""
         postgres_url = "postgresql://user:pass@localhost/testdb"
         engine = create_engine_from_url(postgres_url)
-        assert engine is not None
         assert "postgresql" in str(engine.url).lower()
 
-    @staticmethod
-    def test_sqlite_memory_has_check_same_thread_false():
-        """Test that SQLite memory database has check_same_thread disabled."""
-        memory_url = "sqlite:///:memory:"
-        engine = create_engine_from_url(memory_url)
-        # Verify the connect_args were applied
-        assert engine.pool is not None
+
+# ---------------------------------------------------------------------------
+# Session factory tests
+# ---------------------------------------------------------------------------
 
 
 class TestSessionFactory:
     """Test cases for session factory creation."""
 
-    def test_create_session_factory_returns_sessionmaker(self):
-        """Test that session factory is created successfully."""
-        engine = create_engine("sqlite:///:memory:")
+    def test_factory_returns_callable(self, engine):
+        """Factory should be callable."""
         factory = create_session_factory(engine)
-        assert factory is not None
+        assert callable(factory)
 
-    def test_session_factory_creates_sessions(self):
-        """Test that session factory can create sessions."""
-        engine = create_engine("sqlite:///:memory:")
+    def test_factory_creates_sessions(self, engine):
+        """Factory should create usable sessions."""
         factory = create_session_factory(engine)
         session = factory()
-        assert isinstance(session, Session)
-        session.close()
+        try:
+            assert session.bind == engine
+        finally:
+            session.close()
 
-    def test_session_factory_bound_to_engine(self):
-        """Test that created sessions are bound to the correct engine."""
-        engine = create_engine("sqlite:///:memory:")
+    def test_sessions_are_not_autocommit(self, engine):
+        """Sessions should have autocommit disabled."""
         factory = create_session_factory(engine)
         session = factory()
-        assert session.bind == engine
-        session.close()
-
-    def test_session_factory_autocommit_false(self):
-        """Test that sessions have autocommit disabled."""
-        engine = create_engine("sqlite:///:memory:")
-        factory = create_session_factory(engine)
-        session = factory()
-        # Session should not autocommit
-        assert session.autocommit is False
-        session.close()
+        try:
+            assert session.autocommit is False
+        finally:
+            session.close()
 
 
-class TestModel(Base):
-    """Internal model for database testing."""
-
-    __tablename__ = "test_model"
-    id = Column(Integer, primary_key=True)
-    value = Column(String)
-
-
-def init_test_db(engine):
-    """
-    Mock implementation of init_test_db.
-    In a real app, this would call Base.metadata.create_all(engine).
-    """
-    Base.metadata.create_all(engine)
+# ---------------------------------------------------------------------------
+# Database initialization tests
+# ---------------------------------------------------------------------------
 
 
 class TestDatabaseInitialization:
-    """Test cases for database initialization using SQLAlchemy and Pytest."""
+    """Tests for database initialization and schema creation."""
 
-    @pytest.fixture
-    def engine():
-        """Provides an in-memory SQLite engine for testing."""
-        return create_engine("sqlite:///:memory:")
+    def test_init_db_creates_tables(self, engine, isolated_base):
+        """init_db should create all registered tables."""
 
-    @pytest.fixture
-    def session_factory(engine):
-        """Provides a session factory for the test engine."""
-        return sessionmaker(bind=engine)
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            __tablename__ = "test_model"
+            id = Column(Integer, primary_key=True)
+            value = Column(String)
 
-    def test_init_db_creates_tables(engine):
-        """Test that init_test_db creates all registered tables."""
-        init_test_db(engine)
+        init_db(engine)
 
-        # Use updated SQLAlchemy 2.0+ inspection if available
-        from sqlalchemy import inspect
+        from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
         assert "test_model" in inspector.get_table_names()
 
-    def test_init_db_is_idempotent(engine):
-        """Test that init_db can be called multiple times safely without error."""
-        # Call init_db multiple times
+    def test_init_db_is_idempotent(self, engine, isolated_base):
+        """Calling init_db multiple times should not error."""
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            __tablename__ = "test_idempotent"
+            id = Column(Integer, primary_key=True)
+
         init_db(engine)
         init_db(engine)
 
-        from sqlalchemy import inspect
+        from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
-        assert "test_model" in inspector.get_table_names()
+        assert "test_idempotent" in inspector.get_table_names()
 
-    def test_init_db_preserves_data(engine, session_factory):
-        """Test that calling init_db again does not wipe existing data."""
+    def test_init_db_preserves_existing_data(
+        self, engine, session_factory, isolated_base
+    ):
+        """init_db should not wipe existing data."""
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            __tablename__ = "test_preserve"
+            id = Column(Integer, primary_key=True)
+            value = Column(String)
+
         init_db(engine)
 
-        # Add initial data
         with session_factory() as session:
-            session.add(TestModel(id=1, value="test_data"))
+            session.add(TestModel(id=1, value="persisted"))
             session.commit()
 
-        # Call init_db again (simulating app restart)
         init_db(engine)
 
-        # Data should still exist
         with session_factory() as session:
-            result = session.query(TestModel).filter_by(id=1).one_or_none()
+            result = session.query(TestModel).one_or_none()
             assert result is not None
-            assert result.value == "test_data"
+            assert result.value == "persisted"
+
+
+# ---------------------------------------------------------------------------
+# Transaction scope tests
+# ---------------------------------------------------------------------------
 
 
 class TestSessionScope:
-    """Test cases for transactional session scope."""
+    """Tests for transactional session_scope behavior."""
 
-    @staticmethod
-    def test_session_scope_commits_on_success():
-        """Test that session scope commits changes on successful completion."""
-        engine = create_engine("sqlite:///:memory:")
+    def test_commits_on_success(self, engine, isolated_base):
+        """session_scope should commit on success."""
 
-        class TestModel(Base):
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             __tablename__ = "test_commit"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -205,55 +230,50 @@ class TestSessionScope:
         with session_scope(factory) as session:
             session.add(TestModel(id=1, value="committed"))
 
-        # Verify data was committed
         with session_scope(factory) as session:
-            result = session.query(TestModel).filter_by(id=1).first()
+            result = session.query(TestModel).one_or_none()
             assert result is not None
             assert result.value == "committed"
 
-    def test_session_scope_rolls_back_on_error(self):
-        """Test that session scope rolls back changes on exception."""
-        engine = create_engine("sqlite:///:memory:")
+    def test_rolls_back_on_exception(self, engine, isolated_base):
+        """session_scope should rollback on error."""
 
-        class TestModel(Base):
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             __tablename__ = "test_rollback"
             id = Column(Integer, primary_key=True)
-            value = Column(String)
 
         init_db(engine)
         factory = create_session_factory(engine)
 
-        def _attempt_operation() -> None:
-            """Perform a database operation and intentionally raise an error to test rollback behavior."""
+        with pytest.raises(ValueError):
             with session_scope(factory) as session:
-                session.add(TestModel(id=1, value="should_rollback"))
-                msg = "rollback test"
-                raise ValueError(msg)
+                session.add(TestModel(id=1))
+                raise ValueError("trigger rollback")
 
-        with pytest.raises(ValueError, match="rollback test"):
-            _attempt_operation()
-
-        # Verify data was not committed
         with session_scope(factory) as session:
-            result = session.query(TestModel).filter_by(id=1).first()
-            assert result is None
+            assert session.query(TestModel).count() == 0
 
-    def test_session_scope_closes_session(self):
-        """Test that session scope always closes the session."""
-        engine = create_engine("sqlite:///:memory:")
+    def test_propagates_integrity_error(self, engine, isolated_base):
+        """Integrity errors should propagate after rollback."""
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            __tablename__ = "test_integrity"
+            id = Column(Integer, primary_key=True)
+
+        init_db(engine)
         factory = create_session_factory(engine)
 
-        with session_scope(factory) as _:
-            pass
+        with pytest.raises(IntegrityError):
+            with session_scope(factory) as session:
+                session.add(TestModel(id=1))
+                session.flush()
+                session.add(TestModel(id=1))
+                session.flush()
 
-        # Session should be closed after exiting context
-        # Note: We can't directly check if closed, but we can verify cleanup
+    def test_nested_operations_commit(self, engine, isolated_base):
+        """Multiple operations in one scope should commit atomically."""
 
-    def test_session_scope_with_nested_transaction(self):
-        """Test session scope with nested operations."""
-        engine = create_engine("sqlite:///:memory:")
-
-        class TestModel(Base):
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             __tablename__ = "test_nested"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -262,120 +282,58 @@ class TestSessionScope:
         factory = create_session_factory(engine)
 
         with session_scope(factory) as session:
-            session.add(TestModel(id=1, value="first"))
-            session.flush()
-            session.add(TestModel(id=2, value="second"))
+            session.add(TestModel(id=1, value="a"))
+            session.add(TestModel(id=2, value="b"))
 
-        # Both records should be committed
         with session_scope(factory) as session:
-            count = session.query(TestModel).count()
-            assert count == 2
+            assert session.query(TestModel).count() == 2
 
-    def test_session_scope_propagates_exception(self):
-        """Test that session scope propagates exceptions after rollback."""
-        engine = create_engine("sqlite:///:memory:")
-        factory = create_session_factory(engine)
 
-        class CustomError(Exception):
-            pass
-
-        with pytest.raises(CustomError):
-            with session_scope(factory) as _:
-                raise CustomError()
-
-    def test_session_scope_multiple_operations(self):
-        """Test session scope with multiple database operations."""
-        engine = create_engine("sqlite:///:memory:")
-
-        class TestModel(Base):
-            __tablename__ = "test_multi_ops"
-            id = Column(Integer, primary_key=True)
-            value = Column(String)
-
-        init_db(engine)
-        factory = create_session_factory(engine)
-
-        # Add multiple records in one transaction
-        with session_scope(factory) as session:
-            for i in range(5):
-                session.add(TestModel(id=i, value=f"value_{i}"))
-
-        # Verify all records were committed
-        with session_scope(factory) as session:
-            count = session.query(TestModel).count()
-            assert count == 5
+# ---------------------------------------------------------------------------
+# Default database URL tests
+# ---------------------------------------------------------------------------
 
 
 class TestDefaultDatabaseURL:
-    """Test cases for default database URL configuration."""
+    """Tests for DEFAULT_DATABASE_URL behavior."""
 
-    @staticmethod
-    def test_default_database_url_is_sqlite():
-        """Test that default database URL uses SQLite."""
+    def test_default_is_sqlite(self):
+        """Default database URL should use SQLite."""
         assert "sqlite" in DEFAULT_DATABASE_URL.lower()
 
-    @staticmethod
-    def test_default_database_url_file_path():
-        """Test that default database URL points to a file."""
+    def test_default_points_to_file(self):
+        """Default SQLite URL should point to a file."""
         assert "asset_graph.db" in DEFAULT_DATABASE_URL
 
-    @staticmethod
-    def test_env_override_of_default_url():
-        """Test that environment variable can override default URL."""
+    def test_env_override_works(self):
+        """Environment variable should override default URL."""
         custom_url = "postgresql://test:test@localhost/test"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": custom_url}):
-            # Re-import would be needed in real scenario, but we test the pattern
             engine = create_engine_from_url()
-            # Should use the custom URL when explicitly passed
-            assert engine is not None
+            assert "postgresql" in str(engine.url).lower()
+
+
+# ---------------------------------------------------------------------------
+# Edge cases
+# ---------------------------------------------------------------------------
 
 
 class TestEdgeCases:
-    """Test edge cases and error conditions."""
+    """Edge cases and defensive behavior tests."""
 
-    @staticmethod
-    def test_session_scope_with_empty_operations():
-        """Test session scope with no operations."""
-        engine = create_engine("sqlite:///:memory:")
+    def test_empty_session_scope(self, engine):
+        """session_scope should allow empty usage."""
         factory = create_session_factory(engine)
-
-        # Should not raise any errors
-        with session_scope(factory) as _:
+        with session_scope(factory):
             pass
 
-    @staticmethod
-    def test_create_engine_with_empty_string():
-        """Test engine creation with empty string defaults to env/default."""
+    def test_create_engine_with_empty_string(self):
+        """Empty string should fall back to default."""
         with patch.dict(os.environ, {}, clear=True):
             engine = create_engine_from_url("")
-            # Should fall back to default
             assert engine is not None
 
-    @staticmethod
-    def test_create_engine_with_none():
-        """Test engine creation with None uses default."""
+    def test_create_engine_with_none(self):
+        """None should fall back to default."""
         engine = create_engine_from_url(None)
         assert engine is not None
-
-    @staticmethod
-    def test_session_scope_with_database_error():
-        """Test session scope behavior with database-level errors."""
-        engine = create_engine("sqlite:///:memory:")
-
-        class TestModel(Base):
-            __tablename__ = "test_db_error"
-            id = Column(Integer, primary_key=True)
-
-        init_db(engine)
-        factory = create_session_factory(engine)
-
-        def _cause_integrity_error() -> None:
-            """Cause a database integrity error by adding duplicate primary keys within a session."""
-            with session_scope(factory) as session:
-                session.add(TestModel(id=1))
-                session.flush()
-                session.add(TestModel(id=1))
-                session.flush()
-
-        with pytest.raises(IntegrityError):
-            _cause_integrity_error()
