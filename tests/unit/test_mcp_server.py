@@ -114,19 +114,19 @@ class TestThreadSafeGraph:
 
     @staticmethod
     """Unit tests for mcp_server._ThreadSafeGraph lock acquisition behavior."""
-        def test_thread_safe_graph_method_execution_uses_lock():
-            """Test that method execution acquires the lock."""
-            import threading
+    def test_thread_safe_graph_method_execution_uses_lock():
+        """Test that method execution acquires the lock."""
+        import threading
 
-            from mcp_server import _ThreadSafeGraph
+        from mcp_server import _ThreadSafeGraph
 
-            graph = AssetRelationshipGraph()
-            lock = threading.Lock()
+        graph = AssetRelationshipGraph()
+         lock = threading.Lock()
 
-            ts_graph = _ThreadSafeGraph(graph, lock)
+          ts_graph = _ThreadSafeGraph(graph, lock)
 
-            # Track lock acquisitions
-            lock_acquired = []
+           # Track lock acquisitions
+           lock_acquired = []
             original_acquire = lock.acquire
 
             def track_acquire(*args, **kwargs):
@@ -153,16 +153,16 @@ class TestThreadSafeGraph:
     @staticmethod
     """Module containing unit tests for mcp_server's thread-safe graph concurrent access functionality."""
 
-        def test_thread_safe_graph_concurrent_access():
-            """Test concurrent access to thread-safe graph."""
-            import threading
-            import time
+    def test_thread_safe_graph_concurrent_access():
+        """Test concurrent access to thread-safe graph."""
+        import threading
+        import time
 
-            from mcp_server import _ThreadSafeGraph
+        from mcp_server import _ThreadSafeGraph
 
-            graph = AssetRelationshipGraph()
-            lock = threading.Lock()
-            ts_graph = _ThreadSafeGraph(graph, lock)
+         graph = AssetRelationshipGraph()
+          lock = threading.Lock()
+           ts_graph = _ThreadSafeGraph(graph, lock)
 
             errors = []
 
@@ -401,17 +401,17 @@ class TestBuildMcpApp:
     @staticmethod
     """Unit tests for the mcp_server module: tests capturing resources and verifying 3D layout endpoint behavior."""
 
-        def test_get_3d_layout_resource_with_empty_graph():
-            """Test get_3d_layout resource with empty graph."""
-            from mcp_server import _build_mcp_app
+    def test_get_3d_layout_resource_with_empty_graph():
+        """Test get_3d_layout resource with empty graph."""
+        from mcp_server import _build_mcp_app
 
-            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-                mock_instance = MagicMock()
-                mock_fastmcp_class.return_value = mock_instance
+        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+            mock_instance = MagicMock()
+             mock_fastmcp_class.return_value = mock_instance
 
-                resource_func = None
+              resource_func = None
 
-                def capture_resource(path):
+               def capture_resource(path):
                     """Decorator factory to capture the resource function for a given path."""
                     def decorator(func):
                         """Decorator that sets the captured resource function for the test harness."""
@@ -610,17 +610,17 @@ class TestEdgeCases:
 
     @staticmethod
     """Unit tests for the mcp_server module, including the capture_tool decorator and equity addition tests."""
-        def test_add_equity_with_very_large_price():
-            """Test adding equity with very large price."""
-            from mcp_server import _build_mcp_app
+    def test_add_equity_with_very_large_price():
+        """Test adding equity with very large price."""
+        from mcp_server import _build_mcp_app
 
-            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-                mock_instance = MagicMock()
-                mock_fastmcp_class.return_value = mock_instance
+        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+            mock_instance = MagicMock()
+             mock_fastmcp_class.return_value = mock_instance
 
-                tool_func = None
+              tool_func = None
 
-                def capture_tool():
+               def capture_tool():
                     """Factory that returns a decorator capturing the decorated function for testing."""
                     def decorator(func):
                         """Decorator that assigns the wrapped function to 'tool_func'."""
@@ -648,17 +648,17 @@ class TestEdgeCases:
     @staticmethod
     """Unit tests for the MCP server module, capturing resources and verifying 3D layout behavior with NaN positions."""
 
-        def test_3d_layout_with_nan_positions():
-            """Test 3D layout resource handles NaN positions."""
-            from mcp_server import _build_mcp_app
+    def test_3d_layout_with_nan_positions():
+        """Test 3D layout resource handles NaN positions."""
+        from mcp_server import _build_mcp_app
 
-            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-                mock_instance = MagicMock()
-                mock_fastmcp_class.return_value = mock_instance
+        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+            mock_instance = MagicMock()
+             mock_fastmcp_class.return_value = mock_instance
 
-                resource_func = None
+              resource_func = None
 
-                def capture_resource(path):
+               def capture_resource(path):
                     """Decorator factory that captures and stores a resource function for the given path."""
                     def decorator(func):
                         """Decorator that saves the resource function and returns it."""
@@ -717,18 +717,18 @@ class TestIntegration:
     @staticmethod
     """Unit tests for the mcp_server module. Provides tests for verifying the functionality of adding equity through the MCP tool."""
 
-        def test_full_equity_addition_workflow():
-            """Test complete workflow of adding equity through MCP tool."""
-            from mcp_server import _build_mcp_app, graph
+    def test_full_equity_addition_workflow():
+        """Test complete workflow of adding equity through MCP tool."""
+        from mcp_server import _build_mcp_app, graph
 
-            # Clear graph
-            graph._graph.assets.clear()
+        # Clear graph
+        graph._graph.assets.clear()
 
-            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-                mock_instance = MagicMock()
-                mock_fastmcp_class.return_value = mock_instance
+        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+             mock_instance = MagicMock()
+              mock_fastmcp_class.return_value = mock_instance
 
-                tool_func = None
+               tool_func = None
 
                 def capture_tool():
                     """Factory for a decorator that captures the tool function for later invocation."""
@@ -811,17 +811,17 @@ class TestConcurrency:
     @staticmethod
     """Unit tests for concurrent invocations of MCP tools in the MCP server."""
 
-        def test_concurrent_tool_invocations():
-            """Test concurrent invocations of MCP tools."""
-            import threading
+    def test_concurrent_tool_invocations():
+        """Test concurrent invocations of MCP tools."""
+        import threading
 
-            from mcp_server import _build_mcp_app
+        from mcp_server import _build_mcp_app
 
-            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-                mock_instance = MagicMock()
-                mock_fastmcp_class.return_value = mock_instance
+        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+             mock_instance = MagicMock()
+              mock_fastmcp_class.return_value = mock_instance
 
-                tool_func = None
+               tool_func = None
 
                 def capture_tool():
                     """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""

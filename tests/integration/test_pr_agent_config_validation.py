@@ -13,11 +13,10 @@ import re
 from collections import Counter
 from enum import Enum
 from pathlib import Path
+from typing import Any, Iterator, Tuple
 
 import pytest
 import yaml
-
-from typing import Any, Iterator, Tuple
 
 pytestmark = pytest.mark.integration
 
@@ -134,6 +133,8 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     """
     candidate = "https://user:pa55w0rd@example.com/resource"
     assert _looks_like_secret(candidate) is True
+
+
 """Module for testing secret detection and providing the _looks_like_secret utility.
 
 This module contains integration tests that validate the behavior of the secret
@@ -143,6 +144,7 @@ including:
 - Marker-based secret indicators with sufficient length
 - High-entropy base64 or URL-safe patterns
 """
+
 
 def test_looks_like_secret_does_not_flag_urls_without_credentials() -> None:
     """Ensure URLs without inline credentials are not treated as secrets."""
@@ -396,7 +398,7 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
 
     # ------------------------------------------------------------------
 
-    @staticmethod
+    @ staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """Ensure sensitive keys only use safe placeholders or templated values."""
         # Use the global SAFE_PLACEHOLDERS constant instead of redefining
@@ -422,7 +424,7 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
 
             return False
 
-        def scan_for_secrets(node: object, path: str = "root") -> None:
+        def scan_for_secrets(node: object, path: str="root") -> None:
             """
             Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
             """
