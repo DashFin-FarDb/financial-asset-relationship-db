@@ -181,7 +181,11 @@ def _looks_like_secret(value: object) -> bool:
         return True
 
     # High-entropy base64 / URL-safe strings
-    if BASE64_LIKE_RE.fullmatch(v) and re.search(r"[+/=_]", v) and _shannon_entropy(v) >= 3.5:
+    if (
+        BASE64_LIKE_RE.fullmatch(v)
+        and re.search(r"[+/=_]", v)
+        and _shannon_entropy(v) >= 3.5
+    ):
         return True
 
     # Hex-encoded secrets (e.g. hashes, keys)
@@ -322,7 +326,9 @@ class TestPRAgentConfigYAMLValidity:
             for key_node, value_node in node.value:
                 key = self.construct_object(key_node, deep=deep)
                 if key in mapping:
-                    pytest.fail(f"Duplicate entry found: {key} at line {node.start_mark.line + 1}")
+                    pytest.fail(
+                        f"Duplicate entry found: {key} at line {node.start_mark.line + 1}"
+                    )
                 value = self.construct_object(value_node, deep=deep)
                 mapping[key] = value
 
@@ -343,7 +349,9 @@ class TestPRAgentConfigYAMLValidity:
                 if line.strip() and not line.strip().startswith("#"):
                     indent = len(line) - len(line.lstrip())
                     if indent > 0:
-                        assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
+                        assert indent % 2 == 0, (
+                            f"Line {i} has inconsistent indentation: {indent} spaces"
+                        )
 
 
 class TestPRAgentConfigSecurity:
@@ -390,8 +398,12 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
             return f"{value[:4]}...{value[-4:]}"
 
         if suspected:
-            details = "\n".join(f"{kind}: {_redact(value)}" for kind, value in suspected)
-            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
+            details = "\n".join(
+                f"{kind}: {_redact(value)}" for kind, value in suspected
+            )
+            pytest.fail(
+                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            )
 
     # ------------------------------------------------------------------
 
@@ -433,7 +445,9 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
                     new_path = f"{path}.{k}"
 
                     if any(p in key_lower for p in SENSITIVE_PATTERNS):
-                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
+                        assert is_allowed_placeholder(v), (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
 
                     scan_for_secrets(v, new_path)
 
@@ -449,9 +463,15 @@ def test_safe_configuration_values(pr_agent_config):
     """Assert numeric configuration limits fall within safe bounds."""
     limits = pr_agent_config["limits"]
 
-    assert limits["max_execution_time"] <= 3600, "max_execution_time exceeds safe bound (<= 3600 seconds)"
-    assert limits["max_concurrent_prs"] <= 10, "max_concurrent_prs exceeds safe bound (<= 10)"
-    assert limits["rate_limit_requests"] <= 1000, "rate_limit_requests exceeds safe bound (<= 1000 per period)"
+    assert limits["max_execution_time"] <= 3600, (
+        "max_execution_time exceeds safe bound (<= 3600 seconds)"
+    )
+    assert limits["max_concurrent_prs"] <= 10, (
+        "max_concurrent_prs exceeds safe bound (<= 10)"
+    )
+    assert limits["rate_limit_requests"] <= 1000, (
+        "rate_limit_requests exceeds safe bound (<= 1000 per period)"
+    )
 
 
 class TestPRAgentConfigRemovedComplexity:
