@@ -107,7 +107,7 @@ class AssetGraphRepository:
         """
         Add or update a relationship between two assets.
 
-        Strength must be a float in the inclusive range [-1.0, 1.0].
+        Strength must be numeric in the inclusive range [-1.0, 1.0].
         Negative values represent negative correlations.
 
         Args:
@@ -123,7 +123,7 @@ class AssetGraphRepository:
         Raises:
             ValueError: If strength is not numeric or outside [-1.0, 1.0].
         """
-        if not isinstance(strength, (int, float)):
+        if isinstance(strength, bool) or not isinstance(strength, (int, float)):
             raise ValueError("strength must be a numeric value between -1.0 and 1.0")
         if strength < -1.0 or strength > 1.0:
             raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
