@@ -88,8 +88,8 @@ def pr_agent_config() -> dict[str, object]:
     with open(config_path, "r", encoding="utf-8") as f:
         try:
             cfg = yaml.safe_load(f)
-    except yaml.YAMLError as e:
-        pytest.fail(f"Invalid YAML in config: {e}")
+        except yaml.YAMLError as e:
+            pytest.fail(f"Invalid YAML in config: {e}")
     if cfg is None or not isinstance(cfg, dict):
         pytest.fail("Config must be a YAML mapping (dict) and not empty")
     return cfg
@@ -222,12 +222,6 @@ class TestPRAgentConfigSimplification:
         assert pr_agent_config["agent"]["version"] == "1.0.0"
 
     @staticmethod
-    def test_no_context_configuration(pr_agent_config):
-        """
-        Assert that the 'agent' section does not contain a 'context' key.
-
-        The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
-        """
     def test_no_context_configuration(pr_agent_config):
         """
         Assert that the 'agent' section does not contain a 'context' key.
@@ -505,7 +499,7 @@ class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
     @pytest.fixture
-    def pr_agent_config_content:
+    def pr_agent_config_content():
         """
         Return the contents of .github/pr-agent-config.yml as a string.
 
