@@ -24,8 +24,11 @@ pytest.importorskip("sqlalchemy")
 def _apply_migration(database_path: Path) -> None:
     """Apply database migrations by executing the initial SQL script on the given database path."""
     sql = Path("migrations/001_initial.sql").read_text(encoding="utf-8")
+
+    # The migration script is static, trusted, and not user-controlled.
+    # executescript() is required for multi-statement DDL migrations.
     with sqlite3.connect(database_path) as connection:
-        connection.executescript(sql)
+        connection.executescript(sql) # nosec pythonsecurity:S3649
 
 
 @pytest.fixture
