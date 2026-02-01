@@ -127,33 +127,19 @@ def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> Non
 
 
 def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
-    """
-    Ensure url inline credentials are treated as secrets
-    """
-    secret_marker_re = re.compile(
-        r"\b(" + "|".join(m.value for m in SecretMarker) + r")\b",
-        re.IGNORECASE,
-    )
-    if secret_marker_re.search(v) and len(v) >= 12:
-        return True
-    Raises:
-        None
-
+    """Ensure inline credentials embedded in URLs are treated as secrets."""
     candidate = "https://user:pa55w0rd@example.com/resource"
     assert _looks_like_secret(candidate) is True
 
 
-def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> (
-    None
-):
-    """
-    Ensure marker based secrets with sufficient length are detected
+def test_looks_like_secret_does_not_flag_urls_without_credentials() -> None:
+    """Ensure URLs without inline credentials are not treated as secrets."""
+    candidate = "https://example.com/resource"
+    assert _looks_like_secret(candidate) is False
 
-    Returns:
-        None
-    Raises:
-        None
-    """
+
+def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> None:
+    """Ensure marker-based secrets with sufficient length are detected."""
     # Contains a marker keyword (e.g. "api_key") and is long enough to be considered a secret
     candidate = "my api_key is: abcdefghijkl"
     assert len(candidate) >= 12
