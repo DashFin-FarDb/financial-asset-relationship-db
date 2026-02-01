@@ -18,6 +18,7 @@ from unittest.mock import patch
 
 import pytest
 from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
@@ -33,6 +34,7 @@ from src.data.database import (
 
 pytest.importorskip("sqlalchemy")
 
+pytestmark = pytest.mark.unit
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -47,18 +49,27 @@ def isolated_base() -> Iterator[type[Base]]:
     This prevents table metadata leakage across test cases and avoids
     cross-test interference when defining ad-hoc models.
     """
-
+    existing_tables = set(Base.metadata.tables)
+    
     class _IsolatedBase(Base):
         __abstract__ = True
 
     yield _IsolatedBase
 
-    _IsolatedBase.metadata.clear()
+    new_tables = [name for name in Base.metadata.tables if name not in existing_tables]
+    for name in new_tables:
+        Base.metadata.remove(Base.metadata.tables[name])
 
 
 @pytest.fixture()
-def engine() -> Iterator:
-    """Provide an in-memory SQLite engine."""
+def engine() -> Iterator[Engine]:
+    """Provide an in-memory SQLite engine.
+
+    Returns:
+        Iterator[Engine]: Yielded in-memory engine.
+    Raises:
+        None
+    """
     engine = create_engine(
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
@@ -71,7 +82,7 @@ def engine() -> Iterator:
 @pytest.fixture()
 def session_factory(engine):
     """Provide a SQLAlchemy session factory bound to the test engine."""
-    return sessionmaker(bind=engine)
+    return create_session_factory(engine)
 
 
 # ---------------------------------------------------------------------------
@@ -82,8 +93,14 @@ def session_factory(engine):
 class TestEngineCreation:
     """Test cases for database engine creation."""
 
-    def test_create_engine_with_default_url(self):
-        """Engine creation should fall back to the default URL."""
+    def test_create_engine_with_default_url(self) -> None:
+        """Engine creation should fall back to the default URL.
+
+        Returns:
+            None
+        Raises:
+            AssertionError: If the default URL is not used.
+        """
         with patch.dict(os.environ, {}, clear=True):
             engine = create_engine_from_url()
             assert engine is not None
