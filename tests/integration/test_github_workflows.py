@@ -201,7 +201,14 @@ class TestWorkflowActions:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_actions_have_versions(self, workflow_file: Path):
-        """Ensure every external action referenced by a workflow step is pinned to a specific version."""
+        """
+        Verify that every external action referenced by steps in the workflow is pinned to a specific version.
+        
+        This test asserts that each step using an external action includes an '@' ref and that the ref is not a floating branch like 'main', 'master', 'latest', or 'stable'. Failures raise an assertion describing the offending job, step, and action reference.
+        
+        Parameters:
+            workflow_file (Path): Path to the workflow YAML file being validated.
+        """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
 
@@ -868,3 +875,4 @@ class TestRemovedFilesCleanup:
                 assert ref not in workflow_str, (
                     f"{workflow_file.name} still references removed script: {ref}"
                 )
+

@@ -229,10 +229,10 @@ class TestUserRepository:
     @pytest.fixture
     def mock_fetch_value(self):
         """
-        Provide a patched `api.auth.fetch_value` mock for tests.
+        Provides a patched `api.auth.fetch_value` mock for tests.
         
         Yields:
-            mock: The patched `fetch_value` mock object created by `unittest.mock.patch`.
+            mock: The `unittest.mock` patch object for `api.auth.fetch_value` that tests can configure.
         """
         with patch('api.auth.fetch_value') as mock:
             yield mock
@@ -240,9 +240,11 @@ class TestUserRepository:
     @pytest.fixture
     def mock_execute(self):
         """
-        Provide a pytest fixture that yields a mock patch for the `api.auth.execute` function.
+        Pytest fixture that yields a mock for api.auth.execute.
         
-        Returns:
+        Yields the patched mock object replacing api.auth.execute within the test scope.
+        
+        Yields:
             mock: The patched mock object for `api.auth.execute`.
         """
         with patch('api.auth.execute') as mock:
@@ -251,10 +253,10 @@ class TestUserRepository:
     @pytest.fixture
     def repository(self):
         """
-        Instantiate a new UserRepository.
+        Create and return a new UserRepository instance.
         
         Returns:
-            repository (UserRepository): A new UserRepository instance.
+            repository (UserRepository): A newly instantiated UserRepository.
         """
         return UserRepository()
 
@@ -402,10 +404,10 @@ class TestAuthenticateUser:
     @pytest.fixture
     def mock_repository(self):
         """
-        Create a Mock configured to match the UserRepository interface for use in tests.
+        Create a Mock matching the UserRepository interface for use in tests.
         
         Returns:
-            repo (Mock): A Mock instance with UserRepository as its spec.
+            Mock: A Mock instance configured with UserRepository as its spec.
         """
         repo = Mock(spec=UserRepository)
         return repo
@@ -866,7 +868,8 @@ class TestEdgeCasesAndSecurity:
         
         # This should be handled safely by parameterized queries
         malicious_username = "admin' OR '1'='1"
-        result = authenticate_user(malicious_username, "password", repository=mock_repo)
-
+        result = authenticate_user(malicious_username, "any_password", repository=mock_repo)
+        
         assert result is False
         mock_repo.get_user.assert_called_once_with(malicious_username)
+

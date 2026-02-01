@@ -311,7 +311,11 @@ class TestGet3DVisualizationDataEnhancedComprehensive:
             assert hover.startswith("Asset: ")
 
     def test_bidirectional_relationships_no_duplicate_nodes(self):
-        """Test that bidirectional relationships don't create duplicate nodes."""
+        """
+        Ensure bidirectional relationships produce each asset exactly once.
+        
+        Sets up a graph with reciprocal edges between two assets and asserts the visualization output contains exactly the two unique nodes 'A' and 'B'.
+        """
         graph = AssetRelationshipGraph()
         graph.relationships = {
             'A': [('B', 'rel1', 0.5)],
@@ -351,7 +355,11 @@ class TestGet3DVisualizationDataEnhancedComprehensive:
         assert set(asset_ids) == {'SOURCE_ONLY', 'TARGET_1', 'TARGET_2'}
 
     def test_large_number_of_nodes(self):
-        """Test with a large number of nodes."""
+        """
+        Verify that get_3d_visualization_data_enhanced correctly lays out a large cyclic graph.
+        
+        Creates 100 nodes arranged with directed edges to the next node, then asserts the returned positions have shape (100, 3), the asset_ids, colors, and hover_texts lists each contain 100 entries, and the XY coordinates of all positions lie on the unit circle within a tight tolerance.
+        """
         graph = AssetRelationshipGraph()
         # Create 100 nodes with relationships
         for i in range(100):
@@ -693,7 +701,6 @@ class TestAssetRelationshipGraphTypeValidation:
         }
 
         positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
-
+        assert positions.shape[0] == len(asset_ids)
         assert len(asset_ids) == len(colors)
         assert len(colors) == len(hover_texts)
-        assert positions.shape[0] == len(asset_ids)

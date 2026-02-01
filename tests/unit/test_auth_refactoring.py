@@ -126,15 +126,16 @@ class TestUserRepositoryInstanceMethods:
     @pytest.fixture
     def sample_user_data(self):
         """
-        Return a sample user payload used by tests.
+        Provide a representative user payload for tests.
         
         Returns:
             dict: A user dictionary with the following keys:
-                - username (str): "testuser"
-                - hashed_password (str): hashed form of "password123"
-                - email (str): "test@example.com"
-                - full_name (str): "Test User"
-                - disabled (bool): False
+                - username: "testuser"
+                - hashed_password: hashed form of "password123"
+                - email: "test@example.com"
+    @pytest.fixture
+    def sample_user_data(self):
+                - disabled: False
         """
         return {
             "username": "testuser",
@@ -181,9 +182,9 @@ class TestUserRepositoryInstanceMethods:
         
         def create_user(username):
             """
-            Create or update a user in the repository using the shared sample_user_data with the provided username.
+            Create or update a user in the repository using the module-level sample_user_data and the given username.
             
-            This function copies the module-level `sample_user_data`, replaces its "username" with the given value, and calls `repository.create_or_update_user` to persist the user. If an exception occurs, it is appended to the module-level `errors` list.
+            Copies the module-level `sample_user_data`, replaces its `"username"` field with `username`, and calls `repository.create_or_update_user` to persist the user. If an exception occurs during creation or update, the exception is appended to the module-level `errors` list.
             """
             try:
                 data = sample_user_data.copy()
@@ -208,10 +209,10 @@ class TestCreateOrUpdateUserParameterNames:
     @pytest.fixture
     def repository(self):
         """
-        Provide a fresh UserRepository with an initialized database schema for tests.
+        Provide a fresh UserRepository instance with a newly initialized database schema for tests.
         
         Returns:
-            UserRepository: A new repository instance backed by a freshly initialized schema.
+            UserRepository: Repository instance backed by a freshly initialized test database schema.
         """
         initialize_schema()
         return UserRepository()
@@ -270,10 +271,10 @@ class TestSeedCredentialsFromEnv:
     @pytest.fixture
     def repository(self):
         """
-        Provide a fresh UserRepository with an initialized database schema for tests.
+        Provide a fresh UserRepository instance with a newly initialized database schema for tests.
         
         Returns:
-            UserRepository: A new repository instance backed by a freshly initialized schema.
+            UserRepository: Repository instance backed by a freshly initialized test database schema.
         """
         initialize_schema()
         return UserRepository()
@@ -398,10 +399,10 @@ class TestAuthenticateUserFunction:
     @pytest.fixture
     def repository(self):
         """
-        Create a UserRepository instance initialized with a single test user.
+        Create a UserRepository initialized with a single test user.
         
         Returns:
-            UserRepository: repository containing a pre-created user with username "testuser", email "test@example.com", and a hashed password.
+            UserRepository: repository containing one user with username "testuser", email "test@example.com", and a hashed password.
         """
         initialize_schema()
         repo = UserRepository()
@@ -566,7 +567,7 @@ class TestEdgeCasesAndBoundaryConditions:
             """
             Create ten users in the module-level repository.
             
-            Each created user has username "user0" through "user9" and a hashed_password value of "hash".
+            Creates users with usernames "user0" through "user9"; each user's `hashed_password` is set to `"hash"`.
             """
             for i in range(10):
                 repository.create_or_update_user(
@@ -601,9 +602,9 @@ class TestSecurityConfiguration:
 
     def test_access_token_expire_minutes(self):
         """
-        Verify that the access token expiry is configured to a positive value.
+        Ensure access token expiry is configured to a positive number of minutes.
         
-        Asserts that ACCESS_TOKEN_EXPIRE_MINUTES is an integer greater than zero.
+        Asserts that `ACCESS_TOKEN_EXPIRE_MINUTES` is an `int` greater than zero.
         """
         from api.auth import ACCESS_TOKEN_EXPIRE_MINUTES
         assert isinstance(ACCESS_TOKEN_EXPIRE_MINUTES, int)
@@ -613,7 +614,6 @@ class TestSecurityConfiguration:
         """Password context should use pbkdf2_sha256."""
         from api.auth import pwd_context
         assert "pbkdf2_sha256" in pwd_context.schemes()
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

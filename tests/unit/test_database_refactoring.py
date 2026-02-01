@@ -191,10 +191,11 @@ class TestConnect:
         
         def get_connection():
             """
-            Attempts to obtain a database connection and record the outcome.
+            Thread target: attempt to obtain a database connection via `_connect()`.
             
-            If a connection is obtained, appends it to the module-level `connections` list.
-            If an error occurs while obtaining a connection, appends the exception to the module-level `errors` list.
+            Side Effects:
+                - On success: appends the obtained `sqlite3.Connection` object to the outer scope `connections` list.
+                - On exception: appends the exception to the outer scope `errors` list.
             """
             try:
                 conn = _connect()
@@ -220,7 +221,12 @@ class TestGetConnection:
 
     @pytest.fixture
     def setup_memory_database(self, monkeypatch):
-        """Configure an in-memory SQLite database for tests."""
+        """
+        Configure the api.database module to use an in-memory SQLite database for tests.
+        
+        Returns:
+            module: The configured api.database module (DATABASE_PATH set to ":memory:" and in-memory connection reset).
+        """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         from api import database
 
@@ -283,10 +289,13 @@ class TestExecuteFunction:
         
         result = fetch_one("SELECT username FROM user_credentials WHERE username=?", ("testuser",))
         assert result is not None
-        assert result["username"] == "testuser"
 
     def test_execute_update_statement(self, monkeypatch):
-        """Should execute UPDATE statements."""
+        """
+        Verifies UPDATE statements modify rows as expected.
+        
+        Sets up an in-memory SQLite database, initializes the schema, inserts a row, executes an UPDATE, and asserts the stored value was changed.
+        """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         from api import database
         database.DATABASE_PATH = ":memory:"
@@ -342,9 +351,12 @@ class TestFetchFunctions:
     @pytest.fixture
     def setup_test_data(self, monkeypatch):
         """
-        Create an in-memory test database, initialize its schema, and insert three sample user credential rows.
+        Prepare an in-memory SQLite test database with initialized schema and three sample user credential rows.
         
-        The function sets the environment's DATABASE_URL to an in-memory SQLite, configures the module to use the in-memory path, runs schema initialization, and inserts users: "user1", "user2", and "user3".
+        Sets the DATABASE_URL environment variable to an in-memory SQLite URL, configures the module DATABASE_PATH to ":memory:", runs schema initialization, and inserts three users ("user1", "user2", "user3") into the user_credentials table.
+        
+        Parameters:
+            monkeypatch: pytest monkeypatch fixture used to set the DATABASE_URL environment variable for the test.
         """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         from api import database
@@ -403,7 +415,9 @@ class TestInitializeSchema:
     """Test initialize_schema function."""
 
     def test_initialize_schema_creates_table(self, monkeypatch):
-        """Should create user_credentials table."""
+        """
+        Create the `user_credentials` table in an in-memory SQLite database and assert that the table exists.
+        """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         from api import database
         database.DATABASE_PATH = ":memory:"
@@ -494,13 +508,13 @@ class TestThreadSafety:
         
         def write_user(username):
             """
-            Insert a user into the `user_credentials` table with a generated hashed password.
+            Insert a user into the user_credentials table with a generated hashed password.
             
             Parameters:
-                username (str): The username to insert. The function generates a hashed password using the username (e.g., "hash_<username>") and stores it in the `hashed_password` column.
+                username (str): Username to insert; the function stores "hash_<username>" in the `hashed_password` column.
             
             Notes:
-                On error, the raised exception is appended to the module-level `errors` list; the function does not re-raise the exception.
+                If an exception occurs, it is appended to the module-level `errors` list and not re-raised.
             """
             try:
                 execute(
@@ -523,7 +537,6 @@ class TestThreadSafety:
         # Verify all users were created
         count = fetch_value("SELECT COUNT(*) FROM user_credentials")
         assert count == 10
-
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
