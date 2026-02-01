@@ -143,7 +143,7 @@ def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> Non
 
 def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     """
-    Ensure url inline credentials are not treated as secrets
+    Ensure url inline credentials are treated as secrets
 
     Returns:
         None
@@ -156,7 +156,7 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
 
 def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> None:
     """
-    Ensure marker based secrets with sufficent lengthare detected
+    Ensure marker based secrets with sufficient lengthare detected
 
     Returns:
         None
@@ -511,8 +511,6 @@ class TestPRAgentConfigRemovedComplexity:
             FileNotFoundError: If the configuration file cannot be found.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r", encoding="utf-8") as f:
-            return f.read()
         if not config_path.exists():
             pytest.fail(f"Config file not found: {config_path}")
         with open(config_path, "r", encoding="utf-8") as f:
