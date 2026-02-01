@@ -148,6 +148,7 @@ class TestSessionFactory:
 
         assert session.autocommit is False
 
+
 # ---------------------------------------------------------------------------
 # Database initialization tests
 # ---------------------------------------------------------------------------
