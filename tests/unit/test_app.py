@@ -343,24 +343,35 @@ class TestShowFormulaDetails:
 
         app = FinancialAssetApp()
         with patch('app.FormulaicdAnalyzer', return_value=mock_analyzer):
-            result = app.show_formula_details('Nonexistent Formula', mock_graph)
+            # Mock the visualizer methods used by generate_formulaic_analysis
+            mock_visualizer = Mock()
+            dashboard_fig = Mock()
+            correlation_network_fig = Mock()
+            metric_comparison_fig = Mock()
+            mock_visualizer.create_formula_dashboard.return_value = dashboard_fig
+            mock_visualizer.create_correlation_network.return_value = correlation_network_fig
+            mock_visualizer.create_metric_comparison_chart.return_value = metric_comparison_fig
+            mock_visualizer_class.return_value = mock_visualizer
 
-        assert 'not found' in result.lower() or 'select a formula' in result.lower()
+            # Mock the analyzer to return one formula so a selector choice is created
+            mock_analyzer = Mock()
+            formula = Mock()
+            formula.name = 'Test Formula'
+            mock_analyzer.analyze_graph.return_value = {
+                'formulas': [formula],
+                'empirical_relationships': [],
+                'summary': {}
+            }
 
+            app = FinancialAssetApp()
+            with patch('app.FormulaicdAnalyzer', return_value=mock_analyzer):
+                result = app.generate_formulaic_analysis(mock_graph)
 
-class TestFormatFormulaSummary:
-    """Test the _format_formula_summary method."""
-
-    @patch('app.create_real_database')
-    def test_format_formula_summary_includes_key_metrics(self, mock_create_db):
-        """Test that formula summary includes key metrics."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {}
-        mock_create_db.return_value = mock_graph
-
-        summary = {
-            'total_formulas': 10,
-            'categories': ['Valuation', 'Risk', 'Return']
+            assert isinstance(result, tuple)
+            assert len(result) == 6  # dashboard, correlation network, metric chart, selector, summary, error state
+            assert result[0] is dashboard_fig
+            assert result[1] is correlation_network_fig
+            assert result[2] is metric_comparison_fig
         }
         analysis_results = {
             'formula_count': 10,
