@@ -56,11 +56,6 @@ SAFE_PLACEHOLDERS = {
 class SecretMarker(str, Enum):
     """
     Fixed set of secret/credential indicator keywords.
-
-    Returns:
-        SecretMarker: Enum member representing a secret marker.
-    Raises:
-        None
     """
 
     SECRET = "secret"
