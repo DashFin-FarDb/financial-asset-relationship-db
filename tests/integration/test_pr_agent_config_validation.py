@@ -139,8 +139,12 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     """
     Ensure url inline credentials are treated as secrets
 
-    Returns:
-        None
+    secret_marker_re = re.compile(
+        r"\b(" + "|".join(m.value for m in SecretMarker) + r")\b",
+        re.IGNORECASE,
+    )
+    if secret_marker_re.search(v) and len(v) >= 12:
+        return True
     Raises:
         None
     """
