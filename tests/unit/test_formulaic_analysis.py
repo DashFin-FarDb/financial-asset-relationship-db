@@ -1070,6 +1070,7 @@ class TestBoundaryConditions:
         result = analyzer.analyze_graph(graph)
         assert result["formula_count"] > 0
 
+    @pytest.mark.slow    
     @staticmethod
     def test_large_number_of_assets():
         """Test analyzer with large number of assets."""
