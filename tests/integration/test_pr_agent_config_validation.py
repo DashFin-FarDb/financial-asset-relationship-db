@@ -149,7 +149,9 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     assert _looks_like_secret(candidate) is True
 
 
-def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> None:
+def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> (
+    None
+):
     """
     Ensure marker based secrets with sufficient length are detected
 
@@ -203,7 +205,11 @@ def _looks_like_secret(value: str) -> bool:
         return True
 
     # High-entropy base64 / URL-safe strings
-    if BASE64_LIKE_RE.fullmatch(v) and re.search(r"[+/=_]", v) and _shannon_entropy(v) >= 3.5:
+    if (
+        BASE64_LIKE_RE.fullmatch(v)
+        and re.search(r"[+/=_]", v)
+        and _shannon_entropy(v) >= 3.5
+    ):
         return True
 
     # Hex-encoded secrets (e.g. hashes, keys)
@@ -231,7 +237,9 @@ class TestPRAgentConfigSimplification:
         agent_config = pr_agent_config["agent"]
         # Allow context configuration as it's needed for chunking
         if "context" in agent_config:
-            assert isinstance(agent_config["context"], dict), "Context must be a valid configuration object"
+            assert isinstance(agent_config["context"], dict), (
+                "Context must be a valid configuration object"
+            )
         else:
             # Context is optional
             pass
@@ -369,6 +377,7 @@ class TestPRAgentConfigYAMLValidity:
 
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
+
     # In utils/secret_detection.py
 
 
