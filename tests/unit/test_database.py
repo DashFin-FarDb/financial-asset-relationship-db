@@ -20,7 +20,6 @@ import pytest
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.data.database import (
