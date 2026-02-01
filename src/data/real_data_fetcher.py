@@ -494,23 +494,6 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
     # Compute incoming_relationships from relationships
 
-    This function processes the given AssetRelationshipGraph to create a structured
-    dictionary representation. It computes the incoming relationships from the
-    graph's relationships and serializes both assets and regulatory events using
-    the  _serialized_dataclass function. The resulting dictionary includes lists of
-    serialized assets, regulatory events, and mappings of relationships.
-
-    Args:
-        graph(AssetRelationshipGraph): Graph to serialize.
-
-    Returns:
-        Dict[str, Any]: Dictionary containing:
-            - "assets": list of serialized asset objects
-            - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of outgoing relationships
-            - "incoming_relationships": mapping from target id to a list of incoming
-            relationships
-    """
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
     for source, rels in graph.relationships.items():
         for target, rel_type, strength in rels:
