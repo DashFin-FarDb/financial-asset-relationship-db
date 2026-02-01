@@ -442,9 +442,15 @@ class TestPRAgentConfigSecurity:
         """Assert numeric configuration limits fall within safe bounds."""
         limits = pr_agent_config["limits"]
 
-        assert limits["max_execution_time"] <= 3600, "max_execution_time exceeds safe bound (<= 3600 seconds)"
-        assert limits["max_concurrent_prs"] <= 10, "max_concurrent_prs exceeds safe bound (<= 10)"
-        assert limits["rate_limit_requests"] <= 1000, "rate_limit_requests exceeds safe bound (<= 1000 per period)"
+        assert limits["max_execution_time"] <= 3600, (
+            "max_execution_time exceeds safe bound (<= 3600 seconds)"
+        )
+        assert limits["max_concurrent_prs"] <= 10, (
+            "max_concurrent_prs exceeds safe bound (<= 10)"
+        )
+        assert limits["rate_limit_requests"] <= 1000, (
+            "rate_limit_requests exceeds safe bound (<= 1000 per period)"
+        )
 
 
 class TestPRAgentConfigRemovedComplexity:
