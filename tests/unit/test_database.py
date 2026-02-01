@@ -146,6 +146,7 @@ class TestSessionFactory:
         finally:
             session.close()
 
+        assert session.autocommit is False
 
 # ---------------------------------------------------------------------------
 # Database initialization tests
