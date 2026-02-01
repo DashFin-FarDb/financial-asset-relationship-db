@@ -476,10 +476,10 @@ class FormulaicAnalyzer:
         """Generate example P/E ratio calculations from graph data.
 
         This static method iterates through the assets in the provided
-        AssetRelationshipGraph to generate example price-to-earnings (P/E)  ratio
-        calculations. It specifically checks for assets of the  EQUITY class that have
-        a defined P/E ratio. The method collects  up to two examples and formats them
-        for output. If no valid  examples are found, a default example is returned.
+        AssetRelationshipGraph to generate example price-to-earnings (P/E) ratio
+        calculations. It specifically checks for assets of the EQUITY class that have
+        a defined P/E ratio. The method collects up to two examples and formats them
+        for output. If no valid examples are found, a default example is returned.
         """
         from src.models.financial_models import AssetClass
 
