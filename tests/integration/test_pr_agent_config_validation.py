@@ -127,7 +127,13 @@ def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> Non
 
 
 def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
-    """Ensure inline credentials embedded in URLs are treated as secrets."""
+    """Ensure inline credentials embedded in URLs are treated as secrets.
+
+    Returns:
+        None
+    Raises:
+        None
+    """
     candidate = "https://user:pa55w0rd@example.com/resource"
     assert _looks_like_secret(candidate) is True
 
@@ -408,33 +414,33 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
     # ------------------------------------------------------------------
 
 
-@staticmethod
-def test_no_hardcoded_secrets(pr_agent_config):
-    """Ensure sensitive keys only use safe placeholders or templated values."""
-    # Use the global SAFE_PLACEHOLDERS constant instead of redefining
+    @staticmethod
+    def test_no_hardcoded_secrets(pr_agent_config):
+        """Ensure sensitive keys only use safe placeholders or templated values."""
+        # Use the global SAFE_PLACEHOLDERS constant instead of redefining
 
-    allowed_placeholders = {None, "***"} | SAFE_PLACEHOLDERS
-    templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
+        allowed_placeholders = {None, "***"} | SAFE_PLACEHOLDERS
+        templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
-    def is_allowed_placeholder(v: object) -> bool:
-        """
-        Determine if a value is an allowed placeholder or templated variable.
-        """
-        if v is None:
-            return True
+        def is_allowed_placeholder(v: object) -> bool:
+            """
+            Determine if a value is an allowed placeholder or templated variable.
+            """
+            if v is None:
+                return True
 
-        if not isinstance(v, str):
+            if not isinstance(v, str):
+                return False
+
+            stripped_v = v.strip()
+
+            if stripped_v.lower() in allowed_placeholders:
+                return True
+
+            if templated_var_re.match(stripped_v):
+                return True
+
             return False
-
-        stripped_v = v.strip()
-
-        if stripped_v.lower() in allowed_placeholders:
-            return True
-
-        if templated_var_re.match(stripped_v):
-            return True
-
-        return False
 
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
