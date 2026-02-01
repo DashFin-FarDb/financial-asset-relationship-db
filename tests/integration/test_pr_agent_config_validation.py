@@ -208,7 +208,7 @@ def _looks_like_secret(value: str) -> bool:
         return True
 
     # High-entropy base64 / URL-safe strings
-    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
+    if BASE64_LIKE_RE.fullmatch(v) and re.search(r"[+/=_]", v) and _shannon_entropy(v) >= 3.5:
         return True
 
     # Hex-encoded secrets (e.g. hashes, keys)
