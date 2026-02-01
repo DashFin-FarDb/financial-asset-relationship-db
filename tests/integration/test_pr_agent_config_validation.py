@@ -451,9 +451,9 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
             Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
             """
             if isinstance(node, dict):
-            for k, v in node.items():
+                for k, v in node.items():
                     key_lower = str(k).lower()
-                new_path = f"{path}.{k}"
+                    new_path = f"{path}.{k}"
 
                     if any(p in key_lower for p in SENSITIVE_PATTERNS):
                         assert is_allowed_placeholder(v), (
