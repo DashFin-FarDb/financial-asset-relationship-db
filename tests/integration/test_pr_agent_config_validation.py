@@ -322,7 +322,7 @@ class TestPRAgentConfigYAMLValidity:
         config_path = Path(".github/pr-agent-config.yml")
 
         with open(config_path, "r", encoding="utf-8") as f:
-            _ = f.read()
+            yaml.load(f, Loader=TestPRAgentConfigYAMLValidity.DuplicateKeyLoader)
 
         # Custom loader to detect duplicate YAML entries at any nesting level
 
