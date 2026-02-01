@@ -476,10 +476,10 @@ class FormulaicAnalyzer:
         """Generate example P/E ratio calculations from graph data.
 
         This static method iterates through the assets in the provided
-        AssetRelationshipGraph to generate example price-to-earnings (P/E)  ratio
-        calculations. It specifically checks for assets of the  EQUITY class that have
-        a defined P/E ratio. The method collects  up to two examples and formats them
-        for output. If no valid  examples are found, a default example is returned.
+        AssetRelationshipGraph to generate example price-to-earnings (P/E) ratio
+        calculations. It specifically checks for assets of the EQUITY class that have
+        a defined P/E ratio. The method collects up to two examples and formats them
+        for output. If no valid examples are found, a default example is returned.
         """
         from src.models.financial_models import AssetClass
 
@@ -496,10 +496,10 @@ class FormulaicAnalyzer:
         """Generate example dividend yield calculations from graph data.
 
         This static method iterates through the assets in the provided
-        AssetRelationshipGraph, checking for assets of the EQUITY class  that have a
-        defined dividend yield. It collects formatted strings  representing the yield
-        percentage and price for each qualifying  asset, stopping after two examples.
-        If no examples are found,  it returns a default example calculation.
+        AssetRelationshipGraph, checking for assets of the EQUITY class that have a
+        defined dividend yield. It collects formatted strings representing the yield
+        percentage and price for each qualifying asset, stopping after two examples.
+        If no examples are found, it returns a default example calculation.
         """
         from src.models.financial_models import AssetClass
 
@@ -521,10 +521,10 @@ class FormulaicAnalyzer:
         """Generate example YTM calculations from graph data.
 
         This static method iterates through the assets in the provided
-        AssetRelationshipGraph and collects examples of yield to maturity  (YTM)
-        calculations for assets classified as FIXED_INCOME. It checks  if each asset
-        has a valid yield to maturity and formats the results  into a string. The
-        method returns a string containing up to two  examples or a default message if
+        AssetRelationshipGraph and collects examples of yield to maturity (YTM)
+        calculations for assets classified as FIXED_INCOME. It checks if each asset
+        has a valid yield to maturity and formats the results into a string. The
+        method returns a string containing up to two examples or a default message if
         no valid examples are found.
         """
         from src.models.financial_models import AssetClass
