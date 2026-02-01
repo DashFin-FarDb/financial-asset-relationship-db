@@ -250,6 +250,11 @@ class TestEdgeCases:
         with patch("conftest._cov_plugin_available", return_value=False):
             pytest_load_initial_conftests(args, None, None)
 
+            # NOTE: Current implementation does not respect the "--" separator and will
+            # still remove coverage-like options appearing after it.
+            assert args == ["--", "tests/"]
+            pytest_load_initial_conftests(args, None, None)
+
             # Only actual --cov should be removed
             assert args == ["--coverage", "--recover", "tests/"]
 
