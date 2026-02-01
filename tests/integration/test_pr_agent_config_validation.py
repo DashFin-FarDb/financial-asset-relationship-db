@@ -100,17 +100,17 @@ class AppConstants:
     """
 
     NETWORK_STATISTICS_TEXT = """Network Statistics:
-Total Assets: {total_assets}
-Total Relationships: {total_relationships}
-Avg Strength: {average_relationship_strength:.3f}
-Density: {relationship_density:.2f}%
-Regulatory Events: {regulatory_event_count}
+    Total Assets: {total_assets}
+    Total Relationships: {total_relationships}
+    Avg Strength: {average_relationship_strength:.3f}
+    Density: {relationship_density:.2f}%
+    Regulatory Events: {regulatory_event_count}
 
-Asset Class Distribution:
-{asset_class_distribution}
+    Asset Class Distribution:
+    {asset_class_distribution}
 
-Top Relationships:
-"""
+    Top Relationships:
+    """
 
 
 class FinancialAssetApp:
@@ -271,16 +271,16 @@ class AssetUIController(FinancialAssetApp):
                 gr.update(value=str(e), visible=True),
             )
 
-     @staticmethod
-     def _format_formula_summary(summary: Dict, results: Dict) -> str:
-         """Builds markdown summary of formulaic analysis."""
-         lines = [
-             "**Formulaic Analysis Summary**",
-             f"Formulas: {len(results.get('formulas', []))}",
-             f"Avg R²: {summary.get('avg_r_squared', 0.0):.3f}",
-         ]
-         ...
-         return "\n".join(lines)
+    @staticmethod
+    def _format_formula_summary(summary: Dict, results: Dict) -> str:
+        """Builds markdown summary of formulaic analysis."""
+        lines = [
+            "**Formulaic Analysis Summary**",
+            f"Formulas: {len(results.get('formulas', []))}",
+            f"Avg R²: {summary.get('avg_r_squared', 0.0):.3f}",
+        ]
+        ...
+        return "\n".join(lines)
 
     def create_interface(self) -> gr.Blocks:
         """Constructs the Gradio UI."""
