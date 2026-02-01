@@ -209,7 +209,10 @@ class TestDatabaseInitialization:
 
         init_db(engine)
 
-        session = session_factory()
+        with session_factory() as session:
+            result = session.query(TestModel).one_or_none()
+            assert result is not None
+            assert result.value == "persisted"
         result = session.query(TestModel).one_or_none()
         assert result is not None
         assert result.value == "persisted"
