@@ -479,6 +479,7 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
 
     # ------------------------------------------------------------------
 
+
 @staticmethod
 def test_safe_configuration_values(pr_agent_config):
     """Assert numeric configuration limits fall within safe bounds."""
