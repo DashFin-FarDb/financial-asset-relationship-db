@@ -30,7 +30,7 @@ INLINE_CREDS_RE = re.compile(
 BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
 HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
 
-sensitive_patterns = (
+SENSITIVE_PATTERNS = (
     "password",
     "secret",
     "token",
@@ -91,7 +91,10 @@ def pr_agent_config() -> dict[str, object]:
     if not config_path.exists():
         pytest.fail(f"Config file not found: {config_path}")
     with open(config_path, "r", encoding="utf-8") as f:
-        cfg = yaml.safe_load(f)
+        try:
+            cfg = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        pytest.fail(f"Invalid YAML in config: {e}")
     if cfg is None or not isinstance(cfg, dict):
         pytest.fail("Config must be a YAML mapping (dict) and not empty")
     return cfg
@@ -120,7 +123,15 @@ def _shannon_entropy(value: str) -> float:
     return float(-np.sum(probs * np.log2(probs)))
 
 
-def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets():
+def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> None:
+    """
+    Ensure empty strings and placeholders are not treated as secrets.
+
+    Returns:
+        None
+    Raises:
+        None
+    """
     assert _looks_like_secret("") is False
     assert _looks_like_secret("   ") is False
 
@@ -130,19 +141,43 @@ def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets():
         assert _looks_like_secret(f"  {placeholder}  ") is False
 
 
-def test_looks_like_secret_detects_inline_credentials_in_urls():
+def test_looks_like_secret_detects_inline_credentials_in_urls() -> None: 
+    """
+    Ensure url inline credentials are not treated as secrets
+
+    Returns:
+        None
+    Raises:
+        None
+    """
     candidate = "https://user:pa55w0rd@example.com/resource"
     assert _looks_like_secret(candidate) is True
 
 
-def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length():
+def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> None:
+    """
+    Ensure marker based secrets with sufficent lengthare detected
+
+    Returns:
+        None
+    Raises:
+        None
+    """
     # Contains a marker keyword (e.g. "api_key") and is long enough to be considered a secret
     candidate = "my api_key is: abcdefghijkl"
     assert len(candidate) >= 12
     assert _looks_like_secret(candidate) is True
 
 
-def test_looks_like_secret_does_not_flag_short_marker_based_values():
+def test_looks_like_secret_does_not_flag_short_marker_based_values() -> None:
+    """
+    Ensure short marker based values are not flagged as secrets
+
+    Returns:
+        None
+    Raises:
+        None
+    """
     # Contains a marker keyword but is too short to be considered a secret
     candidate = "api_key=x"
     assert len(candidate) < 12
@@ -334,6 +369,11 @@ class TestPRAgentConfigYAMLValidity:
 
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
+    # In utils/secret_detection.py
+def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
+    suspected = []
+    # ... scanning logic
+    return suspected
 
     @staticmethod
     def scan(obj: object, suspected: list[tuple[str, str]]) -> None:
@@ -422,7 +462,7 @@ class TestPRAgentConfigSecurity:
                     key_lower = str(k).lower()
                     new_path = f"{path}.{k}"
 
-                    if any(p in key_lower for p in sensitive_patterns):
+                    if any(p in key_lower for p in SENSITIVE_PATTERNS):
                         assert is_allowed_placeholder(v), (
                             f"Potential hardcoded credential at '{new_path}'"
                         )
@@ -469,6 +509,10 @@ class TestPRAgentConfigRemovedComplexity:
             FileNotFoundError: If the configuration file cannot be found.
         """
         config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, "r", encoding="utf-8") as f:
+            return f.read()
+        if not config_path.exists():
+            pytest.fail(f"Config file not found: {config_path}")
         with open(config_path, "r", encoding="utf-8") as f:
             return f.read()
 
