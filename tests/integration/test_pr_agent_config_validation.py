@@ -120,6 +120,35 @@ def _shannon_entropy(value: str) -> float:
     return float(-np.sum(probs * np.log2(probs)))
 
 
+def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets():
+    assert _looks_like_secret("") is False
+    assert _looks_like_secret("   ") is False
+
+    # All configured placeholders should be treated as non-secret, even with whitespace
+    for placeholder in SAFE_PLACEHOLDERS:
+        assert _looks_like_secret(placeholder) is False
+        assert _looks_like_secret(f"  {placeholder}  ") is False
+
+
+def test_looks_like_secret_detects_inline_credentials_in_urls():
+    candidate = "https://user:pa55w0rd@example.com/resource"
+    assert _looks_like_secret(candidate) is True
+
+
+def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length():
+    # Contains a marker keyword (e.g. "api_key") and is long enough to be considered a secret
+    candidate = "my api_key is: abcdefghijkl"
+    assert len(candidate) >= 12
+    assert _looks_like_secret(candidate) is True
+
+
+def test_looks_like_secret_does_not_flag_short_marker_based_values():
+    # Contains a marker keyword but is too short to be considered a secret
+    candidate = "api_key=x"
+    assert len(candidate) < 12
+    assert _looks_like_secret(candidate) is False
+
+
 def _looks_like_secret(value: str) -> bool:
     """
     Determine whether a string value appears to be a secret.
@@ -239,9 +268,9 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_config_is_valid_yaml():
         """
-        Fail the test if .github / pr - agent - config.yml contains invalid YAML.
+        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
 
-        Attempts to parse the repository file at .github / pr - agent - config.yml and fails the test with the YAML parser error when parsing fails.
+        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
@@ -252,7 +281,7 @@ class TestPRAgentConfigYAMLValidity:
         """
         Fail the test if any top - level YAML key appears more than once in the file.
 
-        Scans .github / pr - agent - config.yml, ignores comment lines, and for each non - comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non - comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
 
@@ -413,9 +442,9 @@ class TestPRAgentConfigSecurity:
         """Assert numeric configuration limits fall within safe bounds."""
         limits = pr_agent_config["limits"]
 
-        assert limits["max_execution_time"] <= 3600
-        assert limits["max_concurrent_prs"] <= 10
-        assert limits["rate_limit_requests"] <= 1000
+        assert limits["max_execution_time"] <= 3600, "max_execution_time exceeds safe bound (<= 3600 seconds)"
+        assert limits["max_concurrent_prs"] <= 10, "max_concurrent_prs exceeds safe bound (<= 10)"
+        assert limits["rate_limit_requests"] <= 1000, "rate_limit_requests exceeds safe bound (<= 1000 per period)"
 
 
 class TestPRAgentConfigRemovedComplexity:
@@ -424,12 +453,12 @@ class TestPRAgentConfigRemovedComplexity:
     @pytest.fixture
     def pr_agent_config_content(self) -> str:
         """
-        Return the contents of .github / pr - agent - config.yml as a string.
+        Return the contents of .github/pr-agent-config.yml as a string.
 
         Reads the PR agent configuration file from the repository root and returns its raw text.
 
         Returns:
-            str: Raw YAML content of .github / pr - agent - config.yml.
+            str: Raw YAML content of .github/pr-agent-config.yml.
         Raises:
             FileNotFoundError: If the configuration file cannot be found.
         """
@@ -455,7 +484,7 @@ class TestPRAgentConfigRemovedComplexity:
         Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
 
         Parameters:
-            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
+            pr_agent_config_content(str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
         assert "gpt-4" not in pr_agent_config_content
