@@ -55,6 +55,7 @@ def isolated_base() -> Iterator[type[Base]]:
         A declarative base subclass for isolating test-specific table metadata.
         Ensures that tables defined within tests do not pollute the global metadata.
         """
+
         __abstract__ = True
 
     yield _IsolatedBase
@@ -180,6 +181,7 @@ class TestDatabaseInitialization:
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Test model for verifying table creation functionality."""
+
             __tablename__ = "test_model"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -200,6 +202,7 @@ class TestDatabaseInitialization:
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model for verifying that database initialization is idempotent."""
+
             __tablename__ = "test_idempotent"
             id = Column(Integer, primary_key=True)
 
