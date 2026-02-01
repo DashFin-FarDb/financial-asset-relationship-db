@@ -51,6 +51,10 @@ def isolated_base() -> Iterator[type[Base]]:
     existing_tables = set(Base.metadata.tables)
 
     class _IsolatedBase(Base):
+        """
+        A declarative base subclass for isolating test-specific table metadata.
+        Ensures that tables defined within tests do not pollute the global metadata.
+        """
         __abstract__ = True
 
     yield _IsolatedBase
@@ -175,6 +179,7 @@ class TestDatabaseInitialization:
         """init_db should create all registered tables."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Test model for verifying table creation functionality."""
             __tablename__ = "test_model"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -194,6 +199,7 @@ class TestDatabaseInitialization:
         """Calling init_db multiple times should not error."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Model for verifying that database initialization is idempotent."""
             __tablename__ = "test_idempotent"
             id = Column(Integer, primary_key=True)
 
@@ -270,10 +276,9 @@ class TestSessionScope:
         init_db(engine)
         factory = create_session_factory(engine)
 
-        with pytest.raises(ValueError):
-            with session_scope(factory) as session:
-                session.add(TestModel(id=1))
-                raise ValueError("trigger rollback")
+        with pytest.raises(ValueError), session_scope(factory) as session:
+            session.add(TestModel(id=1))
+            raise ValueError("trigger rollback")
 
         with session_scope(factory) as session:
             assert session.query(TestModel).count() == 0
@@ -288,12 +293,11 @@ class TestSessionScope:
         init_db(engine)
         factory = create_session_factory(engine)
 
-        with pytest.raises(IntegrityError):
-            with session_scope(factory) as session:
-                session.add(TestModel(id=1))
-                session.flush()
-                session.add(TestModel(id=1))
-                session.flush()
+        with pytest.raises(IntegrityError), session_scope(factory) as session:
+            session.add(TestModel(id=1))
+            session.flush()
+            session.add(TestModel(id=1))
+            session.flush()
 
     def test_nested_operations_commit(self, engine, isolated_base):
         """Multiple operations in one scope should commit atomically."""
