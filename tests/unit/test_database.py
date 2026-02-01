@@ -142,7 +142,7 @@ class TestSessionFactory:
         factory = create_session_factory(engine)
         session = factory()
         try:
-            assert session.autocommit is False
+            assert session.bind == engine
         finally:
             session.close()
 
