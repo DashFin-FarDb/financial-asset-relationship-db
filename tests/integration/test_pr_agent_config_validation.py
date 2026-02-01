@@ -111,34 +111,24 @@ def _shannon_entropy(value: str) -> float:
     return entropy
 
 
-def _looks_like_secret(value: str) -> bool:
-    # ...
-    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
-        return True
-
-
 def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> None:
     """
     Ensure empty strings and placeholders are not treated as secrets.
-
-    Returns:
-        None
-    Raises:
-        None
     """
     assert _looks_like_secret("") is False
     assert _looks_like_secret("   ") is False
 
-    # All configured placeholders should be treated as non-secret, even with whitespace
+    # All configured placeholders should be treated as non-secret
     for placeholder in SAFE_PLACEHOLDERS:
         assert _looks_like_secret(placeholder) is False
-        assert _looks_like_secret(f"  {placeholder}  ") is False
 
+        if isinstance(placeholder, str):
+            assert _looks_like_secret(f"  {placeholder}  ") is False
 
 def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     """
     Ensure url inline credentials are treated as secrets
-
+    """
     secret_marker_re = re.compile(
         r"\b(" + "|".join(m.value for m in SecretMarker) + r")\b",
         re.IGNORECASE,
@@ -147,7 +137,7 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
         return True
     Raises:
         None
-    """
+
     candidate = "https://user:pa55w0rd@example.com/resource"
     assert _looks_like_secret(candidate) is True
 
@@ -184,21 +174,17 @@ def test_looks_like_secret_does_not_flag_short_marker_based_values() -> None:
     assert _looks_like_secret(candidate) is False
 
 
-def _looks_like_secret(value: str) -> bool:
-    """
-    Determine whether a string value appears to be a secret.
+def _looks_like_secret(value: object) -> bool:
+    if not isinstance(value, str):
+        return False
 
-    Args:
-        value: The string to inspect.
-
-    Returns:
-        bool: True when the value matches secret heuristics.
-    """
     v = value.strip()
     if not v:
         return False
+
     if v.lower() in SAFE_PLACEHOLDERS:
         return False
+
     # Inline credentials in URLs
     if INLINE_CREDS_RE.search(v):
         return True
@@ -233,25 +219,10 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_no_context_configuration(pr_agent_config):
         """
-        @staticmethod
-        def test_no_context_configuration(pr_agent_config):
-            """
-            Validate the optional 'agent.context' configuration.
+        Validate the optional 'agent.context' configuration.
 
-            This test allows the 'context' key to be absent. If 'agent.context' is present,
-            it must be a YAML mapping(dict) to ensure the configuration shape is valid.
-            """
-            agent_config = pr_agent_config["agent"]
-            # Allow context configuration as it's needed for chunking
-            if "context" in agent_config:
-                assert isinstance(agent_config["context"], dict), (
-                    "Context must be a valid configuration object"
-                )
-            else:
-                # Context is optional
-                pass
-
-        The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
+        This test allows the 'context' key to be absent. If 'agent.context' is present,
+        it must be a YAML mapping(dict) to ensure the configuration shape is valid.
         """
         agent_config = pr_agent_config["agent"]
         # Allow context configuration as it's needed for chunking
@@ -262,6 +233,7 @@ class TestPRAgentConfigSimplification:
         else:
             # Context is optional
             pass
+
 
     @staticmethod
     def test_no_chunking_settings(pr_agent_config):
@@ -461,27 +433,33 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
 
     # ------------------------------------------------------------------
 
-    @staticmethod
-    def test_no_hardcoded_secrets(pr_agent_config):
-        """Ensure sensitive keys only use safe placeholders or templated values."""
-        # Use the global SAFE_PLACEHOLDERS constant instead of redefining
+@staticmethod
+def test_no_hardcoded_secrets(pr_agent_config):
+    """Ensure sensitive keys only use safe placeholders or templated values."""
+    # Use the global SAFE_PLACEHOLDERS constant instead of redefining
 
-        allowed_placeholders = {None, "***"} | SAFE_PLACEHOLDERS
-        templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
+    allowed_placeholders = {None, "***"} | SAFE_PLACEHOLDERS
+    templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
-        def is_allowed_placeholder(v: object) -> bool:
-            """
-            Determine if a value v is an allowed placeholder or templated variable.
-            """
-            if v is None:
-                return True
-            if isinstance(v, str):
-                stripped_v = v.strip()
-            if stripped_v.lower() in allowed_placeholders:
-                    return True
-                if templated_var_re.match(stripped_v):
-                    return True
+    def is_allowed_placeholder(v: object) -> bool:
+        """
+        Determine if a value is an allowed placeholder or templated variable.
+        """
+        if v is None:
+            return True
+
+        if not isinstance(v, str):
             return False
+
+        stripped_v = v.strip()
+
+        if stripped_v.lower() in allowed_placeholders:
+            return True
+
+        if templated_var_re.match(stripped_v):
+            return True
+
+        return False
 
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
