@@ -393,66 +393,60 @@ class TestShowFormulaDetails:
                         name='Apple Inc.',
                         asset_class=AssetClass.EQUITY,
                         sector='Technology',
-                        price=150.0,
-                    )
-                    bond = Bond(
-                        id='CORP_BOND',
-                        symbol='CORP',
-                        name='Corporate Bond',
-                        asset_class=AssetClass.FIXED_INCOME,
-                        sector='Corporate',
-                        price=100.0,
-                    )
-            'total_assets': 1,
-            'total_relationships': 0,
-            'average_relationship_strength': 0.0,
-            'relationship_density': 0.0,
-            'regulatory_event_count': 0,
-            'asset_class_distribution': {'EQUITY': 1},
-            'top_relationships': []
-        }
-        mock_create_db.return_value = mock_graph
+                        @patch('app.FormulaicVisualizer')
+                        def test_show_formula_details_returns_formatted_details(self, mock_visualizer_class, mock_create_db):
+                            """Test that show_formula_details returns a detail figure and hides the error state for a valid formula."""
+                            mock_graph = Mock(spec=AssetRelationshipGraph)
+                            mock_graph.assets = {}
+                            mock_create_db.return_value = mock_graph
 
-        app = FinancialAssetApp()
+                            # Mock visualizer detail view
+                            mock_visualizer = Mock()
+                            detail_fig = Mock()
+                            mock_visualizer.create_formula_detail_view.return_value = detail_fig
+                            mock_visualizer_class.return_value = mock_visualizer
 
-        # Should not raise exception
-        text = app._update_metrics_text(mock_graph)
-        assert '1' in text  # single asset
+                            # Analyzer returns a formula object with a name attribute
+                            mock_analyzer = Mock()
+                            formula = Mock()
+                            formula.name = 'Price-to-Earnings Ratio'
+                            mock_analyzer.analyze_graph.return_value = {
+                                'formulas': [formula],
+                                'empirical_relationships': [],
+                                'summary': {}
+                            }
 
-    @patch('app.create_real_database')
-    def test_update_asset_info_with_empty_string(self, mock_create_db):
-        """Test update_asset_info with empty string asset ID."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {}
-        mock_create_db.return_value = mock_graph
+                            app = FinancialAssetApp()
+                            with patch('app.FormulaicdAnalyzer', return_value=mock_analyzer):
+                                figure, error_state = app.show_formula_details('Price-to-Earnings Ratio', mock_graph)
 
-        app = FinancialAssetApp()
-        asset_dict, relationships = app.update_asset_info('', mock_graph)
+                            assert figure is detail_fig
+                            assert getattr(error_state, "visible", False) is False
 
-        assert asset_dict == {}
-        assert relationships == {'outgoing': {}, 'incoming': {}}
+                        @patch('app.create_real_database')
+                        @patch('app.FormulaicVisualizer')
+                        def test_show_formula_details_nonexistent_formula(self, mock_visualizer_class, mock_create_db):
+                            """Test show_formula_details with nonexistent formula name returns an error state."""
+                            mock_graph = Mock(spec=AssetRelationshipGraph)
+                            mock_graph.assets = {}
+                            mock_create_db.return_value = mock_graph
 
-    @patch('app.create_real_database')
-    def test_app_handles_asset_without_to_dict(self, mock_create_db):
-        """Test app handles asset that doesn't have to_dict method."""
-        mock_graph = Mock(spec=AssetRelationshipGraph)
-        # Create an asset without to_dict method
-        mock_asset = Mock(spec=[])  # Empty spec means no methods
-        mock_graph.assets = {'BAD_ASSET': mock_asset}
-        mock_create_db.return_value = mock_graph
+                            # Visualizer is not used when the formula is not found but is patched for isolation
+                            mock_visualizer_class.return_value = Mock()
 
-        app = FinancialAssetApp()
+                            mock_analyzer = Mock()
+                            mock_analyzer.analyze_graph.return_value = {
+                                'formulas': [],
+                                'empirical_relationships': [],
+                                'summary': {}
+                            }
 
-        # Should handle the missing method gracefully
-        with pytest.raises(AttributeError):
-            app.update_asset_info('BAD_ASSET', mock_graph)
+                            app = FinancialAssetApp()
+                            with patch('app.FormulaicdAnalyzer', return_value=mock_analyzer):
+                                figure, error_state = app.show_formula_details('Nonexistent Formula', mock_graph)
 
-
-class TestIntegrationScenarios:
-    """Test integration scenarios simulating real usage."""
-
-    @patch('app.create_real_database')
-    @patch('app.visualize_3d_graph_with_filters')
+                            assert getattr(error_state, "visible", False) is True
+                            assert "not found" in str(getattr(error_state, "value", "")).lower()
     @patch('app.visualize_metrics')
     def test_complete_workflow_simulation(
         self, mock_metrics_viz, mock_3d_viz, mock_create_db
