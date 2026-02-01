@@ -226,7 +226,7 @@ class TestPRAgentConfigSimplification:
         """
         Assert that the 'agent' section does not contain a 'context' key.
 
-        The test fails if the parsed PR agent configuration includes a 'context' key under the top - level 'agent' section.
+        The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
         """
         agent_config = pr_agent_config["agent"]
         assert "context" not in agent_config
