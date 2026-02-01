@@ -163,7 +163,8 @@ class TestSessionFactory:
         session = factory()
         try:
             assert session.bind == engine
-            assert session.autocommit is False
+            # Note: session.autocommit is deprecated in SQLAlchemy 2.0
+            # Sessions created with future=True don't have autocommit mode
         finally:
             session.close()
 
@@ -232,13 +233,12 @@ class TestDatabaseInitialization:
 
         init_db(engine)
 
-        with session_factory() as session:
+        with session_scope(session_factory) as session:
             session.add(TestModel(id=1, value="persisted"))
-            session.commit()
 
         init_db(engine)
 
-        with session_factory() as session:
+        with session_scope(session_factory) as session:
             result = session.query(TestModel).one_or_none()
             assert result is not None
             assert result.value == "persisted"
