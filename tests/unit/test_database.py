@@ -136,19 +136,16 @@ def init_test_db(engine):
 class TestDatabaseInitialization:
     """Test cases for database initialization using SQLAlchemy and Pytest."""
 
-    @staticmethod
     @pytest.fixture
     def engine():
         """Provides an in-memory SQLite engine for testing."""
         return create_engine("sqlite:///:memory:")
 
-    @staticmethod
     @pytest.fixture
     def session_factory(engine):
         """Provides a session factory for the test engine."""
         return sessionmaker(bind=engine)
 
-    @staticmethod
     def test_init_db_creates_tables(engine):
         """Test that init_test_db creates all registered tables."""
         init_test_db(engine)
@@ -159,7 +156,6 @@ class TestDatabaseInitialization:
         inspector = inspect(engine)
         assert "test_model" in inspector.get_table_names()
 
-    @staticmethod
     def test_init_db_is_idempotent(engine):
         """Test that init_db can be called multiple times safely without error."""
         # Call init_db multiple times
@@ -171,7 +167,6 @@ class TestDatabaseInitialization:
         inspector = inspect(engine)
         assert "test_model" in inspector.get_table_names()
 
-    @staticmethod
     def test_init_db_preserves_data(engine, session_factory):
         """Test that calling init_db again does not wipe existing data."""
         init_db(engine)
