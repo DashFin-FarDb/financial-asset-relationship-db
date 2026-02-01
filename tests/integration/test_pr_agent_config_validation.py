@@ -292,9 +292,10 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_config_is_valid_yaml():
         """
-        Fail the test if any YAML key appears more than once at any nesting level.
+        Verify the PR agent configuration file contains valid YAML syntax.
 
-        Parses .github/pr-agent-config.yml with a DuplicateKeyLoader that raises on duplicate mapping keys, including nested mappings.
+        Attempts to parse .github/pr-agent-config.yml with yaml.safe_load; the test
+        fails implicitly if the file contains malformed YAML.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
