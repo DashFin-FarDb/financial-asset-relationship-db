@@ -478,7 +478,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     This function processes the given AssetRelationshipGraph to create a structured
     dictionary representation. It computes the incoming relationships from the
     graph's relationships and serializes both assets and regulatory events using
-    the  _serialized_dataclass function. The resulting dictionary includes lists of
+    the _serialize_dataclass function. The resulting dictionary includes lists of
     serialized assets, regulatory events, and mappings of relationships.
 
     Args:
