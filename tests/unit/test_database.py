@@ -226,7 +226,6 @@ class TestDatabaseInitialization:
             result = session.query(TestModel).one_or_none()
             assert result is not None
             assert result.value == "persisted"
-        assert result.value == "persisted"
 
 
 # ---------------------------------------------------------------------------
