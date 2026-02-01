@@ -473,8 +473,6 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
 
         scan_for_secrets(pr_agent_config)
 
-    # ------------------------------------------------------------------
-
 
 @staticmethod
 def test_safe_configuration_values(pr_agent_config):
