@@ -220,7 +220,7 @@ class TestPRAgentConfigSimplification:
         """
         Assert the configuration contains no chunking-related settings.
 
-        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string(case-insensitive).
+        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string (case-insensitive).
         """
         config_str = yaml.dump(pr_agent_config)
         assert "chunking" not in config_str.lower()
