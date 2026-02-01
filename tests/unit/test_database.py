@@ -190,9 +190,7 @@ class TestDatabaseInitialization:
         inspector = inspect(engine)
         assert "test_idempotent" in inspector.get_table_names()
 
-    def test_init_db_preserves_existing_data(
-        self, engine, session_factory, isolated_base
-    ):
+    def test_init_db_preserves_existing_data(self, engine, session_factory, isolated_base):
         """init_db should not wipe existing data."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
