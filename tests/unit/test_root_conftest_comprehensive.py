@@ -385,7 +385,11 @@ class TestRealWorldScenarios:
             pytest_load_initial_conftests(args, None, None)
 
             # No coverage args, should remain unchanged
-            assert args == ["-v", "--tb=short", "tests/unit/test_specific.py::test_function"]
+            assert args == [
+                "-v",
+                "--tb=short",
+                "tests/unit/test_specific.py::test_function",
+            ]
 
     @staticmethod
     def test_makefile_or_tox_command():

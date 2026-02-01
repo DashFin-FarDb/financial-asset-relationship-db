@@ -117,6 +117,7 @@ class TestRealDataFetcherInitialization:
     @staticmethod
     def test_initialization_with_fallback_factory():
         """Test initialization with fallback factory."""
+
         def custom_fallback():
             return AssetRelationshipGraph()
 
@@ -139,14 +140,16 @@ class TestFallbackBehavior:
     def test_fallback_uses_custom_factory():
         """Test _fallback uses custom factory when provided."""
         custom_graph = AssetRelationshipGraph()
-        custom_graph.add_asset(Equity(
-            id="CUSTOM",
-            symbol="CST",
-            name="Custom Asset",
-            asset_class=AssetClass.EQUITY,
-            sector="Test",
-            price=100.0,
-        ))
+        custom_graph.add_asset(
+            Equity(
+                id="CUSTOM",
+                symbol="CST",
+                name="Custom Asset",
+                asset_class=AssetClass.EQUITY,
+                sector="Test",
+                price=100.0,
+            )
+        )
 
         def custom_factory():
             return custom_graph
@@ -237,9 +240,12 @@ class TestCacheOperations:
         with patch("src.data.real_data_fetcher.yf.Ticker") as mock_ticker:
             # Mock successful ticker response
             mock_ticker_instance = mock_ticker.return_value
-            mock_ticker_instance.history.return_value = pd.DataFrame({
-                "Close": [150.0],
-            }, index=[pd.Timestamp("2024-01-01")])
+            mock_ticker_instance.history.return_value = pd.DataFrame(
+                {
+                    "Close": [150.0],
+                },
+                index=[pd.Timestamp("2024-01-01")],
+            )
             mock_ticker_instance.info = {
                 "marketCap": 2.4e12,
                 "trailingPE": 25.5,
@@ -383,7 +389,9 @@ class TestSerializationDeserialization:
         # Verify
         assert len(restored.assets) == len(sample_graph.assets)
         assert len(restored.regulatory_events) == len(sample_graph.regulatory_events)
-        assert set(restored.relationships.keys()) == set(sample_graph.relationships.keys())
+        assert set(restored.relationships.keys()) == set(
+            sample_graph.relationships.keys()
+        )
 
 
 class TestDataFetching:
@@ -395,9 +403,12 @@ class TestDataFetching:
         """Test successful equity data fetch."""
         # Mock ticker response
         mock_ticker_instance = mock_ticker.return_value
-        mock_ticker_instance.history.return_value = pd.DataFrame({
-            "Close": [150.0],
-        }, index=[pd.Timestamp("2024-01-01")])
+        mock_ticker_instance.history.return_value = pd.DataFrame(
+            {
+                "Close": [150.0],
+            },
+            index=[pd.Timestamp("2024-01-01")],
+        )
         mock_ticker_instance.info = {
             "marketCap": 2.4e12,
             "trailingPE": 25.5,
@@ -429,9 +440,12 @@ class TestDataFetching:
     def test_fetch_bond_data_success(mock_ticker):
         """Test successful bond data fetch."""
         mock_ticker_instance = mock_ticker.return_value
-        mock_ticker_instance.history.return_value = pd.DataFrame({
-            "Close": [100.0],
-        }, index=[pd.Timestamp("2024-01-01")])
+        mock_ticker_instance.history.return_value = pd.DataFrame(
+            {
+                "Close": [100.0],
+            },
+            index=[pd.Timestamp("2024-01-01")],
+        )
         mock_ticker_instance.info = {"yield": 0.03}
 
         bonds = RealDataFetcher._fetch_bond_data()
@@ -444,9 +458,12 @@ class TestDataFetching:
     def test_fetch_commodity_data_success(mock_ticker):
         """Test successful commodity data fetch."""
         mock_ticker_instance = mock_ticker.return_value
-        mock_ticker_instance.history.return_value = pd.DataFrame({
-            "Close": [1950.0, 1960.0, 1955.0, 1965.0, 1970.0],
-        }, index=pd.date_range("2024-01-01", periods=5, freq="D"))
+        mock_ticker_instance.history.return_value = pd.DataFrame(
+            {
+                "Close": [1950.0, 1960.0, 1955.0, 1965.0, 1970.0],
+            },
+            index=pd.date_range("2024-01-01", periods=5, freq="D"),
+        )
 
         commodities = RealDataFetcher._fetch_commodity_data()
 
@@ -458,9 +475,12 @@ class TestDataFetching:
     def test_fetch_currency_data_success(mock_ticker):
         """Test successful currency data fetch."""
         mock_ticker_instance = mock_ticker.return_value
-        mock_ticker_instance.history.return_value = pd.DataFrame({
-            "Close": [1.08],
-        }, index=[pd.Timestamp("2024-01-01")])
+        mock_ticker_instance.history.return_value = pd.DataFrame(
+            {
+                "Close": [1.08],
+            },
+            index=[pd.Timestamp("2024-01-01")],
+        )
 
         currencies = RealDataFetcher._fetch_currency_data()
 
@@ -685,8 +705,12 @@ class TestNetworkControl:
             fetcher = RealDataFetcher(enable_network=True)
 
             with patch.object(RealDataFetcher, "_fetch_bond_data", return_value=[]):
-                with patch.object(RealDataFetcher, "_fetch_commodity_data", return_value=[]):
-                    with patch.object(RealDataFetcher, "_fetch_currency_data", return_value=[]):
+                with patch.object(
+                    RealDataFetcher, "_fetch_commodity_data", return_value=[]
+                ):
+                    with patch.object(
+                        RealDataFetcher, "_fetch_currency_data", return_value=[]
+                    ):
                         graph = fetcher.create_real_database()
 
             # Fetch should be called
@@ -728,9 +752,12 @@ class TestIntegration:
         """Test that fetched real data creates a valid graph."""
         # Mock all ticker responses
         mock_ticker_instance = mock_ticker.return_value
-        mock_ticker_instance.history.return_value = pd.DataFrame({
-            "Close": [150.0, 151.0, 152.0],
-        }, index=pd.date_range("2024-01-01", periods=3, freq="D"))
+        mock_ticker_instance.history.return_value = pd.DataFrame(
+            {
+                "Close": [150.0, 151.0, 152.0],
+            },
+            index=pd.date_range("2024-01-01", periods=3, freq="D"),
+        )
         mock_ticker_instance.info = {
             "marketCap": 2.4e12,
             "trailingPE": 25.5,
