@@ -8,15 +8,14 @@ Tests the simplified PR agent configuration, ensuring:
 - Simplified configuration structure
 """
 
+import math
 import re
+from collections import Counter
 from enum import Enum
 from pathlib import Path
 
 import pytest
 import yaml
-
-import math
-from collections import Counter
 
 pytestmark = pytest.mark.integration
 
@@ -101,10 +100,10 @@ def _shannon_entropy(value: str) -> float:
     """Calculate Shannon entropy of a string."""
     if not value:
         return 0.0
-    
+
     counts = Counter(value)
     length = len(value)
-    
+
     entropy = 0.0
     for count in counts.values():
         p = count / length
@@ -456,7 +455,7 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
             if isinstance(v, str):
                 stripped_v = v.strip()
             if stripped_v.lower() in allowed_placeholders:
-                    return True    
+                    return True
                 if templated_var_re.match(stripped_v):
                     return True
             return False
