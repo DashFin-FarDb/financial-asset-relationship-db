@@ -15,7 +15,7 @@ from unittest.mock import patch
 import pytest
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.data.database import (
