@@ -331,7 +331,6 @@ class TestPRAgentConfigYAMLValidity:
 
         return mapping
 
-
     @staticmethod
     def test_consistent_indentation():
         """
