@@ -127,8 +127,6 @@ class AssetGraphRepository:
         if strength < -1.0 or strength > 1.0:
             raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
 
-        # Validate strength range
-
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
