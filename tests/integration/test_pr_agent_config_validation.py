@@ -239,7 +239,7 @@ class TestPRAgentConfigSimplification:
             Validate the optional 'agent.context' configuration.
 
             This test allows the 'context' key to be absent. If 'agent.context' is present,
-            it must be a YAML mapping (dict) to ensure the configuration shape is valid.
+            it must be a YAML mapping(dict) to ensure the configuration shape is valid.
             """
             agent_config = pr_agent_config["agent"]
             # Allow context configuration as it's needed for chunking
