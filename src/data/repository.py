@@ -166,7 +166,17 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
     ) -> Optional[RelationshipRecord]:
-        """Fetch a single relationship if it exists."""
+        """
+        Return a single relationship matching the given identifiers, if present.
+
+        Args:
+            source_id: The source asset identifier.
+            target_id: The target asset identifier.
+            rel_type: The relationship type to look up.
+
+        Returns:
+            A RelationshipRecord if a matching relationship exists, otherwise None.
+        """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
