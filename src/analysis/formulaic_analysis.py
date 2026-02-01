@@ -588,7 +588,7 @@ class FormulaicAnalyzer:
         default example is returned.
 
         Args:
-            graph (AssetRelationshipGraph): The graph containing asset data for
+            graph (AssetRelationshipGraph): The graph containing asset data for analysis.
         """
         from src.models.financial_models import AssetClass
 
