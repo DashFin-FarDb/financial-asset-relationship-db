@@ -11,7 +11,6 @@ This module tests:
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from unittest.mock import patch
 
@@ -37,6 +36,9 @@ from src.models.financial_models import (
     Commodity,
     Currency,
     Equity,
+    RegulatoryActivity,
+    RegulatoryEvent,
+)
     RegulatoryActivity,
     RegulatoryEvent,
 )
@@ -120,6 +122,7 @@ class TestRealDataFetcherInitialization:
         """Test initialization with fallback factory."""
 
         def custom_fallback():
+            """Provide a new AssetRelationshipGraph instance as a fallback."""
             return AssetRelationshipGraph()
 
         fetcher = RealDataFetcher(fallback_factory=custom_fallback)
@@ -153,6 +156,7 @@ class TestFallbackBehavior:
         )
 
         def custom_factory():
+            """Return the custom AssetRelationshipGraph for fallback."""
             return custom_graph
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory)
@@ -608,7 +612,7 @@ class TestAdvancedSerialization:
         assert "incoming_relationships" in serialized
 
         # Check relationship structure
-        for source, rels in serialized["relationships"].items():
+        for _, rels in serialized["relationships"].items():
             assert isinstance(rels, list)
             for rel in rels:
                 assert "target" in rel
@@ -705,14 +709,10 @@ class TestNetworkControl:
 
             fetcher = RealDataFetcher(enable_network=True)
 
-            with patch.object(RealDataFetcher, "_fetch_bond_data", return_value=[]):
-                with patch.object(
-                    RealDataFetcher, "_fetch_commodity_data", return_value=[]
-                ):
-                    with patch.object(
-                        RealDataFetcher, "_fetch_currency_data", return_value=[]
-                    ):
-                        fetcher.create_real_database()
+            with patch.object(RealDataFetcher, "_fetch_bond_data", return_value=[]), \
+                 patch.object(RealDataFetcher, "_fetch_commodity_data", return_value=[]), \
+                 patch.object(RealDataFetcher, "_fetch_currency_data", return_value=[]):
+                fetcher.create_real_database()
 
             # Fetch should be called
             mock_fetch.assert_called_once()

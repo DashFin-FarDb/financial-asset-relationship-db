@@ -10,7 +10,6 @@ Tests the simplified PR agent configuration, ensuring:
 
 import math
 import re
-from collections import Counter
 from enum import Enum
 from pathlib import Path
 from typing import Any, Iterator, Tuple
@@ -146,17 +145,6 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     assert _looks_like_secret(candidate) is True
 
 
-"""Module for testing secret detection and providing the _looks_like_secret utility.
-
-This module contains integration tests that validate the behavior of the secret
-heuristic function _looks_like_secret. The utility itself uses several checks
-including:
-- Inline URL credential detection
-- Marker-based secret indicators with sufficient length
-- High-entropy base64 or URL-safe patterns
-"""
-
-
 def test_looks_like_secret_does_not_flag_urls_without_credentials() -> None:
     """Ensure URLs without inline credentials are not treated as secrets."""
     candidate = "https://example.com/resource"
@@ -213,10 +201,9 @@ def _looks_like_secret(value: object) -> bool:
     if (
         BASE64_LIKE_RE.fullmatch(v)
         and re.search(r"[+/=_]", v)
-        and _shannon_entropy(v) >= 3.5
+        and shannon_entropy(v) >= 3.5
     ):
         return True
-    return False
 
     # Hex-encoded secrets (e.g. hashes, keys)
     if HEX_RE.fullmatch(v):
@@ -389,23 +376,6 @@ class TestPRAgentConfigSecurity:
 
     # In utils/secret_detection.py
 
-
-def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
-    """Recursively scan any object for potential secrets."""
-    if isinstance(obj, dict):
-        for value in obj.values():
-            yield from _scan_for_secrets(value)
-    elif isinstance(obj, (list, tuple)):
-        for item in obj:
-            yield from _scan_for_secrets(item)
-    elif isinstance(obj, str) and _looks_like_secret(obj):
-        yield ("secret", obj)
-
-
-def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
-    """Return all potential secrets found in a configuration object."""
-    return list(_scan_for_secrets(config_obj))
-
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """Ensure sensitive keys only use safe placeholders or templated values."""
@@ -433,6 +403,23 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
             return False
 
         def scan_for_secrets(node: object, path: str = "root") -> None:
+
+
+def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
+    """Recursively scan any object for potential secrets."""
+    if isinstance(obj, dict):
+        for value in obj.values():
+            yield from _scan_for_secrets(value)
+    elif isinstance(obj, (list, tuple)):
+        for item in obj:
+            yield from _scan_for_secrets(item)
+    elif isinstance(obj, str) and _looks_like_secret(obj):
+        yield ("secret", obj)
+
+
+def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
+    """Return all potential secrets found in a configuration object."""
+    return list(_scan_for_secrets(config_obj))
             """
             Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
             """

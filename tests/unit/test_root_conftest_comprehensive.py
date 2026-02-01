@@ -504,7 +504,6 @@ class TestImportErrorHandling:
     @staticmethod
     def test_find_spec_returns_none_for_missing_module():
         """Test _cov_plugin_available handles missing module correctly."""
-
         from conftest import _cov_plugin_available
 
         # find_spec returns None for missing modules

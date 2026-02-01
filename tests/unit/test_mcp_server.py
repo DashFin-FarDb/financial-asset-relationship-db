@@ -88,7 +88,6 @@ class TestThreadSafeGraph:
         import threading
 
         from mcp_server import _ThreadSafeGraph
-
         graph = AssetRelationshipGraph()
         equity = Equity(
             id="TEST1",
@@ -113,32 +112,31 @@ class TestThreadSafeGraph:
         assert "NEW_ASSET" not in graph.assets
 
     @staticmethod
-    """Unit tests for mcp_server._ThreadSafeGraph lock acquisition behavior."""
     def test_thread_safe_graph_method_execution_uses_lock():
-        """Test that method execution acquires the lock."""
+        """Unit tests for mcp_server._ThreadSafeGraph lock acquisition behavior."""
         import threading
 
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-         lock = threading.Lock()
+        lock = threading.Lock()
 
-          ts_graph = _ThreadSafeGraph(graph, lock)
+        ts_graph = _ThreadSafeGraph(graph, lock)
 
-           # Track lock acquisitions
-           lock_acquired = []
-            original_acquire = lock.acquire
+        # Track lock acquisitions
+        lock_acquired = []
+        original_acquire = lock.acquire
 
-            def track_acquire(*args, **kwargs):
-                """Track the lock.acquire calls by appending to lock_acquired list before invoking the original acquire method."""
-                lock_acquired.append(True)
-                return original_acquire(*args, **kwargs)
+        def track_acquire(*args, **kwargs):
+            """Track the lock.acquire calls by appending to lock_acquired list before invoking the original acquire method."""
+            lock_acquired.append(True)
+            return original_acquire(*args, **kwargs)
 
-            lock.acquire = track_acquire
+        lock.acquire = track_acquire
 
-            # Call a method
-            equity = Equity(
-                id="TEST2",
+        # Call a method
+        equity = Equity(
+            id="TEST2",
                 symbol="TST2",
                 name="Test 2",
                 asset_class=AssetClass.EQUITY,
