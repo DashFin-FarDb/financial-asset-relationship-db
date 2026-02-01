@@ -159,11 +159,9 @@ class TestSessionFactory:
         session = factory()
         try:
             assert session.bind == engine
+            assert session.autocommit is False
         finally:
             session.close()
-
-        assert session.autocommit is False
-
 
 # ---------------------------------------------------------------------------
 # Database initialization tests
