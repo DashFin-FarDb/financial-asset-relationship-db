@@ -151,7 +151,7 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
 
 def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> None:
     """
-    Ensure marker based secrets with sufficient lengthare detected
+    Ensure marker based secrets with sufficient length are detected
 
     Returns:
         None
@@ -268,7 +268,7 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_monitoring_config_present(pr_agent_config):
         """
-        Ensure the top - level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
+        Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
 
         Parameters:
             pr_agent_config(dict): Parsed PR agent configuration mapping.
@@ -309,9 +309,9 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_no_duplicate_keys():
         """
-        Fail the test if any top - level YAML key appears more than once in the file.
+        Fail the test if any top-level YAML key appears more than once in the file.
 
-        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non - comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
 
@@ -345,7 +345,7 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_consistent_indentation():
         """
-        Verify that every non - empty, non - comment line in the PR agent YAML uses 2 - space indentation increments.
+        Verify that every non-empty, non-comment line in the PR agent YAML uses two-space indentation increments.
 
         Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
         """
@@ -377,8 +377,8 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
         """Recursively scan configuration objects for suspected secrets.
 
         Args:
-            obj: Configuration object to scan(dict, list, or scalar).
-            suspected: List to append(kind, value) tuples when secrets are found.
+            obj: Configuration object to scan (dict, list, or scalar).
+            suspected: List to append (kind, value) tuples when secrets are found.
         Returns:
             None
         Raises:
@@ -510,6 +510,7 @@ class TestPRAgentConfigRemovedComplexity:
             pytest.fail(f"Config file not found: {config_path}")
         with open(config_path, "r", encoding="utf-8") as f:
             return f.read()
+
 
     @staticmethod
     def test_no_summarization_settings(pr_agent_config_content):
