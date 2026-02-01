@@ -269,8 +269,8 @@ class RealDataFetcher:
         """Fetch real commodity data.
 
         This method retrieves the latest price and volatility data for a set of
-        predefined commodity symbols.  It utilizes the `yfinance` library to fetch
-        historical price data and calculates the current price  and volatility for each
+        predefined commodity symbols. It utilizes the `yfinance` library to fetch
+        historical price data and calculates the current price and volatility for each
         commodity. If any data retrieval fails, it logs an error and continues with
         the next symbol. The resulting list of `Commodity` objects is returned for
         further processing.
