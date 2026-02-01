@@ -95,18 +95,29 @@ def pr_agent_config() -> dict[str, object]:
     return cfg
 
 
-def _shannon_entropy(value: str) -> float:
-    """Calculate Shannon entropy of a string."""
+def shannon_entropy(value) -> float:
+    """
+    Calculate Shannon entropy of a string.
+
+    Used as a heuristic to detect high-entropy tokens such as API keys.
+    """
     if not value:
         return 0.0
 
-    counts = Counter(value)
-    length = len(value)
+    sample = str(value)
+    length = len(sample)
+    if length == 0:
+        return 0.0
+
+    freq = {}
+    for ch in sample:
+        freq[ch] = freq.get(ch, 0) + 1
 
     entropy = 0.0
-    for count in counts.values():
+    for count in freq.values():
         p = count / length
         entropy -= p * math.log2(p)
+
     return entropy
 
 
@@ -152,9 +163,7 @@ def test_looks_like_secret_does_not_flag_urls_without_credentials() -> None:
     assert _looks_like_secret(candidate) is False
 
 
-def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> (
-    None
-):
+def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> None:
     """Ensure marker-based secrets with sufficient length are detected."""
     # Contains a marker keyword (e.g. "api_key") and is long enough to be considered a secret
     candidate = "my api_key is: abcdefghijkl"
@@ -394,10 +403,8 @@ def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
 def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
     """Return all potential secrets found in a configuration object."""
     return list(_scan_for_secrets(config_obj))
-            )
-
-    # ------------------------------------------------------------------
-
+          
+  
     @ staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """Ensure sensitive keys only use safe placeholders or templated values."""
