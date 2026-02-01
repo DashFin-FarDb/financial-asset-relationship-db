@@ -125,6 +125,7 @@ def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> Non
         if isinstance(placeholder, str):
             assert _looks_like_secret(f"  {placeholder}  ") is False
 
+
 def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     """
     Ensure url inline credentials are treated as secrets
@@ -233,7 +234,6 @@ class TestPRAgentConfigSimplification:
         else:
             # Context is optional
             pass
-
 
     @staticmethod
     def test_no_chunking_settings(pr_agent_config):
@@ -432,6 +432,7 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
             )
 
     # ------------------------------------------------------------------
+
 
 @staticmethod
 def test_no_hardcoded_secrets(pr_agent_config):
