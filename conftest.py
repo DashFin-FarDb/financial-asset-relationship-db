@@ -31,6 +31,8 @@ def pytest_load_initial_conftests(
 ) -> None:  # pragma: no cover - exercised via pytest
     """
     Remove pytest-cov related command-line options from the provided
+    """
+    Remove pytest-cov related command-line options from the provided
     argument list when the pytest-cov plugin is not available.
     Also remove any inline forms starting with --cov= or --cov-report=.
     The original `args` list is updated in-place.
@@ -40,12 +42,10 @@ def pytest_load_initial_conftests(
         parser: pytest parser object
         args (List[str]): Mutable list of command-line arguments;
             coverage-related options are removed from this list in-place.
-
     Returns:
-        None
-
+        None.
     Raises:
-        None
+        None.
     """
 
     if _cov_plugin_available():
