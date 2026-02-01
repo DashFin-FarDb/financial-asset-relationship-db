@@ -214,7 +214,13 @@ class TestWorkflowActions:
 
         for job_name, job_config in jobs.items():
             steps = job_config.get("steps", [])
-
+            for idx, step in enumerate(steps):
+                action = step.get("uses")
+                if not isinstance(action, str):
+                    continue
+                # Skip local or in-repo actions which may not use pinned refs
+                if action.startswith("./") or action.startswith(".github/"):
+                    continue
                     # Action should have a version tag (e.g., @v1, @v3.5.2, or @<commit-sha>)
                     assert "@" in action, (
                         f"Step {idx} in job '{job_name}' of {workflow_file.name} "
