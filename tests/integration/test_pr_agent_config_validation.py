@@ -141,7 +141,7 @@ def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> Non
         assert _looks_like_secret(f"  {placeholder}  ") is False
 
 
-def test_looks_like_secret_detects_inline_credentials_in_urls() -> None: 
+def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     """
     Ensure url inline credentials are not treated as secrets
 
@@ -370,6 +370,8 @@ class TestPRAgentConfigYAMLValidity:
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
     # In utils/secret_detection.py
+
+
 def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
     suspected = []
     # ... scanning logic
