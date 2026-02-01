@@ -119,10 +119,7 @@ def _build_mcp_app():
 
 
 def main(argv: list[str] | None = None) -> int:
-    """
-    Entry point for the MCP server CLI. Parses command-line arguments,
-    handles version flag, and runs the server.
-    """
+    """Entry point for the MCP server CLI."""
     parser = argparse.ArgumentParser(
         prog="mcp_server.py",
         description="DashFin MCP server",

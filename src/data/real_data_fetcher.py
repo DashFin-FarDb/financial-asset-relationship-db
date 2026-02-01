@@ -158,15 +158,7 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
-        """
-        Fetches current market data for a predefined set of major equities and
-        returns them as Equity objects.
-        Returns:
-            List[Equity]: Equity instances populated with market fields
-                including id, symbol, name, asset_class, sector, price,
-                market_cap, pe_ratio, dividend_yield, earnings_per_share,
-                and book_value.
-        """
+        """Fetches current market data for major equities and returns Equity objects."""
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -216,7 +208,7 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """Fetch real bond / treasury data"""
+        """Fetch real bond and treasury data."""
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
@@ -274,7 +266,15 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity data"""
+        """Fetch real commodity data.
+
+        This method retrieves the latest price and volatility data for a set of
+        predefined commodity symbols. It utilizes the `yfinance` library to fetch
+        historical price data and calculates the current price and volatility for each
+        commodity. If any data retrieval fails, it logs an error and continues with
+        the next symbol. The resulting list of `Commodity` objects is returned for
+        further processing.
+        """
         commodity_symbols = {
             "GC=F": ("Gold Futures", "Precious Metals", 100),
             "CL=F": ("Crude Oil Futures", "Energy", 1000),
@@ -473,22 +473,28 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """
-    Serialize an AssetRelationshipGraph into a JSON - serialisable dictionary.
+    """Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
 
-    Parameters:
-        graph(AssetRelationshipGraph): Graph to serialize.
+    This function processes the given AssetRelationshipGraph to create a structured
+    dictionary representation. It computes the incoming relationships from the
+    graph's relationships and serializes both assets and regulatory events using
+    the _serialize_dataclass function. The resulting dictionary includes lists of
+    serialized assets, regulatory events, and mappings of relationships.
+
+    Args:
+        graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of
-              outgoing relationships
-            - "incoming_relationships": mapping from target id to a list of
-              incoming relationships
+            - "relationships": mapping from source id to a list of outgoing
+            relationships
+            - "incoming_relationships": mapping from target id to a list of incoming
+            relationships
     """
     # Compute incoming_relationships from relationships
+
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
     for source, rels in graph.relationships.items():
         for target, rel_type, strength in rels:
