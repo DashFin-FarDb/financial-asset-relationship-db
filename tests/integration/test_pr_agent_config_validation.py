@@ -307,11 +307,11 @@ class TestPRAgentConfigYAMLValidity:
 
     # Custom loader to detect duplicate YAML entries at any nesting level
     class DuplicateKeyLoader(yaml.SafeLoader):
-    """YAML loader subclass that fails on duplicate keys.
+        """YAML loader subclass that fails on duplicate keys.
 
-    Overrides mapping construction to detect duplicate entries
-    at any nesting level.
-    """
+        Overrides mapping construction to detect duplicate entries
+        at any nesting level.
+        """
 
     # pylint: disable=arguments-differ
     def construct_mapping(self, node, deep=False):
@@ -447,9 +447,9 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
             return False
 
         def scan_for_secrets(node: object, path: str = "root") -> None:
-        """
-        Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
-        """
+            """
+            Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
+            """
             if isinstance(node, dict):
             for k, v in node.items():
                     key_lower = str(k).lower()
