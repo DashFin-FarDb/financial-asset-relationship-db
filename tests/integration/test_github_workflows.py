@@ -872,10 +872,7 @@ class TestRemovedFilesCleanup:
 
             removed_refs = ["context_chunker.py", ".github/scripts/context_chunker.py"]
             for ref in removed_refs:
-            removed_refs = ["context_chunker.py", ".github/scripts/context_chunker.py"]
-            for ref in removed_refs:
                 assert ref not in workflow_str, (
                     f"{workflow_file.name} still references removed script: {ref}"
                 )
-                    f"{workflow_file.name} still references removed script: {ref}"
-                )
+
