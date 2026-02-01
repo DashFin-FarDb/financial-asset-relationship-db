@@ -127,10 +127,6 @@ class AssetGraphRepository:
             raise ValueError("strength must be a numeric value between -1.0 and 1.0")
         if strength < -1.0 or strength > 1.0:
             raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
-        if not isinstance(strength, (int, float)):
-            raise ValueError("strength must be a numeric value between -1.0 and 1.0")
-        if strength < -1.0 or strength > 1.0:
-            raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
 
         # Validate strength range
 
