@@ -197,6 +197,10 @@ class TestDatabaseInitialization:
             __tablename__ = "test_idempotent"
             id = Column(Integer, primary_key=True)
 
+        # Access the model to avoid it being flagged as unused while still
+        # relying on its side effect of registering table metadata.
+        assert TestModel.__tablename__ == "test_idempotent"
+
         init_db(engine)
         init_db(engine)
 
