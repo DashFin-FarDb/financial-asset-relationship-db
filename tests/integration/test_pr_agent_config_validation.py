@@ -279,7 +279,7 @@ class AssetUIController(FinancialAssetApp):
             f"Formulas: {len(results.get('formulas', []))}",
             f"Avg R²: {summary.get('avg_r_squared', 0.0):.3f}",
         ]
-        ...
+    # TODO: implement formula summary
         return "\n".join(lines)
 
     def create_interface(self) -> gr.Blocks:
