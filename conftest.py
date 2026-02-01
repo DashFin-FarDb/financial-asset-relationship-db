@@ -39,6 +39,7 @@ def pytest_load_initial_conftests(
 
     Parameters:
         early_config: pytest early config object
+
         parser: pytest parser object
         args (List[str]): Mutable list of command-line arguments;
             coverage-related options are removed from this list in-place.
