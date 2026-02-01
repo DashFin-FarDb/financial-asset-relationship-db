@@ -70,9 +70,24 @@ class AssetGraphRepository:
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
+    def get_asset_by_id(self, asset_id: str) -> Optional[Asset]:
+        """
+        Return a single asset by its ID, or None if not found.
+
+        Args:
+            asset_id: Asset identifier to retrieve.
+        Returns:
+            Optional[Asset]: The asset if found, otherwise None.
+        Raises:
+            None
+        """
+        orm = self.session.get(AssetORM, asset_id)
+        if orm is None:
+            return None
+        return self._to_asset_model(orm)
+
     def delete_asset(self, asset_id: str) -> None:
         """Delete an asset and cascading relationships/events."""
-
         asset = self.session.get(AssetORM, asset_id)
         if asset is not None:
             self.session.delete(asset)
@@ -86,10 +101,31 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
         strength: float,
-        *,
-        bidirectional: bool,
+        bidirectional: bool = False,
     ) -> None:
-        """Insert or update a relationship between two assets."""
+        """
+        Add or update a relationship between two assets.
+
+        Strength must be numeric in the inclusive range [-1.0, 1.0].
+        Negative values represent negative correlations.
+
+        Args:
+            source_id: The source asset identifier.
+            target_id: The target asset identifier.
+            rel_type: The relationship type.
+            strength: Relationship strength in [-1.0, 1.0].
+            bidirectional: Whether the relationship is bidirectional.
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If strength is not numeric or outside [-1.0, 1.0].
+        """
+        if isinstance(strength, bool) or not isinstance(strength, (int, float)):
+            raise ValueError("strength must be a numeric value between -1.0 and 1.0")
+        if strength < -1.0 or strength > 1.0:
+            raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
 
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
@@ -112,7 +148,6 @@ class AssetGraphRepository:
 
     def list_relationships(self) -> List[RelationshipRecord]:
         """Return all relationships from the database."""
-
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
             RelationshipRecord(
@@ -126,10 +161,22 @@ class AssetGraphRepository:
         ]
 
     def get_relationship(
-        self, source_id: str, target_id: str, rel_type: str
+        self,
+        source_id: str,
+        target_id: str,
+        rel_type: str,
     ) -> Optional[RelationshipRecord]:
-        """Fetch a single relationship if it exists."""
+        """
+        Return a single relationship matching the given identifiers, if present.
 
+        Args:
+            source_id: The source asset identifier.
+            target_id: The target asset identifier.
+            rel_type: The relationship type to look up.
+
+        Returns:
+            A RelationshipRecord if a matching relationship exists, otherwise None.
+        """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -147,10 +194,19 @@ class AssetGraphRepository:
         )
 
     def delete_relationship(
-        self, source_id: str, target_id: str, rel_type: str
+        self,
+        source_id: str,
+        target_id: str,
+        rel_type: str,
     ) -> None:
-        """Remove a relationship."""
+        """
+        Remove a relationship.
 
+        Returns:
+            None
+        Raises:
+            None
+        """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -165,7 +221,6 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_regulatory_event(self, event: RegulatoryEvent) -> None:
         """Create or update a regulatory event record."""
-
         existing = self.session.get(RegulatoryEventORM, event.id)
         if existing is None:
             existing = RegulatoryEventORM(id=event.id)
@@ -183,13 +238,11 @@ class AssetGraphRepository:
 
     def list_regulatory_events(self) -> List[RegulatoryEvent]:
         """Return all regulatory events."""
-
         result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
         """Delete a regulatory event."""
-
         record = self.session.get(RegulatoryEventORM, event_id)
         if record is not None:
             self.session.delete(record)
@@ -204,14 +257,15 @@ class AssetGraphRepository:
         instance.
 
         This method always updates the common Asset fields
-        (id/symbol/name/class/sector/price/etc.).
+        (id/symbol/name/class/sector/price/etc).
 
-        It also clears and repopulates optional, asset-class-specific columns
-        by reading attributes from `asset` via `getattr(..., None)` so that
-        missing attributes are written as NULL.
+        It also clears and repopulates optional,
+        asset-class-specific columns by reading attributes from `asset`
+        via `getattr(..., None)`
+        so that missing attributes are written as NULL.
 
-        This prevents stale values from remaining in the database when an
-        asset's type/available fields change between updates.
+        This prevents stale values from remaining in the database
+        when an asset's type/available fields change between updates.
         """
         orm.symbol = asset.symbol
         orm.name = asset.name

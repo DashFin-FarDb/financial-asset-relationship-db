@@ -9,37 +9,153 @@ Tests the simplified PR agent configuration, ensuring:
 """
 
 import re
+from enum import Enum
 from pathlib import Path
 
+import numpy as np
 import pytest
 import yaml
+
+pytestmark = pytest.mark.integration
+
+# Inline credentials embedded in URLs, e.g. scheme://user:password@host
+# Character classes are intentionally minimal and deduplicated to satisfy
+# radarlint (S5869) while preserving strict userinfo detection semantics.
+INLINE_CREDS_RE = re.compile(
+    r"[A-Za-z][A-Za-z0-9+.-]*://[^@:\s]+:[^@\s]+@",
+    re.IGNORECASE,
+)
+
+
+BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
+HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
+
+sensitive_patterns = (
+    "password",
+    "secret",
+    "token",
+    "api_key",
+    "apikey",
+    "access_key",
+    "private_key",
+)
+
+SAFE_PLACEHOLDERS = {
+    "<token>",
+    "<secret>",
+    "changeme",
+    "your-token-here",
+    "dummy",
+    "placeholder",
+    "null",
+    "none",
+}
+
+
+# Common secret / credential indicators used across heuristics
+class SecretMarker(str, Enum):
+    """
+    Fixed set of secret/credential indicator keywords.
+
+    Returns:
+        SecretMarker: Enum member representing a secret marker.
+    Raises:
+        None
+    """
+
+    SECRET = "secret"
+    TOKEN = "token"
+    APIKEY = "apikey"
+    API_KEY = "api_key"
+    ACCESS_KEY = "access_key"
+    PRIVATE_KEY = "private_key"
+    PWD = "pwd"
+    PASSWORD = "password"
+    AUTH = "auth"
+    BEARER = "bearer"
+
+
+@pytest.fixture
+def pr_agent_config() -> dict[str, object]:
+    """
+    Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+
+    If the file is missing, contains invalid YAML, or does not contain a top-level mapping, the fixture will call pytest.fail to abort the test.
+
+    Returns:
+        dict: The parsed YAML content as a Python mapping.
+    Raises:
+       Failed: If the file is missing, invalid YAML, or not a mapping.
+    """
+    config_path = Path(".github/pr-agent-config.yml")
+    if not config_path.exists():
+        pytest.fail(f"Config file not found: {config_path}")
+    with open(config_path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
+    if cfg is None or not isinstance(cfg, dict):
+        pytest.fail("Config must be a YAML mapping (dict) and not empty")
+    return cfg
+
+
+def _shannon_entropy(value: str) -> float:
+    """
+    Calculate Shannon entropy of a string.
+
+    Used as a heuristic to detect high-entropy tokens such as API keys.
+
+    Args:
+        value: The string to analyse.
+
+    Returns:
+        float: Shannon entropy value (bits per character).
+    """
+    if not value:
+        return 0.0
+
+    sample = np.frombuffer(value.encode("utf-8"), dtype=np.uint8)
+    if sample.size == 0:
+        return 0.0
+    counts = np.bincount(sample)
+    probs = counts[counts > 0] / sample.size
+    return float(-np.sum(probs * np.log2(probs)))
+
+
+def _looks_like_secret(value: str) -> bool:
+    """
+    Determine whether a string value appears to be a secret.
+
+    Args:
+        value: The string to inspect.
+
+    Returns:
+        bool: True when the value matches secret heuristics.
+    """
+    v = value.strip()
+    if not v:
+        return False
+    if v.lower() in SAFE_PLACEHOLDERS:
+        return False
+    # Inline credentials in URLs
+    if INLINE_CREDS_RE.search(v):
+        return True
+
+    # Keyword-based secret indicators
+    if any(marker.value in v.lower() for marker in SecretMarker) and len(v) >= 12:
+        return True
+
+    # High-entropy base64 / URL-safe strings
+    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
+        return True
+
+    # Hex-encoded secrets (e.g. hashes, keys)
+    if HEX_RE.fullmatch(v):
+        return True
+
+    return False
 
 
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
-
-    @staticmethod
-    @pytest.fixture
-    def pr_agent_config():
-        """
-        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
-
-        If the file is missing, contains invalid YAML, or does not contain a top-level mapping, the fixture will call pytest.fail to abort the test.
-
-        Returns:
-            dict: The parsed YAML content as a Python mapping.
-        """
-        config_path = Path(".github/pr-agent-config.yml")
-        if not config_path.exists():
-            pytest.fail(f"Config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in config: {e}")
-        if cfg is None or not isinstance(cfg, dict):
-            pytest.fail("Config must be a YAML mapping (dict) and not empty")
-        return cfg
 
     @staticmethod
     def test_version_reverted_to_1_0_0(pr_agent_config):
@@ -51,7 +167,7 @@ class TestPRAgentConfigSimplification:
         """
         Assert that the 'agent' section does not contain a 'context' key.
 
-        The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
+        The test fails if the parsed PR agent configuration includes a 'context' key under the top - level 'agent' section.
         """
         agent_config = pr_agent_config["agent"]
         assert "context" not in agent_config
@@ -59,9 +175,9 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_no_chunking_settings(pr_agent_config):
         """
-        Assert the configuration contains no chunking-related settings.
+        Assert the configuration contains no chunking - related settings.
 
-        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string (case-insensitive).
+        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string(case-insensitive).
         """
         config_str = yaml.dump(pr_agent_config)
         assert "chunking" not in config_str.lower()
@@ -93,10 +209,10 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_monitoring_config_present(pr_agent_config):
         """
-        Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
+        Ensure the top - level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
 
         Parameters:
-            pr_agent_config (dict): Parsed PR agent configuration mapping.
+            pr_agent_config(dict): Parsed PR agent configuration mapping.
         """
         monitoring = pr_agent_config["monitoring"]
         assert "check_interval" in monitoring
@@ -123,47 +239,59 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_config_is_valid_yaml():
         """
-        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
+        Fail the test if .github / pr - agent - config.yml contains invalid YAML.
 
-        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+        Attempts to parse the repository file at .github / pr - agent - config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
-            try:
-                yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"PR agent config has invalid YAML: {e}")
+        with open(config_path, "r", encoding="utf-8") as f:
+            yaml.safe_load(f)
 
     @staticmethod
     def test_no_duplicate_keys():
         """
-        Fail the test if any top-level YAML key appears more than once in the file.
+        Fail the test if any top - level YAML key appears more than once in the file.
 
-        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        Scans .github / pr - agent - config.yml, ignores comment lines, and for each non - comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+
+        with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Simple check for obvious duplicates
-        lines = content.split("\n")
-        seen_keys = set()
-        for line in lines:
-            if ":" in line and not line.strip().startswith("#"):
-                key = line.split(":")[0].strip()
-                if key in seen_keys:
-                    pytest.fail(f"Duplicate key found: {key}")
-                seen_keys.add(key)
+        # Custom loader to detect duplicate YAML entries at any nesting level
+        class DuplicateKeyLoader(yaml.SafeLoader):
+            """YAML loader subclass that fails on duplicate keys.
+
+            Overrides construct_mapping to detect duplicate entries at any nesting level and fails the test if found.
+            """
+
+            def construct_mapping(self, node, deep=False):
+                """Construct a mapping from a YAML node, failing if duplicate keys are found."""
+                mapping = {}
+                for entry_node, val_node in node.value:
+                    entry = self.construct_object(entry_node, deep=deep)
+                    if entry in mapping:
+                        pytest.fail(
+                            f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}"
+                        )
+                    value = self.construct_object(val_node, deep=deep)
+                    mapping[entry] = value
+                return mapping
+
+        # Using yaml.load() with custom Loader is required for duplicate key detection.
+        # DuplicateKeyLoader extends SafeLoader, so this is secure.
+        yaml.load(content, Loader=DuplicateKeyLoader)
 
     @staticmethod
     def test_consistent_indentation():
         """
-        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
+        Verify that every non - empty, non - comment line in the PR agent YAML uses 2 - space indentation increments.
 
         Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         for i, line in enumerate(lines, 1):
@@ -179,326 +307,131 @@ class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
     @staticmethod
-    @pytest.fixture
-    def pr_agent_config():
-        """
-        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+    def scan(obj: object, suspected: list[tuple[str, str]]) -> None:
+        """Recursively scan configuration objects for suspected secrets.
 
+        Args:
+            obj: Configuration object to scan(dict, list, or scalar).
+            suspected: List to append(kind, value) tuples when secrets are found.
         Returns:
-            dict: The parsed YAML content as a Python mapping.
+            None
+        Raises:
+            None
         """
-        config_path = Path(".github/pr-agent-config.yml")
-        if not config_path.exists():
-            pytest.fail(f"Config file not found: {config_path}")
-        with open(config_path, "r", encoding="utf-8") as f:
-            try:
-                cfg = yaml.safe_load(f)
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML in config: {e}")
-        if cfg is None or not isinstance(cfg, dict):
-            pytest.fail("Config must be a YAML mapping (dict) and not empty")
-        return cfg
+        if isinstance(obj, dict):
+            for value in obj.values():
+                TestPRAgentConfigSecurity.scan(value, suspected)
+
+        elif isinstance(obj, (list, tuple)):
+            for item in obj:
+                TestPRAgentConfigSecurity.scan(item, suspected)
+
+        elif isinstance(obj, str) and _looks_like_secret(obj):
+            suspected.append(("secret", obj))
+
+    # ------------------------------------------------------------------
 
     @staticmethod
-    def test_config_values_have_no_hardcoded_credentials(pr_agent_config):
+    def test_config_values_have_no_hardcoded_credentials(
+        pr_agent_config: dict[str, object],
+    ) -> None:
         """
         Recursively scan configuration values for suspected secrets.
 
-        This inspects values (not just serialized text) and traverses nested dicts/lists.
-        The heuristic flags:
-          - Long high-entropy strings (e.g., tokens)
-          - Obvious secret prefixes/suffixes
-          - Inline credentials in URLs (e.g., scheme://user:pass@host)
+        Returns:
+            None
+        Raises:
+            AssertionError: If suspected secrets are found.
         """
-
-        def _iter_string_values(obj):
-            """Recursively yield all string values found in nested dicts and lists."""
-            if isinstance(obj, dict):
-                for v in obj.values():
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, list):
-                for v in obj:
-                    yield from _iter_string_values(v)
-            elif isinstance(obj, str):
-                yield obj
-
         suspected = []
+        TestPRAgentConfigSecurity.scan(pr_agent_config, suspected)
 
-        secret_prefixes = (
-            "sk-",
-            "AKIA",
-            "SECRET_",
-            "TOKEN_",
-        )
-        inline_cred_pattern = re.compile(r"://[^/@:\s]+:[^/@:\s]+@")
-
-        for value in _iter_string_values(pr_agent_config):
-            stripped = value.strip()
-            if not stripped:
-                continue
-
-            # Long string heuristic (possible API keys or tokens)
-            if len(stripped) >= 40:
-                suspected.append(("long_string", stripped))
-                continue
-
-            # Obvious secret-like prefixes
-            if any(stripped.startswith(p) for p in secret_prefixes):
-                suspected.append(("prefix", stripped))
-                continue
-
-            # Inline credentials in URLs
-            if inline_cred_pattern.search(stripped):
-                suspected.append(("inline_creds", stripped))
+        def _redact(value: str) -> str:
+            """Redact a string by obscuring all but the first and last four characters."""
+            if len(value) <= 8:
+                return "***"
+            return f"{value[:4]}...{value[-4:]}"
 
         if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
+            details = "\n".join(
+                f"{kind}: {_redact(value)}" for kind, value in suspected
             )
-        import math
-
-        # Heuristic to detect inline creds in URLs (user:pass@)
-        re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\\s]+:[^/@\\s]+@", re.IGNORECASE)
-
-    @staticmethod
-    def test_no_hardcoded_credentials(pr_agent_config):
-        """
-        Recursively scan configuration values and keys for suspected secrets.
-        - Flags high - entropy or secret - like string values.
-        - Ensures sensitive keys only use safe placeholders.
-        """
-        import math
-
-        # Heuristic to detect inline creds in URLs (user:pass@)
-        inline_creds_re = re.compile(
-            r"^[a-zA-Z][a-zA-Z0-9+.-]*://[^/@:\s]+:[^/@\s]+@", re.IGNORECASE
-        )
-
-        # Common secret-like prefixes or markers
-        secret_markers = (
-            "secret",
-            "token",
-            "apikey",
-            "api_key",
-            "access_key",
-            "private_key",
-            "pwd",
-            "password",
-            "auth",
-            "bearer ",
-        )
-
-        suspected = []
-
-        # Define detectors for credential heuristics
-        def detect_long_string(s):
-            if len(s) >= 40:
-                return ("long_string", s)
-
-        def detect_prefix(s):
-            for marker in secret_markers:
-                if s.lower().startswith(marker):
-                    return ("prefix", s)
-
-        def detect_inline_creds(s):
-            if inline_creds_re.search(s):
-                return ("inline_creds", s)
-
-        detectors = [detect_long_string, detect_prefix, detect_inline_creds]
-
-        def scan_value(val):
-            stripped = str(val).strip()
-            if not stripped:
-                return None
-            for detector in detectors:
-                result = detector(stripped)
-                if result:
-                    return result
-            return None
-
-        def scan(obj):
-            if isinstance(obj, dict):
-                for key, value in obj.items():
-                    scan(value)
-            elif isinstance(obj, (list, tuple)):
-                for item in obj:
-                    scan(item)
-            else:
-                result = scan_value(obj)
-                if result:
-                    suspected.append(result)
-
-        scan(pr_agent_config)
-
-        if suspected:
-            details = "\n".join(f"{kind}: {val}" for kind, val in suspected)
             pytest.fail(
                 f"Potential hardcoded credentials found in PR agent config:\n{details}"
             )
 
-        def shannon_entropy(s: str) -> float:
-            if not s:
-                return 0.0
-            sample = s[:256]
-            freq = {}
-            for ch in sample:
-                freq[ch] = freq.get(ch, 0) + 1
-            ent = 0.0
-            length = len(sample)
-            for c in freq.values():
-                p = c / length
-                ent -= p * math.log2(p)
-            return ent
-
-        def looks_like_secret(val: str) -> bool:
-            v = val.strip()
-            if not v:
-                return False
-            placeholders = {
-                "<token>",
-                "<secret>",
-                "changeme",
-                "your-token-here",
-                "dummy",
-                "placeholder",
-                "null",
-                "none",
-            }
-            if v.lower() in placeholders:
-                return False
-            if inline_creds_re.search(v):
-                return True
-            if any(m in v.lower() for m in secret_markers) and len(v) >= 12:
-                return True
-            # Base64/URL-safe like long strings
-            if re.fullmatch(r"[A-Za-z0-9_\-]{20,}", v) and shannon_entropy(v) >= 3.5:
-                return True
-            # Hex-encoded long strings (e.g., keys)
-            if re.fullmatch(r"[A-Fa-f0-9]{32,}", v):
-                return True
-            return False
-
-        # Walk values to detect secret-like strings
-        def walk_values(obj, path="root"):
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    walk_values(v, f"{path}.{k}")
-            elif isinstance(obj, list):
-                for i, item in enumerate(obj):
-                    walk_values(item, f"{path}[{i}]")
-            elif isinstance(obj, str):
-                if looks_like_secret(obj):
-                    pytest.fail(f"Suspected secret value at '{path}': {obj[:20]}...")
-            # Non-string scalars ignored
-
-        walk_values(pr_agent_config)
-
-        # Enforce safe placeholders for sensitive keys
-        sensitive_patterns = [
-            "password",
-            "secret",
-            "token",
-            "api_key",
-            "apikey",
-            "access_key",
-            "private_key",
-        ]
-        safe_placeholders = {None, "null", "webhook"}
-
-        def check_sensitive_keys(node, path="root"):
-            if isinstance(node, dict):
-                pass
+    # ------------------------------------------------------------------
 
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
-        """
-        Traverse the parsed YAML and ensure that any key or value containing sensitive
-        indicators has a safe placeholder value (None, 'null', 'none', 'placeholder',
-        or a templated variable like '${VAR}').
-        """
-        sensitive_patterns = [
-            "password",
-            "secret",
-            "token",
-            "api_key",
-            "apikey",
-            "access_key",
-            "private_key",
-        ]
+        """Ensure sensitive keys only use safe placeholders or templated values."""
+        SAFE_PLACEHOLDERS = {
+            "<token>",
+            "<secret>",
+            "changeme",
+            "your-token-here",
+            "dummy",
+            "placeholder",
+            "null",
+            "none",
+        }
 
-        allowed_placeholders = {"null", "none", "placeholder", "***"}
+        allowed_placeholders = {None, "***"} | SAFE_PLACEHOLDERS
+        templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
-        def value_contains_secret(val: str) -> bool:
-            low = val.lower()
-            if low in allowed_placeholders or ("${" in val and "}" in val):
-                return False
-            return any(pat in low for pat in sensitive_patterns)
+        def is_allowed_placeholder(v: object) -> bool:
+            """
+            Determine if a value v is an allowed placeholder or templated variable.
+            """
+            if v is None:
+                return True
+            if isinstance(v, str):
+                candidate = v.strip().lower()
+                if candidate in allowed_placeholders:
+                    return True
+                if templated_var_re.match(candidate):
+                    return True
+            return False
 
-        def scan_dict(node: dict, path: str):
-            for k, v in node.items():
-                key_l = str(k).lower()
-                new_path = f"{path}.{k}"
-                if any(pat in key_l for pat in sensitive_patterns):
-                    assert v in allowed_placeholders, (
-                        f"Potential hardcoded credential at '{new_path}'"
-                    )
-                scan_for_secrets(v, new_path)
-
-        def scan_list(node: list, path: str):
-            for idx, item in enumerate(node):
-                scan_for_secrets(item, f"{path}[{idx}]")
-
-        def scan_for_secrets(node, path="root"):
-            if isinstance(node, dict):
-                scan_dict(node, path)
-            elif isinstance(node, list):
-                scan_list(node, path)
-            # primitives ignored
-
-        safe_placeholders = {None, "null", "webhook"}
-
-        def check_node(node, path=""):
+        def scan_for_secrets(node: object, path: str = "root") -> None:
+            """
+            Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
+            """
             if isinstance(node, dict):
                 for k, v in node.items():
-                    key_l = str(k).lower()
-                    new_path = f"{path}.{k}" if path else str(k)
-                    if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, (
+                    key_lower = str(k).lower()
+                    new_path = f"{path}.{k}"
+
+                    if any(p in key_lower for p in sensitive_patterns):
+                        assert is_allowed_placeholder(v), (
                             f"Potential hardcoded credential at '{new_path}'"
                         )
-                    check_node(v, new_path)
-            elif isinstance(node, list):
-                for idx, item in enumerate(node):
-                    check_node(item, f"{path}[{idx}]")
-            # primitives are ignored unless hit via a sensitive key above
 
-        check_node(pr_agent_config)
+                    scan_for_secrets(v, new_path)
+
+            elif isinstance(node, (list, tuple)):
+                for i, item in enumerate(node):
+                    scan_for_secrets(item, f"{path}[{i}]")
+
+        scan_for_secrets(pr_agent_config)
+
+    # ------------------------------------------------------------------
 
     @staticmethod
     def test_safe_configuration_values(pr_agent_config):
-        """
-        Assert that key numeric limits in the PR agent configuration fall within safe bounds.
-
-        Checks that:
-        - `limits['max_execution_time']` is less than or equal to 3600 seconds.
-        - `limits['max_concurrent_prs']` is less than or equal to 10.
-        - `limits['rate_limit_requests']` is less than or equal to 1000.
-        """
+        """Assert numeric configuration limits fall within safe bounds."""
         limits = pr_agent_config["limits"]
 
-        # Check for reasonable numeric limits
-        assert limits["max_execution_time"] <= 3600, "Execution time too high"
-        assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
-        assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
+        assert limits["max_execution_time"] <= 3600
+        assert limits["max_concurrent_prs"] <= 10
+        assert limits["rate_limit_requests"] <= 1000
 
 
 class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
     @pytest.fixture
-    @staticmethod
-    def pr_agent_config_content():
+    def pr_agent_config_content(self) -> str:
         """
         Return the contents of .github / pr - agent - config.yml as a string.
 
@@ -506,9 +439,11 @@ class TestPRAgentConfigRemovedComplexity:
 
         Returns:
             str: Raw YAML content of .github / pr - agent - config.yml.
+        Raises:
+            FileNotFoundError: If the configuration file cannot be found.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return f.read()
 
     @staticmethod
