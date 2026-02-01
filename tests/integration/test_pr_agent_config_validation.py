@@ -282,7 +282,7 @@ class TestPRAgentConfigSimplification:
         Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
 
         Parameters:
-            pr_agent_config(dict): Parsed PR agent configuration mapping.
+            pr_agent_config (dict): Parsed PR agent configuration mapping.
         """
         monitoring = pr_agent_config["monitoring"]
         assert "check_interval" in monitoring
