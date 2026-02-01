@@ -266,7 +266,7 @@ class TestBuildMcpApp:
     @staticmethod
     def test_add_equity_node_tool_success():
         """Test add_equity_node successfully adds valid equity."""
-        from mcp_server import _build_mcp_app, graph
+        from mcp_server import _build_mcp_app
 
         # Build the app to get the actual tool function
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
