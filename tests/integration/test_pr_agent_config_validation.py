@@ -211,19 +211,19 @@ class TestPRAgentConfigSimplification:
 
     @staticmethod
     def test_context_configuration_is_optional_and_validated(pr_agent_config) -> None:
-    """
-    Validate the optional 'agent.context' configuration.
+        """
+        Validate the optional 'agent.context' configuration.
 
-    The 'context' key may be absent. If present, it must be a mapping (dict)
-    to ensure the configuration shape is valid.
-    """
-    agent_config = pr_agent_config["agent"]
+        The 'context' key may be absent. If present, it must be a mapping (dict)
+        to ensure the configuration shape is valid.
+        """
+        agent_config = pr_agent_config["agent"]
 
-    if "context" in agent_config:
-        assert isinstance(
-            agent_config["context"],
-            dict,
-        ), "Context must be a valid configuration object"
+        if "context" in agent_config:
+            assert isinstance(
+                agent_config["context"],
+                dict,
+            ), "Context must be a valid configuration object"
 
     @staticmethod
     def test_no_chunking_settings(pr_agent_config):
