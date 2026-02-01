@@ -12,9 +12,11 @@ import re
 from enum import Enum
 from pathlib import Path
 
-import numpy as np
 import pytest
 import yaml
+
+import math
+from collections import Counter
 
 pytestmark = pytest.mark.integration
 
@@ -96,26 +98,24 @@ def pr_agent_config() -> dict[str, object]:
 
 
 def _shannon_entropy(value: str) -> float:
-    """
-    Calculate Shannon entropy of a string.
-
-    Used as a heuristic to detect high-entropy tokens such as API keys.
-
-    Args:
-        value: The string to analyse.
-
-    Returns:
-        float: Shannon entropy value (bits per character).
-    """
+    """Calculate Shannon entropy of a string."""
     if not value:
         return 0.0
+    
+    counts = Counter(value)
+    length = len(value)
+    
+    entropy = 0.0
+    for count in counts.values():
+        p = count / length
+        entropy -= p * math.log2(p)
+    return entropy
 
-    sample = np.frombuffer(value.encode("utf-8"), dtype=np.uint8)
-    if sample.size == 0:
-        return 0.0
-    counts = np.bincount(sample)
-    probs = counts[counts > 0] / sample.size
-    return float(-np.sum(probs * np.log2(probs)))
+
+def _looks_like_secret(value: str) -> bool:
+    # ...
+    if BASE64_LIKE_RE.fullmatch(v) and _shannon_entropy(v) >= 3.5:
+        return True
 
 
 def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> None:
@@ -309,9 +309,9 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_config_is_valid_yaml():
         """
-        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
+        Fail the test if any YAML key appears more than once at any nesting level.
 
-        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+        Parses .github/pr-agent-config.yml with a DuplicateKeyLoader that raises on duplicate mapping keys, including nested mappings.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
@@ -454,10 +454,10 @@ def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
             if v is None:
                 return True
             if isinstance(v, str):
-                candidate = v.strip().lower()
-                if candidate in allowed_placeholders:
-                    return True
-                if templated_var_re.match(candidate):
+                stripped_v = v.strip()
+            if stripped_v.lower() in allowed_placeholders:
+                    return True    
+                if templated_var_re.match(stripped_v):
                     return True
             return False
 
