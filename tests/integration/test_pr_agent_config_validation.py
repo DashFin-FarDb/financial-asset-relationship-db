@@ -305,30 +305,33 @@ class TestPRAgentConfigYAMLValidity:
         with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
-        # Custom loader to detect duplicate YAML entries at any nesting level
-        class DuplicateKeyLoader(yaml.SafeLoader):
-            """YAML loader subclass that fails on duplicate keys.
+    # Custom loader to detect duplicate YAML entries at any nesting level
+    class DuplicateKeyLoader(yaml.SafeLoader):
+    """YAML loader subclass that fails on duplicate keys.
 
-            Overrides construct_mapping to detect duplicate entries at any nesting level and fails the test if found.
-            """
+    Overrides mapping construction to detect duplicate entries
+    at any nesting level.
+    """
 
-            def construct_mapping(self, node, deep=False):
-                """Construct a mapping from a YAML node, failing if duplicate keys are found."""
-                mapping = {}
-                for entry_node, val_node in node.value:
-                    entry = self.construct_object(entry_node, deep=deep)
-                    if entry in mapping:
-                        pytest.fail(
-                            f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}"
-                        )
-                    value = self.construct_object(val_node, deep=deep)
-                    mapping[entry] = value
-                return mapping
+    # pylint: disable=arguments-differ
+    def construct_mapping(self, node, deep=False):
+        """Construct a mapping from a YAML node, failing on duplicate keys."""
+        mapping = {}
 
-        # Using yaml.load() with custom Loader is required for duplicate key detection.
-        # DuplicateKeyLoader extends SafeLoader, so this is secure.
-        yaml.load(content, Loader=DuplicateKeyLoader)
+        # Intentionally not calling super(): we need full control
+        # over key insertion to detect duplicates.
+        for key_node, value_node in node.value:
+            key = self.construct_object(key_node, deep=deep)
+            if key in mapping:
+                pytest.fail(
+                    f"Duplicate entry found: {key} at line {node.start_mark.line + 1}"
+                )
+            value = self.construct_object(value_node, deep=deep)
+            mapping[key] = value
 
+        return mapping
+    
+    
     @staticmethod
     def test_consistent_indentation():
         """
