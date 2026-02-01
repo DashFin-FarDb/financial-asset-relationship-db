@@ -48,6 +48,7 @@ def isolated_base() -> Iterator[type[Base]]:
     This prevents table metadata leakage across test cases and avoids
     cross-test interference when defining ad-hoc models.
     """
+
     class _IsolatedBase(Base):
         __abstract__ = True
 
