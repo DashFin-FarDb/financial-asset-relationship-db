@@ -612,10 +612,10 @@ class FormulaicAnalyzer:
         """Generate example market cap calculations from graph data.
 
         This static method iterates through the assets in the provided
-        AssetRelationshipGraph and generates market cap examples for  assets classified
-        as EQUITY. It checks for the presence of a  market cap attribute and collects
-        the first two valid examples,  formatting them in billions. If no valid
-        examples are found,  a default message is returned.
+        AssetRelationshipGraph and generates market cap examples for assets classified
+        as EQUITY. It checks for the presence of a market cap attribute and collects
+        the first two valid examples, formatting them in billions. If no valid
+        examples are found, a default message is returned.
         """
         from src.models.financial_models import AssetClass
 
