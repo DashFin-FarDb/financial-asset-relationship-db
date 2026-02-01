@@ -362,35 +362,22 @@ class TestPRAgentConfigSecurity:
     # In utils/secret_detection.py
 
 
-def find_potential_secrets(config_obj: dict) -> list[tuple[str, str]]:
-    suspected = []
-    # ... scanning logic
-    return suspected
+def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
+    """Recursively scan any object for potential secrets."""
+    if isinstance(obj, dict):
+        for value in obj.values():
+            yield from _scan_for_secrets(value)
+    elif isinstance(obj, (list, tuple)):
+        for item in obj:
+            yield from _scan_for_secrets(item)
+    elif isinstance(obj, str) and _looks_like_secret(obj):
+        yield ("secret", obj)
 
-    @staticmethod
-    def scan(obj: object, suspected: list[tuple[str, str]]) -> None:
-        """Recursively scan configuration objects for suspected secrets.
 
-        Args:
-            obj: Configuration object to scan (dict, list, or scalar).
-            suspected: List to append (kind, value) tuples when secrets are found.
-        Returns:
-            None
-        Raises:
-            None
-        """
-        if isinstance(obj, dict):
-            for value in obj.values():
-                TestPRAgentConfigSecurity.scan(value, suspected)
+def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
+    """Return all potential secrets found in a configuration object."""
+    return list(_scan_for_secrets(config_obj))
 
-        elif isinstance(obj, (list, tuple)):
-            for item in obj:
-                TestPRAgentConfigSecurity.scan(item, suspected)
-
-        elif isinstance(obj, str) and _looks_like_secret(obj):
-            suspected.append(("secret", obj))
-
-    # ------------------------------------------------------------------
 
     @staticmethod
     def test_config_values_have_no_hardcoded_credentials(
