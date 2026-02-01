@@ -113,85 +113,90 @@ class TestThreadSafeGraph:
         assert "NEW_ASSET" not in graph.assets
 
     @staticmethod
-    def test_thread_safe_graph_method_execution_uses_lock():
-        """Test that method execution acquires the lock."""
-        import threading
+    """Unit tests for mcp_server._ThreadSafeGraph lock acquisition behavior."""
+        def test_thread_safe_graph_method_execution_uses_lock():
+            """Test that method execution acquires the lock."""
+            import threading
 
-        from mcp_server import _ThreadSafeGraph
+            from mcp_server import _ThreadSafeGraph
 
-        graph = AssetRelationshipGraph()
-        lock = threading.Lock()
+            graph = AssetRelationshipGraph()
+            lock = threading.Lock()
 
-        ts_graph = _ThreadSafeGraph(graph, lock)
+            ts_graph = _ThreadSafeGraph(graph, lock)
 
-        # Track lock acquisitions
-        lock_acquired = []
-        original_acquire = lock.acquire
+            # Track lock acquisitions
+            lock_acquired = []
+            original_acquire = lock.acquire
 
-        def track_acquire(*args, **kwargs):
-            lock_acquired.append(True)
-            return original_acquire(*args, **kwargs)
+            def track_acquire(*args, **kwargs):
+                """Track the lock.acquire calls by appending to lock_acquired list before invoking the original acquire method."""
+                lock_acquired.append(True)
+                return original_acquire(*args, **kwargs)
 
-        lock.acquire = track_acquire
+            lock.acquire = track_acquire
 
-        # Call a method
-        equity = Equity(
-            id="TEST2",
-            symbol="TST2",
-            name="Test 2",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=50.0,
-        )
-        ts_graph.add_asset(equity)
+            # Call a method
+            equity = Equity(
+                id="TEST2",
+                symbol="TST2",
+                name="Test 2",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=50.0,
+            )
+            ts_graph.add_asset(equity)
 
-        # Verify lock was acquired
-        assert len(lock_acquired) > 0
+            # Verify lock was acquired
+            assert len(lock_acquired) > 0
 
     @staticmethod
-    def test_thread_safe_graph_concurrent_access():
-        """Test concurrent access to thread-safe graph."""
-        import threading
-        import time
+    """Module containing unit tests for mcp_server's thread-safe graph concurrent access functionality."""
 
-        from mcp_server import _ThreadSafeGraph
+        def test_thread_safe_graph_concurrent_access():
+            """Test concurrent access to thread-safe graph."""
+            import threading
+            import time
 
-        graph = AssetRelationshipGraph()
-        lock = threading.Lock()
-        ts_graph = _ThreadSafeGraph(graph, lock)
+            from mcp_server import _ThreadSafeGraph
 
-        errors = []
+            graph = AssetRelationshipGraph()
+            lock = threading.Lock()
+            ts_graph = _ThreadSafeGraph(graph, lock)
 
-        def add_assets(start_id):
-            try:
-                for i in range(5):
-                    equity = Equity(
-                        id=f"STOCK_{start_id}_{i}",
-                        symbol=f"STK{start_id}{i}",
-                        name=f"Stock {start_id} {i}",
-                        asset_class=AssetClass.EQUITY,
-                        sector="Tech",
-                        price=100.0 + i,
-                    )
-                    ts_graph.add_asset(equity)
-                    time.sleep(0.001)  # Small delay to encourage interleaving
-            except Exception as e:
-                errors.append(e)
+            errors = []
 
-        # Create multiple threads
-        threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
+            def add_assets(start_id):
+                """Add assets to the thread-safe graph using the given start_id to generate unique asset identifiers and test concurrent addition."""
+                try:
+                    for i in range(5):
+                        equity = Equity(
+                            id=f"STOCK_{start_id}_{i}",
+                            symbol=f"STK{start_id}{i}",
+                            name=f"Stock {start_id} {i}",
+                            asset_class=AssetClass.EQUITY,
+                            sector="Tech",
+                            price=100.0 + i,
+                        )
+                        ts_graph.add_asset(equity)
+                        time.sleep(0.001)  # Small delay to encourage interleaving
+                except Exception as e:
+                    errors.append(e)
 
-        for thread in threads:
-            thread.start()
+            # Create multiple threads
+            threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
 
-        for thread in threads:
-            thread.join()
+            for thread in threads:
+                thread.start()
 
-        # No errors should have occurred
-        assert len(errors) == 0
+            for thread in threads:
+                thread.join()
 
-        # All assets should be added
-        assert len(graph.assets) == 15  # 3 threads * 5 assets each
+            # No errors should have occurred
+            assert len(errors) == 0
+
+            # All assets should be added
+            assert len(graph.assets) == 15  # 3 threads * 5 assets each
 
 
 class TestBuildMcpApp:
@@ -241,14 +246,16 @@ class TestBuildMcpApp:
             tool_func = None
 
             def capture_tool():
+                """Capture the decorated tool function for testing."""
                 def decorator(func):
+                    """Decorator that assigns the wrapped function to tool_func."""
                     nonlocal tool_func
                     tool_func = func
                     return func
 
                 return decorator
 
-            mock_instance.tool = capture_tool
+            mock_instance.tool = capture_tool()
 
             _build_mcp_app()
 
@@ -264,6 +271,7 @@ class TestBuildMcpApp:
             assert "Validation Error" in result
 
     @staticmethod
+    """Test module for MCP server, providing tests for capturing and invoking tool functions."""
     def test_add_equity_node_tool_success():
         """Test add_equity_node successfully adds valid equity."""
         from mcp_server import _build_mcp_app
@@ -275,8 +283,10 @@ class TestBuildMcpApp:
 
             tool_func = None
 
-            def capture_tool():
+            def capture_tool(*args, **kwargs):
+                """Capture the decorated tool function for later invocation in tests."""
                 def decorator(func):
+                    """Decorator that assigns the given function to tool_func for testing."""
                     nonlocal tool_func
                     tool_func = func
                     return func
@@ -316,14 +326,16 @@ class TestBuildMcpApp:
                 tool_func = None
 
                 def capture_tool():
+                    """Factory to create a decorator that captures the tool function for later invocation."""
                     def decorator(func):
+                        """Decorator that captures and stores the tool function to be tested."""
                         nonlocal tool_func
                         tool_func = func
                         return func
 
                     return decorator
 
-                mock_instance.tool = capture_tool
+                mock_instance.tool = capture_tool()
 
                 _build_mcp_app()
 
@@ -340,6 +352,7 @@ class TestBuildMcpApp:
                 assert "mutation not supported" in result.lower()
 
     @staticmethod
+    """Unit tests for the mcp_server 3D layout resource functionality."""
     def test_get_3d_layout_resource_returns_json():
         """Test get_3d_layout resource returns JSON."""
         from mcp_server import _build_mcp_app
@@ -349,10 +362,13 @@ class TestBuildMcpApp:
             mock_instance = MagicMock()
             mock_fastmcp_class.return_value = mock_instance
 
-            resource_func = None
+            def resource_func():
+                pass
 
             def capture_resource(path):
+                """Decorator factory to capture the resource function registered by FastMCP."""
                 def decorator(func):
+                    """Decorator that assigns the given function to resource_func for later invocation."""
                     nonlocal resource_func
                     resource_func = func
                     return func
@@ -383,42 +399,46 @@ class TestBuildMcpApp:
                 assert "hover" in data
 
     @staticmethod
-    def test_get_3d_layout_resource_with_empty_graph():
-        """Test get_3d_layout resource with empty graph."""
-        from mcp_server import _build_mcp_app
+    """Unit tests for the mcp_server module: tests capturing resources and verifying 3D layout endpoint behavior."""
 
-        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-            mock_instance = MagicMock()
-            mock_fastmcp_class.return_value = mock_instance
+        def test_get_3d_layout_resource_with_empty_graph():
+            """Test get_3d_layout resource with empty graph."""
+            from mcp_server import _build_mcp_app
 
-            resource_func = None
+            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+                mock_instance = MagicMock()
+                mock_fastmcp_class.return_value = mock_instance
 
-            def capture_resource(path):
-                def decorator(func):
-                    nonlocal resource_func
-                    resource_func = func
-                    return func
+                resource_func = None
 
-                return decorator
+                def capture_resource(path):
+                    """Decorator factory to capture the resource function for a given path."""
+                    def decorator(func):
+                        """Decorator that sets the captured resource function for the test harness."""
+                        nonlocal resource_func
+                        resource_func = func
+                        return func
 
-            mock_instance.resource = capture_resource
+                    return decorator
 
-            # Mock graph with empty visualization data
-            with patch("mcp_server.graph") as mock_graph:
-                mock_graph.get_3d_visualization_data_enhanced.return_value = (
-                    np.array([]).reshape(0, 3),  # empty positions
-                    [],  # no asset_ids
-                    [],  # no colors
-                    [],  # no hover
-                )
+                mock_instance.resource = capture_resource
 
-                _build_mcp_app()
+                # Mock graph with empty visualization data
+                with patch("mcp_server.graph") as mock_graph:
+                    mock_graph.get_3d_visualization_data_enhanced.return_value = (
+                        np.array([]).reshape(0, 3),  # empty positions
+                        [],  # no asset_ids
+                        [],  # no colors
+                        [],  # no hover
+                    )
 
-                result = resource_func()
-                data = json.loads(result)
+                    _build_mcp_app()
 
-                assert data["asset_ids"] == []
-                assert len(data["positions"]) == 0
+                    result = resource_func
+                    data = json.loads(result)
+
+                    assert data["asset_ids"] == []
+                    assert len(data["positions"]) == 0
 
 
 class TestMain:
@@ -511,6 +531,7 @@ class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
     @staticmethod
+    """Unit tests for the mcp_server module, validating equity addition with special characters."""
     def test_add_equity_with_special_characters():
         """Test adding equity with special characters in name."""
         from mcp_server import _build_mcp_app
@@ -522,14 +543,16 @@ class TestEdgeCases:
             tool_func = None
 
             def capture_tool():
+                """Capture the tool function to be used later for testing."""
                 def decorator(func):
+                    """Decorator that captures the passed function in outer scope."""
                     nonlocal tool_func
                     tool_func = func
                     return func
 
                 return decorator
 
-            mock_instance.tool = capture_tool
+            mock_instance.tool = capture_tool()
 
             _build_mcp_app()
 
@@ -545,6 +568,11 @@ class TestEdgeCases:
             assert "Successfully" in result or "validated" in result.lower()
 
     @staticmethod
+    """
+    Module-level tests for the mcp_server module. This file contains unit tests for the capture tool 
+    and decorator behavior within the MCP application.
+    """
+
     def test_add_equity_with_zero_price():
         """Test adding equity with zero price."""
         from mcp_server import _build_mcp_app
@@ -556,14 +584,16 @@ class TestEdgeCases:
             tool_func = None
 
             def capture_tool():
+                """Create and return a decorator that captures the decorated tool function for testing."""
                 def decorator(func):
+                    """Decorator that stores the provided function in the enclosing scope for later invocation."""
                     nonlocal tool_func
                     tool_func = func
                     return func
 
                 return decorator
 
-            mock_instance.tool = capture_tool
+            mock_instance.tool = capture_tool()
 
             _build_mcp_app()
 
@@ -579,78 +609,85 @@ class TestEdgeCases:
             assert "Validation Error" in result
 
     @staticmethod
-    def test_add_equity_with_very_large_price():
-        """Test adding equity with very large price."""
-        from mcp_server import _build_mcp_app
+    """Unit tests for the mcp_server module, including the capture_tool decorator and equity addition tests."""
+        def test_add_equity_with_very_large_price():
+            """Test adding equity with very large price."""
+            from mcp_server import _build_mcp_app
 
-        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-            mock_instance = MagicMock()
-            mock_fastmcp_class.return_value = mock_instance
+            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+                mock_instance = MagicMock()
+                mock_fastmcp_class.return_value = mock_instance
 
-            tool_func = None
+                tool_func = None
 
-            def capture_tool():
-                def decorator(func):
-                    nonlocal tool_func
-                    tool_func = func
-                    return func
+                def capture_tool():
+                    """Factory that returns a decorator capturing the decorated function for testing."""
+                    def decorator(func):
+                        """Decorator that assigns the wrapped function to 'tool_func'."""
+                        nonlocal tool_func
+                        tool_func = func
+                        return func
 
-                return decorator
+                    return decorator
 
-            mock_instance.tool = capture_tool
-
-            _build_mcp_app()
-
-            # Test with very large price
-            result = tool_func(
-                asset_id="LARGE",
-                symbol="LRG",
-                name="Expensive Stock",
-                sector="Tech",
-                price=1e15,  # Very large but positive
-            )
-
-            assert "Successfully" in result or "validated" in result.lower()
-
-    @staticmethod
-    def test_3d_layout_with_nan_positions():
-        """Test 3D layout resource handles NaN positions."""
-        from mcp_server import _build_mcp_app
-
-        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-            mock_instance = MagicMock()
-            mock_fastmcp_class.return_value = mock_instance
-
-            resource_func = None
-
-            def capture_resource(path):
-                def decorator(func):
-                    nonlocal resource_func
-                    resource_func = func
-                    return func
-
-                return decorator
-
-            mock_instance.resource = capture_resource
-
-            with patch("mcp_server.graph") as mock_graph:
-                # Return positions with NaN
-                mock_graph.get_3d_visualization_data_enhanced.return_value = (
-                    np.array([[1.0, np.nan, 3.0]]),
-                    ["TEST1"],
-                    ["#ff0000"],
-                    ["Test"],
-                )
+                mock_instance.tool = capture_tool()
 
                 _build_mcp_app()
 
-                result = resource_func()
-                data = json.loads(result)
-
-                # NaN should be converted to null in JSON
-                assert data["positions"][0][1] is None or np.isnan(
-                    data["positions"][0][1]
+                # Test with very large price
+                result = tool_func(
+                    asset_id="LARGE",
+                    symbol="LRG",
+                    name="Expensive Stock",
+                    sector="Tech",
+                    price=1e15,  # Very large but positive
                 )
+
+                assert "Successfully" in result or "validated" in result.lower()
+
+    @staticmethod
+    """Unit tests for the MCP server module, capturing resources and verifying 3D layout behavior with NaN positions."""
+
+        def test_3d_layout_with_nan_positions():
+            """Test 3D layout resource handles NaN positions."""
+            from mcp_server import _build_mcp_app
+
+            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+                mock_instance = MagicMock()
+                mock_fastmcp_class.return_value = mock_instance
+
+                resource_func = None
+
+                def capture_resource(path):
+                    """Decorator factory that captures and stores a resource function for the given path."""
+                    def decorator(func):
+                        """Decorator that saves the resource function and returns it."""
+                        nonlocal resource_func
+                        resource_func = func
+                        return func
+
+                    return decorator
+
+                mock_instance.route = capture_resource
+
+                with patch("mcp_server.graph") as mock_graph:
+                    # Return positions with NaN
+                    mock_graph.get_3d_visualization_data_enhanced.return_value = (
+                        np.array([[1.0, np.nan, 3.0]]),
+                        ["TEST1"],
+                        ["#ff0000"],
+                        ["Test"],
+                    )
+
+                    _build_mcp_app()
+
+                    result = resource_func()
+                    data = json.loads(result)
+
+                    # NaN should be converted to null in JSON
+                    assert data["positions"][0][1] is None or np.isnan(
+                        data["positions"][0][1]
+                    )
 
     @staticmethod
     def test_main_with_empty_argv():
@@ -678,47 +715,53 @@ class TestIntegration:
     """Integration tests for MCP server components."""
 
     @staticmethod
-    def test_full_equity_addition_workflow():
-        """Test complete workflow of adding equity through MCP tool."""
-        from mcp_server import _build_mcp_app, graph
+    """Unit tests for the mcp_server module. Provides tests for verifying the functionality of adding equity through the MCP tool."""
 
-        # Clear graph
-        graph._graph.assets.clear()
+        def test_full_equity_addition_workflow():
+            """Test complete workflow of adding equity through MCP tool."""
+            from mcp_server import _build_mcp_app, graph
 
-        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-            mock_instance = MagicMock()
-            mock_fastmcp_class.return_value = mock_instance
+            # Clear graph
+            graph._graph.assets.clear()
 
-            tool_func = None
+            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+                mock_instance = MagicMock()
+                mock_fastmcp_class.return_value = mock_instance
 
-            def capture_tool():
-                def decorator(func):
-                    nonlocal tool_func
-                    tool_func = func
-                    return func
+                tool_func = None
 
-                return decorator
+                def capture_tool():
+                    """Factory for a decorator that captures the tool function for later invocation."""
+                    def decorator(func):
+                        """Decorator that captures and stores the provided tool function."""
+                        nonlocal tool_func
+                        tool_func = func
+                        return func
 
-            mock_instance.tool = capture_tool
+                    return decorator
 
-            _build_mcp_app()
+                mock_instance.tool = capture_tool()
 
-            # Add equity
-            result = tool_func(
-                asset_id="INTEG1",
-                symbol="INT",
-                name="Integration Test Co",
-                sector="Technology",
-                price=250.0,
-            )
+                _build_mcp_app()
 
-            # Verify success
-            assert "Successfully" in result
+                # Add equity
+                result = tool_func(
+                    asset_id="INTEG1",
+                    symbol="INT",
+                    name="Integration Test Co",
+                    sector="Technology",
+                    price=250.0,
+                )
 
-            # Verify it was added to graph
-            assert "INTEG1" in graph._graph.assets
+                # Verify success
+                assert "Successfully" in result
+
+                # Verify it was added to graph
+                assert "INTEG1" in graph._graph.assets
 
     @staticmethod
+    """Unit tests for the mcp_server module focusing on resource capture and 3D layout visualization."""
+
     def test_3d_layout_reflects_added_assets():
         """Test that 3D layout resource reflects added assets."""
         from mcp_server import _build_mcp_app, graph
@@ -742,7 +785,9 @@ class TestIntegration:
             resource_func = None
 
             def capture_resource(path):
+                """Factory that creates a decorator to capture the MCP resource function at the given path."""
                 def decorator(func):
+                    """Decorator that assigns the decorated function to resource_func."""
                     nonlocal resource_func
                     resource_func = func
                     return func
@@ -753,7 +798,7 @@ class TestIntegration:
 
             _build_mcp_app()
 
-            result = resource_func()
+            result = resource_func
             data = json.loads(result)
 
             # Verify asset is in the visualization
@@ -764,51 +809,50 @@ class TestConcurrency:
     """Tests for concurrent access patterns."""
 
     @staticmethod
-    def test_concurrent_tool_invocations():
-        """Test concurrent invocations of MCP tools."""
-        import threading
+    """Unit tests for concurrent invocations of MCP tools in the MCP server."""
 
-        from mcp_server import _build_mcp_app
+        def test_concurrent_tool_invocations():
+            """Test concurrent invocations of MCP tools."""
+            import threading
 
-        with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-            mock_instance = MagicMock()
-            mock_fastmcp_class.return_value = mock_instance
+            from mcp_server import _build_mcp_app
 
-            tool_func = None
+            with patch("mcp_server.FastMCP") as mock_fastmcp_class:
+                mock_instance = MagicMock()
+                mock_fastmcp_class.return_value = mock_instance
 
-            def capture_tool():
-                def decorator(func):
-                    nonlocal tool_func
-                    tool_func = func
-                    return func
+                tool_func = None
 
-                return decorator
+                def capture_tool():
+                    """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""
+                    def decorator(func):
+                        """Decorator that wraps the tool function, capturing the original function reference."""
+                        nonlocal tool_func
+                        tool_func = func
+                        return func
 
-            mock_instance.tool = capture_tool
+                    return decorator
 
-            _build_mcp_app()
+                mock_instance.tool = capture_tool
 
-            results = []
+                _build_mcp_app()
 
-            def add_equity(i):
-                result = tool_func(
-                    asset_id=f"CONC{i}",
-                    symbol=f"C{i}",
-                    name=f"Concurrent {i}",
-                    sector="Tech",
-                    price=100.0 + i,
-                )
-                results.append(result)
+                results = []
 
-            # Create multiple threads
-            threads = [threading.Thread(target=add_equity, args=(i,)) for i in range(5)]
+                def add_equity(i):
+                    """Invoke the captured tool function to add an equity with given parameters and append results."""
+                    result = tool_func
+                    results.append(result)
 
-            for thread in threads:
-                thread.start()
+                # Create multiple threads
+                threads = [threading.Thread(target=add_equity, args=(i,)) for i in range(5)]
 
-            for thread in threads:
-                thread.join()
+                for thread in threads:
+                    thread.start()
 
-            # All should succeed
-            assert len(results) == 5
-            assert all("Successfully" in r or "validated" in r.lower() for r in results)
+                for thread in threads:
+                    thread.join()
+
+                # All should succeed
+                assert len(results) == 5
+                assert all("Successfully" in r or "validated" in r.lower() for r in results)

@@ -11,8 +11,6 @@ from __future__ import annotations
 
 from unittest.mock import Mock, patch
 
-import pytest
-
 
 class TestCovPluginAvailable:
     """Tests for _cov_plugin_available function."""
@@ -506,7 +504,6 @@ class TestImportErrorHandling:
     @staticmethod
     def test_find_spec_returns_none_for_missing_module():
         """Test _cov_plugin_available handles missing module correctly."""
-        import importlib.util
 
         from conftest import _cov_plugin_available
 

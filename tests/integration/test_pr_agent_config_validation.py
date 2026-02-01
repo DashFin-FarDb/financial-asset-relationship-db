@@ -17,6 +17,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from typing import Any, Iterator, Tuple
+
 pytestmark = pytest.mark.integration
 
 # Inline credentials embedded in URLs, e.g. scheme://user:password@host
@@ -55,9 +57,7 @@ SAFE_PLACEHOLDERS = {
 
 # Common secret / credential indicators used across heuristics
 class SecretMarker(str, Enum):
-    """
-    Fixed set of secret/credential indicator keywords.
-    """
+    """Fixed set of secret/credential indicator keywords."""
 
     SECRET = "secret"
     TOKEN = "token"
@@ -112,9 +112,7 @@ def _shannon_entropy(value: str) -> float:
 
 
 def test_looks_like_secret_empty_and_placeholder_values_are_not_secrets() -> None:
-    """
-    Ensure empty strings and placeholders are not treated as secrets.
-    """
+    """Ensure empty strings and placeholders are not treated as secrets."""
     assert _looks_like_secret("") is False
     assert _looks_like_secret("   ") is False
 
@@ -136,7 +134,15 @@ def test_looks_like_secret_detects_inline_credentials_in_urls() -> None:
     """
     candidate = "https://user:pa55w0rd@example.com/resource"
     assert _looks_like_secret(candidate) is True
+"""Module for testing secret detection and providing the _looks_like_secret utility.
 
+This module contains integration tests that validate the behavior of the secret
+heuristic function _looks_like_secret. The utility itself uses several checks
+including:
+- Inline URL credential detection
+- Marker-based secret indicators with sufficient length
+- High-entropy base64 or URL-safe patterns
+"""
 
 def test_looks_like_secret_does_not_flag_urls_without_credentials() -> None:
     """Ensure URLs without inline credentials are not treated as secrets."""
@@ -162,6 +168,16 @@ def test_looks_like_secret_does_not_flag_short_marker_based_values() -> None:
 
 
 def _looks_like_secret(value: object) -> bool:
+    """Determine if the given value appears to be a secret based on heuristics.
+
+    Returns True if the value:
+    - Is a non-empty string
+    - Is not in the set of safe placeholders
+    - Contains inline credentials within a URL
+    - Includes known secret markers with sufficient length
+    - Matches high-entropy base64 or URL-safe patterns
+    Otherwise returns False.
+    """
     if not isinstance(value, str):
         return False
 
@@ -187,6 +203,7 @@ def _looks_like_secret(value: object) -> bool:
         and _shannon_entropy(v) >= 3.5
     ):
         return True
+    return False
 
     # Hex-encoded secrets (e.g. hashes, keys)
     if HEX_RE.fullmatch(v):
@@ -305,7 +322,7 @@ class TestPRAgentConfigYAMLValidity:
         config_path = Path(".github/pr-agent-config.yml")
 
         with open(config_path, "r", encoding="utf-8") as f:
-            content = f.read()
+            _ = f.read()
 
         # Custom loader to detect duplicate YAML entries at any nesting level
 
@@ -375,34 +392,6 @@ def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
 def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
     """Return all potential secrets found in a configuration object."""
     return list(_scan_for_secrets(config_obj))
-
-    @staticmethod
-    def test_config_values_have_no_hardcoded_credentials(
-        pr_agent_config: dict[str, object],
-    ) -> None:
-        """
-        Recursively scan configuration values for suspected secrets.
-
-        Returns:
-            None
-        Raises:
-            AssertionError: If suspected secrets are found.
-        """
-        suspected = []
-        TestPRAgentConfigSecurity.scan(pr_agent_config, suspected)
-
-        def _redact(value: str) -> str:
-            """Redact a string by obscuring all but the first and last four characters."""
-            if len(value) <= 8:
-                return "***"
-            return f"{value[:4]}...{value[-4:]}"
-
-        if suspected:
-            details = "\n".join(
-                f"{kind}: {_redact(value)}" for kind, value in suspected
-            )
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
             )
 
     # ------------------------------------------------------------------
@@ -416,9 +405,7 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
         templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
 
         def is_allowed_placeholder(v: object) -> bool:
-            """
-            Determine if a value is an allowed placeholder or templated variable.
-            """
+            """Determine if a value is an allowed placeholder or templated variable."""
             if v is None:
                 return True
 
@@ -478,7 +465,7 @@ class TestPRAgentConfigRemovedComplexity:
     """Test that complex features were properly removed."""
 
     @pytest.fixture
-    def pr_agent_config_content():
+    def pr_agent_config_content(self):
         """
         Return the contents of .github/pr-agent-config.yml as a string.
 

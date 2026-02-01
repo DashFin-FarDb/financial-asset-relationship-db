@@ -92,10 +92,7 @@ def sample_graph():
 
     return graph
 
-
-`@pytest.mark.unit`
-
-
+@pytest.mark.unit
 class TestRealDataFetcherInitialization:
     """Tests for RealDataFetcher initialization."""
 
