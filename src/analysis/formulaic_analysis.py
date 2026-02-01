@@ -508,9 +508,9 @@ class FormulaicAnalyzer:
     def _has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
         """Check if the graph contains equity assets with positive dividend yields.
 
-        This method evaluates the assets within the provided graph to determine  if any
-        of them are classified as equity and possess a non-null, positive  dividend
-        yield. It iterates through the assets in the graph and checks  for the
+        This method evaluates the assets within the provided graph to determine if any
+        of them are classified as equity and possess a non-null, positive dividend
+        yield. It iterates through the assets in the graph and checks for the
         necessary conditions to identify dividend stocks.
         """
         from src.models.financial_models import AssetClass
