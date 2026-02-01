@@ -146,6 +146,8 @@ def test_looks_like_secret_does_not_flag_urls_without_credentials() -> None:
 
 def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length() -> None:
     None
+
+
 ):
     """Ensure marker-based secrets with sufficient length are detected."""
     # Contains a marker keyword (e.g. "api_key") and is long enough to be considered a secret
