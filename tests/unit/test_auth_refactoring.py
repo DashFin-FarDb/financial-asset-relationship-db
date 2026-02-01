@@ -133,7 +133,8 @@ class TestUserRepositoryInstanceMethods:
                 - username: "testuser"
                 - hashed_password: hashed form of "password123"
                 - email: "test@example.com"
-                - full_name: "Test User"
+    @pytest.fixture
+    def sample_user_data(self):
                 - disabled: False
         """
         return {
