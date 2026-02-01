@@ -43,9 +43,9 @@ def pytest_load_initial_conftests(
             coverage - related options are removed from this list in -place.
 
     Returns:
-        None.
+    None.
     Raises:
-        None.
+    None.
     """
 
     if _cov_plugin_available():
