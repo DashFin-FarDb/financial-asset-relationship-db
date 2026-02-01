@@ -308,8 +308,7 @@ class TestBuildMcpApp:
         # Build the app with a mock graph that doesn't have add_asset
         with patch("mcp_server.graph") as mock_graph:
             # Remove add_asset method
-            delattr(mock_graph.__class__, "add_asset")
-
+            mock_graph.add_asset = None
             with patch("mcp_server.FastMCP") as mock_fastmcp_class:
                 mock_instance = MagicMock()
                 mock_fastmcp_class.return_value = mock_instance
