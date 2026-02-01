@@ -365,16 +365,7 @@ class TestPRAgentConfigSecurity:
     @staticmethod
     def test_no_hardcoded_secrets(pr_agent_config):
         """Ensure sensitive keys only use safe placeholders or templated values."""
-        SAFE_PLACEHOLDERS = {
-            "<token>",
-            "<secret>",
-            "changeme",
-            "your-token-here",
-            "dummy",
-            "placeholder",
-            "null",
-            "none",
-        }
+        # Use the global SAFE_PLACEHOLDERS constant instead of redefining
 
         allowed_placeholders = {None, "***"} | SAFE_PLACEHOLDERS
         templated_var_re = re.compile(r"^\$\{[A-Za-z_][A-Za-z0-9_]*\}$")
