@@ -165,6 +165,10 @@ class TestDatabaseInitialization:
             id = Column(Integer, primary_key=True)
             value = Column(String)
 
+        # Access the model to avoid it being flagged as unused while still
+        # relying on its side effect of registering table metadata.
+        assert TestModel.__tablename__ == "test_model"
+
         init_db(engine)
 
         from sqlalchemy import inspect  # noqa: PLC0415
