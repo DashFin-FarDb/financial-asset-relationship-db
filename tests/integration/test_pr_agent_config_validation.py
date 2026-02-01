@@ -153,15 +153,7 @@ def test_looks_like_secret_detects_marker_based_secrets_with_sufficient_length()
 
 
 def test_looks_like_secret_does_not_flag_short_marker_based_values() -> None:
-    """
-    Ensure short marker based values are not flagged as secrets
-
-    Returns:
-        None
-    Raises:
-        None
-    """
-    # Contains a marker keyword but is too short to be considered a secret
+    """Ensure short marker-based values are not flagged as secrets."""
     candidate = "api_key=x"
     assert len(candidate) < 12
     assert _looks_like_secret(candidate) is False
