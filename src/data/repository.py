@@ -102,46 +102,31 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
         strength: float,
-        *,
-        # Check if relationship already exists
-        existing=(
-            self.session.query(RelationshipORM)
-            .filter_by(source_id=source_id, target_id=target_id, relationship_type=rel_type)
-            .first()
-        )
-
-        if existing:
-        existing.strength = strength
-        else:
-        new_rel = RelationshipORM(
-            source_id=source_id,
-            target_id=target_id,
-            relationship_type=rel_type,
-            strength=strength,
-        )
-        self.session.add(new_rel)
-
-        if bidirectional:
-        self.add_or_update_relationship(
-            target_id, source_id, rel_type, strength, bidirectional=False
-        )
+        bidirectional: bool = False,
     ) -> None:
-        if not isinstance(strength, (int, float)):
-            raise ValueError("strength must be numeric")
-        if not (0.0 <= strength <= 1.0):
-            raise ValueError("strength must be between 0.0 and 1.0 inclusive")
-        # ... existing code
         """
         Add or update a relationship between two assets.
+
         Strength must be a float in the inclusive range [-1.0, 1.0].
         Negative values represent negative correlations.
 
+        Args:
+            source_id: The source asset identifier.
+            target_id: The target asset identifier.
+            rel_type: The relationship type.
+            strength: Relationship strength in [-1.0, 1.0].
+            bidirectional: Whether the relationship is bidirectional.
+
         Returns:
             None
+
         Raises:
             ValueError: If strength is not numeric or outside [-1.0, 1.0].
         """
-        # Validate strength range
+        if not isinstance(strength, (int, float)):
+            raise ValueError("strength must be a numeric value between -1.0 and 1.0")
+        if strength < -1.0 or strength > 1.0:
+            raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
         if not isinstance(strength, (int, float)):
             raise ValueError("strength must be a numeric value between -1.0 and 1.0")
         if strength < -1.0 or strength > 1.0:
