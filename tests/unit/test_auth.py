@@ -36,7 +36,7 @@ from api.auth import (
     user_repository,
     verify_password,
     ALGORITHM,
-    SECRET_KEY,
+        get_current_active_user,
     ACCESS_TOKEN_EXPIRE_MINUTES,
 )
 
