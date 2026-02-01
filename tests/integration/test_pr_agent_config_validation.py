@@ -29,7 +29,7 @@ INLINE_CREDS_RE = re.compile(
 
 
 BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
-HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
+HEX_RE = re.compile(r"[0-9a-fA-F]{32,}$")
 
 SENSITIVE_PATTERNS = (
     "password",
