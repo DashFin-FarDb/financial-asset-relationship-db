@@ -648,9 +648,7 @@ class TestEdgeCases:
                 data = json.loads(result)
 
                 # NaN should be converted to null in JSON
-                assert data["positions"][0][1] is None or np.isnan(
-                    data["positions"][0][1]
-                )
+                assert data["positions"][0][1] is None or np.isnan(data["positions"][0][1])
 
     @staticmethod
     def test_main_with_empty_argv():
