@@ -867,6 +867,8 @@ class TestEdgeCasesAndSecurity:
         mock_repo.get_user.return_value = None
         
         # This should be handled safely by parameterized queries
+        # This should be handled safely by parameterized queries
+        malicious_username = "admin' OR '1'='1"
         result = authenticate_user(malicious_username, "any_password", repository=mock_repo)
         result = authenticate_user(malicious_username, "any_password", repository=mock_repo)
 
