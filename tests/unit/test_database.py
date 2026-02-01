@@ -224,6 +224,7 @@ class TestDatabaseInitialization:
         """init_db should not wipe existing data."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """SQLAlchemy model for testing data preservation during database initialization."""
             __tablename__ = "test_preserve"
             id = Column(Integer, primary_key=True)
             value = Column(String)
