@@ -511,7 +511,6 @@ class TestPRAgentConfigRemovedComplexity:
         with open(config_path, "r", encoding="utf-8") as f:
             return f.read()
 
-
     @staticmethod
     def test_no_summarization_settings(pr_agent_config_content):
         """Verify summarization settings removed."""
