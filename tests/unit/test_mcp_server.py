@@ -569,7 +569,7 @@ class TestEdgeCases:
 
     @staticmethod
     """
-    Module-level tests for the mcp_server module. This file contains unit tests for the capture tool 
+    Module-level tests for the mcp_server module. This file contains unit tests for the capture tool
     and decorator behavior within the MCP application.
     """
 
