@@ -711,7 +711,7 @@ class TestNetworkControl:
                     with patch.object(
                         RealDataFetcher, "_fetch_currency_data", return_value=[]
                     ):
-                        graph = fetcher.create_real_database()
+                        fetcher.create_real_database()
 
             # Fetch should be called
             mock_fetch.assert_called_once()
