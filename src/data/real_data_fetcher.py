@@ -6,7 +6,6 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import yfinance as yf
 
-from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
