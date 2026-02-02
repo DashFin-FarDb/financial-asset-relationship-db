@@ -279,7 +279,7 @@ class TestPRAgentConfigYAMLValidity:
 
         # Using yaml.load() with custom Loader is required for duplicate key detection.
         # DuplicateKeyLoader extends SafeLoader, so this is secure.
-        yaml.load(content, Loader=DuplicateKeyLoader)
+        yaml.safe.load(content, Loader=DuplicateKeyLoader)
 
     @staticmethod
     def test_consistent_indentation():
