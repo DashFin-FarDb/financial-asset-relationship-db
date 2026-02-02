@@ -80,7 +80,7 @@ class TestThreadSafeGraph:
             None
         Raises:
             AssertionError: If the proxy does not return a wrapped version.
-        """"
+        """
         import threading
 
         from mcp_server import _ThreadSafeGraph
@@ -177,7 +177,7 @@ class TestThreadSafeGraph:
     def test_thread_safe_graph_concurrent_access() -> None:
         """Test concurrent access to thread-safe graph.
 
-        Retrurns:
+        Retrurn:
             None
         Raises:
             Exception
@@ -808,23 +808,16 @@ class TestIntegration:
 
             tool_func = None
 
-            """
-            Test module for MCP server. Provides utilities and decorators for capturing tool functions.
-            """
+            def capture_tool():
+                """Factory for a decorator that captures the tool function."""
+                def decorator(func):
+                    """Decorator that captures and stores the provided tool function."""
+                    nonlocal tool_func
+                    tool_func = func
+                    return func
+                return decorator
 
-             def capture_tool():
-                 """Factory for a decorator that captures the tool function."""
-                 def decorator(func):
-                     """Decorator that captures and stores the provided tool function."""
-                     nonlocal tool_func
-                     tool_func = func
-                     return func
-                 return decorator
-
-
-result = resource_func()
             mock_instance.tool = capture_tool()
-
             _build_mcp_app()
 
             # Add equity
@@ -930,10 +923,10 @@ class TestConcurrency:
                 )
                 results.append(result)
 
-                # Create multiple threads
-                threads = [
-                    threading.Thread(target=add_equity, args=(i,)) for i in range(5)
-                ]
+            # Create multiple threads
+            threads = [
+                hreading.Thread(target=add_equity, args=(i,)) for i in range(5)
+            ]
 
                 for thread in threads:
                     thread.start()
