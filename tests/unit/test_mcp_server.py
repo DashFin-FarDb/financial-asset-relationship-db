@@ -715,39 +715,39 @@ class TestIntegration:
         graph._graph.assets.clear()
 
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-             mock_instance = MagicMock()
-              mock_fastmcp_class.return_value = mock_instance
+            mock_instance = MagicMock()
+            mock_fastmcp_class.return_value = mock_instance
 
-               tool_func = None
+            tool_func = None
 
-                def capture_tool():
-                    """Factory for a decorator that captures the tool function for later invocation."""
-                    def decorator(func):
-                        """Decorator that captures and stores the provided tool function."""
-                        nonlocal tool_func
-                        tool_func = func
-                        return func
+            def capture_tool():
+                """Factory for a decorator that captures the tool function for later invocation."""
+                def decorator(func):
+                    """Decorator that captures and stores the provided tool function."""
+                    nonlocal tool_func
+                    tool_func = func
+                    return func
 
                     return decorator
 
-                mock_instance.tool = capture_tool()
+            mock_instance.tool = capture_tool()
 
-                _build_mcp_app()
+            _build_mcp_app()
 
-                # Add equity
-                result = tool_func(
-                    asset_id="INTEG1",
-                    symbol="INT",
-                    name="Integration Test Co",
-                    sector="Technology",
-                    price=250.0,
-                )
+            # Add equity
+            result = tool_func(
+                asset_id="INTEG1",
+                symbol="INT",
+                name="Integration Test Co",
+                sector="Technology",
+                price=250.0,
+            )
 
-                # Verify success
-                assert "Successfully" in result
+            # Verify success
+            assert "Successfully" in result
 
-                # Verify it was added to graph
-                assert "INTEG1" in graph._graph.assets
+            # Verify it was added to graph
+            assert "INTEG1" in graph._graph.assets
 
     @staticmethod
     """Unit tests for the mcp_server module focusing on resource capture and 3D layout visualization."""
