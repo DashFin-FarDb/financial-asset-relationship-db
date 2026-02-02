@@ -689,7 +689,7 @@ class TestEdgeCases:
 
                 _build_mcp_app()
 
-                result = resource_func
+                result = resource_func()
                 data = json.loads(result)
 
                 # NaN should be converted to null in JSON
