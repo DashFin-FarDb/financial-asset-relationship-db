@@ -163,7 +163,7 @@ class FinancialAssetApp:
         return self.graph
 
     @staticmethod
-    def _update_metrics_text(origin, graph: AssetRelationshipGraph) -> str:
+    def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """Generates the formatted text for network statistics."""
         metrics = graph.calculate_metrics()
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
