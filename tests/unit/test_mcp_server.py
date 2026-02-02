@@ -741,15 +741,13 @@ class TestIntegration:
             """
 
              def capture_tool():
-                  """Factory for a decorator that captures the tool function."""
-
-                   def decorator(func):
-                        """Decorator that captures and stores the provided tool function."""
-                        nonlocal tool_func
-                        tool_func = func
-                        return func
-
-                    return decorator
+                 """Factory for a decorator that captures the tool function."""
+                 def decorator(func):
+                     """Decorator that captures and stores the provided tool function."""
+                     nonlocal tool_func
+                     tool_func = func
+                     return func
+                 return decorator
 result = resource_func()
             mock_instance.tool = capture_tool()
 
