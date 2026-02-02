@@ -442,7 +442,7 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
         scan_for_secrets(pr_agent_config)
 
 
-@staticmethod
+# Converted to a plain pytest test function (no staticmethod decorator)
 def test_safe_configuration_values(pr_agent_config):
     """Assert numeric configuration limits fall within safe bounds."""
     limits = pr_agent_config["limits"]
