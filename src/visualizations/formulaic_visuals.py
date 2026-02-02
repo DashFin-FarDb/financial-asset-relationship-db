@@ -138,8 +138,8 @@ class FormulaicVisualizer:
             )
         return names, categories, r_squares
                 ),
-                row=1,
-                col=1,
+                row = 1,
+                col = 1,
             )
 
         # 2. Formula Reliability Bar Chart
@@ -152,15 +152,15 @@ class FormulaicVisualizer:
 
             fig.add_trace(
                 go.Bar(
-                    x=formula_names,
-                    y=r_squared_values,
-                    marker=dict(color=colors),
-                    text=[f"{r:.2f}" for r in r_squared_values],
-                    textposition="auto",
-                    name="R-squared",
+                    x = formula_names,
+                    y = r_squared_values,
+                    marker = dict(color=colors),
+                    text = [f"{r:.2f}" for r in r_squared_values],
+                    textposition = "auto",
+                    name = "R-squared",
                 ),
-                row=1,
-                col=2,
+                row = 1,
+                col = 2,
             )
 
         # 3. Empirical Correlation Heatmap
@@ -196,19 +196,19 @@ class FormulaicVisualizer:
 
             fig.add_trace(
                 go.Heatmap(
-                    z=z_matrix,
-                    x=assets,
-                    y=assets,
-                    colorscale="RdYlBu_r",
-                    zmin=-1,
-                    zmax=1,
-                    text=[[f"{val:.2f}" for val in row] for row in z_matrix],
-                    texttemplate="%{text}",
-                    textfont={"size": 10},
-                    colorbar=dict(title="Correlation"),
+                    z = z_matrix,
+                    x = assets,
+                    y = assets,
+                    colorscale = "RdYlBu_r",
+                    zmin = -1,
+                    zmax = 1,
+                    text = [[f"{val:.2f}" for val in row] for row in z_matrix],
+                    texttemplate = "%{text}",
+                    textfont = {"size": 10},
+                    colorbar = dict(title="Correlation"),
                 ),
-                row=2,
-                col=1,
+                row = 2,
+                col = 1,
             )
 
         # 4. Asset Class Relationships
@@ -221,15 +221,15 @@ class FormulaicVisualizer:
 
             fig.add_trace(
                 go.Bar(
-                    x=classes,
-                    y=asset_counts,
-                    name="Asset Count",
-                    marker=dict(color="lightblue"),
-                    yaxis="y",
-                    offsetgroup=1,
+                    x = classes,
+                    y = asset_counts,
+                    name = "Asset Count",
+                    marker = dict(color="lightblue"),
+                    yaxis = "y",
+                    offsetgroup = 1,
                 ),
-                row=2,
-                col=2,
+                row = 2,
+                col = 2,
             )
 
         # 5. Sector Analysis
@@ -240,14 +240,14 @@ class FormulaicVisualizer:
 
             fig.add_trace(
                 go.Bar(
-                    x=sectors,
-                    y=sector_counts,
-                    marker=dict(color="lightgreen"),
-                    text=sector_counts,
-                    textposition="auto",
+                    x = sectors,
+                    y = sector_counts,
+                    marker = dict(color="lightgreen"),
+                    text = sector_counts,
+                    textposition = "auto",
                 ),
-                row=3,
-                col=1,
+                row = 3,
+                col = 1,
             )
 
         # 6. Key Formula Examples Table
@@ -263,13 +263,13 @@ class FormulaicVisualizer:
 
             fig.add_trace(
                 go.Table(
-                    header=dict(
+                    header = dict(
                         values=list(table_data.keys()),
                         fill_color="paleturquoise",
                         align="left",
                         font=dict(size=10),
                     ),
-                    cells=dict(
+                    cells = dict(
                         values=list(table_data.values()),
                         fill_color="lavender",
                         align="left",
@@ -277,16 +277,16 @@ class FormulaicVisualizer:
                         height=25,
                     ),
                 ),
-                row=3,
-                col=2,
+                row = 3,
+                col = 2,
             )
 
         # Update layout
         fig.update_layout(
             title=dict(
-                text="📊 Financial Formulaic Analysis Dashboard",
-                x=0.5,
-                font=dict(size=20, color="#2C3E50"),
+                text = "📊 Financial Formulaic Analysis Dashboard",
+                x = 0.5,
+                font = dict(size=20, color="#2C3E50"),
             ),
             height=1000,
             showlegend=False,
