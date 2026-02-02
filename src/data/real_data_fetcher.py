@@ -190,32 +190,36 @@ def _fetch_equity_data() -> List[Equity]:
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
-    }
+                "Corporate",
+                None,
+                None,
+            ),
+        }
 
-    bonds= []
-    for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
-        try:
-            ticker= yf.Ticker(symbol)
-            info= ticker.info
-            hist= ticker.history(period="1d")
+        bonds = []
+        for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
+            try:
+                ticker = yf.Ticker(symbol)
+                info = ticker.info
+                hist = ticker.history(period="1d")
 
-            if hist.empty:
-                logger.warning("No price data for %s", symbol)
-                continue
+                if hist.empty:
+                    logger.warning("No price data for %s", symbol)
+                    continue
 
-            current_price= float(hist["Close"].iloc[-1])
+                current_price = float(hist["Close"].iloc[-1])
 
-            bond= Bond(
-                id=symbol,
-                symbol=symbol,
-                name=name,
-                asset_class=AssetClass.FIXED_INCOME,
-                sector=sector,
-                price=current_price,
-                yield_to_maturity=info.get(
-                    "yield", 0.03
-                ),  # Default 3% if not available
-                coupon_rate=info.get("yield", 0.025),  # Approximate
+                bond = Bond(
+                    id=symbol,
+                    symbol=symbol,
+                    name=name,
+                    asset_class=AssetClass.FIXED_INCOME,
+                    sector=sector,
+                    price=current_price,
+                    yield_to_maturity=info.get(
+                        "yield", 0.03
+                    ),  # Default 3% if not available
+                    coupon_rate=info.get("yield", 0.025),  # Approximate
                 maturity_date="2035-01-01",  # Approximate for ETFs
                 credit_rating=rating,
                 issuer_id=issuer_id,
