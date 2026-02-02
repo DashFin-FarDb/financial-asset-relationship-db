@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class RealDataFetcher:
-    """Fetches real financial data from Yahoo Finance and other sources"""
+    """Fetches real financial data from Yahoo Finance and other sources."""
 
     def __init__(
         self,
@@ -31,25 +31,9 @@ class RealDataFetcher:
         cache_path: Optional[str] = None,
         fallback_factory: Optional[Callable[[], AssetRelationshipGraph]] = None,
         enable_network: bool = True,
-    ):
+    ) -> None:
         """
         Initialise the RealDataFetcher with optional cache, fallback and network controls.
-
-        Parameters:
-            cache_path (Optional[str]): Path to a JSON cache file to load a
-                previously persisted AssetRelationshipGraph
-                from and to save the constructed graph to.
-                If omitted, no file-based caching is used.
-            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
-                Callable that returns a fallback AssetRelationshipGraph to use
-                when network access is disabled or real-data fetch fails.
-                If omitted, the module's bundled sample dataset is used
-                as a fallback.
-            enable_network (bool):
-                Controls whether network access is permitted
-                for fetching live data.
-                When False, the fetcher will not attempt network calls and will
-                use the fallback dataset.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -59,14 +43,6 @@ class RealDataFetcher:
     def create_real_database(self) -> AssetRelationshipGraph:
         """
         Create an AssetRelationshipGraph populated with real financial data.
-        Load from cache when available, otherwise fetch live data (if network is
-        enabled), and fall back to the provided factory or sample data on network
-        disablement or fetch failure. Persist the freshly built graph to cache when
-        possible.
-
-        Returns:
-            graph (AssetRelationshipGraph): The constructed graph containing assets,
-                regulatory events and relationships.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -87,81 +63,70 @@ class RealDataFetcher:
         graph = AssetRelationshipGraph()
 
         try:
-            # Fetch real data for different asset classes
             equities = self._fetch_equity_data()
             bonds = self._fetch_bond_data()
             commodities = self._fetch_commodity_data()
             currencies = self._fetch_currency_data()
 
-            # Add all assets to graph
-            all_assets = equities + bonds + commodities + currencies
-            for asset in all_assets:
+            for asset in equities + bonds + commodities + currencies:
                 graph.add_asset(asset)
 
-            # Add some regulatory events based on real companies
-            events = self._create_regulatory_events()
-            for event in events:
+            for event in self._create_regulatory_events():
                 graph.add_regulatory_event(event)
-            # Build relationships
+
             graph.build_relationships()
 
             if self.cache_path:
-                import os
-                import tempfile
-
-                try:
-                    cache_dir = os.path.dirname(self.cache_path)
-                    Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
-                    with tempfile.NamedTemporaryFile(
-                        "wb",
-                        dir=cache_dir,
-                        delete=False,
-                    ) as tmp_file:
-                        tmp_path = tmp_file.name
-                        _save_to_cache(graph, Path(tmp_path))
-                    os.replace(tmp_path, self.cache_path)
-                except Exception:
-                    logger.exception(
-                        "Failed to persist dataset cache to %s",
-                        self.cache_path,
-                    )
+                self._persist_cache(graph)
 
             logger.info(
                 "Real database created with %s assets and %s relationships",
                 len(graph.assets),
-                sum(
-                    len(rels)
-                    for rels in graph.relationships.values()
-                ),
+                sum(len(rels) for rels in graph.relationships.values()),
             )
             return graph
 
-    except Exception as e:
-        logger.error("Failed to create real database: %s", e)
-        # Fallback to sample data if real data fetch failure
-        logger.warning(
-            "Falling back to sample data due to real data fetch failure"
-        )
-        return self._fallback()
+        except Exception as exc:
+            logger.error("Failed to create real database: %s", exc)
+            logger.warning(
+                "Falling back to sample data due to real data fetch failure"
+            )
+            return self._fallback()
 
+    def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
+        import os
+        import tempfile
 
-def _fallback(self) -> AssetRelationshipGraph:
-    """
-    Selects a fallback AssetRelationshipGraph to use when real data cannot be
-    fetched.
-    If a `fallback_factory` was provided to the instance, this calls it and
-    returns its result; otherwise it constructs and returns the built-in sample
-    database.
+        try:
+            cache_dir = os.path.dirname(self.cache_path)
+            Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
 
-    Returns:
-        An `AssetRelationshipGraph` instance either from the provided
-        fallback factory or from the module sample dataset.
-    """
-    if self.fallback_factory:
-        return self.fallback_factory()
+            with tempfile.NamedTemporaryFile(
+                "wb",
+                dir=cache_dir,
+                delete=False,
+            ) as tmp_file:
+                tmp_path = tmp_file.name
+                _save_to_cache(graph, Path(tmp_path))
 
-    from src.data.sample_data import create_sample_database
-    return create_sample_database()
+            os.replace(tmp_path, self.cache_path)
+
+        except Exception:
+            logger.exception(
+                "Failed to persist dataset cache to %s",
+                self.cache_path,
+            )
+
+    def _fallback(self) -> AssetRelationshipGraph:
+        """
+        Select a fallback AssetRelationshipGraph when real data cannot be fetched.
+        """
+        if self.fallback_factory:
+            return self.fallback_factory()
+
+        from src.data.sample_data import create_sample_database
+
+        return create_sample_database()
 
 
 @staticmethod
