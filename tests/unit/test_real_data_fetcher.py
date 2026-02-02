@@ -391,9 +391,7 @@ class TestSerializationDeserialization:
         # Verify
         assert len(restored.assets) == len(sample_graph.assets)
         assert len(restored.regulatory_events) == len(sample_graph.regulatory_events)
-        assert set(restored.relationships.keys()) == set(
-            sample_graph.relationships.keys()
-        )
+        assert set(restored.relationships.keys()) == set(sample_graph.relationships.keys())
 
 
 class TestDataFetching:
