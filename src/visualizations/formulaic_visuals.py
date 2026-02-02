@@ -137,13 +137,6 @@ class FormulaicVisualizer:
                 f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
             )
         return names, categories, r_squares
-                        colors = [
-                            self.color_scheme.get(cat, "#CCCCCC")
-                            for cat in categories.keys()
-                        ],
-                    ),
-                    textinfo="label+percent",
-                    textposition="auto",
                 ),
                 row=1,
                 col=1,
