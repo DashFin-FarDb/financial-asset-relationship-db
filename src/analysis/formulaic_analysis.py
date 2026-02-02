@@ -442,7 +442,7 @@ class FormulaicAnalyzer:
             ),
             "key_insights": [
                 (f"Identified {len(formulas)} mathematical relationships"),
-                (f"Average correlation strength: " + f"{avg_corr_strength:.2f}"),
+                ("Average correlation strength: " + f"{avg_corr_strength:.2f}"),
                 "Valuation models applicable to equity assets",
                 ("Portfolio theory formulas available for multi-asset analysis"),
                 (
