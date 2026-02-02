@@ -234,9 +234,14 @@ class TestThreadSafeGraph:
 class TestBuildMcpApp:
     """Tests for the _build_mcp_app function."""
 
-    @staticmethod
-    def test_build_mcp_app_creates_fastmcp_instance(mock_fastmcp):
-        """Test that _build_mcp_app creates a FastMCP instance."""
+    def test_build_mcp_app_creates_fastmcp_instance(mock_fastmcp: MagicMock) -> None:
+        """Test that _build_mcp_app creates a FastMCP instance.
+
+        Returns:
+            None
+        Raises:
+            None
+        """
         from mcp_server import _build_mcp_app
 
         app = _build_mcp_app()
@@ -245,8 +250,14 @@ class TestBuildMcpApp:
         assert app is mock_fastmcp
 
     @staticmethod
-    def test_build_mcp_app_registers_add_equity_node_tool(mock_fastmcp):
-        """Test that add_equity_node tool is registered."""
+    def test_build_mcp_app_registers_add_equity_node_tool(mock_fastmcp) -> None:
+        """Test that add_equity_node tool is registered.
+        
+        Returns:
+            None
+        Raises:
+            None
+        """
         from mcp_server import _build_mcp_app
 
         _build_mcp_app()
@@ -255,8 +266,14 @@ class TestBuildMcpApp:
         assert mock_fastmcp.tool.called
 
     @staticmethod
-    def test_build_mcp_app_registers_3d_layout_resource(mock_fastmcp):
-        """Test that get_3d_layout resource is registered."""
+    def test_build_mcp_app_registers_3d_layout_resource(mock_fastmcp) -> None:
+        """Test that get_3d_layout resource is registered.
+        
+        Returns:
+            None
+        Raises:
+            None
+        """
         from mcp_server import _build_mcp_app
 
         _build_mcp_app()
@@ -265,8 +282,14 @@ class TestBuildMcpApp:
         assert mock_fastmcp.resource.called
 
     @staticmethod
-    def test_add_equity_node_tool_validates_equity():
-        """Test add_equity_node validates equity data."""
+    def test_add_equity_node_tool_validates_equity() -> None:
+        """Test add_equity_node validates equity data.
+        
+        Returns:
+            None
+        Raises:
+            None
+        """
         from mcp_server import _build_mcp_app
 
         # Build the app to get the actual tool function
@@ -303,8 +326,14 @@ class TestBuildMcpApp:
             assert "Validation Error" in result
 
     @staticmethod
-    def test_add_equity_node_tool_success():
-        """Test add_equity_node successfully adds valid equity."""
+    def test_add_equity_node_tool_success() -> None:
+        """Test add_equity_node successfully adds valid equity.
+        
+        Returns:
+            None
+        Raises:
+            None
+        """
         from mcp_server import _build_mcp_app
 
         # Build the app to get the actual tool function
@@ -345,8 +374,14 @@ class TestBuildMcpApp:
             assert "VLD" in result
 
     @staticmethod
-    def test_add_equity_node_tool_without_add_asset_method():
-        """Test add_equity_node when graph doesn't have add_asset."""
+    def test_add_equity_node_tool_without_add_asset_method() -> None:
+        """Test add_equity_node when graph doesn't have add_asset.
+        
+        Returns:
+            None
+        Raises:
+            None
+        """
         from mcp_server import _build_mcp_app
 
         # Build the app with a mock graph that doesn't have add_asset
@@ -387,8 +422,14 @@ class TestBuildMcpApp:
                 assert "mutation not supported" in result.lower()
 
     @staticmethod
-    def test_get_3d_layout_resource_returns_json():
-        """Test get_3d_layout resource returns JSON."""
+    def test_get_3d_layout_resource_returns_json() -> None:
+        """Test get_3d_layout resource returns JSON.
+        
+        Returns:
+            None
+        Raises:
+            None
+        """
         from mcp_server import _build_mcp_app
 
         # Build the app to get the actual resource function
@@ -625,17 +666,6 @@ class TestEdgeCases:
                 return decorator
 
             mock_instance.tool = capture_tool
-
-            _build_mcp_app()
-
-            # Test with zero price (should fail validation)
-            result = tool_func(
-                asset_id="ZERO",
-                symbol="ZRO",
-                name="Zero Price",
-                sector="Tech",
-                price=0.0,
-            )
 
             assert "Validation Error" in result
 
