@@ -323,8 +323,24 @@ class FormulaicVisualizer:
     def create_correlation_network(
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
-        """Create a network graph showing asset correlations"""
-        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
+        """Create a network graph showing asset correlations.
+
+        This function constructs a correlation network graph based on the provided
+        empirical relationships. It extracts the strongest correlations and the
+        correlation matrix, then builds a graph using NetworkX. Significant
+        correlations are visualized with edges, and nodes are positioned in a  circular
+        layout based on the strongest correlations. The graph is returned  as a Plotly
+        figure.
+
+        Args:
+            empirical_relationships (Dict[str, Any]): A dictionary containing
+
+        Returns:
+            go.Figure: A Plotly figure representing the correlation network graph.
+        """
+        strongest_correlations = empirical_relationships.get(
+            "strongest_correlations", []
+        )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
