@@ -325,15 +325,11 @@ class FormulaicVisualizer:
                 + "<br>".join(
                     [f"• {var}: {desc}" for var, desc in formula.variables.items()]
                 )
-                + (
-                    f"<br><br><b>Example Calculation:</b><br>"
-                )
+                + "<br><br><b>Example Calculation:</b><br>"
+                + f"{formula.example_calculation}"
             ),
             showarrow=False,
         )
-                    f"{formula.example_calculation}"
-                )
-            ),
         )
 
     @staticmethod
