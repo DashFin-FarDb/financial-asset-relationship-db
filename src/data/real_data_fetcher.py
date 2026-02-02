@@ -259,7 +259,7 @@ def _fetch_equity_data() -> List[Equity]:
         current_price,
     )
 
-        except Exception as e:
+       except Exception as e:
             logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
             continue
 
