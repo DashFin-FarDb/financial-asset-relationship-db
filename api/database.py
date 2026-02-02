@@ -24,7 +24,9 @@ def _get_database_url() -> str:
     """
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set before using the database")
+        raise ValueError(
+            "DATABASE_URL environment variable must be set before using the database"
+        )
     return database_url
 
 
@@ -52,6 +54,10 @@ def _resolve_sqlite_path(url: str) -> str:
     parsed = urlparse(url)
     if parsed.scheme != "sqlite":
         raise ValueError(f"Not a valid sqlite URI: {url}")
+
+    # Handle case where :memory: is the netloc (e.g., sqlite://:memory:)
+    if parsed.netloc == ":memory:":
+        return ":memory:"
 
     memory_db_paths = {":memory:", "/:memory:"}
     normalized_path = parsed.path.rstrip("/")
@@ -92,32 +98,99 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
-    Determine whether the given or configured database refers to an in-memory
-    SQLite database.
+    Recognizes valid SQLite in-memory database patterns:
+    - ":memory:" - standard in-memory database
+    - "file::memory:" - URI-style in-memory database
+    - "file::memory:?cache=shared" - shared memory database with URI parameters
+
+    Does NOT recognize patterns where :memory: is part of a file path:
+    - "file:///path/:memory:" - treated as a file path, not memory database
+    - "/path/to/:memory:" - treated as a file path, not memory database
+
+    Per SQLite documentation, :memory: must be the entire path component for
+    URI-style databases, not embedded within a longer path.
+
+    Note: The `mode = memory` URI parameter (e.g., "file:memdb1?mode=memory") is
+    NOT detected as an in-memory database by this function. Use the standard
+    patterns above for reliable detection.
 
     Parameters:
         path (str | None): Optional database path or URI to evaluate.
         If omitted, the configured DATABASE_PATH is used.
     Returns:
         True if the path (or configured database) is an in-memory SQLite database.
-        For example, ":memory:" or "file::memory:?cache=shared", False otherwise.
     """
     target = DATABASE_PATH if path is None else path
     if target == ":memory:":
         return True
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
+    # The :memory: token must be the entire path component (not part of a longer path).
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
+    if parsed.scheme == "file" and (
+        parsed.path == ":memory:" or ":memory:" in parsed.query
+    ):
         return True
 
     return False
 
 
+class _DatabaseConnectionManager:
+    """Manages SQLite connections to a configured database path.
+
+    Provides a persistent shared connection for in-memory databases and creates
+    new connections for file-backed databases. Thread-safe for in-memory usage.
+    """
+
+    LEGACY_CONNECTION = None
+
+    def __init__(self, database_path: str):
+        self._database_path = database_path
+        self._memory_connection = None
+        self._memory_connection_lock = threading.Lock()
+
+    def connect(self) -> sqlite3.Connection:
+        """
+        Open a configured SQLite connection for the module's database path.
+
+        Returns a persistent shared connection when the configured database is
+        in-memory; for file-backed databases, returns a new connection instance.
+        """
+        if _is_memory_db(self._database_path):
+            with self._memory_connection_lock:
+                if self._memory_connection is None:
+                    self._memory_connection = sqlite3.connect(
+                        self._database_path,
+                        detect_types=sqlite3.PARSE_DECLTYPES,
+                        check_same_thread=False,
+                        uri=self._database_path.startswith("file:"),
+                    )
+                    self._memory_connection.row_factory = sqlite3.Row
+                    global _MEMORY_CONNECTION
+                    _MEMORY_CONNECTION = self._memory_connection
+            return self._memory_connection
+
+        # For file-backed databases, create a new connection each time
+        connection = sqlite3.connect(
+            self._database_path,
+            detect_types=sqlite3.PARSE_DECLTYPES,
+            check_same_thread=False,
+            uri=self._database_path.startswith("file:"),
+        )
+        connection.row_factory = sqlite3.Row
+
+        # Backwards-compatible reference
+        _DatabaseConnectionManager.LEGACY_CONNECTION = connection
+
+        return connection
+
+
+_db_manager = _DatabaseConnectionManager(DATABASE_PATH)
+
+
 def _connect() -> sqlite3.Connection:
     """
     Open a configured SQLite connection for the module's database path.
-
 
     Returns a persistent shared connection when the configured database is
     in-memory; for file-backed databases, returns a new connection instance.
@@ -130,29 +203,7 @@ def _connect() -> sqlite3.Connection:
         sqlite3.Connection: A sqlite3 connection to the configured
             DATABASE_PATH (shared for in-memory, new per call for file-backed).
     """
-    global _MEMORY_CONNECTION
-
-    if _is_memory_db():
-        with _MEMORY_CONNECTION_LOCK:
-            if _MEMORY_CONNECTION is None:
-                _MEMORY_CONNECTION = sqlite3.connect(
-                    DATABASE_PATH,
-                    detect_types=sqlite3.PARSE_DECLTYPES,
-                    check_same_thread=False,
-                    uri=DATABASE_PATH.startswith("file:"),
-                )
-                _MEMORY_CONNECTION.row_factory = sqlite3.Row
-        return _MEMORY_CONNECTION
-
-    # For file-backed databases, create a new connection each time
-    connection = sqlite3.connect(
-        DATABASE_PATH,
-        detect_types=sqlite3.PARSE_DECLTYPES,
-        check_same_thread=False,
-        uri=DATABASE_PATH.startswith("file:"),
-    )
-    connection.row_factory = sqlite3.Row
-    return connection
+    return _db_manager.connect()
 
 
 @contextmanager
@@ -164,8 +215,9 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     for in-memory databases the shared connection is kept open.
 
     Returns:
-        sqlite3.Connection: The SQLite connection — closed on context exit for
-            file-backed databases, kept open for in-memory databases.
+        sqlite3.Connection: The SQLite connection. For file-backed databases, the
+            connection is closed on context exit;
+            for in-memory databases, it is kept open.
     """
     connection = _connect()
     try:
@@ -175,15 +227,34 @@ def get_connection() -> Iterator[sqlite3.Connection]:
             connection.close()
 
 
-def _cleanup_memory_connection():
-    """Clean up the global memory connection when the program exits."""
-    global _MEMORY_CONNECTION
-    if _MEMORY_CONNECTION is not None:
-        _MEMORY_CONNECTION.close()
-        _MEMORY_CONNECTION = None
+# Register cleanup for the shared in-memory connection when the program exits.
+# Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
+def _close_shared_memory_connection() -> None:
+    """
+    Close the shared in-memory connection on process exit.
+
+    Safely closes the manager's internal `_memory_connection` under its lock.
+    """
+    lock = getattr(_db_manager, "_memory_connection_lock", None)
+    if lock is None:
+        conn = getattr(_db_manager, "_memory_connection", None)
+        if conn is not None:
+            conn.close()
+            setattr(_db_manager, "_memory_connection", None)
+        return
+
+    with lock:
+        conn = getattr(_db_manager, "_memory_connection", None)
+        if conn is not None:
+            conn.close()
+            _db_manager._memory_connection = None  # type: ignore[attr-defined]
 
 
-atexit.register(_cleanup_memory_connection)
+# Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
+_ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False)
+if not _ATEXIT_DB_CLOSE_REGISTERED:
+    atexit.register(_close_shared_memory_connection)
+    globals()["_ATEXIT_DB_CLOSE_REGISTERED"] = True
 
 
 def execute(query: str, parameters: tuple | list | None = None) -> None:
@@ -204,10 +275,11 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """
     Retrieve the first row produced by an SQL query.
+    """
 
     Parameters:
-        query (str): SQL statement to execute.
-        parameters (tuple | list | None): Optional sequence of parameters
+        query(str): SQL statement to execute.
+        parameters(tuple | list | None): Optional sequence of parameters
             to bind into the query.
 
     Returns:
@@ -224,8 +296,8 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     Fetches the first column value from the first row of a query result.
 
     Parameters:
-        query (str): SQL query to execute; may include parameter placeholders.
-        parameters (tuple | list | None): Sequence of parameters for the query
+        query(str): SQL query to execute; may include parameter placeholders.
+        parameters(tuple | list | None): Sequence of parameters for the query
             placeholders.
 
     Returns:
@@ -249,13 +321,15 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    execute("""
-        CREATE TABLE IF NOT EXISTS user_credentials (
+    execute(
+        """
+        CREATE TABLE IF NOT EXISTS user_credentials(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             email TEXT,
             full_name TEXT,
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
-        )
-        """)
+        );
+        """
+    )

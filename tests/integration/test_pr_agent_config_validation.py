@@ -25,7 +25,6 @@ INLINE_CREDS_RE = re.compile(
     re.IGNORECASE,
 )
 
-
 BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
 HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
 
@@ -174,7 +173,7 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_no_chunking_settings(pr_agent_config):
         """
-        Assert the configuration contains no chunking-related settings.
+        Assert the configuration contains no chunking - related settings.
 
         Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string(case-insensitive).
         """
