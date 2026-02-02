@@ -522,7 +522,6 @@ class TestEdgeCases:
     """Tests for edge cases and error handling."""
 
     @staticmethod
-    """Unit tests for the mcp_server module, validating equity addition with special characters."""
     def test_add_equity_with_special_characters():
         """Test adding equity with special characters in name."""
         from mcp_server import _build_mcp_app
