@@ -41,7 +41,8 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """Create an AssetRelationshipGraph populated with real financial
-        data."""
+        data.
+        """
         if self.cache_path and self.cache_path.exists():
             try:
                 logger.info("Loading asset graph from cache at %s", self.cache_path)
@@ -395,7 +396,7 @@ def create_real_database() -> AssetRelationshipGraph:
     return fetcher.create_real_database()
 
 
-def _enum_to_value(value: Any) -> Any:
+def _enum_to_value(_value: Any) -> Any:
     """
     Convert an Enum instance to its underlying value.
     Return the input unchanged otherwise.
