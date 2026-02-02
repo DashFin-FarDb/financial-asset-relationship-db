@@ -149,12 +149,12 @@ class FormulaicVisualizer:
 
             fig.add_trace(
                 go.Bar(
-                    x = formula_names,
-                    y = r_squared_values,
-                    marker = dict(color=colors),
-                    text = [f"{r:.2f}" for r in r_squared_values],
-                    textposition = "auto",
-                    name = "R-squared",
+                    x=formula_names,
+                    y=r_squared_values,
+                    marker=dict(color=colors),
+                    text=[f"{r:.2f}" for r in r_squared_values],
+                    textposition="auto",
+                    name="R-squared",
                 ),
                 row = 1,
                 col = 2,
