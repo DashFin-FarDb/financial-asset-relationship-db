@@ -741,15 +741,15 @@ class TestIntegration:
             """
 
              def capture_tool():
-                  """Factory for a decorator that captures the tool function."""
+                 """Factory for a decorator that captures the tool function."""
 
-                   def decorator(func):
-                        """Decorator that captures and stores the provided tool function."""
-                        nonlocal tool_func
-                        tool_func = func
-                        return func
+                 def decorator(func):
+                     """Decorator that captures and stores the provided tool function."""
+                     nonlocal tool_func
+                     tool_func = func
+                     return func
 
-                    return decorator
+                 return decorator
 
             mock_fastmcp_class.tool = capture_tool()
 
