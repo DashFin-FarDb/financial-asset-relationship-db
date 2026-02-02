@@ -111,8 +111,11 @@ class RealDataFetcher:
 
                 try:
                     cache_dir = os.path.dirname(self.cache_path)
+                    Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
                     with tempfile.NamedTemporaryFile(
-                        "wb", dir=cache_dir, delete=False
+                        "wb",
+                        dir=cache_dir,
+                        delete=False,
                     ) as tmp_file:
                         tmp_path = tmp_file.name
                         _save_to_cache(graph, Path(tmp_path))
@@ -158,24 +161,16 @@ class RealDataFetcher:
 
 
 return create_sample_data()
-   """
+    """
         if self.fallback_factory is not None:
             return self.fallback_factory()
         from src.data.sample_data import create_sample_database
 
         return create_sample_database()
-
+    """
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
-        """
-       Fetches current market data for a predefined set of major equities and
-        returns them as Equity objects.
-
-        Returns:
-            List[Equity]: Equity instances populated with market fields including
-            id, symbol, name, asset_class, sector, price, market_cap,
-            pe_ratio, dividend_yield, earnings_per_share and book_value.
-        """
+        """Fetches current market data for major equities and returns Equity objects."""
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -210,7 +205,12 @@ return create_sample_data()
                     book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info("Fetched price for %s (%s): %s", symbol, name, current_price)
+                logger.info(
+                    "Fetched price for %s (%s): %s",
+                    symbol,
+                    name,
+                    current_price,
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch data for %s: %s", symbol, e)
@@ -220,8 +220,9 @@ return create_sample_data()
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """Fetch real bond / treasury data"""
-        # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
+        """Fetch real bond and treasury data."""
+        # For bonds, we'll use Treasury ETFs and bond proxies since
+        # individual bonds are harder to access
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
@@ -278,7 +279,15 @@ return create_sample_data()
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity data"""
+        """Fetch real commodity data.
+
+        This method retrieves the latest price and volatility data for a set of
+        predefined commodity symbols. It utilizes the `yfinance` library to fetch
+        historical price data and calculates the current price and volatility for each
+        commodity. If any data retrieval fails, it logs an error and continues with
+        the next symbol. The resulting list of `Commodity` objects is returned for
+        further processing.
+        """
         commodity_symbols = {
             "GC=F": ("Gold Futures", "Precious Metals", 100),
             "CL=F": ("Crude Oil Futures", "Energy", 1000),
@@ -317,7 +326,12 @@ return create_sample_data()
                     volatility=volatility,
                 )
                 commodities.append(commodity)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
@@ -474,21 +488,35 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """
-    Serialize an AssetRelationshipGraph into a JSON - serialisable dictionary.
+    """Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
 
-    Parameters:
-        graph(AssetRelationshipGraph): Graph to serialize.
+    This function processes the given AssetRelationshipGraph to create a structured
+    dictionary representation. It computes the incoming relationships from the
+    graph's relationships and serializes both assets and regulatory events using
+    the _serialize_dataclass function. The resulting dictionary includes lists of
+    serialized assets, regulatory events, and mappings of relationships.
+
+    Args:
+        graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of
-              outgoing relationships
-            - "incoming_relationships": mapping from target id to a list of
-              incoming relationships
+            - "relationships": mapping from source id to a list of outgoing
+            relationships
+            - "incoming_relationships": mapping from target id to a list of incoming
+            relationships
     """
+    # Compute incoming_relationships from relationships
+
+    incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
+    for source, rels in graph.relationships.items():
+        for target, rel_type, strength in rels:
+            if target not in incoming_relationships:
+                incoming_relationships[target] = []
+            incoming_relationships[target].append((source, rel_type, strength))
+
     return {
         "assets": [
             _serialize_dataclass(asset)
@@ -518,7 +546,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
                 }
                 for source, rel_type, strength in rels
             ]
-            for target, rels in graph.incoming_relationships.items()
+            for target, rels in incoming_relationships.items()
         },
     }
 
