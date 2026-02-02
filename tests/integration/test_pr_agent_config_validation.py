@@ -94,11 +94,20 @@ def pr_agent_config() -> dict[str, object]:
     return cfg
 
 
-def shannon_entropy(value) -> float:
+def shannon_entropy(value: object) -> float:
     """
     Calculate Shannon entropy of a string.
 
     Used as a heuristic to detect high-entropy tokens such as API keys.
+
+    Args:
+        value: The input value to calculate entropy for.
+
+    Returns:
+        float: The Shannon entropy of the input string.
+
+    Raises:
+        None
     """
     if not value:
         return 0.0
@@ -401,20 +410,21 @@ class TestPRAgentConfigSecurity:
                 return True
 
             return False
+            
 
-        def scan_for_secrets(node: object, path: str = "root") -> None:
+    def scan_for_secrets(node: object, path: str = "root") -> None:
 
 
-def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
-    """Recursively scan any object for potential secrets."""
-    if isinstance(obj, dict):
-        for value in obj.values():
-            yield from _scan_for_secrets(value)
-    elif isinstance(obj, (list, tuple)):
-        for item in obj:
-            yield from _scan_for_secrets(item)
-    elif isinstance(obj, str) and _looks_like_secret(obj):
-        yield ("secret", obj)
+    def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
+        """Recursively scan any object for potential secrets."""
+        if isinstance(obj, dict):
+            for value in obj.values():
+                yield from _scan_for_secrets(value)
+        elif isinstance(obj, (list, tuple)):
+            for item in obj:
+                yield from _scan_for_secrets(item)
+        elif isinstance(obj, str) and _looks_like_secret(obj):
+            yield ("secret", obj)
 
 
 def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
