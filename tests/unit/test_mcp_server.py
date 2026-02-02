@@ -252,7 +252,7 @@ class TestBuildMcpApp:
     @staticmethod
     def test_build_mcp_app_registers_add_equity_node_tool(mock_fastmcp) -> None:
         """Test that add_equity_node tool is registered.
-        
+
         Returns:
             None
         Raises:
@@ -268,7 +268,7 @@ class TestBuildMcpApp:
     @staticmethod
     def test_build_mcp_app_registers_3d_layout_resource(mock_fastmcp) -> None:
         """Test that get_3d_layout resource is registered.
-        
+
         Returns:
             None
         Raises:
@@ -284,7 +284,7 @@ class TestBuildMcpApp:
     @staticmethod
     def test_add_equity_node_tool_validates_equity() -> None:
         """Test add_equity_node validates equity data.
-        
+
         Returns:
             None
         Raises:
@@ -328,7 +328,7 @@ class TestBuildMcpApp:
     @staticmethod
     def test_add_equity_node_tool_success() -> None:
         """Test add_equity_node successfully adds valid equity.
-        
+
         Returns:
             None
         Raises:
@@ -376,7 +376,7 @@ class TestBuildMcpApp:
     @staticmethod
     def test_add_equity_node_tool_without_add_asset_method() -> None:
         """Test add_equity_node when graph doesn't have add_asset.
-        
+
         Returns:
             None
         Raises:
@@ -424,7 +424,7 @@ class TestBuildMcpApp:
     @staticmethod
     def test_get_3d_layout_resource_returns_json() -> None:
         """Test get_3d_layout resource returns JSON.
-        
+
         Returns:
             None
         Raises:
