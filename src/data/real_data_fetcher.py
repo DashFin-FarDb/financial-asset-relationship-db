@@ -403,6 +403,8 @@ def _enum_to_value(value: Any) -> Any:
     Returns:
         Any: The underlying value of the Enum member if `value` is an Enum;
         otherwise, the original value.
+    """
+
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
     Serialize a dataclass instance into a JSON - friendly dictionary
