@@ -259,34 +259,34 @@ def _fetch_equity_data() -> List[Equity]:
         current_price,
     )
 
-        except Exception as e:
+       except Exception as e:
             logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
             continue
 
         return commodities
 
-    @ staticmethod
+    @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
-        currency_symbols= {
+        currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
             "JPYUSD=X": ("Japanese Yen", "Japan", "JPY"),
         }
 
-        currencies= []
+        currencies = []
         for symbol, (name, country, currency_code) in currency_symbols.items():
             try:
-                ticker= yf.Ticker(symbol)
-                hist= ticker.history(period="1d")
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-                current_rate= float(hist["Close"].iloc[-1])
+                current_rate = float(hist["Close"].iloc[-1])
 
-                currency= Currency(
+                currency = Currency(
                     id=symbol.replace("=X", ""),
                     symbol=currency_code,
                     name=name,
@@ -307,14 +307,14 @@ def _fetch_equity_data() -> List[Equity]:
 
         return currencies
 
-    @ staticmethod
+    @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """Create realistic regulatory events for the fetched assets"""
         # Create some realistic recent events
-        events= []
+        events = []
 
         # Apple earnings event
-        apple_earnings= RegulatoryEvent(
+        apple_earnings = RegulatoryEvent(
             id="AAPL_Q4_2024_REAL",
             asset_id="AAPL",
             event_type=RegulatoryActivity.EARNINGS_REPORT,
@@ -326,7 +326,7 @@ def _fetch_equity_data() -> List[Equity]:
         events.append(apple_earnings)
 
         # Microsoft dividend announcement
-        msft_dividend= RegulatoryEvent(
+        msft_dividend = RegulatoryEvent(
             id="MSFT_DIV_2024_REAL",
             asset_id="MSFT",
             event_type=RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
@@ -338,7 +338,7 @@ def _fetch_equity_data() -> List[Equity]:
         events.append(msft_dividend)
 
         # Energy sector regulatory event
-        xom_filing= RegulatoryEvent(
+        xom_filing = RegulatoryEvent(
             id="XOM_SEC_2024_REAL",
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
@@ -371,7 +371,7 @@ def create_real_database() -> AssetRelationshipGraph:
         the content may come from the
         cache, a real - data fetch, or the sample fallback.
     """
-    fetcher= RealDataFetcher()
+    fetcher = RealDataFetcher()
     return fetcher.create_real_database()
 
 
@@ -405,9 +405,9 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
         Enum members are replaced by their `.value`, and an additional
         "__type__" key containing the dataclass's class name.
     """
-    data= asdict(obj)
-    serialized= {key: _enum_to_value(val) for key, val in data.items()}
-    serialized["__type__"]= obj.__class__.__name__
+    data = asdict(obj)
+    serialized = {key: _enum_to_value(val) for key, val in data.items()}
+    serialized["__type__"] = obj.__class__.__name__
     return serialized
 
 
@@ -432,11 +432,11 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
     # Compute incoming_relationships from relationships
 
-    incoming_relationships: Dict[str, List[Tuple[str, str, float]]]= {}
+    incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
     for source, rels in graph.relationships.items():
         for target, rel_type, strength in rels:
             if target not in incoming_relationships:
-                incoming_relationships[target]= []
+                incoming_relationships[target] = []
             incoming_relationships[target].append((source, rel_type, strength))
 
     return {
@@ -481,12 +481,12 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
         Asset: An Asset instance ( or subclass like Equity, Bond, etc.)
             constructed from the provided data.
     """
-    data= dict(data)  # Make a copy to avoid modifying the original
-    type_name= data.pop("__type__", "Asset")
+    data = dict(data)  # Make a copy to avoid modifying the original
+    type_name = data.pop("__type__", "Asset")
     if asset_class_value := data.get("asset_class"):
-        data["asset_class"]= AssetClass(asset_class_value)
+        data["asset_class"] = AssetClass(asset_class_value)
 
-    cls_map= {
+    cls_map = {
         "Asset": Asset,
         "Equity": Equity,
         "Bond": Bond,
@@ -494,7 +494,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
         "Currency": Currency,
     }
 
-    cls= cls_map.get(type_name, Asset)
+    cls = cls_map.get(type_name, Asset)
     return cls(**data)
 
 
@@ -513,8 +513,8 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     Returns:
         RegulatoryEvent: The deserialized RegulatoryEvent instance.
     """
-    data= dict(data)
-    data["event_type"]= RegulatoryActivity(data["event_type"])
+    data = dict(data)
+    data["event_type"] = RegulatoryActivity(data["event_type"])
     return RegulatoryEvent(**data)
 
 
@@ -529,15 +529,15 @@ def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
     Returns:
         AssetRelationshipGraph: Graph reconstructed from the payload.
     """
-    graph= AssetRelationshipGraph()
+    graph = AssetRelationshipGraph()
     for asset_data in payload.get("assets", []):
-        asset= _deserialize_asset(dict(asset_data))
+        asset = _deserialize_asset(dict(asset_data))
         graph.add_asset(asset)
 
     for event_data in payload.get("regulatory_events", []):
         graph.add_regulatory_event(_deserialize_event(event_data))
 
-    relationships_payload= payload.get("relationships", {})
+    relationships_payload = payload.get("relationships", {})
     for source, rels in relationships_payload.items():
         for item in rels:
             graph.add_relationship(
@@ -562,7 +562,7 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
         AssetRelationshipGraph: The graph reconstructed from the JSON payload.
     """
     with path.open("r", encoding="utf-8") as fp:
-        payload= json.load(fp)
+        payload = json.load(fp)
     return _deserialize_graph(payload)
 
 
@@ -579,7 +579,7 @@ def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
         graph(AssetRelationshipGraph): The graph to persist.
         path(Path): Filesystem path where the JSON representation will be written.
     """
-    payload= _serialize_graph(graph)
+    payload = _serialize_graph(graph)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as fp:
         json.dump(payload, fp, indent=2)
