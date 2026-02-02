@@ -849,7 +849,7 @@ class TestConcurrency:
 
             def add_equity(i):
                 """Invoke the captured tool function to add an equity with given parameters and append results."""
-                result = tool_func.execute(
+                result = tool_func(
                     asset_id=f"CONC_{i}",
                     symbol=f"C{i}",
                     name=f"Concurrent {i}",
