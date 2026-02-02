@@ -88,6 +88,7 @@ class TestThreadSafeGraph:
         import threading
 
         from mcp_server import _ThreadSafeGraph
+
         graph = AssetRelationshipGraph()
         equity = Equity(
             id="TEST1",
@@ -243,6 +244,7 @@ class TestBuildMcpApp:
 
             def capture_tool():
                 """Capture the decorated tool function for testing."""
+
                 def decorator(func):
                     """Decorator that assigns the wrapped function to tool_func."""
                     nonlocal tool_func
@@ -279,6 +281,7 @@ class TestBuildMcpApp:
 
             def capture_tool(*args, **kwargs):
                 """Capture the decorated tool function for later invocation in tests."""
+
                 def decorator(func):
                     """Decorator that assigns the given function to tool_func for testing."""
                     nonlocal tool_func
@@ -321,6 +324,7 @@ class TestBuildMcpApp:
 
                 def capture_tool():
                     """Factory to create a decorator that captures the tool function for later invocation."""
+
                     def decorator(func):
                         """Decorator that captures and stores the tool function to be tested."""
                         nonlocal tool_func
@@ -360,6 +364,7 @@ class TestBuildMcpApp:
 
             def capture_resource(path):
                 """Decorator factory to capture the resource function registered by FastMCP."""
+
                 def decorator(func):
                     """Decorator that assigns the given function to resource_func for later invocation."""
                     nonlocal resource_func
@@ -404,10 +409,12 @@ class TestBuildMcpApp:
 
             def capture_resource(path):
                 """Decorator factory to capture the resource function for a given path."""
+
                 def decorator(func):
                     nonlocal resource_func
                     resource_func = func
                     return func
+
                 return decorator
 
             mock_instance.resource = capture_resource
@@ -532,6 +539,7 @@ class TestEdgeCases:
 
             def capture_tool():
                 """Capture the tool function to be used later for testing."""
+
                 def decorator(func):
                     """Decorator that captures the passed function in outer scope."""
                     nonlocal tool_func
@@ -568,6 +576,7 @@ class TestEdgeCases:
 
             def capture_tool():
                 """Create and return a decorator that captures the decorated tool function for testing."""
+
                 def decorator(func):
                     """Decorator that stores the provided function in the enclosing scope for later invocation."""
                     nonlocal tool_func
@@ -604,10 +613,12 @@ class TestEdgeCases:
 
             def capture_tool():
                 """Factory that returns a decorator capturing the decorated function for testing."""
+
                 def decorator(func):
                     nonlocal tool_func
                     tool_func = func
                     return func
+
                 return decorator
 
             mock_instance.tool = capture_tool()
@@ -651,6 +662,7 @@ class TestEdgeCases:
 
             def capture_resource(path):
                 """Decorator factory that captures and stores a resource function for the given path."""
+
                 def decorator(func):
                     """Decorator that saves the resource function and returns it."""
                     nonlocal resource_func
@@ -721,10 +733,12 @@ class TestIntegration:
 
             def capture_tool():
                 """Factory for a decorator that captures the tool function."""
+
                 def decorator(func):
                     nonlocal tool_func
                     tool_func = func
                     return func
+
                 return decorator
 
             mock_instance.tool = capture_tool()
@@ -771,6 +785,7 @@ class TestIntegration:
 
             def capture_resource(path):
                 """Factory that creates a decorator to capture the MCP resource function at the given path."""
+
                 def decorator(func):
                     """Decorator that assigns the decorated function to resource_func."""
                     nonlocal resource_func
@@ -807,14 +822,15 @@ class TestConcurrency:
             tool_func = None
 
             def capture_tool():
-                  """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""
-                  def decorator(func):
-                        """Decorator that wraps the tool function, capturing the original function reference."""
-                        nonlocal tool_func
-                        tool_func = func
-                        return func
+                """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""
 
-                        return decorator
+                def decorator(func):
+                    """Decorator that wraps the tool function, capturing the original function reference."""
+                    nonlocal tool_func
+                    tool_func = func
+                    return func
+
+                    return decorator
 
             mock_instance.tool = capture_tool()
 
@@ -824,17 +840,19 @@ class TestConcurrency:
 
             def add_equity(i):
                 """Invoke the captured tool function to add an equity with given parameters and append results."""
-                 result = tool_func(
-                      asset_id=f"CONC_{i}",
-                      symbol=f"C{i}",
-                      name=f"Concurrent {i}",
-                      sector="Tech",
-                      price=100.0 + i,
-                      )
+                result = tool_func(
+                    asset_id=f"CONC_{i}",
+                    symbol=f"C{i}",
+                    name=f"Concurrent {i}",
+                    sector="Tech",
+                    price=100.0 + i,
+                )
                 results.append(result)
 
                 # Create multiple threads
-                threads = [threading.Thread(target=add_equity, args=(i,)) for i in range(5)]
+                threads = [
+                    threading.Thread(target=add_equity, args=(i,)) for i in range(5)
+                ]
 
                 for thread in threads:
                     thread.start()
@@ -844,4 +862,6 @@ class TestConcurrency:
 
                 # All should succeed
                 assert len(results) == 5
-                assert all("Successfully" in r or "validated" in r.lower() for r in results)
+                assert all(
+                    "Successfully" in r or "validated" in r.lower() for r in results
+                )
