@@ -420,7 +420,7 @@ class TestPRAgentConfigSecurity:
                     key_lower = str(k).lower()
                     new_path = f"{path}.{k}"
 
-                        if any(p in key_lower for p in SENSITIVE_PATTERNS):
+                       if any(p in key_lower for p in SENSITIVE_PATTERNS):
                             assert is_allowed_placeholder(v), (
                                 f"Potential hardcoded credential at '{new_path}'"
                             )
@@ -451,6 +451,7 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
     return list(_scan_for_secrets(config_obj))
 
 # Converted to a plain pytest test function (no staticmethod decorator)
+
 def test_safe_configuration_values(pr_agent_config):
     """Assert numeric configuration limits fall within safe bounds."""
     limits = pr_agent_config["limits"]
