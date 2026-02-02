@@ -125,7 +125,7 @@ class FormulaicVisualizer:
     def _format_name(name: Any, max_length: int = 30) -> str:
         """Format formula name with truncation."""
         if not isinstance(name, str) or not name:
-        return names, categories, r_squares
+            return names, categories, r_squares
 
     fig = make_subplots(rows=3, cols=2)
     # Create correlation matrix
