@@ -329,7 +329,7 @@ class TestBuildMcpApp:
 
                     return decorator
 
-                mock_instance.tool = capture_tool()
+                mock_instance.tool = capture_tool
 
                 _build_mcp_app()
 
