@@ -40,8 +40,8 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-@pytest.fixture
 
+@pytest.fixture
 def sample_graph():
     """Create a sample asset graph for testing."""
     graph = AssetRelationshipGraph()
@@ -706,9 +706,11 @@ class TestNetworkControl:
 
             fetcher = RealDataFetcher(enable_network=True)
 
-            with patch.object(RealDataFetcher, "_fetch_bond_data", return_value=[]), \
-                    patch.object(RealDataFetcher, "_fetch_commodity_data", return_value=[]), \
-                    patch.object(RealDataFetcher, "_fetch_currency_data", return_value=[]):
+            with (
+                patch.object(RealDataFetcher, "_fetch_bond_data", return_value=[]),
+                patch.object(RealDataFetcher, "_fetch_commodity_data", return_value=[]),
+                patch.object(RealDataFetcher, "_fetch_currency_data", return_value=[]),
+            ):
                 fetcher.create_real_database()
 
             # Fetch should be called
