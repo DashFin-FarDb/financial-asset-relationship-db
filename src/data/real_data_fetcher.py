@@ -98,8 +98,9 @@ class RealDataFetcher:
         import tempfile
 
         try:
-            cache_dir = os.path.dirname(self.cache_path)
-            Path(cache_dir or ".").mkdir(parents=True, exist_ok=True)
+            cache_path = Path(self.cache_path).expanduser().resolve()
+            cache_dir = cache_path.parent
+            cache_dir.mkdir(parents=True, exist_ok=True)
 
             with tempfile.NamedTemporaryFile(
                 "wb",
