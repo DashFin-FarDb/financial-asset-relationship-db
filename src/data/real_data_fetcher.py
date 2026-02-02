@@ -467,7 +467,6 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             - "relationships": mapping from source id to a list of outgoing
     relationships
     """
-    relationships
 
     # Compute incoming_relationships from relationships
 
