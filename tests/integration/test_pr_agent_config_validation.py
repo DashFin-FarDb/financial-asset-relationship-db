@@ -340,7 +340,22 @@ class TestPRAgentConfigSecurity:
 
         Checks that:
         - `limits['max_execution_time']` is less than or equal to 3600 seconds.
+@staticmethod
+    def test_safe_configuration_values(pr_agent_config):
+        """
+        Assert that key numeric limits in the PR agent configuration fall within safe bounds.
+
+        Checks that:
+        - `limits['max_execution_time']` is less than or equal to 3600 seconds.
         - `limits['max_concurrent_prs']` is less than or equal to 10.
+        - `limits['rate_limit_requests']` is less than or equal to 1000.
+        """
+        limits = pr_agent_config["limits"]
+
+        # Check for reasonable numeric limits
+        assert limits["max_execution_time"] <= 3600, "Execution time too high"
+        assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
+        assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
         - `limits['rate_limit_requests']` is less than or equal to 1000.
         """
         limits = pr_agent_config["limits"]
