@@ -2,7 +2,6 @@ from typing import Any, Dict
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from plotly.subplots import make_subplots
 
 from src.analysis.formulaic_analysis import Formula
 
