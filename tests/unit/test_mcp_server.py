@@ -645,21 +645,22 @@ class TestEdgeCases:
 
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
             mock_instance = MagicMock()
-             mock_fastmcp_class.return_value = mock_instance
+             
+            mock_fastmcp_class.return_value = mock_instance
 
-              resource_func = None
+            resource_func = None
 
-               def capture_resource(path):
-                    """Decorator factory that captures and stores a resource function for the given path."""
-                    def decorator(func):
-                        """Decorator that saves the resource function and returns it."""
-                        nonlocal resource_func
-                        resource_func = func
-                        return func
+            def capture_resource(path):
+                """Decorator factory that captures and stores a resource function for the given path."""
+                def decorator(func):
+                    """Decorator that saves the resource function and returns it."""
+                    nonlocal resource_func
+                    resource_func = func
+                    return func
 
-                    return decorator
+                return decorator
 
-                mock_instance.route = capture_resource
+            mock_instance.route = capture_resource
 
                 with patch("mcp_server.graph") as mock_graph:
                     # Return positions with NaN
@@ -819,10 +820,10 @@ class TestConcurrency:
         from mcp_server import _build_mcp_app
 
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
-             mock_instance = MagicMock()
-              mock_fastmcp_class.return_value = mock_instance
+            mock_instance = MagicMock()
+            mock_fastmcp_class.return_value = mock_instance
 
-               tool_func = None
+            tool_func = None
 
                 def capture_tool():
                     """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""
@@ -834,16 +835,22 @@ class TestConcurrency:
 
                     return decorator
 
-                mock_instance.tool = capture_tool
+            mock_instance.tool = capture_tool()
 
-                _build_mcp_app()
+            _build_mcp_app()
 
-                results = []
+            results = []
 
-                def add_equity(i):
-                    """Invoke the captured tool function to add an equity with given parameters and append results."""
-                    result = tool_func
-                    results.append(result)
+            def add_equity(i):
+                """Invoke the captured tool function to add an equity with given parameters and append results."""
+                 result = tool_func(
+                        asset_id=f"CONC_{i}",
+                        symbol=f"C{i}",
+                        name=f"Concurrent {i}",
+                        sector="Tech",
+                        price=100.0 + i,
+                    )
+                results.append(result)
 
                 # Create multiple threads
                 threads = [threading.Thread(target=add_equity, args=(i,)) for i in range(5)]
