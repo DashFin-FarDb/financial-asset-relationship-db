@@ -164,11 +164,11 @@ class FormulaicVisualizer:
         col=1,
     )
 
-        # 4. Asset Class Relationships
-        asset_class_data = self.empirical_relationships.get(
-            "asset_class_relationships", {}
-        )
-        if asset_class_data:
+      # 4. Asset Class Relationships
+      asset_class_data = self.empirical_relationships.get(
+           "asset_class_relationships", {}
+           )
+       if asset_class_data:
             classes = list(asset_class_data.keys())
             asset_counts = [data["asset_count"] for data in asset_class_data.values()]
 
