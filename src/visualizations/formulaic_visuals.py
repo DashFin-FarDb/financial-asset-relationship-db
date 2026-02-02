@@ -57,7 +57,8 @@ class FormulaicVisualizer:
 
     def _plot_category_distribution(self, fig: go.Figure, formulas: Any) -> None:
         """Plot distribution of formulas across categories using pie and
-        bar charts."""
+        bar charts.
+        """
         raise NotImplementedError()
 
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
@@ -68,7 +69,8 @@ class FormulaicVisualizer:
         self, fig: go.Figure, empirical_relationships: Any
     ) -> None:
         """Plot empirical correlation matrix and corresponding bar chart of
-        relationships."""
+        relationships
+        """
         raise NotImplementedError()
 
     def _plot_asset_class_relationships(self, fig: go.Figure, formulas: Any) -> None:
@@ -80,8 +82,8 @@ class FormulaicVisualizer:
         raise NotImplementedError()
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
-        """Populate the "Key Formula Examples" table with top formulas.
-        sorted by reliability.
+        """Populate the "Key Formula Examples" table with top formulas, sorted by
+           reliability.
         """
         # Populate the "Key Formula Examples" table in row 3, column 2.
         # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
@@ -90,21 +92,23 @@ class FormulaicVisualizer:
 
         sorted_formulas = self._get_sorted_formulas(formulas)
         top_formulas = sorted_formulas[:10]
+        names, categories, r_squares = self._extract_formula_table_data(top_formulas)
 
-        names, categories, r_squares = zip(
-            *(
-                (
-                    getattr(f, "name", ""),
-                    getattr(f, "category", ""),
-                    getattr(f, "r_squared", None),
-                )
-                for f in top_formulas
+        fig.add_trace(
+            go.Table(
+                header=dict(
+                    values=["Formula", "Category", "R-squared"],
+                    fill_color="#f2f2f2",
+                    align="left",
+                ),
+                cells=dict(
+                    values=[names, categories, r_squares],
+                    fill_color="#ffffff",
+                    align="left",
+                ),
             )
         )
-
-        for f in top_formulas:
-            # existing logic for populating table rows
-            ...
+        return None
 
     def _get_sorted_formulas(self, formulas: Any) -> list:
         """Helper to sort formulas by r_squared descending with fallback."""
@@ -116,6 +120,13 @@ class FormulaicVisualizer:
             )
         except TypeError:
             return list(formulas)
+
+    def _extract_formula_table_data(self, formulas: Any) -> tuple:
+        """Helper to extract names, categories, and r-squared values for table."""
+        names = []
+        categories = []
+        r_squares = []
+        for f in formulas:
             name = getattr(f, "name", "N/A")
             if len(name) > 30:
                 name = name[:27] + "..."
@@ -125,32 +136,7 @@ class FormulaicVisualizer:
             r_squares.append(
                 f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
             )
-
-        fig.add_trace(
-            go.Table(
-                header=dict(
-                    values=["Formula", "Category", "R-squared"],
-                    fill_color="#f2f2f2",
-                    align="left",
-                ),
-                cells=dict(
-                    values=[names, categories, r_squares],
-                    align="left",
-                ),
-            ),
-            row=3,
-            col=2,
-        )
-
-        # 1. Formula Categories Pie Chart
-        categories = self.analysis_results.get("categories", {})
-        if categories:
-            fig.add_trace(
-                go.Pie(
-                    labels=list(categories.keys()),
-                    values=list(categories.values()),
-                    hole=0.4,
-                    marker=dict(
+        return names, categories, r_squares
                         colors=[
                             self.color_scheme.get(cat, "#CCCCCC")
                             for cat in categories.keys()
@@ -352,6 +338,10 @@ class FormulaicVisualizer:
                 )
                 + (
                     f"<br><br><b>Example Calculation:</b><br>"
+                )
+            ),
+            showarrow=False,
+        )
                     f"{formula.example_calculation}"
                 )
             ),
