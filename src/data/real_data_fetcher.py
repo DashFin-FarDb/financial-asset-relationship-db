@@ -220,16 +220,15 @@ def _fetch_equity_data() -> List[Equity]:
                         "yield", 0.03
                     ),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
-                maturity_date="2035-01-01",  # Approximate for ETFs
-                credit_rating=rating,
-                issuer_id=issuer_id,
-            )
-            bonds.append(bond)
-            logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
-
-        except Exception as e:
-            logger.error("Failed to fetch bond data for %s: %s", symbol, e)
-            continue
+                    maturity_date="2035-01-01",  # Approximate for ETFs
+                    credit_rating=rating,
+                    issuer_id=issuer_id,
+                )
+                bonds.append(bond)
+                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+            except Exception as e:
+                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
+                continue
 
     return bonds
 
