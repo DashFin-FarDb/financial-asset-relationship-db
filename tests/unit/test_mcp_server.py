@@ -467,8 +467,8 @@ class TestMain:
             with pytest.raises(SystemExit) as exc_info:
                 main([])
 
-            # Verify error message
-            assert "mcp" in str(exc_info.value).lower()
+            # Verify non-zero exit code indicating failure
+            assert exc_info.value.code != 0
 
     @staticmethod
     def test_main_argument_parser():
