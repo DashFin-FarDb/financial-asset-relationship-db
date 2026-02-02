@@ -26,7 +26,6 @@ INLINE_CREDS_RE = re.compile(
     re.IGNORECASE,
 )
 
-
 BASE64_LIKE_RE = re.compile(r"[A-Za-z0-9+/=_-]{20,}$")
 HEX_RE = re.compile(r"[0-9a-fA-F]{16,}$")
 
@@ -239,9 +238,9 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_config_is_valid_yaml():
         """
-        Fail the test if .github / pr - agent - config.yml contains invalid YAML.
+        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
 
-        Attempts to parse the repository file at .github / pr - agent - config.yml and fails the test with the YAML parser error when parsing fails.
+        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
@@ -250,12 +249,11 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_no_duplicate_keys():
         """
-        Fail the test if any top - level YAML key appears more than once in the file.
+        Fail the test if any top-level YAML key appears more than once in the file.
 
-        Scans .github / pr - agent - config.yml, ignores comment lines, and for each non - comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
-
         with open(config_path, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -286,7 +284,7 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_consistent_indentation():
         """
-        Verify that every non - empty, non - comment line in the PR agent YAML uses 2 - space indentation increments.
+        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
 
         Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
         """
@@ -433,12 +431,12 @@ class TestPRAgentConfigRemovedComplexity:
     @pytest.fixture
     def pr_agent_config_content(self) -> str:
         """
-        Return the contents of .github / pr - agent - config.yml as a string.
+        Return the contents of .github/pr-agent-config.yml as a string.
 
         Reads the PR agent configuration file from the repository root and returns its raw text.
 
         Returns:
-            str: Raw YAML content of .github / pr - agent - config.yml.
+            str: Raw YAML content of .github/pr-agent-config.yml.
         Raises:
             FileNotFoundError: If the configuration file cannot be found.
         """
@@ -464,7 +462,7 @@ class TestPRAgentConfigRemovedComplexity:
         Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
 
         Parameters:
-            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
+            pr_agent_config_content(str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
         assert "gpt-4" not in pr_agent_config_content
