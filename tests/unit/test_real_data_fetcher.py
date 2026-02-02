@@ -41,22 +41,24 @@ from src.models.financial_models import (
 )
 
 `@pytest.fixture`
+
+
 def sample_graph():
     """Create a sample asset graph for testing."""
     graph = AssetRelationshipGraph()
 
     equity = Equity(
-        id = "TEST_AAPL",
-        symbol = "AAPL",
-        name = "Apple Inc.",
-        asset_class = AssetClass.EQUITY,
-        sector = "Technology",
-        price = 150.0,
-        market_cap = 2.4e12,
-        pe_ratio = 25.5,
-        dividend_yield = 0.005,
-        earnings_per_share = 5.89,
-        book_value = 4.50,
+        id="TEST_AAPL",
+        symbol="AAPL",
+        name="Apple Inc.",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=150.0,
+        market_cap=2.4e12,
+        pe_ratio=25.5,
+        dividend_yield=0.005,
+        earnings_per_share=5.89,
+        book_value=4.50,
     )
 
     bond = Bond(
@@ -706,8 +708,8 @@ class TestNetworkControl:
             fetcher = RealDataFetcher(enable_network=True)
 
             with patch.object(RealDataFetcher, "_fetch_bond_data", return_value=[]), \
-                 patch.object(RealDataFetcher, "_fetch_commodity_data", return_value=[]), \
-                 patch.object(RealDataFetcher, "_fetch_currency_data", return_value=[]):
+                    patch.object(RealDataFetcher, "_fetch_commodity_data", return_value=[]), \
+                    patch.object(RealDataFetcher, "_fetch_currency_data", return_value=[]):
                 fetcher.create_real_database()
 
             # Fetch should be called
