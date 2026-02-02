@@ -229,30 +229,53 @@ class RealDataFetcher:
                 logger.error("Failed to fetch bond data for %s: %s", symbol, e)
                 continue
 
-    return bonds
+        return bonds
 
-            commodity = Commodity(
-                id=symbol.replace("=F", "_FUTURE"),
-                symbol=symbol,
-                name=name,
-                asset_class=AssetClass.COMMODITY,
-                sector=sector,
-                price=current_price,
-                contract_size=contract_size,
-                delivery_date="2025-03-31",  # Approximate
-                volatility=volatility,
-            )
-            commodities.append(commodity)
-            logger.info(
-                "Fetched %s: %s at $%.2f",
-                symbol,
-                name,
-                current_price,
-            )
+    @staticmethod
+    def _fetch_commodity_data() -> List[Commodity]:
+        """Fetch real commodity futures data."""
+        # Define key commodity futures and their characteristics.
+        commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
+            # symbol: (name, sector, contract_size, volatility)
+            # Example entries (adjust or extend as needed elsewhere in the file):
+            "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
+            "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
+        }
 
-        except Exception as e:
-            logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
-            continue
+        commodities: List[Commodity] = []
+        for symbol, (name, sector, contract_size, volatility) in commodity_symbols.items():
+            try:
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1d")
+
+                if hist.empty:
+                    logger.warning("No price data for %s", symbol)
+                    continue
+
+                current_price = float(hist["Close"].iloc[-1])
+
+                commodity = Commodity(
+                    id=symbol.replace("=F", "_FUTURE"),
+                    symbol=symbol,
+                    name=name,
+                    asset_class=AssetClass.COMMODITY,
+                    sector=sector,
+                    price=current_price,
+                    contract_size=contract_size,
+                    delivery_date="2025-03-31",  # Approximate
+                    volatility=volatility,
+                )
+                commodities.append(commodity)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
+
+            except Exception as e:
+                logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
+                continue
 
         return commodities
 
