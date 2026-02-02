@@ -54,9 +54,9 @@ class FormulaicVisualizer:
         self._plot_key_formula_examples(fig, formulas)
 
         return fig
-
     def _plot_category_distribution(self, fig: go.Figure, formulas: Any) -> None:
-        """Plot distribution of formulas across categories using pie and bar charts."""
+        """Plot distribution of formulas across categories using pie and
+        bar charts."""
         raise NotImplementedError()
 
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
@@ -66,7 +66,8 @@ class FormulaicVisualizer:
     def _plot_empirical_correlation(
         self, fig: go.Figure, empirical_relationships: Any
     ) -> None:
-        """Plot empirical correlation matrix and corresponding bar chart of relationships."""
+        """Plot empirical correlation matrix and corresponding bar chart of
+        relationships."""
         raise NotImplementedError()
 
     def _plot_asset_class_relationships(self, fig: go.Figure, formulas: Any) -> None:
@@ -79,30 +80,41 @@ class FormulaicVisualizer:
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
         """Populate the "Key Formula Examples" table with top formulas.
-        sorted by reliability."""
+        sorted by reliability.
+        """
         # Populate the "Key Formula Examples" table in row 3, column 2.
         # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
         if not formulas:
             return None
 
-        # Sort formulas by reliability (R-squared) in descending order and take top 10
+        sorted_formulas = self._get_sorted_formulas(formulas)
+        top_formulas = sorted_formulas[:10]
+
+        names, categories, r_squares = zip(
+            *(
+                (
+                    getattr(f, "name", ""),
+                    getattr(f, "category", ""),
+                    getattr(f, "r_squared", None),
+                )
+                for f in top_formulas
+            )
+        )
+
+        for f in top_formulas:
+            # existing logic for populating table rows
+            ...
+
+    def _get_sorted_formulas(self, formulas: Any) -> list:
+        """Helper to sort formulas by r_squared descending with fallback."""
         try:
-            sorted_formulas = sorted(
+            return sorted(
                 formulas,
                 key=lambda f: getattr(f, "r_squared", float("-inf")),
                 reverse=True,
             )
         except TypeError:
-            # Fallback in case formulas is not directly sortable; use original order
-            sorted_formulas = list(formulas)
-
-        top_formulas = sorted_formulas[:10]
-
-        names = []
-        categories = []
-        r_squares = []
-
-        for f in top_formulas:
+            return list(formulas)
             name = getattr(f, "name", "N/A")
             if len(name) > 30:
                 name = name[:27] + "..."
