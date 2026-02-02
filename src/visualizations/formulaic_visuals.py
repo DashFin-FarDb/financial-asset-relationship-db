@@ -137,9 +137,6 @@ class FormulaicVisualizer:
                 f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
             )
         return names, categories, r_squares
-                ),
-                row = 1,
-                col = 1,
             )
 
         # 2. Formula Reliability Bar Chart
