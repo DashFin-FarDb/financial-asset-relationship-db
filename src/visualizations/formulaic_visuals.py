@@ -141,44 +141,12 @@ class FormulaicVisualizer:
         names = [
             FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
-                    marker = dict(color="lightgreen"),
-                    text = sector_counts,
-                    textposition = "auto",
-                ),
-                row=3,
-                col=1,
-            )
-
-        # 6. Key Formula Examples Table
-        if formulas:
-            top_formulas = sorted(formulas, key=lambda f: f.r_squared, reverse=True)[:5]
-
-            table_data = {
-                "Formula": [f.name for f in top_formulas],
-                "Category": [f.category for f in top_formulas],
-                "R²": [f"{f.r_squared:.3f}" for f in top_formulas],
-                "Mathematical Expression": [f.formula for f in top_formulas],
-            }
-
-            fig.add_trace(
-                go.Table(
-                    header=dict(
-                        values=list(table_data.keys()),
-                        fill_color="paleturquoise",
-                        align="left",
-                        font=dict(size=10),
-                    ),
-                    cells=dict(
-                        values=list(table_data.values()),
-                        fill_color="lavender",
-                        align="left",
-                        font=dict(size=9),
-                        height=25,
-                    ),
-                ),
-                row=3,
-                col=2,
-            )
+        categories = [getattr(f, "category", "N/A") for f in formulas]
+        r_squared_values = [
+            FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
+            for f in formulas
+        ]
+        return names, categories, r_squared_values
 
         # Update layout
         fig.update_layout(
