@@ -428,8 +428,8 @@ class TestBuildMcpApp:
                     result = resource_func()
                     data = json.loads(result)
 
-                    assert data["asset_ids"] == []
-                    assert len(data["positions"]) == 0
+                assert data["asset_ids"] == []
+                assert len(data["positions"]) == 0
 
 
 class TestMain:
