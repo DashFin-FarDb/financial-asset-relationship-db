@@ -179,20 +179,20 @@ class TestThreadSafeGraph:
             except Exception as e:
                 errors.append(e)
 
-    # Create multiple threads
-    threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
+        # Create multiple threads
+        threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
 
-    for thread in threads:
-        thread.start()
+        for thread in threads:
+            thread.start()
 
-    for thread in threads:
-        thread.join()
+        for thread in threads:
+            thread.join()
 
-    # No errors should have occurred
-    assert len(errors) == 0
+        # No errors should have occurred
+        assert len(errors) == 0
 
-    # All assets should be added
-    assert len(graph.assets) == 15  # 3 threads * 5 assets each
+        # All assets should be added
+        assert len(graph.assets) == 15  # 3 threads * 5 assets each
 
 
 class TestBuildMcpApp:
@@ -645,7 +645,6 @@ class TestEdgeCases:
 
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
             mock_instance = MagicMock()
-
             mock_fastmcp_class.return_value = mock_instance
 
             resource_func = None
@@ -660,9 +659,9 @@ class TestEdgeCases:
 
                 return decorator
 
-            mock_instance.route = capture_resource
+            mock_instance.resource = capture_resource
 
-             with patch("mcp_server.graph") as mock_graph:
+            with patch("mcp_server.graph") as mock_graph:
                   # Return positions with NaN
                   mock_graph.get_3d_visualization_data_enhanced.return_value = (
                        np.array([[1.0, np.nan, 3.0]]),
@@ -747,22 +746,6 @@ class TestIntegration:
             # Verify it was added to graph
             assert "INTEG1" in graph._graph.assets
 
-            _build_mcp_app()
-
-            # Add equity
-            result = tool_func(
-                asset_id="INTEG1",
-                symbol="INT",
-                name="Integration Test Co",
-                sector="Technology",
-                price=250.0,
-            )
-
-            # Verify success
-            assert "Successfully" in result
-
-            # Verify it was added to graph
-            assert "INTEG1" in graph._graph.assets
 
     @staticmethod
     def test_3d_layout_reflects_added_assets():
