@@ -89,7 +89,8 @@ class RealDataFetcher:
         return self._fallback()
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
-        """Persist the asset relationship graph to the cache file specified by cache_path.
+        """Persist the asset relationship graph to the cache file specified by
+        cache_path.
 
         Serializes the graph to a temporary file and atomically replaces the cache file.
         Logs an exception if persisting the cache fails.
@@ -123,7 +124,6 @@ class RealDataFetcher:
 
         Called when real data fetching fails; returns a default sample graph.
         """
-        """Select a fallback AssetRelationshipGraph when real data cannot be fetched."""
         if self.fallback_factory:
             return self.fallback_factory()
 
@@ -132,8 +132,8 @@ class RealDataFetcher:
         return create_sample_database()
 
 
-
 @staticmethod
+
 def _fetch_equity_data() -> List[Equity]:
     """Fetches current market data for major equities and returns Equity objects."""
     equity_symbols = {
@@ -210,7 +210,6 @@ def _fetch_equity_data() -> List[Equity]:
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
-
                 bond = Bond(
                     id=symbol,
                     symbol=symbol,
@@ -232,35 +231,9 @@ def _fetch_equity_data() -> List[Equity]:
                 logger.error("Failed to fetch bond data for %s: %s", symbol, e)
                 continue
 
+        return bonds
+
     return bonds
-
-    @staticmethod
-    def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity futures data"""
-        # Example commodity futures; adjust as needed
-        commodity_symbols: Dict[str, Tuple[str, str, int]] = {
-            # symbol: (name, sector, contract_size)
-            "CL=F": ("Crude Oil Futures", "Energy", 1000),
-            "GC=F": ("Gold Futures", "Metals", 100),
-            "SI=F": ("Silver Futures", "Metals", 5000),
-        }
-
-        commodities: List[Commodity] = []
-        for symbol, (name, sector, contract_size) in commodity_symbols.items():
-            try:
-                ticker = yf.Ticker(symbol)
-                hist = ticker.history(period="1d")
-
-                if hist.empty:
-                    logger.warning("No price data for %s", symbol)
-                    continue
-
-                current_price = float(hist["Close"].iloc[-1])
-
-                # Calculate simple volatility from recent data
-                hist_week = ticker.history(period="5d")
-                volatility = (
-                    float(hist_week["Close"].pct_change().std())
                     if len(hist_week) > 1
                     else 0.20
                 )
