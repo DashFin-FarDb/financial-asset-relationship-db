@@ -133,7 +133,6 @@ class RealDataFetcher:
 
 
 @staticmethod
-
 def _fetch_equity_data() -> List[Equity]:
     """Fetches current market data for major equities and returns Equity objects."""
     equity_symbols = {
