@@ -174,7 +174,7 @@ class TestPRAgentConfigSimplification:
     @staticmethod
     def test_no_chunking_settings(pr_agent_config):
         """
-        Assert the configuration contains no chunking - related settings.
+        Assert the configuration contains no chunking-related settings.
 
         Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string(case-insensitive).
         """
