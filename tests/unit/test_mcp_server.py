@@ -521,8 +521,14 @@ class TestMain:
     """Tests for the main function."""
 
     @staticmethod
-    def test_main_with_version_flag():
-        """Test main function with --version flag."""
+    def test_main_with_version_flag() -> None:
+        """Test main function with --version flag.
+
+        Returns:
+            None
+        Raises:
+            SystemExit: When argument parsing exits.
+        """
         from mcp_server import main
 
         result = main(["--version"])
