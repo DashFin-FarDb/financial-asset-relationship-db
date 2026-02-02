@@ -45,7 +45,7 @@ from src.models.financial_models import (
 )
 
 
-@ pytest.fixture
+`@pytest.fixture`
 def sample_graph():
     """Create a sample asset graph for testing."""
     graph = AssetRelationshipGraph()
