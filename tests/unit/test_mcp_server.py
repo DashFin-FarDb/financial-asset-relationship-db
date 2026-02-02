@@ -179,20 +179,20 @@ class TestThreadSafeGraph:
             except Exception as e:
                 errors.append(e)
 
-            # Create multiple threads
-            threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
+        # Create multiple threads
+        threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
 
-            for thread in threads:
-                thread.start()
+        for thread in threads:
+            thread.start()
 
-            for thread in threads:
-                thread.join()
+        for thread in threads:
+            thread.join()
 
-            # No errors should have occurred
-            assert len(errors) == 0
+        # No errors should have occurred
+        assert len(errors) == 0
 
-            # All assets should be added
-            assert len(graph.assets) == 15  # 3 threads * 5 assets each
+        # All assets should be added
+        assert len(graph.assets) == 15  # 3 threads * 5 assets each
 
 
 class TestBuildMcpApp:
