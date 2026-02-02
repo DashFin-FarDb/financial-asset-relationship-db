@@ -416,10 +416,10 @@ class TestBuildMcpApp:
             with patch("mcp_server.graph") as mock_graph:
                 mock_graph.get_3d_visualization_data_enhanced.return_value = (
                     np.array([]).reshape(0, 3),  # empty positions
-                        [],  # no asset_ids
-                        [],  # no colors
-                        [],  # no hover
-                    )
+                    [],  # no asset_ids
+                    [],  # no colors
+                    [],  # no hover
+                )
 
                 _build_mcp_app()
 
@@ -625,18 +625,18 @@ class TestEdgeCases:
 
             assert "Successfully" in result or "validated" in result.lower()
 
-                _build_mcp_app()
+             _build_mcp_app()
 
-                # Test with very large price
-                result = tool_func(
-                    asset_id="LARGE",
-                    symbol="LRG",
-                    name="Expensive Stock",
-                    sector="Tech",
-                    price=1e15,  # Very large but positive
-                )
+              # Test with very large price
+              result = tool_func(
+                   asset_id="LARGE",
+                   symbol="LRG",
+                   name="Expensive Stock",
+                   sector="Tech",
+                   price=1e15,  # Very large but positive
+                   )
 
-                assert "Successfully" in result or "validated" in result.lower()
+               assert "Successfully" in result or "validated" in result.lower()
 
     @staticmethod
     def test_3d_layout_with_nan_positions():
@@ -645,7 +645,7 @@ class TestEdgeCases:
 
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
             mock_instance = MagicMock()
-             
+
             mock_fastmcp_class.return_value = mock_instance
 
             resource_func = None
@@ -662,16 +662,16 @@ class TestEdgeCases:
 
             mock_instance.route = capture_resource
 
-                with patch("mcp_server.graph") as mock_graph:
-                    # Return positions with NaN
-                    mock_graph.get_3d_visualization_data_enhanced.return_value = (
-                        np.array([[1.0, np.nan, 3.0]]),
-                        ["TEST1"],
-                        ["#ff0000"],
-                        ["Test"],
-                    )
+             with patch("mcp_server.graph") as mock_graph:
+                  # Return positions with NaN
+                  mock_graph.get_3d_visualization_data_enhanced.return_value = (
+                       np.array([[1.0, np.nan, 3.0]]),
+                       ["TEST1"],
+                       ["#ff0000"],
+                       ["Test"],
+                       )
 
-                    _build_mcp_app()
+                   _build_mcp_app()
 
                     result = resource_func()
                     data = json.loads(result)
@@ -764,7 +764,6 @@ class TestIntegration:
             # Verify it was added to graph
             assert "INTEG1" in graph._graph.assets
 
-
     @staticmethod
     def test_3d_layout_reflects_added_assets():
         """Test that 3D layout resource reflects added assets."""
@@ -825,9 +824,9 @@ class TestConcurrency:
 
             tool_func = None
 
-                def capture_tool():
-                    """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""
-                    def decorator(func):
+             def capture_tool():
+                  """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""
+                   def decorator(func):
                         """Decorator that wraps the tool function, capturing the original function reference."""
                         nonlocal tool_func
                         tool_func = func
@@ -844,12 +843,12 @@ class TestConcurrency:
             def add_equity(i):
                 """Invoke the captured tool function to add an equity with given parameters and append results."""
                  result = tool_func(
-                        asset_id=f"CONC_{i}",
-                        symbol=f"C{i}",
-                        name=f"Concurrent {i}",
-                        sector="Tech",
-                        price=100.0 + i,
-                    )
+                      asset_id=f"CONC_{i}",
+                      symbol=f"C{i}",
+                      name=f"Concurrent {i}",
+                      sector="Tech",
+                      price=100.0 + i,
+                      )
                 results.append(result)
 
                 # Create multiple threads
