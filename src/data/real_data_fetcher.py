@@ -148,7 +148,7 @@ def _fetch_equity_data() -> List[Equity]:
 
             if hist.empty:
                 logger.warning("No price data for %s", symbol)
-                    continue
+                continue
 
                 current_price = float(hist["Close"].iloc[-1])
 
@@ -418,11 +418,11 @@ def _enum_to_value(value: Any) -> Any:
     """
     Parameters:
         value(Any): The value to normalise.
-            If `value` is an `Enum` member its `.value` is returned.
+        If `value` is an `Enum` member its `.value` is returned.
 
     Returns:
         Any: The underlying value of the `Enum` member if applicable, otherwise the
-            original `value`.
+        original `value`.
     """
     from enum import Enum
 
