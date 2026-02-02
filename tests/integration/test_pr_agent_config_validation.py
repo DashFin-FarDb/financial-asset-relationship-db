@@ -306,7 +306,7 @@ class TestPRAgentConfigSecurity:
                     assert v in allowed_placeholders, (
                         f"Potential hardcoded credential at '{new_path}'"
                     )
-                scan_for_secrets(v, new_path)
+                check_node(v, new_path)
 
         def scan_list(node: list, path: str):
             """Recursively scans a list for sensitive values by examining each element and delegating to scan_for_secrets."""
