@@ -425,8 +425,8 @@ class TestBuildMcpApp:
 
                 _build_mcp_app()
 
-                    result = resource_func()
-                    data = json.loads(result)
+                result = resource_func()
+                data = json.loads(result)
 
                 assert data["asset_ids"] == []
                 assert len(data["positions"]) == 0
