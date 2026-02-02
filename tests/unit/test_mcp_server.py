@@ -173,11 +173,11 @@ class TestThreadSafeGraph:
                         asset_class=AssetClass.EQUITY,
                         sector="Tech",
                         price=100.0 + i,
-                        )
-                        ts_graph.add_asset(equity)
-                        time.sleep(0.001)  # Small delay to encourage interleaving
-                except Exception as e:
-                    errors.append(e)
+                    )
+                    ts_graph.add_asset(equity)
+                    time.sleep(0.001)  # Small delay to encourage interleaving
+            except Exception as e:
+                errors.append(e)
 
             # Create multiple threads
             threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
