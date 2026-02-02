@@ -131,58 +131,58 @@ class RealDataFetcher:
 
         return create_sample_database()
 
+    @staticmethod
+    def _fetch_equity_data() -> List[Equity]:
+        """Fetches current market data for major equities and returns Equity objects."""
+        equity_symbols = {
+            "AAPL": ("Apple Inc.", "Technology"),
+            "MSFT": ("Microsoft Corporation", "Technology"),
+            "XOM": ("Exxon Mobil Corporation", "Energy"),
+            "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
+        }
 
-@staticmethod
-def _fetch_equity_data() -> List[Equity]:
-    """Fetches current market data for major equities and returns Equity objects."""
-    equity_symbols = {
-        "AAPL": ("Apple Inc.", "Technology"),
-        "MSFT": ("Microsoft Corporation", "Technology"),
-        "XOM": ("Exxon Mobil Corporation", "Energy"),
-        "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
-    }
+        equities = []
+        for symbol, (name, sector) in equity_symbols.items():
+            try:
+                ticker = yf.Ticker(symbol)
+                info = ticker.info
+                hist = ticker.history(period="1d")
 
-    equities = []
-    for symbol, (name, sector) in equity_symbols.items():
-        try:
-            ticker = yf.Ticker(symbol)
-            info = ticker.info
-            hist = ticker.history(period="1d")
+                if hist.empty:
+                    logger.warning("No price data for %s", symbol)
+                    continue
 
-            if hist.empty:
-                logger.warning("No price data for %s", symbol)
+                current_price = float(hist["Close"].iloc[-1])
+
+                equity = Equity(
+                    id=symbol,
+                    symbol=symbol,
+                    name=name,
+                    asset_class=AssetClass.EQUITY,
+                    sector=sector,
+                    price=current_price,
+                    market_cap=info.get("marketCap"),
+                    pe_ratio=info.get("trailingPE"),
+                    dividend_yield=info.get("dividendYield"),
+                    earnings_per_share=info.get("trailingEps"),
+                    book_value=info.get("bookValue"),
+                )
+                equities.append(equity)
+                logger.info(
+                    "Fetched price for %s (%s): %s",
+                    symbol,
+                    name,
+                    current_price,
+                )
+
+            except Exception as e:
+                logger.error("Failed to fetch data for %s: %s", symbol, e)
                 continue
-
-            current_price = float(hist["Close"].iloc[-1])
-
-            equity = Equity(
-                id=symbol,
-                symbol=symbol,
-                name=name,
-                asset_class=AssetClass.EQUITY,
-                sector=sector,
-                price=current_price,
-                market_cap=info.get("marketCap"),
-                pe_ratio=info.get("trailingPE"),
-                dividend_yield=info.get("dividendYield"),
-                earnings_per_share=info.get("trailingEps"),
-                book_value=info.get("bookValue"),
-            )
-            equities.append(equity)
-            logger.info(
-                "Fetched price for %s (%s): %s",
-                symbol,
-                name,
-                current_price,
-            )
-
-        except Exception as e:
-            logger.error("Failed to fetch data for %s: %s", symbol, e)
-            continue
 
         return equities
 
     @staticmethod
+
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond and treasury data."""
         # For bonds, we'll use Treasury ETFs and bond proxies since
