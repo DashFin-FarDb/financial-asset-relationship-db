@@ -450,7 +450,9 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
     """Return all potential secrets found in a configuration object."""
     return list(_scan_for_secrets(config_obj))
 
+
 # Converted to a plain pytest test function (no staticmethod decorator)
+
 
 def test_safe_configuration_values(pr_agent_config):
     """Assert numeric configuration limits fall within safe bounds."""
