@@ -392,43 +392,42 @@ class TestBuildMcpApp:
                 assert "colors" in data
                 assert "hover" in data
 
-    @staticmethod
     """Unit tests for the mcp_server module: tests capturing resources and verifying 3D layout endpoint behavior."""
 
+    
+    @staticmethod
     def test_get_3d_layout_resource_with_empty_graph():
         """Test get_3d_layout resource with empty graph."""
         from mcp_server import _build_mcp_app
 
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
             mock_instance = MagicMock()
-             mock_fastmcp_class.return_value = mock_instance
+            mock_fastmcp_class.return_value = mock_instance
 
-              resource_func = None
+            resource_func = None
 
-               def capture_resource(path):
-                    """Decorator factory to capture the resource function for a given path."""
-                    def decorator(func):
-                        """Decorator that sets the captured resource function for the test harness."""
-                        nonlocal resource_func
-                        resource_func = func
-                        return func
+            def capture_resource(path):
+                """Decorator factory to capture the resource function for a given path."""
+                def decorator(func):
+                    nonlocal resource_func
+                    resource_func = func
+                    return func
+                return decorator
 
-                    return decorator
+            mock_instance.resource = capture_resource 
 
-                mock_instance.resource = capture_resource
-
-                # Mock graph with empty visualization data
-                with patch("mcp_server.graph") as mock_graph:
-                    mock_graph.get_3d_visualization_data_enhanced.return_value = (
-                        np.array([]).reshape(0, 3),  # empty positions
+            # Mock graph with empty visualization data
+            with patch("mcp_server.graph") as mock_graph:
+                mock_graph.get_3d_visualization_data_enhanced.return_value = (
+                    np.array([]).reshape(0, 3),  # empty positions
                         [],  # no asset_ids
                         [],  # no colors
                         [],  # no hover
                     )
 
-                    _build_mcp_app()
+                _build_mcp_app()
 
-                    result = resource_func
+                    result = resource_func()
                     data = json.loads(result)
 
                     assert data["asset_ids"] == []
