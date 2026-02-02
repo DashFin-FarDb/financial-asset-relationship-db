@@ -128,6 +128,7 @@ class RealDataFetcher:
         return create_sample_database()
 
 
+
 @staticmethod
 def _fetch_equity_data() -> List[Equity]:
     """Fetches current market data for major equities and returns Equity objects."""
