@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from plotly.subplots import make_subplots
 
 from src.analysis.formulaic_analysis import Formula
 
@@ -82,9 +83,8 @@ class FormulaicVisualizer:
         raise NotImplementedError()
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
-        """Populate the "Key Formula Examples" table with top formulas, sorted by
-        reliability.
-        """
+        """Populate the "Key Formula Examples" table with top formulas,
+        sorted by reliability."""
         # Populate the "Key Formula Examples" table in row 3, column 2.
         # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
         if not formulas:
@@ -110,7 +110,8 @@ class FormulaicVisualizer:
         )
         return None
 
-    def _get_sorted_formulas(self, formulas: Any) -> list:
+    @staticmethod
+    def _get_sorted_formulas(formulas: Any) -> list:
         """Helper to sort formulas by r_squared descending with fallback."""
         try:
             return sorted(
@@ -121,56 +122,38 @@ class FormulaicVisualizer:
         except TypeError:
             return list(formulas)
 
-    def _extract_formula_table_data(self, formulas: Any) -> tuple:
+    @staticmethod
+    def _format_name(name: Any, max_length: int = 30) -> str:
+        """Format formula name with truncation."""
+        if not isinstance(name, str) or not name:
+            return "N/A"
+        return name if len(name) <= max_length else name[: max_length - 3] + "..."
+
+    @staticmethod
+    def _format_r_squared(r_value: Any) -> str:
+        """Format r_squared value to 4 decimal places or N/A."""
+        return f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
+
+    @staticmethod
+    def _extract_formula_table_data(formulas: Any) -> tuple:
         """Helper to extract names, categories, and r-squared values for table."""
-        names = []
-        categories = []
-        r_squares = []
-        for f in formulas:
-            name = getattr(f, "name", "N/A")
-            if len(name) > 30:
-                name = name[:27] + "..."
-            names.append(name)
-            categories.append(getattr(f, "category", "N/A"))
-            r_value = getattr(f, "r_squared", None)
-            r_squares.append(
-                f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
-            )
+        names = [
+            FormulaicVisualizer._format_name(getattr(f, "name", None))
+            for f in formulas
+        ]
+        categories = [getattr(f, "category", "N/A") for f in formulas]
+        r_squares = [
+            FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
+            for f in formulas
+        ]
         return names, categories, r_squares
-
-        # 2. Formula Reliability Bar Chart
-        if formulas:
-            formula_names = [
-                f.name[:20] + "..." if len(f.name) > 20 else f.name for f in formulas
-            ]
-            r_squared_values = [f.r_squared for f in formulas]
-            colors = [self.color_scheme.get(f.category, "#CCCCCC") for f in formulas]
-
-            fig.add_trace(
-                go.Bar(
-                    x=formula_names,
-                    y=r_squared_values,
-                    marker=dict(color=colors),
-                    text=[f"{r:.2f}" for r in r_squared_values],
-                    textposition="auto",
-                    name="R-squared",
-                ),
-                row=1,
-                col=2,
-            )
-
-        # 3. Empirical Correlation Heatmap
-        #
-        correlation_matrix = self.empirical_relationships.get("correlation_matrix", {})
-        if correlation_matrix:
-            # Convert correlation matrix to heatmap format
-            assets = list(
                 set(
                     [pair.split("-")[0] for pair in correlation_matrix.keys()]
                     + [pair.split("-")[1] for pair in correlation_matrix.keys()]
                 )
             )
 
+            fig = make_subplots(rows=3, cols=2)
             # Create correlation matrix
             n_assets = min(len(assets), 8)  # Limit to 8x8 for visibility
             assets = assets[:n_assets]
