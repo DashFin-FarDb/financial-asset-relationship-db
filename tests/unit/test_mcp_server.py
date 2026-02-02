@@ -391,7 +391,6 @@ class TestBuildMcpApp:
                 assert "colors" in data
                 assert "hover" in data
 
-
     @staticmethod
     def test_get_3d_layout_resource_with_empty_graph():
         """Test get_3d_layout resource with empty graph."""
@@ -556,7 +555,6 @@ class TestEdgeCases:
 
             assert "Successfully" in result or "validated" in result.lower()
 
-
     @staticmethod
     def test_add_equity_with_zero_price():
         """Test adding equity with zero price."""
@@ -639,7 +637,6 @@ class TestEdgeCases:
                 )
 
                 assert "Successfully" in result or "validated" in result.lower()
-
 
     @staticmethod
     def test_3d_layout_with_nan_positions():
