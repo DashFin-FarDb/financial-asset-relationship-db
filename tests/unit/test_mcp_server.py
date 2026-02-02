@@ -253,7 +253,7 @@ class TestBuildMcpApp:
 
                 return decorator
 
-            mock_instance.tool = capture_tool
+            mock_instance.tool = capture_tool()
             _build_mcp_app()
 
             # Test with invalid price (negative)
@@ -277,7 +277,9 @@ class TestBuildMcpApp:
             mock_instance = MagicMock()
             mock_fastmcp_class.return_value = mock_instance
 
-            tool_func = None
+            def default_tool(asset_id, symbol, name, sector, price, **kwargs):
+                return f"Successfully added {name} with symbol {symbol}"
+            tool_func = default_tool
 
             def capture_tool(*args, **kwargs):
                 """Capture the decorated tool function for later invocation in tests."""
@@ -333,7 +335,7 @@ class TestBuildMcpApp:
 
                     return decorator
 
-                mock_instance.tool = capture_tool
+                mock_instance.tool = capture_tool()
 
                 _build_mcp_app()
 
@@ -360,7 +362,8 @@ class TestBuildMcpApp:
             mock_fastmcp_class.return_value = mock_instance
 
             def resource_func():
-                pass
+                """A placeholder resource function that will be replaced by the actual resource function via the capture_resource decorator."""
+                return None
 
             def capture_resource(path):
                 """Decorator factory to capture the resource function registered by FastMCP."""
@@ -411,6 +414,7 @@ class TestBuildMcpApp:
                 """Decorator factory to capture the resource function for a given path."""
 
                 def decorator(func):
+                    """Decorator that captures the resource function and assigns it to resource_func."""
                     nonlocal resource_func
                     resource_func = func
                     return func
@@ -430,7 +434,7 @@ class TestBuildMcpApp:
 
                 _build_mcp_app()
 
-                result = resource_func()
+                result = resource_func
                 data = json.loads(result)
 
                 assert data["asset_ids"] == []
@@ -548,7 +552,7 @@ class TestEdgeCases:
 
                 return decorator
 
-            mock_instance.tool = capture_tool()
+            mock_instance.tool = capture_tool
 
             _build_mcp_app()
 
@@ -585,7 +589,7 @@ class TestEdgeCases:
 
                 return decorator
 
-            mock_instance.tool = capture_tool()
+            mock_instance.tool = capture_tool
 
             _build_mcp_app()
 
@@ -615,13 +619,14 @@ class TestEdgeCases:
                 """Factory that returns a decorator capturing the decorated function for testing."""
 
                 def decorator(func):
+                    """Decorator that captures the decorated function in tool_func for testing."""
                     nonlocal tool_func
                     tool_func = func
                     return func
 
                 return decorator
 
-            mock_instance.tool = capture_tool()
+            mock_instance.tool = capture_tool
 
             _build_mcp_app()
 
@@ -684,7 +689,7 @@ class TestEdgeCases:
 
                 _build_mcp_app()
 
-                result = resource_func()
+                result = resource_func
                 data = json.loads(result)
 
                 # NaN should be converted to null in JSON
@@ -731,17 +736,22 @@ class TestIntegration:
 
             tool_func = None
 
-            def capture_tool():
-                """Factory for a decorator that captures the tool function."""
+            """
+            Test module for MCP server. Provides utilities and decorators for capturing tool functions.
+            """
 
-                def decorator(func):
-                    nonlocal tool_func
-                    tool_func = func
-                    return func
+                        def capture_tool():
+                            """Factory for a decorator that captures the tool function."""
 
-                return decorator
+                            def decorator(func):
+                                """Decorator that captures and stores the provided tool function."""
+                                nonlocal tool_func
+                                tool_func = func
+                                return func
 
-            mock_instance.tool = capture_tool()
+                            return decorator
+
+            mock_fastmcp_class.tool = capture_tool()
 
             _build_mcp_app()
 
@@ -807,7 +817,6 @@ class TestIntegration:
 
 class TestConcurrency:
     """Tests for concurrent access patterns."""
-
     @staticmethod
     def test_concurrent_tool_invocations():
         """Test concurrent invocations of MCP tools."""
@@ -830,7 +839,7 @@ class TestConcurrency:
                     tool_func = func
                     return func
 
-                    return decorator
+                return decorator
 
             mock_instance.tool = capture_tool()
 
@@ -840,7 +849,7 @@ class TestConcurrency:
 
             def add_equity(i):
                 """Invoke the captured tool function to add an equity with given parameters and append results."""
-                result = tool_func(
+                result = tool_func.execute(
                     asset_id=f"CONC_{i}",
                     symbol=f"C{i}",
                     name=f"Concurrent {i}",
