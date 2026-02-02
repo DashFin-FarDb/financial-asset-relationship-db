@@ -748,6 +748,8 @@ class TestIntegration:
                      tool_func = func
                      return func
                  return decorator
+
+
 result = resource_func()
             mock_instance.tool = capture_tool()
 
