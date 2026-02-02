@@ -99,7 +99,7 @@ class TestThreadSafeGraph:
 
         Returns:
             None
-        Raises: 
+        Raises:
             Exception
         """
         import threading
@@ -135,7 +135,7 @@ class TestThreadSafeGraph:
 
         Returns:
             None
-        Raises: 
+        Raises:
             Exception
         """
         import threading
