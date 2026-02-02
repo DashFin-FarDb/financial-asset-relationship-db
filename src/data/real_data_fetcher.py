@@ -158,7 +158,7 @@ class RealDataFetcher:
 
 
 return create_sample_data()
-    """
+   """
         if self.fallback_factory is not None:
             return self.fallback_factory()
         from src.data.sample_data import create_sample_database
@@ -168,7 +168,7 @@ return create_sample_data()
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
-        Fetches current market data for a predefined set of major equities and
+       Fetches current market data for a predefined set of major equities and
         returns them as Equity objects.
 
         Returns:
