@@ -51,6 +51,7 @@ def sample_graph():
 class TestThreadSafeGraph:
     """Tests for the _ThreadSafeGraph proxy class."""
 
+    @staticmethod
     def test_thread_safe_graph_initialization() -> None:
         """Test _ThreadSafeGraph initializes with graph and lock.
 
