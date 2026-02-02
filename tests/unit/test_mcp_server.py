@@ -266,7 +266,6 @@ class TestBuildMcpApp:
             assert "Validation Error" in result
 
     @staticmethod
-    """Test module for MCP server, providing tests for capturing and invoking tool functions."""
     def test_add_equity_node_tool_success():
         """Test add_equity_node successfully adds valid equity."""
         from mcp_server import _build_mcp_app
