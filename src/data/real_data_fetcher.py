@@ -87,9 +87,7 @@ class RealDataFetcher:
 
         except Exception as exc:
             logger.error("Failed to create real database: %s", exc)
-        logger.warning(
-            "Falling back to sample data due to real data fetch failure"
-        )
+        logger.warning("Falling back to sample data due to real data fetch failure")
         return self._fallback()
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
@@ -221,8 +219,7 @@ def _fetch_equity_data() -> List[Equity]:
                     sector=sector,
                     price=current_price,
                     yield_to_maturity=info.get(
-                        "yield",
-                        0.03
+                        "yield", 0.03
                     ),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
@@ -379,8 +376,7 @@ def _fetch_equity_data() -> List[Equity]:
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
             description=(
-                "10-K Filing - Increased oil reserves and sustainability "
-                "initiatives"
+                "10-K Filing - Increased oil reserves and sustainability initiatives"
             ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
@@ -477,13 +473,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             incoming_relationships[target].append((source, rel_type, strength))
 
     return {
-        "assets": [
-            _serialize_dataclass(asset)
-            for asset in graph.assets.values()
-        ],
+        "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
         "regulatory_events": [
-            _serialize_dataclass(event)
-            for event in graph.regulatory_events
+            _serialize_dataclass(event) for event in graph.regulatory_events
         ],
         "relationships": {
             source: [
