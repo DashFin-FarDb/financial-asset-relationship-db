@@ -365,7 +365,7 @@ class TestPRAgentConfigRemovedComplexity:
 
         Returns:
         """
-        str: Raw YAML content of .github/pr-agent-config.yml.
+        str: Raw YAML content of .github / pr - agent - config.yml.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
