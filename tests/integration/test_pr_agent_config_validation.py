@@ -311,7 +311,7 @@ class TestPRAgentConfigSecurity:
         def scan_list(node: list, path: str):
             """Recursively scans a list for sensitive values by examining each element and delegating to scan_for_secrets."""
             for idx, item in enumerate(node):
-                scan_for_secrets(item, f"{path}[{idx}]")
+                check_node(item, f"{path}[{idx}]")
 
         safe_placeholders = {None, "null", "webhook"}
 
