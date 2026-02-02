@@ -149,8 +149,6 @@ class TestThreadSafeGraph:
         assert len(lock_acquired) > 0
 
     @staticmethod
-    """Module containing unit tests for mcp_server's thread-safe graph concurrent access functionality."""
-
     def test_thread_safe_graph_concurrent_access():
         """Test concurrent access to thread-safe graph."""
         import threading
@@ -158,23 +156,23 @@ class TestThreadSafeGraph:
 
         from mcp_server import _ThreadSafeGraph
 
-         graph = AssetRelationshipGraph()
-          lock = threading.Lock()
-           ts_graph = _ThreadSafeGraph(graph, lock)
+        graph = AssetRelationshipGraph()
+        lock = threading.Lock()
+        ts_graph = _ThreadSafeGraph(graph, lock)
 
-            errors = []
+        errors = []
 
-            def add_assets(start_id):
-                """Add assets to the thread-safe graph using the given start_id to generate unique asset identifiers and test concurrent addition."""
-                try:
-                    for i in range(5):
-                        equity = Equity(
-                            id=f"STOCK_{start_id}_{i}",
-                            symbol=f"STK{start_id}{i}",
-                            name=f"Stock {start_id} {i}",
-                            asset_class=AssetClass.EQUITY,
-                            sector="Tech",
-                            price=100.0 + i,
+        def add_assets(start_id):
+            """Add assets to the thread-safe graph using the given start_id to generate unique asset identifiers and test concurrent addition."""
+            try:
+                for i in range(5):
+                    equity = Equity(
+                        id=f"STOCK_{start_id}_{i}",
+                        symbol=f"STK{start_id}{i}",
+                        name=f"Stock {start_id} {i}",
+                        asset_class=AssetClass.EQUITY,
+                        sector="Tech",
+                        price=100.0 + i,
                         )
                         ts_graph.add_asset(equity)
                         time.sleep(0.001)  # Small delay to encourage interleaving

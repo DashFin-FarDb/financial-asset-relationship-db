@@ -40,8 +40,7 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-`@pytest.fixture`
-
+@pytest.fixture
 
 def sample_graph():
     """Create a sample asset graph for testing."""
