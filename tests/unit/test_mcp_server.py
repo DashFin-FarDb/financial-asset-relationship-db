@@ -179,20 +179,20 @@ class TestThreadSafeGraph:
             except Exception as e:
                 errors.append(e)
 
-        # Create multiple threads
-        threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
+    # Create multiple threads
+    threads = [threading.Thread(target=add_assets, args=(i,)) for i in range(3)]
 
-        for thread in threads:
-            thread.start()
+    for thread in threads:
+        thread.start()
 
-        for thread in threads:
-            thread.join()
+    for thread in threads:
+        thread.join()
 
-        # No errors should have occurred
-        assert len(errors) == 0
+    # No errors should have occurred
+    assert len(errors) == 0
 
-        # All assets should be added
-        assert len(graph.assets) == 15  # 3 threads * 5 assets each
+    # All assets should be added
+    assert len(graph.assets) == 15  # 3 threads * 5 assets each
 
 
 class TestBuildMcpApp:
@@ -391,7 +391,6 @@ class TestBuildMcpApp:
                 assert "colors" in data
                 assert "hover" in data
 
-    """Unit tests for the mcp_server module: tests capturing resources and verifying 3D layout endpoint behavior."""
 
     @staticmethod
     def test_get_3d_layout_resource_with_empty_graph():
@@ -557,12 +556,8 @@ class TestEdgeCases:
 
             assert "Successfully" in result or "validated" in result.lower()
 
-    @staticmethod
-    """
-    Module-level tests for the mcp_server module. This file contains unit tests for the capture tool
-    and decorator behavior within the MCP application.
-    """
 
+    @staticmethod
     def test_add_equity_with_zero_price():
         """Test adding equity with zero price."""
         from mcp_server import _build_mcp_app
@@ -599,28 +594,38 @@ class TestEdgeCases:
             assert "Validation Error" in result
 
     @staticmethod
-    """Unit tests for the mcp_server module, including the capture_tool decorator and equity addition tests."""
     def test_add_equity_with_very_large_price():
         """Test adding equity with very large price."""
         from mcp_server import _build_mcp_app
 
         with patch("mcp_server.FastMCP") as mock_fastmcp_class:
             mock_instance = MagicMock()
-             mock_fastmcp_class.return_value = mock_instance
+            mock_fastmcp_class.return_value = mock_instance
 
-              tool_func = None
+            tool_func = None
 
-               def capture_tool():
-                    """Factory that returns a decorator capturing the decorated function for testing."""
-                    def decorator(func):
-                        """Decorator that assigns the wrapped function to 'tool_func'."""
-                        nonlocal tool_func
-                        tool_func = func
-                        return func
+            def capture_tool():
+                """Factory that returns a decorator capturing the decorated function for testing."""
+                def decorator(func):
+                    nonlocal tool_func
+                    tool_func = func
+                    return func
+                return decorator
 
-                    return decorator
+            mock_instance.tool = capture_tool()
 
-                mock_instance.tool = capture_tool()
+            _build_mcp_app()
+
+            # Test with very large price
+            result = tool_func(
+                asset_id="LARGE",
+                symbol="LRG",
+                name="Expensive Stock",
+                sector="Tech",
+                price=1e15,
+            )
+
+            assert "Successfully" in result or "validated" in result.lower()
 
                 _build_mcp_app()
 
@@ -635,9 +640,8 @@ class TestEdgeCases:
 
                 assert "Successfully" in result or "validated" in result.lower()
 
-    @staticmethod
-    """Unit tests for the MCP server module, capturing resources and verifying 3D layout behavior with NaN positions."""
 
+    @staticmethod
     def test_3d_layout_with_nan_positions():
         """Test 3D layout resource handles NaN positions."""
         from mcp_server import _build_mcp_app
@@ -705,8 +709,6 @@ class TestIntegration:
     """Integration tests for MCP server components."""
 
     @staticmethod
-    """Unit tests for the mcp_server module. Provides tests for verifying the functionality of adding equity through the MCP tool."""
-
     def test_full_equity_addition_workflow():
         """Test complete workflow of adding equity through MCP tool."""
         from mcp_server import _build_mcp_app, graph
@@ -721,14 +723,12 @@ class TestIntegration:
             tool_func = None
 
             def capture_tool():
-                """Factory for a decorator that captures the tool function for later invocation."""
+                """Factory for a decorator that captures the tool function."""
                 def decorator(func):
-                    """Decorator that captures and stores the provided tool function."""
                     nonlocal tool_func
                     tool_func = func
                     return func
-
-                    return decorator
+                return decorator
 
             mock_instance.tool = capture_tool()
 
@@ -749,9 +749,25 @@ class TestIntegration:
             # Verify it was added to graph
             assert "INTEG1" in graph._graph.assets
 
-    @staticmethod
-    """Unit tests for the mcp_server module focusing on resource capture and 3D layout visualization."""
+            _build_mcp_app()
 
+            # Add equity
+            result = tool_func(
+                asset_id="INTEG1",
+                symbol="INT",
+                name="Integration Test Co",
+                sector="Technology",
+                price=250.0,
+            )
+
+            # Verify success
+            assert "Successfully" in result
+
+            # Verify it was added to graph
+            assert "INTEG1" in graph._graph.assets
+
+    
+    @staticmethod
     def test_3d_layout_reflects_added_assets():
         """Test that 3D layout resource reflects added assets."""
         from mcp_server import _build_mcp_app, graph
@@ -799,8 +815,6 @@ class TestConcurrency:
     """Tests for concurrent access patterns."""
 
     @staticmethod
-    """Unit tests for concurrent invocations of MCP tools in the MCP server."""
-
     def test_concurrent_tool_invocations():
         """Test concurrent invocations of MCP tools."""
         import threading
