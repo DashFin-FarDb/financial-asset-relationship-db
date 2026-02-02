@@ -468,7 +468,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             relationships
     """
             relationships
-    """
+
     # Compute incoming_relationships from relationships
 
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
