@@ -182,7 +182,6 @@ class RealDataFetcher:
         return equities
 
     @staticmethod
-
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond and treasury data."""
         # For bonds, we'll use Treasury ETFs and bond proxies since
