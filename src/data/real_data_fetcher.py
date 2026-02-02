@@ -112,7 +112,7 @@ class RealDataFetcher:
                 dir=cache_dir,
                 delete=False,
             ) as tmp_file:
-                tmp_path = tmp_file.name
+                tmp_path = Path(tmp_file.name)
 
             _save_to_cache(graph, tmp_path)
             os.replace(tmp_path, self.cache_path)
