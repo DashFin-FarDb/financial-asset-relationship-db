@@ -144,6 +144,7 @@ class RealDataFetcher:
         )
         return self._fallback()
 
+
 def _fallback(self) -> AssetRelationshipGraph:
     """
     Selects a fallback AssetRelationshipGraph to use when real data cannot be
@@ -161,6 +162,7 @@ def _fallback(self) -> AssetRelationshipGraph:
 
     from src.data.sample_data import create_sample_database
     return create_sample_database()
+
 
 @staticmethod
 def _fetch_equity_data() -> List[Equity]:
@@ -554,7 +556,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
             with a "__type__" key indicating the asset subclass.
 
     Returns:
-        Asset: An Asset instance (or subclass like Equity, Bond, etc.)
+        Asset: An Asset instance ( or subclass like Equity, Bond, etc.)
             constructed from the provided data.
     """
     data = dict(data)  # Make a copy to avoid modifying the original
