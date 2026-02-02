@@ -119,8 +119,7 @@ class AssetRelationshipGraph:
     def calculate_metrics(self) -> Dict[str, Any]:
         """Calculate network statistics and distributions."""
         total_assets = len(self.assets)
-        # For total_assets if no assets were explicitly added
-        # but exist in relationships
+        # For total_assets if no assets were explicitly added but exist in relationships
         all_ids = set(self.assets.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
