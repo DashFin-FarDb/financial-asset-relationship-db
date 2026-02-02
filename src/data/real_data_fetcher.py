@@ -232,36 +232,59 @@ def _fetch_equity_data() -> List[Equity]:
 
     return bonds
 
-    # Calculate simple volatility from recent data
-    hist_week = ticker.history(period="5d")
-    volatility = (
-        float(hist_week["Close"].pct_change().std())
-        if len(hist_week) > 1
-        else 0.20
-    )
+    @staticmethod
+    def _fetch_commodity_data() -> List[Commodity]:
+        """Fetch real commodity futures data"""
+        # Example commodity futures; adjust as needed
+        commodity_symbols: Dict[str, Tuple[str, str, int]] = {
+            # symbol: (name, sector, contract_size)
+            "CL=F": ("Crude Oil Futures", "Energy", 1000),
+            "GC=F": ("Gold Futures", "Metals", 100),
+            "SI=F": ("Silver Futures", "Metals", 5000),
+        }
 
-    commodity = Commodity(
-        id=symbol.replace("=F", "_FUTURE"),
-        symbol=symbol,
-        name=name,
-        asset_class=AssetClass.COMMODITY,
-        sector=sector,
-        price=current_price,
-        contract_size=contract_size,
-        delivery_date="2025-03-31",  # Approximate
-        volatility=volatility,
-    )
-    commodities.append(commodity)
-    logger.info(
-        "Fetched %s: %s at $%.2f",
-        symbol,
-        name,
-        current_price,
-    )
+        commodities: List[Commodity] = []
+        for symbol, (name, sector, contract_size) in commodity_symbols.items():
+            try:
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1d")
 
-       except Exception as e:
-            logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
-            continue
+                if hist.empty:
+                    logger.warning("No price data for %s", symbol)
+                    continue
+
+                current_price = float(hist["Close"].iloc[-1])
+
+                # Calculate simple volatility from recent data
+                hist_week = ticker.history(period="5d")
+                volatility = (
+                    float(hist_week["Close"].pct_change().std())
+                    if len(hist_week) > 1
+                    else 0.20
+                )
+
+                commodity = Commodity(
+                    id=symbol.replace("=F", "_FUTURE"),
+                    symbol=symbol,
+                    name=name,
+                    asset_class=AssetClass.COMMODITY,
+                    sector=sector,
+                    price=current_price,
+                    contract_size=contract_size,
+                    delivery_date="2025-03-31",  # Approximate
+                    volatility=volatility,
+                )
+                commodities.append(commodity)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
+
+            except Exception as e:
+                logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
+                continue
 
         return commodities
 
