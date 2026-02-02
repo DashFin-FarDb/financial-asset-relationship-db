@@ -1,7 +1,5 @@
-import math
 from typing import Any, Dict
 
-import networkx as nx
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -58,27 +56,34 @@ class FormulaicVisualizer:
         return fig
 
     def _plot_category_distribution(self, fig: go.Figure, formulas: Any) -> None:
-        pass
+        """Plot distribution of formulas across categories using pie and bar charts."""
+        raise NotImplementedError()
 
     def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
-        pass
+        """Plot reliability (R-squared) of formulas using pie and bar charts."""
+        raise NotImplementedError()
 
     def _plot_empirical_correlation(
         self, fig: go.Figure, empirical_relationships: Any
     ) -> None:
-        pass
+        """Plot empirical correlation matrix and corresponding bar chart of relationships."""
+        raise NotImplementedError()
 
     def _plot_asset_class_relationships(self, fig: go.Figure, formulas: Any) -> None:
-        pass
+        """Plot relationships between asset classes based on provided formulas."""
+        raise NotImplementedError()
 
     def _plot_sector_analysis(self, fig: go.Figure, formulas: Any) -> None:
-        pass
+        """Plot sector analysis charts illustrating formula performance by sector."""
+        raise NotImplementedError()
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
+        """Populate the "Key Formula Examples" table with top formulas.
+        sorted by reliability."""
         # Populate the "Key Formula Examples" table in row 3, column 2.
         # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
         if not formulas:
-            return
+            return None
 
         # Sort formulas by reliability (R-squared) in descending order and take top 10
         try:
@@ -125,7 +130,7 @@ class FormulaicVisualizer:
         )
 
         # 1. Formula Categories Pie Chart
-        categories = analysis_results.get("categories", {})
+        categories = self.analysis_results.get("categories", {})
         if categories:
             fig.add_trace(
                 go.Pie(
@@ -168,7 +173,7 @@ class FormulaicVisualizer:
 
         # 3. Empirical Correlation Heatmap
         #
-        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
+        correlation_matrix = self.empirical_relationships.get("correlation_matrix", {})
         if correlation_matrix:
             # Convert correlation matrix to heatmap format
             assets = list(
@@ -215,7 +220,7 @@ class FormulaicVisualizer:
             )
 
         # 4. Asset Class Relationships
-        asset_class_data = empirical_relationships.get("asset_class_relationships", {})
+        asset_class_data = self.empirical_relationships.get("asset_class_relationships", {})
         if asset_class_data:
             classes = list(asset_class_data.keys())
             asset_counts = [data["asset_count"] for data in asset_class_data.values()]
@@ -234,7 +239,7 @@ class FormulaicVisualizer:
             )
 
         # 5. Sector Analysis
-        sector_data = empirical_relationships.get("sector_relationships", {})
+        sector_data = self.empirical_relationships.get("sector_relationships", {})
         if sector_data:
             sectors = list(sector_data.keys())[:6]  # Limit to top 6 sectors
             sector_counts = [sector_data[sector]["asset_count"] for sector in sectors]
@@ -308,7 +313,8 @@ class FormulaicVisualizer:
 
         return fig
 
-    def create_formula_detail_view(self, formula: Formula) -> go.Figure:
+    @staticmethod
+    def create_formula_detail_view(formula: Formula) -> go.Figure:
         """Create a detailed view of a specific formula"""
         fig = go.Figure()
 
