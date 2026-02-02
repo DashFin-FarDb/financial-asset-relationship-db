@@ -28,7 +28,7 @@ class FormulaicAnalyzer:
         self.formulas: List[Formula] = []
 
     def analyze_graph(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
-        """Perform comprehensive formulaic analysis of the asset graph"""
+        """Perform a formulaic analysis of the asset relationships."""
         logger.info("Starting formulaic analysis of asset relationships")
 
         # Extract fundamental financial formulas
@@ -66,10 +66,15 @@ class FormulaicAnalyzer:
             "empirical_relationships": empirical_relationships,
             "formula_count": len(all_formulas),
             "categories": self._categorize_formulas(all_formulas),
-            "summary": self._generate_formula_summary(all_formulas, empirical_relationships),
+            "summary": self._generate_formula_summary(
+                all_formulas,
+                empirical_relationships,
+            ),
         }
 
-    def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_fundamental_formulas(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract fundamental financial formulas based on asset types"""
         formulas = []
 
@@ -97,7 +102,9 @@ class FormulaicAnalyzer:
                 name="Dividend Yield",
                 formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
                 latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
-                description=("Percentage return from dividends relative to stock price"),
+                description=(
+                    "Percentage return from dividends relative to stock price"
+                ),
                 variables={
                     "Div_Yield": "Dividend Yield (%)",
                     "D_annual": "Annual Dividends per Share ($)",
@@ -114,7 +121,9 @@ class FormulaicAnalyzer:
             ytm_formula = Formula(
                 name=("Bond Yield-to-Maturity (Approximation)"),
                 formula=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
-                latex=(r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"),
+                latex=(
+                    r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"
+                ),
                 description="Approximate yield-to-maturity for bonds",
                 variables={
                     "YTM": "Yield-to-Maturity (%)",
@@ -149,7 +158,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_correlation_patterns(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _analyze_correlation_patterns(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Analyze and formulate correlation patterns between assets"""
         formulas = []
 
@@ -192,7 +203,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_valuation_relationships(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract valuation model relationships"""
         formulas = []
 
@@ -226,7 +239,10 @@ class FormulaicAnalyzer:
                 "Debt": "Total Debt ($)",
                 "Cash": "Cash and Cash Equivalents ($)",
             },
-            example_calculation=("EV calculation requires debt and cash data " "(not available in current dataset)"),
+            example_calculation=(
+                "EV calculation requires debt and cash data "
+                "(not available in current dataset)"
+            ),
             category="Valuation",
             r_squared=0.95,
         )
@@ -234,7 +250,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _analyze_risk_return_relationships(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Analyze risk-return mathematical relationships"""
         formulas = []
 
@@ -276,7 +294,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_portfolio_theory_formulas(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract Modern Portfolio Theory formulas"""
         formulas = []
 
@@ -302,7 +322,10 @@ class FormulaicAnalyzer:
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
             formula="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            latex=(r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + " r"2w_1w_2\sigma_1\sigma_2\rho_{12}"),
+            latex=(
+                r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + "
+                r"2w_1w_2\sigma_1\sigma_2\rho_{12}"
+            ),
             description="Portfolio risk considering correlation between assets",
             variables={
                 "σ²_p": "Portfolio variance",
@@ -318,7 +341,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_cross_asset_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _analyze_cross_asset_relationships(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Analyze relationships between different asset classes"""
         formulas = []
 
@@ -344,14 +369,20 @@ class FormulaicAnalyzer:
         if self._has_commodities(graph) and self._has_currencies(graph):
             commodity_currency_formula = Formula(
                 name="Commodity-Currency Relationship",
-                formula=("Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"),
+                formula=(
+                    "Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"
+                ),
                 latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
-                description=("Inverse relationship between commodity prices and currency values"),
+                description=(
+                    "Inverse relationship between commodity prices and currency values"
+                ),
                 variables={
                     "FX_commodity": "Currency value of commodity exporter",
                     "P_commodity": "Commodity price",
                 },
-                example_calculation=(self._calculate_commodity_currency_examples(graph)),
+                example_calculation=(
+                    self._calculate_commodity_currency_examples(graph)
+                ),
                 category="Cross-Asset",
                 r_squared=0.65,
             )
@@ -359,39 +390,65 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _calculate_empirical_relationships(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
-        pass
+    @staticmethod
+    def _calculate_empirical_relationships(
+        graph: AssetRelationshipGraph,
+    ) -> Dict[str, Any]:
+        """
+        Stub for calculating empirical relationships between assets.
+
+        Returns:
+            Empty dictionary. Actual implementation pending.
+        """
+        return {}
 
     @staticmethod
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
-        """Calculate average correlation strength in the graph"""
-        total_relationships = sum(len(rels) for rels in graph.relationships.values())
-        if total_relationships > 0:
-            return min(0.75, total_relationships / len(graph.assets) * 0.1)
+        """Calculate the average correlation strength in the graph."""
+        strengths = [
+            strength for rels in graph.relationships.values() for _, _, strength in rels
+        ]
+        if strengths:
+            avg_strength = sum(strengths) / len(strengths)
+            return min(0.75, max(0.0, avg_strength))
         return 0.5
 
-    def _categorize_formulas(self, formulas: List[Formula]) -> Dict[str, int]:
-        """Categorize formulas by type"""
+    @staticmethod
+    def _categorize_formulas(formulas: List[Formula]) -> Dict[str, int]:
+        """Categorize formulas by type."""
         categories = {}
         for formula in formulas:
             category = formula.category
             categories[category] = categories.get(category, 0) + 1
         return categories
 
-    def _generate_formula_summary(self, formulas: List[Formula], empirical_relationships: Dict) -> Dict[str, Any]:
-        """Generate a comprehensive summary of formulaic analysis"""
-        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
+    def _generate_formula_summary(
+        self,
+        formulas: List[Formula],
+        empirical_relationships: Dict,
+    ) -> Dict[str, Any]:
+        """Generate a summary of formulaic analysis results."""
+        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
+            empirical_relationships
+        )
         return {
             "total_formulas": len(formulas),
-            "avg_r_squared": sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0,
+            "avg_r_squared": (
+                sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0
+            ),
             "formula_categories": self._categorize_formulas(formulas),
-            "empirical_data_points": len(empirical_relationships.get("correlation_matrix", {})),
+            "empirical_data_points": len(
+                empirical_relationships.get("correlation_matrix", {})
+            ),
             "key_insights": [
                 f"Identified {len(formulas)} mathematical relationships",
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
                 ("Portfolio theory formulas available for multi-asset analysis"),
-                ("Cross-asset relationships identified between " "commodities and currencies"),
+                (
+                    "Cross-asset relationships identified between "
+                    "commodities and currencies"
+                ),
             ],
         }
 
@@ -403,5 +460,277 @@ class FormulaicAnalyzer:
         correlations = empirical_relationships.get("correlation_matrix", {})
         if correlations:
             valid_correlations = [v for v in correlations.values() if v < 1.0]
-            return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
+            return (
+                sum(valid_correlations) / len(valid_correlations)
+                if valid_correlations
+                else 0.5
+            )
         return 0.5
+
+    @staticmethod
+    def _has_equities(graph: AssetRelationshipGraph) -> bool:
+        """Check if the graph contains equity assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_bonds(graph: AssetRelationshipGraph) -> bool:
+        """Check if graph contains bond/fixed income assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.FIXED_INCOME
+            for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_commodities(graph: AssetRelationshipGraph) -> bool:
+        """Check if the graph contains commodity assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_currencies(graph: AssetRelationshipGraph) -> bool:
+        """Check if the graph contains currency assets."""
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
+        """Check if the graph contains equity assets with positive dividend yields.
+
+        This method evaluates the assets within the provided graph to determine if any
+        of them are classified as equity and possess a non-null, positive dividend
+        yield. It iterates through the assets in the graph and checks for the
+        necessary conditions to identify dividend stocks.
+        """
+        from src.models.financial_models import AssetClass
+
+        return any(
+            asset.asset_class == AssetClass.EQUITY
+            and hasattr(asset, "dividend_yield")
+            and asset.dividend_yield is not None
+            and asset.dividend_yield > 0
+            for asset in graph.assets.values()
+        )
+
+    @staticmethod
+    def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example P/E ratio calculations from graph data.
+
+        This static method iterates through the assets in the provided
+        AssetRelationshipGraph to generate example price-to-earnings (P/E) ratio
+        calculations. It specifically checks for assets of the EQUITY class that have
+        a defined P/E ratio. The method collects up to two examples and formats them
+        for output. If no valid examples are found, a default example is returned.
+        """
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "pe_ratio")
+                and asset.pe_ratio is not None
+            ):
+                examples.append(f"{asset.symbol}: PE = {asset.pe_ratio:.2f}")
+                if len(examples) >= 2:
+                    break
+        return (
+            "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
+        )
+
+    @staticmethod
+    def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example dividend yield calculations from graph data.
+
+        This static method iterates through the assets in the provided
+        AssetRelationshipGraph, checking for assets of the EQUITY class that have a
+        defined dividend yield. It collects formatted strings representing the yield
+        percentage and price for each qualifying asset, stopping after two examples.
+        If no examples are found, it returns a default example calculation.
+        """
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "dividend_yield")
+                and asset.dividend_yield is not None
+            ):
+                yield_pct = asset.dividend_yield * 100
+                examples.append(
+                    f"{asset.symbol}: Yield = {yield_pct:.2f}% "
+                    f"at price ${asset.price:.2f}"
+                )
+                if len(examples) >= 2:
+                    break
+        return (
+            "; ".join(examples)
+            if examples
+            else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
+        )
+
+    @staticmethod
+    def _calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example YTM calculations from graph data.
+
+        This static method iterates through the assets in the provided
+        AssetRelationshipGraph and collects examples of yield to maturity (YTM)
+        calculations for assets classified as FIXED_INCOME. It checks if each asset
+        has a valid yield to maturity and formats the results into a string. The
+        method returns a string containing up to two examples or a default message if
+        no valid examples are found.
+        """
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.FIXED_INCOME
+                and hasattr(asset, "yield_to_maturity")
+                and asset.yield_to_maturity is not None
+            ):
+                ytm_pct = asset.yield_to_maturity * 100
+                examples.append(f"{asset.symbol}: YTM ≈ {ytm_pct:.2f}%")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: YTM ≈ 3.0%"
+
+    @staticmethod
+    def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example market cap calculations from graph data.
+
+        This static method iterates through the assets in the provided
+        AssetRelationshipGraph and generates market cap examples for assets classified
+        as EQUITY. It checks for the presence of a market cap attribute and collects
+        the first two valid examples, formatting them in billions. If no valid
+        examples are found, a default message is returned.
+        """
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "market_cap")
+                and asset.market_cap is not None
+            ):
+                cap_billions = asset.market_cap / 1e9
+                examples.append(f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: Market Cap = $1.5T"
+
+    @staticmethod
+    def _calculate_beta_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate a string representing beta calculations."""
+        return "Beta calculated from historical returns vs market index"
+
+    @staticmethod
+    def _calculate_correlation_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate correlation calculation examples from asset relationships."""
+        if graph.relationships:
+            count = sum(len(rels) for rels in graph.relationships.values())
+            return f"Calculated from {count} asset pair relationships"
+        return "Correlation between asset pairs calculated from price movements"
+
+    @staticmethod
+    def _calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example P/B ratio calculations from graph data.
+
+        This static method calculates the price-to-book (P/B) ratio for assets in
+        the provided AssetRelationshipGraph.
+
+        It iterates through the assets, checking if each asset is of the EQUITY
+        class and has a valid book value.
+
+        The method computes the P/B ratio for qualifying assets and collects
+        examples until two are found, returning them as a formatted string.
+
+        If no examples are found, a default example is returned.
+
+        Args:
+            graph (AssetRelationshipGraph): The graph containing asset data for
+                analysis.
+        """
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "book_value")
+                and asset.book_value is not None
+            ):
+                pb_ratio = asset.price / asset.book_value if asset.book_value else 0
+                examples.append(f"{asset.symbol}: P/B = {pb_ratio:.2f}")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: P/B = 150 / 50 = 3.0"
+
+    @staticmethod
+    def _calculate_sharpe_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example Sharpe ratio calculations."""
+        return "Sharpe = (10% - 2%) / 15% = 0.53"
+
+    @staticmethod
+    def _calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example volatility calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        examples = []
+        for asset in graph.assets.values():
+            if (
+                asset.asset_class == AssetClass.COMMODITY
+                and hasattr(asset, "volatility")
+                and asset.volatility is not None
+            ):
+                vol_pct = asset.volatility * 100
+                examples.append(f"{asset.symbol}: σ = {vol_pct:.2f}%")
+                if len(examples) >= 2:
+                    break
+        return "; ".join(examples) if examples else "Example: σ = 20% annualized"
+
+    @staticmethod
+    def _calculate_portfolio_return_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example portfolio return calculations."""
+        return "Example: E(Rp) = 0.6 × 10% + 0.4 × 5% = 8%"
+
+    @staticmethod
+    def _calculate_portfolio_variance_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example portfolio variance calculations."""
+        return (
+            "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + "
+            "(2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
+        )
+
+    @staticmethod
+    def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate example exchange rate calculations from graph data."""
+        from src.models.financial_models import AssetClass
+
+        currencies = [
+            asset
+            for asset in graph.assets.values()
+            if asset.asset_class == AssetClass.CURRENCY
+        ]
+        if len(currencies) >= 2:
+            c1, c2 = currencies[0], currencies[1]
+            return f"{c1.symbol}/USD × USD/{c2.symbol} = {c1.symbol}/{c2.symbol}"
+        return "Example: USD/EUR × EUR/GBP = USD/GBP"
+
+    @staticmethod
+    def _calculate_commodity_currency_examples(graph: AssetRelationshipGraph) -> str:
+        """Generate an example of a commodity-currency relationship calculation."""
+        return "Example: As oil prices rise, USD strengthens (inverse relationship)"
