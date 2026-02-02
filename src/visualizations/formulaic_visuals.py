@@ -91,7 +91,9 @@ class FormulaicVisualizer:
 
         sorted_formulas = self._get_sorted_formulas(formulas)
         top_formulas = sorted_formulas[:10]
-        names, categories, r_squares = self._extract_formula_table_data(top_formulas)
+        names = [self._format_name(f.name) for f in top_formulas]
+        categories = [f.category for f in top_formulas]
+        r_squares = [f"{f.r_squared:.3f}" for f in top_formulas]
 
         fig.add_trace(
             go.Table(
