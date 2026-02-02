@@ -1,9 +1,9 @@
 import json
 import logging
 from dataclasses import asdict
+from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
-from enum import Enum
 
 import yfinance as yf
 
