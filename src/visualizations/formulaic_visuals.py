@@ -330,7 +330,6 @@ class FormulaicVisualizer:
             ),
             showarrow=False,
         )
-        )
 
     @ staticmethod
     def create_correlation_network(
