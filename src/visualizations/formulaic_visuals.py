@@ -54,6 +54,7 @@ class FormulaicVisualizer:
         self._plot_key_formula_examples(fig, formulas)
 
         return fig
+
     def _plot_category_distribution(self, fig: go.Figure, formulas: Any) -> None:
         """Plot distribution of formulas across categories using pie and
         bar charts."""
