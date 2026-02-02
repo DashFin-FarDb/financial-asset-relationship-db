@@ -40,9 +40,7 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """
-        Create an AssetRelationshipGraph populated with real financial data.
-        """
+        """Create an AssetRelationshipGraph populated with real financial data."""
         if self.cache_path and self.cache_path.exists():
             try:
                 logger.info("Loading asset graph from cache at %s", self.cache_path)
@@ -91,6 +89,11 @@ class RealDataFetcher:
         return self._fallback()
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
+        """Persist the asset relationship graph to the cache file specified by cache_path.
+
+        Serializes the graph to a temporary file and atomically replaces the cache file.
+        Logs an exception if persisting the cache fails.
+        """
         import os
         import tempfile
 
@@ -116,14 +119,15 @@ class RealDataFetcher:
             )
 
     def _fallback(self) -> AssetRelationshipGraph:
+        """Return a fallback AssetRelationshipGraph using sample data.
+
+        Called when real data fetching fails; returns a default sample graph.
         """
-        Select a fallback AssetRelationshipGraph when real data cannot be fetched.
-        """
+        """Select a fallback AssetRelationshipGraph when real data cannot be fetched."""
         if self.fallback_factory:
             return self.fallback_factory()
 
         from src.data.sample_data import create_sample_database
-
         return create_sample_database()
 
 
@@ -148,28 +152,28 @@ def _fetch_equity_data() -> List[Equity]:
                 logger.warning("No price data for %s", symbol)
                 continue
 
-                current_price = float(hist["Close"].iloc[-1])
+            current_price = float(hist["Close"].iloc[-1])
 
-                equity = Equity(
-                    id=symbol,
-                    symbol=symbol,
-                    name=name,
-                    asset_class=AssetClass.EQUITY,
-                    sector=sector,
-                    price=current_price,
-                    market_cap=info.get("marketCap"),
-                    pe_ratio=info.get("trailingPE"),
-                    dividend_yield=info.get("dividendYield"),
-                    earnings_per_share=info.get("trailingEps"),
-                    book_value=info.get("bookValue"),
-                )
-                equities.append(equity)
-                logger.info(
-                    "Fetched price for %s (%s): %s",
-                    symbol,
-                    name,
-                    current_price,
-                )
+            equity = Equity(
+                id=symbol,
+                symbol=symbol,
+                name=name,
+                asset_class=AssetClass.EQUITY,
+                sector=sector,
+                price=current_price,
+                market_cap=info.get("marketCap"),
+                pe_ratio=info.get("trailingPE"),
+                dividend_yield=info.get("dividendYield"),
+                earnings_per_share=info.get("trailingEps"),
+                book_value=info.get("bookValue"),
+            )
+            equities.append(equity)
+            logger.info(
+                "Fetched price for %s (%s): %s",
+                symbol,
+                name,
+                current_price,
+            )
 
         except Exception as e:
             logger.error("Failed to fetch data for %s: %s", symbol, e)
@@ -211,56 +215,29 @@ def _fetch_equity_data() -> List[Equity]:
 
                 current_price = float(hist["Close"].iloc[-1])
 
-                bond = Bond(
-                    id=symbol,
-                    symbol=symbol,
-                    name=name,
-                    asset_class=AssetClass.FIXED_INCOME,
-                    sector=sector,
-                    price=current_price,
-                    yield_to_maturity=info.get(
-                        "yield", 0.03
-                    ),  # Default 3% if not available
-                    coupon_rate=info.get("yield", 0.025),  # Approximate
-                    maturity_date="2035-01-01",  # Approximate for ETFs
-                    credit_rating=rating,
-                    issuer_id=issuer_id,
-                )
-                bonds.append(bond)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+            bond = Bond(
+                id=symbol,
+                symbol=symbol,
+                name=name,
+                asset_class=AssetClass.FIXED_INCOME,
+                sector=sector,
+                price=current_price,
+                yield_to_maturity=info.get(
+                    "yield", 0.03
+                ),  # Default 3% if not available
+                coupon_rate=info.get("yield", 0.025),  # Approximate
+                maturity_date="2035-01-01",  # Approximate for ETFs
+                credit_rating=rating,
+                issuer_id=issuer_id,
+            )
+            bonds.append(bond)
+            logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
 
-            except Exception as e:
-                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
-                continue
+        except Exception as e:
+            logger.error("Failed to fetch bond data for %s: %s", symbol, e)
+            continue
 
-        return bonds
-
-    @staticmethod
-    def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity data.
-
-        This method retrieves the latest price and volatility data for a set of
-        predefined commodity symbols. It utilizes the `yfinance` library to fetch
-        historical price data and calculates the current price and volatility for each
-        commodity. If any data retrieval fails, it logs an error and continues with
-        the next symbol. The resulting list of `Commodity` objects is returned for
-        further processing.
-        """
-        commodity_symbols = {
-            "GC=F": ("Gold Futures", "Precious Metals", 100),
-            "CL=F": ("Crude Oil Futures", "Energy", 1000),
-            "SI=F": ("Silver Futures", "Precious Metals", 5000),
-        }
-
-        commodities = []
-        for symbol, (name, sector, contract_size) in commodity_symbols.items():
-            try:
-                ticker = yf.Ticker(symbol)
-                hist = ticker.history(period="1d")
-
-                if hist.empty:
-                    logger.warning("No price data for %s", symbol)
-                    continue
+    return bonds
 
                 current_price = float(hist["Close"].iloc[-1])
 
@@ -462,7 +439,6 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             - "relationships": mapping from source id to a list of outgoing
     relationships
     """
-
     # Compute incoming_relationships from relationships
 
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
