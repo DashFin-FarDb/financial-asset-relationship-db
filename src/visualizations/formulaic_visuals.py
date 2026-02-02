@@ -141,44 +141,6 @@ class FormulaicVisualizer:
         names = [
             FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
-        categories = [getattr(f, "category", "N/A") for f in formulas]
-        r_squares = [
-            FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
-            for f in formulas
-        ]
-        return names, categories, r_squares
-
-        # 4. Asset Class Relationships
-        asset_class_data = self.empirical_relationships.get(
-            "asset_class_relationships", {}
-        )
-        if asset_class_data:
-            classes = list(asset_class_data.keys())
-            asset_counts = [data["asset_count"] for data in asset_class_data.values()]
-
-            fig.add_trace(
-                go.Bar(
-                    x=classes,
-                    y=asset_counts,
-                    name="Asset Count",
-                    marker=dict(color="lightblue"),
-                    yaxis="y",
-                    offsetgroup=1,
-                ),
-                row=2,
-                col=2,
-            )
-
-        # 5. Sector Analysis
-        sector_data = self.empirical_relationships.get("sector_relationships", {})
-        if sector_data:
-            sectors = list(sector_data.keys())[:6]  # Limit to top 6 sectors
-            sector_counts = [sector_data[sector]["asset_count"] for sector in sectors]
-
-            fig.add_trace(
-                go.Bar(
-                    x=sectors,
-                    y=sector_counts,
                     marker=dict(color="lightgreen"),
                     text=sector_counts,
                     textposition="auto",
