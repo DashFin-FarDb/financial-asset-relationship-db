@@ -420,16 +420,16 @@ class TestPRAgentConfigSecurity:
                     key_lower = str(k).lower()
                     new_path = f"{path}.{k}"
 
-                       if any(p in key_lower for p in SENSITIVE_PATTERNS):
-                            assert is_allowed_placeholder(v), (
-                                f"Potential hardcoded credential at '{new_path}'"
-                            )
+                    if any(p in key_lower for p in SENSITIVE_PATTERNS):
+                        assert is_allowed_placeholder(v), (
+                            f"Potential hardcoded credential at '{new_path}'"
+                        )
 
-                        scan_for_secrets(v, new_path)
+                    scan_for_secrets(v, new_path)
 
-                elif isinstance(node, (list, tuple)):
-                    for i, item in enumerate(node):
-                        scan_for_secrets(item, f"{path}[{i}]")
+            elif isinstance(node, (list, tuple)):
+                for i, item in enumerate(node):
+                    scan_for_secrets(item, f"{path}[{i}]")
 
             scan_for_secrets(pr_agent_config)
 

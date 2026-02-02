@@ -346,7 +346,6 @@ class TestBuildMcpApp:
                 assert "mutation not supported" in result.lower()
 
     @staticmethod
-    """Unit tests for the mcp_server 3D layout resource functionality."""
     def test_get_3d_layout_resource_returns_json():
         """Test get_3d_layout resource returns JSON."""
         from mcp_server import _build_mcp_app
