@@ -234,14 +234,14 @@ def _fetch_equity_data() -> List[Equity]:
     return bonds
 
                 # Calculate simple volatility from recent data
-                hist_week= ticker.history(period="5d")
-                volatility= (
+                hist_week = ticker.history(period="5d")
+                volatility = (
                     float(hist_week["Close"].pct_change().std())
                     if len(hist_week) > 1
                     else 0.20
                 )
 
-                commodity= Commodity(
+                commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
                     symbol=symbol,
                     name=name,
