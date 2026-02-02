@@ -763,7 +763,7 @@ class TestIntegration:
             # Verify it was added to graph
             assert "INTEG1" in graph._graph.assets
 
-    
+
     @staticmethod
     def test_3d_layout_reflects_added_assets():
         """Test that 3D layout resource reflects added assets."""
