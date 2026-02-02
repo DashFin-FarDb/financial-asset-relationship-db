@@ -806,7 +806,7 @@ class TestConcurrency:
 
             tool_func = None
 
-             def capture_tool():
+            def capture_tool():
                   """Capture the MCP tool function by decorating it, storing it for later invocation in concurrent tests."""
                    def decorator(func):
                         """Decorator that wraps the tool function, capturing the original function reference."""
