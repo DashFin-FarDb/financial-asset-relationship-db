@@ -394,7 +394,7 @@ class TestBuildMcpApp:
 
     """Unit tests for the mcp_server module: tests capturing resources and verifying 3D layout endpoint behavior."""
 
-    
+
     @staticmethod
     def test_get_3d_layout_resource_with_empty_graph():
         """Test get_3d_layout resource with empty graph."""
@@ -414,7 +414,7 @@ class TestBuildMcpApp:
                     return func
                 return decorator
 
-            mock_instance.resource = capture_resource 
+            mock_instance.resource = capture_resource
 
             # Mock graph with empty visualization data
             with patch("mcp_server.graph") as mock_graph:
