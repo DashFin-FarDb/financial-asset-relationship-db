@@ -410,7 +410,7 @@ class TestPRAgentConfigSecurity:
                 return True
 
             return False
-            
+
 
     def scan_for_secrets(node: object, path: str = "root") -> None:
 
