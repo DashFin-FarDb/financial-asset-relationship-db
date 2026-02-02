@@ -9,6 +9,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
 
+# ---------------------------------------------------------------------------
+# Foreign key target constants (avoid duplicated string literals – Sonar S1192)
+# ---------------------------------------------------------------------------
+
+ASSET_ID_FK = "assets.id"
+REGULATORY_EVENT_ID_FK = "regulatory_events.id"
+
 
 class AssetORM(Base):
     """Persistent representation of an asset."""
@@ -60,7 +67,9 @@ class AssetORM(Base):
         foreign_keys="AssetRelationshipORM.target_asset_id",
     )
     regulatory_events: Mapped[List["RegulatoryEventORM"]] = relationship(
-        "RegulatoryEventORM", back_populates="asset", cascade="all, delete-orphan"
+        "RegulatoryEventORM",
+        back_populates="asset",
+        cascade="all, delete-orphan",
     )
 
 
@@ -79,11 +88,11 @@ class AssetRelationshipORM(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     source_asset_id: Mapped[str] = mapped_column(
-        ForeignKey("assets.id", ondelete="CASCADE"),
+        ForeignKey(ASSET_ID_FK, ondelete="CASCADE"),
         nullable=False,
     )
     target_asset_id: Mapped[str] = mapped_column(
-        ForeignKey("assets.id", ondelete="CASCADE"),
+        ForeignKey(ASSET_ID_FK, ondelete="CASCADE"),
         nullable=False,
     )
     relationship_type: Mapped[str] = mapped_column(String, nullable=False)
@@ -113,7 +122,8 @@ class RegulatoryEventORM(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
     asset_id: Mapped[str] = mapped_column(
-        ForeignKey("assets.id", ondelete="CASCADE"), nullable=False
+        ForeignKey(ASSET_ID_FK, ondelete="CASCADE"),
+        nullable=False,
     )
     event_type: Mapped[str] = mapped_column(String, nullable=False)
     date: Mapped[str] = mapped_column(String, nullable=False)
@@ -121,10 +131,13 @@ class RegulatoryEventORM(Base):
     impact_score: Mapped[float] = mapped_column(Float, nullable=False)
 
     asset: Mapped[AssetORM] = relationship(
-        "AssetORM", back_populates="regulatory_events"
+        "AssetORM",
+        back_populates="regulatory_events",
     )
     related_assets: Mapped[List["RegulatoryEventAssetORM"]] = relationship(
-        "RegulatoryEventAssetORM", back_populates="event", cascade="all, delete-orphan"
+        "RegulatoryEventAssetORM",
+        back_populates="event",
+        cascade="all, delete-orphan",
     )
 
 
@@ -142,11 +155,11 @@ class RegulatoryEventAssetORM(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     event_id: Mapped[str] = mapped_column(
-        ForeignKey("regulatory_events.id", ondelete="CASCADE"),
+        ForeignKey(REGULATORY_EVENT_ID_FK, ondelete="CASCADE"),
         nullable=False,
     )
     asset_id: Mapped[str] = mapped_column(
-        ForeignKey("assets.id", ondelete="CASCADE"),
+        ForeignKey(ASSET_ID_FK, ondelete="CASCADE"),
         nullable=False,
     )
 
