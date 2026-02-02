@@ -343,7 +343,7 @@ class TestPRAgentConfigSecurity:
         - `limits['max_concurrent_prs']` is less than or equal to 10.
         - `limits['rate_limit_requests']` is less than or equal to 1000.
         """
-        """
+        limits = pr_agent_config["limits"]
         limits = pr_agent_config["limits"]
 
         # Check for reasonable numeric limits
