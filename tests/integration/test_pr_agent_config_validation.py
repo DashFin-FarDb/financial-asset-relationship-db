@@ -8,7 +8,6 @@ Tests the simplified PR agent configuration, ensuring:
 - Simplified configuration structure
 """
 
-import re
 from enum import Enum
 from pathlib import Path
 
