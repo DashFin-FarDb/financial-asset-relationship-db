@@ -750,7 +750,7 @@ class TestIntegration:
                         return func
 
                     return decorator
-
+result = resource_func()
             mock_fastmcp_class.tool = capture_tool()
 
             _build_mcp_app()
