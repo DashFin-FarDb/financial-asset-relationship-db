@@ -207,27 +207,27 @@ class RealDataFetcher:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-            current_price = float(hist["Close"].iloc[-1])
-            bond = Bond(
-                id=symbol,
-                symbol=symbol,
-                name=name,
-                asset_class=AssetClass.FIXED_INCOME,
-                sector=sector,
-                price=current_price,
-                yield_to_maturity=info.get(
-                    "yield", 0.03
-                ),  # Default 3% if not available
-                coupon_rate=info.get("yield", 0.025),  # Approximate
-                maturity_date="2035-01-01",  # Approximate for ETFs
-                credit_rating=rating,
-                issuer_id=issuer_id,
-            )
-            bonds.append(bond)
-            logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
-        except Exception as e:
-            logger.error("Failed to fetch bond data for %s: %s", symbol, e)
-            continue
+                current_price = float(hist["Close"].iloc[-1])
+                bond = Bond(
+                    id=symbol,
+                    symbol=symbol,
+                    name=name,
+                    asset_class=AssetClass.FIXED_INCOME,
+                    sector=sector,
+                    price=current_price,
+                    yield_to_maturity=info.get(
+                        "yield", 0.03
+                    ),  # Default 3% if not available
+                    coupon_rate=info.get("yield", 0.025),  # Approximate
+                    maturity_date="2035-01-01",  # Approximate for ETFs
+                    credit_rating=rating,
+                    issuer_id=issuer_id,
+                )
+                bonds.append(bond)
+                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+            except Exception as e:
+                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
+                continue
 
     return bonds
 
