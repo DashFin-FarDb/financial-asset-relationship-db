@@ -51,9 +51,14 @@ def sample_graph():
 class TestThreadSafeGraph:
     """Tests for the _ThreadSafeGraph proxy class."""
 
-    @staticmethod
-    def test_thread_safe_graph_initialization():
-        """Test _ThreadSafeGraph initializes with graph and lock."""
+    def test_thread_safe_graph_initialization() -> None:
+        """Test _ThreadSafeGraph initializes with graph and lock.
+
+        Returns:
+            None
+        Raises:
+            AssertionError: If the proxy does not wrap the graph and lock.
+        """
         import threading
 
         from mcp_server import _ThreadSafeGraph
@@ -67,8 +72,14 @@ class TestThreadSafeGraph:
         assert ts_graph._lock is lock
 
     @staticmethod
-    def test_thread_safe_graph_callable_attribute_access():
-        """Test accessing callable attributes returns wrapped version."""
+    def test_thread_safe_graph_callable_attribute_access() -> None:
+        """Test accessing callable attributes returns wrapped version.
+
+        Returns:
+            None
+        Raises:
+            AssertionError: If the proxy does not return a wrapped version.
+        """"
         import threading
 
         from mcp_server import _ThreadSafeGraph
@@ -83,8 +94,14 @@ class TestThreadSafeGraph:
         assert callable(add_asset)
 
     @staticmethod
-    def test_thread_safe_graph_non_callable_attribute_access():
-        """Test accessing non-callable attributes returns deep copy."""
+    def test_thread_safe_graph_non_callable_attribute_access() -> None:
+        """Test accessing non-callable attributes returns deep copy.
+
+        Returns:
+            None
+        Raises: 
+            Exception
+        """
         import threading
 
         from mcp_server import _ThreadSafeGraph
@@ -113,8 +130,14 @@ class TestThreadSafeGraph:
         assert "NEW_ASSET" not in graph.assets
 
     @staticmethod
-    def test_thread_safe_graph_method_execution_uses_lock():
-        """Unit tests for mcp_server._ThreadSafeGraph lock acquisition behavior."""
+    def test_thread_safe_graph_method_execution_uses_lock() -> None:
+        """Unit tests for mcp_server._ThreadSafeGraph lock acquisition behavior.
+
+        Returns:
+            None
+        Raises: 
+            Exception
+        """
         import threading
 
         from mcp_server import _ThreadSafeGraph
@@ -150,8 +173,14 @@ class TestThreadSafeGraph:
         assert len(lock_acquired) > 0
 
     @staticmethod
-    def test_thread_safe_graph_concurrent_access():
-        """Test concurrent access to thread-safe graph."""
+    def test_thread_safe_graph_concurrent_access() -> None:
+        """Test concurrent access to thread-safe graph.
+
+        Retrurns:
+            None
+        Raises:
+            Exception
+        """
         import threading
         import time
 
@@ -163,8 +192,14 @@ class TestThreadSafeGraph:
 
         errors = []
 
-        def add_assets(start_id):
-            """Add assets to the thread-safe graph using the given start_id to generate unique asset identifiers and test concurrent addition."""
+        def add_assets(start_id: int) -> None:
+            """Add assets to the thread-safe graph using the given start_id to generate unique asset identifiers and test concurrent addition.
+
+            Returns:
+                None
+            Raises:
+                Exception: Propagated from asset creation or add_asset.
+            """
             try:
                 for i in range(5):
                     equity = Equity(
