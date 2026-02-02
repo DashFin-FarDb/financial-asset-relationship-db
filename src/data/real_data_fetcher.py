@@ -403,12 +403,6 @@ def _enum_to_value(value: Any) -> Any:
     Returns:
         Any: The underlying value of the Enum member if `value` is an Enum;
         otherwise, the original value.
-    """
-    from enum import Enum
-
-    return value.value if isinstance(value, Enum) else value
-
-
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
     Serialize a dataclass instance into a JSON - friendly dictionary
@@ -428,7 +422,7 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     return serialized
 
 
- def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
+def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """Serialize an AssetRelationshipGraph into a JSON - serializable dictionary.
 
     This function processes the given AssetRelationshipGraph to create a structured
