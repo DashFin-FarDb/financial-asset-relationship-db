@@ -651,13 +651,14 @@ class FormulaicAnalyzer:
     def _calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P/B ratio calculations from graph data.
 
-        This static method calculates the price-to-book (P/B) ratio for assets in the provided AssetRelationshipGraph.
+        This static method calculates the price-to-book (P/B) ratio for assets in the
+        provided AssetRelationshipGraph.
 
         It iterates through the assets, checking if each asset is
         of the EQUITY class and has a valid book value.
 
-        The method computes the P/B ratio for qualifying assets and collects
-        examples until two are found, returning them as a formatted string.
+        The method computes the P/B ratio for qualifying assets and collects examples.
+        Examples are collected until two are found and returned as a formatted string.
 
         If no examples are found, a default example is returned.
 

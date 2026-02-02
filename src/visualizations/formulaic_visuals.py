@@ -148,31 +148,26 @@ class FormulaicVisualizer:
             for f in formulas
         ]
         return names, categories, r_squares
-                set(
-                    [pair.split("-")[0] for pair in correlation_matrix.keys()]
-                    + [pair.split("-")[1] for pair in correlation_matrix.keys()]
-                )
-            )
 
-            fig = make_subplots(rows=3, cols=2)
-            # Create correlation matrix
-            n_assets = min(len(assets), 8)  # Limit to 8x8 for visibility
-            assets = assets[:n_assets]
+        fig = make_subplots(rows=3, cols=2)
+        # Create correlation matrix
+        n_assets = min(len(assets), 8)  # Limit to 8x8 for visibility
+        assets = assets[:n_assets]
 
-            z_matrix = []
-            for i, asset1 in enumerate(assets):
-                row = []
-                for j, asset2 in enumerate(assets):
-                    if i == j:
-                        corr = 1.0
-                    else:
-                        key1 = f"{asset1}-{asset2}"
-                        key2 = f"{asset2}-{asset1}"
-                        corr = correlation_matrix.get(
-                            key1, correlation_matrix.get(key2, 0.5)
-                        )
-                    row.append(corr)
-                z_matrix.append(row)
+        z_matrix = []
+        for i, asset1 in enumerate(assets):
+            row = []
+            for j, asset2 in enumerate(assets):
+                if i == j:
+                    corr = 1.0
+                else:
+                    key1 = f"{asset1}-{asset2}"
+                    key2 = f"{asset2}-{asset1}"
+                    corr = correlation_matrix.get(
+                        key1, correlation_matrix.get(key2, 0.5)
+                    )
+                row.append(corr)
+            z_matrix.append(row)
 
             fig.add_trace(
                 go.Heatmap(
