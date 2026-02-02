@@ -139,8 +139,7 @@ class FormulaicVisualizer:
     def _extract_formula_table_data(formulas: Any) -> tuple:
         """Helper to extract names, categories, and r-squared values for table."""
         names = [
-            FormulaicVisualizer._format_name(getattr(f, "name", None))
-            for f in formulas
+            FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
         categories = [getattr(f, "category", "N/A") for f in formulas]
         r_squares = [
