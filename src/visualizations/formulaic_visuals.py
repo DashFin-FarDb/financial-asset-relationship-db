@@ -141,9 +141,9 @@ class FormulaicVisualizer:
         names = [
             FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
-                    marker=dict(color="lightgreen"),
-                    text=sector_counts,
-                    textposition="auto",
+                    marker = dict(color="lightgreen"),
+                    text = sector_counts,
+                    textposition = "auto",
                 ),
                 row=3,
                 col=1,
