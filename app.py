@@ -176,11 +176,6 @@ class FinancialAssetApp:
                 metrics["asset_class_distribution"], indent=2
             ),
         )
-        idx = None
-        s = None
-        t = None
-        rel = None
-        strength = None
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
             text += f"{idx}. {s} → {t} ({rel}): {strength:.1%}\n"
         return text
