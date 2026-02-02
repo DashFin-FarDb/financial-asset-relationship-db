@@ -625,18 +625,18 @@ class TestEdgeCases:
 
             assert "Successfully" in result or "validated" in result.lower()
 
-             _build_mcp_app()
+            _build_mcp_app()
 
-              # Test with very large price
-              result = tool_func(
-                   asset_id="LARGE",
-                   symbol="LRG",
-                   name="Expensive Stock",
-                   sector="Tech",
-                   price=1e15,  # Very large but positive
-                   )
+            # Test with very large price
+            result = tool_func(
+                asset_id="LARGE",
+                symbol="LRG",
+                name="Expensive Stock",
+                sector="Tech",
+                price=1e15,  # Very large but positive
+            )
 
-               assert "Successfully" in result or "validated" in result.lower()
+            assert "Successfully" in result or "validated" in result.lower()
 
     @staticmethod
     def test_3d_layout_with_nan_positions():
