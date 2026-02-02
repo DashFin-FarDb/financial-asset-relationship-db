@@ -156,15 +156,13 @@ class FormulaicVisualizer:
             zmin=-1,
             zmax=1,
             text=[[f"{val:.2f}" for val in row] for row in z_matrix],
-        )
+            texttemplate="%{text}",
+            textfont={"size": 10},
+            colorbar=dict(title="Correlation"),
+        ),
+        row=2,
+        col=1,
     )
-                    texttemplate = "%{text}",
-                    textfont = {"size": 10},
-                    colorbar = dict(title="Correlation"),
-                ),
-                row=2,
-                col=1,
-            )
 
         # 4. Asset Class Relationships
         asset_class_data = self.empirical_relationships.get(
