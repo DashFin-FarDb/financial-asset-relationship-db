@@ -125,50 +125,75 @@ class FormulaicVisualizer:
     def _format_name(name: Any, max_length: int = 30) -> str:
         """Format formula name with truncation."""
         if not isinstance(name, str) or not name:
-            return names, categories, r_squares
+            return "N/A"
+        return name if len(name) <= max_length else name[: max_length - 3] + "..."
 
-    fig = make_subplots(rows=3, cols=2)
-    # Create correlation matrix
-    n_assets = min(len(assets), 8)  # Limit to 8x8 for visibility
-    assets = assets[:n_assets]
+    @staticmethod
+    def _format_r_squared(r_value: Any) -> str:
+        """Format r_squared value to 4 decimal places or N/A."""
+        return f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
 
-    z_matrix = []
-    for i, asset1 in enumerate(assets):
-        row = []
-        for j, asset2 in enumerate(assets):
-            if i == j:
-                corr = 1.0
-            else:
-                key1 = f"{asset1}-{asset2}"
-                key2 = f"{asset2}-{asset1}"
-                corr = correlation_matrix.get(
-                    key1, correlation_matrix.get(key2, 0.5)
+    @staticmethod
+    def _extract_formula_table_data(formulas: Any) -> tuple:
+        """Helper to extract names, categories, and r-squared values for table."""
+        names = [
+            FormulaicVisualizer._format_name(getattr(f, "name", None))
+            for f in formulas
+        ]
+        categories = [getattr(f, "category", "N/A") for f in formulas]
+        r_squares = [
+            FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
+            for f in formulas
+        ]
+        return names, categories, r_squares
+                set(
+                    [pair.split("-")[0] for pair in correlation_matrix.keys()]
+                    + [pair.split("-")[1] for pair in correlation_matrix.keys()]
                 )
-            row.append(corr)
-        z_matrix.append(row)
+            )
 
-    fig.add_trace(
-        go.Heatmap(
-            z=z_matrix,
-            x=assets,
-            y=assets,
-            colorscale="RdYlBu_r",
-            zmin=-1,
-            zmax=1,
-            text=[[f"{val:.2f}" for val in row] for row in z_matrix],
-            texttemplate="%{text}",
-            textfont={"size": 10},
-            colorbar=dict(title="Correlation"),
-        ),
-        row=2,
-        col=1,
-    )
+            fig = make_subplots(rows=3, cols=2)
+            # Create correlation matrix
+            n_assets = min(len(assets), 8)  # Limit to 8x8 for visibility
+            assets = assets[:n_assets]
 
-      # 4. Asset Class Relationships
-      asset_class_data = self.empirical_relationships.get(
-           "asset_class_relationships", {}
-           )
-       if asset_class_data:
+            z_matrix = []
+            for i, asset1 in enumerate(assets):
+                row = []
+                for j, asset2 in enumerate(assets):
+                    if i == j:
+                        corr = 1.0
+                    else:
+                        key1 = f"{asset1}-{asset2}"
+                        key2 = f"{asset2}-{asset1}"
+                        corr = correlation_matrix.get(
+                            key1, correlation_matrix.get(key2, 0.5)
+                        )
+                    row.append(corr)
+                z_matrix.append(row)
+
+            fig.add_trace(
+                go.Heatmap(
+                    z=z_matrix,
+                    x=assets,
+                    y=assets,
+                    colorscale="RdYlBu_r",
+                    zmin=-1,
+                    zmax=1,
+                    text=[[f"{val:.2f}" for val in row] for row in z_matrix],
+                    texttemplate="%{text}",
+                    textfont={"size": 10},
+                    colorbar=dict(title="Correlation"),
+                ),
+                row=2,
+                col=1,
+            )
+
+        # 4. Asset Class Relationships
+        asset_class_data = self.empirical_relationships.get(
+            "asset_class_relationships", {}
+        )
+        if asset_class_data:
             classes = list(asset_class_data.keys())
             asset_counts = [data["asset_count"] for data in asset_class_data.values()]
 
