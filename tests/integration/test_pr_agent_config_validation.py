@@ -360,24 +360,24 @@ class TestPRAgentConfigYAMLValidity:
 
             return mapping
 
-        @staticmethod
-        def test_consistent_indentation():
-            """
-            Verify that every non-empty, non-comment line in the PR agent YAML uses two-space indentation increments.
+    @staticmethod
+    def test_consistent_indentation():
+        """
+        Verify that every non-empty, non-comment line in the PR agent YAML uses two-space indentation increments.
 
-            Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
-            """
-            config_path = Path(".github/pr-agent-config.yml")
-            with open(config_path, "r", encoding="utf-8") as f:
-                lines = f.readlines()
+        Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
+        """
+        config_path = Path(".github/pr-agent-config.yml")
+        with open(config_path, "r", encoding="utf-8") as f:
+            lines = f.readlines()
 
-            for i, line in enumerate(lines, 1):
-                if line.strip() and not line.strip().startswith("#"):
-                    indent = len(line) - len(line.lstrip())
-                    if indent > 0:
-                        assert indent % 2 == 0, (
-                            f"Line {i} has inconsistent indentation: {indent} spaces"
-                        )
+        for i, line in enumerate(lines, 1):
+            if line.strip() and not line.strip().startswith("#"):
+                indent = len(line) - len(line.lstrip())
+                if indent > 0:
+                    assert indent % 2 == 0, (
+                        f"Line {i} has inconsistent indentation: {indent} spaces"
+                    )
 
 
 class TestPRAgentConfigSecurity:
@@ -411,23 +411,7 @@ class TestPRAgentConfigSecurity:
 
             return False
 
-    def scan_for_secrets(node: object, path: str = "root") -> None:
-
-    def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
-        """Recursively scan any object for potential secrets."""
-        if isinstance(obj, dict):
-            for value in obj.values():
-                yield from _scan_for_secrets(value)
-        elif isinstance(obj, (list, tuple)):
-            for item in obj:
-                yield from _scan_for_secrets(item)
-        elif isinstance(obj, str) and _looks_like_secret(obj):
-            yield ("secret", obj)
-
-
-def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
-    """Return all potential secrets found in a configuration object."""
-    return list(_scan_for_secrets(config_obj))
+        def scan_for_secrets(node: object, path: str = "root") -> None:
             """
             Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
             """
@@ -436,19 +420,35 @@ def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
                     key_lower = str(k).lower()
                     new_path = f"{path}.{k}"
 
-                    if any(p in key_lower for p in SENSITIVE_PATTERNS):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        if any(p in key_lower for p in SENSITIVE_PATTERNS):
+                            assert is_allowed_placeholder(v), (
+                                f"Potential hardcoded credential at '{new_path}'"
+                            )
 
-                    scan_for_secrets(v, new_path)
+                        scan_for_secrets(v, new_path)
 
-            elif isinstance(node, (list, tuple)):
-                for i, item in enumerate(node):
-                    scan_for_secrets(item, f"{path}[{i}]")
+                elif isinstance(node, (list, tuple)):
+                    for i, item in enumerate(node):
+                        scan_for_secrets(item, f"{path}[{i}]")
 
-        scan_for_secrets(pr_agent_config)
+            scan_for_secrets(pr_agent_config)
 
+
+def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
+    """Recursively scan any object for potential secrets."""
+    if isinstance(obj, dict):
+        for value in obj.values():
+            yield from _scan_for_secrets(value)
+    elif isinstance(obj, (list, tuple)):
+        for item in obj:
+            yield from _scan_for_secrets(item)
+    elif isinstance(obj, str) and _looks_like_secret(obj):
+        yield ("secret", obj)
+
+
+def find_potential_secrets(config_obj: dict) -> list[Tuple[str, str]]:
+    """Return all potential secrets found in a configuration object."""
+    return list(_scan_for_secrets(config_obj))
 
 # Converted to a plain pytest test function (no staticmethod decorator)
 def test_safe_configuration_values(pr_agent_config):
