@@ -158,9 +158,9 @@ class FormulaicVisualizer:
             text=[[f"{val:.2f}" for val in row] for row in z_matrix],
         )
     )
-                    texttemplate="%{text}",
-                    textfont={"size": 10},
-                    colorbar=dict(title="Correlation"),
+                    texttemplate = "%{text}",
+                    textfont = {"size": 10},
+                    colorbar = dict(title="Correlation"),
                 ),
                 row=2,
                 col=1,
