@@ -137,16 +137,16 @@ class TestThreadSafeGraph:
         # Call a method
         equity = Equity(
             id="TEST2",
-                symbol="TST2",
-                name="Test 2",
-                asset_class=AssetClass.EQUITY,
-                sector="Tech",
-                price=50.0,
-            )
-            ts_graph.add_asset(equity)
+            symbol="TST2",
+            name="Test 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=50.0,
+        )
+        ts_graph.add_asset(equity)
 
-            # Verify lock was acquired
-            assert len(lock_acquired) > 0
+        # Verify lock was acquired
+        assert len(lock_acquired) > 0
 
     @staticmethod
     """Module containing unit tests for mcp_server's thread-safe graph concurrent access functionality."""
