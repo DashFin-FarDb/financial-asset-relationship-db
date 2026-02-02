@@ -147,13 +147,13 @@ class FormulaicVisualizer:
         ]
         return names, categories, r_squares
 
-            fig = make_subplots(rows=3, cols=2)
-            # Create correlation matrix
-            n_assets = min(len(assets), 8)  # Limit to 8x8 for visibility
-            assets = assets[:n_assets]
+        fig = make_subplots(rows=3, cols=2)
+        # Create correlation matrix
+        n_assets = min(len(assets), 8)  # Limit to 8x8 for visibility
+         assets = assets[:n_assets]
 
-            z_matrix = []
-            for i, asset1 in enumerate(assets):
+          z_matrix = []
+           for i, asset1 in enumerate(assets):
                 row = []
                 for j, asset2 in enumerate(assets):
                     if i == j:
