@@ -278,7 +278,7 @@ class FormulaicAnalyzer:
         volatility_formula = Formula(
             name="Volatility (Standard Deviation)",
             formula="σ = √(Σ(R_i - μ)² / (n-1))",
-            latex=(r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}" r"(R_i - \mu)^2}{n-1}}"),
+            latex=r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}{n-1}}",
             description="Measure of price variability and risk",
             variables={
                 "σ": "Standard deviation (volatility)",
@@ -352,7 +352,7 @@ class FormulaicAnalyzer:
             exchange_rate_formula = Formula(
                 name="Exchange Rate Relationships",
                 formula="USD/EUR × EUR/GBP = USD/GBP",
-                latex=(r"\frac{USD}{EUR} \times \frac{EUR}{GBP} " r"= \frac{USD}{GBP}"),
+                latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
                 description=("Triangular arbitrage relationship between currencies"),
                 variables={
                     "USD/EUR": "US Dollar to Euro exchange rate",
