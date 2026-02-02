@@ -237,7 +237,12 @@ class RealDataFetcher:
         }
 
         commodities: List[Commodity] = []
-        for symbol, (name, sector, contract_size, volatility) in commodity_symbols.items():
+        for symbol, (
+            name,
+            sector,
+            contract_size,
+            volatility,
+        ) in commodity_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
                 hist = ticker.history(period="1d")
