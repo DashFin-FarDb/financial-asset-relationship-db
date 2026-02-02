@@ -411,9 +411,7 @@ class TestPRAgentConfigSecurity:
 
             return False
 
-
     def scan_for_secrets(node: object, path: str = "root") -> None:
-
 
     def _scan_for_secrets(obj: Any) -> Iterator[Tuple[str, str]]:
         """Recursively scan any object for potential secrets."""
