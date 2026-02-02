@@ -340,11 +340,13 @@ class FormulaicVisualizer:
     def create_correlation_network(
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
-        """Create a network graph showing asset correlations"""
+        """Create a network graph showing asset correlations."""
         strongest_correlations = empirical_relationships.get(
             "strongest_correlations", []
         )
-        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
+        correlation_matrix = empirical_relationships.get(
+            "correlation_matrix", {}
+        )
 
         if not strongest_correlations:
             return FormulaicVisualizer._create_empty_correlation_figure()
@@ -353,98 +355,6 @@ class FormulaicVisualizer:
             strongest_correlations,
             correlation_matrix,
         )
-
-        # Create positions in a circle
-        # Create positions in a circle based on strongest correlations
-        assets = sorted(
-            {corr["asset1"] for corr in strongest_correlations}
-            | {corr["asset2"] for corr in strongest_correlations}
-        )
-        if not assets:
-            assets = list(G.nodes())
-        n_assets = len(assets)
-        if n_assets == 0:
-            positions = {}
-        else:
-            angles = [2 * math.pi * i / n_assets for i in range(n_assets)]
-            positions = {
-                asset: (math.cos(angle), math.sin(angle))
-                for asset, angle in zip(assets, angles)
-            }
-        # Create edge traces
-        edge_traces = []
-        for corr in strongest_correlations[:10]:  # Limit to top 10 correlations
-            asset1, asset2 = corr["asset1"], corr["asset2"]
-            x0, y0 = positions[asset1]
-            x1, y1 = positions[asset2]
-
-            # Color based on correlation strength
-            if corr["correlation"] > 0.7:
-                color = "red"
-                width = 4
-            elif corr["correlation"] > 0.4:
-                color = "orange"
-                width = 3
-            else:
-                color = "lightgray"
-                width = 2
-
-            edge_traces.append(
-                go.Scatter(
-                    x=[x0, x1, None],
-                    y=[y0, y1, None],
-                    mode="lines",
-                    line=dict(color=color, width=width),
-                    hoverinfo="none",
-                    showlegend=False,
-                )
-            )
-
-        # Create node trace
-        node_x = [positions[asset][0] for asset in assets]
-        node_y = [positions[asset][1] for asset in assets]
-        node_text = assets
-
-        node_trace = go.Scatter(
-            x=node_x,
-            y=node_y,
-            mode="markers+text",
-            text=node_text,
-            textposition="top center",
-            marker=dict(
-                showscale=True,
-                colorscale="YlGnBu",
-                size=10,
-                colorbar=dict(
-                    thickness=15,
-                    title="Node Connections",
-                    xanchor="left",
-                    titleside="right",
-                ),
-                line_width=2,
-            ),
-            hoverinfo="text",
-        )
-
-        # Color nodes by degree
-        node_adjacencies = []
-        for _, adjacencies in enumerate(G.adjacency()):
-            node_adjacencies.append(len(adjacencies[1]))
-        node_trace.marker.color = node_adjacencies
-
-        fig = go.Figure(
-            data=[edge_trace, node_trace],
-            layout=go.Layout(
-                title="Correlation Network Graph",
-                titlefont_size=16,
-                showlegend=False,
-                hovermode="closest",
-                margin=dict(b=20, l=5, r=5, t=40),
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            ),
-        )
-        return fig
 
     @staticmethod
     def create_metric_comparison_chart(
@@ -476,7 +386,7 @@ class FormulaicVisualizer:
             category_formulas = categories[category]
             if category_formulas:
                 avg_r_squared = sum(f.r_squared for f in category_formulas) / len(category_formulas)
-        else:
+            else:
                 avg_r_squared = 0.0
             r_squared_by_category.append(avg_r_squared)
             formula_counts.append(len(category_formulas))
