@@ -190,30 +190,20 @@ def _fetch_equity_data() -> List[Equity]:
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
-                "Corporate",
-                None,
-                "A",
-            ),
-            "HYG": (
-                "iShares iBoxx $ High Yield Corporate Bond ETF",
-                "Corporate",
-                None,
-                "BB",
-            ),
-        }
+    }
 
-        bonds = []
-        for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
-            try:
-                ticker = yf.Ticker(symbol)
-                info = ticker.info
-                hist = ticker.history(period="1d")
+    bonds = []
+    for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
+        try:
+            ticker = yf.Ticker(symbol)
+            info = ticker.info
+            hist = ticker.history(period="1d")
 
-                if hist.empty:
-                    logger.warning("No price data for %s", symbol)
-                    continue
+            if hist.empty:
+                logger.warning("No price data for %s", symbol)
+                continue
 
-                current_price = float(hist["Close"].iloc[-1])
+            current_price = float(hist["Close"].iloc[-1])
 
             bond = Bond(
                 id=symbol,
@@ -238,8 +228,6 @@ def _fetch_equity_data() -> List[Equity]:
             continue
 
     return bonds
-
-                current_price = float(hist["Close"].iloc[-1])
 
                 # Calculate simple volatility from recent data
                 hist_week = ticker.history(period="5d")
