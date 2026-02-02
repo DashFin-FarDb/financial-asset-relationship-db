@@ -357,7 +357,7 @@ class TestPRAgentConfigSecurity:
         assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
         assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
         - `limits['rate_limit_requests']` is less than or equal to 1000.
-        """
+        limits = pr_agent_config["limits"]
         limits = pr_agent_config["limits"]
         limits = pr_agent_config["limits"]
 
