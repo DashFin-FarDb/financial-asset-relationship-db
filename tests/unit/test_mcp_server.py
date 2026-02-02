@@ -662,18 +662,18 @@ class TestEdgeCases:
             mock_instance.resource = capture_resource
 
             with patch("mcp_server.graph") as mock_graph:
-                  # Return positions with NaN
-                  mock_graph.get_3d_visualization_data_enhanced.return_value = (
-                       np.array([[1.0, np.nan, 3.0]]),
-                       ["TEST1"],
-                       ["#ff0000"],
-                       ["Test"],
-                       )
+                # Return positions with NaN
+                mock_graph.get_3d_visualization_data_enhanced.return_value = (
+                    np.array([[1.0, np.nan, 3.0]]),
+                    ["TEST1"],
+                    ["#ff0000"],
+                    ["Test"],
+                )
 
-                   _build_mcp_app()
+                _build_mcp_app()
 
-                    result = resource_func()
-                    data = json.loads(result)
+                result = resource_func()
+                data = json.loads(result)
 
                     # NaN should be converted to null in JSON
                     assert data["positions"][0][1] is None or np.isnan(
