@@ -47,10 +47,14 @@ class RealDataFetcher:
                 logger.info("Loading asset graph from cache at %s", self.cache_path)
                 return _load_from_cache(self.cache_path)
             except Exception:
-                logger.exception("Failed to load cached dataset; proceeding with standard fetch")
+                logger.exception(
+                    "Failed to load cached dataset; proceeding with standard fetch"
+                )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            logger.info(
+                "Network fetching disabled. Using fallback dataset if available."
+            )
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -360,8 +364,7 @@ class RealDataFetcher:
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
             description=(
-                "10-K Filing - Increased oil reserves and sustainability "
-                "initiatives"
+                "10-K Filing - Increased oil reserves and sustainability initiatives"
             ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
@@ -404,6 +407,7 @@ def _enum_to_value(value: Any) -> Any:
         Any: The underlying value of the Enum member if `value` is an Enum;
         otherwise, the original value.
     """
+
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
@@ -455,8 +459,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
         "regulatory_events": [
-            _serialize_dataclass(event)
-            for event in graph.regulatory_events
+            _serialize_dataclass(event) for event in graph.regulatory_events
         ],
         "relationships": {
             source: [
@@ -481,6 +484,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             for target, rels in incoming_relationships.items()
         },
     }
+
 
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     """
