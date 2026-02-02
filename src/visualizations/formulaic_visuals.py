@@ -344,9 +344,7 @@ class FormulaicVisualizer:
         strongest_correlations = empirical_relationships.get(
             "strongest_correlations", []
         )
-        correlation_matrix = empirical_relationships.get(
-            "correlation_matrix", {}
-        )
+        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
             return FormulaicVisualizer._create_empty_correlation_figure()
@@ -385,7 +383,9 @@ class FormulaicVisualizer:
         for category in category_names:
             category_formulas = categories[category]
             if category_formulas:
-                avg_r_squared = sum(f.r_squared for f in category_formulas) / len(category_formulas)
+                avg_r_squared = sum(f.r_squared for f in category_formulas) / len(
+                    category_formulas
+                )
             else:
                 avg_r_squared = 0.0
             r_squared_by_category.append(avg_r_squared)
