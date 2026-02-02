@@ -814,7 +814,7 @@ class TestConcurrency:
                         tool_func = func
                         return func
 
-                    return decorator
+                        return decorator
 
             mock_instance.tool = capture_tool()
 
