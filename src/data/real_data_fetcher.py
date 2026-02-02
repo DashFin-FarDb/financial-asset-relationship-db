@@ -61,36 +61,37 @@ class RealDataFetcher:
         logger.info("Creating database with real financial data from Yahoo Finance")
         graph = AssetRelationshipGraph()
 
-        try:
-            equities = self._fetch_equity_data()
-            bonds = self._fetch_bond_data()
-            commodities = self._fetch_commodity_data()
-            currencies = self._fetch_currency_data()
+        def create_real_database(self) -> AssetRelationshipGraph:
+    try:
+        equities = self._fetch_equity_data()
+        bonds = self._fetch_bond_data()
+        commodities = self._fetch_commodity_data()
+        currencies = self._fetch_currency_data()
 
-            for asset in equities + bonds + commodities + currencies:
-                graph.add_asset(asset)
+        for asset in equities + bonds + commodities + currencies:
+            graph.add_asset(asset)
 
-            for event in self._create_regulatory_events():
-                graph.add_regulatory_event(event)
+        for event in self._create_regulatory_events():
+            graph.add_regulatory_event(event)
 
-            graph.build_relationships()
+        graph.build_relationships()
 
-            if self.cache_path:
-                self._persist_cache(graph)
+        if self.cache_path:
+            self._persist_cache(graph)
 
-            logger.info(
-                "Real database created with %s assets and %s relationships",
-                len(graph.assets),
-                sum(len(rels) for rels in graph.relationships.values()),
-            )
-            return graph
+        logger.info(
+            "Real database created with %s assets and %s relationships",
+            len(graph.assets),
+            sum(len(rels) for rels in graph.relationships.values()),
+        )
+        return graph
 
-        except Exception as exc:
-            logger.error("Failed to create real database: %s", exc)
-            logger.warning(
-                "Falling back to sample data due to real data fetch failure"
-            )
-            return self._fallback()
+    except Exception as exc:
+        logger.error("Failed to create real database: %s", exc)
+        logger.warning(
+            "Falling back to sample data due to real data fetch failure"
+        )
+        return self._fallback()
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         import os
