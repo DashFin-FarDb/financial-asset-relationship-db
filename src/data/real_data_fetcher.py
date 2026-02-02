@@ -488,7 +488,7 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
+    """Serialize an AssetRelationshipGraph into a JSON - serializable dictionary.
 
     This function processes the given AssetRelationshipGraph to create a structured
     dictionary representation. It computes the incoming relationships from the
@@ -497,7 +497,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     serialized assets, regulatory events, and mappings of relationships.
 
     Args:
-        graph (AssetRelationshipGraph): Graph to serialize.
+        graph(AssetRelationshipGraph): Graph to serialize.
 
     Returns:
         Dict[str, Any]: Dictionary containing:
