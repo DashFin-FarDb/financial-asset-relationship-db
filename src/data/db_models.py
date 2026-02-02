@@ -112,13 +112,17 @@ class RegulatoryEventORM(Base):
     __tablename__ = "regulatory_events"
 
     id: Mapped[str] = mapped_column(String, primary_key=True)
-    asset_id: Mapped[str] = mapped_column(ForeignKey("assets.id", ondelete="CASCADE"), nullable=False)
+    asset_id: Mapped[str] = mapped_column(
+        ForeignKey("assets.id", ondelete="CASCADE"), nullable=False
+    )
     event_type: Mapped[str] = mapped_column(String, nullable=False)
     date: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=False)
     impact_score: Mapped[float] = mapped_column(Float, nullable=False)
 
-    asset: Mapped[AssetORM] = relationship("AssetORM", back_populates="regulatory_events")
+    asset: Mapped[AssetORM] = relationship(
+        "AssetORM", back_populates="regulatory_events"
+    )
     related_assets: Mapped[List["RegulatoryEventAssetORM"]] = relationship(
         "RegulatoryEventAssetORM", back_populates="event", cascade="all, delete-orphan"
     )

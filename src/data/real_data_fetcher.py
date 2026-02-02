@@ -464,7 +464,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
             - "relationships": mapping from source id to a list of outgoing
-            relationships
+    relationships
     """
     relationships
 
