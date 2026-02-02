@@ -10,6 +10,7 @@ Tests the simplified PR agent configuration, ensuring:
 
 import re
 from enum import Enum
+from enum import Enum
 from pathlib import Path
 
 import numpy as np
