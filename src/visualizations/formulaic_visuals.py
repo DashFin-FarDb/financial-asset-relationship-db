@@ -146,11 +146,6 @@ class FormulaicVisualizer:
             for f in formulas
         ]
         return names, categories, r_squares
-                set(
-                    [pair.split("-")[0] for pair in correlation_matrix.keys()]
-                    + [pair.split("-")[1] for pair in correlation_matrix.keys()]
-                )
-            )
 
             fig = make_subplots(rows=3, cols=2)
             # Create correlation matrix
