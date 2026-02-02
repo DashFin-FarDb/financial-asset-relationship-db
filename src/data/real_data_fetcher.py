@@ -136,57 +136,51 @@ class RealDataFetcher:
             )
             return graph
 
-        except Exception as e:
-            logger.error("Failed to create real database: %s", e)
-            # Fallback to sample data if real data fetch failure
-            logger.warning(
-                "Falling back to sample data due to real data fetch failure"
-            )
-            return self._fallback()
+    except Exception as e:
+        logger.error("Failed to create real database: %s", e)
+        # Fallback to sample data if real data fetch failure
+        logger.warning(
+            "Falling back to sample data due to real data fetch failure"
+        )
+        return self._fallback()
 
-    def _fallback(self) -> AssetRelationshipGraph:
-        """
-        Selects a fallback AssetRelationshipGraph to use when real data cannot be
-        fetched.
-        If a `fallback_factory` was provided to the instance, this calls it and
-        returns its result; otherwise it constructs and returns the built-in sample
-        database.
-
-        Returns:
-            An `AssetRelationshipGraph` instance either from the provided
-            fallback factory or from the module sample dataset.
-        """
-        if self.fallback_factory:
-            return self.fallback_factory()
-
-
-return create_sample_data()
+def _fallback(self) -> AssetRelationshipGraph:
     """
-        if self.fallback_factory is not None:
-            return self.fallback_factory()
-        from src.data.sample_data import create_sample_database
+    Selects a fallback AssetRelationshipGraph to use when real data cannot be
+    fetched.
+    If a `fallback_factory` was provided to the instance, this calls it and
+    returns its result; otherwise it constructs and returns the built-in sample
+    database.
 
-        return create_sample_database()
+    Returns:
+        An `AssetRelationshipGraph` instance either from the provided
+        fallback factory or from the module sample dataset.
     """
-    @staticmethod
-    def _fetch_equity_data() -> List[Equity]:
-        """Fetches current market data for major equities and returns Equity objects."""
-        equity_symbols = {
-            "AAPL": ("Apple Inc.", "Technology"),
-            "MSFT": ("Microsoft Corporation", "Technology"),
-            "XOM": ("Exxon Mobil Corporation", "Energy"),
-            "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
-        }
+    if self.fallback_factory:
+        return self.fallback_factory()
 
-        equities = []
-        for symbol, (name, sector) in equity_symbols.items():
-            try:
-                ticker = yf.Ticker(symbol)
-                info = ticker.info
-                hist = ticker.history(period="1d")
+    from src.data.sample_data import create_sample_database
+    return create_sample_database()
 
-                if hist.empty:
-                    logger.warning("No price data for %s", symbol)
+@staticmethod
+def _fetch_equity_data() -> List[Equity]:
+    """Fetches current market data for major equities and returns Equity objects."""
+    equity_symbols = {
+        "AAPL": ("Apple Inc.", "Technology"),
+        "MSFT": ("Microsoft Corporation", "Technology"),
+        "XOM": ("Exxon Mobil Corporation", "Energy"),
+        "JPM": ("JPMorgan Chase & Co.", "Financial Services"),
+    }
+
+    equities = []
+    for symbol, (name, sector) in equity_symbols.items():
+        try:
+            ticker = yf.Ticker(symbol)
+            info = ticker.info
+            hist = ticker.history(period="1d")
+
+            if hist.empty:
+                logger.warning("No price data for %s", symbol)
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
