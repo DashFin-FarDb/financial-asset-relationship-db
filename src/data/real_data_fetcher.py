@@ -232,32 +232,32 @@ def _fetch_equity_data() -> List[Equity]:
 
     return bonds
 
-                # Calculate simple volatility from recent data
-                hist_week = ticker.history(period="5d")
-                volatility = (
-                    float(hist_week["Close"].pct_change().std())
-                    if len(hist_week) > 1
-                    else 0.20
-                )
+    # Calculate simple volatility from recent data
+    hist_week = ticker.history(period="5d")
+    volatility = (
+        float(hist_week["Close"].pct_change().std())
+        if len(hist_week) > 1
+        else 0.20
+    )
 
-                commodity = Commodity(
-                    id=symbol.replace("=F", "_FUTURE"),
-                    symbol=symbol,
-                    name=name,
-                    asset_class=AssetClass.COMMODITY,
-                    sector=sector,
-                    price=current_price,
-                    contract_size=contract_size,
-                    delivery_date="2025-03-31",  # Approximate
-                    volatility=volatility,
-                )
-                commodities.append(commodity)
-                logger.info(
-                    "Fetched %s: %s at $%.2f",
-                    symbol,
-                    name,
-                    current_price,
-                )
+    commodity = Commodity(
+        id=symbol.replace("=F", "_FUTURE"),
+        symbol=symbol,
+        name=name,
+        asset_class=AssetClass.COMMODITY,
+        sector=sector,
+        price=current_price,
+        contract_size=contract_size,
+        delivery_date="2025-03-31",  # Approximate
+        volatility=volatility,
+    )
+    commodities.append(commodity)
+    logger.info(
+        "Fetched %s: %s at $%.2f",
+        symbol,
+        name,
+        current_price,
+    )
 
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
