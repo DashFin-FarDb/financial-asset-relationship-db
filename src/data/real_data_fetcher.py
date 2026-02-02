@@ -158,7 +158,7 @@ class RealDataFetcher:
 
 
 return create_sample_data()
-        """
+    """
         if self.fallback_factory is not None:
             return self.fallback_factory()
         from src.data.sample_data import create_sample_database
