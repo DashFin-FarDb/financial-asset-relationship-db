@@ -7,22 +7,24 @@ This PR fixes malformed YAML literal tokens and creates autofix rules for DeepSo
 ## What Was Fixed
 
 ### Test Files
+
 - **`tests/integration/test_github_workflows_helpers.py`**: Fixed 11 malformed YAML tokens in test strings
 - **`tests/integration/test_branch_integration.py`**: Fixed 2 malformed tokens in test comments
 
 ### Common Fixes Applied
 
-| Before | After | Count |
-|--------|-------|-------|
-| `runs - on:` | `runs-on:` | 4 |
-| `actions / checkout @ v4` | `actions/checkout@v4` | 4 |
-| `python - version:` | `python-version:` | 4 |
-| `fetch - depth:` | `fetch-depth:` | 2 |
-| `actions / setup - python` | `actions/setup-python` | 2 |
+| Before                     | After                  | Count |
+| -------------------------- | ---------------------- | ----- |
+| `runs - on:`               | `runs-on:`             | 4     |
+| `actions / checkout @ v4`  | `actions/checkout@v4`  | 4     |
+| `python - version:`        | `python-version:`      | 4     |
+| `fetch - depth:`           | `fetch-depth:`         | 2     |
+| `actions / setup - python` | `actions/setup-python` | 2     |
 
 ## Rules Created
 
 ### Rule Configuration
+
 - **Location**: `.github/deepsource-autofix-rules.yml`
 - **Total Rules**: 12 autofix rules
 - **Coverage**: All patterns mentioned in the issue
@@ -46,7 +48,9 @@ This PR fixes malformed YAML literal tokens and creates autofix rules for DeepSo
 ## Configuration Updates
 
 ### `.deepsource.toml`
+
 Added custom transformer section:
+
 ```toml
 [[transformers]]
 name = "custom"
@@ -65,12 +69,14 @@ name = "custom"
 ## Validation
 
 All fixed YAML tokens have been validated to parse correctly:
+
 ```python
 import yaml
 yaml.safe_load(fixed_yaml_content)  # ✓ Success
 ```
 
 ### Test Results
+
 - ✓ runs-on token parses correctly
 - ✓ actions/checkout@v4 parses correctly
 - ✓ python-version parses correctly
@@ -80,14 +86,18 @@ yaml.safe_load(fixed_yaml_content)  # ✓ Success
 ## How to Use These Rules
 
 ### For DeepSource
+
 DeepSource will automatically:
+
 1. Load rules from `.github/deepsource-autofix-rules.yml`
 2. Scan files matching specified patterns
 3. Apply fixes to malformed tokens
 4. Report changes for review
 
 ### For Manual Application
+
 Use the patterns in the rules file to:
+
 1. Search for malformed tokens: `grep -r "runs - on" .`
 2. Replace with correct syntax: `runs-on`
 3. Verify YAML parses: `python -c "import yaml; yaml.safe_load(...)"`
@@ -95,12 +105,14 @@ Use the patterns in the rules file to:
 ## Impact
 
 ### Benefits
+
 - ✓ Prevents YAML parsing errors in tests
 - ✓ Ensures consistent GitHub Actions syntax
 - ✓ Automated detection and fixing via DeepSource
 - ✓ Comprehensive documentation for maintainers
 
 ### Safety
+
 - Only applies to YAML content and test strings
 - Does not modify prose or general documentation
 - Rules are scoped to prevent over-application
@@ -108,7 +120,7 @@ Use the patterns in the rules file to:
 ## Related Files
 
 - `.github/deepsource-autofix-rules.yml` - Rule definitions
-- `.deepsource.toml` - DeepSource configuration  
+- `.deepsource.toml` - DeepSource configuration
 - `docs/DEEPSOURCE_YAML_RULES.md` - Complete documentation
 - `tests/integration/test_github_workflows_helpers.py` - Fixed tests
 - `tests/integration/test_branch_integration.py` - Fixed tests
