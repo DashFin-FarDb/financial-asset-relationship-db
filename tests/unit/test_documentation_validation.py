@@ -532,4 +532,3 @@ class TestDocumentationConsistency:
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
                         f"Dependency '{dep}' doesn't look like a valid package name"
-                    )
