@@ -12,11 +12,17 @@ class FormulaicVisualizer:
     def __init__(self):
         self.color_scheme = {
             "Valuation": "#FF6B6B",
-            """Formulaic Visualizations Module.
+    """
+    Formulaic Visualizations Module.
 
     This module provides tools to visualize formulaic analysis results,
     including creating dashboards, plotting reliability, and normalizing empirical relationships.
     """
+    
+     def __init__(self):
+        self.color_scheme = {
+            "Valuation": "#FF6B6B",
+            "Income": "#4ECDC4",
 
             "Income": "#4ECDC4",
             "Fixed Income": "#45B7D1",
