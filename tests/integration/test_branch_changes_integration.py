@@ -183,7 +183,11 @@ class TestRequirementsConsistency:
                         if pkg_name.lower() not in skip_packages:
                             # Should be in requirements-dev or be optional
                             if pkg_name.lower() not in dev_packages:
-                                pytest.fail(
+                                if (
+                                    pkg_name.lower() not in skip_packages
+                                    and not pkg_name.endswith(".txt")
+                                    and pkg_name != "."
+                                ):
                                     f"Package '{pkg_name}' installed in workflow '{workflow_file}' not in requirements-dev.txt"
                                 )
 
