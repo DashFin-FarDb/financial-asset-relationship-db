@@ -44,7 +44,7 @@ class TestDependencyMatrix:
         """
         assert dependency_matrix_path.exists(), "dependencyMatrix.md not found"
         with dependency_matrix_path.open(encoding="utf-8") as file:
-        return file.read()
+            return file.read()
 
     @pytest.fixture
     def dependency_matrix_lines(
