@@ -18,7 +18,7 @@ class FormulaicVisualizer:
     This module provides tools to visualize formulaic analysis results,
     including creating dashboards, plotting reliability, and normalizing empirical relationships.
     """
-    
+
      def __init__(self):
         self.color_scheme = {
             "Valuation": "#FF6B6B",
@@ -33,7 +33,7 @@ class FormulaicVisualizer:
             "Cross-Asset": "#F7DC6F",
         }
 
-        @staticmethod
+        @ staticmethod
         def create_formula_dashboard(analysis_results: Dict[str, Any]) -> go.Figure:
             """Create a comprehensive dashboard showing all formulaic relationships"""
             fig = make_subplots(
@@ -53,7 +53,7 @@ class FormulaicVisualizer:
             """Plot the formula reliability (R-squared) for each formula onto the dashboard figure."""
             raise NotImplementedError()
 
-        @staticmethod
+        @ staticmethod
         def _normalize_empirical_relationships(
             empirical_relationships: Any,
         ) -> Dict[str, Dict[str, float]]:
@@ -104,7 +104,7 @@ class FormulaicVisualizer:
 
         return matrix
 
-    @staticmethod
+    @ staticmethod
     def _plot_empirical_correlation(
         fig: go.Figure, empirical_relationships: Any
     ) -> None:
@@ -182,7 +182,7 @@ class FormulaicVisualizer:
         )
         return None
 
-    @staticmethod
+    @ staticmethod
     def _get_sorted_formulas(formulas: Any) -> list:
         """Helper to sort formulas by r_squared descending with fallback."""
         try:
@@ -194,19 +194,19 @@ class FormulaicVisualizer:
         except TypeError:
             return list(formulas)
 
-    @staticmethod
-    def _format_name(name: Any, max_length: int = 30) -> str:
+    @ staticmethod
+    def _format_name(name: Any, max_length: int=30) -> str:
         """Format formula name with truncation."""
         if not isinstance(name, str) or not name:
             return "N/A"
         return name if len(name) <= max_length else name[: max_length - 3] + "..."
 
-    @staticmethod
+    @ staticmethod
     def _format_r_squared(r_value: Any) -> str:
         """Format r_squared value to 4 decimal places or N/A."""
         return f"{r_value:.4f}" if isinstance(r_value, (int, float)) else "N/A"
 
-    @staticmethod
+    @ staticmethod
     def _extract_formula_table_data(formulas: Any) -> tuple:
         """Helper to extract names, categories, and r-squared values for table."""
         names = [
@@ -219,7 +219,7 @@ class FormulaicVisualizer:
         ]
         return names, categories, r_squared_values
 
-    @staticmethod
+    @ staticmethod
     def create_formula_detail_view(formula: Formula) -> go.Figure:
         """Create a detailed view of a specific formula"""
         fig = go.Figure()
@@ -247,7 +247,7 @@ class FormulaicVisualizer:
             showarrow=False,
         )
 
-    @staticmethod
+    @ staticmethod
     def create_correlation_network(
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
@@ -257,7 +257,7 @@ class FormulaicVisualizer:
         )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
-    @staticmethod
+    @ staticmethod
     def create_correlation_network(
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
@@ -412,7 +412,7 @@ class FormulaicVisualizer:
             correlation_matrix,
         )
 
-    @staticmethod
+    @ staticmethod
     def create_metric_comparison_chart(
         analysis_results: Dict[str, Any],
     ) -> go.Figure:
