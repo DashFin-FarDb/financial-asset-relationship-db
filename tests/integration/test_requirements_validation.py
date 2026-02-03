@@ -203,7 +203,7 @@ class TestRequirementsDocumentation:
             lines=f.readlines()
 
         # Should have at least some comments explaining purpose
-        comment_lines=[l for l in lines if l.strip().startswith("#")]  
+        comment_lines=[l for l in lines if l.strip().startswith("#")]
         assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
 
     @staticmethod
