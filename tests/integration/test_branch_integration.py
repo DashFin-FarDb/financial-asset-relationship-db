@@ -237,7 +237,7 @@ class TestRemovedFilesIntegration:
         """Verify PR agent workflow doesn't depend on removed components."""
         with open(".github/workflows/pr-agent.yml", "r") as f:
             content = f.read()
-            workflow = yaml.safe_load(content)
+            yaml.safe_load(content)
             # Add further assertions here as needed
 
         # Should not reference chunking components
