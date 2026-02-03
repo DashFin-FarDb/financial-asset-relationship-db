@@ -438,5 +438,4 @@ class TestDocumentationConsistency:
 
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
-
     pass
