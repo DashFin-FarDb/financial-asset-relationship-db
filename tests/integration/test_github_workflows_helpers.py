@@ -507,15 +507,6 @@ jobs:
         python-version: ['3.9', '3.10', '3.11']
     steps:
       - uses: actions/checkout@v4
-        with:
-        """
-        )
-
-        with patch(
-            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
-        ):
-            workflows = get_workflow_files()
-            # ... rest of test
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -527,21 +518,21 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Run tests
         run: pytest tests/ --cov
-        """
-        )
+"""
+)
 
-        with patch(
-            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
-        ):
-            workflows = get_workflow_files()
-            assert len(workflows) == 1
+with patch(
+    "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+):
+    workflows = get_workflow_files()
+    assert len(workflows) == 1
 
-            config = load_yaml_safe(workflows[0])
-            assert config["name"] == "Complex CI/CD"
-            assert "push" in config["on"]
-            assert "pull_request" in config["on"]
-            assert "strategy" in config["jobs"]["test"]
-            assert "matrix" in config["jobs"]["test"]["strategy"]
+    config = load_yaml_safe(workflows[0])
+    assert config["name"] == "Complex CI/CD"
+    assert "push" in config["on"]
+    assert "pull_request" in config["on"]
+    assert "strategy" in config["jobs"]["test"]
+    assert "matrix" in config["jobs"]["test"]["strategy"]
 
             duplicates = check_duplicate_keys(workflows[0])
             assert len(duplicates) == 0

@@ -304,6 +304,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         """
+        """
         Test that systemManifest.md has Current Phase section.
         """
         assert "## Current Phase" in system_manifest_content
