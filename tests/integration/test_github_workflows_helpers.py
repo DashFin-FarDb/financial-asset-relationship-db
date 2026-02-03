@@ -227,7 +227,10 @@ float_val: 3.14
         assert result["float_val"] == 3.14
 
     def test_handles_multiline_strings(self, tmp_path):
-        """Test that multiline strings are loaded correctly."""
+script: |
+    echo "line 1"
+    echo "line 2"
+    echo "line 3"
         yaml_content = """
 script: |
 echo "line 1"
