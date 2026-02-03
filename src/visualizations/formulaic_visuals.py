@@ -400,7 +400,7 @@ class FormulaicVisualizer:
             ),
         )
         return fig
-            return FormulaicVisualizer._create_empty_correlation_figure()
+        return FormulaicVisualizer._create_empty_correlation_figure()
 
         return FormulaicVisualizer._build_and_render_correlation_network(
             strongest_correlations,
