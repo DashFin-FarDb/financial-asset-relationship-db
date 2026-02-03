@@ -201,15 +201,17 @@ class TestRemovedFilesIntegration:
                 content = f.read()
 
             for removed in removed_files:
-                assert removed not in content, f"{wf_file} references removed file {removed}"
+                assert removed not in content, (
+                    f"{wf_file} references removed file {removed}"
+                )
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-        '''Verify the label workflow does not require an external labeler configuration file.
+        """Verify the label workflow does not require an external labeler configuration file.
 
         Checks that .github/workflows/label.yml (if present) defines the "label" job's first
         step using "actions/labeler", and that the step either omits "config-path" or sets it to
         ".github/labeler.yml". Skips the test if label.yml is missing.
-        '''
+        """
         label_path = Path(".github/workflows/label.yml")
         if not label_path.exists():
             pytest.skip("label.yml not present; skipping label workflow checks")
@@ -230,7 +232,7 @@ class TestRemovedFilesIntegration:
         )
 
     def test_pr_agent_workflow_self_contained(self):
-        '''Verify PR agent workflow doesn't depend on removed components.'''
+        """Verify PR agent workflow doesn't depend on removed components."""
         with open(".github/workflows/pr-agent.yml", "r") as f:
             workflow = yaml.safe_load(f)
             # Add further assertions here as needed
@@ -268,7 +270,7 @@ class TestWorkflowSecurityConsistency:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
         return
 
-    @staticmethod    
+    @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
         """
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
