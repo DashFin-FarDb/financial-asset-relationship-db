@@ -2926,12 +2926,11 @@ class TestWorkflowScheduledExecutionBestPractices:
                         f"every 15 minutes."
                     )
 
-
                 if "schedule" in triggers:
                     schedules = triggers["schedule"]
-                        for schedule in schedules:
+                    for schedule in schedules:
                         _ = schedule.get("cron", "")
-                            pass
+                        pass
 
 
 # Additional test to verify all new test classes are properly structured
