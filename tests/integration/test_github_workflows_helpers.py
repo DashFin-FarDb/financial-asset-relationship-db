@@ -383,8 +383,8 @@ jobs:
 
     def test_detects_duplicate_in_list_of_mappings(self, tmp_path):
         """Test detection of duplicates within a mapping that's in a list."""
-        yaml_content = """
-items:
+  - key: value1
+    key: value2
   - key: value1
   key: value2
 """
