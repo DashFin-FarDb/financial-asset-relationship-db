@@ -1031,7 +1031,9 @@ class TestAutoAssignWorkflow:
         steps = run_job.get("steps", [])
         assert len(steps) == 1, "Auto-assign job should have exactly one step"
 
-    def test_auto_assign_structure_no_dependencies(self, auto_assign_workflow: Dict[str, Any]):
+    def test_auto_assign_structure_no_dependencies(
+        self, auto_assign_workflow: Dict[str, Any]
+    ):
         """Test that the auto-assign job has no dependencies or conditions."""
         run_job = auto_assign_workflow["jobs"]["auto-assign"]
         assert "needs" not in run_job, (
@@ -1046,7 +1048,9 @@ class TestAutoAssignWorkflow:
         assert "strategy" not in run_job, "Auto-assign should not use matrix strategy"
         assert "outputs" not in run_job, "Auto-assign job should not define outputs"
 
-    def test_auto_assign_structure_triggers_on_issues(self, auto_assign_workflow: Dict[str, Any]):
+    def test_auto_assign_structure_triggers_on_issues(
+        self, auto_assign_workflow: Dict[str, Any]
+    ):
         """Test that auto-assign workflow triggers on issue opened events."""
         triggers = auto_assign_workflow.get("on", {})
         assert "issues" in triggers, (
@@ -1063,7 +1067,9 @@ class TestAutoAssignWorkflow:
             "Issues should only trigger on 'opened' to avoid duplicate assignments"
         )
 
-    def test_auto_assign_structure_triggers_on_pull_requests(self, auto_assign_workflow: Dict[str, Any]):
+    def test_auto_assign_structure_triggers_on_pull_requests(
+        self, auto_assign_workflow: Dict[str, Any]
+    ):
         """Test that auto-assign workflow triggers on pull request opened events."""
         triggers = auto_assign_workflow.get("on", {})
         assert "pull_request_target" in triggers, (

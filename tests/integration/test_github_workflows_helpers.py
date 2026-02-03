@@ -519,11 +519,10 @@ jobs:
       - name: Run tests
         run: pytest tests/ --cov
 """
-)
+        )
 
-with patch(
-    "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
-):
+
+with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
     workflows = get_workflow_files()
     assert len(workflows) == 1
 
@@ -534,5 +533,5 @@ with patch(
     assert "strategy" in config["jobs"]["test"]
     assert "matrix" in config["jobs"]["test"]["strategy"]
 
-            duplicates = check_duplicate_keys(workflows[0])
-            assert len(duplicates) == 0
+    duplicates = check_duplicate_keys(workflows[0])
+    assert len(duplicates) == 0
