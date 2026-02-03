@@ -172,9 +172,9 @@ class TestLoadYamlSafe:
         yaml_content = """
 items:
   - name: first
-    value: 1
+  value: 1
   - name: second
-    value: 2
+  value: 2
 """
         yaml_file = tmp_path / "list.yml"
         yaml_file.write_text(yaml_content)
@@ -230,9 +230,9 @@ float_val: 3.14
         """Test that multiline strings are loaded correctly."""
         yaml_content = """
 script: |
-  echo "line 1"
-  echo "line 2"
-  echo "line 3"
+echo "line 1"
+echo "line 2"
+echo "line 3"
 """
         yaml_file = tmp_path / "multiline.yml"
         yaml_file.write_text(yaml_content)
@@ -387,7 +387,7 @@ jobs:
         yaml_content = """
 items:
   - key: value1
-    key: value2
+  key: value2
 """
         yaml_file = tmp_path / "list_dup.yml"
         yaml_file.write_text(yaml_content)
