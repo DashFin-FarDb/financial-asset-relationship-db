@@ -58,7 +58,6 @@ class FormulaicVisualizer:
 
             matrix: Dict[str, Dict[str, float]] = {}
 
-
             if isinstance(empirical_relationships, dict):
                 is_nested = all(
                     isinstance(v, dict) for v in empirical_relationships.values()
