@@ -1,4 +1,4 @@
-r"""Unit tests for validating .elastic-copilot documentation files.
+"""Unit tests for validating .elastic-copilot documentation files.
 
 This module tests markdown documentation files to ensure:
 - Valid markdown structure and formatting
@@ -95,7 +95,9 @@ class TestDependencyMatrix:
     def test_dependency_matrix_has_file_count(
         self, dependency_matrix_content: str
     ) -> None:
-        """Test that dependencyMatrix.md specifies files analyzed count."""
+        """
+        Test that dependencyMatrix.md specifies files analyzed count.
+        """
         match = re.search(r"- Files analyzed: (\d+)", dependency_matrix_content)
         assert match is not None, "Files analyzed count not found"
 
