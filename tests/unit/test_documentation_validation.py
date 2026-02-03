@@ -213,6 +213,8 @@ class TestSystemManifest:
 
         Parameters:
             system_manifest_path(Path): Filesystem path to the systemManifest.md file.
+        """
+        
     @staticmethod
     @pytest.fixture
     def system_manifest_content(system_manifest_path):
@@ -304,10 +306,8 @@ class TestSystemManifest:
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         """
-        """
         Test that systemManifest.md has Current Phase section.
         """
-        assert "## Current Phase" in system_manifest_content
         assert "## Current Phase" in system_manifest_content
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
