@@ -2967,7 +2967,6 @@ class TestWorkflowScheduledExecutionBestPractices:
                         f"every 15 minutes."
                     )
 
-
 # Additional test to verify all new test classes are properly structured
 class TestTestSuiteCompleteness:
     """Meta-test to ensure test suite is comprehensive."""
