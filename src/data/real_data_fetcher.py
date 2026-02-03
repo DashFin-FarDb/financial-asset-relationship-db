@@ -115,7 +115,7 @@ class RealDataFetcher:
                 tmp_path = Path(tmp_file.name)
 
             _save_to_cache(graph, tmp_path)
-            os.replace(tmp_path, self.cache_path)
+            os.replace(tmp_path, cache_path)
 
         except Exception:
             logger.exception(
