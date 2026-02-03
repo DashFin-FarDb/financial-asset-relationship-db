@@ -86,9 +86,7 @@ class TestWorkflowConsistency:
                 if "actions/checkout" in action:
                     continue
                 # Warn if same action uses different versions
-                print(
-                    f"Warning: {action} uses multiple versions: {list(versions.keys())}"
-                )
+                print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")
 
     def test_all_workflows_use_github_token_consistently(self, all_workflows):
         """
@@ -105,8 +103,7 @@ class TestWorkflowConsistency:
             if "GITHUB_TOKEN" in workflow_str or "github.token" in workflow_str:
                 # Should use secrets.GITHUB_TOKEN format
                 assert (
-                    "secrets.GITHUB_TOKEN" in workflow_str
-                    or "${{ github.token }}" in workflow_str
+                    "secrets.GITHUB_TOKEN" in workflow_str or "${{ github.token }}" in workflow_str
                 ), f"{wf_file}: GITHUB_TOKEN should use proper syntax"
 
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
@@ -128,9 +125,7 @@ class TestWorkflowConsistency:
                 for job_name, job in workflow.get("jobs", {}).items():
                     steps = job.get("steps", [])
                     # Simplified workflows should have minimal steps
-                    assert len(steps) <= 3, (
-                        f"{wf_file}:{job_name} should be simplified (has {len(steps)} steps)"
-                    )
+                    assert len(steps) <= 3, f"{wf_file}:{job_name} should be simplified (has {len(steps)} steps)"
 
 
 class TestDependencyWorkflowIntegration:
@@ -200,9 +195,7 @@ class TestRemovedFilesIntegration:
                 content = f.read()
 
             for removed in removed_files:
-                assert removed not in content, (
-                    f"{wf_file} references removed file {removed}"
-                )
+                assert removed not in content, f"{wf_file} references removed file {removed}"
 
     def test_label_workflow_doesnt_need_labeler_config(self):
         """Verify the label workflow does not require an external labeler configuration file.
@@ -233,8 +226,7 @@ class TestRemovedFilesIntegration:
 
         with_config = labeler_step.get("with", {})
         assert (
-            "config-path" not in with_config
-            or with_config.get("config-path") == ".github/labeler.yml"
+            "config-path" not in with_config or with_config.get("config-path") == ".github/labeler.yml"
         ), "Labeler step specifies an unexpected config-path"
 
     def test_pr_agent_workflow_self_contained(self):
@@ -277,9 +269,7 @@ class TestWorkflowSecurityConsistency:
             for pattern in dangerous_patterns:
                 matches = re.findall(pattern, content)
                 if matches:
-                    pytest.fail(
-                        f"Potential injection risk in {wf_file}: {matches}"
-                    )
+                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
 
     def test_workflows_use_appropriate_checkout_refs(self):
         """
@@ -302,10 +292,7 @@ class TestWorkflowSecurityConsistency:
             workflow = yaml.safe_load(wf_file.read_text(encoding="utf-8"))
 
             triggers = workflow.get("on", {})
-            uses_pr_target = (
-                triggers == "pull_request_target"
-                or "pull_request_target" in triggers
-            )
+            uses_pr_target = triggers == "pull_request_target" or "pull_request_target" in triggers
 
             if not uses_pr_target:
                 continue
@@ -314,9 +301,7 @@ class TestWorkflowSecurityConsistency:
                 for step in job.get("steps", []):
                     if "actions/checkout" in step.get("uses", ""):
                         with_config = step.get("with", {})
-                        assert (
-                            "ref" in with_config or "fetch-depth" in with_config
-                        ), (
+                        assert "ref" in with_config or "fetch-depth" in with_config, (
                             f"{wf_file}: actions/checkout used under "
                             "pull_request_target without a constrained ref "
                             "or fetch-depth"
@@ -347,9 +332,7 @@ class TestBranchCoherence:
             content = path.read_text(encoding="utf-8")
             line_count = content.count("\n") + 1 if content else 0
 
-            assert line_count <= max_lines, (
-                f"{path}: {line_count} lines exceeds allowed maximum of {max_lines}"
-            )
+            assert line_count <= max_lines, f"{path}: {line_count} lines exceeds allowed maximum of {max_lines}"
 
     def test_removed_complexity_not_referenced(self):
         """
@@ -381,9 +364,7 @@ class TestBranchCoherence:
                     lines = content.split("\n")
                     for line in lines:
                         if feature in line.lower() and not line.strip().startswith("#"):
-                            pytest.fail(
-                                f"{wf_file} still references removed feature: {feature}"
-                            )
+                            pytest.fail(f"{wf_file} still references removed feature: {feature}")
 
     def test_branch_reduces_dependencies_on_external_config(self):
         """
@@ -413,9 +394,7 @@ class TestBranchCoherence:
                         external_refs += 1
 
             # Should have minimal external references
-            assert external_refs <= 1, (
-                f"{wf_file} has {external_refs} external file references (should be <=1)"
-            )
+            assert external_refs <= 1, f"{wf_file} has {external_refs} external file references (should be <=1)"
 
 
 class TestBranchQuality:
@@ -468,9 +447,7 @@ class TestBranchQuality:
                     content = f.read()
 
                 for marker in conflict_markers:
-                    assert marker not in content, (
-                        f"{file_path} contains merge conflict marker: {marker}"
-                    )
+                    assert marker not in content, f"{file_path} contains merge conflict marker: {marker}"
 
     def test_consistent_indentation_across_workflows(self):
         """
@@ -488,9 +465,7 @@ class TestBranchQuality:
             for i, line in enumerate(lines, 1):
                 if line.strip() and line[0] == " ":
                     spaces = len(line) - len(line.lstrip(" "))
-                    assert spaces % 2 == 0, (
-                        f"{wf_file}:{i} inconsistent indentation (not multiple of 2)"
-                    )
+                    assert spaces % 2 == 0, f"{wf_file}:{i} inconsistent indentation (not multiple of 2)"
 
 
 if __name__ == "__main__":
