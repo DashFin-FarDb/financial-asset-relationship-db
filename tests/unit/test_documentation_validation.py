@@ -293,13 +293,13 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
+        Assert that the system manifest's first line is the top-level title "# System Manifest".
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
     def test_system_manifest_has_project_overview(self, system_manifest_content):
         """
-        Assert that the system manifest contains a top - level "Project Overview" section.
+        Assert that the system manifest contains a top-level "Project Overview" section.
 
         Parameters:
             system_manifest_content(str): The complete text content of the systemManifest.md file.
@@ -317,7 +317,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
+        Verify the system manifest contains a "- Description: ..." entry documenting the project's description.
         """
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
