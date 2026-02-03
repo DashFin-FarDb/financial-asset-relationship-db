@@ -405,7 +405,10 @@ class TestPrAgentWorkflow:
         assert parse_step.get("id") == "parse-comments"
         assert "GITHUB_TOKEN" in parse_step.get("env", {})
         assert "gh api" in parse_step["run"]
-
+        run_script = str(parse_step.get("run", ""))
+        assert "steps.fetch-context.outputs.action_items" in run_script, (
+            "Parse PR Review Comments step should reference fetch-context action items output"
+        )
     def test_pr_agent_fetch_depth_allows_absent(self):
         """Missing fetch - depth is permitted for checkout steps."""
         # Test empty configuration
