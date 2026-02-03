@@ -25,6 +25,7 @@ class TestWorkflowConsistency:
         Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
 
         Only files from the internal list are considered; files that are not present are omitted from the result.
+        """
 
     @staticmethod
     def all_workflows():
@@ -267,7 +268,7 @@ class TestWorkflowSecurityConsistency:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
         return
 
-    @staticmethod
+    @staticmethod    
     def test_workflows_use_appropriate_checkout_refs():
         """
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
@@ -298,9 +299,6 @@ class TestWorkflowSecurityConsistency:
                                 "ref" in with_config or "fetch-depth" in with_config
                             ), (
                                 f"{wf_file}: Checkout in pull_request_target should specify safe ref"
-                            )
-                            )
-                            )
                             )
 
 
