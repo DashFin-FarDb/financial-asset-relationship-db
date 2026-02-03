@@ -58,7 +58,7 @@ class TestWorkflowConsistency:
         """
         Ensure actions referenced across workflows are used with a single version.
 
-        Scans the provided workflows jobs and steps to detect actions specified with explicit versions and reports when the same action appears with multiple different versions. Differences between actions/checkout major versions(e.g., v4 vs v5) are allowed and will be ignored.
+        Scans the provided workflows jobs and steps to detect actions specified with explicit versions and reports when the same action appears with multiple different versions. Differences between actions / checkout major versions(e.g., v4 vs v5) are allowed and will be ignored.
 
         Parameters:
             all_workflows(dict): Mapping from workflow file path(str) to parsed YAML content(dict).
@@ -280,7 +280,7 @@ class TestWorkflowSecurityConsistency:
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
 
         For .github / workflows / pr - agent.yml and .github / workflows / apisec - scan.yml, if the workflow's triggers include
-        `pull_request_target` this test asserts every `actions/checkout` step supplies either a `ref` or a `fetch-depth`
+        `pull_request_target` this test asserts every `actions / checkout` step supplies either a `ref` or a `fetch - depth`
         in its `with ` configuration; failure indicates an unsafe checkout configuration.
         """
         workflow_files = [

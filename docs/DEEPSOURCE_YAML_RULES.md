@@ -7,6 +7,7 @@ This document describes the autofix rules created to fix malformed YAML literal 
 ## Problem Statement
 
 During testing and development, YAML tokens in GitHub Actions workflows were sometimes written with incorrect spacing, such as:
+
 - `runs - on` instead of `runs-on`
 - `actions / checkout @ v4` instead of `actions/checkout@v4`
 - `python - version` instead of `python-version`
@@ -21,34 +22,34 @@ The following autofix rules have been implemented in `.github/deepsource-autofix
 
 These rules fix GitHub Actions workflow properties that should be hyphenated without spaces:
 
-| Rule ID | Pattern | Replacement | Description |
-|---------|---------|-------------|-------------|
-| `fix-yaml-runs-on-token` | `runs - on:` | `runs-on:` | Job runner specification |
-| `fix-yaml-fetch-depth-token` | `fetch - depth:` | `fetch-depth:` | Git checkout depth |
-| `fix-yaml-python-version-token` | `python - version:` | `python-version:` | Python version specification |
-| `fix-yaml-continue-on-error-token` | `continue - on - error:` | `continue-on-error:` | Error handling flag |
-| `fix-yaml-timeout-minutes-token` | `timeout - minutes:` | `timeout-minutes:` | Job timeout setting |
-| `fix-yaml-retention-days-token` | `retention - days:` | `retention-days:` | Artifact retention period |
-| `fix-yaml-working-directory-token` | `working - directory:` | `working-directory:` | Working directory path |
+| Rule ID                            | Pattern                  | Replacement          | Description                  |
+| ---------------------------------- | ------------------------ | -------------------- | ---------------------------- |
+| `fix-yaml-runs-on-token`           | `runs - on:`             | `runs-on:`           | Job runner specification     |
+| `fix-yaml-fetch-depth-token`       | `fetch - depth:`         | `fetch-depth:`       | Git checkout depth           |
+| `fix-yaml-python-version-token`    | `python - version:`      | `python-version:`    | Python version specification |
+| `fix-yaml-continue-on-error-token` | `continue - on - error:` | `continue-on-error:` | Error handling flag          |
+| `fix-yaml-timeout-minutes-token`   | `timeout - minutes:`     | `timeout-minutes:`   | Job timeout setting          |
+| `fix-yaml-retention-days-token`    | `retention - days:`      | `retention-days:`    | Artifact retention period    |
+| `fix-yaml-working-directory-token` | `working - directory:`   | `working-directory:` | Working directory path       |
 
 ### 2. Action References
 
 These rules fix GitHub Actions action references that should have no spaces:
 
-| Rule ID | Pattern | Replacement | Description |
-|---------|---------|-------------|-------------|
-| `fix-yaml-actions-checkout-token` | `actions / checkout` | `actions/checkout` | Checkout action reference |
-| `fix-yaml-actions-upload-artifact-token` | `actions / upload-artifact` | `actions/upload-artifact` | Upload artifact action |
-| `fix-yaml-actions-cache-token` | `actions / cache` | `actions/cache` | Cache action reference |
+| Rule ID                                  | Pattern                     | Replacement               | Description               |
+| ---------------------------------------- | --------------------------- | ------------------------- | ------------------------- |
+| `fix-yaml-actions-checkout-token`        | `actions / checkout`        | `actions/checkout`        | Checkout action reference |
+| `fix-yaml-actions-upload-artifact-token` | `actions / upload-artifact` | `actions/upload-artifact` | Upload artifact action    |
+| `fix-yaml-actions-cache-token`           | `actions / cache`           | `actions/cache`           | Cache action reference    |
 
 ### 3. Version References
 
 These rules fix action version specifications:
 
-| Rule ID | Description |
-|---------|-------------|
+| Rule ID                           | Description                                                       |
+| --------------------------------- | ----------------------------------------------------------------- |
 | `fix-yaml-action-version-at-sign` | Removes spaces around `@` in version specs (e.g., `@ v4` → `@v4`) |
-| `fix-yaml-action-slash-spacing` | Removes spaces around `/` in `uses:` statements |
+| `fix-yaml-action-slash-spacing`   | Removes spaces around `/` in `uses:` statements                   |
 
 ## Scope and Application
 
@@ -62,11 +63,13 @@ These rules fix action version specifications:
 ### Scope Limitation
 
 Rules are designed to apply only to:
+
 - Actual YAML content in workflow files
 - YAML strings embedded in test code
 - Code blocks in documentation
 
 Rules **should NOT** apply to:
+
 - Regular prose or narrative text
 - General comments or docstrings (unless containing test YAML)
 - User-facing documentation text
@@ -98,6 +101,7 @@ When DeepSource analyzes the repository:
 ### Before and After
 
 #### Example 1: Workflow Job Configuration
+
 ```yaml
 # Before
 jobs:
@@ -115,6 +119,7 @@ jobs:
 ```
 
 #### Example 2: Python Version Matrix
+
 ```yaml
 # Before
 strategy:
@@ -128,6 +133,7 @@ strategy:
 ```
 
 #### Example 3: Checkout with Fetch Depth
+
 ```yaml
 # Before
 - uses: actions / checkout @ v4
@@ -149,6 +155,7 @@ The rules have been validated by:
    - `test_branch_integration.py`
 
 2. **YAML Validation**: Verified that fixed YAML parses correctly:
+
    ```python
    import yaml
    yaml.safe_load(fixed_yaml_content)  # Success
@@ -166,10 +173,10 @@ To update or extend these rules:
    - id: fix-yaml-new-token
      name: Human-readable name
      description: Detailed description
-     pattern: 'regex pattern'
-     replacement: 'replacement text'
+     pattern: "regex pattern"
+     replacement: "replacement text"
      file_types:
-       - '*.yml'
+       - "*.yml"
      scope: yaml_strings
    ```
 3. Test the new rule with sample files
