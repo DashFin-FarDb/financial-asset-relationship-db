@@ -361,7 +361,7 @@ def test_github_actions_pr_agent_scenario(self, test_data_path):
     # The test now loads the YAML from a dedicated file
     # No more `# fmt: off` or embedded YAML strings
     yaml_file_path = test_data_path / "pr_agent.yml"
-    
+
     # The test logic remains the same
     result = check_duplicate_keys(yaml_file_path)
     # ... assertions ...
