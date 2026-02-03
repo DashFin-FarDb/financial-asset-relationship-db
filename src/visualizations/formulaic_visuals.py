@@ -339,71 +339,116 @@ class FormulaicVisualizer:
         correlation_matrix: Any,
     ) -> go.Figure:
         """Build and render a correlation network visualization."""
-        import math
-
-        # Extract unique assets from correlations
-        assets = set()
-        for corr in strongest_correlations:
-            if isinstance(corr, dict):
-                assets.add(corr.get("asset1", ""))
-                assets.add(corr.get("asset2", ""))
-            elif isinstance(corr, (list, tuple)) and len(corr) >= 2:
-                assets.add(corr[0])
-                assets.add(corr[1])
-
-        assets = sorted([a for a in assets if a])
+        assets = FormulaicVisualizer._extract_assets_from_correlations(
+            strongest_correlations
+        )
         if not assets:
             fig = go.Figure()
             fig.update_layout(title="No valid asset correlations found")
             return fig
 
-        # Create circular layout for nodes
+        positions = FormulaicVisualizer._create_circular_positions(assets)
+        edge_traces = FormulaicVisualizer._create_edge_traces(
+            strongest_correlations, positions
+        )
+        node_trace = FormulaicVisualizer._create_node_trace(assets, positions)
+
+        fig = go.Figure(data=edge_traces + [node_trace])
+        fig.update_layout(
+            title="Asset Correlation Network",
+            showlegend=False,
+            hovermode="closest",
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        )
+        return fig
+
+    @staticmethod
+    def _extract_assets_from_correlations(correlations: Any) -> list[str]:
+        """Extract unique sorted assets from correlation data."""
+        assets = set()
+        for corr in correlations:
+            asset1, asset2, _ = FormulaicVisualizer._parse_correlation_item(corr)
+            if asset1:
+                assets.add(asset1)
+            if asset2:
+                assets.add(asset2)
+        return sorted([a for a in assets if a])
+
+    @staticmethod
+    def _parse_correlation_item(corr: Any) -> tuple[str, str, float]:
+        """Parse a correlation item into (asset1, asset2, value)."""
+        if isinstance(corr, dict):
+            return (
+                corr.get("asset1", ""),
+                corr.get("asset2", ""),
+                corr.get("correlation", 0.0),
+            )
+        if isinstance(corr, (list, tuple)) and len(corr) >= 3:
+            return (corr[0], corr[1], corr[2])
+        if isinstance(corr, (list, tuple)) and len(corr) >= 2:
+            return (corr[0], corr[1], 0.0)
+        return ("", "", 0.0)
+
+    @staticmethod
+    def _create_circular_positions(assets: list[str]) -> Dict[str, tuple[float, float]]:
+        """Create circular layout positions for assets."""
+        import math
+
         n = len(assets)
         positions = {}
         for i, asset in enumerate(assets):
             angle = 2 * math.pi * i / n
             positions[asset] = (math.cos(angle), math.sin(angle))
+        return positions
 
-        # Create edge traces for correlations
+    @staticmethod
+    def _create_edge_traces(
+        correlations: Any, positions: Dict[str, tuple[float, float]]
+    ) -> list[go.Scatter]:
+        """Create edge traces for all correlations."""
         edge_traces = []
-        for corr in strongest_correlations:
-            if isinstance(corr, dict):
-                asset1 = corr.get("asset1", "")
-                asset2 = corr.get("asset2", "")
-                value = corr.get("correlation", 0.0)
-            elif isinstance(corr, (list, tuple)) and len(corr) >= 3:
-                asset1, asset2, value = corr[0], corr[1], corr[2]
-            else:
-                continue
-
-            if asset1 not in positions or asset2 not in positions:
-                continue
-
-            x0, y0 = positions[asset1]
-            x1, y1 = positions[asset2]
-
-            # Color and width based on correlation strength
-            abs_value = abs(value)
-            color = "red" if value < 0 else "green"
-            width = max(1, abs_value * 5)
-
-            edge_traces.append(
-                go.Scatter(
-                    x=[x0, x1, None],
-                    y=[y0, y1, None],
-                    mode="lines",
-                    line=dict(color=color, width=width),
-                    hoverinfo="text",
-                    text=f"{asset1} - {asset2}: {value:.3f}",
-                    showlegend=False,
+        for corr in correlations:
+            asset1, asset2, value = FormulaicVisualizer._parse_correlation_item(corr)
+            if asset1 in positions and asset2 in positions:
+                trace = FormulaicVisualizer._create_single_edge_trace(
+                    asset1, asset2, value, positions
                 )
-            )
+                edge_traces.append(trace)
+        return edge_traces
 
-        # Create node trace
+    @staticmethod
+    def _create_single_edge_trace(
+        asset1: str,
+        asset2: str,
+        value: float,
+        positions: Dict[str, tuple[float, float]],
+    ) -> go.Scatter:
+        """Create a single edge trace between two assets."""
+        x0, y0 = positions[asset1]
+        x1, y1 = positions[asset2]
+        color = "red" if value < 0 else "green"
+        width = max(1, abs(value) * 5)
+
+        return go.Scatter(
+            x=[x0, x1, None],
+            y=[y0, y1, None],
+            mode="lines",
+            line=dict(color=color, width=width),
+            hoverinfo="text",
+            text=f"{asset1} - {asset2}: {value:.3f}",
+            showlegend=False,
+        )
+
+    @staticmethod
+    def _create_node_trace(
+        assets: list[str], positions: Dict[str, tuple[float, float]]
+    ) -> go.Scatter:
+        """Create node trace for all assets."""
         node_x = [positions[asset][0] for asset in assets]
         node_y = [positions[asset][1] for asset in assets]
 
-        node_trace = go.Scatter(
+        return go.Scatter(
             x=node_x,
             y=node_y,
             mode="markers+text",
@@ -413,18 +458,6 @@ class FormulaicVisualizer:
             hoverinfo="text",
             showlegend=False,
         )
-
-        # Build figure
-        fig = go.Figure(data=edge_traces + [node_trace])
-        fig.update_layout(
-            title="Asset Correlation Network",
-            showlegend=False,
-            hovermode="closest",
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        )
-
-        return fig
 
     # ------------------------------------------------------------------
     # Metric comparison
