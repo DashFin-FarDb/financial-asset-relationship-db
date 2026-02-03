@@ -361,18 +361,18 @@ on:
   pull_request:
 jobs:
   review:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions / checkout @ v4
+        uses: actions/checkout@v4
       - name: Setup Python
-        uses: actions / setup - python @ v5
+        uses: actions/setup-python@v5
         with:
-          python - version: '3.11'
+          python-version: '3.11'
       - name: Setup Python
-        uses: actions / setup - python @ v5
+        uses: actions/setup-python@v5
         with:
-          python - version: '3.11'
+          python-version: '3.11'
 """
         yaml_file = tmp_path / "pr_agent.yml"
         yaml_file.write_text(yaml_content)
@@ -430,9 +430,9 @@ name: Valid Workflow
 on: push
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions / checkout @ v4
+      - uses: actions/checkout@v4
 """
         )
 
@@ -444,7 +444,7 @@ name: Another Name
 on: push
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
 """
         )
 
@@ -484,12 +484,12 @@ env:
   PYTHON_VERSION: '3.11'
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python - version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11']
     steps:
-      - uses: actions / checkout @ v4
+      - uses: actions/checkout@v4
         with:
 """
         )
