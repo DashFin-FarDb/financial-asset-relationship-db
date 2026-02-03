@@ -297,7 +297,7 @@ class TestWorkflowSecurityConsistency:
                             assert (
                                 "ref" in with_config or "fetch-depth" in with_config
                             ), (
-                                f"{wf_file}: Checkout in pull_request_target should specify safe ref")
+                                f"{wf_file}: Checkout in pull_request_target should specify safe ref"
                             )
 
 
