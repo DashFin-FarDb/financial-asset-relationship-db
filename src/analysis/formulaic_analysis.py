@@ -4,6 +4,7 @@ from typing import Any, Dict, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass
+
 logger = logging.getLogger(__name__)
 
 

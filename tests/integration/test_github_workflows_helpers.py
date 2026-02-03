@@ -533,4 +533,5 @@ jobs:
 
             duplicates = check_duplicate_keys(workflows[0])
             assert len(duplicates) == 0
+
     assert len(duplicates) == 0

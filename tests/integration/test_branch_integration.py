@@ -251,7 +251,7 @@ class TestRemovedFilesIntegration:
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
 
-    @ staticmethod
+    @staticmethod
     def test_all_workflows_avoid_pr_injection():
         """
         Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
@@ -272,7 +272,7 @@ class TestWorkflowSecurityConsistency:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
         return
 
-    @ staticmethod
+    @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
         """
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
@@ -309,7 +309,7 @@ class TestWorkflowSecurityConsistency:
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
-    @ staticmethod
+    @staticmethod
     def test_simplification_theme_consistent():
         """
         Ensure selected workflows adhere to the branch's simplification theme.
@@ -335,7 +335,7 @@ class TestBranchCoherence:
                     f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
                 )
 
-    @ staticmethod
+    @staticmethod
     def test_removed_complexity_not_referenced():
         """
         Assert that removed complexity indicators are not referenced in workflow files.

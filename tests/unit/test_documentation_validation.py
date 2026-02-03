@@ -369,7 +369,7 @@ class TestSystemManifest:
 
 
 class TestDocumentationConsistency:
-    """Test cases for consistency between documentation files.""" 
+    """Test cases for consistency between documentation files."""
 
     @staticmethod
     @pytest.fixture
