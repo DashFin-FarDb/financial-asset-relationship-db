@@ -162,7 +162,7 @@ pytest tests/integration/test_pr_agent_workflow_specific.py::TestPRAgentWorkflow
 ### 4. Production Ready
 
 ✅ **Syntax validated** - All files compile successfully
-✅ **Zero new dependencies** - Uses existing pytest framework
+✅ **Minimal new dependencies** - Adds PyYAML for workflow validation; uses existing pytest framework
 ✅ **CI/CD compatible** - Integrates with existing pipelines
 ✅ **Well documented** - Clear docstrings and comments
 
