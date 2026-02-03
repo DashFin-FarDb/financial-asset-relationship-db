@@ -507,7 +507,6 @@ jobs:
       - name: Run tests
         run: pytest tests/ --cov
 """
-        )
         # fmt: on
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
