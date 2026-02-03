@@ -198,6 +198,7 @@ class TestDependencyMatrix:
                             " "
                         ), f"Line {index}: Heading should have space after #: {line}"
 
+
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
 
