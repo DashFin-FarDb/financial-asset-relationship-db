@@ -1105,8 +1105,8 @@ class TestAutoAssignWorkflow:
 class TestWorkflowTriggers:
     """Comprehensive tests for workflow trigger configurations."""
 
-    @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    @staticmethod
+    @ pytest.mark.parametrize("workflow_file", get_workflow_files())
+    @ staticmethod
     def test_workflow_triggers_are_valid_types(workflow_file: Path):
         """
         Validate that the workflow's triggers are recognised GitHub event types.
