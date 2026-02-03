@@ -1,0 +1,164 @@
+# DeepSource Autofix Rules for YAML Literal Token Corrections
+# These rules fix malformed YAML tokens that would break parsing/assertions
+# Only applied to code blocks, multiline YAML strings, or content parsed as YAML
+
+version: 1
+
+rules:
+  - id: fix-yaml-runs-on-token
+    name: Fix "runs - on" to "runs-on"
+    description: Corrects malformed runs-on token in GitHub Actions workflow YAML
+    pattern: 'runs\s*-\s*on:'
+    replacement: 'runs-on:'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-fetch-depth-token
+    name: Fix "fetch - depth" to "fetch-depth"
+    description: Corrects malformed fetch-depth token in GitHub Actions workflow YAML
+    pattern: 'fetch\s*-\s*depth:'
+    replacement: 'fetch-depth:'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-python-version-token
+    name: Fix "python - version" to "python-version"
+    description: Corrects malformed python-version token in GitHub Actions workflow YAML
+    pattern: 'python\s*-\s*version:'
+    replacement: 'python-version:'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-continue-on-error-token
+    name: Fix "continue - on - error" to "continue-on-error"
+    description: Corrects malformed continue-on-error token in GitHub Actions workflow YAML
+    pattern: 'continue\s*-\s*on\s*-\s*error:'
+    replacement: 'continue-on-error:'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-timeout-minutes-token
+    name: Fix "timeout - minutes" to "timeout-minutes"
+    description: Corrects malformed timeout-minutes token in GitHub Actions workflow YAML
+    pattern: 'timeout\s*-\s*minutes:'
+    replacement: 'timeout-minutes:'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-retention-days-token
+    name: Fix "retention - days" to "retention-days"
+    description: Corrects malformed retention-days token in GitHub Actions workflow YAML
+    pattern: 'retention\s*-\s*days:'
+    replacement: 'retention-days:'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-working-directory-token
+    name: Fix "working - directory" to "working-directory"
+    description: Corrects malformed working-directory token in GitHub Actions workflow YAML
+    pattern: 'working\s*-\s*directory:'
+    replacement: 'working-directory:'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-actions-checkout-token
+    name: Fix "actions / checkout" to "actions/checkout"
+    description: Corrects malformed actions/checkout reference in GitHub Actions workflow YAML
+    pattern: 'actions\s*/\s*checkout'
+    replacement: 'actions/checkout'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+      - '*.md'
+    scope: yaml_strings
+    
+  - id: fix-yaml-actions-upload-artifact-token
+    name: Fix "actions / upload-artifact" to "actions/upload-artifact"
+    description: Corrects malformed actions/upload-artifact reference in GitHub Actions workflow YAML
+    pattern: 'actions\s*/\s*upload-artifact'
+    replacement: 'actions/upload-artifact'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-actions-cache-token
+    name: Fix "actions / cache" to "actions/cache"
+    description: Corrects malformed actions/cache reference in GitHub Actions workflow YAML
+    pattern: 'actions\s*/\s*cache'
+    replacement: 'actions/cache'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-action-version-at-sign
+    name: Fix "action @ version" to "action@version"
+    description: Corrects malformed action version reference with spaces around @ sign
+    pattern: '(@\w+/[\w-]+)\s*@\s*(v?\d+)'
+    replacement: '\1@\2'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+    
+  - id: fix-yaml-action-slash-spacing
+    name: Fix "owner / repo" to "owner/repo" in uses statements
+    description: Corrects malformed action references with spaces around slashes
+    pattern: '(uses:\s*\w+)\s*/\s*(\w+)'
+    replacement: '\1/\2'
+    file_types:
+      - '*.yml'
+      - '*.yaml'
+      - '*.py'
+    scope: yaml_strings
+
+metadata:
+  created: 2026-02-03
+  purpose: |
+    These rules ensure that GitHub Actions workflow YAML tokens are properly formatted
+    to prevent parsing errors and assertion failures in tests. The rules are specifically
+    designed to:
+    
+    1. Fix hyphenated keys that have been incorrectly spaced (e.g., "runs - on")
+    2. Fix action references with incorrect spacing around slashes and @ signs
+    3. Only apply to YAML content, not prose or documentation
+    
+    Usage:
+    - These rules can be integrated with DeepSource or similar linting tools
+    - Apply to test files containing YAML strings
+    - Apply to actual workflow YAML files
+    - Do NOT apply to regular prose or comments unless they contain test YAML strings
+    
+  examples:
+    - before: "runs - on: ubuntu-latest"
+      after: "runs-on: ubuntu-latest"
+    - before: "uses: actions / checkout @ v4"
+      after: "uses: actions/checkout@v4"
+    - before: "python - version: '3.11'"
+      after: "python-version: '3.11'"
