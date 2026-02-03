@@ -206,15 +206,6 @@ class TestSystemManifest:
         """
         return Path(".elastic-copilot/memory/systemManifest.md")
 
-    @pytest.fixture
-    def system_manifest_content(self, system_manifest_path):
-        """
-        Load the contents of the systemManifest.md file.
-
-        Parameters:
-            system_manifest_path(Path): Filesystem path to the systemManifest.md file.
-        """
-
     @staticmethod
     @pytest.fixture
     def system_manifest_content(system_manifest_path):
