@@ -219,20 +219,14 @@ float_val: 3.14
         assert result["float_val"] == 3.14
 
     def test_handles_multiline_strings(self, tmp_path):
-
-
-script: |
- echo "line 1"
-  echo "line 2"
-   echo "line 3"
-     yaml_content = """
+        yaml_content = """
 script: |
   echo "line 1"
   echo "line 2"
   echo "line 3"
 """
-      yaml_file = tmp_path / "multiline.yml"
-       yaml_file.write_text(yaml_content)
+        yaml_file = tmp_path / "multiline.yml"
+        yaml_file.write_text(yaml_content)
 
         result = load_yaml_safe(yaml_file)
         assert "line 1" in result["script"]
