@@ -84,7 +84,7 @@ class TestDependencyMatrix:
         try:
             datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         except ValueError as exc:
-            pytest.fail(f"Invalid timestamp format: {timestamp}") from exc
+            raise AssertionError(f"Invalid timestamp format: {timestamp}") from exc
 
     def test_dependency_matrix_has_summary_section(
         self, dependency_matrix_content: str
