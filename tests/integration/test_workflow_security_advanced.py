@@ -264,7 +264,9 @@ class TestWorkflowSecretHandling:
                     if any(
                         pattern in env_name.upper() for pattern in sensitive_patterns
                     ):
-                        assert isinstance(env_value, str) and env_value.startswith("secrets."), (
+                        assert isinstance(env_value, str) and env_value.startswith(
+                            "secrets."
+                        ), (
                             f"Sensitive env var {env_name} in {workflow['path']} job '{job_name}' must reference a secret"
                         )
                         assert isinstance(env_value, str) and env_value.startswith(
@@ -514,6 +516,7 @@ class TestWorkflowSupplyChainSecurity:
                                 f"Pip installing from insecure index in {workflow['path']} "
                                 f"job '{job_name}' step {step_idx}"
                             )
+
 
 class TestWorkflowIsolationAndSandboxing:
     """Tests for workflow isolation and sandboxing."""

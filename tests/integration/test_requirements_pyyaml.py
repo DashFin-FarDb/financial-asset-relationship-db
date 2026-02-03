@@ -61,9 +61,7 @@ class TestPyYAMLDependencyAddition:
                     assert float(match.group(1)) >= 6.0
 
     @staticmethod
-    def test_types_pyyaml_matches_pyyaml_version(
-        requirements_lines: List[str]
-    ) -> None:
+    def test_types_pyyaml_matches_pyyaml_version(requirements_lines: List[str]) -> None:
         """Ensure types-PyYAML major version matches PyYAML major version."""
         pyyaml_major = None
         types_major = None

@@ -214,6 +214,8 @@ def test_jobs_have_steps_or_uses(workflow_data):
                 assert len(job_data["steps"]) > 0, (
                     f"{filename} job '{job_name}' has empty steps"
                 )
+
+
 # and do not include hardcoded secrets or other security vulnerabilities.
 
 
