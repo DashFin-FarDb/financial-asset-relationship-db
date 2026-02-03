@@ -257,7 +257,7 @@ class TestWorkflowSecurityConsistency:
         dangerous = [
             r"\$\{\{.*github\\.event\\.pull_request\\.title.*\}\}.*\|",
             r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",
+            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
         ]
         for wf_file in workflow_files:
             content = wf_file.read_text()
@@ -297,7 +297,7 @@ class TestWorkflowSecurityConsistency:
                             assert (
                                 "ref" in with_config or "fetch-depth" in with_config
                             ), (
-                                f"{wf_file}: Checkout in pull_request_target should specify safe ref"
+                                f"{wf_file}: Checkout in pull_request_target should specify safe ref")
                             )
 
 
