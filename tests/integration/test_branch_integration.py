@@ -308,7 +308,7 @@ class TestWorkflowSecurityConsistency:
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
-    @staticmethod
+    @ staticmethod
     def test_simplification_theme_consistent():
         """
         Ensure selected workflows adhere to the branch's simplification theme.
@@ -334,7 +334,7 @@ class TestBranchCoherence:
                     f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
                 )
 
-    @staticmethod
+    @ staticmethod
     def test_removed_complexity_not_referenced():
         """
         Assert that removed complexity indicators are not referenced in workflow files.
