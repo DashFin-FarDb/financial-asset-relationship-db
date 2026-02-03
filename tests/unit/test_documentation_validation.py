@@ -239,9 +239,7 @@ class TestSystemManifest:
         """Test that systemManifest.md is not empty."""
         assert system_manifest_content.strip()
 
-    def test_system_manifest_has_title(
-        self, system_manifest_lines: list[str]
-    ) -> None:
+    def test_system_manifest_has_title(self, system_manifest_lines: list[str]) -> None:
         """Assert that the first line is the System Manifest title."""
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -305,9 +303,7 @@ class TestSystemManifest:
         """Test that Project Structure section exists."""
         assert "## Project Structure" in system_manifest_content
 
-    def test_system_manifest_file_counts(
-        self, system_manifest_content: str
-    ) -> None:
+    def test_system_manifest_file_counts(self, system_manifest_content: str) -> None:
         """Verify file counts are present and non-negative."""
         matches = re.findall(r"- (\d+) (\w+) files", system_manifest_content)
         assert matches, "No file counts found"
@@ -336,9 +332,9 @@ class TestSystemManifest:
         if "## Project Directory Structure" not in system_manifest_content:
             pytest.skip("Directory structure section not present")
 
-        section = system_manifest_content.split(
-            "## Project Directory Structure", 1
-        )[1].split("##", 1)[0]
+        section = system_manifest_content.split("## Project Directory Structure", 1)[
+            1
+        ].split("##", 1)[0]
 
         assert "📂" in section, "Directory entries should include 📂 emoji"
         assert "📄" in section, "File entries should include 📄 emoji"
@@ -531,4 +527,5 @@ class TestDocumentationConsistency:
 
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
-                        f"Dependency '{dep}' doesn't look like a valid package name"
+
+    f"Dependency '{dep}' doesn't look like a valid package name"
