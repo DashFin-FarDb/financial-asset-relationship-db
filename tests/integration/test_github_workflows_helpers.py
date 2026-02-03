@@ -514,7 +514,8 @@ jobs:
         with patch(
             "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
         ):
-          fetch - depth: 0
+            workflows = get_workflow_files()
+            # ... rest of test
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
