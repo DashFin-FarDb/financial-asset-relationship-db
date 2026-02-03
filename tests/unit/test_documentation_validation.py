@@ -214,7 +214,7 @@ class TestSystemManifest:
         Parameters:
             system_manifest_path(Path): Filesystem path to the systemManifest.md file.
         """
-        
+
     @staticmethod
     @pytest.fixture
     def system_manifest_content(system_manifest_path):
