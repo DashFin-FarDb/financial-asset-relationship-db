@@ -31,6 +31,7 @@ class TestDependencyMatrix:
 
     @staticmethod
     @pytest.fixture
+    @staticmethod
     def dependency_matrix_content(dependency_matrix_path: Path) -> str:
         """
         Load the dependency matrix markdown content from disk.
@@ -187,7 +188,7 @@ class TestDependencyMatrix:
                 if match:
                     _, text = match.groups()
                     if text:
-                        assert text.startswith(" "), (
+                        assert text.startswith(" \"), (
                             f"Line {index}: Heading should have space after #: {line}"
                         )
 
@@ -205,8 +206,9 @@ class TestSystemManifest:
         """
         return Path(".elastic-copilot/memory/systemManifest.md")
 
+    @staticmethod
     @pytest.fixture
-    def system_manifest_content(self, system_manifest_path: Path) -> str:
+    def system_manifest_content(system_manifest_path: Path) -> str:
         """
         Load and return the contents of the system manifest file.
 
@@ -220,8 +222,9 @@ class TestSystemManifest:
         with system_manifest_path.open(encoding="utf-8") as file_handle:
             return file_handle.read()
 
+    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(self, system_manifest_content: str) -> list[str]:
+    def system_manifest_lines(system_manifest_content: str) -> list[str]:
         """
         Split system manifest content into lines.
 
@@ -366,7 +369,7 @@ class TestSystemManifest:
 
 
 class TestDocumentationConsistency:
-    """Test cases for consistency between documentation files."""
+    """Test cases for consistency between documentation files.""" 
 
     @staticmethod
     @pytest.fixture
@@ -527,6 +530,3 @@ class TestDocumentationConsistency:
 
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
-
-
-    pass

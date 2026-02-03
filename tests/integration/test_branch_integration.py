@@ -226,8 +226,9 @@ class TestRemovedFilesIntegration:
 
         # Should not require config-path or similar
         with_config = labeler_step.get("with", {})
-            # Parsed workflow should be a mapping of jobs and configuration
-            assert isinstance(workflow, dict)
+        # Parsed workflow should be a mapping of jobs and configuration
+        assert isinstance(workflow, dict)
+        assert (
             "config-path" not in with_config
             or with_config.get("config-path") == ".github/labeler.yml"
         )

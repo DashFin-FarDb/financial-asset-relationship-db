@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
-
+from src.models.financial_models import AssetClass
 logger = logging.getLogger(__name__)
 
 
@@ -481,17 +481,10 @@ class FormulaicAnalyzer:
     @staticmethod
     def _has_bonds(graph: AssetRelationshipGraph) -> bool:
         """Check if graph contains bond/fixed income assets."""
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.FIXED_INCOME
             for asset in graph.assets.values()
-        )
-        """Check if the graph contains commodity assets."""
-        from src.models.financial_models import AssetClass
-
-        return any(
-            asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values()
         )
 
     @staticmethod
