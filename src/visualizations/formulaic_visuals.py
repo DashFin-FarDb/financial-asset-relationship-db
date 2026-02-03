@@ -135,7 +135,7 @@ class FormulaicVisualizer:
         """Format formula name with truncation."""
         if not isinstance(name, str) or not name:
             return "N/A"
-        return name if len(name) <= max_length else f"{name[:max_length - 3]}..."
+        return name if len(name) <= max_length else f"{name[: max_length - 3]}..."
 
     @staticmethod
     def _format_r_squared(r_value: Any) -> str:
@@ -145,11 +145,12 @@ class FormulaicVisualizer:
         return "N/A"
 
     @staticmethod
-    def _extract_formula_table_data(formulas: Any) -> tuple[list[str], list[str], list[str]]:
+    def _extract_formula_table_data(
+        formulas: Any,
+    ) -> tuple[list[str], list[str], list[str]]:
         """Extract table values for formula name, category, and r-squared."""
         names = [
-            FormulaicVisualizer._format_name(getattr(f, "name", None))
-            for f in formulas
+            FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
         categories = [getattr(f, "category", "N/A") for f in formulas]
         r_squared_values = [
@@ -180,8 +181,7 @@ class FormulaicVisualizer:
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
                 + "<br>".join(
-                    f"• {var}: {desc}"
-                    for var, desc in formula.variables.items()
+                    f"• {var}: {desc}" for var, desc in formula.variables.items()
                 )
                 + "<br><br><b>Example Calculation:</b><br>"
                 f"{formula.example_calculation}"
