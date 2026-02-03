@@ -82,8 +82,9 @@ class FormulaicVisualizer:
         raise NotImplementedError()
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
-        """Populate the "Key Formula Examples" table with top formulas,
-        sorted by reliability."""
+        """Populate the "Key Formula Examples" table
+           with top formulas, sorted by reliability.
+        """
         # Populate the "Key Formula Examples" table in row 3, column 2.
         # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
         if not formulas:
@@ -147,32 +148,6 @@ class FormulaicVisualizer:
             for f in formulas
         ]
         return names, categories, r_squared_values
-
-        # Update layout
-        fig.update_layout(
-            title=dict(
-                text="📊 Financial Formulaic Analysis Dashboard",
-                x=0.5,
-                font=dict(size=20, color="#2C3E50"),
-            ),
-            height=1000,
-            showlegend=False,
-            plot_bgcolor="white",
-            paper_bgcolor="#F8F9FA",
-            font=dict(
-                family="Arial, sans-serif",
-                size=10,
-            ),
-        )
-
-        # Update axes
-        fig.update_yaxes(title_text="Count", row=2, col=2)
-        fig.update_yaxes(title_text="Asset Count", row=3, col=1)
-        fig.update_xaxes(title_text="Asset Class", row=2, col=2)
-        fig.update_xaxes(title_text="Sector", row=3, col=1)
-        fig.update_yaxes(title_text="R-squared Value", row=1, col=2)
-
-        return fig
 
     @staticmethod
     def create_formula_detail_view(formula: Formula) -> go.Figure:
