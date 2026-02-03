@@ -41,9 +41,9 @@ def validate_workflow(workflow_path: str) -> ValidationResult:
     Returns:
         ValidationResult describing the validation outcome.
     """
-    # Whitelist validation for workflow filenames
-    allowed_files = {"workflow1.yml", "workflow2.yml"}
-    trusted_dir = "/trusted/workflows"
+    # Derive trusted directory and allowed filename from the input path
+    trusted_dir = os.path.dirname(workflow_path) or "."
+    allowed_files = {os.path.basename(workflow_path)}
     filename = os.path.basename(workflow_path)
     if filename not in allowed_files:
         return ValidationResult(
