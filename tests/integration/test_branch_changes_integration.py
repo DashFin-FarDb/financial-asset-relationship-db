@@ -301,7 +301,8 @@ class TestDocumentationConsistency:
 class TestGitHubActionsEcosystem:
     """Test the overall GitHub Actions ecosystem health."""
 
-    def test_no_circular_workflow_dependencies(self):
+    @staticmethod
+    def test_no_circular_workflow_dependencies():
         """Workflows should not have circular trigger dependencies."""
         workflow_triggers = {}
 
@@ -334,7 +335,8 @@ class TestGitHubActionsEcosystem:
                         f"Circular dependency: {workflow} <-> {trigger}"
                     )
 
-    def test_workflow_naming_convention(self):
+    @staticmethod
+    def test_workflow_naming_convention():
         """Workflows should follow consistent naming conventions."""
         workflow_names = []
 
@@ -355,7 +357,8 @@ class TestGitHubActionsEcosystem:
             # File name should somewhat match workflow name
             # (This is a soft check)
 
-    def test_reasonable_workflow_count(self):
+    @staticmethod
+    def test_reasonable_workflow_count():
         """Should not have too many workflows(maintainability)."""
         workflow_files = _get_workflow_files()
         workflow_count = len(workflow_files)
@@ -365,7 +368,8 @@ class TestGitHubActionsEcosystem:
             f"Too many workflows ({workflow_count}), consider consolidation"
         )
 
-    def test_all_workflows_documented(self):
+    @staticmethod
+    def test_all_workflows_documented():
         """All workflows should be documented somewhere."""
         workflow_files = _get_workflow_files()
         workflows = [f.stem for f in workflow_files]

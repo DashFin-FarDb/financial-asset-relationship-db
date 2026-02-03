@@ -283,7 +283,7 @@ class TestWorkflowTriggerValidation:
                     workflows.append((workflow_file.name, data))
         return workflows
 
-    def workflow_files() -> List[Path]:
+    def workflow_files(self) -> List[Path]:
         """Get all workflow YAML files."""
         workflow_dir = Path(".github/workflows")
         return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))

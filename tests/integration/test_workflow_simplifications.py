@@ -220,20 +220,12 @@ class TestGreetingsWorkflowSimplification:
                     pr_message = step.get("with", {}).get("pr-message", "")
 
                     # Messages should be simple placeholders
-                    assert len(issue_message) < 200, (
-                        "Issue message should be short placeholder, not detailed custom message"
-                    )
-                    assert len(pr_message) < 200, (
-                        "PR message should be short placeholder, not detailed custom message"
-                    )
+                    assert len(issue_message) < 200, "Issue message should be short placeholder, not detailed custom message"
+                    assert len(pr_message) < 200, "PR message should be short placeholder, not detailed custom message"
 
                     # Should not contain custom project-specific content
-                    assert (
-                        "Financial Asset Relationship Database" not in issue_message
-                    ), "Should not have project-specific content in issue message"
-                    assert "Financial Asset Relationship Database" not in pr_message, (
-                        "Should not have project-specific content in PR message"
-                    )
+                    assert "Financial Asset Relationship Database" not in issue_message, "Should not have project-specific content in issue message"
+                    assert "Financial Asset Relationship Database" not in pr_message, "Should not have project-specific content in PR message"
 
     def test_no_markdown_formatting_in_messages(
         self, greetings_workflow: Dict[str, Any]
@@ -250,20 +242,12 @@ class TestGreetingsWorkflowSimplification:
                     pr_message = step.get("with", {}).get("pr-message", "")
 
                     # Should not have markdown headers
-                    assert "**" not in issue_message or issue_message.count("**") < 4, (
-                        "Issue message should not have extensive markdown formatting"
-                    )
-                    assert "**" not in pr_message or pr_message.count("**") < 4, (
-                        "PR message should not have extensive markdown formatting"
-                    )
+                    assert "**" not in issue_message or issue_message.count("**") < 4, "Issue message should not have extensive markdown formatting"
+                    assert "**" not in pr_message or pr_message.count("**") < 4, "PR message should not have extensive markdown formatting"
 
                     # Should not have bullet lists
-                    assert issue_message.count("- ") < 3, (
-                        "Issue message should not have extensive bullet lists"
-                    )
-                    assert pr_message.count("- ") < 3, (
-                        "PR message should not have extensive bullet lists"
-                    )
+                    assert issue_message.count("- ") < 3, "Issue message should not have extensive bullet lists"
+                    assert pr_message.count("- ") < 3, "PR message should not have extensive bullet lists"
 
 
 class TestLabelerWorkflowSimplification:

@@ -275,12 +275,6 @@ jobs:
                 Path(f.name).unlink()
 
 
-"
-                assert result.is_valid is True
-            finally:
-                Path(f.name).unlink()
-
-
 class TestValidationResultBehavior:
     """Test ValidationResult behavior and edge cases"""
 

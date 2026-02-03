@@ -163,34 +163,34 @@ class TestWorkflowGitHubActionsSchema:
     def test_jobs_have_runs_on(workflow_data):
         """All jobs should specify runs-on."""
         for filename, data in workflow_data.items():
-        jobs = data.get("jobs", {})
+            jobs = data.get("jobs", {})
 
-        for job_name, job_data in jobs.items():
-            assert "runs-on" in job_data, (
-                f"{filename} job '{job_name}' missing 'runs-on'"
-            )
+            for job_name, job_data in jobs.items():
+                assert "runs-on" in job_data, (
+                    f"{filename} job '{job_name}' missing 'runs-on'"
+                )
 
-            runs_on = job_data["runs-on"]
-            valid_runners = [
-                "ubuntu-latest",
-                "ubuntu-22.04",
-                "ubuntu-20.04",
-                "ubuntu-18.04",
-                "windows-latest",
-                "windows-2022",
-                "windows-2019",
-                "macos-latest",
-                "macos-13",
-                "macos-12",
-                "macos-11",
-            ]
+                runs_on = job_data["runs-on"]
+                valid_runners = [
+                    "ubuntu-latest",
+                    "ubuntu-22.04",
+                    "ubuntu-20.04",
+                    "ubuntu-18.04",
+                    "windows-latest",
+                    "windows-2022",
+                    "windows-2019",
+                    "macos-latest",
+                    "macos-13",
+                    "macos-12",
+                    "macos-11",
+                ]
 
-            if isinstance(runs_on, str):
-                # Can be expression or literal
-                if not runs_on.startswith("${{"):
-                    assert any(runner in runs_on for runner in valid_runners), (
-                        f"{filename} job '{job_name}' has invalid 'runs-on': {runs_on}"
-                    )
+                if isinstance(runs_on, str):
+                    # Can be expression or literal
+                    if not runs_on.startswith("${{"):
+                        assert any(runner in runs_on for runner in valid_runners), (
+                            f"{filename} job '{job_name}' has invalid 'runs-on': {runs_on}"
+                        )
 
 
 @staticmethod

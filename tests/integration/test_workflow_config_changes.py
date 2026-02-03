@@ -11,7 +11,8 @@ class TestPRAgentWorkflowChanges:
     """Tests for pr-agent.yml workflow changes."""
 
     @pytest.fixture
-    def pr_agent_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def pr_agent_workflow() -> Dict[str, Any]:
         """
         Load and parse the .github/workflows/pr-agent.yml workflow file.
 
@@ -113,7 +114,8 @@ class TestPRAgentConfigChanges:
     """Tests for pr-agent-config.yml configuration changes."""
 
     @pytest.fixture
-    def pr_agent_config(self) -> Dict[str, Any]:
+    @staticmethod
+    def pr_agent_config() -> Dict[str, Any]:
         """
         Load and parse the .github/pr-agent-config.yml file.
 
@@ -184,7 +186,8 @@ class TestGreetingsWorkflowChanges:
     """Tests for greetings.yml workflow changes."""
 
     @pytest.fixture
-    def greetings_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def greetings_workflow() -> Dict[str, Any]:
         """Load greetings.yml workflow."""
         workflow_path = Path(".github/workflows/greetings.yml")
         with open(workflow_path, "r") as f:
@@ -241,7 +244,8 @@ class TestLabelWorkflowConfigChanges:
     """Tests for label.yml workflow changes."""
 
     @pytest.fixture
-    def label_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def label_workflow() -> Dict[str, Any]:
         """
         Load and parse the label GitHub Actions workflow file.
 
@@ -307,7 +311,8 @@ class TestAPISecScanWorkflowChanges:
     """Tests for apisec-scan.yml workflow changes."""
 
     @pytest.fixture
-    def apisec_workflow(self) -> Dict[str, Any]:
+    @staticmethod
+    def apisec_workflow() -> Dict[str, Any]:
         """
         Load and parse the .github/workflows/apisec-scan.yml GitHub Actions workflow.
 
@@ -387,6 +392,9 @@ class TestWorkflowSecurityBestPractices:
             dangerous_patterns = [
                 "password:",
                 "api_key:",
+            ]
+            for pattern in dangerous_patterns:
+                assert pattern not in content, f"Found hardcoded secret pattern: {pattern} in {workflow_file}"
                 "token:",
                 "secret:",
             ]

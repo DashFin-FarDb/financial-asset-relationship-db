@@ -1,6 +1,10 @@
-from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, List
+import re
+from collections import Counter
+
+import sys
+import inspect
 
 import pytest
 
@@ -47,11 +51,6 @@ def load_yaml_safe(file_path: Path) -> Dict[str, Any]:
         return yaml.safe_load(f)
 
 
-"""
-Module for detecting duplicate mapping keys in YAML files within integration tests.
-"""
-
-
 def check_duplicate_keys(file_path: Path) -> List[str]:
     """
     Detect duplicate mapping keys in a YAML file.
@@ -70,8 +69,6 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
     # Parse with a custom constructor that detects duplicates
     class DuplicateKeySafeLoader(yaml.SafeLoader):
         """SafeLoader subclass that detects duplicate keys in YAML mappings."""
-
-        pass
 
     def constructor_with_dup_check(loader, node):
         """
@@ -139,8 +136,6 @@ class TestWorkflowSyntax:
 
 class TestWorkflowStructure:
     """Test suite for GitHub Actions workflow structure validation."""
-
-    """Check that a workflow file exists, is a regular file and contains non-empty UTF-8 text."""
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_has_name(self, workflow_file: Path):
@@ -254,8 +249,9 @@ class TestWorkflowActions:
 class TestPrAgentWorkflow:
     """Comprehensive tests for the pr - agent.yml workflow."""
 
+    @staticmethod
     @pytest.fixture
-    def pr_agent_workflow(self) -> Dict[str, Any]:
+    def pr_agent_workflow() -> Dict[str, Any]:
         """Load the 'pr-agent' workflow YAML."""
         workflow_path = WORKFLOWS_DIR / "pr-agent.yml"
         if not workflow_path.exists():
@@ -431,6 +427,7 @@ class TestWorkflowSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
         """Test that workflows don't contain hardcoded secrets or tokens."""
+        import re
         with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -660,7 +657,7 @@ class TestWorkflowStepConfiguration:
 
         for job_name, job_config in jobs.items():
             steps = job_config.get("steps", [])
-            step_ids = [s.get("id") for s in steps if "id" in s]
+            id_counts = Counter(s.get("id") for s in steps if "id" in s)
             duplicates = [sid for sid, count in id_counts.items() if count > 1]
             assert not duplicates, (
                 f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
@@ -707,7 +704,8 @@ class TestWorkflowEnvAndSecrets:
 class TestTestSuiteCompleteness:
     """Meta - test to ensure test suite is comprehensive."""
 
-    def test_all_workflow_files_tested(self):
+    @staticmethod
+    def test_all_workflow_files_tested():
         """Verify that all workflow files are included in tests."""
         workflow_files = get_workflow_files()
         assert len(workflow_files) > 0, "Should find at least one workflow file"
@@ -716,7 +714,8 @@ class TestTestSuiteCompleteness:
             assert wf.exists(), f"Workflow file {wf} should exist"
             assert wf.suffix in [".yml", ".yaml"], f"Workflow file {wf} should be YAML"
 
-    def test_test_coverage_is_comprehensive(self):
+    @staticmethod
+    def test_test_coverage_is_comprehensive():
         """Assert the test module contains a comprehensive number of test classes."""
         current_module = sys.modules[__name__]
         test_classes = [
@@ -734,12 +733,14 @@ class TestTestSuiteCompleteness:
 class TestRequirementsDevValidation:
     """Tests for requirements - dev.txt changes."""
 
-    def test_requirements_dev_file_exists(self):
+    @staticmethod
+    def test_requirements_dev_file_exists():
         """Test that requirements - dev.txt exists."""
         req_file = Path("requirements-dev.txt")
         assert req_file.exists(), "requirements-dev.txt not found"
 
-    def test_requirements_dev_valid_format(self):
+    @staticmethod
+    def test_requirements_dev_valid_format():
         """Validate the format of requirements - dev.txt."""
         req_file = Path("requirements-dev.txt")
         if not req_file.exists():
@@ -762,7 +763,8 @@ class TestRequirementsDevValidation:
                     f"Line {line_num}: Multiple == in requirement: {line}"
                 )
 
-    def test_requirements_dev_pyyaml_present(self):
+    @staticmethod
+    def test_requirements_dev_pyyaml_present():
         """Ensure requirements - dev.txt contains PyYAML."""
         req_file = Path("requirements-dev.txt")
         if not req_file.exists():
@@ -774,8 +776,6 @@ class TestRequirementsDevValidation:
         assert "pyyaml" in content or "yaml" in content, (
             "PyYAML should be in requirements-dev.txt for workflow tests"
         )
-
-    """Module for integration tests related to GitHub workflows, ensuring no conflicting dependencies between requirement files."""
 
     @staticmethod
     def test_no_conflicting_dependencies() -> None:
@@ -805,20 +805,18 @@ class TestRequirementsDevValidation:
                             .lower()
                         )
                         packages[pkg] = stripped
+            return packages
 
-        return packages
+        dev_pkgs = parse_requirements(req_file)
+        main_pkgs = parse_requirements(main_req_file)
 
-    dev_pkgs = parse_requirements(req_file)
-    main_pkgs = parse_requirements(main_req_file)
+        conflicts: list[str] = []
+        for pkg, dev_spec in dev_pkgs.items():
+            main_spec = main_pkgs.get(pkg)
+            if main_spec and dev_spec != main_spec:
+                conflicts.append(f"{pkg}: dev='{dev_spec}' vs main='{main_spec}'")
 
-    conflicts: list[str] = []
-    for pkg, dev_spec in dev_pkgs.items():
-        main_spec = main_pkgs.get(pkg)
-        if main_spec and dev_spec != main_spec:
-            conflicts.append(f"{pkg}: dev='{dev_spec}' vs main='{main_spec}'")
-
-    assert not conflicts, f"Version conflicts: {conflicts}"
-
+        assert not conflicts, f"Version conflicts: {conflicts}"}
 
 class TestWorkflowDocumentationConsistency:
     """Test that workflow changes are properly documented."""

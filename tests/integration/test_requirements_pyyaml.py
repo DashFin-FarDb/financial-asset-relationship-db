@@ -60,8 +60,9 @@ class TestPyYAMLDependencyAddition:
                 if match:
                     assert float(match.group(1)) >= 6.0
 
+    @staticmethod
     def test_types_pyyaml_matches_pyyaml_version(
-        self, requirements_lines: List[str]
+        requirements_lines: List[str]
     ) -> None:
         """Ensure types-PyYAML major version matches PyYAML major version."""
         pyyaml_major = None
@@ -183,7 +184,8 @@ class TestRequirementsDevVersionPinning:
     """Test version pinning strategy."""
 
     @pytest.fixture
-    def requirements_lines(self) -> List[str]:
+    @staticmethod
+    def requirements_lines() -> List[str]:
         """Return cleaned requirement lines."""
         content = Path("requirements-dev.txt").read_text(encoding="utf-8")
         return [
