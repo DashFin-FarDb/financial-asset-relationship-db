@@ -716,7 +716,12 @@ describe("Edge Cases with Node and Edge Data", () => {
         },
       ],
       edges: [
-        { source: "ZERO", target: "ZERO", relationship_type: "TEST", strength: 0.5 },
+        {
+          source: "ZERO",
+          target: "ZERO",
+          relationship_type: "TEST",
+          strength: 0.5,
+        },
       ],
     };
 
@@ -744,7 +749,12 @@ describe("Edge Cases with Node and Edge Data", () => {
         },
       ],
       edges: [
-        { source: "NEG", target: "NEG", relationship_type: "TEST", strength: 0.5 },
+        {
+          source: "NEG",
+          target: "NEG",
+          relationship_type: "TEST",
+          strength: 0.5,
+        },
       ],
     };
 
