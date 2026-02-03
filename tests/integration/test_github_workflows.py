@@ -2665,30 +2665,28 @@ class TestWorkflowPermissionsBestPractices:
                     ], f"Invalid permission value '{value}' in {workflow_file.name}"
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    """Module for testing that GitHub workflow write permissions have proper justifications."""
-
     def test_write_permissions_have_justification(self, workflow_file: Path):
-         """Test that write permissions are used appropriately."""
-          data = load_yaml_safe(workflow_file)
+        """Test that write permissions are used appropriately."""
+        data = load_yaml_safe(workflow_file)
 
-           def check_perms(perms):
-                """Recursively inspect permissions and ensure any write permissions are properly justified."""
-                if isinstance(perms, dict):
-                    for _, value in perms.items():
-                        if value == "write":
-                            # Common justified write permissions
+        def check_perms(perms):
+            """Recursively inspect permissions and ensure any write permissions are properly justified."""
+            if isinstance(perms, dict):
+                for _, value in perms.items():
+                    if value == "write":
+                        # Common justified write permissions
 
-                            # Check workflow-level permissions
-                            raise AssertionError("Write permission found without proper justification")
+                        # Check workflow-level permissions
+                        raise AssertionError("Write permission found without proper justification")
 
-            if "permissions" in data:
-                check_perms(data["permissions"])
+        if "permissions" in data:
+            check_perms(data["permissions"])
 
-            # Check job-level permissions
-            jobs = data.get("jobs", {})
-            for _, job in jobs.items():
-                if "permissions" in job:
-                    check_perms(job["permissions"])
+        # Check job-level permissions
+        jobs = data.get("jobs", {})
+        for _, job in jobs.items():
+            if "permissions" in job:
+                check_perms(job["permissions"])
 
 
 class TestWorkflowComplexScenarios:

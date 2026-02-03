@@ -1,11 +1,3 @@
-"""
-Unit tests for helper functions in test_github_workflows.py module.
-
-This test suite validates the utility functions used for GitHub Actions workflow
-testing, ensuring they correctly identify workflow files, parse YAML, and detect
-duplicate keys.
-"""
-
 from pathlib import Path
 from typing import List
 from unittest.mock import patch
@@ -31,13 +23,15 @@ class TestGetWorkflowFiles:
         result = get_workflow_files()
         assert isinstance(result, list)
 
-    def test_returns_path_objects(self):
+    @staticmethod
+    def test_returns_path_objects():
         """Test that all returned items are Path objects."""
         result = get_workflow_files()
         for item in result:
             assert isinstance(item, Path)
 
-    def test_only_returns_yaml_files(self):
+    @staticmethod
+    def test_only_returns_yaml_files():
         """Test that only .yml and .yaml files are returned."""
         result = get_workflow_files()
         for workflow_file in result:
@@ -488,6 +482,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+"""
+        )
           fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
