@@ -394,7 +394,6 @@ def create_real_database() -> AssetRelationshipGraph:
         the cache, a real-data fetch, or the sample fallback.
     """
     fetcher = RealDataFetcher()
-    fetcher = RealDataFetcher()
     return fetcher.create_real_database()
 
 
