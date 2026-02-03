@@ -73,9 +73,9 @@ permissions:
 
 jobs:
 
+jobs:
+
   Trigger_APIsec_scan:
-    Trigger_APIsec_scan:
-      concurrency:
     concurrency:
       group: apisec-${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
