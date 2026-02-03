@@ -21,9 +21,9 @@ class TestPRAgentConfigSimplification:
     @pytest.fixture
     def pr_agent_config(self):
         """
-        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+        Load and parse the PR agent YAML configuration from .github / pr - agent - config.yml.
 
-        If the file is missing, contains invalid YAML, or does not contain a top-level mapping, the fixture will call pytest.fail to abort the test.
+        If the file is missing, contains invalid YAML, or does not contain a top - level mapping, the fixture will call pytest.fail to abort the test.
 
         Returns:
             dict: The parsed YAML content as a Python mapping.
@@ -48,16 +48,16 @@ class TestPRAgentConfigSimplification:
         """
         Assert that the 'agent' section does not contain a 'context' key.
 
-        The test fails if the parsed PR agent configuration includes a 'context' key under the top-level 'agent' section.
+        The test fails if the parsed PR agent configuration includes a 'context' key under the top - level 'agent' section.
         """
         agent_config = pr_agent_config['agent']
         assert 'context' not in agent_config
 
     def test_no_chunking_settings(self, pr_agent_config):
         """
-        Assert the configuration contains no chunking-related settings.
+        Assert the configuration contains no chunking - related settings.
 
-        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string (case-insensitive).
+        Checks that the keys 'chunking', 'chunk_size' and 'overlap_tokens' do not appear in the serialized configuration string(case-insensitive).
         """
         config_str = yaml.dump(pr_agent_config)
         assert 'chunking' not in config_str.lower()
@@ -71,7 +71,7 @@ class TestPRAgentConfigSimplification:
 
     def test_no_fallback_strategies(self, pr_agent_config):
         """
-        Ensure the top-level `limits` section does not contain a `fallback` key.
+        Ensure the top - level `limits` section does not contain a `fallback` key.
         """
         limits = pr_agent_config.get('limits', {})
         assert 'fallback' not in limits
@@ -87,10 +87,10 @@ class TestPRAgentConfigSimplification:
 
     def test_monitoring_config_present(self, pr_agent_config):
         """
-        Ensure the top-level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
+        Ensure the top - level monitoring section contains the keys 'check_interval', 'max_retries', and 'timeout'.
 
         Parameters:
-            pr_agent_config (dict): Parsed PR agent configuration mapping.
+            pr_agent_config(dict): Parsed PR agent configuration mapping.
         """
         monitoring = pr_agent_config['monitoring']
         assert 'check_interval' in monitoring
@@ -115,9 +115,9 @@ class TestPRAgentConfigYAMLValidity:
 
     def test_config_is_valid_yaml(self):
         """
-        Fail the test if .github/pr-agent-config.yml contains invalid YAML.
+        Fail the test if .github / pr - agent - config.yml contains invalid YAML.
 
-        Attempts to parse the repository file at .github/pr-agent-config.yml and fails the test with the YAML parser error when parsing fails.
+        Attempts to parse the repository file at .github / pr - agent - config.yml and fails the test with the YAML parser error when parsing fails.
         """
         config_path = Path(".github/pr-agent-config.yml")
 
@@ -176,9 +176,9 @@ class TestPRAgentConfigYAMLValidity:
 
     def test_no_duplicate_keys(self):
         """
-        Fail the test if any top-level YAML key appears more than once in the file.
+        Fail the test if any top - level YAML key appears more than once in the file.
 
-        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
+        Scans .github / pr - agent - config.yml, ignores comment lines, and for each non - comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
 
@@ -229,7 +229,7 @@ class TestPRAgentConfigYAMLValidity:
 
     def test_consistent_indentation(self):
         """
-        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
+        Verify that every non - empty, non - comment line in the PR agent YAML uses 2 - space indentation increments.
 
         Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
         """
@@ -262,10 +262,10 @@ class TestPRAgentConfigSecurity:
     @pytest.fixture
     def pr_agent_config(self):
         """
-        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+        Load and parse the PR agent YAML configuration from .github / pr - agent - config.yml.
 
         Returns:
-            The parsed YAML content as a Python mapping or sequence (typically a dict), or `None` if the file is empty.
+            The parsed YAML content as a Python mapping or sequence(typically a dict), or `None` if the file is empty.
         """
 
     def test_no_hardcoded_credentials(self, pr_agent_config):
@@ -279,12 +279,12 @@ class TestPRAgentConfigSecurity:
         - Obvious secret prefixes / suffixes
         - Inline credentials in URLs(e.g., scheme: // user:pass @ host)
 
-        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
+        Load and parse the PR agent YAML configuration from .github / pr - agent - config.yml.
 
-        If the file is missing, contains invalid YAML, or the top-level content is not a mapping, this fixture fails test collection. Empty files return None.
+        If the file is missing, contains invalid YAML, or the top - level content is not a mapping, this fixture fails test collection. Empty files return None.
 
         Returns:
-            The parsed YAML content (typically a dict) or `None` if the file is empty.
+            The parsed YAML content(typically a dict) or `None` if the file is empty.
         """
         import math
         import re
