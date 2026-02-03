@@ -355,10 +355,18 @@ job2:
         result = check_duplicate_keys(yaml_file)
         assert isinstance(result, list)
 
-    def test_github_actions_pr_agent_scenario(self, tmp_path):
-        """Test the specific PR Agent workflow duplicate key scenario."""
-        # fmt: off
-        yaml_content = """
+    # tests/integration/test_github_workflows_helpers.py
+
+def test_github_actions_pr_agent_scenario(self, test_data_path):
+    # The test now loads the YAML from a dedicated file
+    # No more `# fmt: off` or embedded YAML strings
+    yaml_file_path = test_data_path / "pr_agent.yml"
+    
+    # The test logic remains the same
+    result = check_duplicate_keys(yaml_file_path)
+    # ... assertions ...
+
+# new file: tests/integration/data/pr_agent.yml
 name: PR Agent
 on:
   pull_request:
@@ -368,18 +376,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-"""
-        # fmt: on
-        yaml_file = tmp_path / "pr_agent.yml"
-        yaml_file.write_text(yaml_content)
 
         result = check_duplicate_keys(yaml_file)
         assert isinstance(result, list)
