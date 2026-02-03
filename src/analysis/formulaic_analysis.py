@@ -426,10 +426,10 @@ class FormulaicAnalyzer:
         return categories
 
     def _generate_formula_summary(
-    self,
-    formulas: List[Formula],
-    empirical_relationships: Dict[str, Any],
-) -> Dict[str, Any]:
+        self,
+        formulas: List[Formula],
+        empirical_relationships: Dict[str, Any],
+    ) -> Dict[str, Any]:
     """Generate a summary of formulaic analysis results."""
     avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
         empirical_relationships
