@@ -176,7 +176,7 @@ items:
   - name: first
     value: 1
   - name: second
-  value: 2
+    value: 2
 """
         yaml_file = tmp_path / "list.yml"
         yaml_file.write_text(yaml_content)
