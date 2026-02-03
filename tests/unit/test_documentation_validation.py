@@ -320,7 +320,6 @@ class TestSystemManifest:
         Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
         """
         assert '- Description:' in system_manifest_content
-        assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
         match = re.search(pattern, system_manifest_content)
 
