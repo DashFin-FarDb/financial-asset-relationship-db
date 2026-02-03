@@ -280,7 +280,7 @@ class TestSystemManifest:
         Returns:
             list[str]: Lines from the manifest obtained by splitting on newline characters.
         """
-        return system_manifest_content.split("\n")
+        return system_manifest_content.split('\n')
 
     def test_system_manifest_exists(self, system_manifest_path):
         """Test that systemManifest.md exists."""
@@ -293,32 +293,33 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top - level title "# System Manifest".
+        Assert that the system manifest's first line is the top-level title '# System Manifest'.
         """
-        assert system_manifest_lines[0] == "# System Manifest"
+        assert system_manifest_lines[0] == '# System Manifest'
 
     def test_system_manifest_has_project_overview(self, system_manifest_content):
         """
-        Assert that the system manifest contains a top - level "Project Overview" section.
+        Assert that the system manifest contains a top-level 'Project Overview' section.
 
         Parameters:
             system_manifest_content(str): The complete text content of the systemManifest.md file.
         """
-        assert "## Project Overview" in system_manifest_content
+        assert '## Project Overview' in system_manifest_content
 
     def test_system_manifest_has_project_name(self, system_manifest_content):
         """Test that systemManifest.md specifies project name."""
         pattern = r"- Name: (.+)"
         match = re.search(pattern, system_manifest_content)
 
-        assert match is not None, "Project name not found"
+        assert match is not None, 'Project name not found'
         name = match.group(1).strip()
-        assert len(name) > 0, "Project name should not be empty"
+        assert len(name) > 0, 'Project name should not be empty'
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a "- Description: ..." entry documenting the project's description.
+        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
         """
+        assert '- Description:' in system_manifest_content
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
         match = re.search(pattern, system_manifest_content)
