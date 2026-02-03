@@ -164,7 +164,7 @@ describe("Data Formatting and Display", () => {
       const testMetrics: Metrics = { ...mockMetrics, network_density: density };
       const { unmount } = render(<MetricsDashboard metrics={testMetrics} />);
 
-      const formatted = (density * 100).toFixed(2) + "%";
+      const formatted = `${(density * 100).toFixed(2)}%`;
       expect(screen.getByText(formatted)).toBeInTheDocument();
 
       unmount();

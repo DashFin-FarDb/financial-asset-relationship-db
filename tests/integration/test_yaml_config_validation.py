@@ -20,7 +20,8 @@ import yaml
 class TestYAMLSyntaxAndStructure:
     """Tests for YAML syntax and structural validity."""
 
-    def test_all_yaml_files_parse_successfully(self):
+    @staticmethod
+    def test_all_yaml_files_parse_successfully():
         """Verify all YAML files have valid syntax."""
         yaml_files = []
 
@@ -38,9 +39,10 @@ class TestYAMLSyntaxAndStructure:
             except yaml.YAMLError as e:
                 parse_errors.append(f"{yaml_file}: {str(e)}")
 
-        assert len(parse_errors) == 0, f"YAML parse errors:\n" + "\n".join(parse_errors)
+        assert len(parse_errors) == 0, "YAML parse errors:\n" + "\n".join(parse_errors)
 
-    def test_yaml_files_use_consistent_indentation(self):
+    @staticmethod
+    def test_yaml_files_use_consistent_indentation():
         """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
         yaml_files = list(Path(".github").rglob("*.yml")) + list(
             Path(".github").rglob("*.yaml")
@@ -63,7 +65,7 @@ class TestYAMLSyntaxAndStructure:
                 leading_spaces = len(line) - len(stripped)
 
                 # Skip empty lines and full-line comments
-                if not stripped or stripped.startswith("#"):
+                if stripped == "" or stripped.startswith("#"):
                     continue
 
                 # If currently inside a block scalar, continue until indentation returns
@@ -84,13 +86,14 @@ class TestYAMLSyntaxAndStructure:
                     continue
 
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith(
-                    "  " * (leading_spaces // 2 + 1) + "- |"
+                if (
+                    line[0] == " "
+                    and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |")
+                    and leading_spaces % 2 != 0
                 ):
-                    if leading_spaces % 2 != 0:
-                        indentation_errors.append(
-                            f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
-                        )
+                    indentation_errors.append(
+                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
+                    )
 
             # Reset flags per file (handled by reinitialization each loop)
 
@@ -98,7 +101,8 @@ class TestYAMLSyntaxAndStructure:
             indentation_errors
         )
 
-    def test_no_duplicate_keys_in_yaml(self):
+    @staticmethod
+    def test_no_duplicate_keys_in_yaml():
         """
         Check that no YAML files under .github contain duplicate keys by loading each file with ruamel.yaml's strict parser.
 
@@ -133,7 +137,8 @@ class TestWorkflowSchemaCompliance:
     """Tests for GitHub Actions workflow schema compliance."""
 
     @pytest.fixture
-    def all_workflows(self) -> List[Dict[str, Any]]:
+    @staticmethod
+    def all_workflows() -> List[Dict[str, Any]]:
         """
         Collects and parses all YAML workflow files found in .github/workflows.
 
@@ -149,7 +154,8 @@ class TestWorkflowSchemaCompliance:
                 workflows.append({"path": workflow_file, "content": yaml.safe_load(f)})
         return workflows
 
-    def test_workflows_have_required_top_level_keys(self, all_workflows):
+    @staticmethod
+    def test_workflows_have_required_top_level_keys(all_workflows):
         """Verify workflows have all required top-level keys."""
         required_keys = ["name", "jobs"]
 
@@ -159,7 +165,8 @@ class TestWorkflowSchemaCompliance:
                     f"Workflow {workflow['path']} missing required key: {key}"
                 )
 
-    def test_workflow_triggers_valid_format(self, all_workflows):
+    @staticmethod
+    def test_workflow_triggers_valid_format(all_workflows):
         """Verify workflow triggers use valid format."""
         for workflow in all_workflows:
             # Check for 'on' or '"on"' key
@@ -175,7 +182,8 @@ class TestWorkflowSchemaCompliance:
                 f"Workflow {workflow['path']} has invalid trigger format"
             )
 
-    def test_job_definitions_valid(self, all_workflows):
+    @staticmethod
+    def test_job_definitions_valid(all_workflows):
         """
         Validate that each workflow defines at least one job and that each job contains required fields.
 
@@ -207,7 +215,8 @@ class TestWorkflowSchemaCompliance:
                         f"Job '{job_id}' steps must be a list in {workflow['path']}"
                     )
 
-    def test_step_definitions_valid(self, all_workflows):
+    @staticmethod
+    def test_step_definitions_valid(all_workflows):
         """
         Assert that every workflow step has a valid step definition: each step must include either the `uses` key or the `run` key, and must not include both.
 
@@ -242,7 +251,8 @@ class TestWorkflowSchemaCompliance:
 class TestConfigurationEdgeCases:
     """Tests for edge cases in configuration files."""
 
-    def test_pr_agent_config_handles_missing_sections_gracefully(self):
+    @staticmethod
+    def test_pr_agent_config_handles_missing_sections_gracefully():
         """
         Ensure the PR agent YAML configuration contains required top-level sections.
 
@@ -257,7 +267,8 @@ class TestConfigurationEdgeCases:
         for section in expected_sections:
             assert section in config, f"Missing section: {section}"
 
-    def test_numeric_values_in_config_are_valid(self):
+    @staticmethod
+    def test_numeric_values_in_config_are_valid():
         """
         Validate numeric fields in .github/pr-agent-config.yml.
 
@@ -281,7 +292,8 @@ class TestConfigurationEdgeCases:
             assert isinstance(rate_limit, int), "rate_limit_requests should be integer"
             assert 1 <= rate_limit <= 1000, "rate_limit_requests should be reasonable"
 
-    def test_version_strings_follow_semver(self):
+    @staticmethod
+    def test_version_strings_follow_semver():
         """
         Check that the `agent.version` value in .github/pr-agent-config.yml, if present, follows semantic versioning in the form X.Y.Z.
 
@@ -300,7 +312,8 @@ class TestConfigurationEdgeCases:
                 f"Version should follow semver (X.Y.Z): {version}"
             )
 
-    def test_empty_or_null_values_handled(self):
+    @staticmethod
+    def test_empty_or_null_values_handled():
         """
         Ensure critical YAML fields are not null in files under .github.
 
@@ -313,7 +326,7 @@ class TestConfigurationEdgeCases:
                 content = yaml.safe_load(f)
 
             # Check for null values in critical places
-            def check_nulls(obj, path=""):
+            def check_nulls(obj, path="", yaml_file=yaml_file):
                 """
                 Recursively checks a parsed YAML structure for null values in critical keys and fails the test if any are found.
 
@@ -345,7 +358,8 @@ class TestConfigurationEdgeCases:
 class TestConfigurationConsistency:
     """Tests for configuration consistency across files."""
 
-    def test_python_version_consistent_across_workflows(self):
+    @staticmethod
+    def test_python_version_consistent_across_workflows():
         """Verify Python version is consistent across all workflows."""
         workflow_dir = Path(".github/workflows")
         python_versions = {}
@@ -355,7 +369,7 @@ class TestConfigurationConsistency:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})
-            for job_id, job_config in jobs.items():
+            for _, job_config in jobs.items():
                 steps = job_config.get("steps", [])
                 for step in steps:
                     if "actions/setup-python" in step.get("uses", ""):
@@ -370,7 +384,8 @@ class TestConfigurationConsistency:
                 f"Inconsistent Python versions across workflows: {python_versions}"
             )
 
-    def test_node_version_consistent_across_workflows(self):
+    @staticmethod
+    def test_node_version_consistent_across_workflows():
         """Verify Node.js version is consistent across all workflows."""
         workflow_dir = Path(".github/workflows")
         node_versions = {}
@@ -380,7 +395,7 @@ class TestConfigurationConsistency:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})
-            for job_id, job_config in jobs.items():
+            for _, job_config in jobs.items():
                 steps = job_config.get("steps", [])
                 for step in steps:
                     if "actions/setup-node" in step.get("uses", ""):
@@ -395,7 +410,8 @@ class TestConfigurationConsistency:
                 f"Inconsistent Node versions across workflows: {node_versions}"
             )
 
-    def test_checkout_action_version_consistent(self):
+    @staticmethod
+    def test_checkout_action_version_consistent():
         """
         Ensure actions/checkout versions used across workflows are consistent.
 
@@ -411,7 +427,7 @@ class TestConfigurationConsistency:
                 workflow = yaml.safe_load(f)
 
             jobs = workflow.get("jobs", {})
-            for job_id, job_config in jobs.items():
+            for _, job_config in jobs.items():
                 steps = job_config.get("steps", [])
                 for step in steps:
                     uses = step.get("uses", "")
@@ -422,6 +438,10 @@ class TestConfigurationConsistency:
         # Should be consistent
         if checkout_versions:
             unique_versions = set(checkout_versions.values())
+            assert len(unique_versions) <= 2, (
+                f"Inconsistent checkout action versions across workflows: {checkout_versions}"
+            )
+            unique_versions = set(checkout_versions.values())
             # Allow v3 and v4, but should be mostly consistent
             assert len(unique_versions) <= 2, (
                 f"Too many different checkout versions: {checkout_versions}"
@@ -431,7 +451,8 @@ class TestConfigurationConsistency:
 class TestDefaultValueHandling:
     """Tests for default value handling in configurations."""
 
-    def test_missing_optional_fields_have_defaults(self):
+    @staticmethod
+    def test_missing_optional_fields_have_defaults():
         """
         Ensure optional fields in .github/pr-agent-config.yml are handled and validated.
 
@@ -448,7 +469,8 @@ class TestDefaultValueHandling:
         if "enabled" in agent_config:
             assert isinstance(agent_config["enabled"], bool)
 
-    def test_workflow_timeout_defaults(self):
+    @staticmethod
+    def test_workflow_timeout_defaults():
         """
         Ensure job-level workflow timeouts, when specified, are integers between 1 and 360 minutes.
 

@@ -1,11 +1,9 @@
-"""
-Integration tests for all changes in the current branch.
+"""Integration tests for all changes in the current branch.
 
 Tests validate that all modifications work together correctly and
 don't introduce inconsistencies or broken references.
 """
 
-import os
 import re
 from collections import Counter
 from pathlib import Path
@@ -16,7 +14,7 @@ import yaml
 
 
 def _get_workflow_files() -> List[Path]:
-    """Helper to retrieve all workflow files (.yml and .yaml)."""
+    """Helper to retrieve all workflow files(.yml and .yaml)."""
     workflow_dir = Path(".github/workflows")
     if not workflow_dir.exists():
         return []
@@ -26,7 +24,8 @@ def _get_workflow_files() -> List[Path]:
 class TestWorkflowConfigurationIntegration:
     """Test integration between workflow files and their configurations."""
 
-    def test_all_workflows_have_required_permissions(self):
+    @staticmethod
+    def test_all_workflows_have_required_permissions():
         """All workflows should declare appropriate permissions."""
         for workflow_file in _get_workflow_files():
             with open(workflow_file, "r") as f:
@@ -44,14 +43,15 @@ class TestWorkflowConfigurationIntegration:
                     f"{workflow_file.name} uses secrets but doesn't declare permissions"
                 )
 
-    def test_workflow_dependencies_available(self):
+    @staticmethod
+    def test_workflow_dependencies_available():
         """Workflows should only depend on available actions and tools."""
         for workflow_file in _get_workflow_files():
             with open(workflow_file, "r") as f:
                 data = yaml.safe_load(f) or {}
 
             jobs = data.get("jobs", {})
-            for job_name, job_data in jobs.items():
+            for _, job_data in jobs.items():
                 steps = job_data.get("steps", [])
 
                 for step in steps:
@@ -76,13 +76,19 @@ class TestWorkflowConfigurationIntegration:
                             "pytest": ["setup-python", "pytest"],
                         }
 
-                        for tool, required_steps in tools_needing_setup.items():
+                        for tool, setup_info in tools_needing_setup.items():
                             if tool in run:
                                 # Check if setup step exists earlier
                                 # (This is a soft check - warning only)
-                                pass
+                                assert any(
+                                    setup_info[0] in prev_step.get("uses", "")
+                                    for prev_step in steps[: steps.index(step)]
+                                ), (
+                                    f"{workflow_file.name} run uses '{tool}' without preceding setup step '{setup_info[0]}'."
+                                )
 
-    def test_consistent_python_versions(self):
+    @staticmethod
+    def test_consistent_python_versions():
         """Python versions should be consistent across workflows."""
         python_versions = set()
 
@@ -91,7 +97,7 @@ class TestWorkflowConfigurationIntegration:
                 data = yaml.safe_load(f) or {}
 
             jobs = data.get("jobs", {})
-            for job_name, job_data in jobs.items():
+            for _, job_data in jobs.items():
                 steps = job_data.get("steps", [])
 
                 for step in steps:
@@ -106,7 +112,8 @@ class TestWorkflowConfigurationIntegration:
             f"Too many different Python versions used: {python_versions}"
         )
 
-    def test_consistent_node_versions(self):
+    @staticmethod
+    def test_consistent_node_versions():
         """Node.js versions should be consistent across workflows."""
         node_versions = set()
 
@@ -115,7 +122,7 @@ class TestWorkflowConfigurationIntegration:
                 data = yaml.safe_load(f) or {}
 
             jobs = data.get("jobs", {})
-            for job_name, job_data in jobs.items():
+            for _, job_data in jobs.items():
                 steps = job_data.get("steps", [])
 
                 for step in steps:
@@ -134,8 +141,9 @@ class TestWorkflowConfigurationIntegration:
 class TestRequirementsConsistency:
     """Test consistency between requirements files and workflow usage."""
 
-    def test_requirements_dev_matches_workflow_installs(self):
-        """Packages installed in workflows should be in requirements-dev.txt."""
+    @staticmethod
+    def test_requirements_dev_matches_workflow_installs():
+        """Packages installed in workflows should be in requirements - dev.txt."""
         req_dev_path = Path("requirements-dev.txt")
 
         if not req_dev_path.exists():
@@ -175,11 +183,16 @@ class TestRequirementsConsistency:
                         if pkg_name.lower() not in skip_packages:
                             # Should be in requirements-dev or be optional
                             if pkg_name.lower() not in dev_packages:
-                                # This might be intentional (like tiktoken being optional)
-                                # so we just warn
-                                pass
+                                if (
+                                    pkg_name.lower() not in skip_packages
+                                    and not pkg_name.endswith(".txt")
+                                    and pkg_name != "."
+                                ):
+                                    f"Package '{pkg_name}' installed in workflow '{workflow_file}' not in requirements-dev.txt"
+                                )
 
-    def test_no_duplicate_dependencies(self):
+    @ staticmethod
+    def test_no_duplicate_dependencies():
         """Requirements files should not have duplicate dependencies."""
         req_files = ["requirements.txt", "requirements-dev.txt"]
 
@@ -239,28 +252,25 @@ class TestDocumentationConsistency:
                         and "deprecated" not in context_text
                     ):
                         # Might still have it, which is okay if historical
-                        pass
+                        pytest.fail(
+                            f"README references removed chunking feature outside removed/deprecated context at line {line_num}: {line.strip()}"
+                        )
 
-    def test_changelog_documents_deletions(self):
+    @staticmethod
+    def test_changelog_documents_deletions():
         """CHANGELOG should document deleted files and features."""
         changelog = Path("CHANGELOG.md")
 
         if changelog.exists():
-            with open(changelog, "r") as f:
-                f.read()
+            with open(changelog, "r"):
+                pass
 
             # Should mention the deletions (soft requirement)
-            removed_items = [
-                "context_chunker",
-                "labeler.yml",
-                ".github/scripts/README.md",
-            ]
-
             # At least one deletion should be documented
             # (This is a documentation quality check, not strict requirement)
-            pass
 
-    def test_no_broken_internal_links(self):
+    @staticmethod
+    def test_no_broken_internal_links():
         """Markdown files should not have broken internal links."""
         md_files = list(Path(".").glob("*.md"))
 
@@ -269,9 +279,9 @@ class TestDocumentationConsistency:
                 content = f.read()
 
             # Extract markdown links
-            links = re.findall(r"\[([^\]]+)\]\(([^\)]+)\)", content)
-
-            for link_text, link_target in links:
+            links = re.findall(r"\[([^\]]+)\]\([^\)]+\)", content)
+            links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", content)
+            for _, link_target in links:
                 # Skip external links
                 if link_target.startswith("http://") or link_target.startswith(
                     "https://"
@@ -295,7 +305,8 @@ class TestDocumentationConsistency:
 class TestGitHubActionsEcosystem:
     """Test the overall GitHub Actions ecosystem health."""
 
-    def test_no_circular_workflow_dependencies(self):
+    @staticmethod
+    def test_no_circular_workflow_dependencies():
         """Workflows should not have circular trigger dependencies."""
         workflow_triggers = {}
 
@@ -328,7 +339,8 @@ class TestGitHubActionsEcosystem:
                         f"Circular dependency: {workflow} <-> {trigger}"
                     )
 
-    def test_workflow_naming_convention(self):
+    @staticmethod
+    def test_workflow_naming_convention():
         """Workflows should follow consistent naming conventions."""
         workflow_names = []
 
@@ -348,10 +360,10 @@ class TestGitHubActionsEcosystem:
 
             # File name should somewhat match workflow name
             # (This is a soft check)
-            pass
 
-    def test_reasonable_workflow_count(self):
-        """Should not have too many workflows (maintainability)."""
+    @staticmethod
+    def test_reasonable_workflow_count():
+        """Should not have too many workflows(maintainability)."""
         workflow_files = _get_workflow_files()
         workflow_count = len(workflow_files)
 
@@ -360,7 +372,8 @@ class TestGitHubActionsEcosystem:
             f"Too many workflows ({workflow_count}), consider consolidation"
         )
 
-    def test_all_workflows_documented(self):
+    @staticmethod
+    def test_all_workflows_documented():
         """All workflows should be documented somewhere."""
         workflow_files = _get_workflow_files()
         workflows = [f.stem for f in workflow_files]
@@ -376,11 +389,10 @@ class TestGitHubActionsEcosystem:
 
         # Each workflow should be mentioned somewhere
         for workflow in workflows:
-            workflow_mentioned = (
+            _ = (
                 workflow.lower() in all_docs_content
                 or workflow.replace("-", " ").lower() in all_docs_content
             )
 
             # This is a soft requirement (not all workflows need docs)
             # but it's good practice
-            pass

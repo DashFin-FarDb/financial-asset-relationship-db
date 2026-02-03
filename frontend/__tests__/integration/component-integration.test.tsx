@@ -333,9 +333,9 @@ describe("Component Integration Tests", () => {
         expect(metricsResolve).not.toBeNull();
       });
 
-      vizResolve!(mockVisualizationData);
+      vizResolve?.(mockVisualizationData);
       await new Promise((resolve) => setTimeout(resolve, 10));
-      metricsResolve!(mockMetrics);
+      metricsResolve?.(mockMetrics);
 
       await waitFor(() => {
         expect(screen.queryByText("Loading data...")).not.toBeInTheDocument();

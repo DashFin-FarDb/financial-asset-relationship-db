@@ -56,7 +56,8 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
 class TestWorkflowCanInstallRequirements:
     """Test that workflows have steps to install the dependencies from requirements-dev.txt."""
 
-    def test_pr_agent_workflow_has_install_dependencies_step(self):
+    @staticmethod
+    def test_pr_agent_workflow_has_install_dependencies_step():
         """Test that pr-agent workflow has a step to install Python dependencies."""
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
 
@@ -69,7 +70,7 @@ class TestWorkflowCanInstallRequirements:
         # Check that at least one job has a step to install dependencies
         has_install_step = False
 
-        for job_name, job in workflow.get("jobs", {}).items():
+        for _, job in workflow.get("jobs", {}).items():
             for step in job.get("steps", []):
                 run_cmd = step.get("run", "")
                 step_name = step.get("name", "").lower()
@@ -91,7 +92,8 @@ class TestWorkflowCanInstallRequirements:
             "(e.g., 'pip install -r requirements-dev.txt')"
         )
 
-    def test_workflow_installs_before_running_tests(self):
+    @staticmethod
+    def test_workflow_installs_before_running_tests():
         """Assert that in pr-agent.yml each job installs dependencies before running tests."""
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
 
@@ -111,13 +113,13 @@ class TestWorkflowCanInstallRequirements:
                 run_cmd = step.get("run", "").lower()
                 step_name = step.get("name", "").lower()
 
-                if "pip install" in run_cmd or "requirements" in run_cmd:
-                    if install_idx is None:
-                        install_idx = i
+                if (
+                    "pip install" in run_cmd or "requirements" in run_cmd
+                ) and install_idx is None:
+                    install_idx = i
 
-                if "pytest" in run_cmd or "test" in step_name:
-                    if test_idx is None:
-                        test_idx = i
+                if ("pytest" in run_cmd or "test" in step_name) and test_idx is None:
+                    test_idx = i
 
             # If both exist, install should come before test
             if install_idx is not None and test_idx is not None:
@@ -130,7 +132,8 @@ class TestWorkflowCanInstallRequirements:
 class TestPyYAMLAvailability:
     """Test that PyYAML is properly configured for use in workflow tests."""
 
-    def test_pyyaml_in_requirements_for_workflow_validation(self):
+    @staticmethod
+    def test_pyyaml_in_requirements_for_workflow_validation():
         """Test that PyYAML is in requirements-dev.txt for workflow validation tests."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
@@ -141,13 +144,9 @@ class TestPyYAMLAvailability:
             "uses it to parse and validate workflow YAML files"
         )
 
-    def test_pyyaml_can_parse_workflow_files(self):
+    @staticmethod
+    def test_pyyaml_can_parse_workflow_files():
         """Test that installed PyYAML can successfully parse workflow files."""
-        try:
-            import yaml
-        except ImportError:
-            pytest.skip("PyYAML not installed in test environment")
-
         workflow_files = list(WORKFLOWS_DIR.glob("*.yml")) + list(
             WORKFLOWS_DIR.glob("*.yaml")
         )
@@ -164,7 +163,8 @@ class TestPyYAMLAvailability:
                 except yaml.YAMLError as e:
                     pytest.fail(f"PyYAML failed to parse {workflow_file.name}: {e}")
 
-    def test_types_pyyaml_provides_type_hints(self):
+    @staticmethod
+    def test_types_pyyaml_provides_type_hints():
         """Test that types-PyYAML is available for type checking."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
@@ -179,7 +179,8 @@ class TestPyYAMLAvailability:
 class TestRequirementsMatchWorkflowNeeds:
     """Test that requirements-dev.txt contains packages needed by workflows."""
 
-    def test_has_pytest_for_testing(self):
+    @staticmethod
+    def test_has_pytest_for_testing():
         """Check that pytest is present in requirements-dev.txt for workflow tests."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
@@ -190,7 +191,8 @@ class TestRequirementsMatchWorkflowNeeds:
             "pytest must be in requirements-dev.txt as workflows run pytest for testing"
         )
 
-    def test_has_required_dev_tools(self):
+    @staticmethod
+    def test_has_required_dev_tools():
         """Test that essential development tools are in requirements."""
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
 
@@ -205,7 +207,8 @@ class TestRequirementsMatchWorkflowNeeds:
                 f"{tool} should be in requirements-dev.txt for code quality and testing"
             )
 
-    def test_requirements_support_python_version_in_workflow(self):
+    @staticmethod
+    def test_requirements_support_python_version_in_workflow():
         """Check that the pr-agent workflow's declared Python version is at least Python 3.8."""
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"
 
@@ -217,7 +220,7 @@ class TestRequirementsMatchWorkflowNeeds:
 
         # Extract Python version from workflow
         python_version = None
-        for job_name, job in workflow.get("jobs", {}).items():
+        for _, job in workflow.get("jobs", {}).items():
             for step in job.get("steps", []):
                 if "setup-python" in step.get("uses", "").lower():
                     python_version = step.get("with", {}).get("python-version")

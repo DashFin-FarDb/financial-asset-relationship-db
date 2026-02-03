@@ -22,7 +22,8 @@ class TestWorkflowSyntaxValidation:
         with open(".github/workflows/pr-agent.yml") as f:
             return yaml.safe_load(f)
 
-    def test_pr_agent_has_required_triggers(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_has_required_triggers(pr_agent_workflow):
         """Verify pr-agent.yml has appropriate triggers."""
         triggers = pr_agent_workflow.get("on")
         assert triggers is not None, "Workflow must define 'on' triggers"
@@ -46,7 +47,8 @@ class TestWorkflowSyntaxValidation:
         missing = required - trigger_keys
         assert not missing, f"Missing required triggers: {', '.join(sorted(missing))}"
 
-    def test_pr_agent_jobs_have_permissions(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_jobs_have_permissions(pr_agent_workflow):
         """Ensure jobs specify required permissions."""
         jobs = pr_agent_workflow.get("jobs", {})
 
@@ -57,10 +59,11 @@ class TestWorkflowSyntaxValidation:
                     f"Job {job_name} should have issues permission"
                 )
 
-    def test_pr_agent_uses_specific_action_versions(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_uses_specific_action_versions(pr_agent_workflow):
         """Verify actions use pinned versions (not branches like @main/@master) and not unpinned."""
         jobs = pr_agent_workflow.get("jobs", {})
-        for job_name, job_config in jobs.items():
+        for _, job_config in jobs.items():
             steps = job_config.get("steps", [])
             for step in steps:
                 uses = step.get("uses")
@@ -87,7 +90,8 @@ class TestWorkflowSyntaxValidation:
                     f"Action version appears to be a branch-like ref: {version} in {uses}"
                 )
 
-    def test_pr_agent_secrets_properly_referenced(self, pr_agent_workflow):
+    @staticmethod
+    def test_pr_agent_secrets_properly_referenced(pr_agent_workflow):
         """Ensure tokens are referenced correctly using supported contexts."""
         # Search both the parsed dump and raw content to avoid formatting artifacts
         workflow_str = yaml.dump(pr_agent_workflow)
@@ -113,7 +117,8 @@ class TestWorkflowSyntaxValidation:
 class TestSimplifiedWorkflowBestPractices:
     """Validate best practices in simplified workflows."""
 
-    def test_modified_workflows_use_ubuntu_latest(self):
+    @staticmethod
+    def test_modified_workflows_use_ubuntu_latest():
         """Verify modified workflows use ubuntu-latest for consistency."""
         # Only check workflows that were actually modified in this branch
         modified_workflows = [
@@ -141,7 +146,8 @@ class TestSimplifiedWorkflowBestPractices:
                         f"{workflow_file.name}:{job_name} should specify runner"
                     )
 
-    def test_modified_workflows_have_descriptive_names(self):
+    @staticmethod
+    def test_modified_workflows_have_descriptive_names():
         """Ensure modified workflows have clear, descriptive names."""
         modified_workflows = [
             ".github/workflows/pr-agent.yml",
@@ -161,7 +167,8 @@ class TestSimplifiedWorkflowBestPractices:
             name = workflow.get("name", "")
             assert len(name) > 0, f"{workflow_file.name} should have a name"
 
-    def test_pr_agent_install_steps_have_error_handling(self):
+    @staticmethod
+    def test_pr_agent_install_steps_have_error_handling():
         """Verify installation steps handle errors appropriately."""
         with open(".github/workflows/pr-agent.yml") as f:
             workflow = yaml.safe_load(f)
@@ -186,7 +193,6 @@ class TestSimplifiedWorkflowBestPractices:
                         "test -f",
                         "[ -f",
                         "if [ -f",
-                        "if test -f",
                         "powershell -command",
                         "cmd /c if exist",
                     ]
@@ -206,7 +212,8 @@ class TestSimplifiedWorkflowBestPractices:
 class TestRemovedFeaturesNotReferenced:
     """Ensure removed features have no lingering references."""
 
-    def test_no_context_chunking_in_any_workflow(self):
+    @staticmethod
+    def test_no_context_chunking_in_any_workflow():
         """Verify no workflows reference context chunking."""
         workflow_dir = Path(".github/workflows")
 
@@ -221,7 +228,8 @@ class TestRemovedFeaturesNotReferenced:
                     f"{workflow_file.name} contains removed term '{term}'"
                 )
 
-    def test_no_labeler_config_file_referenced_in_code(self):
+    @staticmethod
+    def test_no_labeler_config_file_referenced_in_code():
         """Ensure label.yml workflow doesn't actively reference the removed labeler.yml config."""
         # The label.yml workflow has comments mentioning labeler.yml setup,
         # but that's just documentation. Check that it's not actually trying to use it.
@@ -242,7 +250,8 @@ class TestRemovedFeaturesNotReferenced:
 class TestWorkflowConditionalLogic:
     """Validate conditional execution logic in workflows."""
 
-    def test_pr_agent_trigger_conditions_valid(self):
+    @staticmethod
+    def test_pr_agent_trigger_conditions_valid():
         """Ensure pr-agent-trigger has valid conditional logic."""
         with open(".github/workflows/pr-agent.yml") as f:
             workflow = yaml.safe_load(f)
@@ -261,7 +270,8 @@ class TestWorkflowConditionalLogic:
             "Should trigger on @copilot mentions"
         )
 
-    def test_auto_merge_check_conditions_valid(self):
+    @staticmethod
+    def test_auto_merge_check_conditions_valid():
         """Verify auto-merge-check has appropriate conditions."""
         with open(".github/workflows/pr-agent.yml") as f:
             workflow = yaml.safe_load(f)
@@ -276,7 +286,8 @@ class TestWorkflowConditionalLogic:
 class TestWorkflowStepOrdering:
     """Validate logical ordering of workflow steps."""
 
-    def test_pr_agent_checkout_before_setup(self):
+    @staticmethod
+    def test_pr_agent_checkout_before_setup():
         """Ensure checkout happens before environment setup."""
         with open(".github/workflows/pr-agent.yml") as f:
             workflow = yaml.safe_load(f)
@@ -299,7 +310,8 @@ class TestWorkflowStepOrdering:
         assert setup_idx is not None, "Should have Setup step"
         assert checkout_idx < setup_idx, "Checkout should come before Setup"
 
-    def test_pr_agent_install_before_run(self):
+    @staticmethod
+    def test_pr_agent_install_before_run():
         """Ensure dependencies installed before running tests."""
         with open(".github/workflows/pr-agent.yml") as f:
             workflow = yaml.safe_load(f)
@@ -327,7 +339,8 @@ class TestWorkflowStepOrdering:
 class TestWorkflowEnvironmentVariables:
     """Validate environment variable usage."""
 
-    def test_github_token_properly_scoped(self):
+    @staticmethod
+    def test_github_token_properly_scoped():
         """Ensure GITHUB_TOKEN is used with appropriate scope."""
         with open(".github/workflows/pr-agent.yml") as f:
             content = f.read()
@@ -339,7 +352,8 @@ class TestWorkflowEnvironmentVariables:
 
         assert len(token_uses) > 0, "Should use GITHUB_TOKEN"
 
-    def test_no_hardcoded_secrets(self):
+    @staticmethod
+    def test_no_hardcoded_secrets():
         """Verify no hardcoded secrets in modified workflows."""
         modified_workflows = [
             ".github/workflows/pr-agent.yml",
@@ -379,7 +393,8 @@ class TestWorkflowEnvironmentVariables:
 class TestWorkflowComments:
     """Validate workflow documentation through comments."""
 
-    def test_pr_agent_has_descriptive_comments(self):
+    @staticmethod
+    def test_pr_agent_has_descriptive_comments():
         """Ensure pr-agent.yml has helpful comments."""
         with open(".github/workflows/pr-agent.yml") as f:
             content = f.read()

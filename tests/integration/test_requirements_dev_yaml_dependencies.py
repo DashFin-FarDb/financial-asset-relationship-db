@@ -46,7 +46,8 @@ def requirements_lines(requirements_content: str) -> List[str]:
 class TestPyYAMLDependencyAddition:
     """Test PyYAML dependency additions to requirements-dev.txt."""
 
-    def test_pyyaml_is_present(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_is_present(requirements_lines: List[str]):
         """Verify PyYAML is in requirements-dev.txt."""
         pyyaml_lines = [
             line for line in requirements_lines if line.startswith("PyYAML")
@@ -55,7 +56,8 @@ class TestPyYAMLDependencyAddition:
             "PyYAML should appear exactly once in requirements-dev.txt"
         )
 
-    def test_types_pyyaml_is_present(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_types_pyyaml_is_present(requirements_lines: List[str]):
         """Verify types-PyYAML is in requirements-dev.txt."""
         types_pyyaml_lines = [
             line for line in requirements_lines if line.startswith("types-PyYAML")
@@ -64,7 +66,8 @@ class TestPyYAMLDependencyAddition:
             "types-PyYAML should appear exactly once in requirements-dev.txt"
         )
 
-    def test_pyyaml_version_constraint(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_version_constraint(requirements_lines: List[str]):
         """Verify PyYAML has appropriate version constraint."""
         pyyaml_entries = [
             line for line in requirements_lines if line.startswith("PyYAML")
@@ -84,7 +87,8 @@ class TestPyYAMLDependencyAddition:
         version = float(match.group(1))
         assert version >= 6.0, "PyYAML version should be >= 6.0"
 
-    def test_types_pyyaml_version_constraint(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_types_pyyaml_version_constraint(requirements_lines: List[str]):
         """Verify types-PyYAML has appropriate version constraint."""
         types_entries = [
             line for line in requirements_lines if line.startswith("types-PyYAML")
@@ -106,9 +110,8 @@ class TestPyYAMLDependencyAddition:
         version = float(match.group(1))
         assert version >= 6.0, "types-PyYAML version should be >= 6.0"
 
-    def test_pyyaml_and_types_pyyaml_versions_match(
-        self, requirements_lines: List[str]
-    ):
+    @staticmethod
+    def test_pyyaml_and_types_pyyaml_versions_match(requirements_lines: List[str]):
         """Verify PyYAML and types-PyYAML have matching major versions."""
         pyyaml_line = next(
             (line for line in requirements_lines if line.startswith("PyYAML")), None
@@ -131,7 +134,8 @@ class TestPyYAMLDependencyAddition:
             "PyYAML and types-PyYAML should have matching major versions"
         )
 
-    def test_no_duplicate_pyyaml_entries(self, requirements_content: str):
+    @staticmethod
+    def test_no_duplicate_pyyaml_entries(requirements_content: str):
         """Verify no duplicate PyYAML entries exist."""
         pyyaml_count = requirements_content.lower().count("pyyaml")
         # Should have exactly 2: PyYAML and types-PyYAML
@@ -139,13 +143,15 @@ class TestPyYAMLDependencyAddition:
             f"Should have exactly 2 PyYAML entries (PyYAML + types-PyYAML), found {pyyaml_count}"
         )
 
-    def test_file_ends_with_newline(self, requirements_content: str):
+    @staticmethod
+    def test_file_ends_with_newline(requirements_content: str):
         """Verify file ends with newline."""
         assert requirements_content.endswith("\n"), (
             "requirements-dev.txt should end with newline"
         )
 
-    def test_no_trailing_whitespace(self, requirements_content: str):
+    @staticmethod
+    def test_no_trailing_whitespace(requirements_content: str):
         """Verify no lines have trailing whitespace."""
         for i, line in enumerate(requirements_content.splitlines(keepends=True), 1):
             # Skip empty lines
@@ -158,16 +164,16 @@ class TestPyYAMLDependencyAddition:
 class TestRequirementsDevStructure:
     """Test overall structure and organization of requirements-dev.txt."""
 
-    def test_all_requirements_have_version_constraints(
-        self, requirements_lines: List[str]
-    ):
+    @staticmethod
+    def test_all_requirements_have_version_constraints(requirements_lines: List[str]):
         """Verify all dependencies have version constraints."""
         for line in requirements_lines:
             assert ">=" in line or "==" in line or "~=" in line, (
                 f"Requirement '{line}' should have version constraint"
             )
 
-    def test_version_constraint_format(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_version_constraint_format(requirements_lines: List[str]):
         """Verify version constraints use correct format."""
         for line in requirements_lines:
             # Should match pattern: package>=version or package==version
@@ -176,9 +182,8 @@ class TestRequirementsDevStructure:
                 f"Requirement '{line}' has invalid format"
             )
 
-    def test_requirements_are_sorted_alphabetically(
-        self, requirements_lines: List[str]
-    ):
+    @staticmethod
+    def test_requirements_are_sorted_alphabetically(requirements_lines: List[str]):
         """Verify requirements are in alphabetical order (case-insensitive)."""
         package_names = [
             line.split(">=")[0].split("==")[0].lower().strip()
@@ -193,7 +198,8 @@ class TestRequirementsDevStructure:
                 "pytest should come before pylint alphabetically"
             )
 
-    def test_pyyaml_at_end_of_file(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_at_end_of_file(requirements_lines: List[str]):
         """Verify PyYAML additions are at the end of file."""
         if len(requirements_lines) < 2:
             pytest.fail("requirements file too short to check ordering")
@@ -210,7 +216,8 @@ class TestRequirementsDevStructure:
 class TestPyYAMLCompatibility:
     """Test PyYAML compatibility with other dependencies."""
 
-    def test_no_conflicting_yaml_libraries(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_no_conflicting_yaml_libraries(requirements_lines: List[str]):
         """Verify no conflicting YAML libraries are present."""
         yaml_packages = [line for line in requirements_lines if "yaml" in line.lower()]
 
@@ -227,7 +234,8 @@ class TestPyYAMLCompatibility:
             "Should not have conflicting ruamel.yaml"
         )
 
-    def test_pyyaml_compatible_with_pytest(self, requirements_lines: List[str]):
+    @staticmethod
+    def test_pyyaml_compatible_with_pytest(requirements_lines: List[str]):
         """Verify PyYAML version is compatible with pytest."""
         pyyaml_version = None
         pytest_version = None
@@ -251,7 +259,8 @@ class TestPyYAMLCompatibility:
 class TestPyYAMLUsageRationale:
     """Test that PyYAML addition aligns with project needs."""
 
-    def test_workflow_files_use_yaml(self):
+    @staticmethod
+    def test_workflow_files_use_yaml():
         """Verify project has YAML files that justify PyYAML dependency."""
         workflows_dir = Path(".github/workflows")
         if not workflows_dir.exists():
@@ -264,14 +273,16 @@ class TestPyYAMLUsageRationale:
             "Project should have YAML workflow files justifying PyYAML dependency"
         )
 
-    def test_pr_agent_config_is_yaml(self):
+    @staticmethod
+    def test_pr_agent_config_is_yaml():
         """Verify PR agent config exists as YAML file."""
         config_file = Path(".github/pr-agent-config.yml")
         assert config_file.exists(), (
             "PR agent config file should exist justifying PyYAML dependency"
         )
 
-    def test_test_files_import_yaml(self):
+    @staticmethod
+    def test_test_files_import_yaml():
         """Verify test files actually import and use yaml module."""
         test_dir = Path("tests/integration")
         if not test_dir.exists():
@@ -318,26 +329,29 @@ class TestPyYAMLVersionSpecifics:
     """Test specific version requirements for PyYAML."""
 
     @pytest.fixture
-    def pyyaml_line(self, requirements_lines: List[str]) -> str:
+    @staticmethod
+    def pyyaml_line(requirements_lines: List[str]) -> str:
         """Get PyYAML line from requirements."""
         for line in requirements_lines:
             if line.strip().startswith("PyYAML"):
                 return line.strip()
         return ""
 
-    def test_pyyaml_uses_minimum_version_constraint(self, pyyaml_line: str):
+    @staticmethod
+    def test_pyyaml_uses_minimum_version_constraint(pyyaml_line: str):
         """Verify PyYAML uses >= constraint (not pinned)."""
         if not pyyaml_line:
             pytest.fail("PyYAML line not found")
         assert ">=" in pyyaml_line, "PyYAML should use >= for flexibility"
         assert "==" not in pyyaml_line, "PyYAML should not be pinned to exact version"
 
-    def test_pyyaml_version_is_modern(self, pyyaml_line: str):
+    @staticmethod
+    def test_pyyaml_version_is_modern(pyyaml_line: str):
         """Verify PyYAML version is 6.0 or higher."""
         if not pyyaml_line:
             pytest.fail("PyYAML line not found")
 
-        match = re.search(r"PyYAML\s*>=\s*(\d+\.\d+)", pyyaml_line)
+        match = re.search(r"PyYAML\s*>=" r"\s*(\d+\.\d+)", pyyaml_line)
         assert match is not None, "Should have version constraint"
 
         version_str = match.group(1)
@@ -347,7 +361,8 @@ class TestPyYAMLVersionSpecifics:
             "PyYAML should be version 6.0 or higher for security and features"
         )
 
-    def test_pyyaml_no_upper_bound(self, pyyaml_line: str):
+    @staticmethod
+    def test_pyyaml_no_upper_bound(pyyaml_line: str):
         """Verify PyYAML doesn't have restrictive upper bound."""
         if not pyyaml_line:
             pytest.fail("PyYAML line not found")
@@ -360,7 +375,8 @@ class TestPyYAMLVersionSpecifics:
 class TestRequirementsFileIntegrity:
     """Test file integrity and formatting."""
 
-    def test_file_is_utf8_encoded(self):
+    @staticmethod
+    def test_file_is_utf8_encoded():
         """Verify file is UTF-8 encoded."""
         try:
             with open(REQUIREMENTS_DEV_FILE, "r", encoding="utf-8") as f:
@@ -368,7 +384,8 @@ class TestRequirementsFileIntegrity:
         except UnicodeDecodeError:
             pytest.fail("requirements-dev.txt should be UTF-8 encoded")
 
-    def test_file_has_consistent_line_endings(self):
+    @staticmethod
+    def test_file_has_consistent_line_endings():
         """Verify file uses consistent line endings (LF)."""
         with open(REQUIREMENTS_DEV_FILE, "rb") as f:
             content = f.read()
@@ -376,7 +393,8 @@ class TestRequirementsFileIntegrity:
         # Should use LF (\n), not CRLF (\r\n)
         assert b"\r\n" not in content, "File should use LF line endings, not CRLF"
 
-    def test_no_empty_lines_between_requirements(self, requirements_content: str):
+    @staticmethod
+    def test_no_empty_lines_between_requirements(requirements_content: str):
         """Verify no unnecessary empty lines between requirements."""
         lines = requirements_content.splitlines()
 

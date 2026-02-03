@@ -1,22 +1,20 @@
-"""
-Comprehensive tests for GitHub Actions workflow files.
+import inspect
+import re
+import sys
+from collections import Counter
+from pathlib import Path
+from typing import Any, Dict, List
 
+import pytest
 
+# Step ID uniqueness is validated within TestWorkflowStepConfiguration.
+"""Comprehensive tests for GitHub Actions workflow files.
 
 This module validates the structure, syntax, and configuration of GitHub Actions
 workflows, ensuring they are properly formatted and free of common issues like
 duplicate keys, invalid syntax, and missing required fields.
 """
 
-import inspect
-import re
-import sys
-import warnings
-from collections import Counter
-from pathlib import Path
-from typing import Any, Dict, List, Tuple
-
-import pytest
 
 # Skip this module if PyYAML is not installed
 yaml = pytest.importorskip("yaml")
@@ -27,7 +25,7 @@ WORKFLOWS_DIR = Path(".github") / "workflows"
 
 def get_workflow_files() -> List[Path]:
     """
-    List workflow YAML files in the repository's .github/workflows directory.
+    List workflow YAML files in the repository's .github / workflows directory.
 
     Returns:
         List[Path]: Paths to files with `.yml` or `.yaml` extensions found in the workflows directory;
@@ -43,7 +41,7 @@ def load_yaml_safe(file_path: Path) -> Dict[str, Any]:
     Parse a YAML file and return its content.
 
     Parameters:
-        file_path (Path): Path to the YAML file to load.
+        file_path(Path): Path to the YAML file to load.
 
     Returns:
         The parsed YAML content — a mapping, sequence, scalar value, or `None` if the document is empty.
@@ -57,7 +55,7 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
     Detect duplicate mapping keys in a YAML file.
 
     Parameters:
-        file_path (Path): Path to the YAML file to inspect.
+        file_path(Path): Path to the YAML file to inspect.
 
     Returns:
         List of duplicate key names found, or an empty list if none are present.
@@ -69,9 +67,19 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
 
     # Parse with a custom constructor that detects duplicates
     class DuplicateKeySafeLoader(yaml.SafeLoader):
-        pass
+        """SafeLoader subclass that detects duplicate keys in YAML mappings."""
 
     def constructor_with_dup_check(loader, node):
+        """
+        Construct a mapping from YAML node while checking for duplicate keys.
+
+        Parameters:
+            loader(SafeLoader): The YAML loader instance.
+            node(MappingNode): The YAML mapping node to construct.
+
+        Returns:
+            dict: A dictionary mapping keys to values, duplicates recorded.
+        """
         mapping = {}
         for key_node, value_node in node.value:
             key = loader.construct_object(key_node, deep=False)
@@ -117,7 +125,7 @@ class TestWorkflowSyntax:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_readable(self, workflow_file: Path):
-        """Check that a workflow file exists, is a regular file and contains non-empty UTF-8 text."""
+        """Check that a workflow file exists, is a regular file and contains non - empty UTF - 8 text."""
         assert workflow_file.exists(), f"Workflow file {workflow_file} does not exist"
         assert workflow_file.is_file(), f"Workflow path {workflow_file} is not a file"
         with open(workflow_file, "r", encoding="utf-8") as f:
@@ -130,7 +138,7 @@ class TestWorkflowStructure:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_has_name(self, workflow_file: Path):
-        """Verify the workflow YAML defines a non-empty top-level name."""
+        """Verify the workflow YAML defines a non - empty top - level name."""
         config = load_yaml_safe(workflow_file)
         assert "name" in config, f"Workflow {workflow_file.name} missing 'name' field"
         assert config["name"], f"Workflow {workflow_file.name} has empty 'name' field"
@@ -140,7 +148,7 @@ class TestWorkflowStructure:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_has_triggers(self, workflow_file: Path):
-        """Validate that a workflow YAML defines a top-level "on" trigger."""
+        """Validate that a workflow YAML defines a top - level "on" trigger."""
         config = load_yaml_safe(workflow_file)
         assert isinstance(config, dict), (
             f"Workflow {workflow_file.name} did not load to a mapping"
@@ -238,18 +246,20 @@ class TestWorkflowActions:
 
 
 class TestPrAgentWorkflow:
-    """Comprehensive tests for the pr-agent.yml workflow."""
+    """Comprehensive tests for the pr - agent.yml workflow."""
 
+    @staticmethod
     @pytest.fixture
-    def pr_agent_workflow(self) -> Dict[str, Any]:
+    def pr_agent_workflow() -> Dict[str, Any]:
         """Load the 'pr-agent' workflow YAML."""
         workflow_path = WORKFLOWS_DIR / "pr-agent.yml"
         if not workflow_path.exists():
             pytest.skip("pr-agent.yml not found")
         return load_yaml_safe(workflow_path)
 
-    def _assert_valid_fetch_depth(self, step_with: Dict[str, Any]) -> None:
-        """Assert that a checkout step's `with` mapping has a valid optional `fetch-depth`."""
+    @staticmethod
+    def _assert_valid_fetch_depth(step_with: Dict[str, Any]) -> None:
+        """Assert that a checkout step's `with ` mapping has a valid optional `fetch - depth`."""
         if "fetch-depth" not in step_with:
             return
 
@@ -263,7 +273,7 @@ class TestPrAgentWorkflow:
         assert fetch_depth >= 0, "fetch-depth cannot be negative"
 
     def test_pr_agent_name(self, pr_agent_workflow: Dict[str, Any]):
-        """Validate that the pr-agent workflow defines a top-level `name` field."""
+        """Validate that the pr - agent workflow defines a top - level `name` field."""
         assert "name" in pr_agent_workflow, (
             "pr-agent workflow must have a descriptive 'name' field"
         )
@@ -273,7 +283,7 @@ class TestPrAgentWorkflow:
         ), "pr-agent workflow 'name' field must be a non-empty string"
 
     def test_pr_agent_triggers_on_pull_request(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that pr-agent workflow triggers on pull_request events."""
+        """Test that pr - agent workflow triggers on pull_request events."""
         raw_triggers = pr_agent_workflow.get("on", {})
 
         # Normalize triggers to a set of explicit event names
@@ -291,7 +301,7 @@ class TestPrAgentWorkflow:
         )
 
     def test_pr_agent_has_trigger_job(self, pr_agent_workflow: Dict[str, Any]):
-        """Assert that the pr-agent workflow defines a top-level job named "pr-agent-trigger"."""
+        """Assert that the pr - agent workflow defines a top - level job named "pr-agent-trigger"."""
         jobs = pr_agent_workflow.get("jobs", {})
         assert "pr-agent-trigger" in jobs, (
             "pr-agent workflow must define the 'pr-agent-trigger' job"
@@ -301,7 +311,7 @@ class TestPrAgentWorkflow:
         )
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Ensure the pr-agent trigger job runs on a supported Ubuntu runner."""
+        """Ensure the pr - agent trigger job runs on a supported Ubuntu runner."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
         assert runs_on in [
@@ -311,7 +321,7 @@ class TestPrAgentWorkflow:
         ], f"PR Agent trigger job should run on standard Ubuntu runner, got '{runs_on}'"
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
-        """Ensure the pr-agent-trigger review job includes at least one actions/checkout step."""
+        """Ensure the pr - agent - trigger review job includes at least one actions / checkout step."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
@@ -321,7 +331,7 @@ class TestPrAgentWorkflow:
         assert len(checkout_steps) > 0, "Review job must check out the repository"
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
-        """Validate that any actions/checkout steps in the pr-agent-trigger job specify a valid fetch-depth."""
+        """Validate that any actions / checkout steps in the pr - agent - trigger job specify a valid fetch - depth."""
         trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = trigger_job.get("steps", [])
 
@@ -334,7 +344,7 @@ class TestPrAgentWorkflow:
             self._assert_valid_fetch_depth(step_with)
 
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
-        """Ensure the pr-agent-trigger job includes at least one step that uses actions/setup-python."""
+        """Ensure the pr - agent - trigger job includes at least one step that uses actions / setup - python."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
@@ -344,7 +354,7 @@ class TestPrAgentWorkflow:
         assert len(python_steps) > 0, "pr-agent-trigger job must set up Python"
 
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
-        """Validate that any actions/setup-python step in the pr-agent-trigger job specifies python-version "3.11"."""
+        """Validate that any actions / setup - python step in the pr - agent - trigger job specifies python - version "3.11"."""
         review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
@@ -381,7 +391,7 @@ class TestPrAgentWorkflow:
         )
 
     def test_pr_agent_parse_comments_step(self, pr_agent_workflow: Dict[str, Any]):
-        """Verify the "Parse PR Review Comments" step in the pr-agent-trigger job."""
+        """Verify the "Parse PR Review Comments" step in the pr - agent - trigger job."""
         job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = job.get("steps", [])
 
@@ -395,16 +405,20 @@ class TestPrAgentWorkflow:
         assert parse_step.get("id") == "parse-comments"
         assert "GITHUB_TOKEN" in parse_step.get("env", {})
         assert "gh api" in parse_step["run"]
+        run_script = str(parse_step.get("run", ""))
+        assert "steps.fetch-context.outputs.action_items" in run_script, (
+            "Parse PR Review Comments step should reference fetch-context action items output"
+        )
 
     def test_pr_agent_fetch_depth_allows_absent(self):
-        """Missing fetch-depth is permitted for checkout steps."""
+        """Missing fetch - depth is permitted for checkout steps."""
         # Test empty configuration
         self._assert_valid_fetch_depth({})
         # Test configuration with other parameters but no fetch-depth
         self._assert_valid_fetch_depth({"token": "${{ secrets.GITHUB_TOKEN }}"})
 
     def test_pr_agent_fetch_depth_rejects_invalid_values(self):
-        """Invalid fetch-depth values are rejected."""
+        """Invalid fetch - depth values are rejected."""
         for invalid in ["0", -1, 1.5, None]:
             with pytest.raises(AssertionError):
                 self._assert_valid_fetch_depth({"fetch-depth": invalid})
@@ -416,6 +430,7 @@ class TestWorkflowSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
         """Test that workflows don't contain hardcoded secrets or tokens."""
+        import re
         with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -435,11 +450,11 @@ class TestWorkflowSecurity:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_uses_secrets_context(self, workflow_file: Path):
-        """Verify sensitive keys in step `with` mappings use the GitHub secrets context or are empty."""
+        """Verify sensitive keys in step `with ` mappings use the GitHub secrets context or are empty."""
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
 
-        for job_name, job_config in jobs.items():
+        for _, job_config in jobs.items():
             steps = job_config.get("steps", [])
 
             for step in steps:
@@ -448,12 +463,11 @@ class TestWorkflowSecurity:
                     if any(
                         sensitive in key.lower()
                         for sensitive in ["token", "password", "key", "secret"]
-                    ):
-                        if isinstance(value, str):
-                            assert value.startswith("${{") or value == "", (
-                                f"Sensitive field '{key}' in {workflow_file.name} "
-                                "should use secrets context (e.g., ${{ secrets.TOKEN }})"
-                            )
+                    ) and isinstance(value, str):
+                        assert value.startswith("${{") or value == "", (
+                            f"Sensitive field '{key}' in {workflow_file.name} "
+                            "should use secrets context (e.g., ${{ secrets.TOKEN }})"
+                        )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_secrets_not_echoed_to_logs(self, workflow_file: Path):
@@ -520,10 +534,10 @@ class TestWorkflowInjectionSecurity:
         if "curl" in content and "github.event" in content:
             # Warn about potential URL injection
             lines = content.split("\n")
-            for i, line in enumerate(lines):
+            for _, line in enumerate(lines):
                 if "curl" in line.lower() and "github.event" in line:
                     # This is advisory
-                    pass
+                    assert False, f"Potential URL injection in curl command: {line}"
 
 
 class TestWorkflowMaintainability:
@@ -555,7 +569,7 @@ class TestWorkflowMaintainability:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_reasonable_size(self, workflow_file: Path):
-        """Assert the workflow file is within reasonable size limits (50KB max)."""
+        """Assert the workflow file is within reasonable size limits(50KB max)."""
         file_size = workflow_file.stat().st_size
         if file_size > 10240:
             print(f"\nWarning: {workflow_file.name} is {file_size} bytes.")
@@ -568,12 +582,14 @@ class TestWorkflowMaintainability:
 class TestWorkflowEdgeCases:
     """Test suite for edge cases and error conditions."""
 
-    def test_workflow_directory_exists(self):
-        """Test that .github/workflows directory exists."""
+    @staticmethod
+    def test_workflow_directory_exists():
+        """Test that .github / workflows directory exists."""
         assert WORKFLOWS_DIR.exists(), ".github/workflows directory does not exist"
         assert WORKFLOWS_DIR.is_dir(), ".github/workflows exists but is not a directory"
 
-    def test_at_least_one_workflow_exists(self):
+    @staticmethod
+    def test_at_least_one_workflow_exists():
         """Test that at least one workflow file exists."""
         workflow_files = get_workflow_files()
         assert len(workflow_files) > 0, (
@@ -598,7 +614,7 @@ class TestWorkflowEdgeCases:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_consistent_indentation(self, workflow_file: Path):
-        """Warns when non-empty, non-comment lines use indentation not in multiples of two spaces."""
+        """Warns when non - empty, non - comment lines use indentation not in multiples of two spaces."""
         with open(workflow_file, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
@@ -622,7 +638,7 @@ class TestWorkflowStepConfiguration:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_steps_with_working_directory(self, workflow_file: Path):
-        """Ensure steps that define `working-directory` use relative paths."""
+        """Ensure steps that define `working - directory` use relative paths."""
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
 
@@ -644,8 +660,7 @@ class TestWorkflowStepConfiguration:
 
         for job_name, job_config in jobs.items():
             steps = job_config.get("steps", [])
-            step_ids = [s.get("id") for s in steps if "id" in s]
-            id_counts = Counter(step_ids)
+            id_counts = Counter(s.get("id") for s in steps if "id" in s)
             duplicates = [sid for sid, count in id_counts.items() if count > 1]
             assert not duplicates, (
                 f"Job '{job_name}' in {workflow_file.name} has duplicate step IDs: {duplicates}"
@@ -657,11 +672,11 @@ class TestWorkflowEnvAndSecrets:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_env_vars_naming_convention(self, workflow_file: Path):
-        """Assert that environment variable names are upper-case and alphanumeric."""
+        """Assert that environment variable names are upper - case and alphanumeric."""
         config = load_yaml_safe(workflow_file)
 
         def check_env_vars(env_dict: Any) -> List[str]:
-            """Return env var keys that are not UPPER_CASE and [A-Z0-9_]-only."""
+            """Return env var keys that are not UPPER_CASE and [A - Z0 - 9_] - only."""
             if not isinstance(env_dict, dict):
                 return []
             invalid_list: List[str] = []
@@ -690,9 +705,10 @@ class TestWorkflowEnvAndSecrets:
 
 
 class TestTestSuiteCompleteness:
-    """Meta-test to ensure test suite is comprehensive."""
+    """Meta - test to ensure test suite is comprehensive."""
 
-    def test_all_workflow_files_tested(self):
+    @staticmethod
+    def test_all_workflow_files_tested():
         """Verify that all workflow files are included in tests."""
         workflow_files = get_workflow_files()
         assert len(workflow_files) > 0, "Should find at least one workflow file"
@@ -701,7 +717,8 @@ class TestTestSuiteCompleteness:
             assert wf.exists(), f"Workflow file {wf} should exist"
             assert wf.suffix in [".yml", ".yaml"], f"Workflow file {wf} should be YAML"
 
-    def test_test_coverage_is_comprehensive(self):
+    @staticmethod
+    def test_test_coverage_is_comprehensive():
         """Assert the test module contains a comprehensive number of test classes."""
         current_module = sys.modules[__name__]
         test_classes = [
@@ -717,15 +734,17 @@ class TestTestSuiteCompleteness:
 
 
 class TestRequirementsDevValidation:
-    """Tests for requirements-dev.txt changes."""
+    """Tests for requirements - dev.txt changes."""
 
-    def test_requirements_dev_file_exists(self):
-        """Test that requirements-dev.txt exists."""
+    @staticmethod
+    def test_requirements_dev_file_exists():
+        """Test that requirements - dev.txt exists."""
         req_file = Path("requirements-dev.txt")
         assert req_file.exists(), "requirements-dev.txt not found"
 
-    def test_requirements_dev_valid_format(self):
-        """Validate the format of requirements-dev.txt."""
+    @staticmethod
+    def test_requirements_dev_valid_format():
+        """Validate the format of requirements - dev.txt."""
         req_file = Path("requirements-dev.txt")
         if not req_file.exists():
             pytest.skip("requirements-dev.txt not found")
@@ -747,8 +766,9 @@ class TestRequirementsDevValidation:
                     f"Line {line_num}: Multiple == in requirement: {line}"
                 )
 
-    def test_requirements_dev_pyyaml_present(self):
-        """Ensure requirements-dev.txt contains PyYAML."""
+    @staticmethod
+    def test_requirements_dev_pyyaml_present():
+        """Ensure requirements - dev.txt contains PyYAML."""
         req_file = Path("requirements-dev.txt")
         if not req_file.exists():
             pytest.skip("requirements-dev.txt not found")
@@ -760,42 +780,52 @@ class TestRequirementsDevValidation:
             "PyYAML should be in requirements-dev.txt for workflow tests"
         )
 
-    def test_no_conflicting_dependencies(self):
-        """Verify there are no package version conflicts between requirements-dev.txt and requirements.txt."""
+    @staticmethod
+    def test_no_conflicting_dependencies() -> None:
+        """Verify there are no package version conflicts between requirements - dev.txt and requirements.txt."""
         req_file = Path("requirements-dev.txt")
         main_req_file = Path("requirements.txt")
 
         if not (req_file.exists() and main_req_file.exists()):
             pytest.skip("Both requirements files needed for this test")
 
-        def parse_requirements(file_path):
-            packages = {}
-            with open(file_path, "r") as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        pkg = line.split("==")[0].split(">=")[0].split("<=")[0]
-                        pkg = pkg.split("[")[0].strip()  # Remove extras
-                        packages[pkg.lower()] = line
+        def parse_requirements(file_path: Path) -> dict[str, str]:
+            """
+            Parse a requirements file and return a mapping of package names
+            to their full version specifier lines.
+            """
+            packages: dict[str, str] = {}
+            with file_path.open(encoding="utf-8") as file_handle:
+                for line in file_handle:
+                    stripped = line.strip()
+                    if stripped and not stripped.startswith("#"):
+                        pkg = (
+                            stripped.split("==")[0]
+                            .split(">=")[0]
+                            .split("<=")[0]
+                            .split("[")[0]
+                            .strip()
+                            .lower()
+                        )
+                        packages[pkg] = stripped
             return packages
 
         dev_pkgs = parse_requirements(req_file)
         main_pkgs = parse_requirements(main_req_file)
 
-        conflicts = []
+        conflicts: list[str] = []
         for pkg, dev_spec in dev_pkgs.items():
-            if pkg in main_pkgs:
-                main_spec = main_pkgs[pkg]
-                if dev_spec != main_spec:
-                    conflicts.append(f"{pkg}: dev='{dev_spec}' vs main='{main_spec}'")
+            main_spec = main_pkgs.get(pkg)
+            if main_spec and dev_spec != main_spec:
+                conflicts.append(f"{pkg}: dev='{dev_spec}' vs main='{main_spec}'")
 
-        assert len(conflicts) == 0, f"Version conflicts: {conflicts}"
-
+        assert not conflicts, f"Version conflicts: {conflicts}"}
 
 class TestWorkflowDocumentationConsistency:
     """Test that workflow changes are properly documented."""
 
-    def test_documentation_files_valid_markdown(self):
+    @ staticmethod
+    def test_documentation_files_valid_markdown():
         """Verify all new markdown documentation files are valid."""
         doc_files = [
             "ADDITIONAL_TESTS_SUMMARY.md",
@@ -815,22 +845,26 @@ class TestWorkflowDocumentationConsistency:
 class TestRemovedFilesCleanup:
     """Test that removed files are properly cleaned up."""
 
-    def test_labeler_yml_removed(self):
+    @ staticmethod
+    def test_labeler_yml_removed():
         """Verify labeler.yml configuration was removed."""
         labeler_config = Path(".github/labeler.yml")
         assert not labeler_config.exists(), "labeler.yml should be removed"
 
-    def test_context_chunker_script_removed(self):
+    @ staticmethod
+    def test_context_chunker_script_removed():
         """Verify context_chunker.py script was removed."""
         chunker_script = Path(".github/scripts/context_chunker.py")
         assert not chunker_script.exists(), "context_chunker.py should be removed"
 
-    def test_scripts_readme_removed(self):
+    @ staticmethod
+    def test_scripts_readme_removed():
         """Verify scripts README was removed."""
         scripts_readme = Path(".github/scripts/README.md")
         assert not scripts_readme.exists(), "scripts README should be removed"
 
-    def test_no_orphaned_script_references(self):
+    @ staticmethod
+    def test_no_orphaned_script_references():
         """Ensure no workflows reference removed scripts."""
         for workflow_file in get_workflow_files():
             with open(workflow_file, "r", encoding="utf-8") as f:

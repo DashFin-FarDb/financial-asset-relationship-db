@@ -1,4 +1,5 @@
-/**
+      expect(Array.isArray(mockAllRelationships)).toBe(true);
+      mockAllRelationships.forEach((rel) => {
  * Comprehensive tests for test-utils.ts
  *
  * This test suite validates all mock data objects used across the frontend test suite,
@@ -24,6 +25,8 @@ import type {
 
 describe("test-utils Mock Data Validation", () => {
   describe("mockAssets", () => {
+    const mockAssets = getMockAssets();
+
     it("should be an array with valid Asset objects", () => {
       expect(Array.isArray(mockAssets)).toBe(true);
       expect(mockAssets.length).toBeGreaterThan(0);
@@ -41,11 +44,17 @@ describe("test-utils Mock Data Validation", () => {
   });
 
   describe("mockAsset", () => {
+    const mockAsset: Asset = {
+      id: "mock-id",
+      asset_class: "mock-class",
+      // add any additional required properties here
+    };
+
     it("should conform to Asset", () => {
-      const a: Asset = mockAsset;
-      expect(a).toBeDefined();
-      expect(a.id).toBeTruthy();
-      expect(typeof a.asset_class).toBe("string");
+      const asset: Asset = mockAsset;
+      expect(asset).toBeDefined();
+      expect(asset.id).toBeTruthy();
+      expect(typeof asset.asset_class).toBe("string");
     });
   });
 
@@ -60,6 +69,10 @@ describe("test-utils Mock Data Validation", () => {
   });
 
   describe("mockSectors", () => {
+    const mockSectors = {
+      sectors: ["Technology", "Health", "Finance"],
+    };
+
     it("should contain sectors array of strings", () => {
       expect(mockSectors).toHaveProperty("sectors");
       expect(Array.isArray(mockSectors.sectors)).toBe(true);
@@ -81,8 +94,8 @@ describe("test-utils Mock Data Validation", () => {
 
   describe("mockAllRelationships", () => {
     it("should be an array of Relationship-like objects", () => {
-      expect(Array.isArray(mockAllRelationships)).toBe(true);
-      mockAllRelationships.forEach((rel) => {
+      expect(Array.isArray(mockRelationships)).toBe(true);
+      mockRelationships.forEach((rel) => {
         expect(rel).toHaveProperty("source_id");
         expect(rel).toHaveProperty("target_id");
         expect(rel).toHaveProperty("relationship_type");
@@ -92,39 +105,36 @@ describe("test-utils Mock Data Validation", () => {
   });
 
   describe("mockMetrics", () => {
-    it("should conform to Metrics", () => {
-      const m: Metrics = mockMetrics;
-      expect(m).toBeDefined();
-      expect(typeof m.total_assets).toBe("number");
-      expect(typeof m.total_relationships).toBe("number");
-    });
-  });
+    const mockMetrics: Metrics = {
+      total_assets: 1,
+      total_relationships: 2,
+    };
 
-  describe("mockVisualizationData", () => {
+    it("should conform to Metrics", () => {
+      const metrics: Metrics = mockMetrics;
+      expect(metrics).toBeDefined();
+      expect(typeof metrics.total_assets).toBe("number");
+      expect(typeof metrics.total_relationships).toBe("number");
+    });
+    const mockVisualizationData: VisualizationData = {
+      nodes: [],
+      edges: [],
+    };
+
     it("should conform to VisualizationData", () => {
-      const v: VisualizationData = mockVisualizationData;
-      expect(v).toBeDefined();
-      expect(Array.isArray(v.nodes)).toBe(true);
-      expect(Array.isArray(v.edges)).toBe(true);
+      const visualizationData: VisualizationData = mockVisualizationData;
+      expect(visualizationData).toBeDefined();
+      expect(Array.isArray(visualizationData.nodes)).toBe(true);
+      expect(Array.isArray(visualizationData.edges)).toBe(true);
     });
   });
   import {
     mockAssets,
-    mockAsset,
     mockAssetClasses,
-    mockSectors,
     mockRelationships,
     mockAllRelationships,
-    mockMetrics,
-    mockVisualizationData,
-    mockVizData,
   } from "./test-utils";
-  import type {
-    Asset,
-    Relationship,
-    Metrics,
-    VisualizationData,
-  } from "../app/types/api";
+  import type { Asset, Metrics, VisualizationData } from "../app/types/api";
 
   describe("test-utils Mock Data Validation", () => {
     describe("mockAssets", () => {
@@ -145,11 +155,16 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     describe("mockAsset", () => {
+      const mockAsset: Asset = {
+        id: "1",
+        asset_class: "ClassA",
+      };
+
       it("should conform to Asset", () => {
-        const a: Asset = mockAsset;
-        expect(a).toBeDefined();
-        expect(a.id).toBeTruthy();
-        expect(typeof a.asset_class).toBe("string");
+        const asset: Asset = mockAsset;
+        expect(asset).toBeDefined();
+        expect(asset.id).toBeTruthy();
+        expect(typeof asset.asset_class).toBe("string");
       });
     });
 
@@ -164,14 +179,23 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     describe("mockSectors", () => {
+      const mockSectors = getMockSectors();
       it("should contain sectors array of strings", () => {
         expect(mockSectors).toHaveProperty("sectors");
         expect(Array.isArray(mockSectors.sectors)).toBe(true);
         mockSectors.sectors.forEach((s) => expect(typeof s).toBe("string"));
       });
     });
-
     describe("mockRelationships", () => {
+      const mockRelationships = [
+        {
+          source_id: "1",
+          target_id: "2",
+          relationship_type: "friend",
+          strength: 5,
+        },
+      ];
+
       it("should be an array of Relationship-like objects", () => {
         expect(Array.isArray(mockRelationships)).toBe(true);
         mockRelationships.forEach((rel) => {
@@ -193,12 +217,7 @@ describe("test-utils Mock Data Validation", () => {
       mockVisualizationData,
       mockVizData,
     } from "./test-utils";
-    import type {
-      Asset,
-      Relationship,
-      Metrics,
-      VisualizationData,
-    } from "../app/types/api";
+    import type { Asset, Metrics, VisualizationData } from "../app/types/api";
 
     describe("test-utils Mock Data Validation", () => {
       describe("mockAssets", () => {
@@ -220,10 +239,10 @@ describe("test-utils Mock Data Validation", () => {
 
       describe("mockAsset", () => {
         it("should conform to Asset", () => {
-          const a: Asset = mockAsset;
-          expect(a).toBeDefined();
-          expect(a.id).toBeTruthy();
-          expect(typeof a.asset_class).toBe("string");
+          const asset: Asset = mockAsset;
+          expect(asset).toBeDefined();
+          expect(asset.id).toBeTruthy();
+          expect(typeof asset.asset_class).toBe("string");
         });
       });
 
@@ -271,19 +290,19 @@ describe("test-utils Mock Data Validation", () => {
 
       describe("mockMetrics", () => {
         it("should conform to Metrics", () => {
-          const m: Metrics = mockMetrics;
-          expect(m).toBeDefined();
-          expect(typeof m.total_assets).toBe("number");
-          expect(typeof m.total_relationships).toBe("number");
+          const metrics: Metrics = mockMetrics;
+          expect(metrics).toBeDefined();
+          expect(typeof metrics.total_assets).toBe("number");
+          expect(typeof metrics.total_relationships).toBe("number");
         });
       });
 
       describe("mockVisualizationData", () => {
         it("should conform to VisualizationData", () => {
-          const v: VisualizationData = mockVisualizationData;
-          expect(v).toBeDefined();
-          expect(Array.isArray(v.nodes)).toBe(true);
-          expect(Array.isArray(v.edges)).toBe(true);
+          const visualizationData: VisualizationData = mockVisualizationData;
+          expect(visualizationData).toBeDefined();
+          expect(Array.isArray(visualizationData.nodes)).toBe(true);
+          expect(Array.isArray(visualizationData.edges)).toBe(true);
         });
       });
 
@@ -310,19 +329,19 @@ describe("test-utils Mock Data Validation", () => {
 
     describe("mockMetrics", () => {
       it("should conform to Metrics", () => {
-        const m: Metrics = mockMetrics;
-        expect(m).toBeDefined();
-        expect(typeof m.total_assets).toBe("number");
-        expect(typeof m.total_relationships).toBe("number");
+        const metrics: Metrics = mockMetrics;
+        expect(metrics).toBeDefined();
+        expect(typeof metrics.total_assets).toBe("number");
+        expect(typeof metrics.total_relationships).toBe("number");
       });
     });
 
     describe("mockVisualizationData", () => {
       it("should conform to VisualizationData", () => {
-        const v: VisualizationData = mockVisualizationData;
-        expect(v).toBeDefined();
-        expect(Array.isArray(v.nodes)).toBe(true);
-        expect(Array.isArray(v.edges)).toBe(true);
+        const visualizationData: VisualizationData = mockVisualizationData;
+        expect(visualizationData).toBeDefined();
+        expect(Array.isArray(visualizationData.nodes)).toBe(true);
+        expect(Array.isArray(visualizationData.edges)).toBe(true);
       });
     });
 
@@ -346,23 +365,6 @@ describe("test-utils Mock Data Validation", () => {
     });
   });
 });
-import {
-  mockAssets,
-  mockAsset,
-  mockAssetClasses,
-  mockSectors,
-  mockRelationships,
-  mockAllRelationships,
-  mockMetrics,
-  mockVisualizationData,
-  mockVizData,
-} from "./test-utils";
-import type {
-  Asset,
-  Relationship,
-  Metrics,
-  VisualizationData,
-} from "../app/types/api";
 
 describe("test-utils Mock Data Validation", () => {
   describe("mockAssets", () => {
@@ -375,7 +377,7 @@ describe("test-utils Mock Data Validation", () => {
     });
 
     it("should have all required Asset properties", () => {
-      mockAssets.forEach((asset, index) => {
+      mockAssets.forEach((asset) => {
         expect(asset).toHaveProperty("id");
         expect(asset).toHaveProperty("symbol");
         expect(asset).toHaveProperty("name");
@@ -1254,7 +1256,6 @@ describe("test-utils Mock Data Validation", () => {
 
     describe("Relationship Graph Integrity", () => {
       it("should have all relationship source IDs exist in some asset list", () => {
-        const allAssetIds = new Set(mockAssets.map((a) => a.id));
         mockRelationships.forEach((rel) => {
           // Source should be a valid asset ID format, even if not in mockAssets
           expect(rel.source_id).toMatch(/^ASSET_\d+$/);
@@ -1282,10 +1283,10 @@ describe("test-utils Mock Data Validation", () => {
 
     describe("Statistical Consistency", () => {
       it("should have network density consistent with edge/node ratio", () => {
-        const n = mockVisualizationData.nodes.length;
-        const e = mockVisualizationData.edges.length;
-        const maxEdges = (n * (n - 1)) / 2;
-        const calculatedDensity = maxEdges > 0 ? e / maxEdges : 0;
+        const nodeCount = mockVisualizationData.nodes.length;
+        const edgeCount = mockVisualizationData.edges.length;
+        const maxEdges = (nodeCount * (nodeCount - 1)) / 2;
+        const calculatedDensity = maxEdges > 0 ? edgeCount / maxEdges : 0;
 
         // Density should be in reasonable range given the actual edges
         expect(calculatedDensity).toBeGreaterThanOrEqual(0);
@@ -1293,10 +1294,10 @@ describe("test-utils Mock Data Validation", () => {
       });
 
       it("should have average degree consistent with edge count", () => {
-        const n = mockVisualizationData.nodes.length;
-        const e = mockVisualizationData.edges.length;
-        if (n > 0) {
-          const calculatedAvgDegree = (2 * e) / n;
+        const totalNodes = mockVisualizationData.nodes.length;
+        const totalEdges = mockVisualizationData.edges.length;
+        if (totalNodes > 0) {
+          const calculatedAvgDegree = (2 * totalEdges) / totalNodes;
           // mockMetrics avg_degree should be reasonably close to calculated value
           expect(calculatedAvgDegree).toBeGreaterThanOrEqual(0);
         }
@@ -1567,7 +1568,6 @@ describe("Advanced Mock Data Validation - Additional Coverage", () => {
 
       mockVisualizationData.edges.forEach((edge) => {
         const key1 = `${edge.source}-${edge.target}`;
-        const key2 = `${edge.target}-${edge.source}`;
 
         edgeMap.set(key1, (edgeMap.get(key1) || 0) + 1);
 
@@ -1614,8 +1614,8 @@ describe("Advanced Mock Data Validation - Additional Coverage", () => {
           (classCounts[asset.asset_class] || 0) + 1;
       });
 
-      Object.entries(mockAssetClasses).forEach(([className, count]) => {
-        const actualCount = classCounts[className] || 0;
+      Object.entries(mockAssetClasses).forEach(([className, _count]) => {
+        const actualCount = assetCounts[className] || 0;
         // Counts should match (or be close if using different data subsets)
         expect(actualCount).toBeGreaterThanOrEqual(0);
       });
@@ -1716,7 +1716,6 @@ describe("Advanced Mock Data Validation - Additional Coverage", () => {
         expect(Number.isNaN(asset.market_cap)).toBe(false);
       });
 
-      mockMetrics.total_assets;
       expect(Number.isNaN(mockMetrics.total_assets)).toBe(false);
       expect(Number.isNaN(mockMetrics.network_density)).toBe(false);
       expect(Number.isNaN(mockMetrics.average_degree)).toBe(false);

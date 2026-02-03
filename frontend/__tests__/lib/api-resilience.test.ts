@@ -10,16 +10,16 @@
  */
 
 import axios from "axios";
-import { mockAssets, mockAsset, mockMetrics, mockVizData } from "../test-utils";
+import { mockAssets, mockAsset, mockVizData } from "../test-utils";
 
 jest.mock("axios");
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 // Import API functions dynamically
-let fetchAssets: any;
-let fetchAsset: any;
-let fetchMetrics: any;
-let fetchVisualizationData: any;
+let fetchAssets: typeof import("@/lib/api").fetchAssets;
+let fetchAsset: typeof import("@/lib/api").fetchAsset;
+let fetchMetrics: typeof import("@/lib/api").fetchMetrics;
+let fetchVisualizationData: typeof import("@/lib/api").fetchVisualizationData;
 
 describe("API Resilience - Network Failures", () => {
   beforeAll(async () => {
@@ -200,7 +200,7 @@ describe("API Security - Response Validation", () => {
     });
 
     await expect(fetchAsset("AAPL")).resolves.toBeDefined();
-    expect(({} as any).polluted).toBeUndefined();
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
 });
 
