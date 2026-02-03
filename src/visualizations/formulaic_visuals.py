@@ -405,7 +405,6 @@ def __init__(self):
                 xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 template="plotly_white",
-            )
         return fig
         return FormulaicVisualizer._create_empty_correlation_figure()
 
