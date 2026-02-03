@@ -18,8 +18,7 @@ Key files addressed in this test generation effort:
 
 ## Generated Test Files
 
-### 1. frontend/**tests**/test-utils.test.ts (NEW - 1348 lines)
-
+### 1. frontend/__tests__/test-utils.test.ts (NEW - 1348 lines)
 **Purpose**: Comprehensive validation of all mock data objects used across the frontend test suite.
 
 **Test Classes**: 10 comprehensive test suites
