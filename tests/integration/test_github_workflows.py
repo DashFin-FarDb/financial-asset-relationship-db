@@ -2895,9 +2895,36 @@ class TestWorkflowScheduledExecutionBestPractices:
         triggers = data.get("on", {})
 
         if "schedule" in triggers:
-            pass
+            schedules = triggers["schedule"]
+            for schedule in schedules:
+                cron = schedule.get("cron")
+                if not cron:
+                    # Missing or empty cron is validated by other tests; skip here.
+                    continue
 
+                parts = cron.split()
+                # Validity (5 parts, allowed characters) is tested elsewhere; we only
+                # care about how frequently the workflow is scheduled to run.
+                if len(parts) < 1:
+                    continue
 
+                minute_field = parts[0]
+
+                # Disallow running every minute.
+                assert minute_field != "*", (
+                    f"Scheduled workflow in {workflow_file.name} runs every minute "
+                    f"('{cron}'); consider reducing frequency."
+                )
+
+                # For step values like '*/N', require N to be at least 15 minutes.
+                step_match = re.fullmatch(r"\*/(\d+)", minute_field)
+                if step_match:
+                    interval = int(step_match.group(1))
+                    assert interval >= 15, (
+                        f"Scheduled workflow in {workflow_file.name} runs too "
+                        f"frequently ('{cron}'); minimum allowed interval is "
+                        f"every 15 minutes."
+                    )
 if "schedule" in triggers:
     schedules = triggers["schedule"]
     for schedule in schedules:
