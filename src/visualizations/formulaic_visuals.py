@@ -83,7 +83,7 @@ class FormulaicVisualizer:
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
         """Populate the "Key Formula Examples" table
-           with top formulas, sorted by reliability.
+        with top formulas, sorted by reliability.
         """
         # Populate the "Key Formula Examples" table in row 3, column 2.
         # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
