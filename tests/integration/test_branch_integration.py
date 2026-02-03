@@ -205,37 +205,37 @@ class TestRemovedFilesIntegration:
                 )
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-    """Verify the label workflow does not require an external labeler configuration file.
+        """Verify the label workflow does not require an external labeler configuration file.
 
-    Checks that .github/workflows/label.yml (if present) defines the "label" job's first
-    step using "actions/labeler", and that the step either omits "config-path" or sets it to
-    ".github/labeler.yml". Skips the test if label.yml is missing.
-    """
-    label_path = Path(".github/workflows/label.yml")
-    if not label_path.exists():
-        pytest.skip("label.yml not present; skipping label workflow checks")
+        Checks that .github/workflows/label.yml (if present) defines the "label" job's first
+        step using "actions/labeler", and that the step either omits "config-path" or sets it to
+        ".github/labeler.yml". Skips the test if label.yml is missing.
+        """
+        label_path = Path(".github/workflows/label.yml")
+        if not label_path.exists():
+            pytest.skip("label.yml not present; skipping label workflow checks")
 
-    with open(label_path, encoding="utf-8") as f:
-        workflow = yaml.safe_load(f)
+        with open(label_path, encoding="utf-8") as f:
+            workflow = yaml.safe_load(f)
 
-    assert isinstance(workflow, dict), "Workflow YAML did not parse to a mapping"
+        assert isinstance(workflow, dict), "Workflow YAML did not parse to a mapping"
 
-    jobs = workflow.get("jobs", {})
-    label_job = jobs.get("label")
-    assert label_job is not None, "Label job not found in label.yml"
+        jobs = workflow.get("jobs", {})
+        label_job = jobs.get("label")
+        assert label_job is not None, "Label job not found in label.yml"
 
-    steps = label_job.get("steps", [])
-    assert steps, "Label job has no steps defined"
+        steps = label_job.get("steps", [])
+        assert steps, "Label job has no steps defined"
 
-    labeler_step = steps[0]
-    assert "uses" in labeler_step, "First step does not define 'uses'"
-    assert "actions/labeler" in labeler_step["uses"]
+        labeler_step = steps[0]
+        assert "uses" in labeler_step, "First step does not define 'uses'"
+        assert "actions/labeler" in labeler_step["uses"]
 
-    with_config = labeler_step.get("with", {})
-    assert (
-        "config-path" not in with_config
-        or with_config.get("config-path") == ".github/labeler.yml"
-    ), "Labeler step specifies an unexpected config-path"
+        with_config = labeler_step.get("with", {})
+        assert (
+            "config-path" not in with_config
+            or with_config.get("config-path") == ".github/labeler.yml"
+        ), "Labeler step specifies an unexpected config-path"
 
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
