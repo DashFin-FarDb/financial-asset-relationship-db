@@ -332,7 +332,6 @@ job2:
         """Test that empty file returns empty list."""
         yaml_file = tmp_path / "empty.yml"
         yaml_file.write_text("")
-
         result = check_duplicate_keys(yaml_file)
         assert result == []
 
@@ -344,8 +343,6 @@ job2:
         result = check_duplicate_keys(yaml_file)
         assert isinstance(result, list)
 
-    # tests/integration/test_github_workflows_helpers.py
-
 
 def test_github_actions_pr_agent_scenario(self, test_data_path):
     # The test now loads the YAML from a dedicated file
@@ -356,32 +353,19 @@ def test_github_actions_pr_agent_scenario(self, test_data_path):
     result = check_duplicate_keys(yaml_file_path)
     # ... assertions ...
 
-# new file: tests/integration/data/pr_agent.yml
-name: PR Agent
-on:
-    pull_request:
-jobs:
-    review:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout
-                uses: actions/checkout@v4
 
-                result = check_duplicate_keys(yaml_file)
-                assert isinstance(result, list)
-
-        def test_detects_duplicate_in_list_of_mappings(self, tmp_path):
-            """Test detection of duplicates within a mapping that's in a list."""
-    - key: value1
-        key: value2
-    - key: value1
-        key: value2
+def test_detects_duplicate_in_list_of_mappings(self, tmp_path):
+    """Test detection of duplicates within a mapping that's in a list."""
+    yaml_content = """- key: value1
+  key: value2
+- key: value1
+  key: value2
 """
-        yaml_file = tmp_path / "list_dup.yml"
-        yaml_file.write_text(yaml_content)
+    yaml_file = tmp_path / "list_dup.yml"
+    yaml_file.write_text(yaml_content)
 
-        result = check_duplicate_keys(yaml_file)
-        assert "key" in result
+    result = check_duplicate_keys(yaml_file)
+    assert "key" in result
 
 
 class TestWorkflowsDirectoryConstant:
