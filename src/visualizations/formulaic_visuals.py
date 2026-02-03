@@ -74,7 +74,7 @@ class FormulaicVisualizer:
                 else:
                     for key, value in empirical_relationships.items():
                         if isinstance(key, (tuple, list)) and len(key) == 2:
-                        row, col = key
+                            row, col = key
                     else:
                         parts = str(key).split("|")
                         if len(parts) == 2:
