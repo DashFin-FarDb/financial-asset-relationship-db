@@ -20,7 +20,7 @@ class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
     @pytest.fixture
-    def dependency_matrix_path(self) -> Path:
+    def dependency_matrix_path() -> Path:
         """
         Return the filesystem path to the repository's dependency matrix markdown file.
 
