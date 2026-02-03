@@ -1100,8 +1100,6 @@ class TestAutoAssignWorkflow:
             "Workflow should define permissions at workflow or job level"
         )
 
-    ...
-
 
 class TestWorkflowTriggers:
     """Comprehensive tests for workflow trigger configurations."""
