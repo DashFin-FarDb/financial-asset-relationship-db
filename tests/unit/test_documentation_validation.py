@@ -31,9 +31,20 @@ class TestDependencyMatrix:
 
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
+         """
+        Load the dependency matrix markdown content from disk.
+
+        Returns:
+            The contents of the dependencyMatrix.md file as a string.
+
+        Raises:
+            AssertionError: If `dependency_matrix_path` does not exist.
         """
+        assert dependency_matrix_path.exists(), "dependencyMatrix.md not found"
+        with open(dependency_matrix_path, encoding="utf-8") as f:
+            return f.read()
+
     @pytest.fixture
-    @staticmethod
     def dependency_matrix_content(dependency_matrix_path):
         """
         Load the dependency matrix markdown content from disk.
@@ -48,8 +59,6 @@ class TestDependencyMatrix:
         with open(dependency_matrix_path, encoding="utf-8") as f:
             return f.read()
 
-    @pytest.fixture
-    @staticmethod
     def dependency_matrix_lines(dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
@@ -326,6 +335,9 @@ class TestSystemManifest:
         assert match is not None, "Project description not found"
         description = match.group(1).strip()
         assert len(description) > 0, "Project description should not be empty"
+        
+    def test_system_manifest_has_created_timestamp(self, system_manifest_content):
+        """Test that systemManifest.md has Created timestamp."""        
         pattern = r"- Created: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)"
         match = re.search(pattern, system_manifest_content)
 
@@ -338,23 +350,9 @@ class TestSystemManifest:
         except ValueError:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
-
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         """Test that systemManifest.md has Current Phase section."""
         assert "## Current Phase" in system_manifest_content
-
-
-        Assert that the System Manifest declares a current project phase.
-
-        Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
-
-        Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md file to inspect.
-        """
-        pattern = r"- Current Phase: (.+)"
-        match = re.search(pattern, system_manifest_content)
-
-        assert match is not None, "Current Phase not found"
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
         """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
