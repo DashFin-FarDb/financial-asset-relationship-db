@@ -1705,7 +1705,6 @@ describe("Advanced Mock Data Validation - Additional Coverage", () => {
         expect(Number.isNaN(asset.market_cap)).toBe(false);
       });
 
-      mockMetrics.total_assets;
       expect(Number.isNaN(mockMetrics.total_assets)).toBe(false);
       expect(Number.isNaN(mockMetrics.network_density)).toBe(false);
       expect(Number.isNaN(mockMetrics.average_degree)).toBe(false);
