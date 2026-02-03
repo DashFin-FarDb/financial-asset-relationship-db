@@ -23,8 +23,6 @@ class TestWorkflowConsistency:
 
     @pytest.fixture
     @staticmethod
-    @staticmethod
-    @staticmethod
     def all_workflows() -> Dict[str, Dict]:
         """Mapping from workflow path to parsed YAML dict."""
         workflow_files = [
