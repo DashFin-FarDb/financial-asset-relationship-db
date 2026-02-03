@@ -476,7 +476,7 @@ jobs:
         with:
 """
         )
-            fetch - depth: 0
+          fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
