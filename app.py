@@ -202,12 +202,13 @@ class FinancialAssetApp:
                 selected_asset, []
             )
         }
+        incoming_relationships = getattr(graph, "incoming_relationships", {})
         incoming = {
             src_id: {
                 "relationship_type": rel_type,
                 "strength": strength,
             }
-            for src_id, rel_type, strength in graph.incoming_relationships.get(
+            for src_id, rel_type, strength in incoming_relationships.get(
                 selected_asset, []
             )
         }
