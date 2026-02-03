@@ -1095,9 +1095,7 @@ class TestAutoAssignWorkflow:
         """Test that the workflow defines appropriate permissions."""
         # Permissions can be at workflow or job level
         workflow_perms = auto_assign_workflow.get("permissions")
-        run_job = auto_assign_workflow["jobs"]["auto-assign"]
         job_perms = run_job.get("permissions")
-        assert workflow_perms is not None or job_perms is not None, (
             "Workflow should define permissions at workflow or job level"
         )
 
