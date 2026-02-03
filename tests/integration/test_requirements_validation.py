@@ -25,7 +25,9 @@ class TestRequirementsDocumentation:
 
         # Should have at least some comments explaining purpose
         comment_lines = [l for l in lines if l.strip().startswith("#")]
-        assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
+        assert len(comment_lines) >= 1, (
+            "requirements-dev.txt should have explanatory comments"
+        )
 
     @staticmethod
     def test_pyyaml_purpose_documented():
@@ -41,9 +43,10 @@ class TestRequirementsDocumentation:
         for i, line in enumerate(lines):
             if "pyyaml" in line.lower():
                 # Check previous lines for comments
-                context = "\n".join(lines[max(0, i - 3): i + 1])
+                context = "\n".join(lines[max(0, i - 3) : i + 1])
                 # Should have some context about YAML parsing or workflows
                 assert any(
-                    keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]
+                    keyword in context.lower()
+                    for keyword in ["yaml", "workflow", "config", "parse"]
                 ), "PyYAML should have explanatory comment"
                 break
