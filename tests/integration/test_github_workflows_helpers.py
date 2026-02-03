@@ -104,9 +104,9 @@ def test_finds_both_yml_and_yaml(self, tmp_path):
 
     with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
         result = get_workflow_files()
-            assert len(result) == 2
-            names = {f.name for f in result}
-            assert names == {"test1.yml", "test2.yaml"}
+        assert len(result) == 2
+        names = {f.name for f in result}
+        assert names == {"test1.yml", "test2.yaml"}
 
     def test_ignores_non_yaml_files(self, tmp_path):
         """Test that non - YAML files are ignored."""
