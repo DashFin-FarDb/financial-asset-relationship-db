@@ -479,7 +479,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _has_equities(graph: AssetRelationshipGraph) -> bool:
         """Check if the graph contains equity assets."""
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values()
@@ -497,7 +496,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _has_currencies(graph: AssetRelationshipGraph) -> bool:
         """Check if the graph contains currency assets."""
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values()
@@ -512,7 +510,6 @@ class FormulaicAnalyzer:
         yield. It iterates through the assets in the graph and checks for the
         necessary conditions to identify dividend stocks.
         """
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.EQUITY
@@ -533,7 +530,6 @@ class FormulaicAnalyzer:
         examples and formats them for output. If no valid examples are found,
         a default example is returned.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -559,7 +555,6 @@ class FormulaicAnalyzer:
         percentage and price for each qualifying asset, stopping after two examples.
         If no examples are found, it returns a default example calculation.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -592,7 +587,6 @@ class FormulaicAnalyzer:
         method returns a string containing up to two examples or a default message if
         no valid examples are found.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -618,7 +612,6 @@ class FormulaicAnalyzer:
         in billions. If no valid examples are found, a default message is
         returned.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -665,7 +658,6 @@ class FormulaicAnalyzer:
             graph (AssetRelationshipGraph): The graph containing asset data for
                 analysis.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -688,7 +680,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example volatility calculations from graph data."""
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -720,7 +711,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example exchange rate calculations from graph data."""
-        from src.models.financial_models import AssetClass
 
         currencies = [
             asset
