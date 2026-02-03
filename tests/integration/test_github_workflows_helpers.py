@@ -478,7 +478,9 @@ jobs:
         complex_workflow = workflows_dir / "complex.yml"
         # fmt: off
         complex_workflow.write_text(
-            """
+- uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
 name: Complex CI / CD
 on:
   push:
