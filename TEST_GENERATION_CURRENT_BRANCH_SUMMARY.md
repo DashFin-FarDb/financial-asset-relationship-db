@@ -35,7 +35,7 @@ Comprehensive unit tests have been generated for all testable files that changed
 
 **Total Tests**: 33 comprehensive unit tests
 
-### 2. frontend/__tests__/test-utils.test.ts (NEW)
+### 2. frontend/**tests**/test-utils.test.ts (NEW)
 
 **Purpose**: Validates mock data structures and test utilities
 
