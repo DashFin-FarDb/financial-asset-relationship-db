@@ -299,6 +299,7 @@ class TestWorkflowSecurityConsistency:
                             ), (
                                 f"{wf_file}: Checkout in pull_request_target should specify safe ref"
                             )
+                            )
 
 
 class TestBranchCoherence:

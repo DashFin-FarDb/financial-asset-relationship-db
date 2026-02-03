@@ -508,7 +508,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-"""
+        """
         )
 
         with patch(
@@ -527,7 +527,7 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Run tests
         run: pytest tests/ --cov
-"""
+        """
         )
 
         with patch(
