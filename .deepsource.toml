@@ -1,12 +1,5 @@
 version = 1
 
-# Custom autofix rules for YAML literal tokens
-[[transformers]]
-name = "custom"
-
-  [transformers.meta]
-  config_file = ".github/deepsource-autofix-rules.yml"
-
 [[analyzers]]
 name = "sql"
 
