@@ -2671,11 +2671,12 @@ class TestWorkflowPermissionsBestPractices:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     """Module for testing that GitHub workflow write permissions have proper justifications."""
-        def test_write_permissions_have_justification(self, workflow_file: Path):
-            """Test that write permissions are used appropriately."""
-            data = load_yaml_safe(workflow_file)
 
-            def check_perms(perms):
+    def test_write_permissions_have_justification(self, workflow_file: Path):
+         """Test that write permissions are used appropriately."""
+          data = load_yaml_safe(workflow_file)
+
+           def check_perms(perms):
                 """Recursively inspect permissions and ensure any write permissions are properly justified."""
                 if isinstance(perms, dict):
                     for _, value in perms.items():
