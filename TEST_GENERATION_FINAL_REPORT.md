@@ -232,7 +232,7 @@ pytest tests/integration/test_github_workflows.py -v
 
 ## Conclusion
 
-+Successfully generated a comprehensive test suite with **121+ new test cases** across **2,073 lines of test code**, following a bias-for-action approach that ensures:
+Successfully generated a comprehensive test suite with **121+ new test cases** across **2,073 lines of test code**, following a bias-for-action approach that ensures:
 
 - ✅ All modified files have thorough test coverage
 - ✅ Edge cases and error conditions are tested
