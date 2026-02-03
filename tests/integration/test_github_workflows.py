@@ -2499,11 +2499,6 @@ class TestWorkflowAdvancedValidation:
     """Advanced structural validation tests."""
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    """
-    Integration tests for GitHub Actions workflows.
-    This module verifies that job dependencies in a workflow file do not form cycles.
-    """
-
     def test_job_dependencies_are_acyclic(self, workflow_file: Path):
         """Test that job dependencies don't form cycles."""
         data = load_yaml_safe(workflow_file)

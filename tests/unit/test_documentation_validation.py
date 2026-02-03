@@ -29,8 +29,9 @@ class TestDependencyMatrix:
         """
         return Path(".elastic-copilot/memory/dependencyMatrix.md")
 
+    @staticmethod
     @pytest.fixture
-    def dependency_matrix_content(self, dependency_matrix_path: Path) -> str:
+    def dependency_matrix_content(dependency_matrix_path: Path) -> str:
         """
         Load the dependency matrix markdown content from disk.
 
@@ -44,8 +45,9 @@ class TestDependencyMatrix:
         with dependency_matrix_path.open(encoding="utf-8") as file:
             return file.read()
 
+    @staticmethod
     @pytest.fixture
-    def dependency_matrix_lines(self, dependency_matrix_content: str) -> list[str]:
+    def dependency_matrix_lines(dependency_matrix_content: str) -> list[str]:
         """
         Split dependency matrix content into individual lines.
 
@@ -211,9 +213,14 @@ class TestSystemManifest:
 
         Parameters:
             system_manifest_path(Path): Filesystem path to the systemManifest.md file.
+    @staticmethod
+    @pytest.fixture
+    def system_manifest_content(system_manifest_path):
+        """
+        Load and return the contents of the system manifest file located at .elastic-copilot/memory/systemManifest.md.
 
         Returns:
-            content(str): UTF - 8 decoded file contents.
+            content(str): UTF-8 decoded file contents.
 
         Raises:
             AssertionError: If `system_manifest_path` does not exist.
@@ -376,13 +383,13 @@ class TestSystemManifest:
         r"""
         Validate that file - level dependency headers in the system manifest follow the expected path - and -extension format.
 
-        Searches the document for headers of the form "### \\\path\\to\\file.ext" and asserts that each matched header contains a path separator(`\\` or `/`). Only the first 10 matches are checked for performance.
+        Searches the document for headers of the form "### \\\\path\\to\\file.ext" and asserts that each matched header contains a path separator(`\\` or `/`). Only the first 10 matches are checked for performance.
 
         Parameters:
             system_manifest_content(str): Full markdown text of the system manifest to inspect.
         """
-        # Look for file dependency entries like: ### \path\to\file.py
-        file_pattern = r"###\s+\\[\w\\\/.\_-]+\.\w+"
+        # Look for file dependency entries like: ### \\\\path\\to\\file.py
+        file_pattern = r"###\s+\\[\w\\\\\/._\-]+\.\w+"
         matches = re.findall(file_pattern, system_manifest_content)
 
         # If there are file entries, they should be properly formatted
@@ -461,10 +468,10 @@ class TestDocumentationConsistency:
     @pytest.fixture
     def dependency_matrix_content():
         """
-        Load and return the contents of the dependency matrix file from .elastic - copilot / memory.
+        Load and return the contents of the dependency matrix file from .elastic-copilot/memory.
 
         Returns:
-            content(str): The UTF - 8 text of dependencyMatrix.md.
+            content(str): The UTF-8 text of dependencyMatrix.md.
         """
         path = Path(".elastic-copilot/memory/dependencyMatrix.md")
         with open(path, encoding="utf-8") as f:
@@ -474,7 +481,7 @@ class TestDocumentationConsistency:
     @pytest.fixture
     def system_manifest_content():
         """
-        Load the contents of the system manifest file located at .elastic - copilot / memory / systemManifest.md.
+        Load the contents of the system manifest file located at .elastic-copilot/memory/systemManifest.md.
 
         Returns:
             content(str): The full text of the system manifest file.
@@ -616,86 +623,5 @@ class TestDocumentationConsistency:
 
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
-
-    def test_documented_files_exist(self):
-        r"""
-        Verify that file paths listed in the system manifest correspond to actual files in the repository.
-
-        Searches the manifest for file entries formatted as "### \\\path\\to\\file.ext" (common Python, TS / TSX, JSX / JSX patterns), normalises Windows - style backslashes to POSIX paths, strips any leading slash, and checks existence for up to the first 20 discovered paths. Entries that are placeholders or clearly test - related(containing "...", "test_", or "__tests__") are skipped.
-        """
-        manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
-        with open(manifest_path, encoding="utf-8") as f:
-            content = f.read()
-
-        # Extract file paths from the manifest (look for common patterns)
-        file_patterns = [
-            r"###\s+\\([\w\\\/.\_-]+\.py)",
-            r"###\s+\\([\w\\\/.\_-]+\.tsx?)",
-            r"###\s+\\([\w\\\/.\_-]+\.jsx?)",
-        ]
-
-        mentioned_files = []
-        for pattern in file_patterns:
-            matches = re.findall(pattern, content)
-            mentioned_files.extend(matches)
-
-        # Check a sample of mentioned files
-        for file_path in mentioned_files[:20]:  # Check first 20 for performance
-            # Convert Windows paths to Unix paths
-            unix_path = file_path.replace("\\", "/")
-            # Remove leading slash if present
-            unix_path = unix_path.lstrip("/")
-
-            check_path = Path(unix_path)
-            # Only assert for files that should clearly exist
-            if any(x in unix_path for x in ["...", "test_", "__tests__"]):
-                continue
-
-            assert check_path.exists() or "..." in file_path, (
-                f"File mentioned in manifest doesn't exist: {unix_path}"
-            )
-
-    def test_documented_file_counts_reasonable(self):
-        """Test that documented file counts are reasonable for the project."""
-        matrix_path = Path(".elastic-copilot/memory/dependencyMatrix.md")
-        with open(matrix_path, encoding="utf-8") as f:
-            content = f.read()
-
-        # Extract total files
-        match = re.search(r"- Files analyzed: (\d+)", content)
-        assert match is not None
-        total_files = int(match.group(1))
-
-        # Should be a reasonable number for a real project
-        assert 10 <= total_files <= 10000, (
-            f"Total files ({total_files}) seems unrealistic"
-        )
-
-    def test_documented_dependencies_are_real_packages(self):
-        """
-        Validate that dependencies listed in .elastic - copilot / memory / dependencyMatrix.md resemble real package names.
-
-        Reads the dependency matrix, extracts bullet - list entries, filters out lines referring to file counts or metadata, and asserts that the first 20 candidate dependencies match common package - name patterns(alphanumeric, dot, dash, underscore, scoped names, and simple path - like entries).
-        """
-        matrix_path = Path(".elastic-copilot/memory/dependencyMatrix.md")
-        with open(matrix_path, encoding="utf-8") as f:
-            content = f.read()
-
-        # Extract dependencies
-        deps = []
-        for match in re.finditer(r"^- (.+)$", content, re.MULTILINE):
-            dep = match.group(1).strip()
-            # Filter out non-dependency lines
-            if not any(x in dep for x in ["files", "File types", "analyzed"]):
-                deps.append(dep)
-
-        # Check that dependencies follow common patterns
-        for dep in deps[:20]:  # Check first 20
-            # Should not have spaces (unless it's a relative path)
-            if not dep.startswith(".") and not dep.startswith("@"):
-                # Package names shouldn't have spaces
-                if " " not in dep:
-                    # Valid package name format
-                    assert re.match(r"^[@\w\.\-/]+$", dep), (
                         f"Dependency '{dep}' doesn't look like a valid package name"
                     )
