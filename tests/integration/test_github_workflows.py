@@ -98,6 +98,7 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
 
         Duplicate keys encountered during parsing are recorded in the surrounding `duplicates` list.
         """
+
         pass
 
     def constructor_with_dup_check(loader, node):
@@ -559,6 +560,7 @@ class TestWorkflowMaintainability:
 
         Warns if a workflow file exceeds 10 KB and fails if it is 50 KB or larger.
         """
+
         def assert_workflow_file_size(workflow_file: Path):
             """
             Assert the workflow file is within reasonable size limits.
@@ -2637,7 +2639,12 @@ class TestWorkflowCachingStrategies:
             if "os" in matrix or "runs-on" in job:
                 steps = job.get("steps", [])
                 for step in steps:
-                    if "uses" in step and "actions/cache" in step["uses"] and "with" in step and "key" in step["with"]:
+                    if (
+                        "uses" in step
+                        and "actions/cache" in step["uses"]
+                        and "with" in step
+                        and "key" in step["with"]
+                    ):
                         # Should include runner.os in cache key
                         if "os" in matrix:
                             # Advisory: consider including OS in cache key
@@ -2677,7 +2684,9 @@ class TestWorkflowPermissionsBestPractices:
                         # Common justified write permissions
 
                         # Check workflow-level permissions
-                        raise AssertionError("Write permission found without proper justification")
+                        raise AssertionError(
+                            "Write permission found without proper justification"
+                        )
 
         if "permissions" in data:
             check_perms(data["permissions"])
@@ -2840,7 +2849,12 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
-                if "uses" in step and "actions/upload-artifact" in step["uses"] and "with" in step and "retention-days" in step["with"]:
+                if (
+                    "uses" in step
+                    and "actions/upload-artifact" in step["uses"]
+                    and "with" in step
+                    and "retention-days" in step["with"]
+                ):
                     retention = step["with"]["retention-days"]
                     assert 1 <= retention <= 90, (
                         f"Artifact retention should be 1-90 days in {workflow_file.name}"
