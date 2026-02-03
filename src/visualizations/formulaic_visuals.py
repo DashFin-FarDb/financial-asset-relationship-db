@@ -7,25 +7,17 @@ from src.analysis.formulaic_analysis import Formula
 
 
 class FormulaicVisualizer:
-    """Visualizes mathematical formulas and relationships from financial analysis."""
+    """Formulaic Visualizations Module.
 
-    def __init__(self):
-        self.color_scheme = {
-            "Valuation": "#FF6B6B",
-        }
-    """
-    Formulaic Visualizations Module.
+    Visualizes mathematical formulas and relationships from financial analysis.
 
     This module provides tools to visualize formulaic analysis results,
     including creating dashboards, plotting reliability, and normalizing empirical relationships.
     """
 
-
-def __init__(self):
+    def __init__(self):
         self.color_scheme = {
             "Valuation": "#FF6B6B",
-            "Income": "#4ECDC4",
-
             "Income": "#4ECDC4",
             "Fixed Income": "#45B7D1",
             "Risk Management": "#96CEB4",
@@ -35,61 +27,62 @@ def __init__(self):
             "Cross-Asset": "#F7DC6F",
         }
 
-        @staticmethod
-        def create_formula_dashboard(analysis_results: Dict[str, Any]) -> go.Figure:
-            """Create a comprehensive dashboard showing all formulaic relationships"""
-            fig = make_subplots(
-                rows=3,
-                cols=2,
-                subplot_titles=(
-                    "Formula Categories Distribution",
-                    "Formula Reliability (R-squared)",
-                    "Empirical Correlation Matrix",
-                    "Asset Class Relationships",
-                    "Sector Analysis",
-                    "Key Formula Examples",
-                ),
+    @staticmethod
+    def create_formula_dashboard(analysis_results: Dict[str, Any]) -> go.Figure:
+        """Create a comprehensive dashboard showing all formulaic relationships"""
+        fig = make_subplots(
+            rows=3,
+            cols=2,
+            subplot_titles=(
+                "Formula Categories Distribution",
+                "Formula Reliability (R-squared)",
+                "Empirical Correlation Matrix",
+                "Asset Class Relationships",
+                "Sector Analysis",
+                "Key Formula Examples",
+            ),
+        )
+        return fig
+
+    def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
+        """Plot the formula reliability (R-squared) for each formula onto the dashboard figure."""
+        raise NotImplementedError()
+
+    @staticmethod
+    def _normalize_empirical_relationships(
+        empirical_relationships: Any,
+    ) -> Dict[str, Dict[str, float]]:
+        """Normalize empirical_relationships into a nested dict
+        of the form {row: {col: value}}."""
+        if not empirical_relationships:
+            return {}
+
+        matrix: Dict[str, Dict[str, float]] = {}
+
+        if isinstance(empirical_relationships, dict):
+            is_nested = all(
+                isinstance(v, dict) for v in empirical_relationships.values()
             )
-
-        def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
-            """Plot the formula reliability (R-squared) for each formula onto the dashboard figure."""
-            raise NotImplementedError()
-
-        @staticmethod
-        def _normalize_empirical_relationships(
-            empirical_relationships: Any,
-        ) -> Dict[str, Dict[str, float]]:
-            """Normalize empirical_relationships into a nested dict
-            of the form {row: {col: value}}."""
-            if not empirical_relationships:
-                return {}
-
-            matrix: Dict[str, Dict[str, float]] = {}
-
-            if isinstance(empirical_relationships, dict):
-                is_nested = all(
-                    isinstance(v, dict) for v in empirical_relationships.values()
-                )
-                if is_nested:
-                    for row, cols in empirical_relationships.items():
-                        row_key = str(row)
-                        matrix[row_key] = {
-                            str(col): float(val)
-                            for col, val in cols.items()
-                        }
-                else:
-                    for key, value in empirical_relationships.items():
-                        if isinstance(key, (tuple, list)) and len(key) == 2:
-                            row, col = key
+            if is_nested:
+                for row, cols in empirical_relationships.items():
+                    row_key = str(row)
+                    matrix[row_key] = {
+                        str(col): float(val)
+                        for col, val in cols.items()
+                    }
+            else:
+                for key, value in empirical_relationships.items():
+                    if isinstance(key, (tuple, list)) and len(key) == 2:
+                        row, col = key
+                    else:
+                        parts = str(key).split("|")
+                        if len(parts) == 2:
+                            row, col = parts
                         else:
-                            parts = str(key).split("|")
-                            if len(parts) == 2:
-                                row, col = parts
-                            else:
-                                continue
-                        r, c = str(row), str(col)
-                        matrix.setdefault(r, {})[c] = float(value)
-                        matrix.setdefault(c, {})[r] = float(value)
+                            continue
+                    r, c = str(row), str(col)
+                    matrix.setdefault(r, {})[c] = float(value)
+                    matrix.setdefault(c, {})[r] = float(value)
         elif (
             hasattr(empirical_relationships, "index")
             and hasattr(empirical_relationships, "columns")
