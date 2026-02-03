@@ -251,7 +251,155 @@ class FormulaicVisualizer:
         )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
-        if not strongest_correlations:
+    @staticmethod
+    def create_correlation_network(
+        empirical_relationships: Dict[str, Any],
+    ) -> go.Figure:
+        """Create a network graph showing asset correlations."""
+        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
+        correlation_matrix = empirical_relationships.get("correlation_matrix", {}) or {}
+
+        # Empty state
+        if not strongest_correlations and not correlation_matrix:
+            fig = go.Figure()
+            fig.add_annotation(
+                text="No correlation data available.",
+                x=0.5,
+                y=0.5,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
+            )
+            fig.update_layout(
+                title="Correlation Network Graph",
+                showlegend=False,
+                template="plotly_white",
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            )
+            return fig
+
+        # Derive assets from strongest correlations, falling back to correlation_matrix keys.
+        assets = sorted(
+            {c.get("asset1") for c in strongest_correlations if c.get("asset1")}
+            | {c.get("asset2") for c in strongest_correlations if c.get("asset2")}
+        )
+        if not assets and correlation_matrix:
+            asset_components = set()
+            for key in correlation_matrix.keys():
+                if isinstance(key, str) and "-" in key:
+                    part1, part2 = key.split("-", 1)
+                    asset_components.add(part1)
+                    asset_components.add(part2)
+            assets = sorted(asset_components)
+
+        # Build a graph from the top correlations.
+        G = nx.Graph()
+        G.add_nodes_from(assets)
+
+        for corr in (strongest_correlations or [])[:10]:
+            a1, a2 = corr.get("asset1"), corr.get("asset2")
+            value = corr.get("correlation")
+            if not a1 or not a2 or not isinstance(value, (int, float)):
+                continue
+            G.add_edge(a1, a2, weight=float(value))
+
+        # Ensure we have at least something to lay out.
+        if G.number_of_nodes() == 0:
+            fig = go.Figure()
+            fig.add_annotation(
+                text="No assets found to render.",
+                x=0.5,
+                y=0.5,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
+            )
+            fig.update_layout(
+                title="Correlation Network Graph",
+                showlegend=False,
+                template="plotly_white",
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            )
+            return fig
+
+        pos = nx.circular_layout(G)
+
+        # Edge traces
+        edge_traces = []
+        for u, v, data in G.edges(data=True):
+            x0, y0 = pos[u]
+            x1, y1 = pos[v]
+            weight = float(data.get("weight", 0.0))
+
+            if weight > 0.7:
+                color, width = "red", 4
+            elif weight > 0.4:
+                color, width = "orange", 3
+            else:
+                color, width = "lightgray", 2
+
+            edge_traces.append(
+                go.Scatter(
+                    x=[x0, x1, None],
+                    y=[y0, y1, None],
+                    mode="lines",
+                    line=dict(color=color, width=width),
+                    hoverinfo="none",
+                    showlegend=False,
+                )
+            )
+
+        # Node trace (colored by degree)
+        node_x = []
+        node_y = []
+        node_text = []
+        node_degree = []
+        for node in G.nodes():
+            x, y = pos[node]
+            node_x.append(x)
+            node_y.append(y)
+            node_text.append(node)
+            node_degree.append(int(G.degree(node)))
+
+        node_trace = go.Scatter(
+            x=node_x,
+            y=node_y,
+            mode="markers+text",
+            text=node_text,
+            textposition="top center",
+            hoverinfo="text",
+            marker=dict(
+                showscale=True,
+                colorscale="YlGnBu",
+                color=node_degree,
+                size=10,
+                line_width=2,
+                colorbar=dict(
+                    thickness=15,
+                    title="Node Connections",
+                    xanchor="left",
+                    titleside="right",
+                ),
+            ),
+            showlegend=False,
+        )
+
+        fig = go.Figure(
+            data=[*edge_traces, node_trace],
+            layout=go.Layout(
+                title="Correlation Network Graph",
+                titlefont_size=16,
+                showlegend=False,
+                hovermode="closest",
+                margin=dict(b=20, l=5, r=5, t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                template="plotly_white",
+            ),
+        )
+        return fig
             return FormulaicVisualizer._create_empty_correlation_figure()
 
         return FormulaicVisualizer._build_and_render_correlation_network(
