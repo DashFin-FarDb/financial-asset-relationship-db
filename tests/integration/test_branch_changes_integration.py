@@ -141,7 +141,7 @@ class TestWorkflowConfigurationIntegration:
 class TestRequirementsConsistency:
     """Test consistency between requirements files and workflow usage."""
 
-    @ staticmethod
+    @staticmethod
     def test_requirements_dev_matches_workflow_installs():
         """Packages installed in workflows should be in requirements - dev.txt."""
         req_dev_path = Path("requirements-dev.txt")
