@@ -86,7 +86,7 @@ class FormulaicVisualizer:
         formulas, sorted by reliability.
         """
         # Populate the "Key Formula Examples" table in row 3, column 2.
-        # Select a subset of formulas (e.g., by highest R-squared) to keep the table readable.
+        # Select a subset of formulas to keep the table readable.
         if not formulas:
             return None
 
