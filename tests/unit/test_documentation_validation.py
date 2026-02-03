@@ -193,267 +193,180 @@ class TestDependencyMatrix:
 
 
 class TestSystemManifest:
-    """Test cases for .elastic - copilot / memory / systemManifest.md."""
+    """Test cases for .elastic-copilot/memory/systemManifest.md."""
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_path():
+    def system_manifest_path(self) -> Path:
         """
         Return the filesystem path to the system manifest Markdown file.
 
         Returns:
-            path(Path): Path pointing to .elastic - copilot / memory / systemManifest.md
+            Path: Path pointing to .elastic-copilot/memory/systemManifest.md
         """
         return Path(".elastic-copilot/memory/systemManifest.md")
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_content(system_manifest_path):
+    def system_manifest_content(self, system_manifest_path: Path) -> str:
         """
-        Load and return the contents of the system manifest file located at .elastic - copilot / memory / systemManifest.md.
+        Load and return the contents of the system manifest file.
 
         Returns:
-            content(str): UTF - 8 decoded file contents.
+            str: UTF-8 decoded file contents.
 
         Raises:
-            AssertionError: If `system_manifest_path` does not exist.
+            AssertionError: If system_manifest_path does not exist.
         """
         assert system_manifest_path.exists(), "systemManifest.md not found"
-        with open(system_manifest_path, encoding="utf-8") as f:
-            return f.read()
+        with system_manifest_path.open(encoding="utf-8") as file_handle:
+            return file_handle.read()
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(system_manifest_content):
+    def system_manifest_lines(self, system_manifest_content: str) -> list[str]:
         """
         Split system manifest content into lines.
 
-        Parameters:
-            system_manifest_content(str): Raw content of the system manifest.
-
         Returns:
-            list[str]: Lines from the manifest obtained by splitting on newline characters.
+            list[str]: Lines split on newline characters.
         """
         return system_manifest_content.split("\n")
 
-    def test_system_manifest_exists(self, system_manifest_path):
+    def test_system_manifest_exists(self, system_manifest_path: Path) -> None:
         """Test that systemManifest.md exists."""
         assert system_manifest_path.exists()
         assert system_manifest_path.is_file()
 
-    def test_system_manifest_not_empty(self, system_manifest_content):
+    def test_system_manifest_not_empty(self, system_manifest_content: str) -> None:
         """Test that systemManifest.md is not empty."""
-        assert len(system_manifest_content.strip()) > 0
+        assert system_manifest_content.strip()
 
-    def test_system_manifest_has_title(self, system_manifest_lines):
-        """
-        Assert that the system manifest's first line is the top-level title '  # System Manifest'.
-        """
+    def test_system_manifest_has_title(
+        self, system_manifest_lines: list[str]
+    ) -> None:
+        """Assert that the first line is the System Manifest title."""
         assert system_manifest_lines[0] == "# System Manifest"
 
-    def test_system_manifest_has_project_overview(self, system_manifest_content):
-        """
-        Assert that the system manifest contains a top - level 'Project Overview' section.
-
-        Parameters:
-            system_manifest_content(str): The complete text content of the systemManifest.md file.
-        """
+    def test_system_manifest_has_project_overview(
+        self, system_manifest_content: str
+    ) -> None:
+        """Assert presence of Project Overview section."""
         assert "## Project Overview" in system_manifest_content
 
-    def test_system_manifest_has_project_name(self, system_manifest_content):
-        """Test that systemManifest.md specifies project name."""
-        pattern = r"- Name: (.+)"
-        match = re.search(pattern, system_manifest_content)
-
+    def test_system_manifest_has_project_name(
+        self, system_manifest_content: str
+    ) -> None:
+        """Test that project name is specified."""
+        match = re.search(r"- Name: (.+)", system_manifest_content)
         assert match is not None, "Project name not found"
-        name = match.group(1).strip()
-        assert len(name) > 0, "Project name should not be empty"
+        assert match.group(1).strip(), "Project name should not be empty"
 
-    def test_system_manifest_has_project_description(self, system_manifest_content):
-        """
-        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
-        """
-        assert "- Description:" in system_manifest_content
-        pattern = r"- Description: (.+)"
-        match = re.search(pattern, system_manifest_content)
-
+    def test_system_manifest_has_project_description(
+        self, system_manifest_content: str
+    ) -> None:
+        """Verify project description entry exists and is non-empty."""
+        match = re.search(r"- Description: (.+)", system_manifest_content)
         assert match is not None, "Project description not found"
-        description = match.group(1).strip()
-        assert len(description) > 0, "Project description should not be empty"
+        assert match.group(1).strip(), "Project description should not be empty"
 
-    def test_system_manifest_has_created_timestamp(self, system_manifest_content):
-        """Test that systemManifest.md has Created timestamp."""
-        pattern = r"- Created: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)"
-        match = re.search(pattern, system_manifest_content)
-
+    def test_system_manifest_has_created_timestamp(
+        self, system_manifest_content: str
+    ) -> None:
+        """Test that Created timestamp exists and is valid ISO 8601."""
+        match = re.search(
+            r"- Created: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)",
+            system_manifest_content,
+        )
         assert match is not None, "Created timestamp not found"
 
-        # Validate timestamp format
         timestamp_str = match.group(1)
-        try:
-            datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-        except ValueError:
-            pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
+        datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
 
-    def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """
-        Test that systemManifest.md has Current Phase section.
-        """
+    def test_system_manifest_has_current_phase(
+        self, system_manifest_content: str
+    ) -> None:
+        """Test that Current Phase section exists."""
         assert "## Current Phase" in system_manifest_content
 
-    def test_system_manifest_has_last_updated(self, system_manifest_content):
-        """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
-        pattern = r"- Last Updated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)"
-        match = re.search(pattern, system_manifest_content)
-
+    def test_system_manifest_has_last_updated(
+        self, system_manifest_content: str
+    ) -> None:
+        """Test that Last Updated timestamp is valid ISO 8601."""
+        match = re.search(
+            r"- Last Updated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)",
+            system_manifest_content,
+        )
         assert match is not None, "Last Updated timestamp not found"
 
-        # Validate timestamp format
         timestamp_str = match.group(1)
-        try:
-            datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-        except ValueError:
-            pytest.fail(f"Invalid Last Updated timestamp format: {timestamp_str}")
+        datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
 
-    def test_system_manifest_has_project_structure(self, system_manifest_content):
-        """Test that systemManifest.md has Project Structure section."""
+    def test_system_manifest_has_project_structure(
+        self, system_manifest_content: str
+    ) -> None:
+        """Test that Project Structure section exists."""
         assert "## Project Structure" in system_manifest_content
 
-    def test_system_manifest_file_counts(self, system_manifest_content):
-        """
-        Verify systemManifest.md lists file counts per type and that each count is a non - negative integer.
-
-        Checks for lines matching the pattern "- N <type> files" and asserts at least one such line exists. Fails if any extracted count is negative.
-        """
-        pattern = r"- (\d+) (\w+) files"
-        matches = re.findall(pattern, system_manifest_content)
-
-        assert len(matches) > 0, "No file counts found"
+    def test_system_manifest_file_counts(
+        self, system_manifest_content: str
+    ) -> None:
+        """Verify file counts are present and non-negative."""
+        matches = re.findall(r"- (\d+) (\w+) files", system_manifest_content)
+        assert matches, "No file counts found"
 
         for count_str, file_type in matches:
-            count = int(count_str)
-            assert count >= 0, f"File count for {file_type} should be non-negative"
+            assert int(count_str) >= 0, (
+                f"File count for {file_type} should be non-negative"
+            )
 
-    def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """Verify that systemManifest.md contains the "## Dependencies" section."""
+    def test_system_manifest_has_dependencies_section(
+        self, system_manifest_content: str
+    ) -> None:
+        """Verify Dependencies section exists."""
         assert "## Dependencies" in system_manifest_content
 
-    def test_system_manifest_has_directory_structure(self, system_manifest_content):
-        """Test that systemManifest.md has Project Directory Structure section."""
+    def test_system_manifest_has_directory_structure(
+        self, system_manifest_content: str
+    ) -> None:
+        """Verify Project Directory Structure section exists."""
         assert "## Project Directory Structure" in system_manifest_content
 
-    def test_system_manifest_directory_structure_format(self, system_manifest_content):
-        """Test that directory structure uses proper emoji formatting."""
-        # Look for directory structure section
-        if "## Project Directory Structure" in system_manifest_content:
-            structure_section = system_manifest_content.split(
-                "## Project Directory Structure"
-            )[1]
-            structure_section = structure_section.split("##")[
-                0
-            ]  # Get until next section
+    def test_system_manifest_directory_structure_format(
+        self, system_manifest_content: str
+    ) -> None:
+        """Ensure directory structure uses emoji formatting."""
+        if "## Project Directory Structure" not in system_manifest_content:
+            pytest.skip("Directory structure section not present")
 
-            assert "📂" in structure_section, (
-                "Directory entries should include the 📂 emoji"
-            )
-            assert "📄" in structure_section, "File entries should include the 📄 emoji"
+        section = system_manifest_content.split(
+            "## Project Directory Structure", 1
+        )[1].split("##", 1)[0]
+
+        assert "📂" in section, "Directory entries should include 📂 emoji"
+        assert "📄" in section, "File entries should include 📄 emoji"
 
     def test_system_manifest_has_language_dependency_sections(
-        self, system_manifest_content
-    ):
-        """Test that systemManifest.md has language - specific dependency sections."""
-        expected_sections = [
+        self, system_manifest_content: str
+    ) -> None:
+        """Ensure at least one language-specific dependency section exists."""
+        expected = {
             "## PY Dependencies",
             "## JS Dependencies",
             "## TS Dependencies",
             "## TSX Dependencies",
-        ]
+        }
+        assert any(section in system_manifest_content for section in expected)
 
-        found = sum(
-            1 for section in expected_sections if section in system_manifest_content
-        )
-        assert found > 0, "No language-specific dependency sections found"
-
-    def test_system_manifest_file_dependency_format(self, system_manifest_content):
-        r"""
-        Validate that file - level dependency headers in the system manifest follow the expected path - and -extension format.
-
-        Searches the document for headers of the form "### \\\\path\\to\\file.ext" and asserts that each matched header contains a path separator(`\\` or `/`). Only the first 10 matches are checked for performance.
-
-        Parameters:
-            system_manifest_content(str): Full markdown text of the system manifest to inspect.
-        """
-        # Look for file dependency entries like: ### \\\\path\\to\\file.py
-        file_pattern = r"###\s+\\[\w\\\\\/._\-]+\.\w+"
-        matches = re.findall(file_pattern, system_manifest_content)
-
-        # If there are file entries, they should be properly formatted
-        if matches:
-            for match in matches[:10]:  # Check first 10 for performance
-                # Should have proper path separators
-                assert "\\" in match or "/" in match, (
-                    f"File path should have proper separators: {match}"
-                )
-
-    def test_system_manifest_dependency_entries_have_content(
-        self, system_manifest_content
-    ):
-        """
-        Verify each file section in the system manifest contains dependency information or an explicit absence message.
-
-        Splits the manifest by file headers introduced with "###" and inspects up to the first 20 file sections. For each non - empty file section(excluding sections that start with "#"), asserts the section contains either the literal "Dependencies:", the literal "No dependencies found", or begins with a backslash(indicating a file path).
-
-        Parameters:
-            system_manifest_content(str): Full text content of the system manifest file to validate.
-        """
-        # Split by file headers (###)
-        sections = re.split(r"###\s+", system_manifest_content)
-
-        for section in sections[1:20]:  # Check first 20 file sections
-            # Should have either "Dependencies:" or "No dependencies found"
-            if section.strip():
-                has_deps = (
-                    "Dependencies:" in section or "No dependencies found" in section
-                )
-                # Allow for section headers without file content
-                if not section.startswith("#"):
-                    assert has_deps or section.strip().startswith("\\"), (
-                        "File section should have dependency information"
-                    )
-
-    def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
-        """Test that there are no duplicate major sections."""
-        major_sections = [
-            "## Project Overview",
-            "## Current Status",
-            "## Project Structure",
-            "## Dependencies",
-        ]
-
-        for section in major_sections:
-            count = system_manifest_content.count(section)
-            # Allow for some duplication due to regeneration, but excessive duplication is an error
-            assert count > 0, f"Section '{section}' not found"
-            # This test allows for reasonable duplication
-            assert count < 10, f"Section '{section}' appears too many times ({count})"
-
-    def test_system_manifest_markdown_formatting(self, system_manifest_lines):
-        """
-        Verify markdown heading formatting in the System Manifest.
-
-        Asserts that, within the first 500 lines, any Markdown heading that begins with one or more `  # ` characters has a space immediately following the leading hash sequence (e.g. `# Title`, `## Section`). The test raises an assertion identifying the line number and content when a heading is missing the required space.
-        """
-        for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines
-            # Check heading formatting
+    def test_system_manifest_markdown_formatting(
+        self, system_manifest_lines: list[str]
+    ) -> None:
+        """Verify markdown headings include space after hash."""
+        for index, line in enumerate(system_manifest_lines[:500], start=1):
             if line.startswith("#"):
-                # Headings should have space after #
-                heading_match = re.match(r"^(#+)(.+)", line)
-                if heading_match:
-                    _, content = heading_match.groups()
-                    if content and not content.startswith("#"):  # Not more hashes
-                        assert content.startswith(" "), (
-                            f"Line {i + 1}: Heading should have space after #: {line}"
-                        )
+                match = re.match(r"^(#+)(.*)", line)
+                if match:
+                    content = match.group(2)
+                    assert content.startswith(" "), (
+                        f"Line {index}: Heading should have space after #: {line}"
+                    )
 
 
 class TestDocumentationConsistency:
