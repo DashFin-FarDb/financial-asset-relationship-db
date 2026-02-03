@@ -247,7 +247,6 @@ class TestLabelWorkflowConfigChanges:
     @staticmethod
     def label_workflow() -> Dict[str, Any]:
         """
-        Load and parse the label GitHub Actions workflow file.
 
         Returns:
             workflow (dict): Parsed contents of `.github/workflows/label.yml` as a dictionary.
