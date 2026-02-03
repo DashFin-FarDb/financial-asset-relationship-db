@@ -234,9 +234,9 @@ class TestRemovedFilesIntegration:
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
         with open(".github/workflows/pr-agent.yml", "r") as f:
-            yaml.safe_load(f)
-            # Add further assertions here as needed
             content = f.read()
+            workflow = yaml.safe_load(content)
+            # Add further assertions here as needed
 
         # Should not reference chunking components
         assert "context_chunker" not in content
