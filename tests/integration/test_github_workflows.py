@@ -2856,6 +2856,7 @@ class TestWorkflowEnvironmentVariables:
 
         for _, job in jobs.items():
             # Check for duplication (informational)
+            pass  # Informational check - no action required
 
 
 class TestWorkflowScheduledExecutionBestPractices:
@@ -2926,11 +2927,14 @@ class TestWorkflowScheduledExecutionBestPractices:
                         f"every 15 minutes."
                     )
 
-                if "schedule" in triggers:
-                    schedules = triggers["schedule"]
-                    for schedule in schedules:
-                        _ = schedule.get("cron", "")
-                        pass
+            schedules = triggers["schedule"]
+            for schedule in schedules:
+                cron = schedule.get("cron", "")
+                # Advisory check - very frequent schedules may indicate misconfiguration
+                if cron:
+                    parts = cron.split()
+                    if len(parts) >= 1 and parts[0] not in ["*", "0"]:
+                        pass  # Cron doesn't run every minute0
 
 
 # Additional test to verify all new test classes are properly structured
