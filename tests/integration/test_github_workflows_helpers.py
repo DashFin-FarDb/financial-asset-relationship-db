@@ -386,7 +386,7 @@ jobs:
   - key: value1
     key: value2
   - key: value1
-  key: value2
+    key: value2
 """
         yaml_file = tmp_path / "list_dup.yml"
         yaml_file.write_text(yaml_content)
