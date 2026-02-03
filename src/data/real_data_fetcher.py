@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
+from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -22,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class RealDataFetcher:
-    """Fetches real financial data from Yahoo Finance and other sources"""
+    """Fetches real financial data from Yahoo Finance and other sources."""
 
     def __init__(
         self,
@@ -30,25 +31,9 @@ class RealDataFetcher:
         cache_path: Optional[str] = None,
         fallback_factory: Optional[Callable[[], AssetRelationshipGraph]] = None,
         enable_network: bool = True,
-    ):
+    ) -> None:
         """
         Initialise the RealDataFetcher with optional cache, fallback and network controls.
-
-        Parameters:
-            cache_path (Optional[str]): Path to a JSON cache file to load a
-                previously persisted AssetRelationshipGraph
-                from and to save the constructed graph to.
-                If omitted, no file-based caching is used.
-            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
-                Callable that returns a fallback AssetRelationshipGraph to use
-                when network access is disabled or real-data fetch fails.
-                If omitted, the module's bundled sample dataset is used
-                as a fallback.
-            enable_network (bool):
-                Controls whether network access is permitted
-                for fetching live data.
-                When False, the fetcher will not attempt network calls
-                and will use the fallback dataset.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -56,16 +41,8 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """
-        Create an AssetRelationshipGraph populated with real financial data.
-        Load from cache when available, otherwise fetch live data (if network
-        is enabled), and fall back to the provided factory or sample data on
-        network disablement or fetch failure.
-        Persist the freshly built graph to cache when possible.
-
-        Returns:
-            graph (AssetRelationshipGraph): The constructed graph containing
-                assets, regulatory events and relationships.
+        """Create an AssetRelationshipGraph populated with real financial
+        data.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -86,40 +63,21 @@ class RealDataFetcher:
         graph = AssetRelationshipGraph()
 
         try:
-            # Fetch real data for different asset classes
             equities = self._fetch_equity_data()
             bonds = self._fetch_bond_data()
             commodities = self._fetch_commodity_data()
             currencies = self._fetch_currency_data()
 
-            # Add all assets to graph
-            all_assets = equities + bonds + commodities + currencies
-            for asset in all_assets:
+            for asset in equities + bonds + commodities + currencies:
                 graph.add_asset(asset)
 
-            # Add some regulatory events based on real companies
-            events = self._create_regulatory_events()
-            for event in events:
+            for event in self._create_regulatory_events():
                 graph.add_regulatory_event(event)
-            # Build relationships
+
             graph.build_relationships()
 
             if self.cache_path:
-                import os
-                import tempfile
-
-                try:
-                    cache_dir = os.path.dirname(self.cache_path)
-                    with tempfile.NamedTemporaryFile(
-                        "wb", dir=cache_dir, delete=False
-                    ) as tmp_file:
-                        tmp_path = tmp_file.name
-                        _save_to_cache(graph, Path(tmp_path))
-                    os.replace(tmp_path, self.cache_path)
-                except Exception:
-                    logger.exception(
-                        "Failed to persist dataset cache to %s", self.cache_path
-                    )
+                self._persist_cache(graph)
 
             logger.info(
                 "Real database created with %s assets and %s relationships",
@@ -128,41 +86,58 @@ class RealDataFetcher:
             )
             return graph
 
-        except Exception as e:
-            logger.error("Failed to create real database: %s", e)
-            # Fallback to sample data if real data fetch failure
-            logger.warning("Falling back to sample data due to real data fetch failure")
-            return self._fallback()
+        except Exception as exc:
+            logger.error("Failed to create real database: %s", exc)
+        logger.warning("Falling back to sample data due to real data fetch failure")
+        return self._fallback()
+
+    def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
+        """Persist the asset relationship graph to the cache file specified by
+        cache_path.
+
+        Serializes the graph to a temporary file and atomically replaces the cache file.
+        Logs an exception if persisting the cache fails.
+        """
+        import os
+        import tempfile
+
+        try:
+            cache_path = Path(self.cache_path).expanduser().resolve()
+            cache_dir = cache_path.parent
+            cache_dir.mkdir(parents=True, exist_ok=True)
+
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=cache_dir,
+                delete=False,
+            ) as tmp_file:
+                tmp_path = Path(tmp_file.name)
+
+            _save_to_cache(graph, tmp_path)
+            os.replace(tmp_path, cache_path)
+
+        except Exception:
+            logger.exception(
+                "Failed to persist dataset cache to %s",
+                self.cache_path,
+            )
 
     def _fallback(self) -> AssetRelationshipGraph:
-        """
-        Selects a fallback AssetRelationshipGraph to use when real data cannot be
-        fetched.
-        If a `fallback_factory` was provided to the instance, this calls it and
-        returns its result; otherwise it constructs and returns the built-
-        in sample database.
+        """Return a fallback AssetRelationshipGraph using sample data.
 
-        Returns:
-            An `AssetRelationshipGraph` instance either from the provided
-            fallback factory or from the module sample dataset.
+        Called when real data fetching fails; returns a default sample graph.
         """
-        if self.fallback_factory is not None:
+        if self.fallback_factory:
             return self.fallback_factory()
+
         from src.data.sample_data import create_sample_database
 
         return create_sample_database()
 
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
-        """
-        Fetches current market data for a predefined set of major equities and
-        returns them as Equity objects.
-
-        Returns:
-            List[Equity]: Equity instances populated with market fields including
-                id, symbol, name, asset_class, sector, price, market_cap,
-                pe_ratio, dividend_yield, earnings_per_share and book_value.
-        """
+        """Fetches current market data for major equities and returns Equity objects."""
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -198,7 +173,10 @@ class RealDataFetcher:
                 )
                 equities.append(equity)
                 logger.info(
-                    "Fetched price for %s (%s): %s", symbol, name, current_price
+                    "Fetched price for %s (%s): %s",
+                    symbol,
+                    name,
+                    current_price,
                 )
 
             except Exception as e:
@@ -209,21 +187,16 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """Fetch real bond / treasury data"""
-        # For bonds, we'll use Treasury ETFs and bond proxies since individual bonds are harder to access
+        """Fetch real bond and treasury data."""
+        # For bonds, we'll use Treasury ETFs and bond proxies since
+        # individual bonds are harder to access
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
                 "Corporate",
                 None,
-                "A",
-            ),
-            "HYG": (
-                "iShares iBoxx $ High Yield Corporate Bond ETF",
-                "Corporate",
                 None,
-                "BB",
             ),
         }
 
@@ -239,7 +212,6 @@ class RealDataFetcher:
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
-
                 bond = Bond(
                     id=symbol,
                     symbol=symbol,
@@ -257,7 +229,6 @@ class RealDataFetcher:
                 )
                 bonds.append(bond)
                 logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
-
             except Exception as e:
                 logger.error("Failed to fetch bond data for %s: %s", symbol, e)
                 continue
@@ -266,15 +237,22 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity data"""
-        commodity_symbols = {
-            "GC=F": ("Gold Futures", "Precious Metals", 100),
-            "CL=F": ("Crude Oil Futures", "Energy", 1000),
-            "SI=F": ("Silver Futures", "Precious Metals", 5000),
+        """Fetch real commodity futures data."""
+        # Define key commodity futures and their characteristics.
+        commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
+            # symbol: (name, sector, contract_size, volatility)
+            # Example entries (adjust or extend as needed elsewhere in the file):
+            "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
+            "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
         }
 
-        commodities = []
-        for symbol, (name, sector, contract_size) in commodity_symbols.items():
+        commodities: List[Commodity] = []
+        for symbol, (
+            name,
+            sector,
+            contract_size,
+            volatility,
+        ) in commodity_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
                 hist = ticker.history(period="1d")
@@ -284,14 +262,6 @@ class RealDataFetcher:
                     continue
 
                 current_price = float(hist["Close"].iloc[-1])
-
-                # Calculate simple volatility from recent data
-                hist_week = ticker.history(period="5d")
-                volatility = (
-                    float(hist_week["Close"].pct_change().std())
-                    if len(hist_week) > 1
-                    else 0.20
-                )
 
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
@@ -305,7 +275,12 @@ class RealDataFetcher:
                     volatility=volatility,
                 )
                 commodities.append(commodity)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
 
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
@@ -415,8 +390,8 @@ def create_real_database() -> AssetRelationshipGraph:
 
     Returns:
         AssetRelationshipGraph: The constructed graph populated with assets,
-        regulatory events and relationship mappings; the content may come from the
-        cache, a real - data fetch, or the sample fallback.
+        regulatory events and relationship mappings; the content may come from
+        the cache, a real-data fetch, or the sample fallback.
     """
     fetcher = RealDataFetcher()
     return fetcher.create_real_database()
@@ -428,15 +403,13 @@ def _enum_to_value(value: Any) -> Any:
     Return the input unchanged otherwise.
 
     Parameters:
-        value(Any): The value to normalise.
-            If `value` is an `Enum` member its `.value` is returned.
+        value (Any): The value to normalise.
+            If `value` is an `Enum` member, its `.value` is returned.
 
     Returns:
-        Any: The underlying value of the `Enum` member if applicable, otherwise the
-            original `value`.
+        Any: The underlying value of the `Enum` member if applicable,
+        otherwise the original value.
     """
-    from enum import Enum
-
     return value.value if isinstance(value, Enum) else value
 
 
@@ -460,21 +433,33 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """
-    Serialize an AssetRelationshipGraph into a JSON - serialisable dictionary.
+    """Serialize an AssetRelationshipGraph into a JSON - serializable dictionary.
 
-    Parameters:
+    This function processes the given AssetRelationshipGraph to create a structured
+    dictionary representation. It computes the incoming relationships from the graph's
+    relationships and serializes both assets and regulatory events using the
+    _serialize_dataclass function. The resulting dictionary includes lists of
+    serialized assets, regulatory events, and mappings of relationships.
+
+    Args:
         graph(AssetRelationshipGraph): Graph to serialize.
 
     Returns:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of
-              outgoing relationships
-            - "incoming_relationships": mapping from target id to a list of
-              incoming relationships
+            - "relationships": mapping from source id to a list of outgoing
+              relationships
     """
+    # Compute incoming_relationships from relationships
+
+    incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
+    for source, rels in graph.relationships.items():
+        for target, rel_type, strength in rels:
+            if target not in incoming_relationships:
+                incoming_relationships[target] = []
+            incoming_relationships[target].append((source, rel_type, strength))
+
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
         "regulatory_events": [
@@ -500,7 +485,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
                 }
                 for source, rel_type, strength in rels
             ]
-            for target, rels in graph.incoming_relationships.items()
+            for target, rels in incoming_relationships.items()
         },
     }
 

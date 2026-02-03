@@ -14,7 +14,10 @@ from sqlalchemy.pool import StaticPool
 Base = declarative_base()
 
 
-DEFAULT_DATABASE_URL = os.getenv("ASSET_GRAPH_DATABASE_URL", "sqlite:///./asset_graph.db")
+DEFAULT_DATABASE_URL = os.getenv(
+    "ASSET_GRAPH_DATABASE_URL",
+    "sqlite:///./asset_graph.db",
+)
 
 
 def create_engine_from_url(url: Optional[str] = None) -> Engine:
@@ -35,7 +38,12 @@ def create_engine_from_url(url: Optional[str] = None) -> Engine:
 
 def create_session_factory(engine: Engine) -> sessionmaker:
     """Create a configured session factory bound to the supplied engine."""
-    return sessionmaker(bind=engine, autocommit=False, autoflush=False, future=True)
+    return sessionmaker(
+        bind=engine,
+        autocommit=False,
+        autoflush=False,
+        future=True,
+    )
 
 
 def init_db(engine: Engine) -> None:
