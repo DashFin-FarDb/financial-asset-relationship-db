@@ -29,10 +29,10 @@ class TestDependencyMatrix:
         """
         return Path(".elastic-copilot/memory/dependencyMatrix.md")
 
-    @staticmethod
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path: Path) -> str:
+    def dependency_matrix_content(
+        self, dependency_matrix_path: Path
+    ) -> str:
         """
         Load the dependency matrix markdown content from disk.
 
@@ -44,11 +44,12 @@ class TestDependencyMatrix:
         """
         assert dependency_matrix_path.exists(), "dependencyMatrix.md not found"
         with dependency_matrix_path.open(encoding="utf-8") as file:
-            return file.read()
+        return file.read()
 
-    @staticmethod
     @pytest.fixture
-    def dependency_matrix_lines(dependency_matrix_content: str) -> list[str]:
+    def dependency_matrix_lines(
+        self, dependency_matrix_content: str
+    ) -> list[str]:
         """
         Split dependency matrix content into individual lines.
 
