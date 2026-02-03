@@ -133,9 +133,11 @@ class AssetRelationshipGraph:
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
 
         density = (
-            (total_relationships
-             / (effective_assets_count * (effective_assets_count - 1))
-             * 100)
+            (
+                total_relationships
+                / (effective_assets_count * (effective_assets_count - 1))
+                * 100
+            )
             if effective_assets_count > 1
             else 0.0
         )

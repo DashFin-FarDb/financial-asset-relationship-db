@@ -45,7 +45,9 @@ class TestGetWorkflowFiles:
         """Test that empty list is returned when workflows directory doesn't exist."""
         nonexistent_dir = tmp_path / "nonexistent" / "workflows"
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", nonexistent_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", nonexistent_dir
+        ):
             result = get_workflow_files()
             assert result == []
 
@@ -58,7 +60,9 @@ class TestGetWorkflowFiles:
         yml_file = workflows_dir / "test.yml"
         yml_file.write_text("name: Test")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "test.yml"
@@ -72,7 +76,9 @@ class TestGetWorkflowFiles:
         yaml_file = workflows_dir / "test.yaml"
         yaml_file.write_text("name: Test")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "test.yaml"
@@ -89,7 +95,9 @@ class TestGetWorkflowFiles:
         yaml_file = workflows_dir / "test2.yaml"
         yaml_file.write_text("name: Test2")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 2
             names = {f.name for f in result}
@@ -106,7 +114,9 @@ class TestGetWorkflowFiles:
         (workflows_dir / "script.sh").write_text("#!/bin/bash")
         (workflows_dir / "data.json").write_text("{}")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "test.yml"
@@ -124,7 +134,9 @@ class TestGetWorkflowFiles:
         # Create an actual file
         (workflows_dir / "realfile.yml").write_text("name: Real")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "realfile.yml"
@@ -426,7 +438,8 @@ class TestIntegrationScenarios:
         workflows_dir.mkdir()
 
         valid_workflow = workflows_dir / "valid.yml"
-        valid_workflow.write_text("""
+        valid_workflow.write_text(
+            """
 name: Valid Workflow
 on: push
 jobs:
@@ -434,19 +447,24 @@ jobs:
     runs - on: ubuntu - latest
     steps:
       - uses: actions / checkout @ v4
-""")
+"""
+        )
 
         dup_workflow = workflows_dir / "duplicate.yml"
-        dup_workflow.write_text("""
+        dup_workflow.write_text(
+            """
 name: Duplicate Workflow
 name: Another Name
 on: push
 jobs:
   test:
     runs - on: ubuntu - latest
-""")
+"""
+        )
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             workflows = get_workflow_files()
             assert len(workflows) == 2
 
@@ -470,14 +488,17 @@ jobs:
         workflows_dir.mkdir()
 
         complex_workflow = workflows_dir / "complex.yml"
-        complex_workflow.write_text("""
+        complex_workflow.write_text(
+            """
 name: Complex CI/CD
 on:
   push:
     branches: [main, develop]
   pull_request:
     types: [opened, synchronize]
-""" )
+"""
+        )
+
 
 workflows_dir = tmp_path / ".github" / "workflows"
 

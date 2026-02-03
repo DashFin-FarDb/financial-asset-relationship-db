@@ -142,14 +142,11 @@ class FormulaicVisualizer:
     def _extract_formula_table_data(formulas: Any) -> tuple:
         """Helper to extract names, categories, and r-squared values for table."""
         names = [
-            FormulaicVisualizer._format_name(getattr(f, "name", None))
-            for f in formulas
+            FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
         categories = [getattr(f, "category", "N/A") for f in formulas]
         r_squared_values = [
-            FormulaicVisualizer._format_r_squared(
-                getattr(f, "r_squared", None)
-            )
+            FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
             for f in formulas
         ]
         return names, categories, r_squared_values
@@ -174,10 +171,7 @@ class FormulaicVisualizer:
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
                 + "<br>".join(
-                    [
-                        f"• {var}: {desc}"
-                        for var, desc in formula.variables.items()
-                    ]
+                    [f"• {var}: {desc}" for var, desc in formula.variables.items()]
                 )
                 + "<br><br><b>Example Calculation:</b><br>"
                 + f"{formula.example_calculation}"
@@ -191,13 +185,9 @@ class FormulaicVisualizer:
     ) -> go.Figure:
         """Create a network graph showing asset correlations."""
         strongest_correlations = empirical_relationships.get(
-            "strongest_correlations",
-            []
+            "strongest_correlations", []
         )
-        correlation_matrix = empirical_relationships.get(
-            "correlation_matrix",
-            {}
-        )
+        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
             return FormulaicVisualizer._create_empty_correlation_figure()

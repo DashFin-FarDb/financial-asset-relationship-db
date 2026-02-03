@@ -1096,7 +1096,9 @@ class TestAutoAssignWorkflow:
         # Permissions can be at workflow or job level
         workflow_perms = auto_assign_workflow.get("permissions")
         job_perms = run_job.get("permissions")
-        assert workflow_perms or job_perms, "Workflow should define permissions at workflow or job level"
+        assert workflow_perms or job_perms, (
+            "Workflow should define permissions at workflow or job level"
+        )
 
     ...
 
@@ -1104,8 +1106,8 @@ class TestAutoAssignWorkflow:
 class TestWorkflowTriggers:
     """Comprehensive tests for workflow trigger configurations."""
 
-    @ pytest.mark.parametrize("workflow_file", get_workflow_files())
-    @ staticmethod
+    @pytest.mark.parametrize("workflow_file", get_workflow_files())
+    @staticmethod
     def test_workflow_triggers_are_valid_types(workflow_file: Path):
         """
         Validate that the workflow's triggers are recognised GitHub event types.

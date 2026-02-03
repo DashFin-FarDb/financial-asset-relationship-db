@@ -165,9 +165,11 @@ def _create_2d_relationship_traces(
                 continue
 
             # Apply filters if not showing all relationships
-            if (not show_all_relationships
-                    and rel_type in relationship_filters
-                    and not relationship_filters[rel_type]):
+            if (
+                not show_all_relationships
+                and rel_type in relationship_filters
+                and not relationship_filters[rel_type]
+            ):
                 continue
 
             # Group by relationship type
@@ -348,11 +350,10 @@ def visualize_2d_graph(
     hover_texts = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        hover_text = (
-            f"{asset_id}<br>Class: "
-            + (asset.asset_class.value
-               if hasattr(asset.asset_class, "value")
-               else str(asset.asset_class))
+        hover_text = f"{asset_id}<br>Class: " + (
+            asset.asset_class.value
+            if hasattr(asset.asset_class, "value")
+            else str(asset.asset_class)
         )
         hover_texts.append(hover_text)
 
