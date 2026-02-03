@@ -391,7 +391,8 @@ class TestWorkflowsDirectoryConstant:
         """Test that WORKFLOWS_DIR is a Path object."""
         assert isinstance(WORKFLOWS_DIR, Path)
 
-    def test_workflows_dir_points_to_github_workflows(self):
+    @staticmethod
+    def test_workflows_dir_points_to_github_workflows():
         """Test that WORKFLOWS_DIR points to .github / workflows."""
         assert WORKFLOWS_DIR.name == "workflows"
         assert WORKFLOWS_DIR.parent.name == ".github"
@@ -482,6 +483,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+"""
+        )
           fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5

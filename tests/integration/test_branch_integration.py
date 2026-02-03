@@ -200,9 +200,7 @@ class TestRemovedFilesIntegration:
                 content = f.read()
 
             for removed in removed_files:
-                assert removed not in content, (
-                    f"{wf_file} references removed file {removed}"
-                )
+                assert removed not in content, f"{wf_file} references removed file {removed}"
 
     def test_label_workflow_doesnt_need_labeler_config(self):
         """Verify the label workflow does not require an external labeler configuration file.

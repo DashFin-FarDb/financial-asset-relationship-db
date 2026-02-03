@@ -99,8 +99,6 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
         Duplicate keys encountered during parsing are recorded in the surrounding `duplicates` list.
         """
 
-        pass
-
     def constructor_with_dup_check(loader, node):
         """
         Construct a dict from a YAML mapping node while recording duplicate keys.
@@ -2898,7 +2896,7 @@ class TestWorkflowEnvironmentVariables:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_env_vars_not_duplicated_across_levels(self, workflow_file: Path):
         """Test that env vars aren't unnecessarily duplicated."""
-        data = load_yaml_safe(workflow_file)
+        load_yaml_safe(workflow_file)
 
 
 class TestWorkflowScheduledExecutionBestPractices:
