@@ -409,6 +409,7 @@ class TestPrAgentWorkflow:
         assert "steps.fetch-context.outputs.action_items" in run_script, (
             "Parse PR Review Comments step should reference fetch-context action items output"
         )
+
     def test_pr_agent_fetch_depth_allows_absent(self):
         """Missing fetch - depth is permitted for checkout steps."""
         # Test empty configuration
