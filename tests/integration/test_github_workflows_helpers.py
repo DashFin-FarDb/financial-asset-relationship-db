@@ -354,7 +354,7 @@ def test_github_actions_pr_agent_scenario(self, test_data_path):
     # ... assertions ...
 
 
-def test_detects_duplicate_in_list_of_mappings(self, tmp_path):
+def test_detects_duplicate_in_list_of_mappings(tmp_path):
     """Test detection of duplicates within a mapping that's in a list."""
     yaml_content = """- key: value1
   key: value2
