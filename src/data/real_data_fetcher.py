@@ -499,7 +499,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
             with a "__type__" key indicating the asset subclass.
 
     Returns:
-        Asset: An Asset instance ( or subclass like Equity, Bond, etc.)
+        Asset: An Asset instance (or subclass like Equity, Bond, etc.)
             constructed from the provided data.
     """
     data = dict(data)  # Make a copy to avoid modifying the original
