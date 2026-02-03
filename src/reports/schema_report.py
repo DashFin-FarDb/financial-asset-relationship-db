@@ -19,7 +19,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Relationship Types
 """
 
-    for rel_type, count in sorted(metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True):
+    for rel_type, count in sorted(
+        metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True
+    ):
         report += f"- **{rel_type}**: {count} instances\n"
 
     report += f"""
@@ -44,7 +46,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ## Top Relationships
 """
 
-    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        metrics["top_relationships"], 1
+    ):
         report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
 
     report += """
@@ -54,26 +58,27 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Cross-Asset Rules
 """
     report += (
-        "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
-        "equity (directional)\n"
-        "2. **Sector Affinity**: Assets in same sector have baseline relationship "
-        "strength of 0.7 (bidirectional)\n"
-        "3. **Currency Exposure**: Non-USD assets link to their native currency "
-        "asset when available\n"
-        "4. **Income Linkage**: Equity dividends compared to bond yields using "
-        "similarity score\n"
-        "5. **Commodity Exposure**: Energy equities link to crude oil; miners link "
-        "to metal commodities\n"
+        "1. **Corporate Bond Linkage**: Corporate bonds link to"
+        " issuing company equity (directional)\n"
+        "2. **Sector Affinity**: Assets in same sector have baseline"
+        " relationship strength of 0.7 (bidirectional)\n"
+        "3. **Currency Exposure**: Non-USD assets link to their native"
+        " currency asset when available\n"
+        "4. **Income Linkage**: Equity dividends compared to bond yields"
+        " using similarity score\n"
+        "5. **Commodity Exposure**: Energy equities link to crude oil; miners"
+        " link to metal commodities\n"
     )
     report += """
 
 ### Regulatory Rules
 """
     report += (
-        "1. **Event Propagation**: Earnings events impact related bond and currency "
-        "assets\n"
-        "2. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
-        "3. **Related Assets**: Each event automatically creates relationships to "
+        "1. **Event Propagation**: Earnings events impact related bond and\n"
+        "currency assets\n"
+        "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
+        "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
+        "4. **Related Assets**: Each event automatically creates relationships to "
         "impacted securities\n"
     )
     report += """
@@ -96,7 +101,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
     quality_score = min(
         1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+        metrics["average_relationship_strength"]
+        + (metrics["regulatory_event_count"] / 10),
     )
     report += f"{quality_score:.1%}\n"
 

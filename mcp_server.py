@@ -64,7 +64,11 @@ def _build_mcp_app():
 
     @mcp.tool()
     def add_equity_node(
-        asset_id: str, symbol: str, name: str, sector: str, price: float
+        asset_id: str,
+        symbol: str,
+        name: str,
+        sector: str,
+        price: float,
     ) -> str:
         """
         Validate an Equity asset and add it to the graph.

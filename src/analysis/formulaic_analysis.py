@@ -177,7 +177,7 @@ class FormulaicAnalyzer:
                 "Cov": "Covariance",
                 "Var": "Variance",
             },
-            example_calculation=(self._calculate_beta_examples(graph)),
+            example_calculation=self._calculate_beta_examples(graph),
             category="Risk Management",
             r_squared=0.75,
         )
@@ -195,9 +195,9 @@ class FormulaicAnalyzer:
                 "σ_X": "Standard deviation of X",
                 "σ_Y": "Standard deviation of Y",
             },
-            example_calculation=(self._calculate_correlation_examples(graph)),
+            example_calculation=self._calculate_correlation_examples(graph),
             category="Statistical Analysis",
-            r_squared=(self._calculate_avg_correlation_strength(graph)),
+            r_squared=self._calculate_avg_correlation_strength(graph),
         )
         formulas.append(correlation_formula)
 
@@ -441,7 +441,7 @@ class FormulaicAnalyzer:
                 empirical_relationships.get("correlation_matrix", {})
             ),
             "key_insights": [
-                f"Identified {len(formulas)} mathematical relationships",
+                (f"Identified {len(formulas)} mathematical relationships"),
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
                 ("Portfolio theory formulas available for multi-asset analysis"),
@@ -528,10 +528,11 @@ class FormulaicAnalyzer:
         """Generate example P/E ratio calculations from graph data.
 
         This static method iterates through the assets in the provided
-        AssetRelationshipGraph to generate example price-to-earnings (P/E) ratio
-        calculations. It specifically checks for assets of the EQUITY class that have
-        a defined P/E ratio. The method collects up to two examples and formats them
-        for output. If no valid examples are found, a default example is returned.
+        AssetRelationshipGraph to generate example price-to-earnings (P/E)
+        ratio calculations. It specifically checks for assets of the EQUITY
+        class that have a defined P/E ratio. The method collects up to two
+        examples and formats them for output. If no valid examples are found,
+        a default example is returned.
         """
         from src.models.financial_models import AssetClass
 
@@ -612,10 +613,11 @@ class FormulaicAnalyzer:
         """Generate example market cap calculations from graph data.
 
         This static method iterates through the assets in the provided
-        AssetRelationshipGraph and generates market cap examples for assets classified
-        as EQUITY. It checks for the presence of a market cap attribute and collects
-        the first two valid examples, formatting them in billions. If no valid
-        examples are found, a default message is returned.
+        AssetRelationshipGraph and generates market cap examples for assets
+        classified as EQUITY. It checks for the presence of a market cap
+        attribute and collects the first two valid examples, formatting them
+        in billions. If no valid examples are found, a default message is
+        returned.
         """
         from src.models.financial_models import AssetClass
 
@@ -649,14 +651,14 @@ class FormulaicAnalyzer:
     def _calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P/B ratio calculations from graph data.
 
-        This static method calculates the price-to-book (P/B) ratio for assets in
-        the provided AssetRelationshipGraph.
+        This static method calculates the price-to-book (P/B) ratio for assets in the
+        provided AssetRelationshipGraph.
 
-        It iterates through the assets, checking if each asset is of the EQUITY
-        class and has a valid book value.
+        It iterates through the assets, checking if each asset is
+        of the EQUITY class and has a valid book value.
 
-        The method computes the P/B ratio for qualifying assets and collects
-        examples until two are found, returning them as a formatted string.
+        The method computes the P/B ratio for qualifying assets and collects examples.
+        Examples are collected until two are found and returned as a formatted string.
 
         If no examples are found, a default example is returned.
 
