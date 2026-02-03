@@ -140,13 +140,18 @@ class FinancialAssetApp:
     def _initialize_graph(self) -> None:
         """Initializes the asset graph, creating a sample database if necessary."""
         try:
-            logger.info("Initializing with real financial data from Yahoo Finance")
+            logger.info(
+                "Initializing with real financial data from Yahoo Finance"
+            )
             self.graph = create_real_database()
             logger.info(
                 "Database initialized with %s real assets",
                 len(self.graph.assets),
             )
-            logger.info("Initialized sample database with %s assets", len(self.graph.assets))
+            logger.info(
+                "Initialized sample database with %s assets",
+                len(self.graph.assets),
+            )
         except Exception as e:
             logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, e)
             # Depending on desired behavior, could set self.graph to an empty graph
@@ -167,10 +172,19 @@ class FinancialAssetApp:
         text = AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics["total_assets"],
             total_relationships=metrics["total_relationships"],
-            average_relationship_strength=metrics["average_relationship_strength"],
-            relationship_density=metrics["relationship_density"],
-            regulatory_event_count=metrics["regulatory_event_count"],
-            asset_class_distribution=json.dumps(metrics["asset_class_distribution"], indent=2),
+            average_relationship_strength=metrics[
+                "average_relationship_strength"
+            ],
+            relationship_density=metrics[
+                "relationship_density"
+            ],
+            regulatory_event_count=metrics[
+                "regulatory_event_count"
+            ],
+            asset_class_distribution=json.dumps(
+                metrics["asset_class_distribution"],
+                indent=2,
+            ),
         )
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
             text += f"{idx}. {s} → {t} ({rel}): {strength:.1%}\n"
@@ -194,7 +208,9 @@ class FinancialAssetApp:
                 "relationship_type": rel_type,
                 "strength": strength,
             }
-            for target_id, rel_type, strength in graph.relationships.get(selected_asset, [])
+            for target_id, rel_type, strength in graph.relationships.get(
+                selected_asset, []
+            )
         }
         incoming_relationships = getattr(graph, "incoming_relationships", {})
         incoming = {
@@ -202,7 +218,9 @@ class FinancialAssetApp:
                 "relationship_type": rel_type,
                 "strength": strength,
             }
-            for src_id, rel_type, strength in incoming_relationships.get(selected_asset, [])
+            for src_id, rel_type, strength in incoming_relationships.get(
+                selected_asset, []
+            )
         }
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
@@ -327,10 +345,16 @@ class FinancialAssetApp:
 
             # Generate visualizations
             dashboard_fig = formulaic_visualizer.create_formula_dashboard(analysis_results)
-            correlation_network_fig = formulaic_visualizer.create_correlation_network(
-                analysis_results.get("empirical_relationships", {})
+            correlation_network_fig = (
+                formulaic_visualizer.create_correlation_network(
+                    analysis_results.get("empirical_relationships", {})
+                )
             )
-            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
+            metric_comparison_fig = (
+                formulaic_visualizer.create_metric_comparison_chart(
+                    analysis_results
+                )
+            )
 
             # Generate formula selector options
             formulas = analysis_results.get("formulas", [])
@@ -393,7 +417,10 @@ class FinancialAssetApp:
             "",
             f"📊 **Total Formulas Identified:** {len(formulas)}",
             (f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}"),
-            (f"🔗 **Empirical Data Points:** " f"{summary.get('empirical_data_points', 0)}"),
+            (
+                f"🔗 **Empirical Data Points:** "
+                f"{summary.get('empirical_data_points', 0)}"
+            ),
             "",
             "📋 **Formula Categories:",
         ]
@@ -413,7 +440,10 @@ class FinancialAssetApp:
         if correlations:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
-                summary_lines.append(f"  • {corr['pair']}: {corr['correlation']:.3f} " f"({corr['strength']})")
+                summary_lines.append(
+                    f"  • {corr['pair']}: {corr['correlation']:.3f} "
+                    f"({corr['strength']})"
+                )
 
         return "\n".join(summary_lines)
 
@@ -512,7 +542,10 @@ class FinancialAssetApp:
                                 variant="secondary",
                             )
                         with gr.Column(scale=2):
-                            gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
+                            gr.Markdown(
+                                "**Legend:** ↔ = Bidirectional, "
+                                "→ = Unidirectional"
+                            )
 
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
@@ -575,15 +608,14 @@ class FinancialAssetApp:
                     gr.Markdown(AppConstants.DOC_MARKDOWN)
 
                 with gr.Tab("📊 Formulaic Analysis"):
-                    gr.Markdown("""
-                        ## Mathematical Relationships & Formulas
-
-                        This section extracts and visualizes mathematical
-                        formulas and relationships between financial variables.
-                        It includes fundamental financial ratios,
-                        correlation patterns, valuation models, and empirical
-                        relationships derived from the asset database.
-                        """)
+                    gr.Markdown(
+                        "## Mathematical Relationships & Formulas\n\n"
+                        "This section extracts and visualizes mathematical formulas\n"
+                        "and relationships between financial variables. It includes\n"
+                        "fundamental financial ratios, correlation patterns,\n"
+                        "valuation models, and empirical relationships derived\n"
+                        "from the asset database."
+                    )
 
                     with gr.Row():
                         with gr.Column(scale=2):

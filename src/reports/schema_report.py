@@ -54,16 +54,16 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Cross-Asset Rules
 """
     report += (
-        "1. **Corporate Bond Linkage**: Corporate bonds link to"
-        " issuing company equity (directional)\n"
-        "2. **Sector Affinity**: Assets in same sector have baseline"
-        " relationship strength of 0.7 (bidirectional)\n"
-        "3. **Currency Exposure**: Non-USD assets link to their native"
-        " currency asset when available\n"
-        "4. **Income Linkage**: Equity dividends compared to bond yields"
-        " using similarity score\n"
-        "5. **Commodity Exposure**: Energy equities link to crude oil; miners"
-        " link to metal commodities\n"
+        "1. **Corporate Bond Linkage**: Corporate bonds link to "
+        "issuing company equity (directional)\n"
+        "2. **Sector Affinity**: Assets in same sector have baseline "
+        "relationship strength of 0.7 (bidirectional)\n"
+        "3. **Currency Exposure**: Non-USD assets link to their native "
+        "currency asset when available\n"
+        "4. **Income Linkage**: Equity dividends compared to bond yields "
+        "using similarity score\n"
+        "5. **Commodity Exposure**: Energy equities link to crude oil; "
+        "miners link to metal commodities\n"
     )
     report += """
 
@@ -82,12 +82,12 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Valuation Rules
 """
     report += (
-        "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
-        "indicates relative value\n"
-        "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
-        "exposure\n"
-        "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
-        "exposure\n"
+        "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend "
+        "yield indicates relative value\n"
+        "2. **Sector Rotation**: Commodity prices trigger "
+        "evaluation of sector exposure\n"
+        "3. **Currency Adjustment**: All cross-border "
+        "assets adjusted for FX exposure\n"
     )
     report += """
 

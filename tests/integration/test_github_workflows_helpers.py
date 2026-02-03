@@ -477,30 +477,9 @@ on:
     branches: [main, develop]
   pull_request:
     types: [opened, synchronize]
-env:
-  NODE_VERSION: '18'
-  PYTHON_VERSION: '3.11'
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.9', '3.10', '3.11']
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
-      - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-      - name: Run tests
-        run: pytest tests/ --cov
-""")
+""" )
 
+workflows_dir = tmp_path / ".github" / "workflows"
 
 with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
     workflows = get_workflow_files()

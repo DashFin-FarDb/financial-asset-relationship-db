@@ -301,6 +301,7 @@ class TestWorkflowSecurityConsistency:
                             )
                             )
                             )
+                            )
 
 
 class TestBranchCoherence:

@@ -1096,8 +1096,7 @@ class TestAutoAssignWorkflow:
         # Permissions can be at workflow or job level
         workflow_perms = auto_assign_workflow.get("permissions")
         job_perms = run_job.get("permissions")
-            "Workflow should define permissions at workflow or job level"
-        )
+        assert workflow_perms or job_perms, "Workflow should define permissions at workflow or job level"
 
     ...
 
