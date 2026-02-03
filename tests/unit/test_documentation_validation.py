@@ -189,7 +189,7 @@ class TestDependencyMatrix:
                 if match:
                     _, text = match.groups()
                     if text:
-                        assert text.startswith(" \"), (
+                        assert text.startswith(" "), (
                             f"Line {index}: Heading should have space after #: {line}"
                         )
 
