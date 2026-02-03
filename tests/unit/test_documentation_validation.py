@@ -217,10 +217,10 @@ class TestSystemManifest:
     @pytest.fixture
     def system_manifest_content(system_manifest_path):
         """
-        Load and return the contents of the system manifest file located at .elastic-copilot/memory/systemManifest.md.
+        Load and return the contents of the system manifest file located at .elastic - copilot / memory / systemManifest.md.
 
         Returns:
-            content(str): UTF-8 decoded file contents.
+            content(str): UTF - 8 decoded file contents.
 
         Raises:
             AssertionError: If `system_manifest_path` does not exist.
@@ -468,10 +468,10 @@ class TestDocumentationConsistency:
     @pytest.fixture
     def dependency_matrix_content():
         """
-        Load and return the contents of the dependency matrix file from .elastic-copilot/memory.
+        Load and return the contents of the dependency matrix file from .elastic - copilot / memory.
 
         Returns:
-            content(str): The UTF-8 text of dependencyMatrix.md.
+            content(str): The UTF - 8 text of dependencyMatrix.md.
         """
         path = Path(".elastic-copilot/memory/dependencyMatrix.md")
         with open(path, encoding="utf-8") as f:
@@ -481,7 +481,7 @@ class TestDocumentationConsistency:
     @pytest.fixture
     def system_manifest_content():
         """
-        Load the contents of the system manifest file located at .elastic-copilot/memory/systemManifest.md.
+        Load the contents of the system manifest file located at .elastic - copilot / memory / systemManifest.md.
 
         Returns:
             content(str): The full text of the system manifest file.
