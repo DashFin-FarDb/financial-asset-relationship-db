@@ -61,6 +61,8 @@ class TestGetWorkflowFiles:
 
         yml_file = workflows_dir / "test.yml"
         yml_file.write_text("name: Test")
+
+
 def test_finds_yml_files(self, tmp_path):
     """Test that .yml files are found."""
     workflows_dir = tmp_path / "workflows"
@@ -74,6 +76,7 @@ def test_finds_yml_files(self, tmp_path):
         assert len(result) == 1
         assert result[0].name == "test.yml"
 
+
 def test_finds_yaml_files(self, tmp_path):
     """Test that .yaml files are found."""
     workflows_dir = tmp_path / "workflows"
@@ -86,6 +89,7 @@ def test_finds_yaml_files(self, tmp_path):
         result = get_workflow_files()
         assert len(result) == 1
         assert result[0].name == "test.yaml"
+
 
 def test_finds_both_yml_and_yaml(self, tmp_path):
     """Test that both .yml and .yaml files are found together."""
@@ -215,6 +219,8 @@ float_val: 3.14
         assert result["float_val"] == 3.14
 
     def test_handles_multiline_strings(self, tmp_path):
+
+
 script: |
     echo "line 1"
     echo "line 2"
@@ -345,6 +351,7 @@ job2:
         assert isinstance(result, list)
 
     # tests/integration/test_github_workflows_helpers.py
+
 
 def test_github_actions_pr_agent_scenario(self, test_data_path):
     # The test now loads the YAML from a dedicated file
