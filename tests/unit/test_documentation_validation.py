@@ -20,7 +20,7 @@ class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
     @pytest.fixture
-    def dependency_matrix_path(self):
+    def dependency_matrix_path(self) -> Path:
         """
         Return the filesystem path to the repository's dependency matrix markdown file.
 
@@ -30,221 +30,173 @@ class TestDependencyMatrix:
         return Path(".elastic-copilot/memory/dependencyMatrix.md")
 
     @pytest.fixture
-    def dependency_matrix_content(self, dependency_matrix_path):
-         """
+    def dependency_matrix_content(self, dependency_matrix_path: Path) -> str:
+        """
         Load the dependency matrix markdown content from disk.
 
         Returns:
-            The contents of the dependencyMatrix.md file as a string.
+            str: Contents of the dependencyMatrix.md file.
 
         Raises:
-            AssertionError: If `dependency_matrix_path` does not exist.
+            AssertionError: If dependencyMatrix.md does not exist.
         """
         assert dependency_matrix_path.exists(), "dependencyMatrix.md not found"
-        with open(dependency_matrix_path, encoding="utf-8") as f:
-            return f.read()
+        with dependency_matrix_path.open(encoding="utf-8") as file:
+            return file.read()
 
     @pytest.fixture
-    def dependency_matrix_content(dependency_matrix_path):
-        """
-        Load the dependency matrix markdown content from disk.
-
-        Returns:
-            The contents of the dependencyMatrix.md file as a string.
-
-        Raises:
-            AssertionError: If `dependency_matrix_path` does not exist.
-        """
-        assert dependency_matrix_path.exists(), "dependencyMatrix.md not found"
-        with open(dependency_matrix_path, encoding="utf-8") as f:
-            return f.read()
-
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content: str) -> list[str]:
         """
         Split dependency matrix content into individual lines.
 
-        Parameters:
-            dependency_matrix_content(str): Full text content of the dependency matrix file.
-
         Returns:
-            list[str]: Lines of the content produced by splitting on the newline character.
+            list[str]: Lines of the markdown file.
         """
         return dependency_matrix_content.split("\n")
 
-    def test_dependency_matrix_exists(self, dependency_matrix_path):
+    def test_dependency_matrix_exists(self, dependency_matrix_path: Path) -> None:
         """Test that dependencyMatrix.md exists."""
         assert dependency_matrix_path.exists()
         assert dependency_matrix_path.is_file()
 
-    def test_dependency_matrix_not_empty(self, dependency_matrix_content):
+    def test_dependency_matrix_not_empty(self, dependency_matrix_content: str) -> None:
         """Test that dependencyMatrix.md is not empty."""
-        assert len(dependency_matrix_content.strip()) > 0
+        assert dependency_matrix_content.strip()
 
-    def test_dependency_matrix_has_title(self, dependency_matrix_lines):
+    def test_dependency_matrix_has_title(self, dependency_matrix_lines: list[str]) -> None:
         """Test that dependencyMatrix.md has proper title."""
         assert dependency_matrix_lines[0] == "# Dependency Matrix"
 
-    def test_dependency_matrix_has_generated_timestamp(self, dependency_matrix_content):
+    def test_dependency_matrix_has_generated_timestamp(
+        self, dependency_matrix_content: str
+    ) -> None:
         """
-        Verify that dependencyMatrix.md contains a "Generated" timestamp in ISO 8601 format.
-
-        This test looks for a line matching the pattern '*Generated: YYYY-MM-DDTHH:MM:SS.sssZ*' (for example '*Generated: 2025-11-07T18:22:38.791Z*') and asserts the captured timestamp can be parsed as a valid ISO 8601 instant.
-
-        Parameters:
-            dependency_matrix_content(str): The full text content of dependencyMatrix.md to be inspected.
+        Verify that dependencyMatrix.md contains a valid ISO 8601 generated timestamp.
         """
-        # Look for: *Generated: 2025-11-07T18:22:38.791Z*
-        timestamp_pattern = r"\*Generated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\*"
-        match = re.search(timestamp_pattern, dependency_matrix_content)
-
+        pattern = (
+            r"\*Generated: "
+            r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\*"
+        )
+        match = re.search(pattern, dependency_matrix_content)
         assert match is not None, "Generated timestamp not found"
 
-        # Validate timestamp format
-        timestamp_str = match.group(1)
+        timestamp = match.group(1)
         try:
-            datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-        except ValueError:
-            pytest.fail(f"Invalid timestamp format: {timestamp_str}")
+            datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        except ValueError as exc:
+            pytest.fail(f"Invalid timestamp format: {timestamp}") from exc
 
-    def test_dependency_matrix_has_summary_section(self, dependency_matrix_content):
+    def test_dependency_matrix_has_summary_section(
+        self, dependency_matrix_content: str
+    ) -> None:
         """Test that dependencyMatrix.md has Summary section."""
         assert "## Summary" in dependency_matrix_content
 
-    def test_dependency_matrix_has_file_count(self, dependency_matrix_content):
+    def test_dependency_matrix_has_file_count(
+        self, dependency_matrix_content: str
+    ) -> None:
         """Test that dependencyMatrix.md specifies files analyzed count."""
-        pattern = r"- Files analyzed: (\d+)"
-        match = re.search(pattern, dependency_matrix_content)
-
+        match = re.search(r"- Files analyzed: (\d+)", dependency_matrix_content)
         assert match is not None, "Files analyzed count not found"
+
         count = int(match.group(1))
         assert count > 0, "Files analyzed count should be positive"
 
-    def test_dependency_matrix_has_file_types(self, dependency_matrix_content):
+    def test_dependency_matrix_has_file_types(
+        self, dependency_matrix_content: str
+    ) -> None:
         """
-        Validate that the dependency matrix declares recognised file types.
-
-        Asserts the presence of a "- File types: ..." entry in the provided document and that it lists at least one file type. Also ensures every listed type is within the allowed set(py, js, ts, tsx) or permitted extras(jsx, json, md).
-
-        Parameters:
-            dependency_matrix_content(str): Full text content of .elastic - copilot / memory / dependencyMatrix.md to inspect.
+        Validate that declared file types are recognised.
         """
-        pattern = r"- File types: (.+)"
-        match = re.search(pattern, dependency_matrix_content)
-
+        match = re.search(r"- File types: (.+)", dependency_matrix_content)
         assert match is not None, "File types not found"
-        file_types = match.group(1).split(", ")
-        assert len(file_types) > 0, "At least one file type should be listed"
 
-        # Common expected file types
-        expected_types = {"py", "js", "ts", "tsx"}
-        found_types = set(file_types)
-        assert found_types.issubset(
-            expected_types | {"jsx", "json", "md"}
-        ), f"Unexpected file types: {found_types - expected_types}"
+        file_types = set(match.group(1).split(", "))
+        assert file_types, "At least one file type should be listed"
 
-    def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
-        """Test that dependencyMatrix.md has File Type Distribution section."""
+        allowed_types = {"py", "js", "ts", "tsx", "jsx", "json", "md"}
+        assert file_types.issubset(
+            allowed_types
+        ), f"Unexpected file types: {file_types - allowed_types}"
+
+    def test_dependency_matrix_has_file_type_distribution(
+        self, dependency_matrix_content: str
+    ) -> None:
+        """Test that File Type Distribution section exists."""
         assert "## File Type Distribution" in dependency_matrix_content
 
-    def test_dependency_matrix_file_counts_match(self, dependency_matrix_content):
+    def test_dependency_matrix_file_counts_match(
+        self, dependency_matrix_content: str
+    ) -> None:
         """
-        Verify that the reported total files analysed equals the sum of the per - file - type counts.
-
-        Asserts that the integer parsed from "- Files analyzed: N" matches the sum of all integers parsed from lines like "- X <type> files".
+        Verify total file count equals sum of per-type counts.
         """
-        # Extract total files analyzed
-        total_pattern = r"- Files analyzed: (\d+)"
-        total_match = re.search(total_pattern, dependency_matrix_content)
+        total_match = re.search(r"- Files analyzed: (\d+)", dependency_matrix_content)
         assert total_match is not None
         total_count = int(total_match.group(1))
 
-        # Extract individual file type counts
-        distribution_pattern = r"- (\d+) (\w+) files"
-        distribution_matches = re.findall(distribution_pattern, dependency_matrix_content)
+        distribution = re.findall(
+            r"- (\d+) (\w+) files", dependency_matrix_content
+        )
+        summed = sum(int(count) for count, _ in distribution)
 
-        sum_counts = sum(int(count) for count, _ in distribution_matches)
-        assert sum_counts == total_count, f"Sum of file type counts ({sum_counts}) doesn't match total ({total_count})"
+        assert (
+            summed == total_count
+        ), f"Sum of file type counts ({summed}) does not match total ({total_count})"
 
-    def test_dependency_matrix_has_key_dependencies_section(self, dependency_matrix_content):
-        """Test that dependencyMatrix.md has Key Dependencies by Type section."""
+    def test_dependency_matrix_has_key_dependencies_section(
+        self, dependency_matrix_content: str
+    ) -> None:
+        """Test that Key Dependencies by Type section exists."""
         assert "## Key Dependencies by Type" in dependency_matrix_content
 
-    def test_dependency_matrix_language_sections_exist(self, dependency_matrix_content):
+    def test_dependency_matrix_language_sections_exist(
+        self, dependency_matrix_content: str
+    ) -> None:
+        """Ensure at least one language dependency section exists."""
+        sections = {"### PY", "### JS", "### TS", "### TSX"}
+        assert any(section in dependency_matrix_content for section in sections)
+
+    def test_dependency_matrix_dependency_format(
+        self, dependency_matrix_content: str
+    ) -> None:
         """
-        Check that the dependency matrix contains at least one major language section.
-
-        Verifies the document includes at least one of the language headings: "### PY", "### JS", "### TS" or "### TSX".
-        Fails the test if none of these sections are present.
-
-        Parameters:
-            dependency_matrix_content(str): The full text content of the dependencyMatrix.md file.
+        Validate dependency lists are properly bullet-formatted.
         """
-        # Check for at least some of the main language sections
-        language_sections = ["### PY", "### JS", "### TS", "### TSX"]
-
-        found_sections = [section for section in language_sections if section in dependency_matrix_content]
-
-        assert len(found_sections) > 0, "No language dependency sections found"
-
-    def test_dependency_matrix_dependency_format(self, dependency_matrix_content):
-        """
-        Validate that dependency lists in the dependency matrix are formatted as bullet points.
-
-        For each "Top dependencies:" section in the provided document, ensures the section content(up to the next "###" heading) either contains the message "No common dependencies found" or consists of non - empty lines that start with a dash(`-`).
-
-        Parameters:
-            dependency_matrix_content(str): Full text content of the dependencyMatrix.md file.
-        """
-        # After "Top dependencies:" there should be bullet points
-        sections = dependency_matrix_content.split("Top dependencies:")
-
-        for section in sections[1:]:  # Skip first part before any "Top dependencies:"
-            # Get content until next ### or end
-            content = section.split("###")[0].strip()
-
-            if content and "No common dependencies found" not in content:
-                lines = content.split("\n")
-                for line in lines:
-                    if line.strip():
-                        assert line.strip().startswith("-"), f"Dependency line should start with '-': {line}"
-
-    def test_dependency_matrix_no_empty_dependency_sections(self, dependency_matrix_content):
-        """
-        Ensure each "Top dependencies:" section in the dependency matrix contains non - empty content.
-
-        Parameters:
-            dependency_matrix_content(str): Full Markdown content of the dependency matrix file
-            the test splits this by the "Top dependencies:" marker and asserts that the text preceding the next "###" heading is not empty for each section.
-        """
-        # After "Top dependencies:" should be either dependencies or explicit message
         sections = dependency_matrix_content.split("Top dependencies:")
 
         for section in sections[1:]:
             content = section.split("###")[0].strip()
-            # Should have some content
-            assert len(content) > 0, "Empty dependency section found"
+            if content and "No common dependencies found" not in content:
+                for line in content.split("\n"):
+                    if line.strip():
+                        assert line.strip().startswith(
+                            "-"
+                        ), f"Dependency line should start with '-': {line}"
 
-    def test_dependency_matrix_markdown_formatting(self, dependency_matrix_lines):
-        """
-        Verify that markdown headings use a space after the hash characters.
+    def test_dependency_matrix_no_empty_dependency_sections(
+        self, dependency_matrix_content: str
+    ) -> None:
+        """Ensure no empty dependency sections exist."""
+        sections = dependency_matrix_content.split("Top dependencies:")
 
-        Parameters:
-            dependency_matrix_lines(list[str]): Lines of the dependency matrix markdown file to validate.
+        for section in sections[1:]:
+            content = section.split("###")[0].strip()
+            assert content, "Empty dependency section found"
 
-        Raises:
-            AssertionError: If a heading line(one or more '#' characters followed by content) does not have a space after the hashes
-            message includes the offending line number and content.
-        """
-        for i, line in enumerate(dependency_matrix_lines):
-            # Check heading formatting
+    def test_dependency_matrix_markdown_formatting(
+        self, dependency_matrix_lines: list[str]
+    ) -> None:
+        """Verify markdown headings include a space after '#'."""
+        for index, line in enumerate(dependency_matrix_lines, start=1):
             if line.startswith("#"):
-                # Headings should have space after #
-                heading_match = re.match(r"^(#+)(.+)", line)
-                if heading_match:
-                    _, content = heading_match.groups()
-                    if content:  # Not just hashes
-                        assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
-
+                match = re.match(r"^(#+)(.*)", line)
+                if match:
+                    _, text = match.groups()
+                    if text:
+                        assert text.startswith(
+                            " "
+                        ), f"Line {index}: Heading should have space after #: {line}"
 
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
