@@ -169,8 +169,6 @@ class TestLoadYamlSafe:
         result = load_yaml_safe(yaml_file)
         assert result is None
 
-    def test_loads_yaml_with_lists(self, tmp_path):
-        """Test that YAML with lists is loaded correctly."""
         yaml_content = """
 items:
   - name: first
