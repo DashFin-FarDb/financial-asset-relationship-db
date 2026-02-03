@@ -61,57 +61,45 @@ class TestGetWorkflowFiles:
 
         yml_file = workflows_dir / "test.yml"
         yml_file.write_text("name: Test")
+def test_finds_yml_files(self, tmp_path):
+    """Test that .yml files are found."""
+    workflows_dir = tmp_path / "workflows"
+    workflows_dir.mkdir()
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yml"
+    yml_file = workflows_dir / "test.yml"
+    yml_file.write_text("name: Test")
 
-    def test_finds_yaml_files(self, tmp_path):
-        """Test that .yaml files are found."""
-        workflows_dir = tmp_path / "workflows"
-        workflows_dir.mkdir()
+    with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        result = get_workflow_files()
+        assert len(result) == 1
+        assert result[0].name == "test.yml"
 
-        yaml_file = workflows_dir / "test.yaml"
-        yaml_file.write_text("name: Test")
+def test_finds_yaml_files(self, tmp_path):
+    """Test that .yaml files are found."""
+    workflows_dir = tmp_path / "workflows"
+    workflows_dir.mkdir()
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
+    yaml_file = workflows_dir / "test.yaml"
+    yaml_file.write_text("name: Test")
 
+    with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        result = get_workflow_files()
+        assert len(result) == 1
+        assert result[0].name == "test.yaml"
 
-yaml_file.write_text("name: Test")
+def test_finds_both_yml_and_yaml(self, tmp_path):
+    """Test that both .yml and .yaml files are found together."""
+    workflows_dir = tmp_path / "workflows"
+    workflows_dir.mkdir()
 
-with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    result = get_workflow_files()
-    assert len(result) == 1
-    assert result[0].name == "test.yaml"
-      yaml_file.write_text("name: Test")
+    yml_file = workflows_dir / "test1.yml"
+    yml_file.write_text("name: Test1")
 
-       with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
-        yaml_file.write_text("name: Test")
+    yaml_file = workflows_dir / "test2.yaml"
+    yaml_file.write_text("name: Test2")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
-
-    def test_finds_both_yml_and_yaml(self, tmp_path):
-        """Test that both .yml and .yaml files are found together."""
-        workflows_dir = tmp_path / "workflows"
-        workflows_dir.mkdir()
-
-        yml_file = workflows_dir / "test1.yml"
-        yml_file.write_text("name: Test1")
-
-        yaml_file = workflows_dir / "test2.yaml"
-        yaml_file.write_text("name: Test2")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
+    with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        result = get_workflow_files()
             assert len(result) == 2
             names = {f.name for f in result}
             assert names == {"test1.yml", "test2.yaml"}
