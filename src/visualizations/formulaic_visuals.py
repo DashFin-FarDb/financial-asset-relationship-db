@@ -227,8 +227,8 @@ class FormulaicVisualizer:
                 avg_r_squared = sum(category_formulas) / len(category_formulas)
             else:
                 avg_r_squared = 0.0
-                r_squared_by_category.append(avg_r_squared)
-                formula_counts.append(len(category_formulas))
+            r_squared_by_category.append(avg_r_squared)
+            formula_counts.append(len(category_formulas))
 
         # R-squared bars
         fig.add_trace(
