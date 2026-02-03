@@ -426,34 +426,40 @@ class FormulaicAnalyzer:
         return categories
 
     def _generate_formula_summary(
-        self,
-        formulas: List[Formula],
-        empirical_relationships: Dict,
-    ) -> Dict[str, Any]:
-        """Generate a summary of formulaic analysis results."""
-        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
-            empirical_relationships
-        )
-        return {
-            "total_formulas": len(formulas),
-            "avg_r_squared": (
-                sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0
+    self,
+    formulas: List[Formula],
+    empirical_relationships: Dict[str, Any],
+) -> Dict[str, Any]:
+    """Generate a summary of formulaic analysis results."""
+    avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
+        empirical_relationships
+    )
+
+    if formulas:
+        avg_r_squared = sum(
+            f.r_squared for f in formulas if isinstance(f.r_squared, (int, float))
+        ) / len(formulas)
+    else:
+        avg_r_squared = 0.0
+
+    return {
+        "total_formulas": len(formulas),
+        "avg_r_squared": avg_r_squared,
+        "formula_categories": self._categorize_formulas(formulas),
+        "empirical_data_points": len(
+            empirical_relationships.get("correlation_matrix", {})
+        ),
+        "key_insights": [
+            f"Identified {len(formulas)} mathematical relationships",
+            f"Average correlation strength: {avg_corr_strength:.2f}",
+            "Valuation models applicable to equity assets",
+            "Portfolio theory formulas available for multi-asset analysis",
+            (
+                "Cross-asset relationships identified between "
+                "commodities and currencies"
             ),
-            "formula_categories": self._categorize_formulas(formulas),
-            "empirical_data_points": len(
-                empirical_relationships.get("correlation_matrix", {})
-            ),
-            "key_insights": [
-                (f"Identified {len(formulas)} mathematical relationships"),
-                f"Average correlation strength: {avg_corr_strength:.2f}",
-                "Valuation models applicable to equity assets",
-                ("Portfolio theory formulas available for multi-asset analysis"),
-                (
-                    "Cross-asset relationships identified between "
-                    "commodities and currencies"
-                ),
-            ],
-        }
+        ],
+    }
 
     @staticmethod
     def _calculate_avg_correlation_strength_from_empirical(
