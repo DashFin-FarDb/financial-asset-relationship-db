@@ -26,8 +26,6 @@ class GitHubActionsYamlLoader(yaml.SafeLoader):
     as booleans, which breaks parsing and validations.
     """
 
-    pass
-
 
 GitHubActionsYamlLoader.yaml_implicit_resolvers = copy.deepcopy(
     GitHubActionsYamlLoader.yaml_implicit_resolvers
@@ -96,6 +94,10 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
 
     # Parse with a custom constructor that detects duplicates
     class DuplicateKeySafeLoader(GitHubActionsYamlLoader):
+        """Safe YAML loader that extends GitHubActionsYamlLoader to detect duplicate mapping keys.
+
+        Duplicate keys encountered during parsing are recorded in the surrounding `duplicates` list.
+        """
         pass
 
     def constructor_with_dup_check(loader, node):
@@ -306,7 +308,8 @@ class TestPrAgentWorkflow:
             pytest.skip("pr-agent.yml not found")
         return load_yaml_safe(workflow_path)
 
-    def test_pr_agent_name(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_name(pr_agent_workflow: Dict[str, Any]):
         """
         Assert the pr-agent workflow's top-level "name" equals "PR Agent".
 
@@ -315,27 +318,31 @@ class TestPrAgentWorkflow:
         """
         assert pr_agent_workflow["name"] == "PR Agent"
 
-    def test_pr_agent_triggers_on_pull_request(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_triggers_on_pull_request(pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent workflow triggers on pull request events."""
         triggers = pr_agent_workflow.get("on", {})
         assert "pull_request" in triggers, (
             "pr-agent workflow should trigger on pull_request events"
         )
 
-    def test_pr_agent_has_review_job(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_has_review_job(pr_agent_workflow: Dict[str, Any]):
         """Test that pr-agent workflow has a review job."""
         jobs = pr_agent_workflow.get("jobs", {})
         assert "pr-agent-trigger" in jobs, (
             "pr-agent workflow must have a 'pr-agent-trigger' job"
         )
 
-    def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_review_runs_on_ubuntu(pr_agent_workflow: Dict[str, Any]):
         """Test that review job runs on Ubuntu."""
         review_job = pr_agent_workflow["jobs"]["review"]
         runs_on = review_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Review job should run on Ubuntu runner"
 
-    def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_has_checkout_step(pr_agent_workflow: Dict[str, Any]):
         """Test that review job checks out the code."""
         review_job = pr_agent_workflow["jobs"]["review"]
         steps = review_job.get("steps", [])
@@ -345,7 +352,8 @@ class TestPrAgentWorkflow:
         ]
         assert len(checkout_steps) > 0, "Review job must check out the repository"
 
-    def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_checkout_has_token(pr_agent_workflow: Dict[str, Any]):
         """
         Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
 
@@ -362,7 +370,8 @@ class TestPrAgentWorkflow:
             step_with = step.get("with", {})
             assert "token" in step_with, "Checkout step should specify a token"
 
-    def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_has_python_setup(pr_agent_workflow: Dict[str, Any]):
         """
         Asserts the workflow's "review" job includes at least one step that uses actions/setup-python.
 
@@ -377,7 +386,8 @@ class TestPrAgentWorkflow:
         ]
         assert len(python_steps) > 0, "Review job must set up Python"
 
-    def test_pr_agent_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_has_node_setup(pr_agent_workflow: Dict[str, Any]):
         """Test that review job sets up Node.js."""
         review_job = pr_agent_workflow["jobs"]["review"]
         steps = review_job.get("steps", [])
@@ -387,7 +397,8 @@ class TestPrAgentWorkflow:
         ]
         assert len(node_steps) > 0, "Review job must set up Node.js"
 
-    def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_python_version(pr_agent_workflow: Dict[str, Any]):
         """
         Ensure any actions/setup-python step in the "review" job specifies python-version "3.11".
 
@@ -411,7 +422,8 @@ class TestPrAgentWorkflow:
                 "Python version should be 3.11"
             )
 
-    def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_no_duplicate_setup_steps(pr_agent_workflow: Dict[str, Any]):
         """Test that there are no duplicate setup steps in the workflow."""
         review_job = pr_agent_workflow["jobs"]["review"]
         steps = review_job.get("steps", [])
@@ -425,7 +437,8 @@ class TestPrAgentWorkflow:
             "Each step should have a unique name."
         )
 
-    def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
+    @staticmethod
+    def test_pr_agent_fetch_depth_configured(pr_agent_workflow: Dict[str, Any]):
         """
         Ensure checkout steps in the PR Agent review job have valid fetch-depth values.
 
@@ -495,12 +508,11 @@ class TestWorkflowSecurity:
                     if any(
                         sensitive in key.lower()
                         for sensitive in ["token", "password", "key", "secret"]
-                    ):
-                        if isinstance(value, str):
-                            assert value.startswith("${{") or value == "", (
-                                f"Sensitive field '{key}' in {workflow_file.name} "
-                                "should use secrets context (e.g., ${{ secrets.TOKEN }})"
-                            )
+                    ) and isinstance(value, str):
+                        assert value.startswith("${{") or value == "", (
+                            f"Sensitive field '{key}' in {workflow_file.name} "
+                            "should use secrets context (e.g., ${{ secrets.TOKEN }})"
+                        )
 
 
 class TestWorkflowMaintainability:
@@ -542,7 +554,11 @@ class TestWorkflowMaintainability:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_reasonable_size(self, workflow_file: Path):
-        @staticmethod
+        """
+        Test that each workflow file is within reasonable size limits.
+
+        Warns if a workflow file exceeds 10 KB and fails if it is 50 KB or larger.
+        """
         def assert_workflow_file_size(workflow_file: Path):
             """
             Assert the workflow file is within reasonable size limits.
@@ -564,6 +580,8 @@ class TestWorkflowMaintainability:
                 f"Workflow {workflow_file.name} is too large ({file_size} bytes). "
                 "Consider splitting into multiple workflows or using reusable workflows."
             )
+
+        assert_workflow_file_size(workflow_file)
 
 
 class TestWorkflowEdgeCases:
@@ -1440,7 +1458,6 @@ class TestAutoAssignWorkflowAdvanced:
     # YAML & Syntax Validation
     def test_auto_assign_yaml_syntax_valid(self, auto_assign_yaml_content: str):
         """Test that auto-assign.yml has valid YAML syntax."""
-
         try:
             parsed = yaml.safe_load(auto_assign_yaml_content)
             assert parsed is not None, "YAML should parse to non-null value"
@@ -2482,6 +2499,11 @@ class TestWorkflowAdvancedValidation:
     """Advanced structural validation tests."""
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
+    """
+    Integration tests for GitHub Actions workflows.
+    This module verifies that job dependencies in a workflow file do not form cycles.
+    """
+
     def test_job_dependencies_are_acyclic(self, workflow_file: Path):
         """Test that job dependencies don't form cycles."""
         data = load_yaml_safe(workflow_file)
@@ -2497,6 +2519,16 @@ class TestWorkflowAdvancedValidation:
 
         # Check for cycles using DFS
         def has_cycle(node, visited, rec_stack):
+            """Detects a cycle in the dependency graph starting from the given node.
+
+            Args:
+                node: The current job node to process.
+                visited: Set of nodes that have already been visited.
+                rec_stack: Set of nodes in the current recursion stack.
+
+            Returns:
+                True if a cycle is found, False otherwise.
+            """
             visited.add(node)
             rec_stack.add(node)
 
@@ -2610,12 +2642,11 @@ class TestWorkflowCachingStrategies:
             if "os" in matrix or "runs-on" in job:
                 steps = job.get("steps", [])
                 for step in steps:
-                    if "uses" in step and "actions/cache" in step["uses"]:
-                        if "with" in step and "key" in step["with"]:
-                            # Should include runner.os in cache key
-                            if "os" in matrix:
-                                # Advisory: consider including OS in cache key
-                                assert True
+                    if "uses" in step and "actions/cache" in step["uses"] and "with" in step and "key" in step["with"]:
+                        # Should include runner.os in cache key
+                        if "os" in matrix:
+                            # Advisory: consider including OS in cache key
+                            assert True
 
 
 class TestWorkflowPermissionsBestPractices:
@@ -2639,27 +2670,29 @@ class TestWorkflowPermissionsBestPractices:
                     ], f"Invalid permission value '{value}' in {workflow_file.name}"
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
-    def test_write_permissions_have_justification(self, workflow_file: Path):
-        """Test that write permissions are used appropriately."""
-        data = load_yaml_safe(workflow_file)
+    """Module for testing that GitHub workflow write permissions have proper justifications."""
+        def test_write_permissions_have_justification(self, workflow_file: Path):
+            """Test that write permissions are used appropriately."""
+            data = load_yaml_safe(workflow_file)
 
-        def check_perms(perms):
-            if isinstance(perms, dict):
-                for _, value in perms.items():
-                    if value == "write":
-                        # Common justified write permissions
+            def check_perms(perms):
+                """Recursively inspect permissions and ensure any write permissions are properly justified."""
+                if isinstance(perms, dict):
+                    for _, value in perms.items():
+                        if value == "write":
+                            # Common justified write permissions
 
-                        # Check workflow-level permissions
-                        pass
+                            # Check workflow-level permissions
+                            raise AssertionError("Write permission found without proper justification")
 
-        if "permissions" in data:
-            check_perms(data["permissions"])
+            if "permissions" in data:
+                check_perms(data["permissions"])
 
-        # Check job-level permissions
-        jobs = data.get("jobs", {})
-        for _, job in jobs.items():
-            if "permissions" in job:
-                check_perms(job["permissions"])
+            # Check job-level permissions
+            jobs = data.get("jobs", {})
+            for _, job in jobs.items():
+                if "permissions" in job:
+                    check_perms(job["permissions"])
 
 
 class TestWorkflowComplexScenarios:
@@ -2813,12 +2846,11 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
-                if "uses" in step and "actions/upload-artifact" in step["uses"]:
-                    if "with" in step and "retention-days" in step["with"]:
-                        retention = step["with"]["retention-days"]
-                        assert 1 <= retention <= 90, (
-                            f"Artifact retention should be 1-90 days in {workflow_file.name}"
-                        )
+                if "uses" in step and "actions/upload-artifact" in step["uses"] and "with" in step and "retention-days" in step["with"]:
+                    retention = step["with"]["retention-days"]
+                    assert 1 <= retention <= 90, (
+                        f"Artifact retention should be 1-90 days in {workflow_file.name}"
+                    )
 
 
 class TestWorkflowEnvironmentVariables:
@@ -2830,6 +2862,14 @@ class TestWorkflowEnvironmentVariables:
         data = load_yaml_safe(workflow_file)
 
         def check_env_names(env_dict):
+            """Ensure all keys in env_dict are uppercase or contain underscores.
+
+            Args:
+                env_dict (dict): Dictionary of environment variables to validate.
+
+            Raises:
+                AssertionError: If any environment variable key does not follow the UPPER_CASE naming convention.
+            """
             if isinstance(env_dict, dict):
                 for key in env_dict.keys():
                     # Env vars should be UPPER_CASE
@@ -2851,12 +2891,6 @@ class TestWorkflowEnvironmentVariables:
     def test_env_vars_not_duplicated_across_levels(self, workflow_file: Path):
         """Test that env vars aren't unnecessarily duplicated."""
         data = load_yaml_safe(workflow_file)
-
-        jobs = data.get("jobs", {})
-
-        for _, job in jobs.items():
-            # Check for duplication (informational)
-            pass  # Informational check - no action required
 
 
 class TestWorkflowScheduledExecutionBestPractices:
@@ -2926,15 +2960,6 @@ class TestWorkflowScheduledExecutionBestPractices:
                         f"frequently ('{cron}'); minimum allowed interval is "
                         f"every 15 minutes."
                     )
-
-            schedules = triggers["schedule"]
-            for schedule in schedules:
-                cron = schedule.get("cron", "")
-                # Advisory check - very frequent schedules may indicate misconfiguration
-                if cron:
-                    parts = cron.split()
-                    if len(parts) >= 1 and parts[0] not in ["*", "0"]:
-                        pass  # Cron doesn't run every minute0
 
 
 # Additional test to verify all new test classes are properly structured

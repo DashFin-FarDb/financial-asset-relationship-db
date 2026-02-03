@@ -20,7 +20,7 @@ class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
     @pytest.fixture
-    def dependency_matrix_path() -> Path:
+    def dependency_matrix_path(self) -> Path:
         """
         Return the filesystem path to the repository's dependency matrix markdown file.
 
@@ -94,9 +94,7 @@ class TestDependencyMatrix:
     def test_dependency_matrix_has_file_count(
         self, dependency_matrix_content: str
     ) -> None:
-        """
-        Test that dependencyMatrix.md specifies files analyzed count.
-        """
+        """Test that dependencyMatrix.md specifies files analyzed count."""
         match = re.search(r"- Files analyzed: (\d+)", dependency_matrix_content)
         assert match is not None, "Files analyzed count not found"
 
@@ -106,9 +104,7 @@ class TestDependencyMatrix:
     def test_dependency_matrix_has_file_types(
         self, dependency_matrix_content: str
     ) -> None:
-        """
-        Validate that declared file types are recognised.
-        """
+        """Validate that declared file types are recognised."""
         match = re.search(r"- File types: (.+)", dependency_matrix_content)
         assert match is not None, "File types not found"
 
@@ -129,9 +125,7 @@ class TestDependencyMatrix:
     def test_dependency_matrix_file_counts_match(
         self, dependency_matrix_content: str
     ) -> None:
-        """
-        Verify total file count equals sum of per-type counts.
-        """
+        """Verify total file count equals sum of per-type counts."""
         total_match = re.search(r"- Files analyzed: (\d+)", dependency_matrix_content)
         assert total_match is not None
         total_count = int(total_match.group(1))
@@ -159,9 +153,7 @@ class TestDependencyMatrix:
     def test_dependency_matrix_dependency_format(
         self, dependency_matrix_content: str
     ) -> None:
-        """
-        Validate dependency lists are properly bullet-formatted.
-        """
+        """Validate dependency lists are properly bullet-formatted."""
         sections = dependency_matrix_content.split("Top dependencies:")
 
         for section in sections[1:]:
@@ -201,8 +193,9 @@ class TestDependencyMatrix:
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
 
+    @staticmethod
     @pytest.fixture
-    def system_manifest_path(self):
+    def system_manifest_path():
         """
         Return the filesystem path to the system manifest Markdown file.
 
@@ -340,9 +333,7 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """
-        Verify that systemManifest.md contains the "## Dependencies" section.
-        """
+        """Verify that systemManifest.md contains the "## Dependencies" section."""
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
@@ -385,13 +376,13 @@ class TestSystemManifest:
         r"""
         Validate that file - level dependency headers in the system manifest follow the expected path - and -extension format.
 
-        Searches the document for headers of the form "### \\path\\to\\file.ext" and asserts that each matched header contains a path separator(`\\` or `/`). Only the first 10 matches are checked for performance.
+        Searches the document for headers of the form "### \\\path\\to\\file.ext" and asserts that each matched header contains a path separator(`\\` or `/`). Only the first 10 matches are checked for performance.
 
         Parameters:
             system_manifest_content(str): Full markdown text of the system manifest to inspect.
         """
         # Look for file dependency entries like: ### \path\to\file.py
-        file_pattern = r"###\s+\\[\w\\\/._-]+\.\w+"
+        file_pattern = r"###\s+\\[\w\\\/.\_-]+\.\w+"
         matches = re.findall(file_pattern, system_manifest_content)
 
         # If there are file entries, they should be properly formatted
@@ -466,8 +457,9 @@ class TestSystemManifest:
 class TestDocumentationConsistency:
     """Test cases for consistency between documentation files."""
 
+    @staticmethod
     @pytest.fixture
-    def dependency_matrix_content(self):
+    def dependency_matrix_content():
         """
         Load and return the contents of the dependency matrix file from .elastic - copilot / memory.
 
@@ -478,8 +470,9 @@ class TestDocumentationConsistency:
         with open(path, encoding="utf-8") as f:
             return f.read()
 
+    @staticmethod
     @pytest.fixture
-    def system_manifest_content(self):
+    def system_manifest_content():
         """
         Load the contents of the system manifest file located at .elastic - copilot / memory / systemManifest.md.
 
@@ -628,7 +621,7 @@ class TestDocumentationRealisticContent:
         r"""
         Verify that file paths listed in the system manifest correspond to actual files in the repository.
 
-        Searches the manifest for file entries formatted as "### \\path\\to\\file.ext" (common Python, TS / TSX, JSX / JSX patterns), normalises Windows - style backslashes to POSIX paths, strips any leading slash, and checks existence for up to the first 20 discovered paths. Entries that are placeholders or clearly test - related(containing "...", "test_", or "__tests__") are skipped.
+        Searches the manifest for file entries formatted as "### \\\path\\to\\file.ext" (common Python, TS / TSX, JSX / JSX patterns), normalises Windows - style backslashes to POSIX paths, strips any leading slash, and checks existence for up to the first 20 discovered paths. Entries that are placeholders or clearly test - related(containing "...", "test_", or "__tests__") are skipped.
         """
         manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
         with open(manifest_path, encoding="utf-8") as f:
@@ -636,9 +629,9 @@ class TestDocumentationRealisticContent:
 
         # Extract file paths from the manifest (look for common patterns)
         file_patterns = [
-            r"###\s+\\([\w\\\/._-]+\.py)",
-            r"###\s+\\([\w\\\/._-]+\.tsx?)",
-            r"###\s+\\([\w\\\/._-]+\.jsx?)",
+            r"###\s+\\([\w\\\/.\_-]+\.py)",
+            r"###\s+\\([\w\\\/.\_-]+\.tsx?)",
+            r"###\s+\\([\w\\\/.\_-]+\.jsx?)",
         ]
 
         mentioned_files = []

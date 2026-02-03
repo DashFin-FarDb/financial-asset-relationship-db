@@ -467,16 +467,16 @@ env:
   PYTHON_VERSION: '3.11'
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python - version: ['3.9', '3.10', '3.11']
+        python-version: ['3.9', '3.10', '3.11']
     steps:
-      - uses: actions / checkout @ v4
+      - uses: actions/checkout@v4
         with:
+          fetch-depth: 0
 """
         )
-        fetch - depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
