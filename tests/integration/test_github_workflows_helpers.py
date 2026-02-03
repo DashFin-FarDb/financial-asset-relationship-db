@@ -1,6 +1,6 @@
 """
 Unit tests for helper functions in test_github_workflows.py module.
-"""
+
 This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
@@ -75,32 +75,11 @@ class TestGetWorkflowFiles:
         yaml_file = workflows_dir / "test.yaml"
         yaml_file.write_text("name: Test")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "test.yaml"
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-yaml_file.write_text("name: Test")
-
-with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    result = get_workflow_files()
-    assert len(result) == 1
-    assert result[0].name == "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
+        yaml_file.write_text("name: Test")       
 
     def test_finds_both_yml_and_yaml(self, tmp_path):
         """Test that both .yml and .yaml files are found together."""
