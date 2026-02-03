@@ -1,11 +1,6 @@
-"""
-Validation tests for requirements changes.
-"""
+"""Validation tests for requirements changes."""
 
-import subprocess
 from pathlib import Path
-
-import pytest
 
 
 class TestRequirementsDocumentation:
@@ -31,9 +26,7 @@ class TestRequirementsDocumentation:
 
     @staticmethod
     def test_pyyaml_purpose_documented():
-        """
-        Verify PyYAML addition has comment explaining purpose.
-        """
+        """Verify PyYAML addition has comment explaining purpose."""
         req_dev_path = Path("requirements-dev.txt")
         with open(req_dev_path, "r") as f:
             content = f.read()
