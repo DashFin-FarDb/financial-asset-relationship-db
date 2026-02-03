@@ -222,17 +222,17 @@ float_val: 3.14
 
 
 script: |
-    echo "line 1"
-    echo "line 2"
-    echo "line 3"
-        yaml_content = """
+ echo "line 1"
+  echo "line 2"
+   echo "line 3"
+     yaml_content = """
 script: |
   echo "line 1"
   echo "line 2"
   echo "line 3"
 """
-        yaml_file = tmp_path / "multiline.yml"
-        yaml_file.write_text(yaml_content)
+      yaml_file = tmp_path / "multiline.yml"
+       yaml_file.write_text(yaml_content)
 
         result = load_yaml_safe(yaml_file)
         assert "line 1" in result["script"]
@@ -365,23 +365,23 @@ def test_github_actions_pr_agent_scenario(self, test_data_path):
 # new file: tests/integration/data/pr_agent.yml
 name: PR Agent
 on:
-  pull_request:
+    pull_request:
 jobs:
-  review:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+    review:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+                uses: actions/checkout@v4
 
-        result = check_duplicate_keys(yaml_file)
-        assert isinstance(result, list)
+                result = check_duplicate_keys(yaml_file)
+                assert isinstance(result, list)
 
-    def test_detects_duplicate_in_list_of_mappings(self, tmp_path):
-        """Test detection of duplicates within a mapping that's in a list."""
-  - key: value1
-    key: value2
-  - key: value1
-    key: value2
+        def test_detects_duplicate_in_list_of_mappings(self, tmp_path):
+            """Test detection of duplicates within a mapping that's in a list."""
+    - key: value1
+        key: value2
+    - key: value1
+        key: value2
 """
         yaml_file = tmp_path / "list_dup.yml"
         yaml_file.write_text(yaml_content)
@@ -426,10 +426,10 @@ class TestIntegrationScenarios:
 name: Valid Workflow
 on: push
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 """
         )
         # fmt: on
@@ -442,8 +442,8 @@ name: Duplicate Workflow
 name: Another Name
 on: push
 jobs:
-  test:
-    runs-on: ubuntu-latest
+    test:
+        runs-on: ubuntu-latest
 """
         )
         # fmt: on
@@ -507,18 +507,18 @@ jobs:
       - name: Run tests
         run: pytest tests/ --cov
 """
-        # fmt: on
+            # fmt: on
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            workflows = get_workflow_files()
-            assert len(workflows) == 1
+ with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+      workflows = get_workflow_files()
+       assert len(workflows) == 1
 
-            config = load_yaml_safe(workflows[0])
-            assert config["name"] == "Complex CI/CD"
-            assert "push" in config["on"]
-            assert "pull_request" in config["on"]
-            assert "strategy" in config["jobs"]["test"]
-            assert "matrix" in config["jobs"]["test"]["strategy"]
+        config = load_yaml_safe(workflows[0])
+        assert config["name"] == "Complex CI/CD"
+        assert "push" in config["on"]
+        assert "pull_request" in config["on"]
+        assert "strategy" in config["jobs"]["test"]
+        assert "matrix" in config["jobs"]["test"]["strategy"]
 
-            duplicates = check_duplicate_keys(workflows[0])
-            assert len(duplicates) == 0
+        duplicates = check_duplicate_keys(workflows[0])
+        assert len(duplicates) == 0
