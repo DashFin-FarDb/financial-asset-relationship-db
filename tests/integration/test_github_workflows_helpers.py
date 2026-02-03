@@ -174,7 +174,7 @@ class TestLoadYamlSafe:
         yaml_content = """
 items:
   - name: first
-  value: 1
+    value: 1
   - name: second
   value: 2
 """
