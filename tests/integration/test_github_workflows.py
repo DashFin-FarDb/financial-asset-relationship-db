@@ -2925,6 +2925,8 @@ class TestWorkflowScheduledExecutionBestPractices:
                         f"frequently ('{cron}'); minimum allowed interval is "
                         f"every 15 minutes."
                     )
+
+
 if "schedule" in triggers:
     schedules = triggers["schedule"]
     for schedule in schedules:
