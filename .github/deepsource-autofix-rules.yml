@@ -124,17 +124,6 @@ pattern: '([\w-]+/[\w-]+)\s*@\s*([\w.-]+)'
       - '*.py'
     scope: yaml_strings
 
-  - id: fix-yaml-action-slash-spacing
-    name: Fix "owner / repo" to "owner/repo" in uses statements
-    description: Corrects malformed action references with spaces around slashes
-    pattern: '(uses:\s*[\w-]+)\s*/\s*([\w-]+)'
-    replacement: '\1/\2'
-    file_types:
-      - '*.yml'
-      - '*.yaml'
-      - '*.py'
-    scope: yaml_strings
-
 metadata:
   created: 2026-02-03
   purpose: |
