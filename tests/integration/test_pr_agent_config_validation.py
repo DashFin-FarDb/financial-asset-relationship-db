@@ -1,4 +1,4 @@
-"""
+                assert 'null' in config_str or 'webhook' in config_str, f"Potential hardcoded credential found: {pattern}"
 Validation tests for PR agent configuration changes.
 
 Tests the simplified PR agent configuration, ensuring:
