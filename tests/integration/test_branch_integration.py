@@ -27,8 +27,7 @@ class TestWorkflowConsistency:
         Only files from the internal list are considered; files that are not present are omitted from the result.
         """
 
-    @staticmethod
-    def all_workflows():
+    def all_workflows(self):
         """
         Returns:
             dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
@@ -256,92 +255,103 @@ class TestRemovedFilesIntegration:
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
 
-    @staticmethod
-    def test_all_workflows_avoid_pr_injection():
+    def test_all_workflows_avoid_pr_injection(self):
         """
-        Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
+        Scan all workflow YAMLs for patterns that may allow PR title or body
+        content to be injected into shell or command contexts.
 
-        Searches files under .github / workflows for uses of pull request or issue title / body in contexts that could enable injection(for example, piping into shell commands or usage within command substitution) and fails the test on any definite matches.
+        Searches files under .github/workflows for uses of pull request or
+        issue title/body in contexts that could enable injection (for example,
+        piping into shell commands or usage within command substitution).
         """
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
-        dangerous = [
-            r"\$\{\{.*github\\.event\\.pull_request\\.title.*\}\}.*\|",
+
+        dangerous_patterns = [
+            r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
             r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
             r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
         ]
+
         for wf_file in workflow_files:
-            content = wf_file.read_text()
-            for pattern in dangerous:
+            content = wf_file.read_text(encoding="utf-8")
+            for pattern in dangerous_patterns:
                 matches = re.findall(pattern, content)
                 if matches:
-                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
-        return
+                    pytest.fail(
+                        f"Potential injection risk in {wf_file}: {matches}"
+                    )
 
-    @staticmethod
-    def test_workflows_use_appropriate_checkout_refs():
+    def test_workflows_use_appropriate_checkout_refs(self):
         """
-        Verify workflows triggered by pull_request_target specify a safe checkout reference.
+        Verify workflows triggered by pull_request_target specify a safe
+        checkout configuration.
 
-        For .github / workflows / pr - agent.yml and .github / workflows / apisec - scan.yml, if the workflow's triggers include
-        `pull_request_target` this test asserts every `actions / checkout` step supplies either a `ref` or a `fetch - depth`
-        in its `with ` configuration; failure indicates an unsafe checkout configuration.
+        For the specified workflows, if pull_request_target is present in
+        the trigger configuration, this test asserts that every
+        actions/checkout step supplies either an explicit ref or a
+        constrained fetch-depth in its `with` configuration.
         """
         workflow_files = [
-            ".github/workflows/pr-agent.yml",
-            ".github/workflows/apisec-scan.yml",
+            Path(".github/workflows/pr-agent.yml"),
+            Path(".github/workflows/apisec-scan.yml"),
         ]
+
         for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
-                workflow = yaml.safe_load(f)
+            assert wf_file.exists(), f"Workflow file not found: {wf_file}"
 
-            trigger = workflow.get("on", {})
-            uses_pr_target = "pull_request_target" in trigger
+            workflow = yaml.safe_load(wf_file.read_text(encoding="utf-8"))
 
-            if uses_pr_target:
-                # Should checkout with explicit ref
-                for job in workflow.get("jobs", {}).values():
-                    for step in job.get("steps", []):
-                        if "actions/checkout" in step.get("uses", ""):
-                            with_config = step.get("with", {})
-                            # Should have ref or token specified
-                            assert (
-                                "ref" in with_config or "fetch-depth" in with_config
-                            ), (
-                                f"{wf_file}: Checkout in pull_request_target should specify safe ref"
-                            )
+            triggers = workflow.get("on", {})
+            uses_pr_target = (
+                triggers == "pull_request_target"
+                or "pull_request_target" in triggers
+            )
+
+            if not uses_pr_target:
+                continue
+
+            for job in workflow.get("jobs", {}).values():
+                for step in job.get("steps", []):
+                    if "actions/checkout" in step.get("uses", ""):
+                        with_config = step.get("with", {})
+                        assert (
+                            "ref" in with_config or "fetch-depth" in with_config
+                        ), (
+                            f"{wf_file}: actions/checkout used under "
+                            "pull_request_target without a constrained ref "
+                            "or fetch-depth"
+                        )
 
 
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
-    @staticmethod
-    def test_simplification_theme_consistent():
+    def test_simplification_theme_consistent(self):
         """
         Ensure selected workflows adhere to the branch's simplification theme.
 
-        Checks that each workflow in the predefined list does not exceed its maximum allowed line count and fails the test if any file is longer than its threshold.
+        Each workflow in the predefined list must not exceed its maximum
+        allowed line count. The test fails if any existing file exceeds
+        its threshold.
         """
-        # This branch should simplify, not add complexity
-
-        # Check workflow line counts decreased
         workflows_to_check = [
-            (".github/workflows/pr-agent.yml", 200),  # Should be under 200 lines
-            (".github/workflows/label.yml", 30),  # Should be under 30 lines
-            (".github/workflows/greetings.yml", 20),  # Should be under 20 lines
+            (Path(".github/workflows/pr-agent.yml"), 200),
+            (Path(".github/workflows/label.yml"), 30),
+            (Path(".github/workflows/greetings.yml"), 20),
         ]
 
-        for wf_file, max_lines in workflows_to_check:
-            path = Path(wf_file)
-            if path.exists():
-                with open(wf_file, "r") as f:
-                    line_count = len(f.readlines())
+        for path, max_lines in workflows_to_check:
+            if not path.exists():
+                continue
 
-                assert line_count <= max_lines, (
-                    f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
-                )
+            content = path.read_text(encoding="utf-8")
+            line_count = content.count("\n") + 1 if content else 0
 
-    @staticmethod
-    def test_removed_complexity_not_referenced():
+            assert line_count <= max_lines, (
+                f"{path}: {line_count} lines exceeds allowed maximum of {max_lines}"
+            )
+
+    def test_removed_complexity_not_referenced(self):
         """
         Assert that removed complexity indicators are not referenced in workflow files.
 
@@ -375,8 +385,7 @@ class TestBranchCoherence:
                                 f"{wf_file} still references removed feature: {feature}"
                             )
 
-    @staticmethod
-    def test_branch_reduces_dependencies_on_external_config():
+    def test_branch_reduces_dependencies_on_external_config(self):
         """
         Verify the branch no longer depends on removed external configuration and limits workflow references to external files.
 
@@ -412,8 +421,7 @@ class TestBranchCoherence:
 class TestBranchQuality:
     """Test overall quality of branch changes."""
 
-    @staticmethod
-    def test_all_modified_workflows_parse_successfully():
+    def test_all_modified_workflows_parse_successfully(self):
         """
         Assert at least one workflow exists and each YAML file in .github / workflows parses to a mapping containing a 'jobs' key.
 
@@ -435,8 +443,7 @@ class TestBranchQuality:
             except Exception as e:
                 pytest.fail(f"Failed to parse {wf_file}: {e}")
 
-    @staticmethod
-    def test_no_merge_conflict_markers():
+    def test_no_merge_conflict_markers(self):
         """
         Ensure specified files do not contain Git merge conflict markers.
 
@@ -465,8 +472,7 @@ class TestBranchQuality:
                         f"{file_path} contains merge conflict marker: {marker}"
                     )
 
-    @staticmethod
-    def test_consistent_indentation_across_workflows():
+    def test_consistent_indentation_across_workflows(self):
         """
         Check that every workflow YAML file uses consistent 2 - space indentation.
 
