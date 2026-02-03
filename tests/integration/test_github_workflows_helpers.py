@@ -233,9 +233,9 @@ script: |
     echo "line 3"
         yaml_content = """
 script: |
-echo "line 1"
-echo "line 2"
-echo "line 3"
+  echo "line 1"
+  echo "line 2"
+  echo "line 3"
 """
         yaml_file = tmp_path / "multiline.yml"
         yaml_file.write_text(yaml_content)
