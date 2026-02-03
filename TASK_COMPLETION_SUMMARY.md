@@ -199,6 +199,6 @@ pytest tests/integration/test_github_workflows_helpers.py -v
 
 ---
 
-**Completed**: February 3, 2026  
-**PR Branch**: `copilot/fix-literal-tokens-in-yaml`  
+**Completed**: February 3, 2026
+**PR Branch**: `copilot/fix-literal-tokens-in-yaml`
 **Status**: Ready for merge
