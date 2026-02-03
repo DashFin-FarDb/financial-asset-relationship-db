@@ -59,25 +59,30 @@ class FormulaicVisualizer:
     # Stub plotting methods (safe for tests, CI, and radarlint)
     # ------------------------------------------------------------------
 
-    def _plot_category_distribution(self, fig: go.Figure, formulas: Any) -> None:
+    @staticmethod
+    def _plot_category_distribution(fig: go.Figure, formulas: Any) -> None:
         """Stub: implemented in production."""
         _ = fig, formulas
 
-    def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
+    @staticmethod
+    def _plot_reliability(fig: go.Figure, formulas: Any) -> None:
         """Stub: implemented in production."""
         _ = fig, formulas
 
+    @staticmethod
     def _plot_empirical_correlation(
-        self, fig: go.Figure, empirical_relationships: Mapping[str, Any]
+        fig: go.Figure, empirical_relationships: Mapping[str, Any]
     ) -> None:
         """Stub: implemented in production."""
         _ = fig, empirical_relationships
 
-    def _plot_asset_class_relationships(self, fig: go.Figure, formulas: Any) -> None:
+    @staticmethod
+    def _plot_asset_class_relationships(fig: go.Figure, formulas: Any) -> None:
         """Stub: implemented in production."""
         _ = fig, formulas
 
-    def _plot_sector_analysis(self, fig: go.Figure, formulas: Any) -> None:
+    @staticmethod
+    def _plot_sector_analysis(fig: go.Figure, formulas: Any) -> None:
         """Stub: implemented in production."""
         _ = fig, formulas
 
