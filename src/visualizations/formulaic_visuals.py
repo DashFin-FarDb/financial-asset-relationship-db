@@ -67,8 +67,7 @@ class FormulaicVisualizer:
                 for row, cols in empirical_relationships.items():
                     row_key = str(row)
                     matrix[row_key] = {
-                        str(col): float(val)
-                        for col, val in cols.items()
+                        str(col): float(val) for col, val in cols.items()
                     }
             else:
                 for key, value in empirical_relationships.items():
@@ -83,9 +82,8 @@ class FormulaicVisualizer:
                     r, c = str(row), str(col)
                     matrix.setdefault(r, {})[c] = float(value)
                     matrix.setdefault(c, {})[r] = float(value)
-        elif (
-            hasattr(empirical_relationships, "index")
-            and hasattr(empirical_relationships, "columns")
+        elif hasattr(empirical_relationships, "index") and hasattr(
+            empirical_relationships, "columns"
         ):
             for row in empirical_relationships.index:
                 for col in empirical_relationships.columns:
@@ -257,7 +255,9 @@ class FormulaicVisualizer:
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
         """Create a network graph showing asset correlations."""
-        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
+        strongest_correlations = empirical_relationships.get(
+            "strongest_correlations", []
+        )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {}) or {}
 
         # Empty state
@@ -398,7 +398,7 @@ class FormulaicVisualizer:
                 xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 template="plotly_white",
-            )
+            ),
         )
         return fig
         return FormulaicVisualizer._create_empty_correlation_figure()
@@ -408,36 +408,36 @@ class FormulaicVisualizer:
             correlation_matrix,
         )
 
-    @ staticmethod
+    @staticmethod
     def create_metric_comparison_chart(
         analysis_results: Dict[str, Any],
     ) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
         # Example logic: Compare theoretical vs empirical values if available
         # For now, we plot R-squared distribution by category
-        formulas=analysis_results.get("formulas", [])
+        formulas = analysis_results.get("formulas", [])
         if not formulas:
             return go.Figure()
 
-        categories={}
+        categories = {}
         for f in formulas:
             if f.category not in categories:
-                categories[f.category]=[]
+                categories[f.category] = []
             categories[f.category].append(f.r_squared)
 
-        fig=go.Figure()
+        fig = go.Figure()
 
         # Create bar chart for each category
-        category_names=list(categories.keys())
-        r_squared_by_category=[]
-        formula_counts=[]
+        category_names = list(categories.keys())
+        r_squared_by_category = []
+        formula_counts = []
 
         for category in category_names:
-            category_formulas=categories[category]
+            category_formulas = categories[category]
             if category_formulas:
-                avg_r_squared=sum(category_formulas) / len(category_formulas)
+                avg_r_squared = sum(category_formulas) / len(category_formulas)
             else:
-                avg_r_squared=0.0
+                avg_r_squared = 0.0
             r_squared_by_category.append(avg_r_squared)
             formula_counts.append(len(category_formulas))
 
