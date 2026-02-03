@@ -252,7 +252,7 @@ class TestDocumentationConsistency:
                         and "deprecated" not in context_text
                     ):
                         # Might still have it, which is okay if historical
-                        self.fail(
+                        pytest.fail(
                             f"README references removed chunking feature outside removed/deprecated context at line {line_num}: {line.strip()}"
                         )
 
