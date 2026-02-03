@@ -20,7 +20,7 @@ class FormulaicVisualizer:
     including creating dashboards, plotting reliability, and normalizing empirical relationships.
     """
 
-     def __init__(self):
+def __init__(self):
         self.color_scheme = {
             "Valuation": "#FF6B6B",
             "Income": "#4ECDC4",
