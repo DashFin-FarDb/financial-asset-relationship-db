@@ -224,7 +224,7 @@ class TestRemovedFilesIntegration:
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
         with open(".github/workflows/pr-agent.yml", "r") as f:
-            workflow = yaml.safe_load(f)
+            yaml.safe_load(f)
             # Add further assertions here as needed
             content = f.read()
 
