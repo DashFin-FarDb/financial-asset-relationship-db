@@ -116,11 +116,8 @@ rules:
       - '*.py'
     scope: yaml_strings
 
-  - id: fix-yaml-action-version-at-sign
-    name: Fix "action @ version" to "action@version"
-    description: Corrects malformed action version reference with spaces around @ sign
-    pattern: '([\w-]+/[\w-]+)\s*@\s*([\w.-]+)'
-    replacement: '\1@\2'
+pattern: '([\w-]+/[\w-]+)\s*@\s*([\w.-]+)'
+      replacement: '\1@\2'
     file_types:
       - '*.yml'
       - '*.yaml'
