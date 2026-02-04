@@ -36,8 +36,6 @@ def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
         with open(file_path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
-            for line in f:
-                line = line.strip()
 
                 if not line or line.startswith("#"):
                     continue
