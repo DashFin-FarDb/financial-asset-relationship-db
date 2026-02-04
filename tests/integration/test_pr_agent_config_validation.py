@@ -1,7 +1,7 @@
 # Top-level secret placeholder checks are performed within dedicated tests, not at import time.
 
 import pytest
-import ruamel.yaml
+from pathlib import Path
 import yaml
 
 assert "null" in config_str or "webhook" in config_str, (
