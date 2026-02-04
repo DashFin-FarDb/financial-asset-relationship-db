@@ -819,7 +819,7 @@ class TestRequirementsDevValidation:
             if main_spec and dev_spec != main_spec:
                 conflicts.append(f"{pkg}: dev='{dev_spec}' vs main='{main_spec}'")
 
-        assert not conflicts, f"Version conflicts: {conflicts}"}
+        assert not conflicts, f"Version conflicts: {conflicts}"
 
 class TestWorkflowDocumentationConsistency:
     """Test that workflow changes are properly documented."""

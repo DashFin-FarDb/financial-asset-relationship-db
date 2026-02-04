@@ -391,12 +391,11 @@ class TestWorkflowSecurityBestPractices:
             dangerous_patterns = [
                 "password:",
                 "api_key:",
-            ]
-            for pattern in dangerous_patterns:
-                assert pattern not in content, f"Found hardcoded secret pattern: {pattern} in {workflow_file}"
                 "token:",
                 "secret:",
             ]
+            for pattern in dangerous_patterns:
+                assert pattern not in content, f"Found hardcoded secret pattern: {pattern} in {workflow_file}"
 
             for pattern in dangerous_patterns:
                 # Allow if it's using secrets context
