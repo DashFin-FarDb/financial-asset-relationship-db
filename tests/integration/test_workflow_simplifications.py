@@ -9,7 +9,7 @@ This test module specifically validates the changes made in the current branch:
 - Simplification of pr-agent-config.yml
 
 These tests ensure the simplified workflows function correctly and that
-"""
+
 removed complexity does not inadvertently reappear.
 """
 
@@ -257,14 +257,10 @@ class TestLabelerWorkflowSimplification:
     def labeler_workflow(self) -> Dict[str, Any]:
         """Load label.yml workflow."""
         pass
-            Path(__file__).parents[1]
+            Path(__file__).parent.parent.parent
             / ".github"
             / "workflows"
             / "label.yml"
-        )
-        with workflow_path.open() as f:
-            return yaml.safe_load(f)
-            Path(__file__).parent.parent.parent / ".github" / "workflows" / "label.yml"
         )
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
