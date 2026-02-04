@@ -621,6 +621,5 @@ class TestPyYAMLIntegration:
         except ImportError:
             pytest.skip(
                 "PyYAML is not installed, skipping import test"
-            )
                 "PyYAML not installed in test environment (will be installed from requirements)"
             )
