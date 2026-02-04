@@ -11,7 +11,7 @@ Does not cause any regressions or broken references.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Dict, List, Union
 
 import pytest
 import yaml
