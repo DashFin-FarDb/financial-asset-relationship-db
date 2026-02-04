@@ -182,8 +182,15 @@ class TestRemovedFilesIntegration:
 
         steps = workflow["jobs"]["label"]["steps"]
         labeler_step = steps[0]
-
-        assert "actions/labeler" in labeler_step["uses"]
+        labeler_step = next(
+            (
+                step
+                for step in steps
+                if "uses" in step and "actions/labeler" in step["uses"]
+            ),
+            None,
+        )
+        assert labeler_step is not None, "Label workflow is missing an actions/labeler step"
         with_config = labeler_step.get("with", {})
         assert (
             "config-path" not in with_config
