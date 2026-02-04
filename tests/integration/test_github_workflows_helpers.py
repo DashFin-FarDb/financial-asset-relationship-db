@@ -443,6 +443,7 @@ jobs:
                     assert len(duplicates) > 0
                     assert "name" in duplicates
 
+
 def test_edge_case_workflow_with_complex_structure(self, tmp_path):
     """Test handling of complex real - world workflow structure."""
     workflows_dir = tmp_path / "workflows"
@@ -456,48 +457,48 @@ def test_edge_case_workflow_with_complex_structure(self, tmp_path):
         "    fetch-depth: 0\n")
 name: Complex CI / CD
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    """
-    types: [opened, synchronize]
-    env:
-      NODE_VERSION: '18'
-      PYTHON_VERSION: '3.11'
-    jobs:
-      test:
-        runs-on: ubuntu-latest
-        strategy:
-          matrix:
-            python-version: ['3.9', '3.10', '3.11']
-        steps:
-          - uses: actions/checkout@v4
-            with:
-              fetch-depth: 0
-          - name: Setup Python
-            uses: actions/setup-python@v5
-            with:
-              python-version: ${{ matrix.python-version }}
-              cache: 'pip'
-          - name: Install dependencies
-            run: |
-              pip install -r requirements.txt
-              pip install -r requirements-dev.txt
-          - name: Run tests
-            run: pytest tests/ --cov
-    """
+    push:
+        branches: [main, develop]
+    pull_request:
+        """
+        types: [opened, synchronize]
+        env:
+          NODE_VERSION: '18'
+          PYTHON_VERSION: '3.11'
+        jobs:
+          test:
+            runs-on: ubuntu-latest
+            strategy:
+              matrix:
+                python-version: ['3.9', '3.10', '3.11']
+            steps:
+              - uses: actions/checkout@v4
+                with:
+                  fetch-depth: 0
+              - name: Setup Python
+                uses: actions/setup-python@v5
+                with:
+                  python-version: ${{ matrix.python-version }}
+                  cache: 'pip'
+              - name: Install dependencies
+                run: |
+                  pip install -r requirements.txt
+                  pip install -r requirements-dev.txt
+              - name: Run tests
+                run: pytest tests/ --cov
+        """
             # fmt: on
 
 with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    workflows=get_workflow_files()
+    workflows = get_workflow_files()
     assert len(workflows) == 1
 
-    config=load_yaml_safe(workflows[0])
+    config = load_yaml_safe(workflows[0])
     assert config["name"] == "Complex CI/CD"
     assert "push" in config["on"]
     assert "pull_request" in config["on"]
     assert "strategy" in config["jobs"]["test"]
     assert "matrix" in config["jobs"]["test"]["strategy"]
 
-    duplicates=check_duplicate_keys(workflows[0])
+    duplicates = check_duplicate_keys(workflows[0])
     assert len(duplicates) == 0
