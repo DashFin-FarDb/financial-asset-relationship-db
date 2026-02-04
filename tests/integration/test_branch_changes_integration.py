@@ -396,10 +396,18 @@ class TestGitHubActionsEcosystem:
 
         # Each workflow should be mentioned somewhere
         for workflow in workflows:
-            _ = (
-                workflow.lower() in all_docs_content
-                or workflow.replace("-", " ").lower() in all_docs_content
-            )
+        undocumented = [
+            workflow
+            for workflow in workflows
+            if workflow.lower() not in all_docs_content
+            and workflow.replace("-", " ").lower() not in all_docs_content
+        ]
+
+        # This is a soft requirement (not all workflows need docs)
+        # but at least one should be documented for discoverability
+        assert len(undocumented) < len(
+            workflows
+        ), "At least one workflow should be referenced in the documentation"
 
             # This is a soft requirement (not all workflows need docs)
             # but it's good practice
