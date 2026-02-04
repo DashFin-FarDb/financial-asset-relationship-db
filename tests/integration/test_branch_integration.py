@@ -181,7 +181,6 @@ class TestRemovedFilesIntegration:
             workflow = yaml.safe_load(file_handle)
 
         steps = workflow["jobs"]["label"]["steps"]
-        labeler_step = steps[0]
         labeler_step = next(
             (
                 step
