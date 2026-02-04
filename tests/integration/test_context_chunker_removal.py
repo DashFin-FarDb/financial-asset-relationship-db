@@ -117,8 +117,8 @@ class TestConfigurationCleanup:
         )
 
         version = config["agent"]["version"]
-        assert version == "1.1.0", (
-            f"PR agent config version should be 1.1.0, found {version}"
+        assert version == "1.0.0", (
+            f"PR agent config version should be 1.0.0, found {version}"
         )
 
 
