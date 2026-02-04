@@ -176,8 +176,9 @@ class TestRequirementsDevUpdates:
         """requirements-dev.txt entries should include version specifiers when present."""
         req_path = Path("requirements-dev.txt")
         if not req_path.is_file():
+            import pytest
             # If the dev requirements file is not present in this branch, skip the format check.
-            return
+            pytest.skip("requirements-dev.txt not present; skipping format check")
 
         with open(req_path, "r", encoding="utf-8") as handle:
             for line in handle:
