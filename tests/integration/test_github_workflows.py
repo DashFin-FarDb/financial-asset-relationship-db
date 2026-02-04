@@ -644,9 +644,9 @@ class TestWorkflowStepConfiguration:
             for idx, step in enumerate(steps):
                 if "working-directory" in step:
                     working_dir = step["working-directory"]
-                        working_dir = step["working-directory"]
-                        assert not Path(working_dir).is_absolute(), (
-                            f"Step {idx} in job '{job_name}' of {workflow_file.name} "
+                    working_dir = step["working-directory"]
+                    assert not Path(working_dir).is_absolute(), (
+                        f"Step {idx} in job '{job_name}' of {workflow_file.name} "
                     )
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
