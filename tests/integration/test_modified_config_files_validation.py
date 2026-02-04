@@ -149,6 +149,8 @@ def workflows_dir() -> Path:
     return Path(__file__).parent.parent.parent / ".github" / "workflows"
 
 
+
+
 def test_pr_agent_workflow_simplified(workflows_dir: Path):
     """
     Validate that the PR Agent GitHub Actions workflow has been simplified.
@@ -169,6 +171,8 @@ def test_pr_agent_workflow_simplified(workflows_dir: Path):
     )
 
     # Should have simplified Python dependency installation
+
+
     assert "pip install" in content
     assert "requirements.txt" in content
 
@@ -207,12 +211,12 @@ def test_label_workflow_simplified(workflows_dir: Path):
 
     with open(workflow_file, "r") as f:
         content = f.read()
-
     # Should be simple and not check for config existence
+
+
 
     assert "check-config" not in content.lower()
     assert "labeler.yml not found" not in content
-
 
 def test_greetings_workflow_simple_messages(workflows_dir: Path):
     """Verify greetings workflow has simple placeholder messages."""
