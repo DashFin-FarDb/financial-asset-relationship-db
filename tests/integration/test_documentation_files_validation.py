@@ -64,7 +64,7 @@ def test_markdown_tables_are_properly_formatted() -> None:
 
 
 def test_no_broken_markdown_links(
-    self, markdown_files: List[Path], doc_root: Path
+    markdown_files: List[Path] = markdown_files, doc_root: Path = Path()
 ) -> None:
     """Verify that internal markdown links point to existing files."""
     link_pattern = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
