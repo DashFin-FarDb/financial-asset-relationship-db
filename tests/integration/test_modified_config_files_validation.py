@@ -173,6 +173,8 @@ def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     """
 
 
+
+
     Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
 
     Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
@@ -186,6 +188,8 @@ def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     # Should not have "if: secrets.apisec_username != ''" type conditions
     assert "apisec_username != ''" not in content
     assert "apisec_password != ''" not in content
+
+
 def test_label_workflow_simplified(workflows_dir: Path):
     """
 
@@ -201,6 +205,8 @@ def test_label_workflow_simplified(workflows_dir: Path):
         content = f.read()
 
     # Should be simple and not check for config existence
+
+
     assert "check-config" not in content.lower()
     assert "labeler.yml not found" not in content
 def test_greetings_workflow_simple_messages(workflows_dir: Path):

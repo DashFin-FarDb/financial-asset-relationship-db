@@ -18,7 +18,9 @@ import pytest
 import yaml
 
 
+
 class TestWorkflowConsistency:
+
     """Test consistency across all modified workflows."""
 
     @pytest.fixture
