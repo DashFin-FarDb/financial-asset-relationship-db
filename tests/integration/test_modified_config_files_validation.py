@@ -207,6 +207,8 @@ def test_label_workflow_simplified(workflows_dir: Path):
     assert "labeler.yml not found" not in content
 
 
+
+
 def test_greetings_workflow_simple_messages(workflows_dir: Path):
     """Verify greetings workflow has simple placeholder messages."""
     workflow_file = workflows_dir / "greetings.yml"
