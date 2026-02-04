@@ -395,7 +395,7 @@ class TestPRAgentConfigSecurity:
             walk_and_check_config(pr_agent_config)
 
 
-def test_safe_configuration_values(self, pr_agent_config):
+def test_safe_configuration_values(pr_agent_config: dict[str, object]) -> None:
     """
     Assert that key numeric limits in the PR agent configuration fall within safe bounds.
 
@@ -410,39 +410,39 @@ def test_safe_configuration_values(self, pr_agent_config):
     assert limits["max_execution_time"] <= 3600, "Execution time too high"
     assert limits["max_concurrent_prs"] <= 10, "Too many concurrent PRs"
     assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
-    """Test that complex features were properly removed."""
 
-    @pytest.fixture
-    def pr_agent_config_content(self):
-        """
-        Return the contents of .github / pr - agent - config.yml as a string.
 
-        """
-        """
-        Reads the PR agent configuration file from the repository root and returns its raw text.
+@pytest.fixture
+def pr_agent_config_content() -> str:
+    """
+    Read and return the raw contents of .github/pr-agent-config.yml.
 
-        Returns:
-            str: Raw YAML content of .github / pr - agent - config.yml.
-        """
-        config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
-            return f.read()
+    Returns:
+        str: Raw YAML content of .github/pr-agent-config.yml.
+    """
+    config_path = Path(".github/pr-agent-config.yml")
+    with open(config_path, "r", encoding="utf-8") as f:
+        return f.read()
 
-    def test_no_summarization_settings(self, pr_agent_config_content):
-        """Verify summarization settings removed."""
-        assert "summarization" not in pr_agent_config_content.lower()
-        assert "max_summary_tokens" not in pr_agent_config_content
 
-    def test_no_token_management(self, pr_agent_config_content):
-        """Verify token management settings removed."""
-        assert "max_tokens" not in pr_agent_config_content
-        assert "context_length" not in pr_agent_config_content
+def test_no_summarization_settings(pr_agent_config_content: str) -> None:
+    """Verify summarization settings have been removed from the configuration."""
+    assert "summarization" not in pr_agent_config_content.lower()
+    assert "max_summary_tokens" not in pr_agent_config_content
 
-    def test_no_llm_model_references(self, pr_agent_config_content):
-        """
-        Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
 
-        Parameters:
+def test_no_token_management(pr_agent_config_content: str) -> None:
+    """Verify token management settings have been removed from the configuration."""
+    assert "max_tokens" not in pr_agent_config_content
+    assert "context_length" not in pr_agent_config_content
+
+
+def test_no_llm_model_references(pr_agent_config_content: str) -> None:
+    """
+    Ensure no explicit LLM model identifiers appear in the raw PR agent configuration.
+
+    Parameters:
+        pr_agent_config_content (str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
             pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
         """
         assert "gpt-3.5-turbo" not in pr_agent_config_content
