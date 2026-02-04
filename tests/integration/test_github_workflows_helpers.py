@@ -25,9 +25,10 @@ from tests.integration.test_github_workflows import (
 class TestGetWorkflowFiles:
     """Test suite for get_workflow_files() function."""
 
+
     @pytest.fixture
-    @staticmethod
     def test_returns_list():
+
         """Test that get_workflow_files returns a list."""
         result = get_workflow_files()
         assert isinstance(result, list)
