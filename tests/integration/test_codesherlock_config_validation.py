@@ -398,7 +398,7 @@ class TestCodeSherlockConfigIntegration:
              f"Critical characteristics for financial applications are missing: {missing_critical}"
          )
 
- class TestCodeSherlockConfigDocumentation:
+class TestCodeSherlockConfigDocumentation:
      """Test suite for documentation and comments in codesherlock.yaml."""
 
      def test_config_has_inline_documentation(self, codesherlock_config_path: Path):
