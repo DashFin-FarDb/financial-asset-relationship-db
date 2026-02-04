@@ -11,6 +11,9 @@ try:
 except Exception:
     TIKTOKEN_AVAILABLE = False
 
+# Default configuration file path for PR agent
+DEFAULT_CONFIG_PATH = Path(".github/pr-agent-config.yml")
+
 
 class ContextChunker:
     """
@@ -31,12 +34,12 @@ class ContextChunker:
         context_text, has_content = chunker.process_context(pr_payload)
     """
 
-    def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
+    def __init__(self, config_path: Path | str = DEFAULT_CONFIG_PATH) -> None:
         """
         Initialize a ContextChunker for PR agent context chunking.
 
         Args:
-            config_path (str): Path to the YAML configuration file. Defaults to ".github/pr-agent-config.yml".
+            config_path (Path | str): Path to the YAML configuration file. Defaults to DEFAULT_CONFIG_PATH.
                 The file should contain configuration sections for 'agent.context' (chunking parameters)
                 and 'limits.fallback' (priority order for context elements).
 
