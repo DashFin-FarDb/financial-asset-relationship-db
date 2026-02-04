@@ -503,7 +503,7 @@ def test_edge_case_workflow_with_complex_structure(self, tmp_path):
                   pip install -r requirements-dev.txt
               - name: Run tests
                 run: pytest tests/ --cov
-     """
+    """
     # fmt: on
 
     from pathlib import Path
