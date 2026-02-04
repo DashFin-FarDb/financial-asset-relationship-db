@@ -1,4 +1,4 @@
-from pathlib import Path
+# Top-level secret placeholder checks are performed within dedicated tests, not at import time.
 
 import pytest
 import ruamel.yaml
