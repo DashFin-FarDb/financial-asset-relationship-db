@@ -371,9 +371,7 @@ class TestWorkflowsDirectoryConstant:
     """Test suite for WORKFLOWS_DIR constant."""
 
     @staticmethod
-    `@staticmethod`
-    `@pytest.fixture`
-
+    @pytest.fixture
     def test_workflows_dir_is_path_object():
         """Test that WORKFLOWS_DIR is a Path object."""
         assert isinstance(WORKFLOWS_DIR, Path)
@@ -394,8 +392,7 @@ class TestWorkflowsDirectoryConstant:
 class TestIntegrationScenarios:
     """Integration tests combining multiple helper functions."""
 
-    `@pytest.fixture`
-
+    @pytest.fixture
     def test_full_workflow_discovery_and_validation(self, tmp_path):
         """Test complete flow: discover workflows, load them, check for duplicates."""
         workflows_dir = tmp_path / "workflows"
