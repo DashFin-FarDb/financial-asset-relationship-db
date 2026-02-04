@@ -142,14 +142,13 @@ class TestPRAgentConfigChanges:
 class TestWorkflowSimplifications:
     """Validate simplifications made to GitHub workflows."""
 
-    @pytest.fixture
-    @staticmethod
-    def workflows_dir() -> Path:
-        """Get workflows directory."""
-        return Path(__file__).parent.parent.parent / ".github" / "workflows"
+
+@pytest.fixture
+def workflows_dir() -> Path:
+    """Get workflows directory."""
+    return Path(__file__).parent.parent.parent / ".github" / "workflows"
 
 
-@staticmethod
 def test_pr_agent_workflow_simplified(workflows_dir: Path):
     """
     Validate that the PR Agent GitHub Actions workflow has been simplified.
@@ -174,7 +173,6 @@ def test_pr_agent_workflow_simplified(workflows_dir: Path):
     assert "requirements.txt" in content
 
 
-@staticmethod
 def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     """
     Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
@@ -192,7 +190,6 @@ def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     assert "apisec_password != ''" not in content
 
 
-@staticmethod
 def test_label_workflow_simplified(workflows_dir: Path):
     """
     Validate that the label workflow uses a simplified configuration.
@@ -208,9 +205,6 @@ def test_label_workflow_simplified(workflows_dir: Path):
     # Should be simple and not check for config existence
     assert "check-config" not in content.lower()
     assert "labeler.yml not found" not in content
-
-
-@staticmethod
 def test_greetings_workflow_simple_messages(workflows_dir: Path):
     """Verify greetings workflow has simple placeholder messages."""
     workflow_file = workflows_dir / "greetings.yml"
