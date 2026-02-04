@@ -460,7 +460,6 @@ jobs:
                 assert len(duplicates) > 0
                 assert "name" in duplicates
 
-
     def test_edge_case_workflow_with_complex_structure(self, tmp_path):
         """Test handling of complex real - world workflow structure."""
         workflows_dir = tmp_path / "workflows"
@@ -507,7 +506,9 @@ jobs:
 
         workflows_dir = Path(__file__).parent / "workflows"
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             workflows = get_workflow_files()
             assert len(workflows) == 1
 
