@@ -25,7 +25,7 @@ from tests.integration.test_github_workflows import (
 class TestGetWorkflowFiles:
     """Test suite for get_workflow_files() function."""
 
-    @pytest.fixtures
+    `@pytest.fixture`
     @staticmethod
     def test_returns_list():
         """Test that get_workflow_files returns a list."""
