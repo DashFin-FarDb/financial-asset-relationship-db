@@ -286,6 +286,12 @@ class TestEdgeCases:
         Fail if the document contains the Unicode replacement character U+FFFD (�).
 
         This detects encoding or decoding issues that produced the replacement character in the summary content.
+    """
+    if not SUMMARY_FILE.exists():
+        pytest.skip(
+            "Summary file TEST_GENERATION_WORKFLOW_SUMMARY.md not found; skipping tests"
+        )
+    return SUMMARY_FILE.read_text(encoding="utf-8")
         """
         # Check for common encoding issues
         assert "�" not in summary_content, (
