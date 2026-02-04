@@ -35,7 +35,7 @@ def codesherlock_config(codesherlock_config_path: Path) -> Dict[str, Any]:
      with open(codesherlock_config_path, "r") as f:
          return yaml.safe_load(f)
 
- class TestCodeSherlockConfigStructure:
+class TestCodeSherlockConfigStructure:
      """Test suite for codesherlock.yaml configuration structure."""
 
      @staticmethod
