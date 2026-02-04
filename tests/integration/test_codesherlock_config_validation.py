@@ -398,6 +398,7 @@ class TestCodeSherlockConfigIntegration:
              f"Critical characteristics for financial applications are missing: {missing_critical}"
          )
 
+
 class TestCodeSherlockConfigDocumentation:
      """Test suite for documentation and comments in codesherlock.yaml."""
 
