@@ -188,8 +188,6 @@ def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     # Should not have "if: secrets.apisec_username != ''" type conditions
     assert "apisec_username != ''" not in content
     assert "apisec_password != ''" not in content
-
-
 def test_label_workflow_simplified(workflows_dir: Path):
     """
     Validate that the label workflow uses a simplified configuration.
