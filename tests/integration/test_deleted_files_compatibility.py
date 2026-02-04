@@ -154,9 +154,7 @@ class TestDeletedLabelerConfig:
         assert all(
             not line.strip() or line.lstrip().startswith("#")
             for line in content.splitlines()
-        ), (
-            "labeler.yml should be empty or comments only when labeler is disabled"
-        )
+        ), "labeler.yml should be empty or comments only when labeler is disabled"
 
     @staticmethod
     def test_label_workflow_still_functional() -> None:

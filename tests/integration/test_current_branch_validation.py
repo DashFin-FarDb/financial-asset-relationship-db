@@ -180,6 +180,7 @@ class TestRequirementsDevUpdates:
         req_path = Path("requirements-dev.txt")
         if not req_path.is_file():
             import pytest
+
             # If the dev requirements file is not present in this branch, skip the format check.
             pytest.skip("requirements-dev.txt not present; skipping format check")
 
