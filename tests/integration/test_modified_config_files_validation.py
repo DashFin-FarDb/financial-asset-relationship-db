@@ -171,8 +171,6 @@ def test_pr_agent_workflow_simplified(workflows_dir: Path):
     # Should have simplified Python dependency installation
     assert "pip install" in content
     assert "requirements.txt" in content
-
-
 def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     """
     Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
