@@ -116,14 +116,16 @@ rules:
       - '*.py'
     scope: yaml_strings
 
-pattern: '([\w-]+/[\w-]+)\s*@\s*([\w.-]+)'
-      replacement: '\1@\2'
+  - id: fix-yaml-action-version-at-sign
+    name: Fix spaces around @ in version specs
+    description: Removes spaces around @ in action version specifications (e.g., "@ v4" → "@v4")
+    pattern: '([\w-]+/[\w-]+)\s*@\s*([\w.-]+)'
+    replacement: '\1@\2'
     file_types:
       - '*.yml'
       - '*.yaml'
       - '*.py'
     scope: yaml_strings
-
 metadata:
   created: 2026-02-03
   purpose: |
