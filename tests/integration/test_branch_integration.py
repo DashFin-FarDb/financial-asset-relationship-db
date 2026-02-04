@@ -21,7 +21,7 @@ import yaml
 class TestWorkflowConsistency:
     """Test consistency across all modified workflows."""
 
-    `@pytest.fixture`
+    @pytest.fixture
 
     def all_workflows(self) -> Dict[str, Dict]:
         """Mapping from workflow path to parsed YAML dict."""
