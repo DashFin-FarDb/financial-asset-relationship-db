@@ -270,13 +270,27 @@ class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
     @pytest.fixture
-    def pr_agent_config(self):
+    def pr_agent_config(self) -> dict[str, object] | None:
         """
-        Load and parse the PR agent YAML configuration from .github / pr - agent - config.yml.
+        Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
 
         Returns:
-            The parsed YAML content as a Python mapping or sequence(typically a dict), or `None` if the file is empty.
+            The parsed YAML content as a Python mapping or sequence (typically a dict),
+            or `None` if the file is empty.
+        Raises:
+            AssertionError: Via pytest.fail if the file is missing or contains invalid YAML.
         """
+        config_path = Path(".github/pr-agent-config.yml")
+        if not config_path.exists():
+            pytest.fail(f"Config file not found: {config_path}")
+        with open(config_path, "r", encoding="utf-8") as f:
+            try:
+                cfg = yaml.safe_load(f)
+            except yaml.YAMLError as e:
+                pytest.fail(f"Invalid YAML in PR agent config: {e}")
+        if cfg is not None and not isinstance(cfg, dict):
+            pytest.fail("Config must be a YAML mapping (dict) or empty")
+        return cfg
 
     def test_no_hardcoded_credentials(self, pr_agent_config):
         """
