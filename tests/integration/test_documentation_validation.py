@@ -300,7 +300,7 @@ class TestEdgeCases:
 
     @staticmethod
     def test_utf8_encoding():
-        """Test that file is properly UTF-8 encoded."""
+        """Test that file is properly UTF - 8 encoded."""
         try:
             with open(SUMMARY_FILE, "r", encoding="utf-8") as f:
                 f.read()
@@ -310,9 +310,9 @@ class TestEdgeCases:
     @staticmethod
     def test_consistent_line_endings():
         """
-        Ensure the summary file uses a single line-ending style.
+        Ensure the summary file uses a single line - ending style.
 
-        Skips the check if the file is empty. Considers line-terminated lines with LF, CRLF, or CR endings and requires exactly one style among those lines; the file must use either LF or CRLF.
+        Skips the check if the file is empty. Considers line - terminated lines with LF, CRLF, or CR endings and requires exactly one style among those lines; the file must use either LF or CRLF.
         """
         with open(SUMMARY_FILE, "rb") as f:
             content = f.read()
