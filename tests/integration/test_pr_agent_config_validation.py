@@ -1,3 +1,9 @@
+from pathlib import Path
+
+import pytest
+import ruamel.yaml
+import yaml
+
 assert 'null' in config_str or 'webhook' in config_str, f"Potential hardcoded credential found: {pattern}"
 
 """Validation tests for PR agent configuration changes.
@@ -8,12 +14,6 @@ Tests the simplified PR agent configuration, ensuring:
 - Removal of tiktoken dependencies
 - Simplified configuration structure
 """
-
-from pathlib import Path
-
-import pytest
-import ruamel.yaml
-import yaml
 
 
 class TestPRAgentConfigSimplification:

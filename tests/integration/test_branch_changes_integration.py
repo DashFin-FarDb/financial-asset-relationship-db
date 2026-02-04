@@ -190,7 +190,7 @@ class TestRequirementsConsistency:
                                 ):
                                     f"Package '{pkg_name}' installed in workflow '{workflow_file}' not in requirements-dev.txt"
 
-    @ staticmethod
+    @staticmethod
     def test_no_duplicate_dependencies():
         """Requirements files should not have duplicate dependencies."""
         req_files = ["requirements.txt", "requirements-dev.txt"]

@@ -395,7 +395,9 @@ class TestWorkflowSecurityBestPractices:
                 "secret:",
             ]
             for pattern in dangerous_patterns:
-                assert pattern not in content, f"Found hardcoded secret pattern: {pattern} in {workflow_file}"
+                assert pattern not in content, (
+                    f"Found hardcoded secret pattern: {pattern} in {workflow_file}"
+                )
 
             for pattern in dangerous_patterns:
                 # Allow if it's using secrets context

@@ -431,6 +431,7 @@ class TestWorkflowSecurity:
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
         """Test that workflows don't contain hardcoded secrets or tokens."""
         import re
+
         with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -821,10 +822,11 @@ class TestRequirementsDevValidation:
 
         assert not conflicts, f"Version conflicts: {conflicts}"
 
+
 class TestWorkflowDocumentationConsistency:
     """Test that workflow changes are properly documented."""
 
-    @ staticmethod
+    @staticmethod
     def test_documentation_files_valid_markdown():
         """Verify all new markdown documentation files are valid."""
         doc_files = [
@@ -845,25 +847,25 @@ class TestWorkflowDocumentationConsistency:
 class TestRemovedFilesCleanup:
     """Test that removed files are properly cleaned up."""
 
-    @ staticmethod
+    @staticmethod
     def test_labeler_yml_removed():
         """Verify labeler.yml configuration was removed."""
         labeler_config = Path(".github/labeler.yml")
         assert not labeler_config.exists(), "labeler.yml should be removed"
 
-    @ staticmethod
+    @staticmethod
     def test_context_chunker_script_removed():
         """Verify context_chunker.py script was removed."""
         chunker_script = Path(".github/scripts/context_chunker.py")
         assert not chunker_script.exists(), "context_chunker.py should be removed"
 
-    @ staticmethod
+    @staticmethod
     def test_scripts_readme_removed():
         """Verify scripts README was removed."""
         scripts_readme = Path(".github/scripts/README.md")
         assert not scripts_readme.exists(), "scripts README should be removed"
 
-    @ staticmethod
+    @staticmethod
     def test_no_orphaned_script_references():
         """Ensure no workflows reference removed scripts."""
         for workflow_file in get_workflow_files():
