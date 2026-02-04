@@ -265,7 +265,7 @@ class TestWorkflowConfigConsistency:
     def test_pr_agent_config_matches_workflow(self) -> None:
         """PR Agent config should align with simplified workflow."""
         workflow_path = Path(".github/workflows/pr-agent.yml")
-        config_path = Path(".github/pr-agent.yml")
+        config_path = Path(".github/pr-agent-config.yml")
 
         if not workflow_path.exists() or not config_path.exists():
             pytest.skip("PR Agent workflow or config not found")
