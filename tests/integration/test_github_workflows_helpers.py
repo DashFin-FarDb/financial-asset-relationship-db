@@ -443,17 +443,17 @@ jobs:
                     assert len(duplicates) > 0
                     assert "name" in duplicates
 
-    def test_edge_case_workflow_with_complex_structure(self, tmp_path):
-        """Test handling of complex real - world workflow structure."""
-        workflows_dir = tmp_path / "workflows"
-        workflows_dir.mkdir()
+def test_edge_case_workflow_with_complex_structure(self, tmp_path):
+    """Test handling of complex real - world workflow structure."""
+    workflows_dir = tmp_path / "workflows"
+    workflows_dir.mkdir()
 
-        complex_workflow = workflows_dir / "complex.yml"
-        # fmt: off
-        complex_workflow.write_text(
-- uses: actions/checkout@v4
-          with:
-            fetch-depth: 0
+    complex_workflow = workflows_dir / "complex.yml"
+    # fmt: off
+    complex_workflow.write_text(
+        "- uses: actions/checkout@v4\n"
+        "  with:\n"
+        "    fetch-depth: 0\n")
 name: Complex CI / CD
 on:
   push:
