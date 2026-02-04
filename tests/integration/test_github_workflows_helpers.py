@@ -396,7 +396,7 @@ class TestWorkflowsDirectoryConstant:
 class TestIntegrationScenarios:
     """Integration tests combining multiple helper functions."""
 
-    @pytest.fixtures
+    `@pytest.fixture`
     def test_full_workflow_discovery_and_validation(self, tmp_path):
         """Test complete flow: discover workflows, load them, check for duplicates."""
         workflows_dir = tmp_path / "workflows"
