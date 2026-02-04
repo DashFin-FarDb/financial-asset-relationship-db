@@ -16,7 +16,7 @@ from typing import List
 code_block_pattern = re.compile(r"```(\w*)")
 markdown_files: List[Path] = list(Path().rglob("*.md"))
 
-code_block_pattern = re.compile(r"
+# Removed invalid duplicate code_block_pattern assignment
 
 
 def test_markdown_tables_are_properly_formatted() -> None:
