@@ -275,6 +275,7 @@ class TestCodeSherlockConfigBestPractices:
              "At least one common development branch (main, master, develop) should be included"
          )
 
+
 class TestCodeSherlockConfigEdgeCases:
      """Test suite for edge cases in codesherlock.yaml configuration."""
 
