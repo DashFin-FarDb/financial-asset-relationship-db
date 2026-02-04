@@ -291,6 +291,17 @@ class TestEdgeCases:
         pytest.skip(
             "Summary file TEST_GENERATION_WORKFLOW_SUMMARY.md not found; skipping tests"
         )
+    If the summary file does not exist, the current test is skipped via pytest.skip.
+    """
+    if not SUMMARY_FILE.exists():
+        pytest.skip("TEST_GENERATION_WORKFLOW_SUMMARY.md not found")
+    with open(SUMMARY_FILE, "r", encoding="utf-8") as f:
+        return f.read()
+
+@pytest.fixture
+def summary_lines(summary_content: str) -> List[str]:
+    """Get summary file lines."""
+    return summary_content.splitlines()
     return SUMMARY_FILE.read_text(encoding="utf-8")
         """
         # Check for common encoding issues
