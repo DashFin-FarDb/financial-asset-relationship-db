@@ -32,7 +32,7 @@ jobs:
         
     - name: Run labeler
       if: steps.check-config.outputs.config_exists == 'true'
-      uses: actions/labeler@v4
+      uses: actions/labeler@v6
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         
