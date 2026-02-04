@@ -374,20 +374,20 @@ class TestSpecificChanges:
 
         Ensure that expected baseline packages are still present after changes.
         """
-            package_names = [pkg for pkg, _ in requirements]
+        package_names = [pkg for pkg, _ in requirements]
 
-            expected_packages = [
-                "pytest",
-                "pytest-cov",
-                "flake8",
-                "black",
-                "mypy",
-                "PyYAML",
-                "types-PyYAML",
-            ]
+        expected_packages = [
+            "pytest",
+            "pytest-cov",
+            "flake8",
+            "black",
+            "mypy",
+            "PyYAML",
+            "types-PyYAML",
+        ]
 
-            for expected_pkg in expected_packages:
-                assert expected_pkg in package_names
+        for expected_pkg in expected_packages:
+            assert expected_pkg in package_names
 
 
 class TestRequirementsFileFormatting:
