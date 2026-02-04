@@ -74,9 +74,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
     def repo_engineer_content(repo_engineer_path: Path) -> str:
         """Load repo_engineer_lead.md content."""
-         with open(repo_engineer_path, encoding="utf-8") as f:
-             return f.read()
-             
+        with open(repo_engineer_path, encoding="utf-8") as f:
+            return f.read()
+
     @pytest.fixture
     def repo_engineer_frontmatter(self, repo_engineer_content: str) -> Dict[str, Any]:
         """Parse and return frontmatter from repo_engineer_lead.md."""
