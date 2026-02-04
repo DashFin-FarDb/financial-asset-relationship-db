@@ -21,27 +21,27 @@ code_block_pattern = re.compile(r"
 
 def test_markdown_tables_are_properly_formatted() -> None:
     """Verify markdown tables have consistent column counts."""
-    table_row_pattern = re.compile(r"^\|(.+)\|$", re.MULTILINE)
+    table_row_pattern=re.compile(r"^\|(.+)\|$", re.MULTILINE)
 
-    markdown_files: List[Path] = list(Path().rglob("*.md"))
+    markdown_files: List[Path]=list(Path().rglob("*.md"))
 
     for md_file in markdown_files:
-        content = md_file.read_text(encoding="utf-8")
-        lines = content.splitlines()
+        content=md_file.read_text(encoding="utf-8")
+        lines=content.splitlines()
 
-        in_table = False
-        table_column_count = 0
+        in_table=False
+        table_column_count=0
 
         for index, line in enumerate(lines, start=1):
             if not table_row_pattern.match(line):
-                in_table = False
+                in_table=False
                 continue
 
-            columns = len([col for col in line.split("|") if col.strip()])
+            columns=len([col for col in line.split("|") if col.strip()])
 
             if not in_table:
-                in_table = True
-                table_column_count = columns
+                in_table=True
+                table_column_count=columns
                 continue
 
             if re.match(r"^[\|\-\:\s]+$", line):
@@ -54,20 +54,20 @@ def test_markdown_tables_are_properly_formatted() -> None:
 
 
 def test_no_broken_markdown_links(
-    markdown_files: List[Path] = markdown_files, doc_root: Path = Path()
+    markdown_files: List[Path]=markdown_files, doc_root: Path=Path()
 ) -> None:
     """Verify that internal markdown links point to existing files."""
-    link_pattern = re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
+    link_pattern=re.compile(r"\[([^\]]+)\]\(([^\)]+)\)")
 
     for md_file in markdown_files:
-        content = md_file.read_text(encoding="utf-8")
-        links = link_pattern.findall(content)
+        content=md_file.read_text(encoding="utf-8")
+        links=link_pattern.findall(content)
 
         for _, link_url in links:
             if link_url.startswith(("http://", "https://", "#", "mailto:")):
                 continue
 
-            target_path = (md_file.parent / link_url).resolve()
+            target_path=(md_file.parent / link_url).resolve()
 
             if target_path.name in {
                 "LICENSE",
@@ -82,12 +82,12 @@ def test_no_broken_markdown_links(
                 )
 
 
-def test_no_trailing_whitespace(markdown_files: List[Path] = markdown_files) -> None:
+def test_no_trailing_whitespace(markdown_files: List[Path]=markdown_files) -> None:
     """Check markdown files for trailing whitespace."""
     for md_file in markdown_files:
-        lines = md_file.read_text(encoding="utf-8").splitlines()
+        lines=md_file.read_text(encoding="utf-8").splitlines()
 
-        bad_lines: List[int] = []
+        bad_lines: List[int]=[]
         for index, line in enumerate(lines, start=1):
             if not line.strip():
                 continue
@@ -99,16 +99,16 @@ def test_no_trailing_whitespace(markdown_files: List[Path] = markdown_files) -> 
         )
 
 
-def test_test_summary_files_have_required_sections(doc_root: Path = Path()) -> None:
+def test_test_summary_files_have_required_sections(doc_root: Path=Path()) -> None:
     """Verify summary/generation markdown contains key terms."""
-    summary_files = list(doc_root.glob("*TEST*SUMMARY*.md"))
+    summary_files=list(doc_root.glob("*TEST*SUMMARY*.md"))
     summary_files.extend(doc_root.glob("*GENERATION*.md"))
 
-    required_keywords = ("test", "coverage", "summary")
+    required_keywords=("test", "coverage", "summary")
 
     for summary_file in summary_files:
-        content = summary_file.read_text(encoding="utf-8").lower()
-        found = sum(1 for kw in required_keywords if kw in content)
+        content=summary_file.read_text(encoding="utf-8").lower()
+        found=sum(1 for kw in required_keywords if kw in content)
 
         assert found >= 2, (
             f"File {summary_file.name} doesn't appear to be a proper test summary"
@@ -117,10 +117,10 @@ def test_test_summary_files_have_required_sections(doc_root: Path = Path()) -> N
 
 def test_test_reference_files_have_examples(self, doc_root: Path) -> None:
     """Reference markdown files must contain runnable examples."""
-    reference_files = list(doc_root.glob("*REFERENCE*.md"))
+    reference_files=list(doc_root.glob("*REFERENCE*.md"))
 
     for ref_file in reference_files:
-        content = ref_file.read_text(encoding="utf-8")
+        content=ref_file.read_text(encoding="utf-8")
 
         assert "```" in content, (
             f"File {ref_file.name} doesn't contain runnable code examples"
