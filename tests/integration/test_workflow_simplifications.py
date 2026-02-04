@@ -257,7 +257,7 @@ class TestLabelerWorkflowSimplification:
     def labeler_workflow(self) -> Dict[str, Any]:
         """Load label.yml workflow."""
         pass
-            Path(__file__).parent.parent.parent
+            workflow_path = (Path(__file__).parent.parent.parent
             / ".github"
             / "workflows"
             / "label.yml"
