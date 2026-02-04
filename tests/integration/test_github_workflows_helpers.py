@@ -24,6 +24,7 @@ yaml = pytest.importorskip("yaml")
 
 # Import functions from the module we're testing
 
+
 class TestGetWorkflowFiles:
     """Test suite for get_workflow_files() function."""
 
@@ -74,6 +75,18 @@ class TestGetWorkflowFiles:
 
     def test_finds_yaml_files(self, tmp_path):
         """Test that .yaml files are found."""
+        workflows_dir = tmp_path / "workflows"
+        workflows_dir.mkdir()
+
+        yaml_file = workflows_dir / "test.yaml"
+        yaml_file.write_text("name: Test")
+
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
+            result = get_workflow_files()
+            assert len(result) == 1
+            assert result[0].name == "test.yaml"
         workflows_dir_yaml = tmp_path / "workflows_yaml"
         workflows_dir_yaml.mkdir()
 

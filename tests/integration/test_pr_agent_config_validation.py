@@ -552,6 +552,7 @@ def test_safe_configuration_values(self, pr_agent_config):
         Return the contents of .github / pr - agent - config.yml as a string.
 
         """
+        """
         Reads the PR agent configuration file from the repository root and returns its raw text.
 
         Returns:

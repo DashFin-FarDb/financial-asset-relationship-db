@@ -428,7 +428,6 @@ class TestWorkflowSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
         """Test that workflows don't contain hardcoded secrets or tokens."""
-
         with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 

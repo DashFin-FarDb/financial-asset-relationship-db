@@ -256,7 +256,7 @@ class TestLabelerWorkflowSimplification:
     @pytest.fixture
     def labeler_workflow(self) -> Dict[str, Any]:
         """Load label.yml workflow."""
-        workflow_path = (
+        pass
             Path(__file__).parents[1]
             / ".github"
             / "workflows"

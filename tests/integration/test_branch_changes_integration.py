@@ -188,7 +188,9 @@ class TestRequirementsConsistency:
                                 and not pkg_name.endswith(".txt")
                                 and pkg_name != "."
                             ):
-                                pass
+                                pytest.fail(
+                                    f"Package '{pkg_name}' installed in {workflow_file} is not listed in requirements-dev.txt"
+                                )
 
     @staticmethod
     def test_no_duplicate_dependencies():

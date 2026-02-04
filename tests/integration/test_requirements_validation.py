@@ -1,18 +1,16 @@
 """
 Validation tests for requirements changes.
+
+Tests that requirements-dev.txt changes are valid:
+- PyYAML added with correct version
+- No conflicting dependencies
+- All dependencies installable
 """
 
 import subprocess
 from pathlib import Path
 
 import pytest
-
-Tests that requirements - dev.txt changes are valid:
-- PyYAML added with correct version
-"""
-- No conflicting dependencies
-- All dependencies installable
-"""
 
 
 class TestRequirementsDevChanges:
