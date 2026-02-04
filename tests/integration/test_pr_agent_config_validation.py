@@ -183,7 +183,23 @@ class TestPRAgentConfigYAMLValidity:
         """
         config_path = Path(".github/pr-agent-config.yml")
 
-        with open(config_path, "r", encoding="utf-8") as f:
+        class DuplicateKeyLoader(yaml.SafeLoader):
+            """YAML loader that raises on duplicate mapping keys."""
+
+            def construct_mapping(self, node, deep=False):
+                mapping = {}
+                for key_node, value_node in node.value:
+                    key = self.construct_object(key_node, deep=deep)
+                    if key in mapping:
+                        raise yaml.constructor.ConstructorError(
+                            "while constructing a mapping",
+                            key_node.start_mark,
+                            f"found duplicate key ({key})",
+                            key_node.start_mark,
+                        )
+                    mapping[key] = self.construct_object(value_node, deep=deep)
+                return mapping
+
             try:
                 # DuplicateKeyLoader is expected to raise ConstructorError on duplicates
                 yaml.load(f, Loader=DuplicateKeyLoader)
