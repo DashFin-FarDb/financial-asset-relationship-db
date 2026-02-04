@@ -171,6 +171,8 @@ def test_pr_agent_workflow_simplified(workflows_dir: Path):
     assert "requirements.txt" in content
 def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     """
+
+
     Ensure the APIsec workflow file exists and does not use conditional skips based on APIsec credentials.
 
     Asserts that .github/workflows/apisec-scan.yml is present and that its contents do not contain conditional checks for `apisec_username` or `apisec_password` (for example, `secrets.apisec_username != ''`).
@@ -186,6 +188,8 @@ def test_apisec_workflow_no_conditional_skip(workflows_dir: Path):
     assert "apisec_password != ''" not in content
 def test_label_workflow_simplified(workflows_dir: Path):
     """
+
+
     Validate that the label workflow uses a simplified configuration.
 
     Asserts that .github/workflows/label.yml exists and does not contain the substring 'check-config' (case-insensitive) nor the exact text 'labeler.yml not found'.
@@ -201,6 +205,8 @@ def test_label_workflow_simplified(workflows_dir: Path):
     assert "labeler.yml not found" not in content
 def test_greetings_workflow_simple_messages(workflows_dir: Path):
     """Verify greetings workflow has simple placeholder messages."""
+
+
     workflow_file = workflows_dir / "greetings.yml"
     assert workflow_file.exists()
 
