@@ -177,7 +177,6 @@ To update or extend these rules:
      replacement: "replacement text"
      file_types:
        - "*.yml"
-     scope: yaml_strings
    ```
 3. Test the new rule with sample files
 4. Update this documentation
