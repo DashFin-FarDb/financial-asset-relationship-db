@@ -263,14 +263,7 @@ class TestPRAgentConfigYAMLValidity:
                 spaces = len(line) - len(line.lstrip(' '))
                 assert spaces % 2 == 0, \
                     f"Line {i}: Inconsistent indentation (not multiple of 2)"
-        config_path = Path(".github/pr-agent-config.yml")
-
-        with open(config_path, 'r') as f:
-            lines = f.readlines()
-
-        for line_num, line in enumerate(lines, 1):
-            # Use the shared validation helper
-            self._validate_line_indentation(line, line_num)
+        # Redundant second indentation pass removed; the loop above already validates each line's indentation directly.
 
 
 class TestPRAgentConfigSecurity:
