@@ -190,7 +190,7 @@ class TestCodeSherlockConfigContent:
                  "additional_instructions should be a list when present"
              )
 
- class TestCodeSherlockConfigBestPractices:
+class TestCodeSherlockConfigBestPractices:
      """Test suite for codesherlock.yaml best practices and recommendations."""
 
      def test_covers_key_security_characteristics(
