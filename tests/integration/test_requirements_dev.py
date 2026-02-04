@@ -368,11 +368,12 @@ class TestSpecificChanges:
         ]
         assert len(types_entries) == 1
 
-    """Integration tests for development requirements to ensure baseline packages are preserved."""
+    def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
+        """
+        Integration test for development requirements to ensure baseline packages are preserved.
 
-        def test_existing_packages_preserved(self, requirements: List[Tuple[str, str]]):
-            """Ensure that expected baseline packages are still present after changes."""
-            # Ensure expected baseline packages are still present after changes
+        Ensure that expected baseline packages are still present after changes.
+        """
             package_names = [pkg for pkg, _ in requirements]
 
             expected_packages = [
