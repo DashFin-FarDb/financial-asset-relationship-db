@@ -4,9 +4,7 @@ import pytest
 from pathlib import Path
 import yaml
 
-assert "null" in config_str or "webhook" in config_str, (
-    f"Potential hardcoded credential found: {pattern}"
-)
+# Secret placeholder checks are performed within dedicated tests, not at import time.
 
 """Validation tests for PR agent configuration changes.
 
