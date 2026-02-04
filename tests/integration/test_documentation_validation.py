@@ -32,7 +32,11 @@ def summary_content() -> str:
     """
 
 
-class TestListFormatting:
+@pytest.fixture
+def summary_lines(summary_content: str) -> List[str]:
+    """Return the summary file content split into individual lines."""
+    return summary_content.splitlines()
+
     """Test suite for markdown list formatting validation."""
 
     @staticmethod
