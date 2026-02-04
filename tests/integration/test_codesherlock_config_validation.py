@@ -113,6 +113,7 @@ def test_config_file_exists(self, codesherlock_config_path: Path):
              "preferred_characteristics should not be empty"
          )
 
+
 class TestCodeSherlockConfigContent:
      """Test suite for codesherlock.yaml configuration content validation."""
 
