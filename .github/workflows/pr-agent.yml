@@ -105,10 +105,17 @@ jobs:
           echo "context_size=${CONTEXT_SIZE}" >> $GITHUB_OUTPUT
 
           if [ $CONTEXT_SIZE -gt 100000 ]; then
-            echo "⚠️ Large context detected (${CONTEXT_SIZE} bytes), applying chunking..."
-            python .github/scripts/context_chunker.py < /tmp/pr_context.json > /tmp/pr_context_chunked.json
-            echo "chunked=true" >> $GITHUB_OUTPUT
-            CONTEXT_FILE="/tmp/pr_context_chunked.json"
+            echo "⚠️ Large context detected (${CONTEXT_SIZE} bytes)"
+            if [ -f ".github/scripts/context_chunker.py" ]; then
+              echo "Applying context chunking using .github/scripts/context_chunker.py..."
+              python .github/scripts/context_chunker.py < /tmp/pr_context.json > /tmp/pr_context_chunked.json
+              echo "chunked=true" >> $GITHUB_OUTPUT
+              CONTEXT_FILE="/tmp/pr_context_chunked.json"
+            else
+              echo "⚠️ context_chunker.py not found at .github/scripts/context_chunker.py, proceeding without chunking."
+              echo "chunked=false" >> $GITHUB_OUTPUT
+              CONTEXT_FILE="/tmp/pr_context.json"
+            fi
           else
             echo "✅ Context size acceptable (${CONTEXT_SIZE} bytes)"
             echo "chunked=false" >> $GITHUB_OUTPUT
