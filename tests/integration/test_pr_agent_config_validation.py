@@ -477,57 +477,50 @@ class TestPRAgentConfigSecurity:
                     for idx, item in enumerate(node):
                         scan_for_secrets(item, f"{path}[{idx}]")
                 elif isinstance(node, str):
-                    assert not value_contains_secret(node),
-                        f"Potential hardcoded credential value at {path}"
-                # Non-string scalars (int, float, bool, None) are safe to ignore
+                assert not value_contains_secret(node), f"Potential hardcoded credential value at {path}"
+            # Non-string scalars (int, float, bool, None) are safe to ignore
 
-            scan_for_secrets(pr_agent_config)
-            'access_key', 'private_key'
-        ]
+    sensitive_patterns = ['access_key', 'private_key']
 
-        safe_placeholders = {None, 'null', 'webhook'}
+    scan_for_secrets(pr_agent_config)
 
-        def check_node(node, path=""):
-            if isinstance(node, dict):
-                for k, v in node.items():
-                    key_l = str(k).lower()
-                    new_path = f"{path}.{k}" if path else str(k)
-                    if any(p in key_l for p in sensitive_patterns):
-                        assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
-                    check_node(v, new_path)
-            elif isinstance(node, list):
-                for idx, item in enumerate(node):
-                    check_node(item, f"{path}[{idx}]")
-            # primitives are ignored unless hit via a sensitive key above
+    safe_placeholders = {None, 'null', 'webhook'}
 
-        check_node(pr_agent_config)
-            'access_key', 'private_key'
-        ]
+    def check_node(node, path=""):
+        if isinstance(node, dict):
+            for k, v in node.items():
+                key_l = str(k).lower()
+                new_path = f"{path}.{k}" if path else str(k)
+                if any(p in key_l for p in sensitive_patterns):
+                    assert v in safe_placeholders, f"Potential hardcoded credential at '{new_path}'"
+                check_node(v, new_path)
+        elif isinstance(node, list):
+            for idx, item in enumerate(node):
+                check_node(item, f"{path}[{idx}]")
+        # primitives are ignored unless hit via a sensitive key above
 
-        for pattern in sensitive_patterns:
-            if pattern in config_str:
-                # Should only appear in field names, not values
-                assert 'null' in config_str or 'webhook' in config_str,
-                    f"Potential hardcoded credential found: {pattern}"
+    check_node(pr_agent_config)
 
-    def test_safe_configuration_values(self, pr_agent_config):
-        """
-        Assert that key numeric limits in the PR agent configuration fall within safe bounds.
+    for pattern in sensitive_patterns:
+        if pattern in config_str:
+            # Should only appear in field names, not values
+            assert 'null' in config_str or 'webhook' in config_str, f"Potential hardcoded credential found: {pattern}"
 
-        Checks that:
-        - `limits['max_execution_time']` is less than or equal to 3600 seconds.
-        - `limits['max_concurrent_prs']` is less than or equal to 10.
-        - `limits['rate_limit_requests']` is less than or equal to 1000.
-        """
-        limits = pr_agent_config['limits']
+def test_safe_configuration_values(self, pr_agent_config):
+    """
+    Assert that key numeric limits in the PR agent configuration fall within safe bounds.
 
-        # Check for reasonable numeric limits
-        assert limits['max_execution_time'] <= 3600, "Execution time too high"
-        assert limits['max_concurrent_prs'] <= 10, "Too many concurrent PRs"
-        assert limits['rate_limit_requests'] <= 1000, "Rate limit too high"
+    Checks that:
+    - `limits['max_execution_time']` is less than or equal to 3600 seconds.
+    - `limits['max_concurrent_prs']` is less than or equal to 10.
+    - `limits['rate_limit_requests']` is less than or equal to 1000.
+    """
+    limits = pr_agent_config['limits']
 
-
-class TestPRAgentConfigRemovedComplexity:
+    # Check for reasonable numeric limits
+    assert limits['max_execution_time'] <= 3600, "Execution time too high"
+    assert limits['max_concurrent_prs'] <= 10, "Too many concurrent PRs"
+    assert limits['rate_limit_requests'] <= 1000, "Rate limit too high"
     """Test that complex features were properly removed."""
 
     @ pytest.fixture

@@ -8,13 +8,11 @@ from typing import Any, Dict, List
 import pytest
 
 # Step ID uniqueness is validated within TestWorkflowStepConfiguration.
-"""Comprehensive tests for GitHub Actions workflow files.
-
-This module validates the structure, syntax, and configuration of GitHub Actions
-workflows, ensuring they are properly formatted and free of common issues like
-duplicate keys, invalid syntax, and missing required fields.
-"""
-
+# Comprehensive tests for GitHub Actions workflow files.
+#
+# This module validates the structure, syntax, and configuration of GitHub Actions
+# workflows, ensuring they are properly formatted and free of common issues like
+# duplicate keys, invalid syntax, and missing required fields.
 
 # Skip this module if PyYAML is not installed
 yaml = pytest.importorskip("yaml")
@@ -430,7 +428,6 @@ class TestWorkflowSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_no_hardcoded_secrets(self, workflow_file: Path):
         """Test that workflows don't contain hardcoded secrets or tokens."""
-        import re
 
         with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()

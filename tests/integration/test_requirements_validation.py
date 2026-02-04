@@ -1,5 +1,6 @@
 """
 Validation tests for requirements changes.
+"""
 
 Tests that requirements-dev.txt changes are valid:
 - PyYAML added with correct version

@@ -182,13 +182,13 @@ class TestRequirementsConsistency:
 
                         if pkg_name.lower() not in skip_packages:
                             # Should be in requirements-dev or be optional
-                            if pkg_name.lower() not in dev_packages:
-                                if (
-                                    pkg_name.lower() not in skip_packages
-                                    and not pkg_name.endswith(".txt")
-                                    and pkg_name != "."
-                                ):
-                                    f"Package '{pkg_name}' installed in workflow '{workflow_file}' not in requirements-dev.txt"
+                            if (
+                                pkg_name.lower() not in dev_packages
+                                and pkg_name.lower() not in skip_packages
+                                and not pkg_name.endswith(".txt")
+                                and pkg_name != "."
+                            ):
+                                pass
 
     @staticmethod
     def test_no_duplicate_dependencies():
