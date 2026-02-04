@@ -21,9 +21,8 @@ import yaml
 class TestWorkflowConsistency:
     """Test consistency across all modified workflows."""
 
-    @pytest.fixture
-    @staticmethod
-    def all_workflows() -> Dict[str, Dict]:
+    `@pytest.fixture`
+    def all_workflows(self) -> Dict[str, Dict]:
         """Mapping from workflow path to parsed YAML dict."""
         workflow_files = [
             ".github/workflows/pr-agent.yml",
