@@ -23,9 +23,9 @@ jobs:
           - Feel free to add screenshots, logs, or examples
           
           **Resources:**
-          - [Contributing Guide](CONTRIBUTING.md)
-          - [Code of Conduct](CODE_OF_CONDUCT.md)
-          - [Architecture Overview](ARCHITECTURE.md)
+          - [Contributing Guide](../blob/main/CONTRIBUTING.md)
+          - [Code of Conduct](../blob/main/CODE_OF_CONDUCT.md)
+          - [Architecture Overview](../blob/main/ARCHITECTURE.md)
           
           We're excited to have you as part of our community! 🎉
         pr-message: |
@@ -46,8 +46,7 @@ jobs:
           - ✅ Respond to review feedback promptly
           
           **Resources:**
-          - [Quick Start Guide](QUICK_START.md)
-          - [Testing Guide](TESTING_GUIDE.md)
-          - [Contributing Guidelines](CONTRIBUTING.md)
-          
+          - [Quick Start Guide](../blob/main/QUICK_START.md)
+          - [Testing Guide](../blob/main/TESTING_GUIDE.md)
+          - [Contributing Guidelines](../blob/main/CONTRIBUTING.md)
           Thank you for making this project better! We look forward to working with you. 🚀
