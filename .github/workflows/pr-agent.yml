@@ -44,8 +44,6 @@ jobs:
           python -m pip install --upgrade pip
           # Install PyYAML for context chunker with version pinning
           pip install "pyyaml>=5.4,<6.0"
-          # Install tiktoken for accurate token estimation (optional but recommended)
-          pip install tiktoken || echo "Warning: tiktoken installation failed, will use heuristic estimation"
           # Validate dependency files exist before installing
           if [ -f requirements.txt ]; then
             echo "Installing requirements.txt..."
