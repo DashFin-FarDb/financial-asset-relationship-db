@@ -73,13 +73,16 @@ class TestPRAgentConfigChanges:
     def test_no_fallback_strategies(config_data: Dict[str, Any]):
         """
         Verify the PR Agent configuration does not define a 'fallback' key under the top-level 'limits' mapping.
+        Verify the PR Agent configuration defines a well-formed 'fallback' section under the top-level 'limits' mapping.
 
         Parameters:
-            config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`. If a 'limits' mapping exists, this test asserts it does not contain a 'fallback' key.
+            config_data (Dict[str, Any]): Parsed contents of `.github/pr-agent-config.yml`. If a 'limits' mapping exists, this test asserts it contains a 'fallback' key with the expected basic structure.
         """
         limits = config_data.get("limits")
-        if isinstance(limits, dict):
-            assert "fallback" not in limits, "Fallback strategies should be removed"
+        assert isinstance(limits, dict)
+        fallback = limits.get("fallback")
+        assert isinstance(fallback, dict)
+        assert "on_context_overflow" in fallback
 
     @staticmethod
     def test_basic_sections_present(config_data: Dict[str, Any]):
