@@ -22,7 +22,7 @@ Tests the simplified PR agent configuration, ensuring:
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
 
-    @pytest.fixture
+    @ pytest.fixture
     def pr_agent_config(self):
         """
         Load and parse the PR agent YAML configuration from .github / pr - agent - config.yml.
