@@ -409,5 +409,5 @@ class TestGitHubActionsEcosystem:
             workflows
         ), "At least one workflow should be referenced in the documentation"
 
-            # This is a soft requirement (not all workflows need docs)
-            # but it's good practice
+        # This is a soft requirement (not all workflows need docs)
+        # but it's good practice
