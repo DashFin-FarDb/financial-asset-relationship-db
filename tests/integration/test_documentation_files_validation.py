@@ -115,7 +115,9 @@ def test_test_summary_files_have_required_sections(doc_root: Path=Path()) -> Non
         )
 
 
-def test_test_reference_files_have_examples(self, doc_root: Path) -> None:
+def test_test_reference_files_have_examples(
+    doc_root: Path = Path()
+) -> None:
     """Reference markdown files must contain runnable examples."""
     reference_files=list(doc_root.glob("*REFERENCE*.md"))
 
