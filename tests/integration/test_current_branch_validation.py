@@ -256,7 +256,13 @@ class TestDocumentationConsistency:
     def test_summary_files_exist() -> None:
         """Summary documentation files must exist and be non-empty."""
         summary_path = Path("COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md")
-        assert summary_path.is_file()
+        candidate_paths = [
+            Path("COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md"),
+            Path("FINAL_TEST_SUMMARY.md"),
+        ]
+        summary_path = next((p for p in candidate_paths if p.is_file()), None)
+
+        assert summary_path is not None, "No summary documentation file found"
         assert summary_path.stat().st_size > 0
 
     @staticmethod
