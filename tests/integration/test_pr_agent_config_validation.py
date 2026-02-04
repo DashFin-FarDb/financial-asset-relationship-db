@@ -4,8 +4,9 @@ from pathlib import Path
 
 import yaml
 
-import pytest
 
+
+import pytest
 # Secret placeholder checks are performed within dedicated tests, not at import time.
 
 """Validation tests for PR agent configuration changes.
