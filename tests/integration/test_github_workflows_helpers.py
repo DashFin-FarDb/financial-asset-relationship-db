@@ -460,6 +460,7 @@ jobs:
                 assert len(duplicates) > 0
                 assert "name" in duplicates
 
+
 def test_edge_case_workflow_with_complex_structure(self, tmp_path):
     """Test handling of complex real - world workflow structure."""
     workflows_dir = tmp_path / "workflows"
