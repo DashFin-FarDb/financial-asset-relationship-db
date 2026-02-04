@@ -25,8 +25,7 @@ from tests.integration.test_github_workflows import (
 class TestGetWorkflowFiles:
     """Test suite for get_workflow_files() function."""
 
-    `@pytest.fixture`
-
+    @pytest.fixture
     @staticmethod
     def test_returns_list():
         """Test that get_workflow_files returns a list."""
@@ -57,15 +56,6 @@ class TestGetWorkflowFiles:
             assert result == []
 
     def test_finds_yml_files(self, tmp_path):
-        """Test that .yml files are found."""
-        workflows_dir = tmp_path / "workflows"
-        workflows_dir.mkdir()
-
-        yml_file = workflows_dir / "test.yml"
-        yml_file.write_text("name: Test")
-
-    @pytest.fixtures
-    def test_finds_yml_files_with_patch(self, tmp_path):
         """Test that .yml files are found."""
         workflows_dir = tmp_path / "workflows"
         workflows_dir.mkdir()
@@ -344,11 +334,18 @@ job2:
         result = check_duplicate_keys(yaml_file)
         assert isinstance(result, list)
 
-    def test_github_actions_pr_agent_scenario(self, test_data_path):
+    def test_github_actions_pr_agent_scenario(self, tmp_path):
         """Test loading a dedicated PR agent YAML file yields no duplicates."""
-        # The test now loads the YAML from a dedicated file
-        # No more `# fmt: off` or embedded YAML strings
-        yaml_file_path = test_data_path / "pr_agent.yml"
+        yaml_file_path = tmp_path / "pr_agent.yml"
+        yaml_file_path.write_text("""
+name: PR Agent
+on: pull_request
+jobs:
+  agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+""")
 
         # The test logic remains the same
         result = check_duplicate_keys(yaml_file_path)
