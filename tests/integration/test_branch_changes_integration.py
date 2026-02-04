@@ -264,11 +264,15 @@ class TestDocumentationConsistency:
 
         if changelog.exists():
             with open(changelog, "r"):
-                pass
+            with open(changelog, "r") as f:
+                content = f.read().lower()
 
             # Should mention the deletions (soft requirement)
             # At least one deletion should be documented
             # (This is a documentation quality check, not strict requirement)
+            assert (
+                "deleted" in content or "removed" in content
+            ), "CHANGELOG.md should mention deletions when files or features are removed"
 
     @staticmethod
     def test_no_broken_internal_links():
