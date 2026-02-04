@@ -455,12 +455,12 @@ def test_edge_case_workflow_with_complex_structure(self, tmp_path):
         "- uses: actions/checkout@v4\n"
         "  with:\n"
         "    fetch-depth: 0\n")
+    """
 name: Complex CI / CD
 on:
     push:
         branches: [main, develop]
     pull_request:
-        """
         types: [opened, synchronize]
         env:
           NODE_VERSION: '18'
@@ -486,7 +486,7 @@ on:
                   pip install -r requirements-dev.txt
               - name: Run tests
                 run: pytest tests/ --cov
-        """
+     """
             # fmt: on
 
 with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
