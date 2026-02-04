@@ -334,6 +334,8 @@ class TestCodeSherlockConfigEdgeCases:
          Parameters:
              codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
          """
+
+
 with open(codesherlock_config_path, "r", encoding="utf-8") as f:
     content = f.read()
 
@@ -346,6 +348,7 @@ with open(codesherlock_config_path, "r", encoding="utf-8") as f:
                  assert leading_spaces % 2 == 0, (
                      f"Line {i} should use 2-space indentation"
                  )
+
 
 class TestCodeSherlockConfigIntegration:
      """Integration tests for codesherlock.yaml with the project."""
