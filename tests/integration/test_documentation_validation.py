@@ -304,10 +304,10 @@ def summary_lines(summary_content: str) -> List[str]:
     return summary_content.splitlines()
     return SUMMARY_FILE.read_text(encoding="utf-8")
         """
-        # Check for common encoding issues
-        assert "�" not in summary_content, (
-            "Document contains invalid characters. Document should not contain replacement characters (encoding issues)"
-        )
+    # Check for common encoding issues
+    assert "�" not in summary_content, (
+        "Document contains invalid characters. Document should not contain replacement characters (encoding issues)"
+    )
 
     @staticmethod
     def test_utf8_encoding():
