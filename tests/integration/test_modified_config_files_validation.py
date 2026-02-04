@@ -147,8 +147,6 @@ class TestWorkflowSimplifications:
 def workflows_dir() -> Path:
     """Get workflows directory."""
     return Path(__file__).parent.parent.parent / ".github" / "workflows"
-
-
 def test_pr_agent_workflow_simplified(workflows_dir: Path):
     """
     Validate that the PR Agent GitHub Actions workflow has been simplified.

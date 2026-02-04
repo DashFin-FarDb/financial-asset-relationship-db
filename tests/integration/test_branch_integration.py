@@ -28,7 +28,6 @@ class TestWorkflowConsistency:
             ".github/workflows/label.yml",
             ".github/workflows/greetings.yml",
         ]
-
         workflows: Dict[str, Dict] = {}
 
         for wf_file in workflow_files:
