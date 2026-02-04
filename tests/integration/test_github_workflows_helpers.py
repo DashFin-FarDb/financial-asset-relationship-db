@@ -489,15 +489,15 @@ on:
             # fmt: on
 
 with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    workflows = get_workflow_files()
+    workflows=get_workflow_files()
     assert len(workflows) == 1
 
-    config = load_yaml_safe(workflows[0])
+    config=load_yaml_safe(workflows[0])
     assert config["name"] == "Complex CI/CD"
     assert "push" in config["on"]
     assert "pull_request" in config["on"]
     assert "strategy" in config["jobs"]["test"]
     assert "matrix" in config["jobs"]["test"]["strategy"]
 
-    duplicates = check_duplicate_keys(workflows[0])
+    duplicates=check_duplicate_keys(workflows[0])
     assert len(duplicates) == 0
