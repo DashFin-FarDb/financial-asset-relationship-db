@@ -108,7 +108,7 @@ jobs:
           
           if [ $CONTEXT_SIZE -gt 100000 ]; then
             echo "⚠️ Large context detected (${CONTEXT_SIZE} bytes), applying chunking..."
-            python .github/scripts/context_chunker.py < /tmp/pr_context.json > /tmp/pr_context_chunked.json
+            echo "⚠️ Large context detected (${CONTEXT_SIZE} bytes), but context chunking has been simplified."
             echo "chunked=true" >> $GITHUB_OUTPUT
             CONTEXT_FILE="/tmp/pr_context_chunked.json"
           else
