@@ -6,8 +6,9 @@ import yaml
 
 
 
-import pytest
 # Secret placeholder checks are performed within dedicated tests, not at import time.
+
+import pytest
 
 """Validation tests for PR agent configuration changes.
 

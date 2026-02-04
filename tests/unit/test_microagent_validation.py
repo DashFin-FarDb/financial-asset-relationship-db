@@ -78,6 +78,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
 
 
+
         @pytest.fixture
         def repo_engineer_path(self, microagents_dir: Path) -> Path:
             """Return the path to repo_engineer_lead.md."""
