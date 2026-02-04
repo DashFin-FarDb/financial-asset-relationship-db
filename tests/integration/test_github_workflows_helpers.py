@@ -74,13 +74,14 @@ class TestGetWorkflowFiles:
 
     def test_finds_yaml_files(self, tmp_path):
         """Test that .yaml files are found."""
-        workflows_dir = tmp_path / "workflows"
-        workflows_dir.mkdir()
+        workflows_dir_yaml = tmp_path / "workflows_yaml"
+        workflows_dir_yaml.mkdir()
 
-        yaml_file = workflows_dir / "test.yaml"
+        yaml_file = workflows_dir_yaml / "test.yaml"
         yaml_file.write_text("name: Test")
 
         with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir_yaml
             "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
         ):
             result = get_workflow_files()
