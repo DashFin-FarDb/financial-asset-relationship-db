@@ -2,13 +2,11 @@
 
 from pathlib import Path
 
+import pytest
 import yaml
-
-
 
 # Secret placeholder checks are performed within dedicated tests, not at import time.
 
-import pytest
 
 """Validation tests for PR agent configuration changes.
 
@@ -23,7 +21,7 @@ Tests the simplified PR agent configuration, ensuring:
 class TestPRAgentConfigSimplification:
     """Test PR agent config simplification changes."""
 
-    @ pytest.fixture
+    @pytest.fixture
     def pr_agent_config(self):
         """
         Load and parse the PR agent YAML configuration from .github / pr - agent - config.yml.
@@ -276,7 +274,7 @@ class TestPRAgentConfigYAMLValidity:
 class TestPRAgentConfigSecurity:
     """Test security aspects of configuration."""
 
-    @ pytest.fixture
+    @pytest.fixture
     def pr_agent_config(self) -> dict[str, object] | None:
         """
         Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.

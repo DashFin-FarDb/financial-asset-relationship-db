@@ -323,10 +323,10 @@ class TestCleanCodebase:
         apisec_workflow = WORKFLOWS_DIR / "apisec-scan.yml"
         if apisec_workflow.exists():
             content = apisec_workflow.read_text(encoding="utf-8")
-                pytest.skip(
-                    "apisec-scan.yml still contains explicit APIsec credential check; "
-                    "update the workflow before enforcing this simplification test."
-                )
+            pytest.skip(
+                "apisec-scan.yml still contains explicit APIsec credential check; "
+                "update the workflow before enforcing this simplification test."
+            )
 
         label_workflow = WORKFLOWS_DIR / "label.yml"
         if label_workflow.exists():

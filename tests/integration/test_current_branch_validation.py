@@ -162,8 +162,11 @@ class TestRequirementsDevUpdates:
         req_path = Path("requirements-dev.txt")
         if not req_path.is_file():
             import pytest
+
             # If the dev requirements file is not present in this branch, skip the content check.
-            pytest.skip("requirements-dev.txt not present; skipping PyYAML content check")
+            pytest.skip(
+                "requirements-dev.txt not present; skipping PyYAML content check"
+            )
 
         with open(req_path, "r", encoding="utf-8") as handle:
             content = handle.read()
