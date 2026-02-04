@@ -3,37 +3,12 @@
 
 agent:
   name: "Financial DB PR Agent"
-  version: "1.1.0"
+  version: "1.0.0"
   enabled: true
   
-  # Context length management
+  # Context length management (simplified)
   context:
-    max_tokens: 32000  # Maximum context length before chunking
-    chunk_size: 28000  # Size of each chunk (leave room for system prompts)
-    overlap_tokens: 2000  # Overlap between chunks for continuity
-    summarization_threshold: 30000  # Start summarizing at this token count
-    
-    # Chunking strategy
-    chunking:
-      enabled: true
-      strategy: "smart"  # Options: smart, sequential, priority
-      preserve_structure: true  # Maintain code structure across chunks
-      
-    # Summarization settings
-    summarization:
-      enabled: true
-      model: "gpt-3.5-turbo"  # Use faster model for summaries
-      max_summary_tokens: 2000  # Maximum tokens per summary
-      focus_on:
-        - "review_comments"
-        - "code_changes"
-        - "test_failures"
-        - "action_items"
-      preserve_context:
-        - "file_names"
-        - "function_signatures"
-        - "error_messages"
-        - "reviewer_names"
+    max_tokens: 32000  # Maximum context length before any internal handling
   
 # Monitoring settings
 monitoring:
