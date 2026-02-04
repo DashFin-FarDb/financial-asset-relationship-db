@@ -1,7 +1,8 @@
 # Top-level secret placeholder checks are performed within dedicated tests, not at import time.
 
-import pytest
 from pathlib import Path
+
+import pytest
 import yaml
 
 # Secret placeholder checks are performed within dedicated tests, not at import time.

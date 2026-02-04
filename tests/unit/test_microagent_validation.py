@@ -75,6 +75,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def repo_engineer_content(repo_engineer_path: Path) -> str:
         """Load repo_engineer_lead.md content."""
         with open(repo_engineer_path, encoding="utf-8") as f:
+
         @pytest.fixture
         def repo_engineer_path(self, microagents_dir: Path) -> Path:
             """Return the path to repo_engineer_lead.md."""
