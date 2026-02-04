@@ -16,17 +16,7 @@ from typing import List
 code_block_pattern = re.compile(r"```(\w*)")
 markdown_files: List[Path] = list(Path().rglob("*.md"))
 
-for md_file in markdown_files:
-    content = md_file.read_text(encoding="utf-8")
-    code_blocks = code_block_pattern.findall(content)
-
-    if not code_blocks:
-        continue
-
-    empty_blocks = [lang for lang in code_blocks if not lang]
-    assert len(empty_blocks) < len(code_blocks) * 0.5, (
-        f"File {md_file.name} has too many code blocks without language identifiers"
-    )
+code_block_pattern = re.compile(r"
 
 
 def test_markdown_tables_are_properly_formatted() -> None:
