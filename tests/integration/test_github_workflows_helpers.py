@@ -74,11 +74,12 @@ class TestGetWorkflowFiles:
         yml_file = workflows_dir / "test.yml"
         yml_file.write_text("name: Test")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "test.yml"
-
 
     def test_finds_yaml_files(self, tmp_path):
         """Test that .yaml files are found."""
@@ -88,11 +89,12 @@ class TestGetWorkflowFiles:
         yaml_file = workflows_dir / "test.yaml"
         yaml_file.write_text("name: Test")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 1
             assert result[0].name == "test.yaml"
-
 
     def test_finds_both_yml_and_yaml(self, tmp_path):
         """Test that both .yml and .yaml files are found together."""
@@ -105,7 +107,9 @@ class TestGetWorkflowFiles:
         yaml_file = workflows_dir / "test2.yaml"
         yaml_file.write_text("name: Test2")
 
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        with patch(
+            "tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir
+        ):
             result = get_workflow_files()
             assert len(result) == 2
             names = {f.name for f in result}
@@ -350,7 +354,6 @@ job2:
         result = check_duplicate_keys(yaml_file)
         assert isinstance(result, list)
 
-
     def test_github_actions_pr_agent_scenario(self, test_data_path):
         # The test now loads the YAML from a dedicated file
         # No more `# fmt: off` or embedded YAML strings
@@ -361,7 +364,6 @@ job2:
         # For a valid workflow file, there should be no duplicate keys
         assert isinstance(result, list)
         assert result == []
-
 
     def test_detects_duplicate_in_list_of_mappings(tmp_path):
         """Test detection of duplicates within a mapping that's in a list."""
@@ -456,7 +458,6 @@ jobs:
                     assert len(duplicates) > 0
                     assert "name" in duplicates
 
-
     def test_edge_case_workflow_with_complex_structure(self, tmp_path):
         """Test handling of complex real - world workflow structure."""
         workflows_dir = tmp_path / "workflows"
@@ -468,6 +469,7 @@ jobs:
         "- uses: actions/checkout@v4\n"
         "  with:\n"
         "    fetch-depth: 0\n")
+
     """
 name: Complex CI / CD
 on:
@@ -500,8 +502,7 @@ on:
               - name: Run tests
                 run: pytest tests/ --cov
      """
-        # fmt: on
-
+    # fmt: on
 
     with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
         workflows = get_workflow_files()
