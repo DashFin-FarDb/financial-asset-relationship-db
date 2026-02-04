@@ -64,9 +64,10 @@ class TestPRAgentConfigChanges:
         agent_cfg = config_data.get("agent", {})
         context_cfg = agent_cfg.get("context", {})
         if isinstance(context_cfg, dict):
-            context_str = str(context_cfg).lower()
-            assert "chunk" not in context_str, (
-                "Context chunking specific config should be removed in v1.0.0"
+            # Only inspect context keys to avoid matching values that may legitimately contain 'chunk'
+            context_keys_str = " ".join(str(k).lower() for k in context_cfg.keys())
+            assert "chunk" not in context_keys_str, (
+                "Context chunking specific config keys should be removed in v1.0.0"
             )
 
     @staticmethod
