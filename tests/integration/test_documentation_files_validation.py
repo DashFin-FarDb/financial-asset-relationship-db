@@ -92,7 +92,7 @@ def test_no_broken_markdown_links(
                 )
 
 
-def test_no_trailing_whitespace(self, markdown_files: List[Path]) -> None:
+def test_no_trailing_whitespace(markdown_files: List[Path] = markdown_files) -> None:
     """Check markdown files for trailing whitespace."""
     for md_file in markdown_files:
         lines = md_file.read_text(encoding="utf-8").splitlines()
