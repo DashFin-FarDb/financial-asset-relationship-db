@@ -415,7 +415,7 @@ def test_safe_configuration_values(pr_agent_config: dict[str, object]) -> None:
     assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
 
 
-@pytest.fixture
+@ pytest.fixture
 def pr_agent_config_content() -> str:
     """
     Read and return the raw contents of .github/pr-agent-config.yml.
