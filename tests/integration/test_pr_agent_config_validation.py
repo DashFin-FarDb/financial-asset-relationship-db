@@ -347,7 +347,7 @@ class TestPRAgentConfigSecurity:
             if not s:
                 return 0.0
             sample = s[:256]
-            freq = {ch: s.count(ch) for ch in set(sample)}
+            freq = {ch: sample.count(ch) for ch in set(sample)}
             ent = 0.0
             length = len(sample)
             for c in freq.values():
