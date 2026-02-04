@@ -347,7 +347,7 @@ with open(codesherlock_config_path, "r", encoding="utf-8") as f:
                      f"Line {i} should use 2-space indentation"
                  )
 
- class TestCodeSherlockConfigIntegration:
+class TestCodeSherlockConfigIntegration:
      """Integration tests for codesherlock.yaml with the project."""
 
      def test_config_aligns_with_project_branches(
