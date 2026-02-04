@@ -151,9 +151,9 @@ class TestDeletedLabelerConfig:
             return
 
         # Allow only comment lines in a disabled placeholder config
-        assert all(
-            line.lstrip().startswith("#") for line in content.splitlines()
-        ), "labeler.yml should be empty or comments only when labeler is disabled"
+        assert all(line.lstrip().startswith("#") for line in content.splitlines()), (
+            "labeler.yml should be empty or comments only when labeler is disabled"
+        )
 
     @staticmethod
     def test_label_workflow_still_functional() -> None:
