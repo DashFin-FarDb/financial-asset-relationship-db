@@ -190,6 +190,7 @@ class TestCodeSherlockConfigContent:
                  "additional_instructions should be a list when present"
              )
 
+
 class TestCodeSherlockConfigBestPractices:
      """Test suite for codesherlock.yaml best practices and recommendations."""
 
