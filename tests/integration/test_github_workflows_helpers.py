@@ -385,7 +385,6 @@ class TestWorkflowsDirectoryConstant:
     """Test suite for WORKFLOWS_DIR constant."""
 
     @staticmethod
-    @pytest.fixture
     def test_workflows_dir_is_path_object():
         """Test that WORKFLOWS_DIR is a Path object."""
         assert isinstance(WORKFLOWS_DIR, Path)
@@ -406,7 +405,6 @@ class TestWorkflowsDirectoryConstant:
 class TestIntegrationScenarios:
     """Integration tests combining multiple helper functions."""
 
-    @pytest.fixture
     def test_full_workflow_discovery_and_validation(self, tmp_path):
         """Test complete flow: discover workflows, load them, check for duplicates."""
         workflows_dir = tmp_path / "workflows"
@@ -448,17 +446,17 @@ jobs:
             assert len(workflows) == 2
 
         for workflow_file in workflows:
-            config = load_yaml_safe(workflow_file)
-            assert config is not None
-            assert "name" in config or "on" in config
+                config = load_yaml_safe(workflow_file)
+                assert config is not None
+                assert "name" in config or "on" in config
 
-            duplicates = check_duplicate_keys(workflow_file)
+                duplicates = check_duplicate_keys(workflow_file)
 
-            if workflow_file.name == "valid.yml":
-                assert len(duplicates) == 0
-            elif workflow_file.name == "duplicate.yml":
-                assert len(duplicates) > 0
-                assert "name" in duplicates
+                if workflow_file.name == "valid.yml":
+                    assert len(duplicates) == 0
+                elif workflow_file.name == "duplicate.yml":
+                    assert len(duplicates) > 0
+                    assert "name" in duplicates
 
     def test_edge_case_workflow_with_complex_structure(self, tmp_path):
         """Test handling of complex real - world workflow structure."""
