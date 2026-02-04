@@ -220,12 +220,20 @@ class TestGreetingsWorkflowSimplification:
                     pr_message = step.get("with", {}).get("pr-message", "")
 
                     # Messages should be simple placeholders
-                    assert len(issue_message) < 200, "Issue message should be short placeholder, not detailed custom message"
-                    assert len(pr_message) < 200, "PR message should be short placeholder, not detailed custom message"
+                    assert len(issue_message) < 200, (
+                        "Issue message should be short placeholder, not detailed custom message"
+                    )
+                    assert len(pr_message) < 200, (
+                        "PR message should be short placeholder, not detailed custom message"
+                    )
 
                     # Should not contain custom project-specific content
-                    assert "Financial Asset Relationship Database" not in issue_message, "Should not have project-specific content in issue message"
-                    assert "Financial Asset Relationship Database" not in pr_message, "Should not have project-specific content in PR message"
+                    assert (
+                        "Financial Asset Relationship Database" not in issue_message
+                    ), "Should not have project-specific content in issue message"
+                    assert "Financial Asset Relationship Database" not in pr_message, (
+                        "Should not have project-specific content in PR message"
+                    )
 
     def test_no_markdown_formatting_in_messages(
         self, greetings_workflow: Dict[str, Any]
@@ -242,12 +250,20 @@ class TestGreetingsWorkflowSimplification:
                     pr_message = step.get("with", {}).get("pr-message", "")
 
                     # Should not have markdown headers
-                    assert "**" not in issue_message or issue_message.count("**") < 4, "Issue message should not have extensive markdown formatting"
-                    assert "**" not in pr_message or pr_message.count("**") < 4, "PR message should not have extensive markdown formatting"
+                    assert "**" not in issue_message or issue_message.count("**") < 4, (
+                        "Issue message should not have extensive markdown formatting"
+                    )
+                    assert "**" not in pr_message or pr_message.count("**") < 4, (
+                        "PR message should not have extensive markdown formatting"
+                    )
 
                     # Should not have bullet lists
-                    assert issue_message.count("- ") < 3, "Issue message should not have extensive bullet lists"
-                    assert pr_message.count("- ") < 3, "PR message should not have extensive bullet lists"
+                    assert issue_message.count("- ") < 3, (
+                        "Issue message should not have extensive bullet lists"
+                    )
+                    assert pr_message.count("- ") < 3, (
+                        "PR message should not have extensive bullet lists"
+                    )
 
 
 class TestLabelerWorkflowSimplification:
@@ -257,10 +273,8 @@ class TestLabelerWorkflowSimplification:
     def labeler_workflow(self) -> Dict[str, Any]:
         """Load label.yml workflow."""
         pass
-            workflow_path = (Path(__file__).parent.parent.parent
-            / ".github"
-            / "workflows"
-            / "label.yml"
+        workflow_path = (
+            Path(__file__).parent.parent.parent / ".github" / "workflows" / "label.yml"
         )
         with open(workflow_path, "r") as f:
             return yaml.safe_load(f)
@@ -590,6 +604,7 @@ class TestWorkflowRegressionPrevention:
 
         class DuplicateKeySafeLoader(yaml.SafeLoader):
             """SafeLoader subclass that tracks and detects duplicate keys in YAML mapping nodes."""
+
             pass
 
         def constructor_with_dup_check(loader, node):
@@ -619,7 +634,7 @@ class TestWorkflowRegressionPrevention:
 
     def test_workflow_files_remain_valid_yaml(self):
         """Test that all workflow files are still valid YAML after simplification."""
-        
+
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
         workflow_files = list(workflows_dir.glob("*.yml")) + list(
