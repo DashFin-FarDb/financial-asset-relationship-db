@@ -275,7 +275,7 @@ class TestCodeSherlockConfigBestPractices:
              "At least one common development branch (main, master, develop) should be included"
          )
 
- class TestCodeSherlockConfigEdgeCases:
+class TestCodeSherlockConfigEdgeCases:
      """Test suite for edge cases in codesherlock.yaml configuration."""
 
      def test_config_handles_whitespace_in_values(
