@@ -66,7 +66,7 @@ class TestGetWorkflowFiles:
         yml_file.write_text("name: Test")
 
     @pytest.fixtures
-    def test_finds_yml_files(self, tmp_path):
+    def test_finds_yml_files_with_patch(self, tmp_path):
         """Test that .yml files are found."""
         workflows_dir = tmp_path / "workflows"
         workflows_dir.mkdir()
@@ -230,6 +230,7 @@ float_val: 3.14
         assert result["float_val"] == 3.14
 
     def test_handles_multiline_strings(self, tmp_path):
+        """Test that multiline YAML strings are loaded correctly, preserving line breaks."""
         yaml_content = """
 script: |
   echo "line 1"
@@ -355,6 +356,7 @@ job2:
         assert isinstance(result, list)
 
     def test_github_actions_pr_agent_scenario(self, test_data_path):
+        """Test loading a dedicated PR agent YAML file yields no duplicates."""
         # The test now loads the YAML from a dedicated file
         # No more `# fmt: off` or embedded YAML strings
         yaml_file_path = test_data_path / "pr_agent.yml"
@@ -445,57 +447,56 @@ jobs:
             workflows = get_workflow_files()
             assert len(workflows) == 2
 
-            for workflow_file in workflows:
-                config = load_yaml_safe(workflow_file)
-                assert config is not None
-                assert "name" in config or "on" in config
+        for workflow_file in workflows:
+            config = load_yaml_safe(workflow_file)
+            assert config is not None
+            assert "name" in config or "on" in config
 
-                duplicates = check_duplicate_keys(workflow_file)
+            duplicates = check_duplicate_keys(workflow_file)
 
-                if workflow_file.name == "valid.yml":
-                    assert len(duplicates) == 0
-                elif workflow_file.name == "duplicate.yml":
-                    assert len(duplicates) > 0
-                    assert "name" in duplicates
+            if workflow_file.name == "valid.yml":
+                assert len(duplicates) == 0
+            elif workflow_file.name == "duplicate.yml":
+                assert len(duplicates) > 0
+                assert "name" in duplicates
 
-    def test_edge_case_workflow_with_complex_structure(self, tmp_path):
-        """Test handling of complex real - world workflow structure."""
-        workflows_dir = tmp_path / "workflows"
-        workflows_dir.mkdir()
+def test_edge_case_workflow_with_complex_structure(self, tmp_path):
+    """Test handling of complex real - world workflow structure."""
+    workflows_dir = tmp_path / "workflows"
+    workflows_dir.mkdir()
 
-        complex_workflow = workflows_dir / "complex.yml"
-        # fmt: off
-        complex_workflow.write_text(
-        "- uses: actions/checkout@v4\n"
-        "  with:\n"
-        "    fetch-depth: 0\n")
+    complex_workflow = workflows_dir / "complex.yml"
+    # fmt: off
+    complex_workflow.write_text(
+    "- uses: actions/checkout@v4\n"
+    "  with:\n"
+    "    fetch-depth: 0\n")
 
-    """
-name: Complex CI / CD
-on:
-    push:
-        branches: [main, develop]
-    pull_request:
-        types: [opened, synchronize]
-        env:
-          NODE_VERSION: '18'
-          PYTHON_VERSION: '3.11'
-        jobs:
-          test:
-            runs-on: ubuntu-latest
-            strategy:
-              matrix:
-                python-version: ['3.9', '3.10', '3.11']
-            steps:
-              - uses: actions/checkout@v4
-                with:
-                  fetch-depth: 0
-              - name: Setup Python
-                uses: actions/setup-python@v5
-                with:
-                  python-version: ${{ matrix.python-version }}
-                  cache: 'pip'
-              - name: Install dependencies
+# name: Complex CI / CD
+# on:
+#     push:
+#         branches: [main, develop]
+#     pull_request:
+#         types: [opened, synchronize]
+#         env:
+#           NODE_VERSION: '18'
+#           PYTHON_VERSION: '3.11'
+#         jobs:
+#           test:
+#             runs-on: ubuntu-latest
+#             strategy:
+#               matrix:
+#                 python-version: ['3.9', '3.10', '3.11']
+#             steps:
+#               - uses: actions/checkout@v4
+#                 with:
+#                   fetch-depth: 0
+#               - name: Setup Python
+#                 uses: actions/setup-python@v5
+#                 with:
+#                   python-version: ${{ matrix.python-version }}
+#                   cache: 'pip'
+#               - name: Install dependencies
                 run: |
                   pip install -r requirements.txt
                   pip install -r requirements-dev.txt
@@ -503,6 +504,9 @@ on:
                 run: pytest tests/ --cov
      """
     # fmt: on
+
+    from pathlib import Path
+    workflows_dir = Path(__file__).parent / "workflows"
 
     with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
         workflows = get_workflow_files()
