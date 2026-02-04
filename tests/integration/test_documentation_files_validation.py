@@ -67,7 +67,8 @@ def test_no_broken_markdown_links(
             if link_url.startswith(("http://", "https://", "#", "mailto:")):
                 continue
 
-            target_path=(md_file.parent / link_url).resolve()
+            link_path, _, _ = link_url.partition("#")
+            target_path=(md_file.parent / link_path).resolve()
 
             if target_path.name in {
                 "LICENSE",
@@ -76,7 +77,7 @@ def test_no_broken_markdown_links(
             }:
                 continue
 
-            if link_url.endswith(".md"):
+            if link_path.endswith(".md"):
                 assert target_path.exists(), (
                     f"File {md_file.name} links to non-existent file: {link_url}"
                 )
