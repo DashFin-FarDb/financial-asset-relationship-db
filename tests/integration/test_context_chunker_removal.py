@@ -311,7 +311,8 @@ class TestCleanCodebase:
         # Treat an empty or comment-only labeler.yml as effectively removed
         if content:
             non_comment_lines = [
-                line for line in content.splitlines()
+                line
+                for line in content.splitlines()
                 if line.strip() and not line.strip().startswith("#")
             ]
             assert not non_comment_lines, "labeler.yml should be empty or comments only"
