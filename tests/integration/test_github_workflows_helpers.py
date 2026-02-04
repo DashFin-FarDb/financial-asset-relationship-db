@@ -357,7 +357,9 @@ def test_github_actions_pr_agent_scenario(self, test_data_path):
 
     # The test logic remains the same
     result = check_duplicate_keys(yaml_file_path)
-    # ... assertions ...
+    # For a valid workflow file, there should be no duplicate keys
+    assert isinstance(result, list)
+    assert result == []
 
 
 def test_detects_duplicate_in_list_of_mappings(tmp_path):
