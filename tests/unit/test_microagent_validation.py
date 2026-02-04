@@ -301,7 +301,12 @@ class TestAllMicroagents(TestMicroagentValidation):
             with open(file_path, encoding="utf-8") as f:
                 content = f.read()
 
-            frontmatter, _ = self.parse_frontmatter(content)
+            def repo_engineer_path(self) -> Path:
+                """Return the path to repo_engineer_lead.md."""
+                return Path(".openhands/microagents/repo_engineer_lead.md")
+
+            @pytest.fixture
+            def repo_engineer_content(self, repo_engineer_path: Path) -> str:
 
             for field in required_fields:
                 assert field in frontmatter, (
