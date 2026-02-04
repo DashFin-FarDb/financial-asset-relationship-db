@@ -109,9 +109,7 @@ def test_no_trailing_whitespace(markdown_files: List[Path] = markdown_files) -> 
         )
 
 
-def test_test_summary_files_have_required_sections(
-    doc_root: Path = Path()
-) -> None:
+def test_test_summary_files_have_required_sections(doc_root: Path = Path()) -> None:
     """Verify summary/generation markdown contains key terms."""
     summary_files = list(doc_root.glob("*TEST*SUMMARY*.md"))
     summary_files.extend(doc_root.glob("*GENERATION*.md"))
