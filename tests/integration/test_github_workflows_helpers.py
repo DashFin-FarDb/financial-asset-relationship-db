@@ -25,6 +25,7 @@ from tests.integration.test_github_workflows import (
 class TestGetWorkflowFiles:
     """Test suite for get_workflow_files() function."""
 
+    @pytest.fixtures
     @staticmethod
     def test_returns_list():
         """Test that get_workflow_files returns a list."""
@@ -64,51 +65,51 @@ class TestGetWorkflowFiles:
         yml_file = workflows_dir / "test.yml"
         yml_file.write_text("name: Test")
 
+    @pytest.fixtures
+    def test_finds_yml_files(self, tmp_path):
+        """Test that .yml files are found."""
+        workflows_dir = tmp_path / "workflows"
+        workflows_dir.mkdir()
 
-def test_finds_yml_files(self, tmp_path):
-    """Test that .yml files are found."""
-    workflows_dir = tmp_path / "workflows"
-    workflows_dir.mkdir()
+        yml_file = workflows_dir / "test.yml"
+        yml_file.write_text("name: Test")
 
-    yml_file = workflows_dir / "test.yml"
-    yml_file.write_text("name: Test")
-
-    with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-        result = get_workflow_files()
-        assert len(result) == 1
-        assert result[0].name == "test.yml"
-
-
-def test_finds_yaml_files(self, tmp_path):
-    """Test that .yaml files are found."""
-    workflows_dir = tmp_path / "workflows"
-    workflows_dir.mkdir()
-
-    yaml_file = workflows_dir / "test.yaml"
-    yaml_file.write_text("name: Test")
-
-    with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-        result = get_workflow_files()
-        assert len(result) == 1
-        assert result[0].name == "test.yaml"
+        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+            result = get_workflow_files()
+            assert len(result) == 1
+            assert result[0].name == "test.yml"
 
 
-def test_finds_both_yml_and_yaml(self, tmp_path):
-    """Test that both .yml and .yaml files are found together."""
-    workflows_dir = tmp_path / "workflows"
-    workflows_dir.mkdir()
+    def test_finds_yaml_files(self, tmp_path):
+        """Test that .yaml files are found."""
+        workflows_dir = tmp_path / "workflows"
+        workflows_dir.mkdir()
 
-    yml_file = workflows_dir / "test1.yml"
-    yml_file.write_text("name: Test1")
+        yaml_file = workflows_dir / "test.yaml"
+        yaml_file.write_text("name: Test")
 
-    yaml_file = workflows_dir / "test2.yaml"
-    yaml_file.write_text("name: Test2")
+        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+            result = get_workflow_files()
+            assert len(result) == 1
+            assert result[0].name == "test.yaml"
 
-    with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-        result = get_workflow_files()
-        assert len(result) == 2
-        names = {f.name for f in result}
-        assert names == {"test1.yml", "test2.yaml"}
+
+    def test_finds_both_yml_and_yaml(self, tmp_path):
+        """Test that both .yml and .yaml files are found together."""
+        workflows_dir = tmp_path / "workflows"
+        workflows_dir.mkdir()
+
+        yml_file = workflows_dir / "test1.yml"
+        yml_file.write_text("name: Test1")
+
+        yaml_file = workflows_dir / "test2.yaml"
+        yaml_file.write_text("name: Test2")
+
+        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+            result = get_workflow_files()
+            assert len(result) == 2
+            names = {f.name for f in result}
+            assert names == {"test1.yml", "test2.yaml"}
 
     def test_ignores_non_yaml_files(self, tmp_path):
         """Test that non - YAML files are ignored."""
@@ -350,36 +351,37 @@ job2:
         assert isinstance(result, list)
 
 
-def test_github_actions_pr_agent_scenario(self, test_data_path):
-    # The test now loads the YAML from a dedicated file
-    # No more `# fmt: off` or embedded YAML strings
-    yaml_file_path = test_data_path / "pr_agent.yml"
+    def test_github_actions_pr_agent_scenario(self, test_data_path):
+        # The test now loads the YAML from a dedicated file
+        # No more `# fmt: off` or embedded YAML strings
+        yaml_file_path = test_data_path / "pr_agent.yml"
 
-    # The test logic remains the same
-    result = check_duplicate_keys(yaml_file_path)
-    # For a valid workflow file, there should be no duplicate keys
-    assert isinstance(result, list)
-    assert result == []
+        # The test logic remains the same
+        result = check_duplicate_keys(yaml_file_path)
+        # For a valid workflow file, there should be no duplicate keys
+        assert isinstance(result, list)
+        assert result == []
 
 
-def test_detects_duplicate_in_list_of_mappings(tmp_path):
-    """Test detection of duplicates within a mapping that's in a list."""
-    yaml_content = """- key: value1
+    def test_detects_duplicate_in_list_of_mappings(tmp_path):
+        """Test detection of duplicates within a mapping that's in a list."""
+        yaml_content = """- key: value1
   key: value2
 - key: value1
   key: value2
 """
-    yaml_file = tmp_path / "list_dup.yml"
-    yaml_file.write_text(yaml_content)
+        yaml_file = tmp_path / "list_dup.yml"
+        yaml_file.write_text(yaml_content)
 
-    result = check_duplicate_keys(yaml_file)
-    assert "key" in result
+        result = check_duplicate_keys(yaml_file)
+        assert "key" in result
 
 
 class TestWorkflowsDirectoryConstant:
     """Test suite for WORKFLOWS_DIR constant."""
 
     @staticmethod
+    @pytest.fixtures
     def test_workflows_dir_is_path_object():
         """Test that WORKFLOWS_DIR is a Path object."""
         assert isinstance(WORKFLOWS_DIR, Path)
@@ -400,6 +402,7 @@ class TestWorkflowsDirectoryConstant:
 class TestIntegrationScenarios:
     """Integration tests combining multiple helper functions."""
 
+    @pytest.fixtures
     def test_full_workflow_discovery_and_validation(self, tmp_path):
         """Test complete flow: discover workflows, load them, check for duplicates."""
         workflows_dir = tmp_path / "workflows"
@@ -454,14 +457,14 @@ jobs:
                     assert "name" in duplicates
 
 
-def test_edge_case_workflow_with_complex_structure(self, tmp_path):
-    """Test handling of complex real - world workflow structure."""
-    workflows_dir = tmp_path / "workflows"
-    workflows_dir.mkdir()
+    def test_edge_case_workflow_with_complex_structure(self, tmp_path):
+        """Test handling of complex real - world workflow structure."""
+        workflows_dir = tmp_path / "workflows"
+        workflows_dir.mkdir()
 
-    complex_workflow = workflows_dir / "complex.yml"
-    # fmt: off
-    complex_workflow.write_text(
+        complex_workflow = workflows_dir / "complex.yml"
+        # fmt: off
+        complex_workflow.write_text(
         "- uses: actions/checkout@v4\n"
         "  with:\n"
         "    fetch-depth: 0\n")
@@ -497,19 +500,19 @@ on:
               - name: Run tests
                 run: pytest tests/ --cov
      """
-    # fmt: on
+        # fmt: on
 
 
-with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    workflows = get_workflow_files()
-    assert len(workflows) == 1
+    with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
+        workflows = get_workflow_files()
+        assert len(workflows) == 1
 
-    config = load_yaml_safe(workflows[0])
-    assert config["name"] == "Complex CI/CD"
-    assert "push" in config["on"]
-    assert "pull_request" in config["on"]
-    assert "strategy" in config["jobs"]["test"]
-    assert "matrix" in config["jobs"]["test"]["strategy"]
+        config = load_yaml_safe(workflows[0])
+        assert config["name"] == "Complex CI/CD"
+        assert "push" in config["on"]
+        assert "pull_request" in config["on"]
+        assert "strategy" in config["jobs"]["test"]
+        assert "matrix" in config["jobs"]["test"]["strategy"]
 
-    duplicates = check_duplicate_keys(workflows[0])
-    assert len(duplicates) == 0
+        duplicates = check_duplicate_keys(workflows[0])
+        assert len(duplicates) == 0
