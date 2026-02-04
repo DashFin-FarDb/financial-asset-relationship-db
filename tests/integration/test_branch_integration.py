@@ -190,7 +190,9 @@ class TestRemovedFilesIntegration:
             ),
             None,
         )
-        assert labeler_step is not None, "Label workflow is missing an actions/labeler step"
+        assert labeler_step is not None, (
+            "Label workflow is missing an actions/labeler step"
+        )
         with_config = labeler_step.get("with", {})
         assert (
             "config-path" not in with_config
