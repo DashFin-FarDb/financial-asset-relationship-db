@@ -335,7 +335,6 @@ class TestCodeSherlockConfigEdgeCases:
             codesherlock_config_path(Path): Path to the repository's codesherlock.yaml file.
         """
 
-
     with open(codesherlock_config_path, "r", encoding="utf-8") as f:
         content = f.read()
 
