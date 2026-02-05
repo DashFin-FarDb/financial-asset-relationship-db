@@ -400,51 +400,51 @@ class TestCodeSherlockConfigIntegration:
 
 
 class TestCodeSherlockConfigDocumentation:
-     """Test suite for documentation and comments in codesherlock.yaml."""
+    """Test suite for documentation and comments in codesherlock.yaml."""
 
-     def test_config_has_inline_documentation(self, codesherlock_config_path: Path):
-         """Verify that the configuration file includes helpful comments."""
-         with open(codesherlock_config_path, "r") as f:
-             content = f.read()
+    def test_config_has_inline_documentation(self, codesherlock_config_path: Path):
+        """Verify that the configuration file includes helpful comments."""
+        with open(codesherlock_config_path, "r") as f:
+            content = f.read()
 
-         # Should have at least some comment lines
-         comment_lines = [
-             line for line in content.split("\n") if line.strip().startswith("#")
-         ]
-         assert len(comment_lines) >= 3, (
-             "Config file should include explanatory comments"
-         )
+        # Should have at least some comment lines
+        comment_lines = [
+            line for line in content.split("\n") if line.strip().startswith("#")
+        ]
+        assert len(comment_lines) >= 3, (
+            "Config file should include explanatory comments"
+        )
 
-     def test_config_documents_target_branches(self, codesherlock_config_path: Path):
-         """
-         Check that the YAML file documents the `target_branches` section with explanatory comments.
+    def test_config_documents_target_branches(self, codesherlock_config_path: Path):
+        """
+        Check that the YAML file documents the `target_branches` section with explanatory comments.
 
-         Searches the repository's codesherlock.yaml for the `target_branches:` key and asserts there is at least one comment line (a line starting with `#`) within the five lines immediately preceding that key.
+        Searches the repository's codesherlock.yaml for the `target_branches:` key and asserts there is at least one comment line (a line starting with `#`) within the five lines immediately preceding that key.
 
-         Parameters:
-             codesherlock_config_path (Path): Path to the codesherlock.yaml file to inspect.
-         """
-         with open(codesherlock_config_path, "r") as f:
-             content = f.read()
+        Parameters:
+            codesherlock_config_path (Path): Path to the codesherlock.yaml file to inspect.
+        """
+        with open(codesherlock_config_path, "r") as f:
+            content = f.read()
 
-         # Should have comments explaining target_branches before the field
-         lines = content.split("\n")
-         target_branches_line_idx = None
-         for i, line in enumerate(lines):
-             if "target_branches:" in line:
-                 target_branches_line_idx = i
-                 break
+        # Should have comments explaining target_branches before the field
+        lines = content.split("\n")
+        target_branches_line_idx = None
+        for i, line in enumerate(lines):
+            if "target_branches:" in line:
+                target_branches_line_idx = i
+                break
 
-         assert target_branches_line_idx is not None, (
-             "target_branches field should be present"
-         )
+        assert target_branches_line_idx is not None, (
+            "target_branches field should be present"
+        )
 
-         # Check for comments in the lines before target_branches
-         has_comment = any(
-             line.strip().startswith("#")
-             for line in lines[max(0, target_branches_line_idx - 5) : target_branches_line_idx]
-         )
-         assert has_comment, "target_branches section should have explanatory comments"
+        # Check for comments in the lines before target_branches
+        has_comment = any(
+            line.strip().startswith("#")
+            for line in lines[max(0, target_branches_line_idx - 5) : target_branches_line_idx]
+        )
+        assert has_comment, "target_branches section should have explanatory comments"
 
     def test_config_documents_preferred_characteristics(
         self, codesherlock_config_path: Path
