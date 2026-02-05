@@ -221,6 +221,7 @@ class TestBearerPermissions:
 
     @staticmethod
     def test_minimal_permissions_principle(bearer_workflow_content):
+
     def test_minimal_permissions_principle(bearer_workflow_content):
         # Should only have the necessary permissions
         allowed_permissions = {"contents", "security-events"}
