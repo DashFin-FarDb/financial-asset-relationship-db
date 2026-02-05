@@ -69,14 +69,13 @@ class TestYAMLSyntaxAndStructure:
                     continue
 
                 # If currently inside a block scalar, continue until indentation returns
-                if in_block_scalar:
+                if in_block_scalar and leading_spaces <= block_scalar_indent:
                     # Exit block scalar when indentation is less than or equal to the scalar's parent indent
-                    if leading_spaces <= block_scalar_indent:
-                        in_block_scalar = False
-                        block_scalar_indent = None
-                    else:
-                        # Still inside scalar; skip indentation checks
-                        continue
+                    in_block_scalar = False
+                    block_scalar_indent = None
+                elif in_block_scalar:
+                    # Still inside scalar; skip indentation checks
+                    continue
 
                 # Detect start of block scalars (| or > possibly with chomping/indent indicators)
                 # Example: key: |-, key: >2, key: |+
