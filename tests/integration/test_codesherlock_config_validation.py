@@ -338,15 +338,15 @@ class TestCodeSherlockConfigEdgeCases:
     with open(codesherlock_config_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-      # Check for consistent indentation (2 spaces)
-      lines = content.split("\n")
-       for i, line in enumerate(lines, 1):
-            if line and line[0] == " ":
-                # Count leading spaces
-                leading_spaces = len(line) - len(line.lstrip())
-                assert leading_spaces % 2 == 0, (
-                    f"Line {i} should use 2-space indentation"
-                )
+    # Check for consistent indentation (2 spaces)
+    lines = content.split("\n")
+    for i, line in enumerate(lines, 1):
+        if line and line[0] == " ":
+            # Count leading spaces
+            leading_spaces = len(line) - len(line.lstrip())
+            assert leading_spaces % 2 == 0, (
+                f"Line {i} should use 2-space indentation"
+            )
 
 
 class TestCodeSherlockConfigIntegration:
