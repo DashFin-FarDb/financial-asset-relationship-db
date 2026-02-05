@@ -221,11 +221,11 @@ class TestBearerPermissions:
 
     @staticmethod
     def test_minimal_permissions_principle(bearer_workflow_content):
-        """Verify the workflow follows minimal permissions principle."""
-        permissions = bearer_workflow_content["jobs"]["bearer"]["permissions"]
+
+    def test_minimal_permissions_principle(bearer_workflow_content):
         # Should only have the necessary permissions
-        expected_permissions = {"contents", "security-events"}
-        actual_permissions = set(permissions.keys())
+        allowed_permissions = {"contents", "security-events"}
+        assert actual_permissions.issubset(allowed_permissions)
         assert actual_permissions == expected_permissions, (
             f"Workflow should only have minimal required permissions: {expected_permissions}"
         )
