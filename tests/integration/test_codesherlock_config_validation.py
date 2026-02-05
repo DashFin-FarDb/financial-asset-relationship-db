@@ -40,7 +40,7 @@ class TestCodeSherlockConfigStructure:
      """Test suite for codesherlock.yaml configuration structure."""
 
      @staticmethod
-def test_config_file_exists(self, codesherlock_config_path: Path):
+def test_config_file_exists(codesherlock_config_path: Path):
     """Verify that codesherlock.yaml exists in the repository root."""
     assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
     assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
