@@ -344,9 +344,7 @@ class TestCodeSherlockConfigEdgeCases:
         if line and line[0] == " ":
             # Count leading spaces
             leading_spaces = len(line) - len(line.lstrip())
-            assert leading_spaces % 2 == 0, (
-                f"Line {i} should use 2-space indentation"
-            )
+            assert leading_spaces % 2 == 0, f"Line {i} should use 2-space indentation"
 
 
 class TestCodeSherlockConfigIntegration:
@@ -441,7 +439,9 @@ class TestCodeSherlockConfigDocumentation:
         # Check for comments in the lines before target_branches
         has_comment = any(
             line.strip().startswith("#")
-            for line in lines[max(0, target_branches_line_idx - 5) : target_branches_line_idx]
+            for line in lines[
+                max(0, target_branches_line_idx - 5) : target_branches_line_idx
+            ]
         )
         assert has_comment, "target_branches section should have explanatory comments"
 
@@ -460,7 +460,9 @@ class TestCodeSherlockConfigDocumentation:
         )
         has_comment = any(
             line.strip().startswith("#")
-            for line in lines[max(0, preferred_char_line_idx - 5) : preferred_char_line_idx]
+            for line in lines[
+                max(0, preferred_char_line_idx - 5) : preferred_char_line_idx
+            ]
         )
         assert has_comment, (
             "preferred_characteristics section should have explanatory comments"
