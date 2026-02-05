@@ -11,6 +11,11 @@ try:
 except Exception:
     TIKTOKEN_AVAILABLE = False
 
+# Default configuration file path for PR agent
+# Path is relative to the repo root, assuming this script is in .github/scripts/
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_CONFIG_PATH = REPO_ROOT / ".github/pr-agent-config.yml"
+
 
 class ContextChunker:
     """
@@ -31,12 +36,12 @@ class ContextChunker:
         context_text, has_content = chunker.process_context(pr_payload)
     """
 
-    def __init__(self, config_path: str = ".github/pr-agent-config.yml") -> None:
+    def __init__(self, config_path: Path | str = DEFAULT_CONFIG_PATH) -> None:
         """
         Initialize a ContextChunker for PR agent context chunking.
 
         Args:
-            config_path (str): Path to the YAML configuration file. Defaults to ".github/pr-agent-config.yml".
+            config_path (Path | str): Path to the YAML configuration file. Defaults to DEFAULT_CONFIG_PATH.
                 The file should contain configuration sections for 'agent.context' (chunking parameters)
                 and 'limits.fallback' (priority order for context elements).
 
@@ -55,7 +60,10 @@ class ContextChunker:
                 with cfg_file.open("r", encoding="utf-8") as f:
                     self.config = yaml.safe_load(f) or {}
             except Exception as e:
-                print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
+                print(
+                    f"Warning: failed to load config from {config_path}: {e}",
+                    file=sys.stderr,
+                )
                 self.config = {}
         agent_cfg = (self.config.get("agent") or {}).get("context") or {}
         self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
@@ -79,7 +87,10 @@ class ContextChunker:
             try:
                 self._encoder = tiktoken.get_encoding("cl100k_base")
             except Exception as e:
-                print(f"Warning: failed to initialize tiktoken encoder: {e}", file=sys.stderr)
+                print(
+                    f"Warning: failed to initialize tiktoken encoder: {e}",
+                    file=sys.stderr,
+                )
                 self._encoder = None
 
     def process_context(self, payload: Dict[str, Any]) -> tuple[str, bool]:
