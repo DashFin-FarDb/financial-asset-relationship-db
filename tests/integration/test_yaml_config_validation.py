@@ -59,7 +59,7 @@ class TestYAMLSyntaxAndStructure:
             block_scalar_indent = None
 
             for line_no, line in enumerate(lines, 1):
-                    stripped = line.lstrip(" ")
+                stripped = line.lstrip(" ")
                 leading_spaces = len(line) - len(stripped)
                 # Skip empty lines and full-line comments
                 if not stripped or stripped.startswith("#"):
