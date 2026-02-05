@@ -104,7 +104,7 @@ def test_no_duplicate_keys_in_yaml(self):
     Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml (typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate-key errors are collected and cause the test to fail with a consolidated error message.
     """
     try:
-        from ruamel.yaml import YAML
+        from ruamel.yaml import YAML, YAMLError
     except ImportError:
         pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
 
@@ -118,7 +118,7 @@ def test_no_duplicate_keys_in_yaml(self):
         try:
             with open(yaml_file, "r") as f:
                 parser.load(f)
-        except ruamel.yaml.YAMLError as e:
+        except YAMLError as e:
             parse_errors.append(f"{yaml_file}: YAML error - {e}")
         except OSError as e:
             # Report but don't fail the test on file system errors
