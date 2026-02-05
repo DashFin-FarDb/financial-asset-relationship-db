@@ -225,7 +225,7 @@ class TestBearerPermissions:
     def test_minimal_permissions_principle(bearer_workflow_content):
         # Should only have the necessary permissions
         allowed_permissions = {"contents", "security-events"}
-        assert actual_permissions.issubset(allowed_permissions),
+        assert actual_permissions.issubset(allowed_permissions)
         assert actual_permissions == expected_permissions, (
             f"Workflow should only have minimal required permissions: {expected_permissions}"
         )
