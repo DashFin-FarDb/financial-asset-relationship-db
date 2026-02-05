@@ -120,7 +120,7 @@ class TestCodeSherlockConfigContent:
 
     def test_target_branches_are_strings(self, codesherlock_config: Dict[str, Any]):
         """
-        Verify that all target branches are non-empty strings.
+        Verify that all target branches are non - empty strings.
 
         Asserts that every entry in `target_branches` is a Python `str` and has length greater than zero.
         """
@@ -139,12 +139,12 @@ class TestCodeSherlockConfigContent:
         self, codesherlock_config: Dict[str, Any]
     ):
         """
-        Check that each entry in preferred_characteristics is a non-empty string.
+        Check that each entry in preferred_characteristics is a non - empty string.
 
         Asserts that every characteristic is an instance of `str` and has length greater than zero.
 
         Parameters:
-            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
+            codesherlock_config(Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         for characteristic in codesherlock_config["preferred_characteristics"]:
             assert isinstance(characteristic, str), (
@@ -198,7 +198,7 @@ class TestCodeSherlockConfigBestPractices:
     def test_covers_key_security_characteristics(
         self, codesherlock_config: Dict[str, Any]
     ):
-        """Verify that security-related characteristics are included."""
+        """Verify that security - related characteristics are included."""
         security_characteristics = {
             "Input Validation",
             "Code Injection",
@@ -222,7 +222,7 @@ class TestCodeSherlockConfigBestPractices:
         Asserts that the `preferred_characteristics` list contains "Modularity" and "Dependency Injection".
 
         Parameters:
-            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
+            codesherlock_config(Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         quality_characteristics = {"Modularity", "Dependency Injection"}
         configured_characteristics = set(
@@ -254,10 +254,10 @@ class TestCodeSherlockConfigBestPractices:
         """Validate the number of preferred characteristics in the configuration.
 
         Ensures the `preferred_characteristics` list contains a reasonable number of
-        items (between 3 and 10 inclusive) to keep reviews focused and manageable.
+        items(between 3 and 10 inclusive) to keep reviews focused and manageable.
 
         Parameters:
-            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
+            codesherlock_config(Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         num_characteristics = len(codesherlock_config["preferred_characteristics"])
         assert 3 <= num_characteristics <= 10, (
@@ -302,10 +302,10 @@ class TestCodeSherlockConfigEdgeCases:
         Ensure branch names do not contain disallowed characters.
 
         Branch names should not contain spaces, tabs, newlines, or any of the characters:
-        ~, ^, :, ?, *, [, \\.
+        ~, ^ , :, ?, *, [, \\.
 
         Parameters:
-            codesherlock_config (dict): Parsed codesherlock.yaml containing the "target_branches" list.
+            codesherlock_config(dict): Parsed codesherlock.yaml containing the "target_branches" list.
         """
         for branch in codesherlock_config["target_branches"]:
             # Branch names should not contain certain invalid characters
@@ -319,7 +319,7 @@ class TestCodeSherlockConfigEdgeCases:
         """
         Ensure that the codesherlock.yaml file remains reasonably small.
         Parameters:
-            codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
+            codesherlock_config_path(Path): Path to the repository's codesherlock.yaml file.
         """
         file_size = codesherlock_config_path.stat().st_size
         assert file_size < 10240, (
@@ -328,12 +328,12 @@ class TestCodeSherlockConfigEdgeCases:
 
     def test_config_yaml_formatting(self, codesherlock_config_path: Path):
         """
-        Verify the YAML file uses 2-space indentation for all indented lines.
+        Verify the YAML file uses 2 - space indentation for all indented lines.
 
         Asserts that every line with leading spaces has a number of leading spaces divisible by two.
 
         Parameters:
-            codesherlock_config_path (Path): Path to the repository's codesherlock.yaml file.
+            codesherlock_config_path(Path): Path to the repository's codesherlock.yaml file.
         """
 
 
@@ -362,7 +362,7 @@ class TestCodeSherlockConfigIntegration:
 
         Ensures that all branch names are between 1 and 255 characters long.
         Parameters:
-            codesherlock_config (dict): Parsed codesherlock.yaml mapping; must contain a "target_branches" list of branch name strings.
+            codesherlock_config(dict): Parsed codesherlock.yaml mapping; must contain a "target_branches" list of branch name strings.
         """
         branches = codesherlock_config["target_branches"]
 
@@ -383,7 +383,7 @@ class TestCodeSherlockConfigIntegration:
         missing characteristics.
 
         Parameters:
-            codesherlock_config (Dict[str, Any]): Parsed codesherlock.yaml configuration.
+            codesherlock_config(Dict[str, Any]): Parsed codesherlock.yaml configuration.
         """
         characteristics = set(codesherlock_config["preferred_characteristics"])
 
@@ -420,10 +420,10 @@ class TestCodeSherlockConfigDocumentation:
         """
         Check that the YAML file documents the `target_branches` section with explanatory comments.
 
-        Searches the repository's codesherlock.yaml for the `target_branches:` key and asserts there is at least one comment line (a line starting with `#`) within the five lines immediately preceding that key.
+        Searches the repository's codesherlock.yaml for the `target_branches:` key and asserts there is at least one comment line(a line starting with `  # `) within the five lines immediately preceding that key.
 
         Parameters:
-            codesherlock_config_path (Path): Path to the codesherlock.yaml file to inspect.
+            codesherlock_config_path(Path): Path to the codesherlock.yaml file to inspect.
         """
         with open(codesherlock_config_path, "r") as f:
             content = f.read()
