@@ -479,7 +479,7 @@ class TestWorkflowSecurity:
         """
         Verify sensitive keys in step `with` mappings use the GitHub secrets context or are empty.
 
-        Scans each job's steps and for any `with` keys containing `token`, `password`, `key` or `secret` asserts that string values start with `"${{"` (secrets context) or are empty.
+        Scans each job's steps and for any `with` keys containing `token`, `password`, `key` or `secret` asserts that string values start with "${{" (secrets context) or are empty.
         """
         config = load_yaml_safe(workflow_file)
         jobs = config.get("jobs", {})
@@ -495,12 +495,11 @@ class TestWorkflowSecurity:
                     if any(
                         sensitive in key.lower()
                         for sensitive in ["token", "password", "key", "secret"]
-                    ):
-                        if isinstance(value, str):
-                            assert value.startswith("${{") or value == "", (
-                                f"Sensitive field '{key}' in {workflow_file.name} "
-                                "should use secrets context (e.g., ${{ secrets.TOKEN }})"
-                            )
+                    ) and isinstance(value, str):
+                        assert value.startswith("${{") or value == "", (
+                            f"Sensitive field '{key}' in {workflow_file.name} "
+                            "should use secrets context (e.g., ${{ secrets.TOKEN }})"
+                        )
 
 
 class TestWorkflowMaintainability:
@@ -2611,11 +2610,10 @@ class TestWorkflowCachingStrategies:
                 steps = job.get("steps", [])
                 for step in steps:
                     if "uses" in step and "actions/cache" in step["uses"]:
-                        if "with" in step and "key" in step["with"]:
+                        if "with" in step and "key" in step["with"] and "os" in matrix:
                             # Should include runner.os in cache key
-                            if "os" in matrix:
-                                # Advisory: consider including OS in cache key
-                                assert True
+                            # Advisory: consider including OS in cache key
+                            assert True
 
 
 class TestWorkflowPermissionsBestPractices:
@@ -2813,12 +2811,16 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
-                if "uses" in step and "actions/upload-artifact" in step["uses"]:
-                    if "with" in step and "retention-days" in step["with"]:
-                        retention = step["with"]["retention-days"]
-                        assert 1 <= retention <= 90, (
-                            f"Artifact retention should be 1-90 days in {workflow_file.name}"
-                        )
+                if (
+                    "uses" in step
+                    and "actions/upload-artifact" in step["uses"]
+                    and "with" in step
+                    and "retention-days" in step["with"]
+                ):
+                    retention = step["with"]["retention-days"]
+                    assert 1 <= retention <= 90, (
+                        f"Artifact retention should be 1-90 days in {workflow_file.name}"
+                    )
 
 
 class TestWorkflowEnvironmentVariables:
