@@ -60,10 +60,7 @@ class ContextChunker:
                 with cfg_file.open("r", encoding="utf-8") as f:
                     self.config = yaml.safe_load(f) or {}
             except Exception as e:
-                print(
-                    f"Warning: failed to load config from {config_path}: {e}",
-                    file=sys.stderr,
-                )
+                print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
                 self.config = {}
         agent_cfg = (self.config.get("agent") or {}).get("context") or {}
         self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
