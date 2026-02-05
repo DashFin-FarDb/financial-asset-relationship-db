@@ -83,9 +83,11 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith(
-                    "  " * (leading_spaces // 2 + 1) + "- |"
-                ) and leading_spaces % 2 != 0:
+                if (
+                    line[0] == " "
+                    and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |")
+                    and leading_spaces % 2 != 0
+                ):
                     indentation_errors.append(
                         f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
                     )
