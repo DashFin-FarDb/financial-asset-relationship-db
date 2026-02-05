@@ -72,46 +72,46 @@ class TestCodeSherlockConfigStructure:
 
         This test fails if any of the expected top-level keys are missing from the configuration.
         """
-            assert "target_branches" in codesherlock_config, (
-                "target_branches field is required"
-            )
-            assert "preferred_characteristics" in codesherlock_config, (
-                "preferred_characteristics field is required"
-            )
+        assert "target_branches" in codesherlock_config, (
+            "target_branches field is required"
+        )
+        assert "preferred_characteristics" in codesherlock_config, (
+            "preferred_characteristics field is required"
+        )
 
-        def test_target_branches_is_list(self, codesherlock_config: Dict[str, Any]):
-            """Verify that target_branches is a list."""
-            assert isinstance(codesherlock_config["target_branches"], list), (
-                "target_branches should be a list"
-            )
+    def test_target_branches_is_list(self, codesherlock_config: Dict[str, Any]):
+        """Verify that target_branches is a list."""
+        assert isinstance(codesherlock_config["target_branches"], list), (
+            "target_branches should be a list"
+        )
 
-        def test_target_branches_not_empty(self, codesherlock_config: Dict[str, Any]):
-            """Verify that target_branches list is not empty."""
-            assert len(codesherlock_config["target_branches"]) > 0, (
-                "target_branches should not be empty"
-            )
+    def test_target_branches_not_empty(self, codesherlock_config: Dict[str, Any]):
+        """Verify that target_branches list is not empty."""
+        assert len(codesherlock_config["target_branches"]) > 0, (
+            "target_branches should not be empty"
+        )
 
-        def test_target_branches_contains_main(self, codesherlock_config: Dict[str, Any]):
-            """Verify that 'main' is included in target_branches."""
-            assert "main" in codesherlock_config["target_branches"], (
-                "target_branches should include 'main'"
-            )
+    def test_target_branches_contains_main(self, codesherlock_config: Dict[str, Any]):
+        """Verify that 'main' is included in target_branches."""
+        assert "main" in codesherlock_config["target_branches"], (
+            "target_branches should include 'main'"
+        )
 
-        def test_preferred_characteristics_is_list(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """Verify that preferred_characteristics is a list."""
-            assert isinstance(codesherlock_config["preferred_characteristics"], list), (
-                "preferred_characteristics should be a list"
-            )
+    def test_preferred_characteristics_is_list(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that preferred_characteristics is a list."""
+        assert isinstance(codesherlock_config["preferred_characteristics"], list), (
+            "preferred_characteristics should be a list"
+        )
 
-        def test_preferred_characteristics_not_empty(
-            self, codesherlock_config: Dict[str, Any]
-        ):
-            """Verify that preferred_characteristics list is not empty."""
-            assert len(codesherlock_config["preferred_characteristics"]) > 0, (
-                "preferred_characteristics should not be empty"
-            )
+    def test_preferred_characteristics_not_empty(
+        self, codesherlock_config: Dict[str, Any]
+    ):
+        """Verify that preferred_characteristics list is not empty."""
+        assert len(codesherlock_config["preferred_characteristics"]) > 0, (
+            "preferred_characteristics should not be empty"
+        )
 
 
 class TestCodeSherlockConfigContent:
