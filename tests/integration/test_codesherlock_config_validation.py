@@ -45,32 +45,33 @@ class TestCodeSherlockConfigStructure:
         assert codesherlock_config_path.exists(), "codesherlock.yaml should exist"
         assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
 
-      @staticmethod
-      def test_config_is_valid_yaml(codesherlock_config_path: Path):
-            """
-            Verify that the repository's codesherlock.yaml parses as valid YAML.
+    @staticmethod
+    def test_config_is_valid_yaml(codesherlock_config_path: Path):
+        """
+        Verify that the repository's codesherlock.yaml parses as valid YAML.
 
-            Asserts that the file at `codesherlock_config_path` loads to a non-None mapping (dict) and fails the test on YAML syntax errors.
+        Asserts that the file at `codesherlock_config_path` loads to a non-None mapping (dict) and fails the test on YAML syntax errors.
 
-            Parameters:
-                codesherlock_config_path (Path): Path to the codesherlock.yaml file in the repository root.
-            """
-            try:
-                with open(codesherlock_config_path, "r") as f:
-                    config = yaml.safe_load(f)
-                assert config is not None, "Config should not be None"
-                assert isinstance(config, dict), "Config should be a dictionary"
-            except yaml.YAMLError as e:
-                pytest.fail(f"Invalid YAML syntax: {e}")
+        Parameters:
+            codesherlock_config_path (Path): Path to the codesherlock.yaml file in the repository root.
+        """
+        try:
+            with open(codesherlock_config_path, "r") as f:
+                config = yaml.safe_load(f)
+            assert config is not None, "Config should not be None"
+            assert isinstance(config, dict), "Config should be a dictionary"
+        except yaml.YAMLError as e:
+            pytest.fail(f"Invalid YAML syntax: {e}")
 
-        def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
-            """
-            Ensure the top-level required fields are present in the Codesherlock configuration.
+    def test_config_has_required_fields(self, codesherlock_config: Dict[str, Any]):
+        """
+        Ensure the top-level required fields are present in the Codesherlock configuration.
 
-            Parameters:
-                codesherlock_config (Dict[str, Any]): Parsed contents of `codesherlock.yaml` as a mapping.
+        Parameters:
+            codesherlock_config (Dict[str, Any]): Parsed contents of `codesherlock.yaml` as a mapping.
 
-            This test fails if any of the expected top-level keys are missing from the configuration.
+        This test fails if any of the expected top-level keys are missing from the configuration.
+        """
             """
             assert "target_branches" in codesherlock_config, (
                 "target_branches field is required"
