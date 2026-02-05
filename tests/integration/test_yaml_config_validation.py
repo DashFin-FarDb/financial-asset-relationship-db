@@ -86,6 +86,25 @@ class TestYAMLSyntaxAndStructure:
                         indentation_errors.append(
                             f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
                         )
+
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
+
+    def test_no_duplicate_keys_in_yaml(self):
+        """
+        Check that no YAML files under .github contain duplicate keys by loading each file with ruamel.yaml's strict parser.
+
+        Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml (typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate-key errors are collected and cause the test to fail with a consolidated error message.
+        """
+        try:
+            from ruamel.yaml import YAML
+        except ImportError:
+            pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
+
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        parser = YAML(typ="safe")
+        parse_errors = []
+
+        for yaml_file in yaml_files:
             try:
                 with open(yaml_file, "r") as f:
                     parser.load(f)
