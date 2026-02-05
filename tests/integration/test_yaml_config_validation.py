@@ -88,7 +88,7 @@ class TestYAMLSyntaxAndStructure:
         indentation_errors.append(
             f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
         )
-            try:
+           try:
                 with open(yaml_file, "r") as f:
                     parser.load(f)
             except Exception as e:
