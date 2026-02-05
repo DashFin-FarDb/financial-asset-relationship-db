@@ -12,7 +12,9 @@ except Exception:
     TIKTOKEN_AVAILABLE = False
 
 # Default configuration file path for PR agent
-DEFAULT_CONFIG_PATH = Path(".github/pr-agent-config.yml")
+# Path is relative to the repo root, assuming this script is in .github/scripts/
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+DEFAULT_CONFIG_PATH = REPO_ROOT / ".github/pr-agent-config.yml"
 
 
 class ContextChunker:
