@@ -65,7 +65,7 @@ class TestYAMLSyntaxAndStructure:
                 leading_spaces = len(line) - len(stripped)
 
                 # Skip empty lines and full-line comments
-Re - indent the loop body correctly so that the logic for processing each line is inside the for line_no, line in enumerate(lines, 1): loop.
+                if not stripped or stripped.startswith("#"):
                     continue
                 # If currently inside a block scalar, continue until indentation returns
                 if in_block_scalar:
