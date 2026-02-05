@@ -147,7 +147,8 @@ class FinancialAssetApp:
                 len(self.graph.assets),
             )
             logger.info(
-                "Initialized sample database with %s assets", len(self.graph.assets)
+                "Initialized sample database with %s assets",
+                len(self.graph.assets),
             )
         except Exception as e:
             logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, e)
@@ -173,7 +174,8 @@ class FinancialAssetApp:
             relationship_density=metrics["relationship_density"],
             regulatory_event_count=metrics["regulatory_event_count"],
             asset_class_distribution=json.dumps(
-                metrics["asset_class_distribution"], indent=2
+                metrics["asset_class_distribution"],
+                indent=2,
             ),
         )
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
@@ -600,15 +602,12 @@ class FinancialAssetApp:
 
                 with gr.Tab("📊 Formulaic Analysis"):
                     gr.Markdown(
-                        """
-                        ## Mathematical Relationships & Formulas
-
-                        This section extracts and visualizes mathematical
-                        formulas and relationships between financial variables.
-                        It includes fundamental financial ratios,
-                        correlation patterns, valuation models, and empirical
-                        relationships derived from the asset database.
-                        """
+                        "## Mathematical Relationships & Formulas\n\n"
+                        "This section extracts and visualizes mathematical formulas\n"
+                        "and relationships between financial variables. It includes\n"
+                        "fundamental financial ratios, correlation patterns,\n"
+                        "valuation models, and empirical relationships derived\n"
+                        "from the asset database."
                     )
 
                     with gr.Row():

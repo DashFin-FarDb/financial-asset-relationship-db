@@ -191,7 +191,12 @@ class RealDataFetcher:
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
-            "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
+            "TLT": (
+                "iShares 20+ Year Treasury Bond ETF",
+                "Government",
+                None,
+                "AAA",
+            ),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
                 "Corporate",
@@ -228,9 +233,18 @@ class RealDataFetcher:
                     issuer_id=issuer_id,
                 )
                 bonds.append(bond)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
             except Exception as e:
-                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
+                logger.error(
+                    "Failed to fetch bond data for %s: %s",
+                    symbol,
+                    e,
+                )
                 continue
 
         return bonds

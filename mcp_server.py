@@ -91,13 +91,15 @@ def _build_mcp_app():
                 price=price,
             )
 
-            # Prefer using the graph's public add_asset API (per AssetRelationshipGraph).
+            # Prefer using the graph's public add_asset API
+            # (per AssetRelationshipGraph).
             add_asset = getattr(graph, "add_asset", None)
             if callable(add_asset):
                 add_asset(new_equity)
                 return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
 
-            # Fallback: validation-only behavior if the graph does not expose an add API.
+            # Fallback: validation-only behavior if the graph does not expose
+            # an add API.
             # Explicitly indicate that no mutation occurred.
             return (
                 f"Successfully validated (Graph mutation not supported): "

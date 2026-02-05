@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.models.financial_models import AssetClass
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,9 @@ class FormulaicAnalyzer:
                 name="Price-to-Earnings Ratio",
                 formula="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
-                description="Valuation metric comparing stock price to earnings per share",
+                description=(
+                    "Valuation metric comparing stock price to earnings per share"
+                ),
                 variables={
                     "PE": "Price-to-Earnings Ratio",
                     "P": "Current Stock Price ($)",
@@ -425,26 +428,32 @@ class FormulaicAnalyzer:
     def _generate_formula_summary(
         self,
         formulas: List[Formula],
-        empirical_relationships: Dict,
+        empirical_relationships: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Generate a summary of formulaic analysis results."""
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
             empirical_relationships
         )
+
+        if formulas:
+            avg_r_squared = sum(
+                f.r_squared for f in formulas if isinstance(f.r_squared, (int, float))
+            ) / len(formulas)
+        else:
+            avg_r_squared = 0.0
+
         return {
             "total_formulas": len(formulas),
-            "avg_r_squared": (
-                sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0
-            ),
+            "avg_r_squared": avg_r_squared,
             "formula_categories": self._categorize_formulas(formulas),
             "empirical_data_points": len(
                 empirical_relationships.get("correlation_matrix", {})
             ),
             "key_insights": [
-                (f"Identified {len(formulas)} mathematical relationships"),
+                f"Identified {len(formulas)} mathematical relationships",
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
-                ("Portfolio theory formulas available for multi-asset analysis"),
+                "Portfolio theory formulas available for multi-asset analysis",
                 (
                     "Cross-asset relationships identified between "
                     "commodities and currencies"
@@ -470,7 +479,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _has_equities(graph: AssetRelationshipGraph) -> bool:
         """Check if the graph contains equity assets."""
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values()
@@ -479,7 +487,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _has_bonds(graph: AssetRelationshipGraph) -> bool:
         """Check if graph contains bond/fixed income assets."""
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.FIXED_INCOME
@@ -487,18 +494,8 @@ class FormulaicAnalyzer:
         )
 
     @staticmethod
-    def _has_commodities(graph: AssetRelationshipGraph) -> bool:
-        """Check if the graph contains commodity assets."""
-        from src.models.financial_models import AssetClass
-
-        return any(
-            asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values()
-        )
-
-    @staticmethod
     def _has_currencies(graph: AssetRelationshipGraph) -> bool:
         """Check if the graph contains currency assets."""
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values()
@@ -513,7 +510,6 @@ class FormulaicAnalyzer:
         yield. It iterates through the assets in the graph and checks for the
         necessary conditions to identify dividend stocks.
         """
-        from src.models.financial_models import AssetClass
 
         return any(
             asset.asset_class == AssetClass.EQUITY
@@ -534,7 +530,6 @@ class FormulaicAnalyzer:
         examples and formats them for output. If no valid examples are found,
         a default example is returned.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -560,7 +555,6 @@ class FormulaicAnalyzer:
         percentage and price for each qualifying asset, stopping after two examples.
         If no examples are found, it returns a default example calculation.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -593,7 +587,6 @@ class FormulaicAnalyzer:
         method returns a string containing up to two examples or a default message if
         no valid examples are found.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -619,7 +612,6 @@ class FormulaicAnalyzer:
         in billions. If no valid examples are found, a default message is
         returned.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -666,7 +658,6 @@ class FormulaicAnalyzer:
             graph (AssetRelationshipGraph): The graph containing asset data for
                 analysis.
         """
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -689,7 +680,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example volatility calculations from graph data."""
-        from src.models.financial_models import AssetClass
 
         examples = []
         for asset in graph.assets.values():
@@ -713,14 +703,14 @@ class FormulaicAnalyzer:
     def _calculate_portfolio_variance_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example portfolio variance calculations."""
         return (
-            "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + "
+            "Example: σ²p = (0.6² × 0.2²) + "
+            "(0.4² × 0.1²) + "
             "(2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
         )
 
     @staticmethod
     def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example exchange rate calculations from graph data."""
-        from src.models.financial_models import AssetClass
 
         currencies = [
             asset
