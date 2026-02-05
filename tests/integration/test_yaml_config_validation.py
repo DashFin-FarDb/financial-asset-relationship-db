@@ -39,7 +39,7 @@ class TestYAMLSyntaxAndStructure:
             except yaml.YAMLError as e:
                 parse_errors.append(f"{yaml_file}: {str(e)}")
 
-        assert len(parse_errors) == 0, f"YAML parse errors:\n" + "\n".join(parse_errors)
+        assert len(parse_errors) == 0, "YAML parse errors:\n" + "\n".join(parse_errors)
 
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
