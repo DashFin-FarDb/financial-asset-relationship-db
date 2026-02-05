@@ -85,11 +85,10 @@ class TestYAMLSyntaxAndStructure:
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
                 if line[0] == " " and not line.startswith(
                     "  " * (leading_spaces // 2 + 1) + "- |"
-                ):
-                    if leading_spaces % 2 != 0:
-                        indentation_errors.append(
-                            f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
-                        )
+                ) and leading_spaces % 2 != 0:
+                    indentation_errors.append(
+                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
+                    )
 
         assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
             indentation_errors
