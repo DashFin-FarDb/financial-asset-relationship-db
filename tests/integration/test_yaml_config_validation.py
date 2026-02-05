@@ -83,22 +83,55 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith(
-                    "  " * (leading_spaces // 2 + 1) + "- |"
+                if (
+                    line[0] == " "
+                    and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |")
+                    and leading_spaces % 2 != 0
                 ):
-                    if leading_spaces % 2 != 0:
-                        indentation_errors.append(
-                            f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
-                        )
-            try:
-                with open(yaml_file, "r") as f:
-                    parser.load(f)
-            except Exception as e:
-                parse_errors.append(f"{yaml_file}: {e}")
+                    indentation_errors.append(
+                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
+                    )
 
-        assert not parse_errors, (
-            "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
+            indentation_errors
         )
+
+
+def test_no_duplicate_keys_in_yaml(self):
+    """
+    Check that no YAML files under .github contain duplicate keys by loading each file with ruamel.yaml's strict parser.
+
+    Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml (typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate-key errors are collected and cause the test to fail with a consolidated error message.
+    """
+    try:
+        from ruamel.yaml import YAML, YAMLError
+    except ImportError:
+        pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
+
+    yaml_files = list(Path(".github").rglob("*.yml")) + list(
+        Path(".github").rglob("*.yaml")
+    )
+    parser = YAML(typ="safe")
+    parse_errors = []
+
+    for yaml_file in yaml_files:
+        try:
+            with open(yaml_file, "r") as f:
+                parser.load(f)
+        except YAMLError as e:
+            parse_errors.append(f"{yaml_file}: YAML error - {e}")
+        except OSError as e:
+            # Report but don't fail the test on file system errors
+            pytest.skip(f"Cannot read {yaml_file}: {e}")
+        try:
+            with open(yaml_file, "r") as f:
+                parser.load(f)
+        except Exception as e:
+            parse_errors.append(f"{yaml_file}: {e}")
+
+    assert not parse_errors, "Duplicate keys or YAML errors detected:\n" + "\n".join(
+        parse_errors
+    )
 
 
 class TestWorkflowSchemaCompliance:
