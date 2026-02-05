@@ -46,7 +46,7 @@ def test_config_file_exists(codesherlock_config_path: Path):
     assert codesherlock_config_path.is_file(), "codesherlock.yaml should be a file"
 
       @staticmethod
-       def test_config_is_valid_yaml(codesherlock_config_path: Path):
+      def test_config_is_valid_yaml(codesherlock_config_path: Path):
             """
             Verify that the repository's codesherlock.yaml parses as valid YAML.
 
