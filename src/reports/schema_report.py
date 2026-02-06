@@ -98,13 +98,12 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 ### Data Quality Score: """
 
     quality_score = min(
-         1.0,
-         metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
-         )
-     report += f"{quality_score:.1%}\n"
-
-      report += "\n### Recommendation: "
-       if metrics["relationship_density"] > 30:
+        1.0,
+        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+    )
+    report += f"{quality_score:.1%}\n"
+    report += "\n### Recommendation: "
+    if metrics["relationship_density"] > 30:
             report += "High connectivity - consider normalization"
         elif metrics["relationship_density"] > 10:
             report += "Well-balanced relationship graph - optimal for most use cases"
