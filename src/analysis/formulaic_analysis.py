@@ -12,7 +12,7 @@ class Formula:
     """Represents a mathematical formula between financial variables"""
 
     name: str
-    formula: str
+    expression: str
     latex: str
     description: str
     variables: Dict[str, str]  # variable_name -> description
