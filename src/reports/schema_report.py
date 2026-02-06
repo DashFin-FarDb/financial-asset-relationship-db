@@ -72,25 +72,26 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     report += (
         "1. **Event Propagation**: Earnings events impact related bond and\n"
         "currency assets\n"
-        report += (
-            "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
-            "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
-            "4. **Related Assets**: Each event automatically creates relationships "
-            "to impacted securities\n"
-        )
-        report += """
+    )
+    report += (
+        "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
+        "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
+        "4. **Related Assets**: Each event automatically creates relationships "
+        "to impacted securities\n"
+    )
+    report += """
 
 ### Valuation Rules
 """
-        report += (
-            "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
-            "indicates relative value\n"
-            "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
-            "exposure\n"
-            "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
-            "exposure\n"
-        )
-        report += """
+    report += (
+        "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
+        "indicates relative value\n"
+        "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
+        "exposure\n"
+        "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
+        "exposure\n"
+    )
+    report += """
 
 ## Schema Optimization Metrics
 
