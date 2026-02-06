@@ -74,6 +74,7 @@ class TestYAMLSyntaxAndStructure:
                         # Exit block scalar when indentation is less than or equal to the scalar's parent indent
                         in_block_scalar = False
                         block_scalar_indent = None
+                    else:
                     # Still inside scalar; skip indentation checks for this line
                     continue
 
