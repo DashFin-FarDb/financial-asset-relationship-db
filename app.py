@@ -602,9 +602,12 @@ class FinancialAssetApp:
                 with gr.Tab("📊 Formulaic Analysis"):
                     gr.Markdown(
                         "## Mathematical Relationships & Formulas\n\n"
-                        "This section extracts and visualizes mathematical formulas and relationships\n"
-                        "between financial variables. It includes fundamental financial ratios,\n"
-                        "correlation patterns, valuation models, and empirical relationships derived\n"
+                        "This section extracts and visualizes "
+                        "mathematical formulas and relationships\n"
+                        "between financial variables.\n"
+                        "It includes fundamental financial ratios,\n"
+                        "correlation patterns, valuation models, and "
+                        "empirical relationships derived\n"
                         "from the asset database."
                     )
 
