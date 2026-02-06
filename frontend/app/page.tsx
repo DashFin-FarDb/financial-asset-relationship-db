@@ -42,7 +42,16 @@ export default function Home() {
       setMetrics(metricsData);
       setVizData(visualizationData);
     } catch (err) {
-      if (process.env.NODE_ENV !== "production") {
+} catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      console.error("Error loading data:", err);
+    } else {
+      console.error("Error loading data");
+    }
+    setError("Failed to load data. Please ensure the API server is running.");
+  } finally {
+    setLoading(false);
+  }
         console.error("Error loading data:", err);
       } else {
       console.error("Error loading data");
