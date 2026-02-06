@@ -70,8 +70,8 @@ class TestYAMLSyntaxAndStructure:
 
                 # If currently inside a block scalar, continue until indentation returns
                 if in_block_scalar:
-                    # Exit block scalar when indentation is less than or equal to the scalar's parent indent
                     if leading_spaces <= block_scalar_indent:
+                        # Exit block scalar when indentation is less than or equal to the scalar's parent indent
                         in_block_scalar = False
                         block_scalar_indent = None
                     else:

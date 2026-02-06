@@ -219,7 +219,7 @@ class FormulaicAnalyzer:
                 variables={
                     "P/B": "Price-to-Book Ratio",
                     "P": "Market Price per Share ($)",
-                    "BV_per_share": "Book Value per Share ($)",
+                    "BV_per_share": ("Book Value per Share ($)"),
                 },
                 example_calculation=self._calculate_pb_examples(graph),
                 category="Valuation",
@@ -278,7 +278,7 @@ class FormulaicAnalyzer:
         volatility_formula = Formula(
             name="Volatility (Standard Deviation)",
             formula="σ = √(Σ(R_i - μ)² / (n-1))",
-            latex=r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}{n-1}}",
+            latex=(r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}" r"{n-1}}"),
             description="Measure of price variability and risk",
             variables={
                 "σ": "Standard deviation (volatility)",

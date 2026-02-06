@@ -147,7 +147,8 @@ class FinancialAssetApp:
                 len(self.graph.assets),
             )
             logger.info(
-                "Initialized sample database with %s assets", len(self.graph.assets)
+                "Initialized sample database with %s assets",
+                len(self.graph.assets),
             )
         except Exception as e:
             logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, e)
@@ -173,7 +174,8 @@ class FinancialAssetApp:
             relationship_density=metrics["relationship_density"],
             regulatory_event_count=metrics["regulatory_event_count"],
             asset_class_distribution=json.dumps(
-                metrics["asset_class_distribution"], indent=2
+                metrics["asset_class_distribution"],
+                indent=2,
             ),
         )
         for idx, (s, t, rel, strength) in enumerate(metrics["top_relationships"], 1):
@@ -199,7 +201,8 @@ class FinancialAssetApp:
                 "strength": strength,
             }
             for target_id, rel_type, strength in graph.relationships.get(
-                selected_asset, []
+                selected_asset,
+                [],
             )
         }
         incoming_relationships = getattr(graph, "incoming_relationships", {})
@@ -209,7 +212,8 @@ class FinancialAssetApp:
                 "strength": strength,
             }
             for src_id, rel_type, strength in incoming_relationships.get(
-                selected_asset, []
+                selected_asset,
+                [],
             )
         }
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
@@ -406,11 +410,8 @@ class FinancialAssetApp:
             "🔍 **Formulaic Analysis Summary**",
             "",
             f"📊 **Total Formulas Identified:** {len(formulas)}",
-            (f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}"),
-            (
-                f"🔗 **Empirical Data Points:** "
-                f"{summary.get('empirical_data_points', 0)}"
-            ),
+            f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}",
+            f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
             "",
             "📋 **Formula Categories:",
         ]
@@ -600,15 +601,14 @@ class FinancialAssetApp:
 
                 with gr.Tab("📊 Formulaic Analysis"):
                     gr.Markdown(
-                        """
-                        ## Mathematical Relationships & Formulas
-
-                        This section extracts and visualizes mathematical
-                        formulas and relationships between financial variables.
-                        It includes fundamental financial ratios,
-                        correlation patterns, valuation models, and empirical
-                        relationships derived from the asset database.
-                        """
+                        "## Mathematical Relationships & Formulas\n\n"
+                        "This section extracts and visualizes "
+                        "mathematical formulas and relationships\n"
+                        "between financial variables.\n"
+                        "It includes fundamental financial ratios,\n"
+                        "correlation patterns, valuation models, and "
+                        "empirical relationships derived\n"
+                        "from the asset database."
                     )
 
                     with gr.Row():

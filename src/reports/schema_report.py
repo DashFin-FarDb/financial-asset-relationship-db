@@ -76,10 +76,12 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     report += (
         "1. **Event Propagation**: Earnings events impact related bond and\n"
         "currency assets\n"
+    )
+    report += (
         "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
         "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
-        "4. **Related Assets**: Each event automatically creates relationships to "
-        "impacted securities\n"
+        "4. **Related Assets**: Each event automatically creates relationships "
+        "to impacted securities\n"
     )
     report += """
 
@@ -105,7 +107,6 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         + (metrics["regulatory_event_count"] / 10),
     )
     report += f"{quality_score:.1%}\n"
-
     report += "\n### Recommendation: "
     if metrics["relationship_density"] > 30:
         report += "High connectivity - consider normalization"
