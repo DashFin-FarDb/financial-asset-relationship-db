@@ -104,18 +104,18 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     report += f"{quality_score:.1%}\n"
     report += "\n### Recommendation: "
     if metrics["relationship_density"] > 30:
-            report += "High connectivity - consider normalization"
-        elif metrics["relationship_density"] > 10:
-            report += "Well-balanced relationship graph - optimal for most use cases"
-        else:
-            report += "Sparse connections - consider adding more relationships"
+        report += "High connectivity - consider normalization"
+    elif metrics["relationship_density"] > 10:
+        report += "Well-balanced relationship graph - optimal for most use cases"
+    else:
+        report += "Sparse connections - consider adding more relationships"
 
-        report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
-        report += "- Relationship strengths normalized to 0-1 range\n"
-        report += "- Impact scores on -1 to +1 scale for comparability\n"
-        report += (
-            "- Relationship directionality: some types are bidirectional (e.g.,\n"
-            "  same_sector, income_comparison);\n"
-            "  others are directional\n"
-        )
-        return report
+    report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
+    report += "- Relationship strengths normalized to 0-1 range\n"
+    report += "- Impact scores on -1 to +1 scale for comparability\n"
+    report += (
+        "- Relationship directionality: some types are bidirectional (e.g.,\n"
+        "  same_sector, income_comparison);\n"
+        "  others are directional\n"
+    )
+    return report
