@@ -126,15 +126,8 @@ export default function Home() {
       </header>
 
       {/* Navigation */}
-      <TabNav
-        activeTab={activeTab}
-        onVisualization={handleVisualizationTabClick}
-        onMetrics={handleMetricsTabClick}
-        onAssets={handleAssetsTabClick}
-      />
 
-      {/* ... rest of the component ... */}
-            </button>
+      {/* Content */}
             <button
               onClick={handleMetricsTabClick}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
