@@ -39,7 +39,7 @@ class TestYAMLSyntaxAndStructure:
             except yaml.YAMLError as e:
                 parse_errors.append(f"{yaml_file}: {str(e)}")
 
-        assert len(parse_errors) == 0, f"YAML parse errors:\n" + "\n".join(parse_errors)
+        assert len(parse_errors) == 0, "YAML parse errors:\n" + "\n".join(parse_errors)
 
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
@@ -69,8 +69,8 @@ class TestYAMLSyntaxAndStructure:
                     continue
                 # If currently inside a block scalar, continue until indentation returns
                 if in_block_scalar:
-                    # Exit block scalar when indentation is less than or equal to the scalar's parent indent
                     if leading_spaces <= block_scalar_indent:
+                        # Exit block scalar when indentation is less than or equal to the scalar's parent indent
                         in_block_scalar = False
                         block_scalar_indent = None
                     else:
@@ -83,14 +83,15 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if (
-                    line[0] == " "
-                    and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |")
-                    and leading_spaces % 2 != 0
+                if line[0] == " " and not line.startswith(
+                    "  " * (leading_spaces // 2 + 1) + "- |"
                 ):
-                    indentation_errors.append(
-                        f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
-                    )
+                    if leading_spaces % 2 != 0:
+                        indentation_errors.append(
+                            f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
+                        )
+
+            # Reset flags per file (handled by reinitialization each loop)
 
         assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
             indentation_errors

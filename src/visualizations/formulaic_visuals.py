@@ -454,7 +454,14 @@ class FormulaicVisualizer:
             mode="markers+text",
             text=assets,
             textposition="top center",
-            marker=dict(size=20, color="lightblue", line=dict(color="black", width=2)),
+            marker=dict(
+                size=20,
+                color="lightblue",
+                line=dict(
+                    color="black",
+                    width=2,
+                ),
+            ),
             hoverinfo="text",
             showlegend=False,
         )

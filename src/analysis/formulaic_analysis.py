@@ -9,10 +9,24 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Formula:
-    """Represents a mathematical formula between financial variables"""
+    """Represents a mathematical formula between financial variables.
+
+    The formula expression is stored in the `expression` field.
+
+    Example:
+        >>> Formula(
+        ...     name="Test",
+        ...     expression="x + y",
+        ...     latex="x + y",
+        ...     description="Test formula",
+        ...     variables={"x": "var1", "y": "var2"},
+        ...     example_calculation="1 + 2 = 3",
+        ...     category="test",
+        ... )
+    """
 
     name: str
-    formula: str
+    expression: str
     latex: str
     description: str
     variables: Dict[str, str]  # variable_name -> description
@@ -219,7 +233,7 @@ class FormulaicAnalyzer:
                 variables={
                     "P/B": "Price-to-Book Ratio",
                     "P": "Market Price per Share ($)",
-                    "BV_per_share": "Book Value per Share ($)",
+                    "BV_per_share": ("Book Value per Share ($)"),
                 },
                 example_calculation=self._calculate_pb_examples(graph),
                 category="Valuation",
@@ -278,7 +292,7 @@ class FormulaicAnalyzer:
         volatility_formula = Formula(
             name="Volatility (Standard Deviation)",
             formula="σ = √(Σ(R_i - μ)² / (n-1))",
-            latex=r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}{n-1}}",
+            latex=(r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}" r"{n-1}}"),
             description="Measure of price variability and risk",
             variables={
                 "σ": "Standard deviation (volatility)",
