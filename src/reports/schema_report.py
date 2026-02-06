@@ -96,7 +96,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
 ### Data Quality Score: """
 
-        quality_score = min(
+        quality_score=min(
             1.0,
             metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
         )

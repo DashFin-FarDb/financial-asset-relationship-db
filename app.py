@@ -140,9 +140,7 @@ class FinancialAssetApp:
     def _initialize_graph(self) -> None:
         """Initializes the asset graph, creating a sample database if necessary."""
         try:
-            logger.info(
-                "Initializing with real financial data from Yahoo Finance"
-            )
+            logger.info("Initializing with real financial data from Yahoo Finance")
             self.graph = create_real_database()
             logger.info(
                 "Database initialized with %s real assets",
@@ -223,7 +221,9 @@ class FinancialAssetApp:
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """Refreshes all visualizations and reports in the Gradio interface."""
         try:
-            graph = self.ensure_graph()  # Use self.ensure_graph to get the latest graph state
+            graph = (
+                self.ensure_graph()
+            )  # Use self.ensure_graph to get the latest graph state
             logger.info("Refreshing all visualization outputs")
             viz_3d = visualize_3d_graph(graph)
             f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
@@ -410,10 +410,8 @@ class FinancialAssetApp:
             "🔍 **Formulaic Analysis Summary**",
             "",
             f"📊 **Total Formulas Identified:** {len(formulas)}",
-            f"📈 **Average Reliability (R²):** "
-            f"{summary.get('avg_r_squared', 0):.3f}",
-            f"🔗 **Empirical Data Points:** "
-            f"{summary.get('empirical_data_points', 0)}",
+            f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}",
+            f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
             "",
             "📋 **Formula Categories:",
         ]
@@ -588,7 +586,9 @@ class FinancialAssetApp:
                         asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
 
                     with gr.Row():
-                        asset_relationships = gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
+                        asset_relationships = gr.JSON(
+                            label=AppConstants.RELATED_ASSETS_LABEL
+                        )
 
                     with gr.Row():
                         refresh_explorer_btn = gr.Button(
@@ -610,7 +610,9 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=2):
-                            formulaic_dashboard = gr.Plot(label="Formulaic Analysis Dashboard")
+                            formulaic_dashboard = gr.Plot(
+                                label="Formulaic Analysis Dashboard"
+                            )
                         with gr.Column(scale=1):
                             formula_selector = gr.Dropdown(
                                 label="Select Formula for Details",
@@ -622,7 +624,9 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            correlation_network = gr.Plot(label="Asset Correlation Network")
+                            correlation_network = gr.Plot(
+                                label="Asset Correlation Network"
+                            )
                         with gr.Column(scale=1):
                             metric_comparison = gr.Plot(label="Metric Comparison Chart")
 

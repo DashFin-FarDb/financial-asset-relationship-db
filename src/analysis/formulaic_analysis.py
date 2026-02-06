@@ -72,7 +72,9 @@ class FormulaicAnalyzer:
             ),
         }
 
-    def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_fundamental_formulas(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract fundamental financial formulas based on asset types"""
         formulas = []
 
@@ -99,11 +101,10 @@ class FormulaicAnalyzer:
             div_yield_formula = Formula(
                 name="Dividend Yield",
                 formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
-                latex=(
-                    r"DivYield = \frac{D_{annual}}{P}"
-                    r" \times 100%"
+                latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
+                description=(
+                    "Percentage return from dividends relative to stock price"
                 ),
-                description=("Percentage return from dividends relative to stock price"),
                 variables={
                     "Div_Yield": "Dividend Yield (%)",
                     "D_annual": "Annual Dividends per Share ($)",
@@ -121,8 +122,7 @@ class FormulaicAnalyzer:
                 name=("Bond Yield-to-Maturity (Approximation)"),
                 formula=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
                 latex=(
-                    r"YTM \approx \frac{C + \frac{FV - P}{n}}"
-                    r"{\frac{FV + P}{2}}"
+                    r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"
                 ),
                 description="Approximate yield-to-maturity for bonds",
                 variables={
@@ -203,7 +203,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_valuation_relationships(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract valuation model relationships"""
         formulas = []
 
@@ -217,9 +219,7 @@ class FormulaicAnalyzer:
                 variables={
                     "P/B": "Price-to-Book Ratio",
                     "P": "Market Price per Share ($)",
-                    "BV_per_share": (
-                        "Book Value per Share ($)"
-                    ),
+                    "BV_per_share": ("Book Value per Share ($)"),
                 },
                 example_calculation=self._calculate_pb_examples(graph),
                 category="Valuation",
@@ -250,7 +250,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _analyze_risk_return_relationships(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Analyze risk-return mathematical relationships"""
         formulas = []
 
@@ -276,10 +278,7 @@ class FormulaicAnalyzer:
         volatility_formula = Formula(
             name="Volatility (Standard Deviation)",
             formula="σ = √(Σ(R_i - μ)² / (n-1))",
-            latex=(
-                r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}"
-                r"{n-1}}"
-            ),
+            latex=(r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}" r"{n-1}}"),
             description="Measure of price variability and risk",
             variables={
                 "σ": "Standard deviation (volatility)",
@@ -295,7 +294,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_portfolio_theory_formulas(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract Modern Portfolio Theory formulas"""
         formulas = []
 
@@ -340,7 +341,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_cross_asset_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _analyze_cross_asset_relationships(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Analyze relationships between different asset classes"""
         formulas = []
 
@@ -350,17 +353,13 @@ class FormulaicAnalyzer:
                 name="Exchange Rate Relationships",
                 formula="USD/EUR × EUR/GBP = USD/GBP",
                 latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
-                description=(
-                    "Triangular arbitrage relationship between currencies"
-                ),
+                description=("Triangular arbitrage relationship between currencies"),
                 variables={
                     "USD/EUR": "US Dollar to Euro exchange rate",
                     "EUR/GBP": "Euro to British Pound exchange rate",
                     "USD/GBP": "US Dollar to British Pound exchange rate",
                 },
-                example_calculation=(
-                    self._calculate_exchange_rate_examples(graph)
-                ),
+                example_calculation=(self._calculate_exchange_rate_examples(graph)),
                 category="Currency Markets",
                 r_squared=0.99,
             )
@@ -371,13 +370,11 @@ class FormulaicAnalyzer:
             commodity_currency_formula = Formula(
                 name="Commodity-Currency Relationship",
                 formula=(
-                    "Currency_Value ∝ 1/Commodity_Price "
-                    "(for commodity exporters)"
+                    "Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"
                 ),
                 latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
                 description=(
-                    "Inverse relationship between commodity prices and "
-                    "currency values"
+                    "Inverse relationship between commodity prices and currency values"
                 ),
                 variables={
                     "FX_commodity": "Currency value of commodity exporter",
@@ -409,9 +406,7 @@ class FormulaicAnalyzer:
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
         """Calculate the average correlation strength in the graph."""
         strengths = [
-            strength
-            for rels in graph.relationships.values()
-            for _, _, strength in rels
+            strength for rels in graph.relationships.values() for _, _, strength in rels
         ]
         if strengths:
             avg_strength = sum(strengths) / len(strengths)
@@ -433,17 +428,13 @@ class FormulaicAnalyzer:
         empirical_relationships: Dict,
     ) -> Dict[str, Any]:
         """Generate a summary of formulaic analysis results."""
-        avg_corr_strength = (
-            self._calculate_avg_correlation_strength_from_empirical(
-                empirical_relationships
-            )
+        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
+            empirical_relationships
         )
         return {
             "total_formulas": len(formulas),
             "avg_r_squared": (
-                sum(f.r_squared for f in formulas) / len(formulas)
-                if formulas
-                else 0
+                sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0
             ),
             "formula_categories": self._categorize_formulas(formulas),
             "empirical_data_points": len(
@@ -482,8 +473,7 @@ class FormulaicAnalyzer:
         from src.models.financial_models import AssetClass
 
         return any(
-            asset.asset_class == AssetClass.EQUITY
-            for asset in graph.assets.values()
+            asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values()
         )
 
     @staticmethod
@@ -502,8 +492,7 @@ class FormulaicAnalyzer:
         from src.models.financial_models import AssetClass
 
         return any(
-            asset.asset_class == AssetClass.COMMODITY
-            for asset in graph.assets.values()
+            asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values()
         )
 
     @staticmethod
@@ -512,8 +501,7 @@ class FormulaicAnalyzer:
         from src.models.financial_models import AssetClass
 
         return any(
-            asset.asset_class == AssetClass.CURRENCY
-            for asset in graph.assets.values()
+            asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values()
         )
 
     @staticmethod
@@ -559,9 +547,7 @@ class FormulaicAnalyzer:
                 if len(examples) >= 2:
                     break
         return (
-            "; ".join(examples)
-            if examples
-            else "Example: PE = 100.00 / 5.00 = 20.00"
+            "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
         )
 
     @staticmethod
@@ -643,9 +629,7 @@ class FormulaicAnalyzer:
                 and asset.market_cap is not None
             ):
                 cap_billions = asset.market_cap / 1e9
-                examples.append(
-                    f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B"
-                )
+                examples.append(f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B")
                 if len(examples) >= 2:
                     break
         return "; ".join(examples) if examples else "Example: Market Cap = $1.5T"
@@ -745,10 +729,7 @@ class FormulaicAnalyzer:
         ]
         if len(currencies) >= 2:
             c1, c2 = currencies[0], currencies[1]
-            return (
-                f"{c1.symbol}/USD × USD/{c2.symbol} = "
-                f"{c1.symbol}/{c2.symbol}"
-            )
+            return f"{c1.symbol}/USD × USD/{c2.symbol} = {c1.symbol}/{c2.symbol}"
         return "Example: USD/EUR × EUR/GBP = USD/GBP"
 
     @staticmethod
