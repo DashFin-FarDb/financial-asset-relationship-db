@@ -75,7 +75,7 @@ class TestYAMLSyntaxAndStructure:
                         in_block_scalar = False
                         block_scalar_indent = None
                     else:
-                    # Still inside scalar; skip indentation checks for this line
+                        # Still inside scalar; skip indentation checks for this line
                     continue
 
                 # Detect start of block scalars (| or > possibly with chomping/indent indicators)
