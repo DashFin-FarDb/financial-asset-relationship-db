@@ -14,6 +14,7 @@ class Formula:
     The formula expression is stored in the `expression` field.
     """
 
+
 Formula.test_formula = Formula(
     name="Test",
     expression="x + y",  # Changed from `formula="x + y"`
