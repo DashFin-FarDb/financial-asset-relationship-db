@@ -10,19 +10,20 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Formula:
     """Represents a mathematical formula between financial variables.
-    
+
     The formula expression is stored in the `expression` field.
     """
+
     test_formula = Formula(
-    name="Test",
-    expression="x + y",  # Changed from `formula="x + y"`
-    latex="x + y",
-    description="Test formula",
-    variables={"x": "var1", "y": "var2"},
-    example_calculation="1 + 2 = 3",
-    category="test"
-)
-    
+        name="Test",
+        expression="x + y",  # Changed from `formula="x + y"`
+        latex="x + y",
+        description="Test formula",
+        variables={"x": "var1", "y": "var2"},
+        example_calculation="1 + 2 = 3",
+        category="test",
+    )
+
 
 class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
