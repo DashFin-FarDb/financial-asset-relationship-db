@@ -94,7 +94,7 @@ class TestYAMLSyntaxAndStructure:
 
 def test_no_duplicate_keys_in_yaml():
 
-    Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml (typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate-key errors are collected and cause the test to fail with a consolidated error message.
+    Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate - key errors are collected and cause the test to fail with a consolidated error message.
     """
     try:
         from ruamel.yaml import YAML, YAMLError
@@ -130,12 +130,12 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-        Collects and parses all YAML workflow files found in .github/workflows.
+        Collects and parses all YAML workflow files found in .github / workflows.
 
         Returns:
-            workflows (List[Dict[str, Any]]): A list of dictionaries, each containing:
+            workflows(List[Dict[str, Any]]): A list of dictionaries, each containing:
                 - 'path' (Path): Path to the workflow file.
-                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
+                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load(typically a dict, or None if the file is empty).
         """
         workflow_dir = Path(".github/workflows")
         workflows = []
@@ -145,7 +145,7 @@ class TestWorkflowSchemaCompliance:
         return workflows
 
     def test_workflows_have_required_top_level_keys(self, all_workflows):
-        """Verify workflows have all required top-level keys."""
+        """Verify workflows have all required top - level keys."""
         required_keys = ["name", "jobs"]
         checkout_versions = {}
         for workflow in all_workflows:
@@ -162,9 +162,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_missing_optional_fields_have_defaults():
         """
-        Ensure optional fields in .github/pr-agent-config.yml are handled and validated.
+        Ensure optional fields in .github / pr - agent - config.yml are handled and validated.
 
-        Asserts that if the top-level `agent` section includes an `enabled` key, its value is a boolean; omission of `enabled` is permitted and treated as the configuration's default.
+        Asserts that if the top - level `agent` section includes an `enabled` key, its value is a boolean; omission of `enabled` is permitted and treated as the configuration's default.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
@@ -180,9 +180,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Ensure job-level workflow timeouts, when specified, are integers between 1 and 360 minutes.
+        Ensure job - level workflow timeouts, when specified, are integers between 1 and 360 minutes.
 
-        Checks each YAML file in .github/workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
+        Checks each YAML file in .github / workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
         """
         workflow_dir = Path(".github/workflows")
 
