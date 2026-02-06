@@ -583,9 +583,7 @@ class FinancialAssetApp:
                             gr.Markdown("")
 
                     with gr.Row():
-                        asset_info = gr.JSON(
-                            label=AppConstants.ASSET_DETAILS_LABEL
-                        )
+                        asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
 
                     with gr.Row():
                         asset_relationships = gr.JSON(
@@ -625,9 +623,7 @@ class FinancialAssetApp:
                                 value=None,
                                 interactive=True,
                             )
-                            formula_detail_view = gr.Plot(
-                                label="Formula Details"
-                            )
+                            formula_detail_view = gr.Plot(label="Formula Details")
 
                     with gr.Row():
                         with gr.Column(scale=1):
@@ -635,9 +631,7 @@ class FinancialAssetApp:
                                 label="Asset Correlation Network"
                             )
                         with gr.Column(scale=1):
-                            metric_comparison = gr.Plot(
-                                label="Metric Comparison Chart"
-                            )
+                            metric_comparison = gr.Plot(label="Metric Comparison Chart")
 
                     with gr.Row():
                         with gr.Column(scale=1):
