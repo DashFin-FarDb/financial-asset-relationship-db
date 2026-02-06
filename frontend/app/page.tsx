@@ -45,9 +45,7 @@ export default function Home() {
       if (process.env.NODE_ENV !== "production") {
         console.error("Error loading data:", err);
       } else {
-        console.error("Error loading data");
-      }
-      setError("Failed to load data. Please ensure the API server is running.");
+      console.error("Error loading data");
     } finally {
       setLoading(false);
     }
@@ -69,6 +67,50 @@ export default function Home() {
     setActiveTab("assets");
   }, []);
 
+  const TabNav: React.FC<{
+    activeTab: string;
+    onVisualization: () => void;
+    onMetrics: () => void;
+    onAssets: () => void;
+  }> = ({ activeTab, onVisualization, onMetrics, onAssets }) => (
+    <nav className="bg-white border-b border-gray-200">
+      <div className="container mx-auto px-4">
+        <div className="flex space-x-8">
+          <button
+            onClick={onVisualization}
+            className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === "visualization"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            3D Visualization
+          </button>
+          <button
+            onClick={onMetrics}
+            className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === "metrics"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            Metrics
+          </button>
+          <button
+            onClick={onAssets}
+            className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
+              activeTab === "assets"
+                ? "border-blue-500 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            Assets
+          </button>
+        </div>
+      </div>
+    </nav>
+  );
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       {/* Header */}
@@ -84,18 +126,14 @@ export default function Home() {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="flex space-x-8">
-            <button
-              onClick={handleVisualizationTabClick}
-              className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === "visualization"
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              3D Visualization
+      <TabNav
+        activeTab={activeTab}
+        onVisualization={handleVisualizationTabClick}
+        onMetrics={handleMetricsTabClick}
+        onAssets={handleAssetsTabClick}
+      />
+
+      {/* ... rest of the component ... */}
             </button>
             <button
               onClick={handleMetricsTabClick}
