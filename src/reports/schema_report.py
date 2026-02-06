@@ -72,49 +72,50 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     report += (
         "1. **Event Propagation**: Earnings events impact related bond and\n"
         "currency assets\n"
-        "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
-        "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
-        "4. **Related Assets**: Each event automatically creates relationships to "
-        "impacted securities\n"
-    )
-    report += """
+        report += (
+            "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
+            "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
+            "4. **Related Assets**: Each event automatically creates relationships "
+            "to impacted securities\n"
+        )
+        report += """
 
 ### Valuation Rules
 """
-    report += (
-        "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
-        "indicates relative value\n"
-        "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
-        "exposure\n"
-        "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
-        "exposure\n"
-    )
-    report += """
+        report += (
+            "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
+            "indicates relative value\n"
+            "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
+            "exposure\n"
+            "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
+            "exposure\n"
+        )
+        report += """
 
 ## Schema Optimization Metrics
 
 ### Data Quality Score: """
 
-    quality_score = min(
-        1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
-    )
-    report += f"{quality_score:.1%}\n"
+        quality_score = min(
+            1.0,
+            metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+        )
+        report += f"{quality_score:.1%}\n"
 
-    report += "\n### Recommendation: "
-    if metrics["relationship_density"] > 30:
-        report += "High connectivity - consider normalization"
-    elif metrics["relationship_density"] > 10:
-        report += "Well-balanced relationship graph - optimal for most use cases"
-    else:
-        report += "Sparse connections - consider adding more relationships"
+        report += "\n### Recommendation: "
+        if metrics["relationship_density"] > 30:
+            report += "High connectivity - consider normalization"
+        elif metrics["relationship_density"] > 10:
+            report += "Well-balanced relationship graph - optimal for most use cases"
+        else:
+            report += "Sparse connections - consider adding more relationships"
 
-    report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
-    report += "- Relationship strengths normalized to 0-1 range\n"
-    report += "- Impact scores on -1 to +1 scale for comparability\n"
-    report += (
-        "- Relationship directionality: some types are bidirectional (e.g.,\n"
-        "  same_sector, income_comparison);\n"
-        "  others are directional\n"
-    )
-    return report
+        report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
+        report += "- Relationship strengths normalized to 0-1 range\n"
+        report += "- Impact scores on -1 to +1 scale for comparability\n"
+        report += (
+            "- Relationship directionality: some types are bidirectional (e.g.,\n"
+            "  same_sector, income_comparison);\n"
+            "  others are directional\n"
+        )
+        return report
