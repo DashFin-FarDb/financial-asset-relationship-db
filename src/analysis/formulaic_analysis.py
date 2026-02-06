@@ -25,6 +25,15 @@ class Formula:
         ... )
     """
 
+    name: str
+    expression: str
+    latex: str
+    description: str
+    variables: Dict[str, str]  # variable_name -> description
+    example_calculation: str
+    category: str
+    r_squared: float = 0.0  # Correlation strength if applicable
+
 
 class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
