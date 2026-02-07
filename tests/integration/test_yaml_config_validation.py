@@ -114,12 +114,9 @@ def test_no_duplicate_keys_in_yaml():
         except OSError as e:
             parse_errors.append(f"{yaml_file}: Cannot read file - {e}")
         except Exception as e:
-            parse_errors.append(f"{yaml_file}: {e}")
-
-     except OSError as e:
+        except OSError as e:
             # Report but don't fail the test on file system errors
             parse_errors.append(f"{yaml_file}: File system error - {e}")
-
 
 class TestWorkflowSchemaCompliance:
     """Tests for GitHub Actions workflow schema compliance."""
