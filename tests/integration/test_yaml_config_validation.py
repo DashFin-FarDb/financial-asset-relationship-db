@@ -155,20 +155,23 @@ class TestDefaultValueHandling:
     """Tests for default value handling in configurations."""
 
     @staticmethod
-    def test_missing_optional_fields_have_defaults():
+    def test_missing_optional_fields_have_defaults() -> None:
         """
-        Ensure optional fields in .github / pr - agent - config.yml are handled and validated.
+        Ensure optional fields in `.github/pr-agent-config.yml` are handled and validated.
 
-        Asserts that if the top - level 'agent' section includes an 'enabled' key, its value is a boolean; omission of 'enabled' is permitted and treated as the configuration's default.
+        Asserts that if the top-level 'agent' section includes an 'enabled' key,
+        its value is a boolean. Omission of 'enabled' is permitted and treated
+        as the configuration default.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+
+        with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # These fields should have defaults if not specified
         agent_config = config.get("agent", {})
 
-        # If enabled is not specified, should default to true
+        # If enabled is specified, it must be a boolean
         if "enabled" in agent_config:
             assert isinstance(agent_config["enabled"], bool)
 
