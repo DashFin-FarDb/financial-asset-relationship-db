@@ -397,13 +397,7 @@ class FormulaicVisualizer:
                 x=0.5,
                 y=0.5,
                 xref="paper",
-                yref="paper",
                 showarrow=False,
-            )
-            fig.update_layout(
-                title="Correlation Network Graph",
-                showlegend=False,
-                template="plotly_white",
                 xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
             )
