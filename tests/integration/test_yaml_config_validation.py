@@ -118,6 +118,7 @@ def test_no_duplicate_keys_in_yaml():
             # Report but don't fail the test on file system errors
             parse_errors.append(f"{yaml_file}: File system error - {e}")
 
+
 class TestWorkflowSchemaCompliance:
     """Tests for GitHub Actions workflow schema compliance."""
 
