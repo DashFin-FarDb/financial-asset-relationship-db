@@ -30,6 +30,29 @@ type EdgeTrace = {
   showlegend: false;
 };
 
+type NodeTrace = {
+  type: "scatter3d";
+  mode: "markers+text";
+  x: number[];
+  y: number[];
+  z: number[];
+  text: string[];
+  hovertext: string[];
+  hoverinfo: "text";
+  marker: {
+    size: number[];
+    color: string[];
+    line: {
+      color: string;
+      width: number;
+    };
+  };
+  textposition: "top center";
+  textfont: {
+    size: number;
+  };
+};
+
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
