@@ -93,7 +93,7 @@ class TestYAMLSyntaxAndStructure:
 
 
 def test_no_duplicate_keys_in_yaml():
-
+    """
     Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate - key errors are collected and cause the test to fail with a consolidated error message.
     """
     try:
