@@ -157,9 +157,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_missing_optional_fields_have_defaults() -> None:
         """
-        Ensure optional fields in `.github/pr-agent-config.yml` are handled and validated.
+        Ensure optional fields in `.github / pr - agent - config.yml` are handled and validated.
 
-        Asserts that if the top-level 'agent' section includes an 'enabled' key,
+        Asserts that if the top - level 'agent' section includes an 'enabled' key,
         its value is a boolean. Omission of 'enabled' is permitted and treated
         as the configuration default.
         """
