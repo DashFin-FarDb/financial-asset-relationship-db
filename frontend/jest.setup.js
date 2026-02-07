@@ -79,40 +79,40 @@ Object.defineProperty(window, 'matchMedia', {
   value: createMatchMedia()
 })
 
+// Mock IntersectionObserver
 /**
- * A mock implementation of IntersectionObserver for testing environments.
- * Tracks observed elements and allows manual triggering of callbacks.
+ * Mock IntersectionObserver class for testing environment.
  */
-class MockIntersectionObserver {
-  constructor (callback = () => undefined, options = {}) {
-    this._callback = callback
-    this._options = options
-    this._elements = new Set()
-
-    this.observe = jest.fn((element) => {
-      if (element) this._elements.add(element)
-    })
-
-    this.unobserve = jest.fn((element) => {
-      this._elements.delete(element)
-    })
-
-    this.disconnect = jest.fn(() => {
-      this._elements.clear()
-    })
-
-    this.takeRecords = jest.fn(() => [])
+global.IntersectionObserver = class IntersectionObserver {
+  /**
+   * Constructs the mock IntersectionObserver.
+   */
+  /**
+   * Disconnects the observer instance (no-op placeholder for teardown if needed).
+   * @returns {void}
+   */
+  static disconnect () {
+    // no-op placeholder for teardown if needed
   }
 
   /**
-   * Triggers the IntersectionObserver callback with specified entries.
-   * @param {IntersectionObserverEntry|IntersectionObserverEntry[]} entries - Single or array of entries to dispatch to the callback.
+   * Placeholder method for observing a target; no operation in this mock.
    * @returns {void}
    */
-  triggerCallback (entries = []) {
-    if (typeof this._callback !== 'function') return
-    const normalizedEntries = Array.isArray(entries) ? entries : [entries]
-    this._callback(normalizedEntries, this)
+  static observe (_target) {
+    // Intentionally left empty; placeholder method required by interface
+  }
+
+  static unobserve (_target) {
+    // Intentionally left empty; placeholder method required by interface
+  }
+
+  /**
+   * Returns any queued IntersectionObserverEntry records.
+   * @returns {Array} Always returns an empty array in this mock.
+   */
+  static takeRecords () {
+    return []
   }
 }
 
