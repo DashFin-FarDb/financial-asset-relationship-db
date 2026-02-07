@@ -1,9 +1,9 @@
+import math
 from typing import Any, Dict, Mapping
 
 import networkx as nx
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import math
 
 from src.analysis.formulaic_analysis import Formula
 
