@@ -1,10 +1,10 @@
-        from typing import Any, Dict, Mapping
+from typing import Any, Dict, Mapping
 
-        import networkx as nx
-        import plotly.graph_objects as go
-        from plotly.subplots import make_subplots
+import networkx as nx
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
-        from src.analysis.formulaic_analysis import Formula
+from src.analysis.formulaic_analysis import Formula
 
 
 class FormulaicVisualizer:
