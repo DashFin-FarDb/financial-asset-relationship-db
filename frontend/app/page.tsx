@@ -143,7 +143,6 @@ export default function Home() {
       {/* Navigation */}
 
       {/* Content */}
-            </TabNav>
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
