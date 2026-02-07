@@ -1,5 +1,5 @@
 import math
-from typing import Any, Dict, Mapping
+from typing import Any, Dict, List, Mapping
 
 import networkx as nx
 import plotly.graph_objects as go
