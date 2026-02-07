@@ -31,7 +31,7 @@ class FormulaicVisualizer:
 
     def create_formula_dashboard(self, analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a comprehensive dashboard showing all formulaic relationships."""
-        
+
         fig = make_subplots(
             rows=3,
             cols=2,
@@ -452,12 +452,12 @@ class FormulaicVisualizer:
         if G.number_of_nodes() == 0:
             fig = go.Figure()
             fig.add_annotation(
-                text="No assets found to render.",
-                x=0.5,
-                y=0.5,
-                xref="paper",
-                yref="paper",
-                showarrow=False,
+                text = "No assets found to render.",
+                x = 0.5,
+                y = 0.5,
+                xref = "paper",
+                yref = "paper",
+                showarrow = False,
             )
             fig.update_layout(
                 title="Correlation Network Graph",
