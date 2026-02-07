@@ -112,11 +112,7 @@ def test_no_duplicate_keys_in_yaml():
         except YAMLError as e:
             parse_errors.append(f"{yaml_file}: YAML error - {e}")
         except OSError as e:
-            # Report but don't fail the test on file system errors
-            pytest.skip(f"Cannot read {yaml_file}: {e}")
-        try:
-            with open(yaml_file, "r") as f:
-                parser.load(f)
+            parse_errors.append(f"{yaml_file}: Cannot read file - {e}")
         except Exception as e:
             parse_errors.append(f"{yaml_file}: {e}")
 
