@@ -44,10 +44,6 @@ class FormulaicVisualizer:
         )
         return fig
 
-    def _plot_reliability(self, fig: go.Figure, formulas: Any) -> None:
-        """Plot the formula reliability (R-squared) for each formula onto the dashboard figure."""
-        raise NotImplementedError()
-
     @staticmethod
     def _normalize_empirical_relationships(
         empirical_relationships: Any,
