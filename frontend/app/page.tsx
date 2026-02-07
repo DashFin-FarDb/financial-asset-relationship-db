@@ -77,11 +77,17 @@ export default function Home() {
   }, []);
 
   const TabNav: React.FC<{
-    activeTab: string;
-    onVisualization: () => void;
-    onMetrics: () => void;
-    onAssets: () => void;
-  }> = ({ activeTab, onVisualization, onMetrics, onAssets }) => (
+  activeTab: string;
+  onVisualization: () => void;
+  onMetrics: () => void;
+  onAssets: () => void;
+}> = ({ activeTab, onVisualization, onMetrics, onAssets }) => (
+  <nav className="bg-white border-b border-gray-200">
+    {/* ... same JSX ... */}
+  </nav>
+);
+
+export default function Home() {
     <nav className="bg-white border-b border-gray-200">
       <div className="container mx-auto px-4">
         <div className="flex space-x-8">
