@@ -102,7 +102,9 @@ class FormulaicVisualizer:
         return matrix
 
     @staticmethod
-    def _plot_empirical_correlation(fig: go.Figure, empirical_relationships: Any) -> None:
+    def _plot_empirical_correlation(
+        fig: go.Figure, empirical_relationships: Any
+    ) -> None:
         """Populate the empirical correlation matrix heatmap in row 2, column 1."""
         matrix = FormulaicVisualizer._normalize_empirical_relationships(
             empirical_relationships
@@ -192,10 +194,7 @@ class FormulaicVisualizer:
 
         assets = sorted(str(k) for k in correlation_matrix.keys())
         z = [
-            [
-                float(correlation_matrix.get(a1, {}).get(a2, 0.0))
-                for a2 in assets
-            ]
+            [float(correlation_matrix.get(a1, {}).get(a2, 0.0)) for a2 in assets]
             for a1 in assets
         ]
 
@@ -274,7 +273,9 @@ class FormulaicVisualizer:
         sorted_formulas = self._get_sorted_formulas(formulas)
         top_formulas = sorted_formulas[:10]
 
-        names, categories, r_squared_values = self._extract_formula_table_data(top_formulas)
+        names, categories, r_squared_values = self._extract_formula_table_data(
+            top_formulas
+        )
 
         fig.add_trace(
             go.Table(
@@ -356,11 +357,13 @@ class FormulaicVisualizer:
         category = getattr(formula, "category", "N/A")
 
         r_squared = getattr(formula, "r_squared", None)
-        r_squared_str = f"{r_squared:.3f}" if isinstance(r_squared, (int, float)) else "N/A"
+        r_squared_str = (
+            f"{r_squared:.3f}" if isinstance(r_squared, (int, float)) else "N/A"
+        )
 
-        variables_block = "<br>".join(
-            f"• {var}: {desc}" for var, desc in variables.items()
-        ) or "N/A"
+        variables_block = (
+            "<br>".join(f"• {var}: {desc}" for var, desc in variables.items()) or "N/A"
+        )
 
         fig.add_annotation(
             text=(
@@ -393,7 +396,9 @@ class FormulaicVisualizer:
     ) -> go.Figure:
         """Create a network graph showing asset correlations."""
         # Preserve behaviour: accept Mapping and delegate to the canonical builder.
-        return FormulaicVisualizer.create_correlation_network(dict(empirical_relationships))
+        return FormulaicVisualizer.create_correlation_network(
+            dict(empirical_relationships)
+        )
 
     @staticmethod
     def _empty_correlation_network_fig() -> go.Figure:
@@ -430,9 +435,13 @@ class FormulaicVisualizer:
         return sorted(str(k) for k in correlation_matrix.keys())
 
     @staticmethod
-    def create_correlation_network(empirical_relationships: Dict[str, Any]) -> go.Figure:
+    def create_correlation_network(
+        empirical_relationships: Dict[str, Any],
+    ) -> go.Figure:
         """Create a network graph showing asset correlations."""
-        strongest_correlations = empirical_relationships.get("strongest_correlations", []) or []
+        strongest_correlations = (
+            empirical_relationships.get("strongest_correlations", []) or []
+        )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {}) or {}
 
         if not strongest_correlations and not correlation_matrix:
@@ -581,6 +590,7 @@ class FormulaicVisualizer:
             "correlation_matrix": correlation_matrix or {},
         }
         return FormulaicVisualizer.create_correlation_network(data)
+
     # ------------------------------------------------------------------
     # Metric comparison
     # ------------------------------------------------------------------
@@ -603,7 +613,8 @@ class FormulaicVisualizer:
 
         category_names = list(categories.keys())
         r_squared_by_category = [
-            (sum(values) / len(values)) if values else 0.0 for values in categories.values()
+            (sum(values) / len(values)) if values else 0.0
+            for values in categories.values()
         ]
 
         fig = go.Figure()
