@@ -91,7 +91,8 @@ def _build_mcp_app():
                 price=price,
             )
 
-            # Prefer using the graph's public add_asset API (per AssetRelationshipGraph).
+            # Prefer using the graph's public add_asset API
+            # (per AssetRelationshipGraph).
             add_asset = getattr(graph, "add_asset", None)
             if callable(add_asset):
                 add_asset(new_equity)

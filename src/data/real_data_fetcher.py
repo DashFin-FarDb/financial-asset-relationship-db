@@ -46,11 +46,14 @@ class RealDataFetcher:
         """
         if self.cache_path and self.cache_path.exists():
             try:
-                logger.info("Loading asset graph from cache at %s", self.cache_path)
+                logger.info(
+                    "Loading asset graph from cache at %s",
+                    self.cache_path,
+                )
                 return _load_from_cache(self.cache_path)
             except Exception:
                 logger.exception(
-                    "Failed to load cached dataset; proceeding with standard fetch"
+                    "Failed to load cached dataset; proceeding with standard fetch",
                 )
 
         if not self.enable_network:
@@ -219,8 +222,8 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=info.get(
-                        "yield", 0.03
+                    yield_to_maturity=(
+                        info.get("yield", 0.03)
                     ),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
