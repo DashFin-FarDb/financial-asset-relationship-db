@@ -157,9 +157,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_missing_optional_fields_have_defaults():
         """
-        Ensure optional fields in .github / pr - agent - config.yml are handled and validated.
+        Ensure optional fields in .github/pr-agent-config.yml are handled and validated.
 
-        Asserts that if the top - level `agent` section includes an `enabled` key, its value is a boolean; omission of `enabled` is permitted and treated as the configuration's default.
+        Asserts that if the top-level 'agent' section includes an 'enabled' key, its value is a boolean; omission of 'enabled' is permitted and treated as the configuration's default.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r") as f:
@@ -177,7 +177,7 @@ class TestDefaultValueHandling:
         """
         Ensure job - level workflow timeouts, when specified, are integers between 1 and 360 minutes.
 
-        Checks each YAML file in .github / workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
+        Checks each YAML file in .github/workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
         """
         workflow_dir = Path(".github/workflows")
 
