@@ -137,7 +137,42 @@ export default function Home() {
       {/* Navigation */}
 
       {/* Content */}
-            <button
+            </TabNav>
+
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-8">
+        {error ? (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-red-700">{error}</p>
+                <div className="mt-4">
+                  <button
+                    type="button"
+                    onClick={() => loadData()}
+                    className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                  >
+                    Retry
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+          </div>
+        ) : activeTab === "visualization" ? (
+          // Visualization component
+        ) : activeTab === "metrics" ? (
+          // Metrics component
+        ) : (
+          // Assets component
+        )}
+      </div>
               onClick={handleMetricsTabClick}
               className={`py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
                 activeTab === "metrics"
