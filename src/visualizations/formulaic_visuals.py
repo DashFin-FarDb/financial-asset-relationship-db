@@ -427,8 +427,6 @@ class FormulaicVisualizer:
         assets = FormulaicVisualizer._extract_correlation_assets(
             strongest_correlations, correlation_matrix
         )
-            | {c.get("asset2") for c in strongest_correlations if c.get("asset2")}
-        )
         if not assets and correlation_matrix:
             asset_components = set()
             for key in correlation_matrix.keys():
