@@ -1,9 +1,10 @@
-from typing import Any, Dict, Mapping
+        from typing import Any, Dict, Mapping
 
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+        import networkx as nx
+        import plotly.graph_objects as go
+        from plotly.subplots import make_subplots
 
-from src.analysis.formulaic_analysis import Formula
+        from src.analysis.formulaic_analysis import Formula
 
 
 class FormulaicVisualizer:
@@ -12,7 +13,8 @@ class FormulaicVisualizer:
     Visualizes mathematical formulas and relationships from financial analysis.
 
     This module provides tools to visualize formulaic analysis results,
-    including creating dashboards, plotting reliability, and normalizing empirical relationships.
+    including creating dashboards, plotting reliability,
+    and normalizing empirical relationships.
     """
 
     def __init__(self) -> None:
@@ -29,9 +31,7 @@ class FormulaicVisualizer:
 
     def create_formula_dashboard(self, analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a comprehensive dashboard showing all formulaic relationships."""
-        formulas = analysis_results.get("formulas", [])
-        empirical_relationships = analysis_results.get("empirical_relationships", {})
-
+        
         fig = make_subplots(
             rows=3,
             cols=2,
@@ -51,7 +51,8 @@ class FormulaicVisualizer:
         empirical_relationships: Any,
     ) -> Dict[str, Dict[str, float]]:
         """Normalize empirical_relationships into a nested dict
-        of the form {row: {col: value}}."""
+        of the form {row: {col: value}}.
+        """
         if not empirical_relationships:
             return {}
 
@@ -65,7 +66,8 @@ class FormulaicVisualizer:
                 for row, cols in empirical_relationships.items():
                     row_key = str(row)
                     matrix[row_key] = {
-                        str(col): float(val) for col, val in cols.items()
+                        str(col): float(val)
+                        for col, val in cols.items()
                     }
             else:
                 for key, value in empirical_relationships.items():
@@ -90,7 +92,8 @@ class FormulaicVisualizer:
                     )
         else:
             raise ValueError(
-                f"Unsupported type for empirical relationships: {type(empirical_relationships)}"
+                "Unsupported type for empirical relationships: "
+                f"{type(empirical_relationships)}"
             )
 
         return matrix
@@ -370,14 +373,40 @@ class FormulaicVisualizer:
     # ------------------------------------------------------------------
 
     @staticmethod
-    def create_correlation_network(
+    def create_correlation_network_mapping(
         empirical_relationships: Mapping[str, Any],
     ) -> go.Figure:
         """Create a network graph showing asset correlations."""
-        strongest_correlations = empirical_relationships.get(
-            "strongest_correlations", []
+
+    @staticmethod
+    def _empty_correlation_network_fig() -> go.Figure:
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No correlation data available.",
+            x=0.5,
+            y=0.5,
+            xref="paper",
+            showarrow=False,
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
         )
-        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
+        return fig
+
+    @staticmethod
+    def _extract_correlation_assets(
+        strongest_correlations: List[Dict[str, Any]],
+        correlation_matrix: Dict[str, Any],
+    ) -> List[str]:
+        if strongest_correlations:
+            return sorted(
+                {
+                    c.get("asset1") for c in strongest_correlations if c.get("asset1")
+                }
+                | {
+                    c.get("asset2") for c in strongest_correlations if c.get("asset2")
+                }
+            )
+        return sorted(correlation_matrix.keys())
 
     @staticmethod
     def create_correlation_network(
@@ -391,21 +420,12 @@ class FormulaicVisualizer:
 
         # Empty state
         if not strongest_correlations and not correlation_matrix:
-            fig = go.Figure()
-            fig.add_annotation(
-                text="No correlation data available.",
-                x=0.5,
-                y=0.5,
-                xref="paper",
-                showarrow=False,
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            )
-            return fig
+            return FormulaicVisualizer._empty_correlation_network_fig()
 
-        # Derive assets from strongest correlations, falling back to correlation_matrix keys.
-        assets = sorted(
-            {c.get("asset1") for c in strongest_correlations if c.get("asset1")}
+        # Derive assets
+        assets = FormulaicVisualizer._extract_correlation_assets(
+            strongest_correlations, correlation_matrix
+        )
             | {c.get("asset2") for c in strongest_correlations if c.get("asset2")}
         )
         if not assets and correlation_matrix:
@@ -524,12 +544,6 @@ class FormulaicVisualizer:
             ),
         )
         return fig
-        return FormulaicVisualizer._create_empty_correlation_figure()
-
-        return FormulaicVisualizer._build_and_render_correlation_network(
-            strongest_correlations,
-            correlation_matrix,
-        )
 
     @staticmethod
     def _create_empty_correlation_figure() -> go.Figure:
