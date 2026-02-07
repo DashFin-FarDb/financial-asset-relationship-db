@@ -67,8 +67,7 @@ class FormulaicVisualizer:
                 for row, cols in empirical_relationships.items():
                     row_key = str(row)
                     matrix[row_key] = {
-                        str(col): float(val)
-                        for col, val in cols.items()
+                        str(col): float(val) for col, val in cols.items()
                     }
             else:
                 for key, value in empirical_relationships.items():
@@ -400,12 +399,8 @@ class FormulaicVisualizer:
     ) -> List[str]:
         if strongest_correlations:
             return sorted(
-                {
-                    c.get("asset1") for c in strongest_correlations if c.get("asset1")
-                }
-                | {
-                    c.get("asset2") for c in strongest_correlations if c.get("asset2")
-                }
+                {c.get("asset1") for c in strongest_correlations if c.get("asset1")}
+                | {c.get("asset2") for c in strongest_correlations if c.get("asset2")}
             )
         return sorted(correlation_matrix.keys())
 
@@ -451,12 +446,12 @@ class FormulaicVisualizer:
         if G.number_of_nodes() == 0:
             fig = go.Figure()
             fig.add_annotation(
-                text = "No assets found to render.",
-                x = 0.5,
-                y = 0.5,
-                xref = "paper",
-                yref = "paper",
-                showarrow = False,
+                text="No assets found to render.",
+                x=0.5,
+                y=0.5,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
             )
             fig.update_layout(
                 title="Correlation Network Graph",
