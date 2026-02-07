@@ -112,11 +112,10 @@ def test_no_duplicate_keys_in_yaml():
         except YAMLError as e:
             parse_errors.append(f"{yaml_file}: YAML error - {e}")
         except OSError as e:
-            parse_errors.append(f"{yaml_file}: Cannot read file - {e}")
-        except Exception as e:
-        except OSError as e:
             # Report but don't fail the test on file system errors
             parse_errors.append(f"{yaml_file}: File system error - {e}")
+        except Exception as e:
+            parse_errors.append(f"{yaml_file}: Unexpected error - {e}")
 
 
 class TestWorkflowSchemaCompliance:
