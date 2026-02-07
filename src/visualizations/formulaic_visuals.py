@@ -267,31 +267,31 @@ class FormulaicVisualizer:
     # ------------------------------------------------------------------
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
-    """Populate the 'Key Formula Examples' table."""
-    if not formulas:
-        return
+        """Populate the 'Key Formula Examples' table."""
+        if not formulas:
+            return
 
-    sorted_formulas = self._get_sorted_formulas(formulas)
-    top_formulas = sorted_formulas[:10]
+        sorted_formulas = self._get_sorted_formulas(formulas)
+        top_formulas = sorted_formulas[:10]
 
-    names, categories, r_squared_values = self._extract_formula_table_data(top_formulas)
+        names, categories, r_squared_values = self._extract_formula_table_data(top_formulas)
 
-    fig.add_trace(
-        go.Table(
-            header=dict(
-                values=["Formula", "Category", "R-squared"],
-                fill_color="#f2f2f2",
-                align="left",
+        fig.add_trace(
+            go.Table(
+                header=dict(
+                    values=["Formula", "Category", "R-squared"],
+                    fill_color="#f2f2f2",
+                    align="left",
+                ),
+                cells=dict(
+                    values=[names, categories, r_squared_values],
+                    fill_color="#ffffff",
+                    align="left",
+                ),
             ),
-            cells=dict(
-                values=[names, categories, r_squared_values],
-                fill_color="#ffffff",
-                align="left",
-            ),
-        ),
-        row=3,
-        col=2,
-    )
+            row=3,
+            col=2,
+        )
 
     # ------------------------------------------------------------------
     # Helpers
