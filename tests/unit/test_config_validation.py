@@ -314,15 +314,16 @@ class TestTailwindConfig:
 class TestEnvExample:
     """Test cases for .env.example file."""
 
-    @staticmethod
-    @pytest.fixture
-    @staticmethod
-    def env_example_content():
-        """Load .env.example content."""
-        config_path = Path(".env.example")
-        assert config_path.exists(), ".env.example not found"
-        with open(config_path) as f:
-            return f.read()
+    pass
+
+
+@pytest.fixture
+def env_example_content():
+    """Load .env.example content."""
+    config_path = Path(".env.example")
+    assert config_path.exists(), ".env.example not found"
+    with open(config_path) as f:
+        return f.read()
 
 
 def test_env_example_exists():
@@ -341,7 +342,7 @@ def test_env_example_has_cors_config(env_example_content):
     assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
 
-def test_env_example_has_comments(self, env_example_content):
+def test_env_example_has_comments(env_example_content):
     """Test that .env.example has helpful comments."""
     assert "#" in env_example_content
 
