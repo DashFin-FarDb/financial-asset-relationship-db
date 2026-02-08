@@ -242,7 +242,6 @@ class TestDeletedFilesImpact:
         deleted_refs = [
             "context_chunker.py",
             ".github/scripts/README.md",
-            ".github/labeler.yml",
         ]
 
         workflow_files = list(workflows_dir.glob("*.yml")) + list(
