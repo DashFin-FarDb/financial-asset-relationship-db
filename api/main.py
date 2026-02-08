@@ -627,6 +627,7 @@ async def get_metrics():
             for target_id, _, _ in rels:
                 degrees[source_id] += 1
                 degrees.setdefault(target_id, 0)
+                degrees[target_id] += 1
 
         avg_degree = sum(degrees.values()) / total_assets if total_assets else 0
         max_degree = max(degrees.values(), default=0)
@@ -667,6 +668,8 @@ async def get_visualization_data():
         nodes: List[Dict[str, Any]] = []
 
         for idx, asset_id in enumerate(asset_ids):
+            if idx >= len(positions):
+                continue  # Skip if position data is missing for this asset_id
             asset = g.assets.get(asset_id)
             position = positions[idx]
             nodes.append(
