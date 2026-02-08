@@ -110,8 +110,7 @@ git commit -m "Fix merge conflict in bandit-report.json"
    ```bash
    # Search for conflict markers
    git diff --check
-   grep -r "CONFLICT_MARKER_START" .
-   grep -r "CONFLICT_MARKER_END" .
+   grep -r -e "CONFLICT_MARKER_START" -e "CONFLICT_MARKER_MID" -e "CONFLICT_MARKER_END" .
    ```
 
 3. **Validate all file types**
