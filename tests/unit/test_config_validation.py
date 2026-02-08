@@ -311,12 +311,6 @@ class TestTailwindConfig:
         assert "app/" in tailwind_config_content or "./app/" in tailwind_config_content
 
 
-class TestEnvExample:
-    """Test cases for .env.example file."""
-
-    pass
-
-
 @pytest.fixture
 def env_example_content():
     """Load .env.example content."""
