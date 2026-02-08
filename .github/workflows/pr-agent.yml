@@ -33,6 +33,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           PR_NUMBER=${{ github.event.pull_request.number || github.event.issue.number }}
+          if [ -z "${PR_NUMBER}" ]; then
+           echo "::error::Could not determine PR number"
+           exit 1
+          fi
           PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${PR_NUMBER} \
             --jq '{number: .number, title: .title, body: .body, changed_files: .changed_files, additions: .additions, deletions: .deletions}')
           REVIEWS=$(gh api repos/${{ github.repository }}/pulls/${PR_NUMBER}/reviews \
@@ -42,17 +46,19 @@ jobs:
 
       - name: Create PR comment
         uses: actions/github-script@v7
+        env:
+          ACTION_ITEMS: ${{ steps.context.outputs.action_items }}
         with:
           script: |
+            const actionItems = process.env.ACTION_ITEMS;
             const statusMessage = `🤖 PR Agent Status Update\n\n` +
               `**Review Analysis Complete**\n` +
-              `- 📝 Action items identified: ${{ steps.context.outputs.action_items }}\n\n` +
+              `- 📝 Action items identified: ${actionItems}\n\n` +
               `**Next Steps:**\n` +
               `- Implementing requested changes\n` +
               `- Will update PR when complete\n` +
               `- Re-review will be requested automatically\n\n` +
               `*Automated by PR Agent Workflow*`;
-
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
