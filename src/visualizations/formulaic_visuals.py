@@ -122,23 +122,23 @@ class FormulaicVisualizer:
             x=all_cols,
             y=rows,
 
-@staticmethod
+@ staticmethod
 def _plot_empirical_correlation_legacy(
     fig: go.Figure, empirical_relationships: Any
 ) -> None:
     """Populate the empirical correlation matrix heatmap in row 2, column 1."""
-    matrix = FormulaicVisualizer._normalize_empirical_relationships(
+    matrix=FormulaicVisualizer._normalize_empirical_relationships(
         empirical_relationships
     )
     if not matrix:
         # Nothing to plot if no empirical relationships are provided.
         return
 
-    rows = sorted(matrix.keys())
-    all_cols = sorted({col for col_map in matrix.values() for col in col_map})
-    z = [[matrix[row].get(col, math.nan) for col in all_cols] for row in rows]
+    rows=sorted(matrix.keys())
+    all_cols=sorted({col for col_map in matrix.values() for col in col_map})
+    z=[[matrix[row].get(col, math.nan) for col in all_cols] for row in rows]
 
-    heatmap = go.Heatmap(
+    heatmap=go.Heatmap(
         z=z,
         x=all_cols,
         y=rows,
@@ -150,13 +150,13 @@ def _plot_empirical_correlation_legacy(
 # ------------------------------------------------------------------
 # Dashboard plotting methods
 
-@staticmethod
+@ staticmethod
 def _plot_empirical_correlation(
     fig: go.Figure,
     empirical_relationships: Mapping[str, Any],
 ) -> None:
     """Plot empirical correlation matrix."""
-    correlation_matrix = empirical_relationships.get("correlation_matrix", {})
+    correlation_matrix=empirical_relationships.get("correlation_matrix", {})
     if not correlation_matrix:
         return
 
@@ -164,8 +164,8 @@ def _plot_empirical_correlation(
     if not isinstance(correlation_matrix, dict):
         return
 
-    assets = sorted(str(k) for k in correlation_matrix.keys())
-    z = [
+    assets=sorted(str(k) for k in correlation_matrix.keys())
+    z=[
         [float(correlation_matrix.get(a1, {}).get(a2, 0.0)) for a2 in assets]
         for a1 in assets
     ]
@@ -184,10 +184,10 @@ def _plot_empirical_correlation(
 
             return
 
-        categories: dict[str, int] = {}
+        categories: dict[str, int]={}
         for formula in formulas:
-            category = getattr(formula, "category", "Unknown")
-            categories[category] = categories.get(category, 0) + 1
+            category=getattr(formula, "category", "Unknown")
+            categories[category]=categories.get(category, 0) + 1
 
         fig.add_trace(
             go.Bar(
@@ -199,22 +199,22 @@ def _plot_empirical_correlation(
             col=2,
         )
 
-    @staticmethod
+    @ staticmethod
     def _plot_sector_analysis(fig: go.Figure, formulas: Any) -> None:
         """Plot sector analysis."""
         if not formulas:
             return
 
-        categories: dict[str, dict[str, float]] = {}
+        categories: dict[str, dict[str, float]]={}
         for formula in formulas:
-            category = getattr(formula, "category", "Unknown")
-            r_squared = float(getattr(formula, "r_squared", 0.0))
+            category=getattr(formula, "category", "Unknown")
+            r_squared=float(getattr(formula, "r_squared", 0.0))
             if category not in categories:
-                categories[category] = {"count": 0.0, "total_r2": 0.0}
+                categories[category]={"count": 0.0, "total_r2": 0.0}
             categories[category]["count"] += 1.0
             categories[category]["total_r2"] += r_squared
 
-        sector_performance = {
+        sector_performance={
             cat: (data["total_r2"] / data["count"] if data["count"] > 0 else 0.0)
             for cat, data in categories.items()
         }
@@ -238,10 +238,10 @@ def _plot_empirical_correlation(
         if not formulas:
             return
 
-        sorted_formulas = self._get_sorted_formulas(formulas)
-        top_formulas = sorted_formulas[:10]
+        sorted_formulas=self._get_sorted_formulas(formulas)
+        top_formulas=sorted_formulas[:10]
 
-        names, categories, r_squared_values = self._extract_formula_table_data(
+        names, categories, r_squared_values=self._extract_formula_table_data(
             top_formulas
         )
 
@@ -266,7 +266,7 @@ def _plot_empirical_correlation(
     # Helpers
     # ------------------------------------------------------------------
 
-    @staticmethod
+    @ staticmethod
     def _get_sorted_formulas(formulas: Iterable[Any]) -> list[Any]:
         """Sort formulas by descending r_squared with safe fallback."""
         try:
@@ -279,30 +279,30 @@ def _plot_empirical_correlation(
             # Sorting may fail if objects are not comparable or iterable
             return list(formulas)
 
-    @staticmethod
-    def _format_name(name: Any, max_length: int = 30) -> str:
+    @ staticmethod
+    def _format_name(name: Any, max_length: int=30) -> str:
         """Format formula name with truncation."""
         if not isinstance(name, str) or not name:
             return "N/A"
         return name if len(name) <= max_length else f"{name[: max_length - 3]}..."
 
-    @staticmethod
+    @ staticmethod
     def _format_r_squared(r_value: Any) -> str:
         """Format r_squared value to four decimal places or N/A."""
         if isinstance(r_value, (int, float)):
             return f"{r_value:.4f}"
         return "N/A"
 
-    @staticmethod
+    @ staticmethod
     def _extract_formula_table_data(
         formulas: Iterable[Any],
     ) -> tuple[list[str], list[str], list[str]]:
         """Extract table values for formula name, category, and r-squared."""
-        names = [
+        names=[
             FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
-        categories = [getattr(f, "category", "N/A") for f in formulas]
-        r_squared_values = [
+        categories=[getattr(f, "category", "N/A") for f in formulas]
+        r_squared_values=[
             FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
             for f in formulas
         ]
@@ -312,24 +312,24 @@ def _plot_empirical_correlation(
     # Detail & comparison views
     # ------------------------------------------------------------------
 
-    @staticmethod
+    @ staticmethod
     def create_formula_detail_view(formula: Formula) -> go.Figure:
         """Create a detailed view of a specific formula."""
-        fig = go.Figure()
+        fig=go.Figure()
 
-        variables = getattr(formula, "variables", {}) or {}
-        description = getattr(formula, "description", "N/A")
-        example = getattr(formula, "example_calculation", "N/A")
-        latex = getattr(formula, "latex", "N/A")
-        formula_text = getattr(formula, "formula", "N/A")
-        category = getattr(formula, "category", "N/A")
+        variables=getattr(formula, "variables", {}) or {}
+        description=getattr(formula, "description", "N/A")
+        example=getattr(formula, "example_calculation", "N/A")
+        latex=getattr(formula, "latex", "N/A")
+        formula_text=getattr(formula, "formula", "N/A")
+        category=getattr(formula, "category", "N/A")
 
-        r_squared = getattr(formula, "r_squared", None)
-        r_squared_str = (
+        r_squared=getattr(formula, "r_squared", None)
+        r_squared_str=(
             f"{r_squared:.3f}" if isinstance(r_squared, (int, float)) else "N/A"
         )
 
-        variables_block = (
+        variables_block=(
             "<br>".join(f"• {var}: {desc}" for var, desc in variables.items()) or "N/A"
         )
 
@@ -358,7 +358,7 @@ def _plot_empirical_correlation(
     # Correlation network (stubbed safely)
     # ------------------------------------------------------------------
 
-    @staticmethod
+    @ staticmethod
     def create_correlation_network_mapping(
         empirical_relationships: Mapping[str, Any],
     ) -> go.Figure:
@@ -368,10 +368,10 @@ def _plot_empirical_correlation(
             dict(empirical_relationships)
         )
 
-    @staticmethod
+    @ staticmethod
     def _empty_correlation_network_fig() -> go.Figure:
         """Return a consistent empty-state figure for correlation network plots."""
-        fig = go.Figure()
+        fig=go.Figure()
         fig.add_annotation(
             text="No correlation data available.",
             x=0.5,
@@ -389,7 +389,7 @@ def _plot_empirical_correlation(
         )
         return fig
 
-    @staticmethod
+    @ staticmethod
     def _extract_correlation_assets(
         strongest_correlations: List[Dict[str, Any]],
         correlation_matrix: Dict[str, Any],
@@ -402,48 +402,48 @@ def _plot_empirical_correlation(
             )
         return sorted(str(k) for k in correlation_matrix.keys())
 
-    @staticmethod
+    @ staticmethod
     def create_correlation_network(
         empirical_relationships: Dict[str, Any],
     ) -> go.Figure:
         """Create a network graph showing asset correlations."""
-        strongest_correlations = (
+        strongest_correlations=(
             empirical_relationships.get("strongest_correlations", []) or []
         )
-        correlation_matrix = empirical_relationships.get("correlation_matrix", {}) or {}
+        correlation_matrix=empirical_relationships.get("correlation_matrix", {}) or {}
 
         if not strongest_correlations and not correlation_matrix:
             return FormulaicVisualizer._empty_correlation_network_fig()
 
-        assets = FormulaicVisualizer._extract_correlation_assets(
+        assets=FormulaicVisualizer._extract_correlation_assets(
             strongest_correlations,
             correlation_matrix,
         )
 
         # Fallback: attempt to parse correlation_matrix keys like "AAA-BBB"
         if not assets and correlation_matrix:
-            asset_components: set[str] = set()
+            asset_components: set[str]=set()
             for key in correlation_matrix.keys():
                 if isinstance(key, str) and "-" in key:
-                    part1, part2 = key.split("-", 1)
+                    part1, part2=key.split("-", 1)
                     if part1:
                         asset_components.add(part1)
                     if part2:
                         asset_components.add(part2)
-            assets = sorted(asset_components)
+            assets=sorted(asset_components)
 
-        G = nx.Graph()
+        G=nx.Graph()
         G.add_nodes_from(assets)
 
         for corr in strongest_correlations[:10]:
-            a1, a2 = corr.get("asset1"), corr.get("asset2")
-            value = corr.get("correlation")
+            a1, a2=corr.get("asset1"), corr.get("asset2")
+            value=corr.get("correlation")
             if not a1 or not a2 or not isinstance(value, (int, float)):
                 continue
             G.add_edge(a1, a2, weight=float(value))
 
         if G.number_of_nodes() == 0:
-            fig = go.Figure()
+            fig=go.Figure()
             fig.add_annotation(
                 text="No assets found to render.",
                 x=0.5,
@@ -461,20 +461,20 @@ def _plot_empirical_correlation(
             )
             return fig
 
-        pos = nx.circular_layout(G)
+        pos=nx.circular_layout(G)
 
-        edge_traces: list[go.Scatter] = []
+        edge_traces: list[go.Scatter]=[]
         for u, v, data in G.edges(data=True):
-            x0, y0 = pos[u]
-            x1, y1 = pos[v]
-            weight = float(data.get("weight", 0.0))
+            x0, y0=pos[u]
+            x1, y1=pos[v]
+            weight=float(data.get("weight", 0.0))
 
             if weight > 0.7:
-                color, width = "red", 4
+                color, width="red", 4
             elif weight > 0.4:
-                color, width = "orange", 3
+                color, width="orange", 3
             else:
-                color, width = "lightgray", 2
+                color, width="lightgray", 2
 
             edge_traces.append(
                 go.Scatter(
@@ -487,19 +487,19 @@ def _plot_empirical_correlation(
                 )
             )
 
-        node_x: list[float] = []
-        node_y: list[float] = []
-        node_text: list[str] = []
-        node_degree: list[int] = []
+        node_x: list[float]=[]
+        node_y: list[float]=[]
+        node_text: list[str]=[]
+        node_degree: list[int]=[]
 
         for node in G.nodes():
-            x, y = pos[node]
+            x, y=pos[node]
             node_x.append(float(x))
             node_y.append(float(y))
             node_text.append(str(node))
             node_degree.append(int(G.degree(node)))
 
-        node_trace = go.Scatter(
+        node_trace=go.Scatter(
             x=node_x,
             y=node_y,
             mode="markers+text",
@@ -522,7 +522,7 @@ def _plot_empirical_correlation(
             showlegend=False,
         )
 
-        fig = go.Figure(
+        fig=go.Figure(
             data=[*edge_traces, node_trace],
             layout=go.Layout(
                 title="Correlation Network Graph",
@@ -537,12 +537,12 @@ def _plot_empirical_correlation(
         )
         return fig
 
-    @staticmethod
+    @ staticmethod
     def _create_empty_correlation_figure() -> go.Figure:
         """Backward-compatible empty placeholder correlation figure."""
         return FormulaicVisualizer._empty_correlation_network_fig()
 
-    @staticmethod
+    @ staticmethod
     def _build_and_render_correlation_network(
         strongest_correlations: Any,
         correlation_matrix: Any,
@@ -553,7 +553,7 @@ def _plot_empirical_correlation(
         The implementation is delegated to `create_correlation_network` to avoid
         duplicate logic and divergence.
         """
-        data: Dict[str, Any] = {
+        data: Dict[str, Any]={
             "strongest_correlations": strongest_correlations or [],
             "correlation_matrix": correlation_matrix or {},
         }
@@ -563,29 +563,29 @@ def _plot_empirical_correlation(
     # Metric comparison
     # ------------------------------------------------------------------
 
-    @staticmethod
+    @ staticmethod
     def create_metric_comparison_chart(
         analysis_results: Dict[str, Any],
     ) -> go.Figure:
         """Create a chart comparing different metrics derived from formulas."""
-        formulas = analysis_results.get("formulas", [])
+        formulas=analysis_results.get("formulas", [])
         if not formulas:
             return go.Figure()
 
-        categories: dict[str, list[float]] = {}
+        categories: dict[str, list[float]]={}
         for formula in formulas:
-            category = getattr(formula, "category", "Unknown")
-            r_squared = getattr(formula, "r_squared", 0.0)
+            category=getattr(formula, "category", "Unknown")
+            r_squared=getattr(formula, "r_squared", 0.0)
             if isinstance(r_squared, (int, float)):
                 categories.setdefault(category, []).append(float(r_squared))
 
-        category_names = list(categories.keys())
-        r_squared_by_category = [
+        category_names=list(categories.keys())
+        r_squared_by_category=[
             (sum(values) / len(values)) if values else 0.0
             for values in categories.values()
         ]
 
-        fig = go.Figure()
+        fig=go.Figure()
         fig.add_trace(
             go.Bar(
                 name="Average R-squared",
