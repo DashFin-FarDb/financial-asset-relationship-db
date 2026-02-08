@@ -341,7 +341,7 @@ def test_env_example_has_cors_config(env_example_content):
     assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
 
-def test_env_example_has_comments(self, env_example_content):
+def test_env_example_has_comments(env_example_content):
     """Test that .env.example has helpful comments."""
     assert "#" in env_example_content
 
