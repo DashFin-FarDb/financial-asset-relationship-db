@@ -109,7 +109,9 @@ class TestEnhancedTestSummary:
         for i, line in enumerate(lines, 1):
             if line.startswith("#"):
                 # Headings should have space after #
-                assert re.match(r"^#+\s", line), f"Line {i}: Heading missing space after #"
+                assert re.match(r"^#+\s", line), (
+                    f"Line {i}: Heading missing space after #"
+                )
 
     def test_summary_no_broken_formatting(self, summary_content):
         """
@@ -119,7 +121,9 @@ class TestEnhancedTestSummary:
             summary_content(str): The full text content of the summary markdown file to validate.
         """
         # Check for common markdown issues
-        assert "##" not in summary_content.replace("##", "# #")  # No triple hashes without space
+        assert "##" not in summary_content.replace(
+            "##", "# #"
+        )  # No triple hashes without space
 
 
 class TestFinalTestSummary:
@@ -183,7 +187,9 @@ class TestFinalTestSummary:
 
     def test_summary_has_test_statistics(self, summary_content):
         """Test that summary includes test statistics."""
-        assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
+        assert (
+            "Statistics:" in summary_content or "statistics" in summary_content.lower()
+        )
         # Should mention line count
         assert "lines" in summary_content.lower()
 
