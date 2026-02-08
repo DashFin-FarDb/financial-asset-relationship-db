@@ -237,7 +237,7 @@ class TestRemovedFilesIntegration:
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
 
-    @ staticmethod
+    @staticmethod
     def test_all_workflows_avoid_pr_injection():
         """
         Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
