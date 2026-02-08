@@ -207,10 +207,10 @@ class TestWorkflowSimplifications:
 class TestDeletedFilesImpact:
     """Validate that deleted files are no longer referenced."""
 
-    def test_labeler_yml_removed(self, repo_root: Path) -> None:
-        """labeler.yml should be removed."""
+    def test_labeler_yml_exists(self, repo_root: Path) -> None:
+        """labeler.yml should exist."""
         labeler_file = repo_root / ".github" / "labeler.yml"
-        assert not labeler_file.exists(), "labeler.yml should be deleted"
+        assert labeler_file.exists(), "labeler.yml should exist"
 
     def test_context_chunker_removed(self, repo_root: Path) -> None:
         """context_chunker.py should be removed."""
