@@ -121,99 +121,67 @@ class FormulaicVisualizer:
             z=z,
             x=all_cols,
             y=rows,
+
+@staticmethod
+def _plot_empirical_correlation_legacy(
+    fig: go.Figure, empirical_relationships: Any
+) -> None:
+    """Populate the empirical correlation matrix heatmap in row 2, column 1."""
+    matrix = FormulaicVisualizer._normalize_empirical_relationships(
+        empirical_relationships
+    )
+    if not matrix:
+        # Nothing to plot if no empirical relationships are provided.
+        return
+
+    rows = sorted(matrix.keys())
+    all_cols = sorted({col for col_map in matrix.values() for col in col_map})
+    z = [[matrix[row].get(col, math.nan) for col in all_cols] for row in rows]
+
+    heatmap = go.Heatmap(
+        z=z,
+        x=all_cols,
+        y=rows,
+        coloraxis="coloraxis",
+        showscale=False,
+    )
+    fig.add_trace(heatmap, row=2, col=1)
+
+# ------------------------------------------------------------------
+# Dashboard plotting methods
+
+@staticmethod
+def _plot_empirical_correlation(
+    fig: go.Figure,
+    empirical_relationships: Mapping[str, Any],
+) -> None:
+    """Plot empirical correlation matrix."""
+    correlation_matrix = empirical_relationships.get("correlation_matrix", {})
+    if not correlation_matrix:
+        return
+
+    # Only dict-of-dict is supported here; otherwise do nothing (original behaviour).
+    if not isinstance(correlation_matrix, dict):
+        return
+
+    assets = sorted(str(k) for k in correlation_matrix.keys())
+    z = [
+        [float(correlation_matrix.get(a1, {}).get(a2, 0.0)) for a2 in assets]
+        for a1 in assets
+    ]
+
+    fig.add_trace(
+        go.Heatmap(
+            z=z,
+            x=assets,
+            y=assets,
             coloraxis="coloraxis",
             showscale=False,
-        )
-        fig.add_trace(heatmap, row=2, col=1)
+        ),
+        row=2,
+        col=1,
+    )
 
-    # ------------------------------------------------------------------
-    # Dashboard plotting methods
-    # ------------------------------------------------------------------
-
-    @staticmethod
-    def _plot_category_distribution(fig: go.Figure, formulas: Any) -> None:
-        """Plot distribution of formulas across categories."""
-        if not formulas:
-            return
-
-        categories: dict[str, int] = {}
-        for formula in formulas:
-            category = getattr(formula, "category", "Unknown")
-            categories[category] = categories.get(category, 0) + 1
-
-        fig.add_trace(
-            go.Pie(
-                labels=list(categories.keys()),
-                values=list(categories.values()),
-                hole=0.3,
-            ),
-            row=1,
-            col=1,
-        )
-
-    @staticmethod
-    def _plot_reliability(fig: go.Figure, formulas: Any) -> None:
-        """Plot reliability (R-squared) of formulas."""
-        if not formulas:
-            return
-
-        categories: DefaultDict[str, list[float]] = defaultdict(list)
-        for formula in formulas:
-            category = getattr(formula, "category", "Unknown")
-            r_squared = float(getattr(formula, "r_squared", 0.0))
-            categories[category].append(r_squared)
-
-        avg_r_squared = {
-            cat: (sum(vals) / len(vals) if vals else 0.0)
-            for cat, vals in categories.items()
-        }
-
-        fig.add_trace(
-            go.Bar(
-                x=list(avg_r_squared.keys()),
-                y=list(avg_r_squared.values()),
-                marker=dict(color="lightcoral"),
-            ),
-            row=1,
-            col=2,
-        )
-
-    @staticmethod
-    def _plot_empirical_correlation(
-        fig: go.Figure,
-        empirical_relationships: Mapping[str, Any],
-    ) -> None:
-        """Plot empirical correlation matrix."""
-        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
-        if not correlation_matrix:
-            return
-
-        # Only dict-of-dict is supported here; otherwise do nothing (original behaviour).
-        if not isinstance(correlation_matrix, dict):
-            return
-
-        assets = sorted(str(k) for k in correlation_matrix.keys())
-        z = [
-            [float(correlation_matrix.get(a1, {}).get(a2, 0.0)) for a2 in assets]
-            for a1 in assets
-        ]
-
-        fig.add_trace(
-            go.Heatmap(
-                z=z,
-                x=assets,
-                y=assets,
-                colorscale="RdBu",
-                zmid=0,
-            ),
-            row=2,
-            col=1,
-        )
-
-    @staticmethod
-    def _plot_asset_class_relationships(fig: go.Figure, formulas: Any) -> None:
-        """Plot relationships between asset classes."""
-        if not formulas:
             return
 
         categories: dict[str, int] = {}
