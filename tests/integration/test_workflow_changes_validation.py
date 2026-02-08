@@ -219,14 +219,14 @@ class TestDeletedFilesImpact:
     """Test that deleted files don't break workflows."""
 
     @staticmethod
-    def test_labeler_config_file_deleted():
+    def test_labeler_config_file_present():
         """
-        Check that the repository no longer contains the labeler configuration file.
+        Check that the repository contains the labeler configuration file.
 
-        Asserts that .github/labeler.yml does not exist.
+        Asserts that .github/labeler.yml exists.
         """
         labeler_path = Path(".github/labeler.yml")
-        assert not labeler_path.exists(), "labeler.yml should be deleted"
+        assert labeler_path.exists(), "labeler.yml should exist"
 
     @staticmethod
     def test_context_chunker_script_deleted():

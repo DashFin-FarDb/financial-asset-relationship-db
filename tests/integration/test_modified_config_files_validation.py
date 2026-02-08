@@ -217,12 +217,11 @@ class TestDeletedFilesImpact:
         """
         return Path(__file__).parent.parent.parent
 
-    def test_labeler_yml_removed(self, repo_root: Path):
-        """
-        Assert that the repository no longer contains the .github/labeler.yml file.
-        """
+    def test_labeler_yml_present(self, repo_root: Path):
+        """Assert that the repository contains the .github/labeler.yml file."""
         labeler_file = repo_root / ".github" / "labeler.yml"
-        assert not labeler_file.exists(), "labeler.yml should be deleted"
+        assert labeler_file.exists(), "labeler.yml should exist"
+        assert labeler_file.read_text().strip(), "labeler.yml should not be empty"
 
     def test_context_chunker_removed(self, repo_root: Path):
         """Verify context_chunker.py has been removed."""
@@ -250,7 +249,6 @@ class TestDeletedFilesImpact:
 
         deleted_refs = [
             "context_chunker.py",
-            "labeler.yml",
             ".github/scripts/README.md",
         ]
 

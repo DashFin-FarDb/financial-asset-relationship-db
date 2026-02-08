@@ -177,7 +177,6 @@ class TestRemovedFilesIntegration:
         removed_files = [
             "context_chunker.py",
             ".github/scripts/README.md",
-            ".github/labeler.yml",
         ]
 
         workflow_files = [
@@ -379,10 +378,10 @@ class TestBranchCoherence:
         """
         Verify the branch no longer depends on removed external configuration and limits workflow references to external files.
 
-        Asserts that .github / labeler.yml and .github / scripts / context_chunker.py do not exist, and that each workflow file under .github / workflows contains at most one run step referencing paths that include ".github/" or "scripts/.".
+        Asserts that .github / scripts / context_chunker.py does not exist, the labeler config is present, and that each workflow file under .github / workflows contains at most one run step referencing paths that include ".github/" or "scripts/.".
         """
-        # labeler.yml was removed - workflows should work without it
-        assert not Path(".github/labeler.yml").exists()
+        # labeler.yml should exist for the labeler workflow configuration
+        assert Path(".github/labeler.yml").exists()
 
         # context_chunker.py was removed - workflows should work without it
         assert not Path(".github/scripts/context_chunker.py").exists()
