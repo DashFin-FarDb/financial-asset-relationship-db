@@ -2906,12 +2906,20 @@ class TestWorkflowScheduledExecutionBestPractices:
                     minute, hour, day, month, weekday = parts
                     # Reject if runs every minute (* * * * *)
                     assert not (
-                        minute == "*" and hour == "*" and day == "*" and month == "*" and weekday == "*"
-                    ), f"Schedule '{cron}' in {workflow_file.name} runs every minute, which is too frequent"
+                        minute == "*"
+                        and hour == "*"
+                        and day == "*"
+                        and month == "*"
+                        and weekday == "*"
+                    ), (
+                        f"Schedule '{cron}' in {workflow_file.name} runs every minute, which is too frequent"
+                    )
                     # Reject if runs every minute of every hour (*/1 * * * * or similar)
                     assert not (
                         minute in ("*/1", "*/2", "*/3", "*/4", "*/5") and hour == "*"
-                    ), f"Schedule '{cron}' in {workflow_file.name} runs multiple times per hour, which may be too frequent"
+                    ), (
+                        f"Schedule '{cron}' in {workflow_file.name} runs multiple times per hour, which may be too frequent"
+                    )
 
 
 # Additional test to verify all new test classes are properly structured
