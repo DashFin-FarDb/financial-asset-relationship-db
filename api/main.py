@@ -674,7 +674,11 @@ async def get_visualization_data():
         edges: List[Dict[str, Any]] = []
         for source_id, rels in g.relationships.items():
             for target_id, rel_type, strength in rels:
-                normalized_strength = max(0.0, min(float(strength), 1.0))
+                try:
+                    strength_value = float(strength)
+                except (TypeError, ValueError):
+                    strength_value = 0.0
+                normalized_strength = max(0.0, min(strength_value, 1.0))
                 edges.append(
                     {
                         "source": source_id,
