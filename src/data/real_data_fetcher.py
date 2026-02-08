@@ -225,7 +225,9 @@ class RealDataFetcher:
                     yield_to_maturity=(
                         info.get("yield", 0.03)
                     ),  # Default 3% if not available
-                    coupon_rate=info.get("yield", 0.025),  # Approximate
+                        info.get("yield")
+                        if isinstance(info.get("yield"), (int, float))
+                        else 0.03
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
                     issuer_id=issuer_id,
