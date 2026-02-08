@@ -493,7 +493,7 @@ class TestConfigurationConsistency:
     """Test consistency across configuration files."""
 
     @staticmethod
-    def test_api_url_consistency(self):
+    def test_api_url_consistency():
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
