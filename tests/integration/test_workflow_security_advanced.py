@@ -98,9 +98,7 @@ class TestWorkflowSecretHandling:
                             r"(echo|print|printf)\s+.*" + re.escape(secret_ref),
                             line,
                             re.IGNORECASE,
-                        ), (
-                            f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
-                        )
+                        ), f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
 
     @staticmethod
     def test_secrets_not_in_artifact_uploads(all_workflows):
@@ -113,8 +111,7 @@ class TestWorkflowSecretHandling:
                     if "actions/upload-artifact" in step.get("uses", ""):
                         step_str = str(step)
                         assert "secrets." not in step_str, (
-                            f"Secret reference in artifact upload: {workflow['path']} "
-                            f"job '{job_name}' step {step_idx}"
+                            f"Secret reference in artifact upload: {workflow['path']} job '{job_name}' step {step_idx}"
                         )
 
 
@@ -125,9 +122,7 @@ class TestWorkflowPermissionsHardening:
     def test_workflows_define_explicit_permissions(all_workflows):
         """Verify workflows explicitly define permissions."""
         for workflow in all_workflows:
-            assert "permissions" in workflow["content"], (
-                f"Workflow {workflow['path']} should define permissions"
-            )
+            assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
@@ -139,13 +134,9 @@ class TestWorkflowPermissionsHardening:
                 assert permissions in [
                     "read-all",
                     "none",
-                ], (
-                    f"Workflow {workflow['path']} has overly permissive default: {permissions}"
-                )
+                ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
-                default_write_perms = [
-                    k for k, v in permissions.items() if v == "write"
-                ]
+                default_write_perms = [k for k, v in permissions.items() if v == "write"]
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
                 unexpected_write = set(default_write_perms) - allowed_write_perms
                 assert len(unexpected_write) == 0, (
@@ -158,9 +149,7 @@ class TestWorkflowPermissionsHardening:
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
             if isinstance(permissions, str):
-                assert permissions != "write-all", (
-                    f"Workflow {workflow['path']} uses dangerous 'write-all'"
-                )
+                assert permissions != "write-all", f"Workflow {workflow['path']} uses dangerous 'write-all'"
 
 
 class TestWorkflowSupplyChainSecurity:
