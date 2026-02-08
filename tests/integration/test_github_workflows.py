@@ -2854,7 +2854,9 @@ class TestWorkflowEnvironmentVariables:
 
         # Get workflow-level env vars
         workflow_env = data.get("env", {})
-        workflow_env_names = set(workflow_env.keys()) if isinstance(workflow_env, dict) else set()
+        workflow_env_names = (
+            set(workflow_env.keys()) if isinstance(workflow_env, dict) else set()
+        )
 
         jobs = data.get("jobs", {})
 
