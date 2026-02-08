@@ -242,7 +242,9 @@ class TestUserRepitory:
     def test_create_or_update_user_with_disabled_true(self, mock_execute):
         """Test creating a disabled user."""
         repo = UserRepitory()
-        repo.create_or_update_user(username="disableduser", hashed_password="hashed_pw", disabled=True)
+        repo.create_or_update_user(
+            username="disableduser", hashed_password="hashed_pw", disabled=True
+        )
 
         mock_execute.assert_called_once()
         call_args = mock_execute.call_args
@@ -293,7 +295,9 @@ class TestSeedCredentialsFromEnv:
     @patch("api.auth.os.getenv")
     def test_seed_credentials_missing_username(self, mock_getenv):
         """Test seeding with missing username does nothing."""
-        mock_getenv.side_effect = lambda key, default=None: {"ADMIN_PASSWORD": "admin_pass"}.get(key, default)
+        mock_getenv.side_effect = lambda key, default=None: {
+            "ADMIN_PASSWORD": "admin_pass"
+        }.get(key, default)
 
         mock_repo = Mock(spec=UserRepository)
         _seed_credentials_from_env(mock_repo)
@@ -303,7 +307,9 @@ class TestSeedCredentialsFromEnv:
     @patch("api.auth.os.getenv")
     def test_seed_credentials_missing_password(self, mock_getenv):
         """Test seeding with missing password does nothing."""
-        mock_getenv.side_effect = lambda key, default=None: {"ADMIN_USERNAME": "admin"}.get(key, default)
+        mock_getenv.side_effect = lambda key, default=None: {
+            "ADMIN_USERNAME": "admin"
+        }.get(key, default)
 
         mock_repo = Mock(spec=UserRepository)
         _seed_credentials_from_env(mock_repo)
@@ -353,7 +359,12 @@ class TestGetUser:
     @patch("api.auth.user_repository")
     def test_get_user_with_default_repository(self, mock_repo):
         """Test get_user uses default repository when none provided."""
-        mock_user = UserInDB(username="testuser", email="test@example.com", hashed_password="hashed", disabled=False)
+        mock_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed",
+            disabled=False,
+        )
         mock_repo.get_user.return_value = mock_user
 
         user = get_user("testuser")
@@ -364,7 +375,12 @@ class TestGetUser:
     def test_get_user_with_custom_repository(self):
         """Test get_user with custom repository."""
         mock_repo = Mock(spec=UserRepository)
-        mock_user = UserInDB(username="testuser", email="test@example.com", hashed_password="hashed", disabled=False)
+        mock_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed",
+            disabled=False,
+        )
         mock_repo.get_user.return_value = mock_user
 
         user = get_user("testuser", repository=mock_repo)
@@ -381,7 +397,12 @@ class TestAuthenticateUser:
     @patch("api.auth.get_user")
     def test_authenticate_user_success(self, mock_get_user, mock_verify):
         """Test successful user authentication."""
-        mock_user = UserInDB(username="testuser", email="test@example.com", hashed_password="hashed_pw", disabled=False)
+        mock_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed_pw",
+            disabled=False,
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = True
 
@@ -404,7 +425,12 @@ class TestAuthenticateUser:
     @patch("api.auth.get_user")
     def test_authenticate_user_wrong_password(self, mock_get_user, mock_verify):
         """Test authentication fails with wrong password."""
-        mock_user = UserInDB(username="testuser", email="test@example.com", hashed_password="hashed_pw", disabled=False)
+        mock_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed_pw",
+            disabled=False,
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = False
 
@@ -417,7 +443,12 @@ class TestAuthenticateUser:
     def test_authenticate_user_with_custom_repository(self, mock_get_user, mock_verify):
         """Test authentication with custom repository."""
         mock_repo = Mock(spec=UserRepository)
-        mock_user = UserInDB(username="testuser", email="test@example.com", hashed_password="hashed_pw", disabled=False)
+        mock_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed_pw",
+            disabled=False,
+        )
         mock_get_user.return_value = mock_user
         mock_verify.return_value = True
 
@@ -448,7 +479,10 @@ class TestCreateAccessToken:
         """Test that created token contains the provided claims."""
         data = {"sub": "testuser", "role": "admin"}
 
-        with patch("api.auth.SECRET_KEY", "test-secret"), patch("api.auth.ALGORITHM", "HS256"):
+        with (
+            patch("api.auth.SECRET_KEY", "test-secret"),
+            patch("api.auth.ALGORITHM", "HS256"),
+        ):
             token = create_access_token(data)
             decoded = jwt.decode(token, "test-secret", algorithms=["HS256"])
 
@@ -463,7 +497,10 @@ class TestCreateAccessToken:
         data = {"sub": "testuser"}
         expires_delta = timedelta(minutes=30)
 
-        with patch("api.auth.SECRET_KEY", "test-secret"), patch("api.auth.ALGORITHM", "HS256"):
+        with (
+            patch("api.auth.SECRET_KEY", "test-secret"),
+            patch("api.auth.ALGORITHM", "HS256"),
+        ):
             token = create_access_token(data, expires_delta=expires_delta)
             decoded = jwt.decode(token, "test-secret", algorithms=["HS256"])
 
@@ -484,7 +521,9 @@ class TestCreateAccessToken:
 
         import api.auth as auth_module
 
-        decoded = jwt.decode(token, auth_module.SECRET_KEY, algorithms=[auth_module.ALGORITHM])
+        decoded = jwt.decode(
+            token, auth_module.SECRET_KEY, algorithms=[auth_module.ALGORITHM]
+        )
         exp_timestamp = decoded["exp"]
         exp_datetime = datetime.fromtimestamp(exp_timestamp, tz=timezone.utc)
         now = datetime.now(timezone.utc)
@@ -519,7 +558,12 @@ class TestGetCurrentUser:
         # Create a valid token
         token = create_access_token({"sub": "testuser"})
 
-        mock_user = UserInDB(username="testuser", email="test@example.com", hashed_password="hashed", disabled=False)
+        mock_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed",
+            disabled=False,
+        )
         mock_get_user.return_value = mock_user
 
         user = await get_current_user(token)
@@ -549,7 +593,9 @@ class TestGetCurrentUser:
             mock_datetime.now.return_value = fixed_now
             mock_datetime.utcnow.return_value = fixed_now.replace(tzinfo=None)
 
-            token = create_access_token({"sub": "testuser"}, expires_delta=timedelta(seconds=-1))
+            token = create_access_token(
+                {"sub": "testuser"}, expires_delta=timedelta(seconds=-1)
+            )
 
         with pytest.raises(HTTPException) as exc_info:
             get_current_user(token)
@@ -596,7 +642,12 @@ class TestGetCurrentUser:
         """Test get_current_user with valid token."""
         token = create_access_token({"sub": "testuser"})
 
-        mock_user = UserInDB(username="testuser", email="test@example.com", hashed_password="hashed", disabled=False)
+        mock_user = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed",
+            disabled=False,
+        )
         mock_get_user.return_value = mock_user
 
         user = await get_current_user(token)
@@ -627,7 +678,9 @@ class TestGetCurrentUser:
         with patch("api.auth.datetime") as mock_datetime:
             mock_datetime.now.return_value = fixed_now
             mock_datetime.utcnow.return_value = fixed_now.replace(tzinfo=None)
-            token = create_access_token({"sub": "testuser"}, expires_delta=timedelta(seconds=-1))
+            token = create_access_token(
+                {"sub": "testuser"}, expires_delta=timedelta(seconds=-1)
+            )
 
         with pytest.raises(HTTPException) as exc_info:
             await get_current_user(token)
@@ -668,7 +721,9 @@ class TestGetCurrentActiveUser:
     @pytest.mark.asyncio
     async def test_get_current_active_user_active_user(self):
         """Test with active (non-disabled) user."""
-        active_user = User(username="activeuser", email="active@example.com", disabled=False)
+        active_user = User(
+            username="activeuser", email="active@example.com", disabled=False
+        )
 
         result = await get_current_active_user(active_user)
 
@@ -679,7 +734,9 @@ class TestGetCurrentActiveUser:
         """Test with disabled user raises exception."""
         from fastapi import HTTPException
 
-        disabled_user = User(username="disableduser", email="disabled@example.com", disabled=True)
+        disabled_user = User(
+            username="disableduser", email="disabled@example.com", disabled=True
+        )
 
         with pytest.raises(HTTPException) as exc_info:
             await get_current_active_user(disabled_user)
@@ -700,7 +757,10 @@ class TestAuthenticationIntegration:
         hashed_password = get_password_hash(password)
 
         mock_user = UserInDB(
-            username="testuser", email="test@example.com", hashed_password=hashed_password, disabled=False
+            username="testuser",
+            email="test@example.com",
+            hashed_password=hashed_password,
+            disabled=False,
         )
         mock_repo.get_user.return_value = mock_user
 
@@ -730,11 +790,16 @@ class TestAuthenticationIntegration:
         hashed_password = get_password_hash(password)
 
         disabled_user = UserInDB(
-            username="disableduser", email="disabled@example.com", hashed_password=hashed_password, disabled=True
+            username="disableduser",
+            email="disabled@example.com",
+            hashed_password=hashed_password,
+            disabled=True,
         )
         mock_repo.get_user.return_value = disabled_user
 
-        authenticated = authenticate_user("disableduser", password, repository=mock_repo)
+        authenticated = authenticate_user(
+            "disableduser", password, repository=mock_repo
+        )
         assert authenticated == disabled_user
 
         token = create_access_token({"sub": authenticated.username})
@@ -750,7 +815,9 @@ class TestAuthenticationIntegration:
         """Test with disabled user raises exception."""
         from fastapi import HTTPException
 
-        disabled_user = User(username="disableduser", email="disabled@example.com", disabled=True)
+        disabled_user = User(
+            username="disableduser", email="disabled@example.com", disabled=True
+        )
 
         with pytest.raises(HTTPException) as exc_info:
             get_current_active_user(disabled_user)
@@ -765,7 +832,12 @@ class TestUserModels:
 
     def test_user_model_creation(self):
         """Test User model creation with all fields."""
-        user = User(username="testuser", email="test@example.com", full_name="Test User", disabled=False)
+        user = User(
+            username="testuser",
+            email="test@example.com",
+            full_name="Test User",
+            disabled=False,
+        )
 
         assert user.username == "testuser"
         assert user.email == "test@example.com"
@@ -784,7 +856,10 @@ class TestUserModels:
     def test_user_in_db_model(self):
         """Test UserInDB model includes hashed_password."""
         user = UserInDB(
-            username="testuser", email="test@example.com", hashed_password="hashed_pw_string", disabled=False
+            username="testuser",
+            email="test@example.com",
+            hashed_password="hashed_pw_string",
+            disabled=False,
         )
 
         assert user.username == "testuser"
@@ -820,7 +895,10 @@ class TestAuthenticationIntegration:
         hashed_password = get_password_hash(password)
 
         mock_user = UserInDB(
-            username="testuser", email="test@example.com", hashed_password=hashed_password, disabled=False
+            username="testuser",
+            email="test@example.com",
+            hashed_password=hashed_password,
+            disabled=False,
         )
         mock_repo.get_user.return_value = mock_user
 
@@ -849,12 +927,17 @@ class TestAuthenticationIntegration:
         hashed_password = get_password_hash(password)
 
         disabled_user = UserInDB(
-            username="disableduser", email="disabled@example.com", hashed_password=hashed_password, disabled=True
+            username="disableduser",
+            email="disabled@example.com",
+            hashed_password=hashed_password,
+            disabled=True,
         )
         mock_repo.get_user.return_value = disabled_user
 
         # User can authenticate
-        authenticated = authenticate_user("disableduser", password, repository=mock_repo)
+        authenticated = authenticate_user(
+            "disableduser", password, repository=mock_repo
+        )
         assert authenticated == disabled_user
 
         # Can create token
@@ -910,7 +993,9 @@ class TestAuthenticationEdgeCases:
         from datetime import timedelta
 
         # Create token that expires in 1 second
-        token = create_access_token({"sub": "testuser"}, expires_delta=timedelta(seconds=1))
+        token = create_access_token(
+            {"sub": "testuser"}, expires_delta=timedelta(seconds=1)
+        )
 
         # Should be valid immediately
         decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])

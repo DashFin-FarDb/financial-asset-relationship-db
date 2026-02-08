@@ -87,7 +87,9 @@ limits:
         assert chunker.max_tokens == 32000
         assert isinstance(chunker.config, dict)
 
-    @patch("builtins.open", new_callable=mock_open, read_data="invalid: yaml: content: [[[")
+    @patch(
+        "builtins.open", new_callable=mock_open, read_data="invalid: yaml: content: [[["
+    )
     @patch("pathlib.Path.exists")
     def test_initialization_with_invalid_yaml(self, mock_exists, mock_file):
         """Test initialization handles invalid YAML gracefully."""
@@ -146,7 +148,11 @@ limits:
 
         chunker = ContextChunker()
 
-        assert chunker.priority_order == ["custom_priority_1", "custom_priority_2", "custom_priority_3"]
+        assert chunker.priority_order == [
+            "custom_priority_1",
+            "custom_priority_2",
+            "custom_priority_3",
+        ]
         assert chunker.priority_map["custom_priority_1"] == 0
         assert chunker.priority_map["custom_priority_2"] == 1
 
@@ -170,7 +176,9 @@ class TestProcessContext:
         """Test processing context with only review data."""
         chunker = ContextChunker()
 
-        payload = {"reviews": [{"body": "Review comment 1"}, {"body": "Review comment 2"}]}
+        payload = {
+            "reviews": [{"body": "Review comment 1"}, {"body": "Review comment 2"}]
+        }
 
         text, has_content = chunker.process_context(payload)
 
@@ -182,7 +190,12 @@ class TestProcessContext:
         """Test processing context with only file data."""
         chunker = ContextChunker()
 
-        payload = {"files": [{"patch": "diff --git a/file1.py"}, {"patch": "diff --git a/file2.py"}]}
+        payload = {
+            "files": [
+                {"patch": "diff --git a/file1.py"},
+                {"patch": "diff --git a/file2.py"},
+            ]
+        }
 
         text, has_content = chunker.process_context(payload)
 
@@ -194,7 +207,10 @@ class TestProcessContext:
         """Test processing context with both reviews and files."""
         chunker = ContextChunker()
 
-        payload = {"reviews": [{"body": "Review text"}], "files": [{"patch": "File patch"}]}
+        payload = {
+            "reviews": [{"body": "Review text"}],
+            "files": [{"patch": "File patch"}],
+        }
 
         text, has_content = chunker.process_context(payload)
 
@@ -506,7 +522,10 @@ class TestContextChunkerEdgeCases:
         """Test processing context with deeply nested None values."""
         chunker = ContextChunker()
 
-        payload = {"reviews": [None, None, {"body": None}], "files": [None, {"patch": None}]}
+        payload = {
+            "reviews": [None, None, {"body": None}],
+            "files": [None, {"patch": None}],
+        }
 
         text, has_content = chunker.process_context(payload)
 
