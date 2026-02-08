@@ -25,12 +25,6 @@ class TestWorkflowConsistency:
         Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
 
         Only files from the internal list are considered; files that are not present are omitted from the result.
-
-    @staticmethod
-    def all_workflows():
-        """
-        Returns:
-            dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
         """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
@@ -306,6 +300,7 @@ class TestWorkflowSecurityConsistency:
                                 "ref" in with_config or "fetch-depth" in with_config
                             ), f"{wf_file}: Checkout in pull_request_target should specify safe ref"
 
+
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
@@ -395,6 +390,7 @@ class TestBranchCoherence:
 
             # Should have minimal external references
             assert external_refs <= 1, f"{wf_file} has {external_refs} external file references (should be <=1)"
+
 
 class TestBranchQuality:
     """Test overall quality of branch changes."""

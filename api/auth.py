@@ -200,9 +200,9 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
-        email=admin_email,
-        full_name=admin_full_name,
-        disabled=admin_disabled,
+        user_email=admin_email,
+        user_full_name=admin_full_name,
+        is_disabled=admin_disabled,
     )
 
 

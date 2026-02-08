@@ -189,7 +189,7 @@ class TestPydanticModels:
         metrics = MetricsResponse(
             total_assets=10,
             total_relationships=20,
-            asset_classes={"EQUITY": 5, "BOND": 5},
+            asset_classes={"EQUITY": 5, "FIXED_INCOME": 5},
             avg_degree=2.0,
             max_degree=5,
             network_density=0.4,
@@ -372,7 +372,7 @@ class TestAPIEndpoints:
 
     def test_get_assets_filter_by_class_and_sector(self, client):
         """Test filtering assets by both class and sector."""
-        response = client.get("/api/assets?asset_class=EQUITY&amp;sector=Technology")
+        response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
         assert response.status_code == 200
         assets = response.json()
         assert isinstance(assets, list)
@@ -513,7 +513,7 @@ class TestAPIEndpoints:
         assert len(data["asset_classes"]) > 0
 
         # Check that all AssetClass enum values are included
-        expected_classes = [ac.value for ac in AssetClass]
+        expected_classes = [ac.name for ac in AssetClass]
         assert set(data["asset_classes"]) == set(expected_classes)
 
     def test_get_sectors(self, client):
@@ -563,9 +563,7 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -653,14 +651,12 @@ class TestAdditionalFields:
                 "book_value",
             ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert (
-                has_equity_field or len(additional) == 0
-            )  # Either has fields or empty
+            assert has_equity_field or len(additional) == 0  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):
         """Test that bond-specific fields are included."""
-        response = client.get("/api/assets?asset_class=BOND")
+        response = client.get("/api/assets?asset_class=FIXED_INCOME")
         assets = response.json()
 
         if len(assets) > 0:
@@ -681,10 +677,8 @@ class TestAdditionalFields:
 class TestVisualizationDataProcessing:
     """Test the processing of visualization data."""
 
-    @staticmethod
     @pytest.fixture
-    @staticmethod
-    def client():
+    def client(self):
         """Create a test client."""
         return TestClient(app)
 
@@ -729,10 +723,8 @@ class TestVisualizationDataProcessing:
 class TestIntegrationScenarios:
     """Test realistic integration scenarios."""
 
-    @staticmethod
     @pytest.fixture
-    @staticmethod
-    def client():
+    def client(self):
         """Create a test client."""
         return TestClient(app)
 

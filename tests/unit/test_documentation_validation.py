@@ -32,10 +32,6 @@ class TestDependencyMatrix:
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
         """
-    @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
-        """
         Load the dependency matrix markdown content from disk.
 
         Returns:
@@ -49,8 +45,7 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -338,12 +333,8 @@ class TestSystemManifest:
         except ValueError:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
-
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Test that systemManifest.md has Current Phase section."""
-        assert "## Current Phase" in system_manifest_content
-
-
+        """
         Assert that the System Manifest declares a current project phase.
 
         Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
@@ -351,6 +342,7 @@ class TestSystemManifest:
         Parameters:
             system_manifest_content(str): Full text of the systemManifest.md file to inspect.
         """
+        assert "## Current Phase" in system_manifest_content
         pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
 
