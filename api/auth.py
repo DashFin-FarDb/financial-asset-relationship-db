@@ -19,7 +19,9 @@ from .models import UserInDB
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
+    raise ValueError(
+        "SECRET_KEY environment variable must be set before importing api.auth"
+    )
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -200,9 +202,9 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
-        email=admin_email,
-        full_name=admin_full_name,
-        disabled=admin_disabled,
+        user_email=admin_email,
+        user_full_name=admin_full_name,
+        is_disabled=admin_disabled,
     )
 
 
@@ -210,7 +212,8 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME "
+        "and ADMIN_PASSWORD or pre-populate the database."
     )
 
 

@@ -1,7 +1,7 @@
 """Integration tests for the complete API flow.
-"""
+
 This module tests the full API integration including:
-- End - to - end request / response cycles
+- End-to-end request/response cycles
 - Data consistency across endpoints
 - Real graph initialization
 - Performance benchmarks
@@ -97,24 +97,25 @@ class TestCompleteAPIFlow:
     @staticmethod
     def test_filter_combinations(client):
         """Test various filter combinations return consistent results."""
-# Get all assets
-all_assets = client.get("/api/assets").json()
+        # Get all assets
+        all_assets = client.get("/api/assets").json()
 
-# Get unique asset classes and sectors
-asset_classes = set(a["asset_class"] for a in all_assets)
-sectors = set(a["sector"] for a in all_assets)
+        # Get unique asset classes and sectors
+        asset_classes = set(a["asset_class"] for a in all_assets)
+        sectors = set(a["sector"] for a in all_assets)
 
-# Test each asset class filter
-for ac in asset_classes:
-    filtered = client.get(f"/api/assets?asset_class={ac}").json()
-    assert all(a["asset_class"] == ac for a in filtered)
-    assert len(filtered) <= len(all_assets)
+        # Test each asset class filter
+        for ac in asset_classes:
+            filtered = client.get(f"/api/assets?asset_class={ac}").json()
+            assert all(a["asset_class"] == ac for a in filtered)
+            assert len(filtered) <= len(all_assets)
 
-# Test each sector filter
-for sector in sectors:
-    filtered = client.get(f"/api/assets?sector={sector}").json()
-    assert all(a["sector"] == sector for a in filtered)
-    assert len(filtered) <= len(all_assets)
+        # Test each sector filter
+        for sector in sectors:
+            filtered = client.get(f"/api/assets?sector={sector}").json()
+            assert all(a["sector"] == sector for a in filtered)
+            assert len(filtered) <= len(all_assets)
+
 
 class TestDataIntegrity:
     """Test data integrity across endpoints."""
@@ -212,7 +213,9 @@ class TestAuthenticationFlow:
         assert token_response.status_code == 200
         token = token_response.json()["access_token"]
 
-        me_response = client.get("/api/users/me", headers={"Authorization": f"Bearer {token}"})
+        me_response = client.get(
+            "/api/users/me", headers={"Authorization": f"Bearer {token}"}
+        )
         assert me_response.status_code == 200
         payload = me_response.json()
         assert payload["username"] == credentials["username"]
@@ -220,7 +223,9 @@ class TestAuthenticationFlow:
         assert payload["full_name"] == os.environ["ADMIN_FULL_NAME"]
         assert payload["disabled"] is False
 
-        invalid_response = client.get("/api/users/me", headers={"Authorization": "Bearer invalid-token"})
+        invalid_response = client.get(
+            "/api/users/me", headers={"Authorization": "Bearer invalid-token"}
+        )
         assert invalid_response.status_code == 401
 
         # Test authentication with incorrect password

@@ -222,7 +222,7 @@ class TestAssetsEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
-        assert data[0]["asset_class"] == "Equity"
+        assert data[0]["asset_class"] == "EQUITY"
         assert data[0]["symbol"] == "AAPL"
 
     @patch("api.main.graph")
@@ -257,7 +257,7 @@ class TestAssetsEndpoint:
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
-        assert data[0]["asset_class"] == "Equity"
+        assert data[0]["asset_class"] == "EQUITY"
         assert data[0]["sector"] == "Technology"
 
     @patch("api.main.graph")
@@ -281,17 +281,17 @@ class TestAssetsEndpoint:
         assert equity["additional_fields"]["pe_ratio"] == 25.5
 
     @patch("api.main.graph")
-def test_assets_error_handling(self, mock_graph_instance, client):
-    """Test error handling in assets endpoint."""
-    # Make graph.assets raise an exception when accessed
-    type(mock_graph_instance).assets = PropertyMock(
-        side_effect=Exception("Database error")
-    )
+    def test_assets_error_handling(self, mock_graph_instance, client):
+        """Test error handling in assets endpoint."""
+        # Make graph.assets raise an exception when accessed
+        type(mock_graph_instance).assets = PropertyMock(
+            side_effect=Exception("Database error")
+        )
 
-    response = client.get("/api/assets")
+        response = client.get("/api/assets")
 
-    assert response.status_code == 500
-    assert "detail" in response.json()
+        assert response.status_code == 500
+        assert "detail" in response.json()
 
 
 class TestAssetDetailEndpoint:
@@ -314,7 +314,7 @@ class TestAssetDetailEndpoint:
         assert data["id"] == "TEST_AAPL"
         assert data["symbol"] == "AAPL"
         assert data["name"] == "Apple Inc."
-        assert data["asset_class"] == "Equity"
+        assert data["asset_class"] == "EQUITY"
         assert data["price"] == 150.00
 
     @patch("api.main.graph")
@@ -346,7 +346,7 @@ class TestAssetDetailEndpoint:
         response = client.get("/api/assets/TEST_CORP")
         assert response.status_code == 200
         data = response.json()
-        assert data["asset_class"] == "Fixed Income"
+        assert data["asset_class"] == "FIXED_INCOME"
         assert "issuer_id" in data["additional_fields"]
         assert data["additional_fields"]["issuer_id"] == "TEST_AAPL"
 
@@ -465,10 +465,10 @@ class TestMetricsEndpoint:
         response = client.get("/api/metrics")
         data = response.json()
 
-        assert "Equity" in data["asset_classes"]
-        assert "Fixed Income" in data["asset_classes"]
-        assert data["asset_classes"]["Equity"] == 1
-        assert data["asset_classes"]["Fixed Income"] == 1
+        assert "EQUITY" in data["asset_classes"]
+        assert "FIXED_INCOME" in data["asset_classes"]
+        assert data["asset_classes"]["EQUITY"] == 1
+        assert data["asset_classes"]["FIXED_INCOME"] == 1
 
 
 class TestVisualizationEndpoint:
@@ -564,10 +564,10 @@ class TestMetadataEndpoints:
 
         assert "asset_classes" in data
         assert isinstance(data["asset_classes"], list)
-        assert "Equity" in data["asset_classes"]
-        assert "Fixed Income" in data["asset_classes"]
-        assert "Commodity" in data["asset_classes"]
-        assert "Currency" in data["asset_classes"]
+        assert "EQUITY" in data["asset_classes"]
+        assert "FIXED_INCOME" in data["asset_classes"]
+        assert "COMMODITY" in data["asset_classes"]
+        assert "CURRENCY" in data["asset_classes"]
 
     @staticmethod
     @patch("api.main.graph")
@@ -814,9 +814,8 @@ class TestRealDataFetcherFallback:
 
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    @staticmethod
     def test_real_data_fetcher_logs_fallback_on_exception(
-        mock_fetch_equity, mock_logger
+        self, mock_fetch_equity, mock_logger
     ):
         """Test that RealDataFetcher logs when falling back to sample data."""
         from src.data.real_data_fetcher import RealDataFetcher
@@ -836,8 +835,9 @@ class TestRealDataFetcherFallback:
 
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.yf.Ticker")
-    @staticmethod
-    def test_individual_asset_class_fetch_failures_logged(mock_ticker, mock_logger):
+    def test_individual_asset_class_fetch_failures_logged(
+        self, mock_ticker, mock_logger
+    ):
         """Test that individual asset class fetch failures are logged properly."""
         from src.data.real_data_fetcher import RealDataFetcher
 

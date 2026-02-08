@@ -27,7 +27,7 @@ def _cov_plugin_available() -> bool:
 
 
 def pytest_load_initial_conftests(
-    _early_config, _parser, args: List[str]
+    early_config, parser, args: List[str]
 ) -> None:  # pragma: no cover - exercised via pytest
     """
     Remove pytest - cov related command - line options from the provided,
