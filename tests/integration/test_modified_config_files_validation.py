@@ -184,8 +184,7 @@ class TestWorkflowSimplifications:
             (
                 s
                 for s in steps
-                if isinstance(s, dict)
-                and ("first-interaction" in str(s.get("uses", "")) or "with" in s)
+                if isinstance(s, dict) and ("first-interaction" in str(s.get("uses", "")) or "with" in s)
             ),
             None,
         )
@@ -232,9 +231,7 @@ class TestDeletedFilesImpact:
         vscode_file = repo_root / ".vscode" / "settings.json"
         assert not vscode_file.exists(), ".vscode/settings.json should be deleted"
 
-    def test_no_references_to_deleted_files_in_workflows(
-        self, workflows_dir: Path
-    ) -> None:
+    def test_no_references_to_deleted_files_in_workflows(self, workflows_dir: Path) -> None:
         """Workflows should not reference deleted files."""
         if not workflows_dir.exists():
             pytest.skip("Workflows directory not found")
@@ -245,15 +242,11 @@ class TestDeletedFilesImpact:
             ".github/labeler.yml",
         ]
 
-        workflow_files = list(workflows_dir.glob("*.yml")) + list(
-            workflows_dir.glob("*.yaml")
-        )
+        workflow_files = list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml"))
         for workflow_file in workflow_files:
             content = workflow_file.read_text(encoding="utf-8")
             for deleted_ref in deleted_refs:
-                assert deleted_ref not in content, (
-                    f"{workflow_file.name} references deleted file: {deleted_ref}"
-                )
+                assert deleted_ref not in content, f"{workflow_file.name} references deleted file: {deleted_ref}"
 
 
 # -----------------------------
