@@ -58,26 +58,26 @@ class TestRequirementsDevChanges:
             None,
         )
 
-    # Find all non-comment lines containing 'pyyaml'
-    pyyaml_lines = [
-        line
-        for line in lines
-        if "pyyaml" in line.lower() and not line.strip().startswith("#")
-    ]
+        # Find all non-comment lines containing 'pyyaml'
+        pyyaml_lines = [
+            line
+            for line in lines
+            if "pyyaml" in line.lower() and not line.strip().startswith("#")
+        ]
 
-    # Assert exactly one active PyYAML requirement exists
-    assert len(pyyaml_lines) == 1, (
-        f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
-    )
+        # Assert exactly one active PyYAML requirement exists
+        assert len(pyyaml_lines) == 1, (
+            f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
+        )
 
-    pyyaml_line = pyyaml_lines[0]
+        pyyaml_line = pyyaml_lines[0]
 
-    # Strip inline comments and whitespace before checking version specifier
-    pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
+        # Strip inline comments and whitespace before checking version specifier
+        pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
 
-    assert any(
-        op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"]
-    ), "PyYAML requirement must include a version specifier"
+        assert any(
+            op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"]
+        ), "PyYAML requirement must include a version specifier"
 
     def test_no_duplicate_packages(self, requirements_dev_content):
         """
