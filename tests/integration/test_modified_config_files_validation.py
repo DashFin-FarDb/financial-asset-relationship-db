@@ -16,7 +16,6 @@ from typing import Any, Dict
 import pytest
 import yaml
 
-
 # -----------------------------
 # Shared fixtures / helpers
 # -----------------------------
@@ -142,7 +141,9 @@ class TestWorkflowSimplifications:
         assert "pip install" in content
         assert "requirements.txt" in content
 
-    def test_apisec_workflow_no_credential_conditions(self, workflows_dir: Path) -> None:
+    def test_apisec_workflow_no_credential_conditions(
+        self, workflows_dir: Path
+    ) -> None:
         """
         Ensure APIsec workflow does not conditionally skip based on credentials presence.
         """
@@ -346,7 +347,9 @@ class TestCodacyInstructionsChanges:
         """Return .github/instructions/codacy.instructions.md path."""
         return repo_root / ".github" / "instructions" / "codacy.instructions.md"
 
-    def test_codacy_instructions_simplified(self, codacy_instructions_path: Path) -> None:
+    def test_codacy_instructions_simplified(
+        self, codacy_instructions_path: Path
+    ) -> None:
         """
         Fail if repo-specific or prescriptive phrases remain.
 
@@ -359,7 +362,9 @@ class TestCodacyInstructionsChanges:
         assert "git remote -v" not in content
         assert "unless really necessary" not in content
 
-    def test_codacy_critical_rules_present(self, codacy_instructions_path: Path) -> None:
+    def test_codacy_critical_rules_present(
+        self, codacy_instructions_path: Path
+    ) -> None:
         """Verify critical rules are preserved."""
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
