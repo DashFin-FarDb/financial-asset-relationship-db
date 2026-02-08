@@ -9,7 +9,6 @@ This module provides extensive test coverage for:
 - Edge cases and error conditions
 """
 
-import os
 from datetime import timedelta
 from unittest.mock import Mock, patch
 
@@ -35,7 +34,7 @@ from api.auth import (
     verify_password,
 )
 
-jose = pytest.importorskip("jose")
+je = pytest.importorskip("jose")
 
 # Import the module under test
 
@@ -152,8 +151,8 @@ class TestPasswordHashing:
 
 
 @pytest.mark.unit
-class TestUserRepository:
-    """Test suite for UserRepository class."""
+class TestUserRepitory:
+    """Test suite for UserRepitory class."""
 
     @patch("api.auth.fetch_one")
     def test_get_user_existing_user(self, mock_fetch_one):
@@ -166,7 +165,7 @@ class TestUserRepository:
             "disabled": 0,
         }
 
-        repo = UserRepository()
+        repo = UserRepitory()
         user = repo.get_user("testuser")
 
         assert user is not None
@@ -182,7 +181,7 @@ class TestUserRepository:
         """Test retrieving a non-existent user returns None."""
         mock_fetch_one.return_value = None
 
-        repo = UserRepository()
+        repo = UserRepitory()
         user = repo.get_user("nonexistent")
 
         assert user is None
@@ -198,7 +197,7 @@ class TestUserRepository:
             "disabled": 1,
         }
 
-        repo = UserRepository()
+        repo = UserRepitory()
         user = repo.get_user("disabled_user")
 
         assert user is not None
@@ -209,7 +208,7 @@ class TestUserRepository:
         """Test has_users returns True when users exist."""
         mock_fetch_value.return_value = 1
 
-        repo = UserRepository()
+        repo = UserRepitory()
         assert repo.has_users() is True
 
     @patch("api.auth.fetch_value")
@@ -217,13 +216,13 @@ class TestUserRepository:
         """Test has_users returns False when no users exist."""
         mock_fetch_value.return_value = None
 
-        repo = UserRepository()
+        repo = UserRepitory()
         assert repo.has_users() is False
 
     @patch("api.auth.execute")
     def test_create_or_update_user_new_user(self, mock_execute):
         """Test creating a new user."""
-        repo = UserRepository()
+        repo = UserRepitory()
         repo.create_or_update_user(
             username="newuser",
             hashed_password="hashed_pw",
@@ -242,7 +241,7 @@ class TestUserRepository:
     @patch("api.auth.execute")
     def test_create_or_update_user_with_disabled_true(self, mock_execute):
         """Test creating a disabled user."""
-        repo = UserRepository()
+        repo = UserRepitory()
         repo.create_or_update_user(username="disableduser", hashed_password="hashed_pw", disabled=True)
 
         mock_execute.assert_called_once()
@@ -253,7 +252,7 @@ class TestUserRepository:
     @patch("api.auth.execute")
     def test_create_or_update_user_with_optional_fields_none(self, mock_execute):
         """Test creating a user with optional fields as None."""
-        repo = UserRepository()
+        repo = UserRepitory()
         repo.create_or_update_user(username="minimaluser", hashed_password="hashed_pw")
 
         mock_execute.assert_called_once()
@@ -268,7 +267,7 @@ class TestSeedCredentialsFromEnv:
     """Test suite for environment-based credential seeding."""
 
     @patch("api.auth.get_password_hash")
-    @patch("api.auth.os.getenv")
+    @patch("api.auth..getenv")
     def test_seed_credentials_with_complete_env(self, mock_getenv, mock_hash):
         """Test seeding with complete environment variables."""
         mock_getenv.side_effect = lambda key, default=None: {
@@ -280,7 +279,7 @@ class TestSeedCredentialsFromEnv:
         }.get(key, default)
         mock_hash.return_value = "hashed_admin_pass"
 
-        mock_repo = Mock(spec=UserRepository)
+        mock_repo = Mock(spec=UserRepitory)
         _seed_credentials_from_env(mock_repo)
 
         mock_repo.create_or_update_user.assert_called_once_with(
