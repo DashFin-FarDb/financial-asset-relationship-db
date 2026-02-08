@@ -237,7 +237,7 @@ class TestRemovedFilesIntegration:
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
 
-    @staticmethod
+    @ staticmethod
     def test_all_workflows_avoid_pr_injection():
         """
         Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
@@ -261,7 +261,7 @@ class TestWorkflowSecurityConsistency:
                 if matches:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
 
-    @staticmethod
+    @ staticmethod
     def test_workflows_use_appropriate_checkout_refs():
         """
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
