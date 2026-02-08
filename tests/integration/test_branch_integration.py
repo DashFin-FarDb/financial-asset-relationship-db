@@ -195,7 +195,8 @@ class TestRemovedFilesIntegration:
                 )
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-        """Verify the label workflow does not require an external labeler configuration file.
+        """
+        Verify the label workflow does not require an external labeler configuration file.
 
         Checks that .github / workflows / label.yml(if present) defines the 'label' job's first
         step using 'actions/labeler', and that the step either omits 'config-path' or sets it to
@@ -236,7 +237,7 @@ class TestRemovedFilesIntegration:
 class TestWorkflowSecurityConsistency:
     """Test security practices are consistent across workflows."""
 
-    @ staticmethod
+    @staticmethod
     def test_all_workflows_avoid_pr_injection():
         """
         Scan all workflow YAMLs for patterns that may allow PR title or body content to be injected into shell or command contexts.
@@ -255,26 +256,12 @@ class TestWorkflowSecurityConsistency:
                 matches=re.findall(pattern, content)
                 if matches:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
-        return
-        workflow_files=list(Path(".github/workflows").glob("*.yml"))
-
-        for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
-                content=f.read()
-
-            # Look for potentially dangerous patterns
-            dangerous=[
-                r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
-            ]
-
-            for pattern in dangerous:
+        for pattern in dangerous:
                 matches=re.findall(pattern, content)
                 if matches:
-                    print(f"Potential injection risk in {wf_file}: {matches}")
+                    pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
 
-    @ staticmethod
+    @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
         """
         Verify workflows triggered by pull_request_target specify a safe checkout reference.
