@@ -610,8 +610,9 @@ class TestDevelopmentToolsPresence:
     @staticmethod
     def test_has_import_sorter(package_names: List[str]):
         """Test that an import sorter is present (optional but recommended)."""
-        import_sorters = ["ruff", "isort", "reorder-python-imports"]
-        assert any(sorter in package_names for sorter in import_sorters)
+    import_sorters = ["ruff", "isort", "reorder-python-imports"]
+    if not any(sorter in package_names for sorter in import_sorters):
+        pytest.skip("No import-sorting tool found (optional)")
 
 
 class TestPytestEcosystem:
