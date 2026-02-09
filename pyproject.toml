@@ -18,10 +18,14 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-yfinance==0.2.18  # Example pinned version known to work with Python 3.12
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "gradio>=4.1.2",
     "plotly>=5.0.0",
+    "yfinance==0.2.18",
     "numpy>=1.21.0",
     "dataclasses-json>=0.5.7",
     "yfinance>=0.2.0",
