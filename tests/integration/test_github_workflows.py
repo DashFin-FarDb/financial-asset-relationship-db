@@ -2852,11 +2852,29 @@ class TestWorkflowEnvironmentVariables:
         """Test that env vars aren't unnecessarily duplicated."""
         data = load_yaml_safe(workflow_file)
 
+        # Get workflow-level env vars
+        workflow_env = data.get("env", {})
+        workflow_env_names = (
+            set(workflow_env.keys()) if isinstance(workflow_env, dict) else set()
+        )
+
         jobs = data.get("jobs", {})
 
-        for _, job in jobs.items():
-            # Check for duplication (informational)
-            pass
+        for job_name, job in jobs.items():
+            # Check for duplication between workflow-level and job-level env vars
+            if "env" in job:
+                job_env = job["env"]
+                if isinstance(job_env, dict):
+                    job_env_names = set(job_env.keys())
+                    # Find duplicated env var names
+                    duplicates = workflow_env_names & job_env_names
+                    # Check if values are the same (which would be redundant)
+                    for env_var in duplicates:
+                        if workflow_env.get(env_var) == job_env.get(env_var):
+                            assert False, (
+                                f"Env var '{env_var}' in job '{job_name}' duplicates workflow-level "
+                                f"env with same value in {workflow_file.name}. Remove the duplicate."
+                            )
 
 
 class TestWorkflowScheduledExecutionBestPractices:
@@ -2898,8 +2916,22 @@ class TestWorkflowScheduledExecutionBestPractices:
         if "schedule" in triggers:
             schedules = triggers["schedule"]
             for schedule in schedules:
-                _ = schedule.get("cron", "")
-                pass
+                cron = schedule.get("cron", "")
+                # Reject overly frequent schedules
+                # Cron format: minute hour day month weekday
+                parts = cron.split()
+                if len(parts) == 5:
+                    minute, hour, day, month, weekday = parts
+                    # Reject if runs every minute (* * * * *)
+                    assert not (
+                        minute == "*"
+                        and hour == "*"
+                        and day == "*"
+                        and month == "*"
+                        and weekday == "*"
+                    ), (
+                        f"Schedule '{cron}' in {workflow_file.name} runs every minute, which is too frequent"
+                    )
 
 
 # Additional test to verify all new test classes are properly structured

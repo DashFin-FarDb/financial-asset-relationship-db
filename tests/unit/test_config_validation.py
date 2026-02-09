@@ -311,18 +311,13 @@ class TestTailwindConfig:
         assert "app/" in tailwind_config_content or "./app/" in tailwind_config_content
 
 
-class TestEnvExample:
-    """Test cases for .env.example file."""
-
-    @staticmethod
-    @pytest.fixture
-    @staticmethod
-    def env_example_content():
-        """Load .env.example content."""
-        config_path = Path(".env.example")
-        assert config_path.exists(), ".env.example not found"
-        with open(config_path) as f:
-            return f.read()
+@pytest.fixture
+def env_example_content():
+    """Load .env.example content."""
+    config_path = Path(".env.example")
+    assert config_path.exists(), ".env.example not found"
+    with open(config_path) as f:
+        return f.read()
 
 
 def test_env_example_exists():
