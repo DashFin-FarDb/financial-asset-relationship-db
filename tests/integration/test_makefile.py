@@ -175,6 +175,7 @@ class TestMakeLintTargets:
         result = subprocess.run(["make", "-n", "lint"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
+        linters = ["ruff", "flake8", "pylint", "mypy", "bandit"]
         found_linters = [linter for linter in linters if linter in output]
         assert len(found_linters) > 0, "lint target doesn't use any known linters"
 
