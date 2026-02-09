@@ -214,7 +214,7 @@ class TestAddEquityNode:
 
     def test_add_equity_node_validation_invalid_price(self):
         """Test equity node validation with invalid price."""
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             Equity(
                 id="AAPL",
                 symbol="AAPL",
@@ -226,7 +226,7 @@ class TestAddEquityNode:
 
     def test_add_equity_node_validation_missing_fields(self):
         """Test equity node validation with missing required fields."""
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             # Missing required fields
             Equity(
                 id="AAPL",
