@@ -270,9 +270,8 @@ class TestAssetRelationshipGraphEdgeCases:
 
         positions, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
 
-        # Should return placeholder for empty graph
         assert positions.shape == (1, 3)
-        assert asset_ids == ["A"]
+        assert asset_ids == ["lonely_asset"]
 
     @staticmethod
     def test_self_referential_relationship():
