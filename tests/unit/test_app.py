@@ -285,7 +285,7 @@ class TestFormulaicAnalysis:
 
         app = FinancialAssetApp()
 
-        with patch("app.FormulaicdAnalyzer") as mock_analyzer_class:
+        with patch("app.FormulaicAnalyzer") as mock_analyzer_class:
             mock_analyzer_class.side_effect = Exception("Analysis error")
 
             results = app.generate_formulaic_analysis(mock_graph)
