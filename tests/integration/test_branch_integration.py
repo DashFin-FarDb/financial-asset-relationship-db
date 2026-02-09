@@ -247,13 +247,15 @@ class TestWorkflowSecurityConsistency:
 
         Searches files under .github / workflows for uses of pull request or issue title / body in contexts that could enable injection(for example, piping into shell commands or usage within command substitution) and fails the test on any definite matches.
         """
+        last_wf_file = None
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
         dangerous = [
             r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
             r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",
+            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
         ]
         for wf_file in workflow_files:
+            last_wf_file = wf_file
             content = wf_file.read_text()
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
@@ -262,7 +264,7 @@ class TestWorkflowSecurityConsistency:
         for pattern in dangerous:
             matches = re.findall(pattern, content)
             if matches:
-                pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
+                pytest.fail(f"Potential injection risk in {last_wf_file}: {matches}")
 
     @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
