@@ -327,13 +327,9 @@ class TestMainFunction:
         mock_mcp.run = Mock()
         mock_build.return_value = mock_mcp
 
-        # This would normally block, so we mock run
-        try:
-            result = main([])
-            # If we get here, run was called
-            mock_mcp.run.assert_called_once()
-        except Exception:
-            # In case MCP is not installed
+    result = main([])
+    assert result == 0
+    mock_mcp.run.assert_called_once()
             pass
 
 
