@@ -611,8 +611,10 @@ class TestDevelopmentToolsPresence:
         has_sorter = any(sorter in package_names for sorter in import_sorters)
         if not has_sorter:
             import warnings
+
             warnings.warn("No import sorter found in dev requirements. Consider adding one.", stacklevel=2)
         # Test passes regardless, but logs a warning.
+
     def test_has_import_sorter(package_names: List[str]):
         """Test that an import sorter is present."""
         import_sorters = ["ruff", "reorder-python-imports"]
