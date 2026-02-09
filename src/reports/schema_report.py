@@ -69,7 +69,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
 
 ### Regulatory Rules
 """
-    report += "1. **Event Propagation**: Earnings events impact related bond and\n" "currency assets\n"
+    report += "1. **Event Propagation**: Earnings events impact related bond and\ncurrency assets\n"
     report += (
         "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
         "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"

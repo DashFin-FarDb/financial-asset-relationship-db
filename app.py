@@ -425,7 +425,7 @@ class FinancialAssetApp:
         if correlations:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
-                summary_lines.append(f"  • {corr['pair']}: {corr['correlation']:.3f} " f"({corr['strength']})")
+                summary_lines.append(f"  • {corr['pair']}: {corr['correlation']:.3f} ({corr['strength']})")
 
         return "\n".join(summary_lines)
 
