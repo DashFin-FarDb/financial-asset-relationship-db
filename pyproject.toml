@@ -111,7 +111,7 @@ known_first_party = ["src"]
 line-length = 120
 target-version = "py312"
 fix = true
-unsafe-fixes = true
+unsafe-fixes = false
 
 [tool.ruff.lint]
 extend-select = ["I", "UP", "B", "C4", "SIM"]
