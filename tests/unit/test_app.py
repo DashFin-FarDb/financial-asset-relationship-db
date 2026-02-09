@@ -261,7 +261,7 @@ class TestFormulaicAnalysis:
 
         app = FinancialAssetApp()
 
-        with patch("app.FormulaicdAnalyzer") as mock_analyzer_class, patch("app.FormulaicVisualizer") as mock_viz_class:
+        with patch("app.FormulaicAnalyzer") as mock_analyzer_class, patch("app.FormulaicVisualizer") as mock_viz_class:
             mock_analyzer = Mock()
             mock_analyzer.analyze_graph.return_value = {"formulas": [], "empirical_relationships": {}, "summary": {}}
             mock_analyzer_class.return_value = mock_analyzer
