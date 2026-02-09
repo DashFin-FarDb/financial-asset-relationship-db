@@ -1,8 +1,15 @@
 import logging
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (AssetClass, Bond, Commodity, Currency, Equity, RegulatoryActivity,
-                                         RegulatoryEvent)
+from src.models.financial_models import (
+    AssetClass,
+    Bond,
+    Commodity,
+    Currency,
+    Equity,
+    RegulatoryActivity,
+    RegulatoryEvent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -342,7 +349,7 @@ def create_sample_database() -> AssetRelationshipGraph:
             relationship_count,
         )
         logger.info(
-            "Asset classes covered: Equity (%s), Fixed Income (%s), " "Commodity (%s), Currency (%s)",
+            "Asset classes covered: Equity (%s), Fixed Income (%s), Commodity (%s), Currency (%s)",
             len([a for a in all_assets if a.asset_class == AssetClass.EQUITY]),
             len([a for a in all_assets if a.asset_class == AssetClass.FIXED_INCOME]),
             len([a for a in all_assets if a.asset_class == AssetClass.COMMODITY]),

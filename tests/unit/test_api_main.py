@@ -12,8 +12,14 @@ from fastapi import status
 from fastapi.testclient import TestClient
 
 import api.main as api_main
-from api.main import (AssetResponse, MetricsResponse, RelationshipResponse, VisualizationDataResponse, app,
-                      validate_origin)
+from api.main import (
+    AssetResponse,
+    MetricsResponse,
+    RelationshipResponse,
+    VisualizationDataResponse,
+    app,
+    validate_origin,
+)
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
