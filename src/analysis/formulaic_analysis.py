@@ -37,7 +37,7 @@ class Formula:
     @property
     def expression(self) -> str:
         return self.formula
-        
+
     @expression.setter
     def expression(self, value: str) -> None:
         self.formula = value
