@@ -25,12 +25,6 @@ class TestWorkflowConsistency:
         Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
 
         Only files from the internal list are considered; files that are not present are omitted from the result.
-
-    @staticmethod
-    def all_workflows():
-        """
-        Returns:
-            dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
         """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
@@ -85,8 +79,10 @@ class TestWorkflowConsistency:
                 # Allow v4 and v5 for actions/checkout (common upgrade path)
                 if "actions/checkout" in action:
                     continue
-                # Warn if same action uses different versions
-                print(f"Warning: {action} uses multiple versions: {list(versions.keys())}")
+                # Fail if the same action uses different versions across workflows
+                pytest.fail(
+                    f"{action} uses multiple versions across workflows: {list(versions.keys())}"
+                )
 
     def test_all_workflows_use_github_token_consistently(self, all_workflows):
         """
@@ -103,7 +99,8 @@ class TestWorkflowConsistency:
             if "GITHUB_TOKEN" in workflow_str or "github.token" in workflow_str:
                 # Should use secrets.GITHUB_TOKEN format
                 assert (
-                    "secrets.GITHUB_TOKEN" in workflow_str or "${{ github.token }}" in workflow_str
+                    "secrets.GITHUB_TOKEN" in workflow_str
+                    or "${{ github.token }}" in workflow_str
                 ), f"{wf_file}: GITHUB_TOKEN should use proper syntax"
 
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
@@ -125,7 +122,9 @@ class TestWorkflowConsistency:
                 for job_name, job in workflow.get("jobs", {}).items():
                     steps = job.get("steps", [])
                     # Simplified workflows should have minimal steps
-                    assert len(steps) <= 3, f"{wf_file}:{job_name} should be simplified (has {len(steps)} steps)"
+                    assert len(steps) <= 3, (
+                        f"{wf_file}:{job_name} should be simplified (has {len(steps)} steps)"
+                    )
 
 
 class TestDependencyWorkflowIntegration:
@@ -178,7 +177,6 @@ class TestRemovedFilesIntegration:
         removed_files = [
             "context_chunker.py",
             ".github/scripts/README.md",
-            ".github/labeler.yml",
         ]
 
         workflow_files = [
@@ -195,10 +193,13 @@ class TestRemovedFilesIntegration:
                 content = f.read()
 
             for removed in removed_files:
-                assert removed not in content, f"{wf_file} references removed file {removed}"
+                assert removed not in content, (
+                    f"{wf_file} references removed file {removed}"
+                )
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-        """Verify the label workflow does not require an external labeler configuration file.
+        """
+        Verify the label workflow does not require an external labeler configuration file.
 
         Checks that .github / workflows / label.yml(if present) defines the 'label' job's first
         step using 'actions/labeler', and that the step either omits 'config-path' or sets it to
@@ -218,7 +219,10 @@ class TestRemovedFilesIntegration:
 
         # Should not require config-path or similar
         with_config = labeler_step.get("with", {})
-        assert "config-path" not in with_config or with_config.get("config-path") == ".github/labeler.yml"
+        assert (
+            "config-path" not in with_config
+            or with_config.get("config-path") == ".github/labeler.yml"
+        )
 
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
@@ -243,36 +247,24 @@ class TestWorkflowSecurityConsistency:
 
         Searches files under .github / workflows for uses of pull request or issue title / body in contexts that could enable injection(for example, piping into shell commands or usage within command substitution) and fails the test on any definite matches.
         """
+        last_wf_file = None
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
         dangerous = [
             r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
             r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",
+            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
         ]
         for wf_file in workflow_files:
+            last_wf_file = wf_file
             content = wf_file.read_text()
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
-        return
-        workflow_files = list(Path(".github/workflows").glob("*.yml"))
-
-        for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
-                content = f.read()
-
-            # Look for potentially dangerous patterns
-            dangerous = [
-                r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
-            ]
-
-            for pattern in dangerous:
-                matches = re.findall(pattern, content)
-                if matches:
-                    print(f"Potential injection risk in {wf_file}: {matches}")
+        for pattern in dangerous:
+            (r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",)
+            if matches:
+                pytest.fail(f"Potential injection risk in {last_wf_file}: {matches}")
 
     @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
@@ -304,7 +296,10 @@ class TestWorkflowSecurityConsistency:
                             # Should have ref or token specified
                             assert (
                                 "ref" in with_config or "fetch-depth" in with_config
-                            ), f"{wf_file}: Checkout in pull_request_target should specify safe ref"
+                            ), (
+                                f"{wf_file}: Checkout in pull_request_target should specify safe ref"
+                            )
+
 
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
@@ -330,9 +325,9 @@ class TestBranchCoherence:
                 with open(wf_file, "r") as f:
                     line_count = len(f.readlines())
 
-                assert (
-                    line_count <= max_lines
-                ), f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
+                assert line_count <= max_lines, (
+                    f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
+                )
 
     def test_removed_complexity_not_referenced(self):
         """
@@ -364,16 +359,18 @@ class TestBranchCoherence:
                     lines = content.split("\n")
                     for line in lines:
                         if feature in line.lower() and not line.strip().startswith("#"):
-                            pytest.fail(f"{wf_file} still references removed feature: {feature}")
+                            pytest.fail(
+                                f"{wf_file} still references removed feature: {feature}"
+                            )
 
     def test_branch_reduces_dependencies_on_external_config(self):
         """
         Verify the branch no longer depends on removed external configuration and limits workflow references to external files.
 
-        Asserts that .github / labeler.yml and .github / scripts / context_chunker.py do not exist, and that each workflow file under .github / workflows contains at most one run step referencing paths that include ".github/" or "scripts/.".
+        Asserts that .github / scripts / context_chunker.py does not exist, the labeler config is present, and that each workflow file under .github / workflows contains at most one run step referencing paths that include ".github/" or "scripts/.".
         """
-        # labeler.yml was removed - workflows should work without it
-        assert not Path(".github/labeler.yml").exists()
+        # labeler.yml should exist for the labeler workflow configuration
+        assert Path(".github/labeler.yml").exists()
 
         # context_chunker.py was removed - workflows should work without it
         assert not Path(".github/scripts/context_chunker.py").exists()
@@ -394,7 +391,10 @@ class TestBranchCoherence:
                         external_refs += 1
 
             # Should have minimal external references
-            assert external_refs <= 1, f"{wf_file} has {external_refs} external file references (should be <=1)"
+            assert external_refs <= 1, (
+                f"{wf_file} has {external_refs} external file references (should be <=1)"
+            )
+
 
 class TestBranchQuality:
     """Test overall quality of branch changes."""
@@ -446,7 +446,9 @@ class TestBranchQuality:
                     content = f.read()
 
                 for marker in conflict_markers:
-                    assert marker not in content, f"{file_path} contains merge conflict marker: {marker}"
+                    assert marker not in content, (
+                        f"{file_path} contains merge conflict marker: {marker}"
+                    )
 
     def test_consistent_indentation_across_workflows(self):
         """
@@ -464,7 +466,9 @@ class TestBranchQuality:
             for i, line in enumerate(lines, 1):
                 if line.strip() and line[0] == " ":
                     spaces = len(line) - len(line.lstrip(" "))
-                    assert spaces % 2 == 0, f"{wf_file}:{i} inconsistent indentation (not multiple of 2)"
+                    assert spaces % 2 == 0, (
+                        f"{wf_file}:{i} inconsistent indentation (not multiple of 2)"
+                    )
 
 
 if __name__ == "__main__":

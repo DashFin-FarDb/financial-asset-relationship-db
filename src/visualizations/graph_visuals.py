@@ -611,36 +611,35 @@ def _validate_visualization_data(
     _validate_asset_ids_uniqueness(asset_ids)
 
 
- def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
-     """Create enhanced 3D visualization of asset relationship graph
-     with improved relationship visibility"""
-     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-         graph, "get_3d_visualization_data_enhanced"
-     ):
-         raise ValueError("Invalid graph data provided")
+def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
+    """Create enhanced 3D visualization of asset relationship graph with improved visibility."""
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
+        graph, "get_3d_visualization_data_enhanced"
+    ):
+        raise ValueError("Invalid graph data provided")
 
-     positions, asset_ids, colors, hover_texts = (
-         graph.get_3d_visualization_data_enhanced()
-     )
+    positions, asset_ids, colors, hover_texts = (
+        graph.get_3d_visualization_data_enhanced()
+    )
 
-     # Validate visualization data to prevent runtime errors
-     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
+    # Validate visualization data to prevent runtime errors
+    _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-     fig = go.Figure()
+    fig = go.Figure()
 
-     # Create separate traces for different relationship types and directions
-     try:
-         relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
-     except Exception as exc:  # pylint: disable=broad-except
-         logger.exception("Failed to create relationship traces: %s", exc)
-         relationship_traces = []
+    # Create separate traces for different relationship types and directions
+    try:
+        relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.exception("Failed to create relationship traces: %s", exc)
+        relationship_traces = []
 
-     # Batch add traces
-     if relationship_traces:
-         try:
-             fig.add_traces(relationship_traces)
-         except Exception as exc:  # pylint: disable=broad-except
-             logger.exception("Failed to add relationship traces to figure: %s", exc)
+    # Batch add traces
+    if relationship_traces:
+        try:
+            fig.add_traces(relationship_traces)
+        except Exception as exc:  # pylint: disable=broad-except
+            logger.exception("Failed to add relationship traces to figure: %s", exc)
 
     # Add directional arrows for unidirectional relationships
     try:

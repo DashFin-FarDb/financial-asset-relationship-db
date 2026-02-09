@@ -196,3 +196,9 @@ class AssetRelationshipGraph:
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]
         return positions, asset_ids, colors, hover
+
+    def get_3d_visualization_data(
+        self,
+    ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
+        """Backward-compatible alias for enhanced 3D visualization data."""
+        return self.get_3d_visualization_data_enhanced()

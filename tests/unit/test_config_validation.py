@@ -2,7 +2,6 @@
 
 This module tests JSON and other configuration files to ensure:
 - Valid JSON/YAML syntax
-"""
 - Required keys are present
 - Values meet expected types and constraints
 - Configuration is internally consistent
@@ -216,9 +215,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(
-            semver_pattern, version
-        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        assert re.match(semver_pattern, version), (
+            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        )
 
 
 class TestTSConfig:
@@ -325,28 +324,27 @@ class TestEnvExample:
         with open(config_path) as f:
             return f.read()
 
-@staticmethod
 
 def test_env_example_exists():
     """Test that .env.example exists."""
     config_path = Path(".env.example")
     assert config_path.exists()
 
-@staticmethod
 
 def test_env_example_has_api_url(env_example_content):
     """Test that NEXT_PUBLIC_API_URL is documented."""
     assert "NEXT_PUBLIC_API_URL" in env_example_content
 
-@staticmethod
 
 def test_env_example_has_cors_config(env_example_content):
     """Test that CORS configuration is documented."""
     assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
-def test_env_example_has_comments(self, env_example_content):
+
+def test_env_example_has_comments(env_example_content):
     """Test that .env.example has helpful comments."""
     assert "#" in env_example_content
+
 
 def test_env_example_no_real_secrets(env_example_content):
     """Test that .env.example does not contain real secrets."""
@@ -358,7 +356,9 @@ def test_env_example_no_real_secrets(env_example_content):
     ]
 
     for pattern in suspicious_patterns:
-        assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
+        assert pattern not in env_example_content.lower(), (
+            f"Potential real secret found: {pattern}"
+        )
 
 
 class TestGitignore:
@@ -423,7 +423,9 @@ class TestRequirementsTxt:
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            return [
+                line.strip() for line in f if line.strip() and not line.startswith("#")
+            ]
 
     @staticmethod
     def test_requirements_exists():
@@ -454,9 +456,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(
-                    op in req for op in [">=", "==", "~=", "<="]
-                ), f"Package should have version constraint: {req}"
+                assert any(op in req for op in [">=", "==", "~=", "<="]), (
+                    f"Package should have version constraint: {req}"
+                )
 
 
 class TestPostCSSConfig:
@@ -492,15 +494,18 @@ class TestConfigurationConsistency:
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
-        @staticmethod
-        def test_env_and_next_config():
-            """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
-            with open(".env.local") as f:
-        env_content = f.read()
+            env_example = f.read()
+        assert "NEXT_PUBLIC_API_URL" in env_example
+
+        # Check .env.local
+        with open(".env.local") as f:
+            env_content = f.read()
+        assert "NEXT_PUBLIC_API_URL" in env_content
 
         # Check next.config.js
         with open("frontend/next.config.js") as f:
-            next_config = f.read()
+            next_config_content = f.read()
+        assert "NEXT_PUBLIC_API_URL" in next_config_content
 
         # Both should mention NEXT_PUBLIC_API_URL
         assert "NEXT_PUBLIC_API_URL" in env_content
@@ -530,5 +535,9 @@ class TestConfigurationConsistency:
 
         # Next.js standard scripts
         assert "next dev" in scripts.get("dev", "") or "next" in scripts.get("dev", "")
-        assert "next build" in scripts.get("build", "") or "next" in scripts.get("build", "")
-        assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
+        assert "next build" in scripts.get("build", "") or "next" in scripts.get(
+            "build", ""
+        )
+        assert "next start" in scripts.get("start", "") or "next" in scripts.get(
+            "start", ""
+        )
