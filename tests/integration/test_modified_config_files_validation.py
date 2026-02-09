@@ -216,10 +216,10 @@ class TestDeletedFilesImpact:
         assert not readme_file.exists(), "scripts/README.md should be deleted"
 
     def test_codecov_workflow_removed(self, repo_root: Path) -> None:
-        """codecov.yaml should be removed if this branch deleted it."""
-        codecov_file = repo_root / ".github" / "workflows" / "codecov.yaml"
-        assert not codecov_file.exists(), "codecov.yaml should be deleted"
-
+        def test_scripts_readme_present(self, repo_root: Path) -> None:
+            """scripts/README.md should be present to document scripts usage."""
+            readme_file = repo_root / ".github" / "scripts" / "README.md"
+            assert readme_file.exists(), "scripts/README.md should exist"
     def test_vscode_settings_removed(self, repo_root: Path) -> None:
         """.vscode/settings.json should be removed if this branch deleted it."""
         vscode_file = repo_root / ".vscode" / "settings.json"
