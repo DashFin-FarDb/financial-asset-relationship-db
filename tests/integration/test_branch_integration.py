@@ -79,9 +79,9 @@ class TestWorkflowConsistency:
                 # Allow v4 and v5 for actions/checkout (common upgrade path)
                 if "actions/checkout" in action:
                     continue
-                # Warn if same action uses different versions
-                print(
-                    f"Warning: {action} uses multiple versions: {list(versions.keys())}"
+                # Fail if the same action uses different versions across workflows
+                pytest.fail(
+                    f"{action} uses multiple versions across workflows: {list(versions.keys())}"
                 )
 
     def test_all_workflows_use_github_token_consistently(self, all_workflows):
@@ -177,7 +177,6 @@ class TestRemovedFilesIntegration:
         removed_files = [
             "context_chunker.py",
             ".github/scripts/README.md",
-            ".github/labeler.yml",
         ]
 
         workflow_files = [
@@ -199,7 +198,8 @@ class TestRemovedFilesIntegration:
                 )
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-        """Verify the label workflow does not require an external labeler configuration file.
+        """
+        Verify the label workflow does not require an external labeler configuration file.
 
         Checks that .github / workflows / label.yml(if present) defines the 'label' job's first
         step using 'actions/labeler', and that the step either omits 'config-path' or sets it to
@@ -247,36 +247,24 @@ class TestWorkflowSecurityConsistency:
 
         Searches files under .github / workflows for uses of pull request or issue title / body in contexts that could enable injection(for example, piping into shell commands or usage within command substitution) and fails the test on any definite matches.
         """
+        last_wf_file = None
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
         dangerous = [
             r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
             r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",
+            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
         ]
         for wf_file in workflow_files:
+            last_wf_file = wf_file
             content = wf_file.read_text()
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
-        return
-        workflow_files = list(Path(".github/workflows").glob("*.yml"))
-
-        for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
-                content = f.read()
-
-            # Look for potentially dangerous patterns
-            dangerous = [
-                r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
-            ]
-
-            for pattern in dangerous:
-                matches = re.findall(pattern, content)
-                if matches:
-                    print(f"Potential injection risk in {wf_file}: {matches}")
+        for pattern in dangerous:
+            matches = re.findall(pattern, content)
+            if matches:
+                pytest.fail(f"Potential injection risk in {last_wf_file}: {matches}")
 
     @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
@@ -379,10 +367,10 @@ class TestBranchCoherence:
         """
         Verify the branch no longer depends on removed external configuration and limits workflow references to external files.
 
-        Asserts that .github / labeler.yml and .github / scripts / context_chunker.py do not exist, and that each workflow file under .github / workflows contains at most one run step referencing paths that include ".github/" or "scripts/.".
+        Asserts that .github / scripts / context_chunker.py does not exist, the labeler config is present, and that each workflow file under .github / workflows contains at most one run step referencing paths that include ".github/" or "scripts/.".
         """
-        # labeler.yml was removed - workflows should work without it
-        assert not Path(".github/labeler.yml").exists()
+        # labeler.yml should exist for the labeler workflow configuration
+        assert Path(".github/labeler.yml").exists()
 
         # context_chunker.py was removed - workflows should work without it
         assert not Path(".github/scripts/context_chunker.py").exists()
