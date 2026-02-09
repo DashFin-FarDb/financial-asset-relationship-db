@@ -25,7 +25,6 @@ classifiers = [
 dependencies = [
     "gradio>=4.1.2",
     "plotly>=5.0.0",
-    "yfinance==0.2.18",
     "numpy>=1.21.0",
     "dataclasses-json>=0.5.7",
     "yfinance>=0.2.0",
