@@ -398,31 +398,18 @@ class TestSpecificChanges:
             "pytest-cov",
             "pytest-mock",
             "flake8",
-            expected_packages = [
-                "pytest",
-                "pytest-cov",
-                "pytest-mock",
-                "flake8",
-                "pylint",
-                "mypy",
-                "black",
-                "pre-commit",
-            ]
-
-            for expected_pkg in expected_packages:
-            assert expected_pkg in package_names
-
-            # Do not mandate a specific import-sorting tool; require at least one supported option.
-            import_sorters = {"ruff", "isort", "reorder-python-imports"}
-            assert any(sorter in package_names for sorter in import_sorters)
+            "pylint",
             "mypy",
             "black",
-            "ruff",
             "pre-commit",
         ]
 
         for expected_pkg in expected_packages:
             assert expected_pkg in package_names
+
+        # Do not mandate a specific import-sorting tool; require at least one supported option.
+        import_sorters = {"ruff", "isort", "reorder-python-imports"}
+        assert any(sorter in package_names for sorter in import_sorters)
 
 
 class TestEdgeCasesAndErrorHandling:
