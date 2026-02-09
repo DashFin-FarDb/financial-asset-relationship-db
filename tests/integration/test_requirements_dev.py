@@ -494,9 +494,9 @@ class TestVersionConstraintValidation:
                 # Compound spec should not have spaces after comma
                 parts = ver.split(",")
                 for part in parts:
-                    assert (
-                        part.strip() == part or part == ""
-                    ), f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
+                    assert part.strip() == part or part == "", (
+                        f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
+                    )
 
     @staticmethod
     def test_minimum_version_numbers_reasonable(requirements: List[Tuple[str, str]]):
@@ -556,9 +556,9 @@ class TestPackageNamingAndCasing:
             normalized = pkg.lower().replace("-", "_")
             if normalized in normalized_names:
                 original = normalized_names[normalized]
-                assert original.lower().replace("-", "_") == pkg.lower().replace(
-                    "-", "_"
-                ), f"Potential conflict between {original} and {pkg}"
+                assert original.lower().replace("-", "_") == pkg.lower().replace("-", "_"), (
+                    f"Potential conflict between {original} and {pkg}"
+                )
             normalized_names[normalized] = pkg
 
     def test_common_package_name_patterns(self, requirements: List[Tuple[str, str]]):
@@ -696,9 +696,9 @@ class TestTypeStubConsistency:
                 # Type stubs may or may not have version constraints
                 # but if they do, they should be valid
                 if ver:
-                    assert any(
-                        op in ver for op in [">=", "==", "~="]
-                    ), f"Type stub {pkg} has invalid version spec: {ver}"
+                    assert any(op in ver for op in [">=", "==", "~="]), (
+                        f"Type stub {pkg} has invalid version spec: {ver}"
+                    )
 
 
 class TestFileStructureAndOrganization:
@@ -714,9 +714,9 @@ class TestFileStructureAndOrganization:
             if line.strip().startswith("#"):
                 # Comments should have a space after #
                 if len(line.strip()) > 1:
-                    assert (
-                        line.strip()[1] == " " or line.strip()[1] == "#"
-                    ), f"Line {i}: Comment should have space after #: {line.strip()}"
+                    assert line.strip()[1] == " " or line.strip()[1] == "#", (
+                        f"Line {i}: Comment should have space after #: {line.strip()}"
+                    )
 
     @staticmethod
     def test_sections_are_organized():
