@@ -7,7 +7,7 @@ name = "financial-asset-relationship-db"
 version = "1.0.0"
 description = "Financial Asset Relationship Network visualization application"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 license = {text = "MIT"}
 keywords = ["finance", "assets", "relationships", "visualization", "gradio"]
 authors = [
