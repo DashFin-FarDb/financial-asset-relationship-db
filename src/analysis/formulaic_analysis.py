@@ -447,7 +447,7 @@ class FormulaicAnalyzer:
                     if isinstance(val, (int, float)):
                         values.append(float(val))
             elif isinstance(v, (int, float)):
-                values.append(float(v))
+        values.append(float(v))
         cleaned: list[float] = []
         for val in values:
             if val != val or val in (float("inf"), float("-inf")):
