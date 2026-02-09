@@ -110,9 +110,9 @@ class TestWorkflowSecretHandling:
                 for step_idx, step in enumerate(steps):
                     if "actions/upload-artifact" in step.get("uses", ""):
                         step_str = str(step)
-                        assert "secrets." not in step_str, (
-                            f"Secret reference in artifact upload: {workflow['path']} job '{job_name}' step {step_idx}"
-                        )
+                        assert (
+                            "secrets." not in step_str
+                        ), f"Secret reference in artifact upload: {workflow['path']} job '{job_name}' step {step_idx}"
 
 
 class TestWorkflowPermissionsHardening:
@@ -139,9 +139,9 @@ class TestWorkflowPermissionsHardening:
                 default_write_perms = [k for k, v in permissions.items() if v == "write"]
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
                 unexpected_write = set(default_write_perms) - allowed_write_perms
-                assert len(unexpected_write) == 0, (
-                    f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
-                )
+                assert (
+                    len(unexpected_write) == 0
+                ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
 
     @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
@@ -183,6 +183,6 @@ class TestWorkflowSupplyChainSecurity:
                 raw_content,
                 re.IGNORECASE,
             )
-            assert len(insecure_downloads) == 0, (
-                f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
-            )
+            assert (
+                len(insecure_downloads) == 0
+            ), f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
