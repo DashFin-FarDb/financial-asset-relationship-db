@@ -8,8 +8,16 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import yfinance as yf
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (Asset, AssetClass, Bond, Commodity, Currency, Equity, RegulatoryActivity,
-                                         RegulatoryEvent)
+from src.models.financial_models import (
+    Asset,
+    AssetClass,
+    Bond,
+    Commodity,
+    Currency,
+    Equity,
+    RegulatoryActivity,
+    RegulatoryEvent,
+)
 
 logger = logging.getLogger(__name__)
 

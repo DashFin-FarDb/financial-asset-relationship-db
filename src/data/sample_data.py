@@ -1,8 +1,15 @@
 import logging
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (AssetClass, Bond, Commodity, Currency, Equity, RegulatoryActivity,
-                                         RegulatoryEvent)
+from src.models.financial_models import (
+    AssetClass,
+    Bond,
+    Commodity,
+    Currency,
+    Equity,
+    RegulatoryActivity,
+    RegulatoryEvent,
+)
 
 logger = logging.getLogger(__name__)
 
