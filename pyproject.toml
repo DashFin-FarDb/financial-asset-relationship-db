@@ -100,8 +100,6 @@ extend-exclude = '''
 
 
 [tool.ruff]
-fix = true
-unsafe-fixes = false
 line-length = 120
 target-version = "py312"
 fix = true
