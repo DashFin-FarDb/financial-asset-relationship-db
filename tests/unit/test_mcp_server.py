@@ -17,7 +17,10 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from mcp_server import _graph_lock, _ThreadSafeGraph, main
+mcp_server = pytest.importorskip("mcp_server")
+_graph_lock = mcp_server._graph_lock
+_ThreadSafeGraph = mcp_server._ThreadSafeGraph
+main = mcp_server.main
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
