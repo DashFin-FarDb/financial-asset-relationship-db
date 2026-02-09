@@ -327,10 +327,9 @@ class TestMainFunction:
         mock_mcp.run = Mock()
         mock_build.return_value = mock_mcp
 
-    result = main([])
-    assert result == 0
-    mock_mcp.run.assert_called_once()
-    pass
+        result = main([])
+        assert result == 0
+        mock_mcp.run.assert_called_once()
 
 
 class TestConcurrentAccess:
