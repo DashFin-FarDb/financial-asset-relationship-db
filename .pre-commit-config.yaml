@@ -22,8 +22,10 @@ repos:
     rev: v0.4.0
     hooks:
       - id: ruff
-        args: [--fix, --select, I]
         name: ruff (import sorting)
+        entry: ruff check
+        language: system
+        args: [--fix, --select, I]
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.3.0
