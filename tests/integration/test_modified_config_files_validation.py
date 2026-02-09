@@ -185,7 +185,7 @@ class TestWorkflowSimplifications:
                 s
                 for s in steps
                 if isinstance(s, dict)
-                and ("first-interaction" in str(s.get("uses", "")) or "with" in s)
+                and "first-interaction" in str(s.get("uses", ""))
             ),
             None,
         )
