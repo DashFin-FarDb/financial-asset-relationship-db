@@ -19,7 +19,6 @@ import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
-
 mcp_server = pytest.importorskip("mcp_server")
 _graph_lock = mcp_server._graph_lock
 _ThreadSafeGraph = mcp_server._ThreadSafeGraph

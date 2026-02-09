@@ -455,7 +455,7 @@ class FormulaicAnalyzer:
             cleaned.append(min(1.0, max(-1.0, val)))
         valid_correlations = [val for val in cleaned if val < 1.0]
         return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
-                values.append(float(v))
+        values.append(float(v))
 
         valid_correlations = [val for val in values if val < 1.0]
         return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
