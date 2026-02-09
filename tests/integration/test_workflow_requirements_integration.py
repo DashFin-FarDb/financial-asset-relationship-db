@@ -171,9 +171,9 @@ class TestPyYAMLAvailability:
         requirements = parse_requirements(REQUIREMENTS_FILE)
         package_names = [pkg for pkg, _ in requirements]
 
-        assert (
-            "types-PyYAML" in package_names
-        ), "types-PyYAML should be in requirements-dev.txt for static type checking of code that uses PyYAML"
+        assert "types-PyYAML" in package_names, (
+            "types-PyYAML should be in requirements-dev.txt for static type checking of code that uses PyYAML"
+        )
 
 
 class TestRequirementsMatchWorkflowNeeds:
@@ -239,6 +239,6 @@ class TestRequirementsMatchWorkflowNeeds:
                 major = int(version_parts[0])
                 minor = int(version_parts[1])
 
-                assert (major > 3) or (
-                    major == 3 and minor >= 8
-                ), f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
+                assert (major > 3) or (major == 3 and minor >= 8), (
+                    f"Workflow uses Python {python_version}, but requires 3.8+ for modern tooling"
+                )
