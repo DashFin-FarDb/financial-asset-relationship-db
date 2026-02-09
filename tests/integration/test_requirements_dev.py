@@ -401,7 +401,7 @@ class TestSpecificChanges:
             "pylint",
             "mypy",
             "black",
-            "isort",
+            "ruff",
             "pre-commit",
         ]
 
@@ -607,7 +607,7 @@ class TestDevelopmentToolsPresence:
     @staticmethod
     def test_has_import_sorter(package_names: List[str]):
         """Test that an import sorter is present."""
-        import_sorters = ["isort", "reorder-python-imports"]
+        import_sorters = ["ruff", "isort", "reorder-python-imports"]
         # This is optional but good to have
         if any(sorter in package_names for sorter in import_sorters):
             assert True
