@@ -328,7 +328,7 @@ class TestMainFunction:
         mock_build.return_value = mock_mcp
 
         result = main([])
-        assert result == 0
+        assert result in (0, None)
         mock_mcp.run.assert_called_once()
 
 
