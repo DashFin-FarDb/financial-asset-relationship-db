@@ -355,11 +355,10 @@ class TestMakefileEdgeCases:
     @staticmethod
     def test_make_without_arguments():
         """Test running make without arguments."""
-        result = subprocess.run(["make"], capture_output=True, text=True, check=False)
+        result = subprocess.run(["make", "-n"], capture_output=True, text=True, check=False, timeout=30)
 
-        # Should either run default target or show error
-        # Both are acceptable behaviors
-        assert True  # Just verify it doesn't hang
+        # Should succeed with the default target
+        assert result.returncode == 0, "Default make target failed"
 
     @staticmethod
     def test_multiple_targets_sequential():
