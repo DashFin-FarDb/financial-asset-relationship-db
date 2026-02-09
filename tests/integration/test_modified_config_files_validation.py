@@ -141,9 +141,7 @@ class TestWorkflowSimplifications:
         assert "pip install" in content
         assert "requirements.txt" in content
 
-    def test_apisec_workflow_no_credential_conditions(
-        self, workflows_dir: Path
-    ) -> None:
+    def test_apisec_workflow_no_credential_conditions(self, workflows_dir: Path) -> None:
         """
         Ensure APIsec workflow does not conditionally skip based on credentials presence.
         """
@@ -181,11 +179,7 @@ class TestWorkflowSimplifications:
         assert steps, "Expected greeting job steps"
 
         first_interaction_step = next(
-            (
-                s
-                for s in steps
-                if isinstance(s, dict) and "first-interaction" in str(s.get("uses", ""))
-            ),
+            (s for s in steps if isinstance(s, dict) and "first-interaction" in str(s.get("uses", ""))),
             None,
         )
         assert first_interaction_step is not None
@@ -231,9 +225,7 @@ class TestDeletedFilesImpact:
         vscode_file = repo_root / ".vscode" / "settings.json"
         assert not vscode_file.exists(), ".vscode/settings.json should be deleted"
 
-    def test_no_references_to_deleted_files_in_workflows(
-        self, workflows_dir: Path
-    ) -> None:
+    def test_no_references_to_deleted_files_in_workflows(self, workflows_dir: Path) -> None:
         """Workflows should not reference deleted files."""
         if not workflows_dir.exists():
             pytest.skip("Workflows directory not found")
@@ -243,15 +235,11 @@ class TestDeletedFilesImpact:
             ".github/scripts/README.md",
         ]
 
-        workflow_files = list(workflows_dir.glob("*.yml")) + list(
-            workflows_dir.glob("*.yaml")
-        )
+        workflow_files = list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml"))
         for workflow_file in workflow_files:
             content = workflow_file.read_text(encoding="utf-8")
             for deleted_ref in deleted_refs:
-                assert deleted_ref not in content, (
-                    f"{workflow_file.name} references deleted file: {deleted_ref}"
-                )
+                assert deleted_ref not in content, f"{workflow_file.name} references deleted file: {deleted_ref}"
 
 
 # -----------------------------
@@ -345,9 +333,7 @@ class TestCodacyInstructionsChanges:
         """Return .github/instructions/codacy.instructions.md path."""
         return repo_root / ".github" / "instructions" / "codacy.instructions.md"
 
-    def test_codacy_instructions_simplified(
-        self, codacy_instructions_path: Path
-    ) -> None:
+    def test_codacy_instructions_simplified(self, codacy_instructions_path: Path) -> None:
         """
         Fail if repo-specific or prescriptive phrases remain.
 
@@ -360,9 +346,7 @@ class TestCodacyInstructionsChanges:
         assert "git remote -v" not in content
         assert "unless really necessary" not in content
 
-    def test_codacy_critical_rules_present(
-        self, codacy_instructions_path: Path
-    ) -> None:
+    def test_codacy_critical_rules_present(self, codacy_instructions_path: Path) -> None:
         """Verify critical rules are preserved."""
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
