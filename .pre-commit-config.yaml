@@ -19,12 +19,10 @@ repos:
         language_version: python3
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.4.0
+    rev: v0.15.0
     hooks:
-      - id: ruff
+      - id: ruff-check
         name: ruff (import sorting)
-        entry: ruff check
-        language: system
         args: [--fix, --select, I]
 
   - repo: https://github.com/pycqa/flake8
