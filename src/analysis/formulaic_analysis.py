@@ -11,12 +11,12 @@ logger = logging.getLogger(__name__)
 class Formula:
     """Represents a mathematical formula between financial variables.
 
-    The formula expression is stored in the `expression` field.
+    The formula expression is stored in the `formula` field.
 
     Example:
         >>> Formula(
         ...     name="Test",
-        ...     expression="x + y",
+        ...     formula="x + y",
         ...     latex="x + y",
         ...     description="Test formula",
         ...     variables={"x": "var1", "y": "var2"},
@@ -26,7 +26,7 @@ class Formula:
     """
 
     name: str
-    expression: str
+    formula: str
     latex: str
     description: str
     variables: Dict[str, str]  # variable_name -> description
