@@ -3,13 +3,8 @@ import plotly.graph_objects as go
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.visualizations.graph_visuals import (
-    REL_TYPE_COLORS,
-    _build_asset_id_index,
-    _build_relationship_index,
-    _create_directional_arrows,
-    _create_relationship_traces,
-)
+from src.visualizations.graph_visuals import (REL_TYPE_COLORS, _build_asset_id_index, _build_relationship_index,
+                                              _create_directional_arrows, _create_relationship_traces)
 
 
 class DummyGraph(AssetRelationshipGraph):
