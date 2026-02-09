@@ -101,11 +101,6 @@ extend-exclude = '''
 )/
 '''
 
-[tool.isort]
-profile = "black"
-line_length = 120
-skip_gitignore = true
-known_first_party = ["src"]
 
 [tool.ruff]
 line-length = 120
