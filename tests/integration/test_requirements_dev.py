@@ -401,12 +401,15 @@ class TestSpecificChanges:
             "pylint",
             "mypy",
             "black",
-            "isort",
             "pre-commit",
         ]
 
         for expected_pkg in expected_packages:
             assert expected_pkg in package_names
+
+        # Do not mandate a specific import-sorting tool; require at least one supported option.
+        import_sorters = {"ruff", "isort", "reorder-python-imports"}
+        assert any(sorter in package_names for sorter in import_sorters)
 
 
 class TestEdgeCasesAndErrorHandling:
@@ -606,14 +609,9 @@ class TestDevelopmentToolsPresence:
 
     @staticmethod
     def test_has_import_sorter(package_names: List[str]):
-        """Test that an import sorter is present."""
-        import_sorters = ["isort", "reorder-python-imports"]
-        # This is optional but good to have
-        if any(sorter in package_names for sorter in import_sorters):
-            assert True
-        else:
-            # Not required but log it
-            pass
+        """Test that an import sorter is present (optional but recommended)."""
+        import_sorters = ["ruff", "reorder-python-imports"]
+        assert any(sorter in package_names for sorter in import_sorters)
 
 
 class TestPytestEcosystem:

@@ -18,11 +18,14 @@ repos:
       - id: black
         language_version: python3
 
-  - repo: https://github.com/pycqa/isort
-    rev: 7.0.0
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.4.0
     hooks:
-      - id: isort
-        name: isort (python)
+      - id: ruff
+        name: ruff (import sorting)
+        entry: ruff check
+        language: system
+        args: [--fix, --select, I]
 
   - repo: https://github.com/pycqa/flake8
     rev: 7.3.0
