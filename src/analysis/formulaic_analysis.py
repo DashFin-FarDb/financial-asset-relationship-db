@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List
+import math
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -465,7 +466,7 @@ class FormulaicAnalyzer:
 
         cleaned: list[float] = []
         for val in values:
-            if val != val or val in (float("inf"), float("-inf")):
+            if math.isnan(val) or val in (float("inf"), float("-inf")):
                 continue
             cleaned.append(min(1.0, max(-1.0, val)))
 
