@@ -452,8 +452,9 @@ class TestErrorHandling:
         # Try invalid operation
         try:
             proxy.nonexistent_method()
-        except AttributeError:
-            pass
+        except AttributeError as exc:
+            # Expected: accessing a nonexistent method on the proxy should raise AttributeError
+            assert exc is not None
 
         # Graph should still be accessible
         assets = proxy.assets
