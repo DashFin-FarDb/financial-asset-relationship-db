@@ -449,22 +449,25 @@ class FormulaicAnalyzer:
         """Calculate average correlation from empirical data"""
         correlations = empirical_relationships.get("correlation_matrix", {})
         if not correlations:
-            if isinstance(v, dict):
-                for val in v.values():
-                    if isinstance(val, (int, float)):
-                        values.append(float(val))
-            elif isinstance(v, (int, float)):
-        values.append(float(v))
+            return 0.5
+
+        values: list[float] = []
+        if isinstance(correlations, dict):
+            for v in correlations.values():
+                if isinstance(v, dict):
+                    for val in v.values():
+                        if isinstance(val, (int, float)):
+                            values.append(float(val))
+                elif isinstance(v, (int, float)):
+                    values.append(float(v))
+
         cleaned: list[float] = []
         for val in values:
             if val != val or val in (float("inf"), float("-inf")):
                 continue
             cleaned.append(min(1.0, max(-1.0, val)))
-        valid_correlations = [val for val in cleaned if val < 1.0]
-        return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
-        values.append(float(v))
 
-        valid_correlations = [val for val in values if val < 1.0]
+        valid_correlations = [val for val in cleaned if val < 1.0]
         return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
 
     @staticmethod
