@@ -330,7 +330,7 @@ class TestMainFunction:
     result = main([])
     assert result == 0
     mock_mcp.run.assert_called_once()
-            pass
+    pass
 
 
 class TestConcurrentAccess:
