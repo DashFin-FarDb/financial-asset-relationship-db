@@ -78,9 +78,12 @@ class TestWorkflowConsistency:
             if len(versions) > 1:
                 # Allow v4 and v5 for actions/checkout (common upgrade path)
                 if "actions/checkout" in action:
+                    continue
                 # Fail if the same action uses different versions across workflows
                 pytest.fail(
                     f"{action} uses multiple versions across workflows: {list(versions.keys())}"
+                )
+
     def test_all_workflows_use_github_token_consistently(self, all_workflows):
         """
         Check that workflows use the approved GITHUB_TOKEN syntax.
