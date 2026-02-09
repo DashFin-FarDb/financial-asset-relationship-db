@@ -67,7 +67,7 @@ class TestMakeHelp:
     @staticmethod
     def test_make_help_command_runs():
         """Test that 'make help' runs without error."""
-        result = subprocess.run(["make", "help"], capture_output=True, text=True, check=False)
+        result = subprocess.run(["make", "help"], capture_output=True, text=True, check=False, timeout=30)
 
         assert result.returncode == 0, f"make help failed: {result.stderr}"
 
