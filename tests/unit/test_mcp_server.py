@@ -13,7 +13,6 @@ This module tests:
 import json
 import threading
 import time
-from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -103,6 +102,7 @@ class TestThreadSafeGraph:
         errors = []
 
         def access_assets():
+            """Thread target that accesses proxy.assets and records the count or any errors."""
             try:
                 assets = proxy.assets
                 results.append(len(assets))
@@ -124,38 +124,41 @@ class TestThreadSafeGraph:
         assert len(errors) == 0
         assert len(results) == 10
 
-    def test_thread_safe_graph_locks_during_method_call(self):
-        """Test that lock is held during method execution."""
-        graph = AssetRelationshipGraph()
-        lock = threading.Lock()
-        proxy = _ThreadSafeGraph(graph, lock)
+    """Unit tests for thread-safe graph lock behavior."""
 
-        lock_acquired = []
+        def test_thread_safe_graph_locks_during_method_call(self):
+            """Test that lock is held during method execution."""
+            graph = AssetRelationshipGraph()
+            lock = threading.Lock()
+            proxy = _ThreadSafeGraph(graph, lock)
 
-        def slow_method():
-            # Check if lock is held
-            lock_acquired.append(not lock.acquire(blocking=False))
-            if not lock_acquired[-1]:
-                lock.release()
-            time.sleep(0.1)
-            return True
+            lock_acquired = []
 
-        # Patch a method to be slow
-        with patch.object(graph, "calculate_metrics", side_effect=slow_method):
-            # Start execution in another thread
-            t = threading.Thread(target=proxy.calculate_metrics)
-            t.start()
-            time.sleep(0.05)  # Give it time to acquire lock
+            def slow_method():
+                """Simulates a slow operation while checking lock state."""
+                # Check if lock is held
+                lock_acquired.append(not lock.acquire(blocking=False))
+                if not lock_acquired[-1]:
+                    lock.release()
+                time.sleep(0.1)
+                return True
 
-            # Try to acquire lock - should fail if proxy is holding it
-            can_acquire = lock.acquire(blocking=False)
-            if can_acquire:
-                lock.release()
+            # Patch a method to be slow
+            with patch.object(graph, "calculate_metrics", side_effect=slow_method):
+                # Start execution in another thread
+                t = threading.Thread(target=proxy.calculate_metrics)
+                t.start()
+                time.sleep(0.05)  # Give it time to acquire lock
 
-            t.join()
+                # Try to acquire lock - should fail if proxy is holding it
+                can_acquire = lock.acquire(blocking=False)
+                if can_acquire:
+                    lock.release()
 
-        # Lock should have been held during execution
-        assert any(lock_acquired)
+                t.join()
+
+            # Lock should have been held during execution
+            assert any(lock_acquired)
 
 
 class TestMCPApp:
@@ -170,6 +173,7 @@ class TestMCPApp:
             return _build_mcp_app()
         except ModuleNotFoundError:
             pytest.skip("MCP dependencies not available")
+        return None
 
     def test_build_mcp_app_returns_app(self, mcp_app):
         """Test that _build_mcp_app returns an MCP app."""
@@ -360,6 +364,7 @@ class TestConcurrentAccess:
         errors = []
 
         def read_assets():
+            """Read assets from the thread-safe graph proxy."""
             try:
                 assets = proxy.assets
                 results.append(len(assets))
@@ -367,6 +372,7 @@ class TestConcurrentAccess:
                 errors.append(e)
 
         def read_metrics():
+            """Read metrics from the thread-safe graph proxy."""
             try:
                 metrics = proxy.calculate_metrics()
                 results.append(metrics["total_assets"])
@@ -408,6 +414,7 @@ class TestConcurrentAccess:
         lock_for_counter = threading.Lock()
 
         def concurrent_read():
+            """Read assets from proxy and increment counter in a thread-safe manner."""
             _ = proxy.assets
             with lock_for_counter:
                 counters["reads"] += 1
@@ -566,9 +573,11 @@ class TestEdgeCases:
         results = []
 
         def access_assets():
+            """Access the assets property of the graph proxy and record its length."""
             results.append(("assets", len(proxy.assets)))
 
         def access_relationships():
+            """Access the relationships property of the graph proxy and record its length."""
             results.append(("relationships", len(proxy.relationships)))
 
         threads = [

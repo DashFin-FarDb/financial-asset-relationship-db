@@ -164,7 +164,7 @@ class TestRefreshVisualization:
         with patch("app.visualize_3d_graph_with_filters") as mock_viz:
             mock_viz.return_value = go.Figure()
 
-            result, error = app.refresh_visualization(
+            result, _ = app.refresh_visualization(
                 mock_graph, "3D", "spring", True, True, True, True, True, True, True, True, True
             )
 
@@ -182,7 +182,7 @@ class TestRefreshVisualization:
         with patch("app.visualize_2d_graph") as mock_viz:
             mock_viz.return_value = go.Figure()
 
-            result, error = app.refresh_visualization(
+            result, _ = app.refresh_visualization(
                 mock_graph, "2D", "circular", True, True, True, True, True, True, True, True, True
             )
 
@@ -297,7 +297,7 @@ class TestFormulaicAnalysis:
         """Test show_formula_details returns placeholder."""
         mock_graph = create_sample_database()
 
-        result, error = FinancialAssetApp.show_formula_details("Test Formula", mock_graph)
+        result, _ = FinancialAssetApp.show_formula_details("Test Formula", mock_graph)
 
         assert isinstance(result, go.Figure)
 
@@ -340,7 +340,7 @@ class TestCreateInterface:
 
         # Create interface should not raise exceptions
         try:
-            result = app.create_interface()
+            app.create_interface()
             # If mocking is successful, we should get a result
             assert True
         except Exception as e:
