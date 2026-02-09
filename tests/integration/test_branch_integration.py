@@ -262,7 +262,7 @@ class TestWorkflowSecurityConsistency:
                 if matches:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
         for pattern in dangerous:
-            matches = re.findall(pattern, content)
+            r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",
             if matches:
                 pytest.fail(f"Potential injection risk in {last_wf_file}: {matches}")
 
