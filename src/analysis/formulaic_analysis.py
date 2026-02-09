@@ -47,6 +47,8 @@ class Formula:
             raise ValueError("Provide only one of `formula` or `expression`.")
         if formula is None:
             formula = expression  # backward-compatible alias
+        if formula is None:
+            raise ValueError("`formula` is required.")
         super().__init__(*args, formula=formula, **kwargs)
 
 
