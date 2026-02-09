@@ -5,7 +5,7 @@ on:
   push:
     branches: [ "main" ]
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   autofix:
@@ -13,14 +13,21 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # Use uv to ensure we have the same ruff version in CI and locally.
-      - uses: astral-sh/setup-uv@681c641aba71e4a1c380be3ab5e12ad51f415867
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          version: "0.4.20"
-      # Fix lint errors
-      - run: uv run ruff check --fix-only .
-      # Format code
-      - run: uv run ruff format .
+          python-version: '3.12'
 
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      - name: Fix lint errors
+        run: ruff check --fix .
+
+      - name: Format code
+        run: ruff format .
 
       - uses: autofix-ci/action@635ffb0c9798bd160680f18fd73371e355b85f27
+
