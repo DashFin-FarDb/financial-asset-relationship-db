@@ -178,7 +178,9 @@ class TestMakeLintTargets:
         linters = ["ruff"]
         output_lc = output.lower()
         found_linters = [linter for linter in linters if linter in output_lc]
-        assert result.returncode == 0 and (found_linters or output.strip()), "lint target doesn't appear to invoke a linter"
+        assert result.returncode == 0 and (found_linters or output.strip()), (
+            "lint target doesn't appear to invoke a linter"
+        )
 
 
 class TestMakeFormatTargets:
