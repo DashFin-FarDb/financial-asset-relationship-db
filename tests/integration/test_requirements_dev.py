@@ -559,8 +559,9 @@ class TestPackageNamingAndCasing:
             normalized = pkg.lower().replace("-", "_")
             if normalized in normalized_names:
                 original = normalized_names[normalized]
-                if original != pkg:
-                    pytest.fail(f"Potential conflict between {original} and {pkg}")
+                pytest.fail(
+                    f"Duplicate/ambiguous requirement name after normalization ('{normalized}'): {original!r} vs {pkg!r}"
+                )
             normalized_names[normalized] = pkg
 
     def test_common_package_name_patterns(self, requirements: List[Tuple[str, str]]):
