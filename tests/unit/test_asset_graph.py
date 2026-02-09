@@ -7,6 +7,8 @@ This module contains comprehensive unit tests for the asset_graph module includi
 - Edge cases and error handling
 """
 
+import re
+
 import numpy as np
 import pytest
 
@@ -226,9 +228,7 @@ class TestAssetRelationshipGraphEdgeCases:
             for j in range(i + 1, min(i + 5, 100)):
                 if f"asset{i}" not in graph.relationships:
                     graph.relationships[f"asset{i}"] = []
-                graph.relationships[f"asset{i}"].append(
-                    (f"asset{j}", "correlation", 0.5 + (j - i) * 0.1)
-                )
+                graph.relationships[f"asset{i}"].append((f"asset{j}", "correlation", 0.5 + (j - i) * 0.1))
 
         positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
@@ -335,10 +335,7 @@ class TestAssetRelationshipGraphEdgeCases:
     def test_star_topology():
         """Test graph with star topology (one central hub)."""
         graph = AssetRelationshipGraph()
-        graph.relationships["hub"] = [
-            (f"spoke{i}", "correlation", 0.5 + i * 0.05)
-            for i in range(10)
-        ]
+        graph.relationships["hub"] = [(f"spoke{i}", "correlation", 0.5 + i * 0.05) for i in range(10)]
 
         positions, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
 
@@ -351,7 +348,7 @@ class TestAssetRelationshipGraphEdgeCases:
         """Test graph with linear chain topology."""
         graph = AssetRelationshipGraph()
         for i in range(5):
-            graph.relationships[f"node{i}"] = [(f"node{i+1}", "correlation", 0.8)]
+            graph.relationships[f"node{i}"] = [(f"node{i + 1}", "correlation", 0.8)]
 
         _, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
 
@@ -365,11 +362,7 @@ class TestAssetRelationshipGraphEdgeCases:
         nodes = ["A", "B", "C", "D"]
 
         for i, source in enumerate(nodes):
-            graph.relationships[source] = [
-                (target, "correlation", 0.8)
-                for j, target in enumerate(nodes)
-                if i != j
-            ]
+            graph.relationships[source] = [(target, "correlation", 0.8) for j, target in enumerate(nodes) if i != j]
 
         _, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
 
@@ -420,7 +413,7 @@ class TestAssetRelationshipGraphEdgeCases:
         graph = AssetRelationshipGraph()
         n = 8
         for i in range(n):
-            graph.relationships[f"asset{i}"] = [(f"asset{(i+1)%n}", "correlation", 0.8)]
+            graph.relationships[f"asset{i}"] = [(f"asset{(i + 1) % n}", "correlation", 0.8)]
 
         positions, _, _, _ = graph.get_3d_visualization_data_enhanced()
 
@@ -498,12 +491,12 @@ class TestAssetRelationshipGraphMemory:
         """Test that positions array uses efficient memory layout."""
         graph = AssetRelationshipGraph()
         for i in range(50):
-            graph.relationships[f"asset{i}"] = [(f"asset{i+1}", "correlation", 0.8)]
+            graph.relationships[f"asset{i}"] = [(f"asset{i + 1}", "correlation", 0.8)]
 
         positions, _, _, _ = graph.get_3d_visualization_data_enhanced()
 
         # Check C-contiguous for efficient access
-        assert positions.flags['C_CONTIGUOUS']
+        assert positions.flags["C_CONTIGUOUS"]
 
     @staticmethod
     def test_no_memory_leaks_repeated_calls():
@@ -546,7 +539,7 @@ class TestAssetRelationshipGraphDataIntegrity:
 
         _, _, colors, _ = graph.get_3d_visualization_data_enhanced()
 
-        hex_pattern = re.compile(r'^#[0-9A-Fa-f]{6}$')
+        hex_pattern = re.compile(r"^#[0-9A-Fa-f]{6}$")
         assert all(hex_pattern.match(color) for color in colors)
 
     @staticmethod
@@ -563,6 +556,3 @@ class TestAssetRelationshipGraphDataIntegrity:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-
-
-import re

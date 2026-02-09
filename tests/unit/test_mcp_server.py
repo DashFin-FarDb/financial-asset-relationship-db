@@ -13,11 +13,11 @@ This module tests:
 import json
 import threading
 import time
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from mcp_server import _ThreadSafeGraph, _graph_lock, main
+from mcp_server import _graph_lock, _ThreadSafeGraph, main
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
@@ -45,7 +45,7 @@ class TestThreadSafeGraph:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
         )
         lock = threading.Lock()
@@ -78,7 +78,7 @@ class TestThreadSafeGraph:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
         )
         lock = threading.Lock()
@@ -137,7 +137,7 @@ class TestThreadSafeGraph:
             return True
 
         # Patch a method to be slow
-        with patch.object(graph, 'calculate_metrics', side_effect=slow_method):
+        with patch.object(graph, "calculate_metrics", side_effect=slow_method):
             # Start execution in another thread
             t = threading.Thread(target=proxy.calculate_metrics)
             t.start()
@@ -162,6 +162,7 @@ class TestMCPApp:
         """Create MCP app for testing."""
         try:
             from mcp_server import _build_mcp_app
+
             return _build_mcp_app()
         except ModuleNotFoundError:
             pytest.skip("MCP dependencies not available")
@@ -169,13 +170,13 @@ class TestMCPApp:
     def test_build_mcp_app_returns_app(self, mcp_app):
         """Test that _build_mcp_app returns an MCP app."""
         assert mcp_app is not None
-        assert hasattr(mcp_app, 'tool')
-        assert hasattr(mcp_app, 'resource')
+        assert hasattr(mcp_app, "tool")
+        assert hasattr(mcp_app, "resource")
 
     def test_mcp_app_has_add_equity_tool(self, mcp_app):
         """Test that MCP app has add_equity_node tool."""
         # Check tools are registered
-        assert hasattr(mcp_app, 'tool')
+        assert hasattr(mcp_app, "tool")
 
 
 class TestAddEquityNode:
@@ -200,12 +201,7 @@ class TestAddEquityNode:
         # Simulate validation
         try:
             equity = Equity(
-                id=asset_id,
-                symbol=symbol,
-                name=name,
-                asset_class=AssetClass.EQUITY,
-                sector=sector,
-                price=price
+                id=asset_id, symbol=symbol, name=name, asset_class=AssetClass.EQUITY, sector=sector, price=price
             )
             assert equity.id == asset_id
             assert equity.symbol == symbol
@@ -225,7 +221,7 @@ class TestAddEquityNode:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=-150.0  # Invalid negative price
+                price=-150.0,  # Invalid negative price
             )
 
     def test_add_equity_node_validation_missing_fields(self):
@@ -234,7 +230,7 @@ class TestAddEquityNode:
             # Missing required fields
             Equity(
                 id="AAPL",
-                symbol="AAPL"
+                symbol="AAPL",
                 # Missing name, asset_class, sector, price
             )
 
@@ -253,18 +249,20 @@ class Test3DLayoutResource:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
         )
 
         # Mock the resource function logic
         positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
-        result = json.dumps({
-            "asset_ids": asset_ids,
-            "positions": positions.tolist(),
-            "colors": colors,
-            "hover": hover,
-        })
+        result = json.dumps(
+            {
+                "asset_ids": asset_ids,
+                "positions": positions.tolist(),
+                "colors": colors,
+                "hover": hover,
+            }
+        )
 
         # Verify it's valid JSON
         data = json.loads(result)
@@ -278,12 +276,14 @@ class Test3DLayoutResource:
         graph = AssetRelationshipGraph()
 
         positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
-        result = json.dumps({
-            "asset_ids": asset_ids,
-            "positions": positions.tolist(),
-            "colors": colors,
-            "hover": hover,
-        })
+        result = json.dumps(
+            {
+                "asset_ids": asset_ids,
+                "positions": positions.tolist(),
+                "colors": colors,
+                "hover": hover,
+            }
+        )
 
         data = json.loads(result)
         # Should handle empty graph gracefully
@@ -299,6 +299,7 @@ class TestMainFunction:
         # Note: This would normally exit, so we can't test directly
         # But we can test argument parsing
         import argparse
+
         parser = argparse.ArgumentParser()
         parser.add_argument("--version", action="store_true")
 
@@ -311,7 +312,7 @@ class TestMainFunction:
 
         assert result == 0
 
-    @patch('mcp_server._build_mcp_app')
+    @patch("mcp_server._build_mcp_app")
     def test_main_missing_dependencies(self, mock_build):
         """Test main handles missing MCP dependencies."""
         mock_build.side_effect = ModuleNotFoundError("mcp.server.fastmcp")
@@ -319,7 +320,7 @@ class TestMainFunction:
         with pytest.raises(SystemExit):
             main([])
 
-    @patch('mcp_server._build_mcp_app')
+    @patch("mcp_server._build_mcp_app")
     def test_main_successful_run(self, mock_build):
         """Test successful main execution."""
         mock_mcp = Mock()
@@ -350,7 +351,7 @@ class TestConcurrentAccess:
                     name=f"Asset {i}",
                     asset_class=AssetClass.EQUITY,
                     sector="Technology",
-                    price=float(100 + i)
+                    price=float(100 + i),
                 )
             )
 
@@ -398,7 +399,7 @@ class TestConcurrentAccess:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
         )
 
@@ -434,7 +435,7 @@ class TestErrorHandling:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
 
     def test_graph_access_after_error(self):
@@ -467,7 +468,7 @@ class TestIntegration:
             sector="Technology",
             price=320.0,
             market_cap=2.3e12,
-            pe_ratio=28.2
+            pe_ratio=28.2,
         )
 
         # Verify properties
@@ -492,7 +493,7 @@ class TestIntegration:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
         )
 
@@ -515,7 +516,7 @@ class TestResourceEndpoints:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
         )
 
@@ -557,7 +558,7 @@ class TestEdgeCases:
                 name="Apple Inc.",
                 asset_class=AssetClass.EQUITY,
                 sector="Technology",
-                price=150.0
+                price=150.0,
             )
         )
 

@@ -10,8 +10,8 @@ Tests cover:
 - Docker commands (structure validation)
 """
 
-import subprocess
 import re
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -50,12 +50,12 @@ class TestMakefileStructure:
         with open(makefile_path, "r") as f:
             lines = f.readlines()
 
-        target_pattern = re.compile(r'^[a-zA-Z_\-]+:.*##.*$')
+        target_pattern = re.compile(r"^[a-zA-Z_\-]+:.*##.*$")
         documented_targets = []
 
         for line in lines:
             if target_pattern.match(line):
-                documented_targets.append(line.split(':')[0])
+                documented_targets.append(line.split(":")[0])
 
         # Should have some documented targets
         assert len(documented_targets) > 0, "No documented targets found"
@@ -67,24 +67,14 @@ class TestMakeHelp:
     @staticmethod
     def test_make_help_command_runs():
         """Test that 'make help' runs without error."""
-        result = subprocess.run(
-            ["make", "help"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "help"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, f"make help failed: {result.stderr}"
 
     @staticmethod
     def test_make_help_output_format():
         """Test that 'make help' output is properly formatted."""
-        result = subprocess.run(
-            ["make", "help"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "help"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0
         output = result.stdout
@@ -95,12 +85,7 @@ class TestMakeHelp:
     @staticmethod
     def test_make_help_lists_targets():
         """Test that 'make help' lists available targets."""
-        result = subprocess.run(
-            ["make", "help"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "help"], capture_output=True, text=True, check=False)
 
         output = result.stdout
 
@@ -117,12 +102,7 @@ class TestMakeInstallTargets:
     @staticmethod
     def test_install_target_exists():
         """Test that 'install' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "install"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "install"], capture_output=True, text=True, check=False)
 
         # -n flag means dry-run, so it should succeed if target exists
         assert result.returncode == 0, "install target not found"
@@ -130,24 +110,14 @@ class TestMakeInstallTargets:
     @staticmethod
     def test_install_dev_target_exists():
         """Test that 'install-dev' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "install-dev"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "install-dev"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, "install-dev target not found"
 
     @staticmethod
     def test_install_commands():
         """Test that install target uses pip install."""
-        result = subprocess.run(
-            ["make", "-n", "install"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "install"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         assert "pip install" in output, "install target doesn't use pip install"
@@ -159,24 +129,14 @@ class TestMakeTestTargets:
     @staticmethod
     def test_test_target_exists():
         """Test that 'test' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "test"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "test"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, "test target not found"
 
     @staticmethod
     def test_test_target_uses_pytest():
         """Test that 'test' target uses pytest."""
-        result = subprocess.run(
-            ["make", "-n", "test"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "test"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         assert "pytest" in output, "test target doesn't use pytest"
@@ -184,12 +144,7 @@ class TestMakeTestTargets:
     @staticmethod
     def test_test_target_includes_coverage():
         """Test that 'test' target includes coverage options."""
-        result = subprocess.run(
-            ["make", "-n", "test"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "test"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         assert "--cov" in output, "test target doesn't include coverage"
@@ -197,12 +152,7 @@ class TestMakeTestTargets:
     @staticmethod
     def test_test_fast_target_exists():
         """Test that 'test-fast' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "test-fast"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "test-fast"], capture_output=True, text=True, check=False)
 
         # Should either succeed or be a valid target
         # May not exist in all Makefiles
@@ -215,24 +165,14 @@ class TestMakeLintTargets:
     @staticmethod
     def test_lint_target_exists():
         """Test that 'lint' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "lint"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "lint"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, "lint target not found"
 
     @staticmethod
     def test_lint_target_uses_linters():
         """Test that 'lint' target uses linting tools."""
-        result = subprocess.run(
-            ["make", "-n", "lint"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "lint"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         linters = ["flake8", "pylint", "ruff"]
@@ -247,24 +187,14 @@ class TestMakeFormatTargets:
     @staticmethod
     def test_format_target_exists():
         """Test that 'format' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "format"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "format"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, "format target not found"
 
     @staticmethod
     def test_format_target_uses_formatters():
         """Test that 'format' target uses formatting tools."""
-        result = subprocess.run(
-            ["make", "-n", "format"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "format"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         formatters = ["black", "ruff"]
@@ -275,12 +205,7 @@ class TestMakeFormatTargets:
     @staticmethod
     def test_format_check_target_exists():
         """Test that 'format-check' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "format-check"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "format-check"], capture_output=True, text=True, check=False)
 
         # Should exist or be a valid variation
         assert result.returncode in [0, 2]
@@ -292,24 +217,14 @@ class TestMakeCleanTargets:
     @staticmethod
     def test_clean_target_exists():
         """Test that 'clean' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "clean"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "clean"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, "clean target not found"
 
     @staticmethod
     def test_clean_target_removes_cache():
         """Test that 'clean' target removes cache directories."""
-        result = subprocess.run(
-            ["make", "-n", "clean"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "clean"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         cache_indicators = ["__pycache__", ".pytest_cache", ".mypy_cache", ".coverage"]
@@ -324,24 +239,14 @@ class TestMakeTypeCheckTargets:
     @staticmethod
     def test_type_check_target_exists():
         """Test that 'type-check' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "type-check"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "type-check"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, "type-check target not found"
 
     @staticmethod
     def test_type_check_uses_mypy():
         """Test that 'type-check' target uses mypy."""
-        result = subprocess.run(
-            ["make", "-n", "type-check"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "type-check"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         assert "mypy" in output, "type-check target doesn't use mypy"
@@ -353,12 +258,7 @@ class TestMakePreCommitTargets:
     @staticmethod
     def test_pre_commit_target_exists():
         """Test that 'pre-commit' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "pre-commit"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "pre-commit"], capture_output=True, text=True, check=False)
 
         # May or may not exist depending on setup
         assert result.returncode in [0, 2]
@@ -366,12 +266,7 @@ class TestMakePreCommitTargets:
     @staticmethod
     def test_pre_commit_run_target_exists():
         """Test that 'pre-commit-run' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "pre-commit-run"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "pre-commit-run"], capture_output=True, text=True, check=False)
 
         # May or may not exist
         assert result.returncode in [0, 2]
@@ -383,24 +278,14 @@ class TestMakeRunTargets:
     @staticmethod
     def test_run_target_exists():
         """Test that 'run' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "run"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "run"], capture_output=True, text=True, check=False)
 
         assert result.returncode == 0, "run target not found"
 
     @staticmethod
     def test_run_target_executes_python():
         """Test that 'run' target executes Python."""
-        result = subprocess.run(
-            ["make", "-n", "run"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "run"], capture_output=True, text=True, check=False)
 
         output = result.stdout + result.stderr
         assert "python" in output.lower(), "run target doesn't execute Python"
@@ -412,12 +297,7 @@ class TestMakeDockerTargets:
     @staticmethod
     def test_docker_build_target_exists():
         """Test that 'docker-build' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "docker-build"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "docker-build"], capture_output=True, text=True, check=False)
 
         # May or may not exist
         assert result.returncode in [0, 2]
@@ -425,12 +305,7 @@ class TestMakeDockerTargets:
     @staticmethod
     def test_docker_run_target_exists():
         """Test that 'docker-run' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "docker-run"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "docker-run"], capture_output=True, text=True, check=False)
 
         # May or may not exist
         assert result.returncode in [0, 2]
@@ -438,12 +313,7 @@ class TestMakeDockerTargets:
     @staticmethod
     def test_docker_targets_use_docker_commands():
         """Test that Docker targets use docker commands."""
-        result = subprocess.run(
-            ["make", "-n", "docker-build"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "docker-build"], capture_output=True, text=True, check=False)
 
         if result.returncode == 0:
             output = result.stdout + result.stderr
@@ -456,12 +326,7 @@ class TestMakeCheckTarget:
     @staticmethod
     def test_check_target_exists():
         """Test that 'check' target exists."""
-        result = subprocess.run(
-            ["make", "-n", "check"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "check"], capture_output=True, text=True, check=False)
 
         # May or may not exist
         assert result.returncode in [0, 2]
@@ -469,12 +334,7 @@ class TestMakeCheckTarget:
     @staticmethod
     def test_check_target_runs_multiple_checks():
         """Test that 'check' target runs multiple validations."""
-        result = subprocess.run(
-            ["make", "-n", "check"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "check"], capture_output=True, text=True, check=False)
 
         if result.returncode == 0:
             output = result.stdout + result.stderr
@@ -490,24 +350,14 @@ class TestMakefileEdgeCases:
     @staticmethod
     def test_invalid_target_returns_error():
         """Test that invalid target returns non-zero exit code."""
-        result = subprocess.run(
-            ["make", "nonexistent-target-12345"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "nonexistent-target-12345"], capture_output=True, text=True, check=False)
 
         assert result.returncode != 0, "Invalid target should return error"
 
     @staticmethod
     def test_make_without_arguments():
         """Test running make without arguments."""
-        result = subprocess.run(
-            ["make"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make"], capture_output=True, text=True, check=False)
 
         # Should either run default target or show error
         # Both are acceptable behaviors
@@ -516,12 +366,7 @@ class TestMakefileEdgeCases:
     @staticmethod
     def test_multiple_targets_sequential():
         """Test that multiple targets can be specified."""
-        result = subprocess.run(
-            ["make", "-n", "clean", "install"],
-            capture_output=True,
-            text=True,
-            check=False
-        )
+        result = subprocess.run(["make", "-n", "clean", "install"], capture_output=True, text=True, check=False)
 
         # Should process both targets
         output = result.stdout + result.stderr
@@ -540,8 +385,8 @@ class TestMakefileDocumentation:
             content = f.read()
 
         # Look for ## comments (help strings)
-        help_pattern = re.compile(r'.*:.*##.*')
-        help_lines = [line for line in content.split('\n') if help_pattern.match(line)]
+        help_pattern = re.compile(r".*:.*##.*")
+        help_lines = [line for line in content.split("\n") if help_pattern.match(line)]
 
         # Should have at least some documented targets
         assert len(help_lines) >= 5, "Not enough targets have help documentation"
@@ -553,11 +398,11 @@ class TestMakefileDocumentation:
         with open(makefile_path, "r") as f:
             lines = f.readlines()
 
-        help_lines = [line for line in lines if '##' in line and ':' in line]
+        help_lines = [line for line in lines if "##" in line and ":" in line]
 
         for line in help_lines:
             # Help string should be after ##
-            parts = line.split('##')
+            parts = line.split("##")
             if len(parts) >= 2:
                 help_text = parts[1].strip()
                 # Should not be empty
@@ -575,15 +420,14 @@ class TestMakefileConsistency:
             content = f.read()
 
         # Extract .PHONY declaration
-        phony_match = re.search(r'\.PHONY:\s*(.+)', content)
+        phony_match = re.search(r"\.PHONY:\s*(.+)", content)
         if phony_match:
             phony_targets = phony_match.group(1).split()
 
             # Check each phony target is defined
             for target in phony_targets:
-                pattern = rf'^{re.escape(target)}:'
-                assert re.search(pattern, content, re.MULTILINE), \
-                    f"PHONY target '{target}' not defined in Makefile"
+                pattern = rf"^{re.escape(target)}:"
+                assert re.search(pattern, content, re.MULTILINE), f"PHONY target '{target}' not defined in Makefile"
 
     @staticmethod
     def test_no_hardcoded_python_version():
@@ -594,7 +438,7 @@ class TestMakefileConsistency:
 
         # Should use 'python' not 'python3.8' or similar
         # This makes the Makefile more portable
-        hardcoded_versions = re.findall(r'python3\.\d+', content)
+        hardcoded_versions = re.findall(r"python3\.\d+", content)
 
         # Some hardcoding might be acceptable in comments
         # Just ensure it's not excessive
