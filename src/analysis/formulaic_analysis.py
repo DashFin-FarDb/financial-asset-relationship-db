@@ -42,7 +42,6 @@ class Formula:
     def expression(self, value: str) -> None:
         self.formula = value
 
-
     def __init__(self, *args, formula: str | None = None, expression: str | None = None, **kwargs):
         if formula is not None and expression is not None:
             raise ValueError("Provide only one of `formula` or `expression`.")
