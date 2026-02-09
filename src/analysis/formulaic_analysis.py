@@ -433,10 +433,18 @@ class FormulaicAnalyzer:
     ) -> float:
         """Calculate average correlation from empirical data"""
         correlations = empirical_relationships.get("correlation_matrix", {})
-        if correlations:
-            valid_correlations = [v for v in correlations.values() if v < 1.0]
-            return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
-        return 0.5
+        if not correlations:
+            return 0.5
+
+        values: list[float] = []
+        for v in correlations.values():
+            if isinstance(v, dict):
+                values.extend(val for val in v.values() if isinstance(val, (int, float)))
+            elif isinstance(v, (int, float)):
+                values.append(float(v))
+
+        valid_correlations = [val for val in values if val < 1.0]
+        return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
 
     @staticmethod
     def _has_equities(graph: AssetRelationshipGraph) -> bool:
