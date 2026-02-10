@@ -257,7 +257,25 @@ export default function AssetList() {
     }
     return (
       <div
-        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "assets",
+}: AssetListStatusProps) => {
+  if (!loading && !error) {
+    return null;
+  }
+  return (
+    <div
+      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+    >
+      {loading 
+        ? `Loading results for ${querySummary}...`
+        : `Error: ${error}`
+      }
+    </div>
+  );
+};
       >
         {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
       </div>
