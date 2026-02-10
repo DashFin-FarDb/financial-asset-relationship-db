@@ -334,10 +334,7 @@ class TestSystemManifest:
         assert len(name) > 0, "Project name should not be empty"
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
-        """
-      Verify the system manifest contains a project description entry formatted as '- Description: <text>'.
-        """
-        """
+        """Verify the system manifest contains a project description entry formatted as '- Description: <text>'."""
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
         match = re.search(pattern, system_manifest_content)
