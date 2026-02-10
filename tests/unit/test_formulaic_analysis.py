@@ -27,7 +27,6 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-pytestmark = pytest.mark.unit
 
 
 @pytest.mark.unit
