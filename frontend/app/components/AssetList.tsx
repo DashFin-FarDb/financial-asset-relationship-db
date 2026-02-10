@@ -173,7 +173,7 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    void fetchAssets();
+    fetchAssets();
   }, [fetchAssets]);
 
   /**
@@ -260,6 +260,11 @@ export default function AssetList() {
     );
   };
 
+  // Extracted component to handle table container and reduce nesting depth
+  const AssetTable = ({ children }: { children: React.ReactNode }) => {
+    return <div className="overflow-x-auto">{children}</div>;
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -286,7 +291,7 @@ export default function AssetList() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <AssetListStatus loading={loading} error={error} />
 
-        <div className="overflow-x-auto">
+        <AssetTable>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
