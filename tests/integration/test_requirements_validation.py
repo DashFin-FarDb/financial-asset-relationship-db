@@ -4,8 +4,8 @@ Validation tests for requirements changes.
 
 from __future__ import annotations
 
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -45,7 +45,9 @@ class TestRequirementsDevChanges:
             for line in lines
             if "pyyaml" in line.lower() and not line.lstrip().startswith("#")
         ]
-        assert pyyaml_lines, "No active PyYAML requirement found in requirements-dev.txt"
+        assert pyyaml_lines, (
+            "No active PyYAML requirement found in requirements-dev.txt"
+        )
         assert len(pyyaml_lines) == 1, (
             f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         )
@@ -158,9 +160,7 @@ class TestRequirementsInstallability:
         )
 
         assert result.returncode == 0, (
-            "pip dry-run failed.\n"
-            f"stdout:\n{result.stdout}\n\n"
-            f"stderr:\n{result.stderr}"
+            f"pip dry-run failed.\nstdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
         )
 
 
@@ -193,4 +193,6 @@ class TestRequirementsDocumentation:
                 ), "PyYAML should have an explanatory comment nearby"
                 break
         else:
-            pytest.skip("No active PyYAML entry found to validate documentation context")
+            pytest.skip(
+                "No active PyYAML entry found to validate documentation context"
+            )
