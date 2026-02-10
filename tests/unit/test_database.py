@@ -261,6 +261,7 @@ class TestSessionScope:
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model representing the 'test_commit' table with columns 'id' and 'value' used for commit testing."""
+
             __tablename__ = "test_commit"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -283,6 +284,7 @@ class TestSessionScope:
             """
             A SQLAlchemy model for testing that session_scope rolls back on exceptions.
             """
+
             __tablename__ = "test_rollback"
             id = Column(Integer, primary_key=True)
 
@@ -301,6 +303,7 @@ class TestSessionScope:
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model used in tests to trigger and verify database integrity errors."""
+
             __tablename__ = "test_integrity"
             id = Column(Integer, primary_key=True)
 
@@ -318,6 +321,7 @@ class TestSessionScope:
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """ORM model for the 'test_nested' table used in nested operations commit tests."""
+
             __tablename__ = "test_nested"
             id = Column(Integer, primary_key=True)
             value = Column(String)
