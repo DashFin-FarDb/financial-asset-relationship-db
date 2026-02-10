@@ -373,6 +373,7 @@ def test_env_example_no_real_secrets(env_example_content):
 @pytest.mark.unit
 """Unit tests for .gitignore configuration validation."""
 
+
 class TestGitignore:
     """Test cases for .gitignore configuration."""
 
