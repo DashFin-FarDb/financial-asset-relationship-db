@@ -15,7 +15,6 @@ from pathlib import Path
 
 import pytest
 
-
 class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
@@ -38,7 +37,6 @@ class TestDependencyMatrix:
 
         Returns:
             The contents of the dependencyMatrix.md file as a string.
-        """
 
         Raises:
             AssertionError: If `dependency_matrix_path` does not exist.
