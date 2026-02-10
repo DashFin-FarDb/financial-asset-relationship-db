@@ -330,28 +330,30 @@ class TestEnvExample:
         with open(config_path) as f:
             return f.read()
 
-@staticmethod
 
+@staticmethod
 def test_env_example_exists():
     """Test that .env.example exists."""
     config_path = Path(".env.example")
     assert config_path.exists()
 
-@staticmethod
 
+@staticmethod
 def test_env_example_has_api_url(env_example_content):
     """Test that NEXT_PUBLIC_API_URL is documented."""
     assert "NEXT_PUBLIC_API_URL" in env_example_content
 
-@staticmethod
 
+@staticmethod
 def test_env_example_has_cors_config(env_example_content):
     """Test that CORS configuration is documented."""
     assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
+
 def test_env_example_has_comments(self, env_example_content):
     """Test that .env.example has helpful comments."""
     assert "#" in env_example_content
+
 
 def test_env_example_no_real_secrets(env_example_content):
     """Test that .env.example does not contain real secrets."""
@@ -501,6 +503,7 @@ class TestConfigurationConsistency:
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
+
         @staticmethod
         def test_env_and_next_config():
             """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
