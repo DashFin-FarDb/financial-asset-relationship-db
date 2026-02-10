@@ -27,7 +27,6 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-
 @pytest.mark.unit
 class TestFormula:
     """Test the Formula dataclass."""
