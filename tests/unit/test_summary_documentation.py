@@ -27,7 +27,6 @@ class TestEnhancedTestSummary:
     def summary_path(self):
         """
         Provide the path to the enhanced test summary file.
-        """
 
         Returns:
             Path: Path to "ENHANCED_TEST_SUMMARY.md".
