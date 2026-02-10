@@ -1,6 +1,4 @@
-"""
-Validation tests for requirements changes.
-"""
+"""Validation tests for requirements changes."""
 
 from __future__ import annotations
 
@@ -164,11 +162,18 @@ class TestRequirementsInstallability:
         )
 
 
+"""Test module for validating documentation in requirements-dev.txt.
+
+This module contains integration tests that ensure the development requirements
+file includes helpful comments and properly documents the purpose of key dependencies.
+"""
+
 class TestRequirementsDocumentation:
     """Documentation expectations for requirements-dev.txt."""
 
     @staticmethod
     def test_requirements_has_helpful_comments() -> None:
+        """Ensure that requirements-dev.txt contains explanatory comment lines."""
         req_dev_path = Path("requirements-dev.txt")
         if not req_dev_path.exists():
             pytest.skip("requirements-dev.txt not found")
@@ -179,6 +184,7 @@ class TestRequirementsDocumentation:
 
     @staticmethod
     def test_pyyaml_purpose_documented() -> None:
+        """Verify that PyYAML entry in requirements-dev.txt has an explanatory comment nearby."""
         req_dev_path = Path("requirements-dev.txt")
         if not req_dev_path.exists():
             pytest.skip("requirements-dev.txt not found")
