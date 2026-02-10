@@ -269,7 +269,7 @@ const AssetListStatus = ({
     <div
       className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
     >
-      {loading 
+      {loading
         ? `Loading results for ${querySummary}...`
         : `Error: ${error}`
       }
