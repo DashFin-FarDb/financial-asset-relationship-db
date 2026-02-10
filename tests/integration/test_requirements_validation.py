@@ -176,7 +176,7 @@ class TestRequirementsInstallability:
         result = subprocess.run(
         result=subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
-            capture_output=True,
+        Verify that requirements-dev.txt contains at least one comment line.
             text=True
         # Should not have syntax errors
         has_error = "error" in result.stderr.lower()
