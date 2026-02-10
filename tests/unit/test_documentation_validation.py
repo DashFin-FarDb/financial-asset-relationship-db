@@ -83,7 +83,9 @@ class TestDependencyMatrix:
             dependency_matrix_content(str): The full text content of dependencyMatrix.md to be inspected.
         """
         # Look for: *Generated: 2025-11-07T18:22:38.791Z*
-        timestamp_pattern = r"\*Generated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\*"
+        timestamp_pattern = (
+            r"\*Generated: (\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z)\*"
+        )
         match = re.search(timestamp_pattern, dependency_matrix_content)
 
         assert match is not None, "Generated timestamp not found"
@@ -127,11 +129,13 @@ class TestDependencyMatrix:
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
         found_types = set(file_types)
-        assert found_types.issubset(
-            expected_types | {"jsx", "json", "md"}
-        ), f"Unexpected file types: {found_types - expected_types}"
+        assert found_types.issubset(expected_types | {"jsx", "json", "md"}), (
+            f"Unexpected file types: {found_types - expected_types}"
+        )
 
-    def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
+    def test_dependency_matrix_has_file_type_distribution(
+        self, dependency_matrix_content
+    ):
         """Test that dependencyMatrix.md has File Type Distribution section."""
         assert "## File Type Distribution" in dependency_matrix_content
 
@@ -149,12 +153,18 @@ class TestDependencyMatrix:
 
         # Extract individual file type counts
         distribution_pattern = r"- (\d+) (\w+) files"
-        distribution_matches = re.findall(distribution_pattern, dependency_matrix_content)
+        distribution_matches = re.findall(
+            distribution_pattern, dependency_matrix_content
+        )
 
         sum_counts = sum(int(count) for count, _ in distribution_matches)
-        assert sum_counts == total_count, f"Sum of file type counts ({sum_counts}) doesn't match total ({total_count})"
+        assert sum_counts == total_count, (
+            f"Sum of file type counts ({sum_counts}) doesn't match total ({total_count})"
+        )
 
-    def test_dependency_matrix_has_key_dependencies_section(self, dependency_matrix_content):
+    def test_dependency_matrix_has_key_dependencies_section(
+        self, dependency_matrix_content
+    ):
         """Test that dependencyMatrix.md has Key Dependencies by Type section."""
         assert "## Key Dependencies by Type" in dependency_matrix_content
 
@@ -171,7 +181,11 @@ class TestDependencyMatrix:
         # Check for at least some of the main language sections
         language_sections = ["### PY", "### JS", "### TS", "### TSX"]
 
-        found_sections = [section for section in language_sections if section in dependency_matrix_content]
+        found_sections = [
+            section
+            for section in language_sections
+            if section in dependency_matrix_content
+        ]
 
         assert len(found_sections) > 0, "No language dependency sections found"
 
@@ -195,9 +209,13 @@ class TestDependencyMatrix:
                 lines = content.split("\n")
                 for line in lines:
                     if line.strip():
-                        assert line.strip().startswith("-"), f"Dependency line should start with '-': {line}"
+                        assert line.strip().startswith("-"), (
+                            f"Dependency line should start with '-': {line}"
+                        )
 
-    def test_dependency_matrix_no_empty_dependency_sections(self, dependency_matrix_content):
+    def test_dependency_matrix_no_empty_dependency_sections(
+        self, dependency_matrix_content
+    ):
         """
         Ensure each "Top dependencies:" section in the dependency matrix contains non - empty content.
 
@@ -232,7 +250,9 @@ class TestDependencyMatrix:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content:  # Not just hashes
-                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), (
+                            f"Line {i + 1}: Heading should have space after #: {line}"
+                        )
 
 
 class TestSystemManifest:
@@ -387,13 +407,21 @@ class TestSystemManifest:
         """Test that directory structure uses proper emoji formatting."""
         # Look for directory structure section
         if "## Project Directory Structure" in system_manifest_content:
-            structure_section = system_manifest_content.split("## Project Directory Structure")[1]
-            structure_section = structure_section.split("##")[0]  # Get until next section
+            structure_section = system_manifest_content.split(
+                "## Project Directory Structure"
+            )[1]
+            structure_section = structure_section.split("##")[
+                0
+            ]  # Get until next section
 
-            assert "📂" in structure_section, "Directory entries should include the 📂 emoji"
+            assert "📂" in structure_section, (
+                "Directory entries should include the 📂 emoji"
+            )
             assert "📄" in structure_section, "File entries should include the 📄 emoji"
 
-    def test_system_manifest_has_language_dependency_sections(self, system_manifest_content):
+    def test_system_manifest_has_language_dependency_sections(
+        self, system_manifest_content
+    ):
         """Test that systemManifest.md has language - specific dependency sections."""
         expected_sections = [
             "## PY Dependencies",
@@ -402,7 +430,9 @@ class TestSystemManifest:
             "## TSX Dependencies",
         ]
 
-        found = sum(1 for section in expected_sections if section in system_manifest_content)
+        found = sum(
+            1 for section in expected_sections if section in system_manifest_content
+        )
         assert found > 0, "No language-specific dependency sections found"
 
     def test_system_manifest_file_dependency_format(self, system_manifest_content):
@@ -422,9 +452,13 @@ class TestSystemManifest:
         if matches:
             for match in matches[:10]:  # Check first 10 for performance
                 # Should have proper path separators
-                assert "\\" in match or "/" in match, f"File path should have proper separators: {match}"
+                assert "\\" in match or "/" in match, (
+                    f"File path should have proper separators: {match}"
+                )
 
-    def test_system_manifest_dependency_entries_have_content(self, system_manifest_content):
+    def test_system_manifest_dependency_entries_have_content(
+        self, system_manifest_content
+    ):
         """
         Verify each file section in the system manifest contains dependency information or an explicit absence message.
 
@@ -439,12 +473,14 @@ class TestSystemManifest:
         for section in sections[1:20]:  # Check first 20 file sections
             # Should have either "Dependencies:" or "No dependencies found"
             if section.strip():
-                has_deps = "Dependencies:" in section or "No dependencies found" in section
+                has_deps = (
+                    "Dependencies:" in section or "No dependencies found" in section
+                )
                 # Allow for section headers without file content
                 if not section.startswith("#"):
-                    assert has_deps or section.strip().startswith(
-                        "\\"
-                    ), "File section should have dependency information"
+                    assert has_deps or section.strip().startswith("\\"), (
+                        "File section should have dependency information"
+                    )
 
     def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
         """Test that there are no duplicate major sections."""
@@ -476,7 +512,9 @@ class TestSystemManifest:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content and not content.startswith("#"):  # Not more hashes
-                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), (
+                            f"Line {i + 1}: Heading should have space after #: {line}"
+                        )
 
 
 class TestDocumentationConsistency:
@@ -506,7 +544,9 @@ class TestDocumentationConsistency:
         with open(path, encoding="utf-8") as f:
             return f.read()
 
-    def test_file_counts_match_between_documents(self, dependency_matrix_content, system_manifest_content):
+    def test_file_counts_match_between_documents(
+        self, dependency_matrix_content, system_manifest_content
+    ):
         """
         Verify that per - type file counts are equal between dependencyMatrix.md and the System Manifest's Project Structure section.
 
@@ -521,15 +561,23 @@ class TestDocumentationConsistency:
         """
         # Extract file counts from dependency matrix
         dm_pattern = r"- (\d+) (\w+) files"
-        dm_counts = {file_type: int(count) for count, file_type in re.findall(dm_pattern, dependency_matrix_content)}
+        dm_counts = {
+            file_type: int(count)
+            for count, file_type in re.findall(dm_pattern, dependency_matrix_content)
+        }
 
         # Extract file counts from system manifest (first occurrence in Project Structure)
         # Extract file counts from system manifest (first occurrence in Project Structure)
-        assert (
-            "## Project Structure" in system_manifest_content
-        ), "## Project Structure section not found in system manifest"
-        sm_content = system_manifest_content.split("## Project Structure")[1].split("##")[0]
-        sm_counts = {file_type: int(count) for count, file_type in re.findall(dm_pattern, sm_content)}
+        assert "## Project Structure" in system_manifest_content, (
+            "## Project Structure section not found in system manifest"
+        )
+        sm_content = system_manifest_content.split("## Project Structure")[1].split(
+            "##"
+        )[0]
+        sm_counts = {
+            file_type: int(count)
+            for count, file_type in re.findall(dm_pattern, sm_content)
+        }
 
         # Compare counts for each file type
         for file_type in dm_counts:
@@ -540,7 +588,9 @@ class TestDocumentationConsistency:
                     f"systemManifest={sm_counts[file_type]}"
                 )
 
-    def test_file_types_match_between_documents(self, dependency_matrix_content, system_manifest_content):
+    def test_file_types_match_between_documents(
+        self, dependency_matrix_content, system_manifest_content
+    ):
         """
         Verify that the set of file types listed in the dependency matrix matches the set reported in the system manifest.
 
@@ -553,13 +603,19 @@ class TestDocumentationConsistency:
 
         # Extract file types from system manifest Project Structure
         sm_pattern = r"- \d+ (\w+) files"
-        sm_content = system_manifest_content.split("## Project Structure")[1].split("##")[0]
+        sm_content = system_manifest_content.split("## Project Structure")[1].split(
+            "##"
+        )[0]
         sm_types = set(re.findall(sm_pattern, sm_content))
 
         # Types should match
-        assert dm_types == sm_types, f"File types mismatch: dependencyMatrix={dm_types}, systemManifest={sm_types}"
+        assert dm_types == sm_types, (
+            f"File types mismatch: dependencyMatrix={dm_types}, systemManifest={sm_types}"
+        )
 
-    def test_timestamps_are_recent(self, dependency_matrix_content, system_manifest_content):
+    def test_timestamps_are_recent(
+        self, dependency_matrix_content, system_manifest_content
+    ):
         """
         Ensure timestamps in dependencyMatrix.md and systemManifest.md are not older than one year.
 
@@ -582,20 +638,28 @@ class TestDocumentationConsistency:
             sm_time = datetime.fromisoformat(sm_match.group(1).replace("Z", "+00:00"))
             assert sm_time > one_year_ago, "systemManifest timestamp is too old"
 
-    def test_common_dependencies_consistency(self, dependency_matrix_content, system_manifest_content):
+    def test_common_dependencies_consistency(
+        self, dependency_matrix_content, system_manifest_content
+    ):
         """Test that common dependencies mentioned in both files are consistent."""
         # Extract common dependencies from dependency matrix
         dm_deps = set()
         for match in re.finditer(r"^- (.+)$", dependency_matrix_content, re.MULTILINE):
             dep = match.group(1).strip()
-            if dep and not dep.startswith("Files analyzed") and not dep.startswith("File types"):
+            if (
+                dep
+                and not dep.startswith("Files analyzed")
+                and not dep.startswith("File types")
+            ):
                 dm_deps.add(dep)
 
         # Extract dependencies from system manifest
         sm_deps = set()
         for match in re.finditer(r"^- (.+)$", system_manifest_content, re.MULTILINE):
             dep = match.group(1).strip()
-            if dep and not any(x in dep for x in ["files", "Created:", "Last Updated:"]):
+            if dep and not any(
+                x in dep for x in ["files", "Created:", "Last Updated:"]
+            ):
                 sm_deps.add(dep)
 
         # Check for common popular dependencies
@@ -606,7 +670,8 @@ class TestDocumentationConsistency:
             # If one has it, both should (or neither)
             if dm_has or sm_has:
                 assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: " f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
+                    f"Dependency '{dep}' inconsistently present: "
+                    f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
                 )
 
 
@@ -647,7 +712,9 @@ class TestDocumentationRealisticContent:
             if any(x in unix_path for x in ["...", "test_", "__tests__"]):
                 continue
 
-            assert check_path.exists() or "..." in file_path, f"File mentioned in manifest doesn't exist: {unix_path}"
+            assert check_path.exists() or "..." in file_path, (
+                f"File mentioned in manifest doesn't exist: {unix_path}"
+            )
 
     def test_documented_file_counts_reasonable(self):
         """Test that documented file counts are reasonable for the project."""
@@ -661,7 +728,9 @@ class TestDocumentationRealisticContent:
         total_files = int(match.group(1))
 
         # Should be a reasonable number for a real project
-        assert 10 <= total_files <= 10000, f"Total files ({total_files}) seems unrealistic"
+        assert 10 <= total_files <= 10000, (
+            f"Total files ({total_files}) seems unrealistic"
+        )
 
     def test_documented_dependencies_are_real_packages(self):
         """
@@ -688,4 +757,6 @@ class TestDocumentationRealisticContent:
                 # Package names shouldn't have spaces
                 if " " not in dep:
                     # Valid package name format
-                    assert re.match(r"^[@\w\.\-/]+$", dep), f"Dependency '{dep}' doesn't look like a valid package name"
+                    assert re.match(r"^[@\w\.\-/]+$", dep), (
+                        f"Dependency '{dep}' doesn't look like a valid package name"
+                    )
