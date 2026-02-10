@@ -173,7 +173,6 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-
     let cancelled = false;
     void fetchAssets().catch((err) => {
       if (cancelled) return;
