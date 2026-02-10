@@ -1345,9 +1345,9 @@ class TestDataFetcherConsistency:
 
         # At least some events should reference known symbols
         referenced_assets = {event.asset_id for event in events}
-        assert any(
-            asset_id in known_symbols for asset_id in referenced_assets
-        ), "Events should reference known asset IDs"
+        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
+            "Events should reference known asset IDs"
+        )
 
 
 @pytest.mark.unit

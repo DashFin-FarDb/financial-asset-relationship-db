@@ -886,7 +886,9 @@ class TestAPIRateLimiting:
     """Test API rate limiting and throttling behavior."""
 
     @patch("api.main.graph")
-    def test_rapid_successive_requests_handled(self, mock_graph_instance, client, mock_graph):
+    def test_rapid_successive_requests_handled(
+        self, mock_graph_instance, client, mock_graph
+    ):
         """Test that rapid successive requests are handled correctly."""
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
@@ -906,7 +908,9 @@ class TestAPIRateLimiting:
             assert response.status_code == 200
 
     @patch("api.main.graph")
-    def test_mixed_endpoint_concurrent_access(self, mock_graph_instance, client, mock_graph):
+    def test_mixed_endpoint_concurrent_access(
+        self, mock_graph_instance, client, mock_graph
+    ):
         """Test concurrent access to different endpoints."""
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
@@ -996,7 +1000,9 @@ class TestAPIDataValidation:
         assert isinstance(data, list)
 
     @patch("api.main.graph")
-    def test_filter_with_special_characters(self, mock_graph_instance, client, mock_graph):
+    def test_filter_with_special_characters(
+        self, mock_graph_instance, client, mock_graph
+    ):
         """Test filtering with special characters in query."""
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
