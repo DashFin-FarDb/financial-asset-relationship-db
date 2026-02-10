@@ -324,8 +324,7 @@ class TestEnvExample:
         with open(config_path) as f:
             return f.read()
 
-    @staticmethod
-    def test_env_example_exists():
+    def test_env_example_exists(self):
         """Test that .env.example exists."""
         config_path = Path(".env.example")
         assert config_path.exists()
