@@ -973,7 +973,6 @@ class TestAPISecurityRegression:
     @staticmethod
     def test_cors_rejects_javascript_protocol():
         """Regression: Ensure javascript: protocol is rejected."""
-
         assert validate_origin("javascript:alert(1)") is False
         assert validate_origin("javascript://example.com") is False
 
@@ -985,7 +984,6 @@ class TestAPISecurityRegression:
     @staticmethod
     def test_cors_rejects_malformed_urls():
         """Regression: Ensure malformed URLs are rejected."""
-
         assert validate_origin("ht tp://example.com") is False
         assert validate_origin("https://") is False
         assert validate_origin("https://..com") is False
@@ -1020,7 +1018,6 @@ class TestAPIBoundaryConditions:
     @patch("api.main.graph")
     def test_api_handles_extremely_large_graph(mock_graph_instance, client):
         """Boundary: API should handle graphs with many assets."""
-
         large_graph = AssetRelationshipGraph()
 
         # Create 1000 assets
@@ -1085,14 +1082,12 @@ class TestNegativeScenarios:
     @staticmethod
     def test_validate_origin_with_null_bytes():
         """Negative: Origin with null bytes should be rejected."""
-
         assert validate_origin("https://evil\x00.com") is False
         assert validate_origin("https://example.com\x00") is False
 
     @staticmethod
     def test_validate_origin_with_unicode_domain():
         """Negative: Test handling of internationalized domain names."""
-
         # Punycode domains should work with https
         result = validate_origin("https://münchen.de")
         # Implementation-dependent: either accepts or rejects consistently
@@ -1102,7 +1097,6 @@ class TestNegativeScenarios:
     @patch("api.main.graph")
     def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
         """Negative: Metrics with empty graph should not cause division by zero."""
-
         empty_graph = AssetRelationshipGraph()
         mock_graph_instance.assets = empty_graph.assets
         mock_graph_instance.relationships = empty_graph.relationships
