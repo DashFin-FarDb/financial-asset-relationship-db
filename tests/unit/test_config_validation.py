@@ -577,8 +577,6 @@ class TestConfigurationSecurityNegative:
             "prod_",
         ]
 
-        import re
-
         for pattern in suspicious_patterns:
             matches = re.findall(pattern, content)
             # If found, ensure they're in comments or placeholders

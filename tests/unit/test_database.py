@@ -376,7 +376,6 @@ class TestEdgeCases:
     def test_create_engine_with_none(self):
         """None should fall back to default."""
         engine = create_engine_from_url(None)
-        """None should fall back to default."""
         engine = create_engine_from_url(None)
         assert engine is not None
 
@@ -405,7 +404,6 @@ class TestConnectionPooling:
         Session = sessionmaker(bind=engine)
 
         # Create a test table
-        from sqlalchemy import Column, Integer, String
 
         class TestTable(Base):
             """Test table for connection pooling validation."""
@@ -620,12 +618,11 @@ class TestDatabaseErrorRecovery:
         factory = create_session_factory(engine)
 
         # Insert duplicate IDs to cause integrity error
-        with pytest.raises(IntegrityError):
-            with session_scope(factory) as session:
-                session.add(TestModel(id=1))
-                session.flush()
-                session.add(TestModel(id=1))  # Duplicate
-                # Commit will fail
+        with pytest.raises(IntegrityError), session_scope(factory) as session:
+            session.add(TestModel(id=1))
+            session.flush()
+            session.add(TestModel(id=1))  # Duplicate
+            # Commit will fail
 
         # Database should be in consistent state
         with session_scope(factory) as session:
@@ -663,11 +660,10 @@ class TestResourceCleanup:
         """Session should be closed even when exception occurs."""
         factory = create_session_factory(engine)
 
-        with pytest.raises(RuntimeError):
-            with session_scope(factory) as session:
-                # Verify session is active
-                assert session.is_active
-                raise RuntimeError("Test error")
+        with pytest.raises(RuntimeError), session_scope(factory) as session:
+            # Verify session is active
+            assert session.is_active
+            raise RuntimeError("Test error")
 
         # Session should be closed after context exit
         # (can't directly test this without accessing internal state)

@@ -973,22 +973,18 @@ class TestAPISecurityRegression:
     @staticmethod
     def test_cors_rejects_javascript_protocol():
         """Regression: Ensure javascript: protocol is rejected."""
-        from api.main import validate_origin
-
+        
         assert validate_origin("javascript:alert(1)") is False
         assert validate_origin("javascript://example.com") is False
 
     @staticmethod
     def test_cors_rejects_data_urls():
         """Regression: Ensure data: URLs are rejected."""
-        from api.main import validate_origin
-
         assert validate_origin("data:text/html,<script>alert(1)</script>") is False
 
     @staticmethod
     def test_cors_rejects_malformed_urls():
         """Regression: Ensure malformed URLs are rejected."""
-        from api.main import validate_origin
 
         assert validate_origin("ht tp://example.com") is False
         assert validate_origin("https://") is False
@@ -1024,7 +1020,6 @@ class TestAPIBoundaryConditions:
     @patch("api.main.graph")
     def test_api_handles_extremely_large_graph(mock_graph_instance, client):
         """Boundary: API should handle graphs with many assets."""
-        from src.logic.asset_graph import AssetRelationshipGraph
 
         large_graph = AssetRelationshipGraph()
 
@@ -1056,8 +1051,6 @@ class TestAPIBoundaryConditions:
     @patch("api.main.graph")
     def test_api_handles_asset_with_none_values(mock_graph_instance, client):
         """Boundary: API should handle assets with None optional fields."""
-        from src.logic.asset_graph import AssetRelationshipGraph
-
         graph = AssetRelationshipGraph()
 
         # Create equity with minimal fields (many None values)
@@ -1092,7 +1085,6 @@ class TestNegativeScenarios:
     @staticmethod
     def test_validate_origin_with_null_bytes():
         """Negative: Origin with null bytes should be rejected."""
-        from api.main import validate_origin
 
         assert validate_origin("https://evil\x00.com") is False
         assert validate_origin("https://example.com\x00") is False
@@ -1100,7 +1092,6 @@ class TestNegativeScenarios:
     @staticmethod
     def test_validate_origin_with_unicode_domain():
         """Negative: Test handling of internationalized domain names."""
-        from api.main import validate_origin
 
         # Punycode domains should work with https
         result = validate_origin("https://münchen.de")
@@ -1111,7 +1102,6 @@ class TestNegativeScenarios:
     @patch("api.main.graph")
     def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
         """Negative: Metrics with empty graph should not cause division by zero."""
-        from src.logic.asset_graph import AssetRelationshipGraph
 
         empty_graph = AssetRelationshipGraph()
         mock_graph_instance.assets = empty_graph.assets

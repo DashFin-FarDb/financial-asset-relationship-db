@@ -236,7 +236,6 @@ class TestAPIEndpoints:
 
     def test_root_endpoint(self, client):
         """Test the root endpoint returns API information."""
-
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
@@ -247,7 +246,6 @@ class TestAPIEndpoints:
 
     def test_health_check_endpoint(self, client):
         """Test the health check endpoint."""
-
         response = client.get("/api/health")
         assert response.status_code == 200
         data = response.json()
@@ -255,7 +253,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_all(self, client):
         """Test getting all assets without filters."""
-
         response = client.get("/api/assets")
         assert response.status_code == 200
         assets = response.json()
@@ -273,7 +270,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_filter_by_class(self, client):
         """Test filtering assets by asset class."""
-
         response = client.get("/api/assets?asset_class=EQUITY")
         assert response.status_code == 200
         assets = response.json()
@@ -547,7 +543,6 @@ class TestErrorHandling:
     @patch("api.main.graph")
     def test_get_assets_server_error(self, mock_graph_instance, client):
         """Test that server errors are handled gracefully."""
-
         # Make graph.assets raise exception
         def raise_database_error(self):
             """Function to raise a database exception for testing."""
@@ -800,10 +795,6 @@ class TestIntegrationScenarios:
         assert len(tech_equity_assets) <= len(equity_assets)
 
 
-if __name__ == "__main__":
-    assert len(tech_equity_assets) <= len(equity_assets)
-
-
 @pytest.mark.unit
 class TestGraphInitializationRaceConditions:
     """Test race conditions and thread safety in graph initialization."""
@@ -880,7 +871,6 @@ class TestGraphInitializationRaceConditions:
             graph = api_main.get_graph()
             assert graph is not None
             api_main.reset_graph()
-            del graph
             gc.collect()
 
         # Final initialization should still work
