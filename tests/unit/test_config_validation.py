@@ -316,9 +316,12 @@ class TestTailwindConfig:
 class TestEnvExample:
     """Test cases for .env.example file."""
 
+
     @staticmethod
     @pytest.fixture
     def env_example_content():
+
+
         """Load .env.example content."""
 
 
