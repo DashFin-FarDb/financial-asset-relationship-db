@@ -69,6 +69,33 @@ const SelectFilter = ({
   </div>
 );
 
+// Extracted component to handle loading and error display
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "", // Add optional prop
+}: {
+  loading: boolean;
+  error: string | null;
+  querySummary?: string;
+}) => {
+  if (!loading && !error) {
+    return null;
+  }
+  return (
+    <div
+      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+    >
+      {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
+    </div>
+  );
+};
+
+// Extracted component to handle table container and reduce nesting depth
+const AssetTable = ({ children }: { children: React.ReactNode }) => {
+  return <div className="overflow-x-auto">{children}</div>;
+};
+
 /**
  * Fetches and displays a list of assets with filtering and pagination.
  * @returns {JSX.Element} The AssetList component.
@@ -249,33 +276,6 @@ export default function AssetList() {
       {size}
     </option>
   );
-
-  // Extracted component to handle loading and error display
-  const AssetListStatus = ({
-    loading,
-    error,
-    querySummary = "", // Add optional prop
-  }: {
-    loading: boolean;
-    error: string | null;
-    querySummary?: string;
-  }) => {
-    if (!loading && !error) {
-      return null;
-    }
-    return (
-      <div
-        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
-      >
-        {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
-      </div>
-    );
-  };
-
-  // Extracted component to handle table container and reduce nesting depth
-  const AssetTable = ({ children }: { children: React.ReactNode }) => {
-    return <div className="overflow-x-auto">{children}</div>;
-  };
 
   return (
     <div className="space-y-6">
