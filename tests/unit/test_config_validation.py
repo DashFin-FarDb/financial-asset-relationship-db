@@ -371,6 +371,8 @@ def test_env_example_no_real_secrets(env_example_content):
 
 
 @pytest.mark.unit
+"""Unit tests for .gitignore configuration validation."""
+
 class TestGitignore:
     """Test cases for .gitignore configuration."""
 
@@ -385,7 +387,6 @@ class TestGitignore:
             return f.read()
 
     def test_gitignore_exists(self):
-        pass
         """Test that .gitignore exists."""
         config_path = Path(".gitignore")
         assert config_path.exists()
@@ -506,7 +507,7 @@ class TestConfigurationConsistency:
     def test_api_url_consistency():
         """Test that API URL is consistent across configurations."""
         # Check .env.example
-        with open(".env.example") as f:
+        with open(".env.example"):
             pass
 
     @staticmethod
