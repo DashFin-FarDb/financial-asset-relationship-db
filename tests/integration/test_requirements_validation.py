@@ -170,7 +170,7 @@ class TestRequirementsInstallability:
 
     @pytest.mark.skipif(not Path("requirements-dev.txt").exists(), reason="requirements-dev.txt not found")
     def test_requirements_dev_syntax_valid(self):
-        """Verify requirements-dev.txt has valid pip syntax."""
+        """Verify requirements - dev.txt has valid pip syntax."""
         # Use pip to check syntax without installing
         result = subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
