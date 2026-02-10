@@ -258,15 +258,15 @@ const AssetListStatus = ({
       className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
     >
       {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
-    </div>
-  );
-};
-    loading,
-    error,
-  }: {
+  // Note: The following components should be moved outside the `AssetList` component.
+
+  type AssetListStatusProps = {
     loading: boolean;
     error: string | null;
-  }) => {
+  };
+
+  // Extracted component to handle loading and error display
+  const AssetListStatus = ({ loading, error }: AssetListStatusProps) => {
     if (!loading && !error) {
       return null;
     }
