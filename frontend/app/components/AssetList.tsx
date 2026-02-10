@@ -241,7 +241,26 @@ export default function AssetList() {
   );
 
   // Extracted component to handle loading and error display
-  const AssetListStatus = ({
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "", // Add optional prop
+}: {
+  loading: boolean;
+  error: string | null;
+  querySummary?: string;
+}) => {
+  if (!loading && !error) {
+    return null;
+  }
+  return (
+    <div
+      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+    >
+      {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
+    </div>
+  );
+};
     loading,
     error,
   }: {
