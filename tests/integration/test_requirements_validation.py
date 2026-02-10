@@ -146,7 +146,6 @@ class TestRequirementsDependencyCompatibility:
             req_content = f.read()
         with open(req_dev_path, "r") as f:
             req_dev_content = f.read()
-
         # Check for packages in both files
         req_packages = {
             l.split("==")[0].split(">=")[0].lower().strip()
@@ -171,22 +170,17 @@ class TestRequirementsInstallability:
 
     @pytest.mark.skipif(not Path("requirements-dev.txt").exists(), reason="requirements-dev.txt not found")
     def test_requirements_dev_syntax_valid(self):
-        """Verify requirements - dev.txt has valid pip syntax."""
+        """Verify requirements-dev.txt has valid pip syntax."""
         # Use pip to check syntax without installing
         result = subprocess.run(
-        result=subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
-        Verify that requirements-dev.txt contains at least one comment line.
-            text=True
-        # Should not have syntax errors
+            text=True,
+            capture_output=True
+        )
+        # Verify that requirements-dev.txt contains at least one comment line.
         has_error = "error" in result.stderr.lower()
         is_already_satisfied = "requirement already satisfied" in result.stdout.lower()
         assert not has_error or is_already_satisfied, f"Unexpected error: {result.stderr}"
-
-
-
-
-
 
 
 class TestRequirementsDocumentation:
