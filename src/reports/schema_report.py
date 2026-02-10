@@ -100,25 +100,25 @@ report += """
 
 ### Data Quality Score: """
 
-    quality_score = min(
-        1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
-    )
-    report += f"{quality_score:.1%}\n"
-    report += "\n### Recommendation: "
-    if metrics["relationship_density"] > 30:
-        report += "High connectivity - consider normalization"
-    elif metrics["relationship_density"] > 10:
-        report += "Well-balanced relationship graph - optimal for most use cases"
-    else:
-        report += "Sparse connections - consider adding more relationships"
+quality_score = min(
+    1.0,
+    metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
+)
+report += f"{quality_score:.1%}\n"
+report += "\n### Recommendation: "
+if metrics["relationship_density"] > 30:
+    report += "High connectivity - consider normalization"
+elif metrics["relationship_density"] > 10:
+    report += "Well-balanced relationship graph - optimal for most use cases"
+else:
+    report += "Sparse connections - consider adding more relationships"
 
-    report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
-    report += "- Relationship strengths normalized to 0-1 range\n"
-    report += "- Impact scores on -1 to +1 scale for comparability\n"
-    report += (
-        "- Relationship directionality: some types are bidirectional (e.g.,\n"
-        "  same_sector, income_comparison);\n"
-        "  others are directional\n"
-    )
-    return report
+report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
+report += "- Relationship strengths normalized to 0-1 range\n"
+report += "- Impact scores on -1 to +1 scale for comparability\n"
+report += (
+    "- Relationship directionality: some types are bidirectional (e.g.,\n"
+    "  same_sector, income_comparison);\n"
+    "  others are directional\n"
+)
+return report

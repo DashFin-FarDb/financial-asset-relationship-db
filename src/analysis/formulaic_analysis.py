@@ -145,10 +145,18 @@ class FormulaicAnalyzer:
         if self._has_dividend_stocks(graph):
             div_yield_formula = Formula(
                 name="Dividend Yield",
-                formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
-                latex=(r"DivYield = \frac{D_{annual}}{P}"
-                       r" \times 100%"),
-                description=("Percentage return from dividends relative to stock price"),
+                formula=(
+                    "Div_Yield = (Annual_Dividends / Price) × "
+                    "100%"
+                ),
+                latex=(
+                    r"DivYield = \frac{D_{annual}}{P}"
+                    r" \times 100%"
+                ),
+                description=(
+                    "Percentage return from dividends relative to "
+                    "stock price"
+                ),
                 variables={
                     "Div_Yield": "Dividend Yield (%)",
                     "D_annual": "Annual Dividends per Share ($)",
@@ -249,7 +257,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_valuation_relationships(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract valuation model relationships"""
         formulas = []
 
@@ -341,7 +351,9 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_portfolio_theory_formulas(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """Extract Modern Portfolio Theory formulas"""
         formulas = []
 
@@ -376,7 +388,10 @@ class FormulaicAnalyzer:
                 r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + "
                 r"2w_1w_2\sigma_1\sigma_2\rho_{12}"
             ),
-            description="Portfolio risk considering correlation between assets",
+            description=(
+                "Portfolio risk considering correlation "
+                "between assets"
+            ),
             variables={
                 "σ²_p": "Portfolio variance",
                 "w_1, w_2": "Weights of assets 1 and 2",
@@ -758,7 +773,11 @@ class FormulaicAnalyzer:
 
         examples = []
         for asset in graph.assets.values():
-            if asset.asset_class == AssetClass.EQUITY and hasattr(asset, "book_value") and asset.book_value is not None:
+            if (
+                asset.asset_class == AssetClass.EQUITY
+                and hasattr(asset, "book_value")
+                and asset.book_value is not None
+            ):
                 pb_ratio = asset.price / asset.book_value if asset.book_value else 0
                 examples.append(f"{asset.symbol}: P/B = {pb_ratio:.2f}")
                 if len(examples) >= 2:

@@ -58,7 +58,10 @@ class RealDataFetcher:
                 )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            logger.info(
+                "Network fetching disabled. Using fallback dataset "
+                "if available."
+            )
             return self._fallback()
 
         logger.info(
@@ -196,7 +199,12 @@ class RealDataFetcher:
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
-            "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
+            "TLT": (
+                "iShares 20+ Year Treasury Bond ETF",
+                "Government",
+                None,
+                "AAA",
+            ),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
                 "Corporate",
@@ -500,6 +508,8 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             for target, rels in incoming_relationships.items()
         },
     }
+
+
 
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     """
