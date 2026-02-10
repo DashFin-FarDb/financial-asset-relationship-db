@@ -173,17 +173,7 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-
-    let cancelled = false;
-    void fetchAssets().catch((err) => {
-      if (cancelled) return;
-      setError(err instanceof Error ? err.message : "Failed to load assets");
-      setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
+    void fetchAssets();
   }, [fetchAssets]);
 
   /**
@@ -250,33 +240,14 @@ export default function AssetList() {
     </option>
   );
 
-  // Extracted component to handle loading and error display
-const AssetListStatus = ({
-  loading,
-  error,
-  querySummary = "", // Add optional prop
-}: {
-  loading: boolean;
-  error: string | null;
-  querySummary?: string;
-}) => {
-  if (!loading && !error) {
-    return null;
-  }
-  return (
-    <div
-      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
-    >
-      {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
-  // Note: The following components should be moved outside the `AssetList` component.
-
   type AssetListStatusProps = {
     loading: boolean;
     error: string | null;
+    querySummary?: string;
   };
 
   // Extracted component to handle loading and error display
-  const AssetListStatus = ({ loading, error }: AssetListStatusProps) => {
+  const AssetListStatus = ({ loading, error, querySummary }: AssetListStatusProps) => {
     if (!loading && !error) {
       return null;
     }
@@ -284,7 +255,7 @@ const AssetListStatus = ({
       <div
         className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
       >
-        {loading ? "Loading..." : `Error: ${error}`}
+        {loading ? `Loading results for ${querySummary || "assets"}...` : `Error: ${error}`}
       </div>
     );
   };
@@ -398,83 +369,6 @@ const AssetListStatus = ({
             </tbody>
           </table>
         </AssetTable>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {[
-                  "Symbol",
-                  "Name",
-                  "Class",
-                  "Sector",
-                  "Price",
-                  "Market Cap",
-                ].map((col) => (
-                  <th
-                    key={col}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    Loading...
-                  </td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-red-600"
-                  >
-                    {error}
-                  </td>
-                </tr>
-              ) : assets.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    No assets found
-                  </td>
-                </tr>
-              ) : (
-                assets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {asset.symbol}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.asset_class}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.sector}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.currency} {asset.price.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {typeof asset.market_cap === "number"
-                        ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
-                        : "N/A"}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
 
         {/* Pagination */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gray-50 px-6 py-4 border-t border-gray-100">
