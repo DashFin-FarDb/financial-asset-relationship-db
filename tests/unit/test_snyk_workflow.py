@@ -272,7 +272,8 @@ class TestSnykJobConfiguration:
         """Test that job uploads SARIF results."""
         steps = snyk_job["steps"]
         sarif_steps = [
-            s for s in steps
+            s
+            for s in steps
             if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
         ]
         assert len(sarif_steps) > 0
@@ -281,7 +282,8 @@ class TestSnykJobConfiguration:
         """Test that SARIF upload uses CodeQL action v4."""
         steps = snyk_job["steps"]
         sarif_steps = [
-            s for s in steps
+            s
+            for s in steps
             if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
         ]
         sarif_action = sarif_steps[0]["uses"]
@@ -291,7 +293,8 @@ class TestSnykJobConfiguration:
         """Test that SARIF upload specifies file."""
         steps = snyk_job["steps"]
         sarif_steps = [
-            s for s in steps
+            s
+            for s in steps
             if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
         ]
         sarif_step = sarif_steps[0]
@@ -370,7 +373,11 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(self, snyk_workflow_path):
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
-        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [
+            l
+            for l in content.split("\n")
+            if l.strip() and not l.strip().startswith("#")
+        ]
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):

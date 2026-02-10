@@ -568,7 +568,9 @@ class TestErrorHandling:
         mock_graph_instance.assets = mock_graph.assets
         mock_graph_instance.relationships = mock_graph.relationships
         mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = mock_graph.get_3d_visualization_data
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
 
         response = client.get("/api/metrics")
         assert response.status_code == 500
@@ -657,7 +659,9 @@ class TestAdditionalFields:
                 "book_value",
             ]
             has_equity_field = any(field in additional for field in possible_fields)
-            assert has_equity_field or len(additional) == 0  # Either has fields or empty
+            assert (
+                has_equity_field or len(additional) == 0
+            )  # Either has fields or empty
 
     @staticmethod
     def test_bond_additional_fields(client):
@@ -797,7 +801,7 @@ class TestIntegrationScenarios:
 
 
 if __name__ == "__main__":
-        assert len(tech_equity_assets) <= len(equity_assets)
+    assert len(tech_equity_assets) <= len(equity_assets)
 
 
 @pytest.mark.unit

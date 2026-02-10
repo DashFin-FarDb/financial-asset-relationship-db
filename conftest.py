@@ -26,7 +26,9 @@ def _cov_plugin_available() -> bool:
     return importlib.util.find_spec("pytest_cov") is not None
 
 
-def pytest_load_initial_conftests(args: List[str]) -> None:  # pragma: no cover - exercised via pytest
+def pytest_load_initial_conftests(
+    args: List[str],
+) -> None:  # pragma: no cover - exercised via pytest
     """
     Remove pytest - cov related command - line options from the provided,
     argument list when the pytest - cov plugin is not available.,
