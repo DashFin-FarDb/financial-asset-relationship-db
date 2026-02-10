@@ -43,6 +43,7 @@ def repository(tmp_path):
     engine.dispose()
 
 
+@pytest.mark.unit
 class TestAssetOperations:
     """Test cases for asset CRUD operations."""
 
@@ -265,6 +266,7 @@ class TestAssetOperations:
         repository.session.commit()
 
 
+@pytest.mark.unit
 class TestRelationshipOperations:
     """Test cases for relationship management."""
 
@@ -470,6 +472,7 @@ class TestRelationshipOperations:
         assert record.bidirectional is True
 
 
+@pytest.mark.unit
 class TestRegulatoryEventOperations:
     """Test cases for regulatory event handling."""
 
@@ -601,6 +604,7 @@ class TestRegulatoryEventOperations:
         assert len(event_orm.related_assets) == 2
 
 
+@pytest.mark.unit
 class TestDataTransformation:
     """Test cases for data transformation between models and ORM."""
 
@@ -703,6 +707,7 @@ class TestDataTransformation:
         assert any(isinstance(a, Commodity) for a in assets)
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -802,6 +807,7 @@ class TestEdgeCases:
         assert rel.strength == 1.0
 
 
+@pytest.mark.unit
 class TestComplexScenarios:
     """Test complex real-world scenarios."""
 
@@ -977,6 +983,7 @@ class TestComplexScenarios:
         assert len(remaining_rels) == 0
 
 
+@pytest.mark.unit
 class TestAssetTypeConversions:
     """Test conversion between different asset types."""
 
@@ -1044,6 +1051,7 @@ class TestAssetTypeConversions:
         assert getattr(retrieved, "coupon_rate", None) is None
 
 
+@pytest.mark.unit
 @pytest.mark.slow
 class TestPerformance:
     """Test performance with large datasets."""
@@ -1101,6 +1109,7 @@ class TestPerformance:
         assert len(relationships) == 45
 
 
+@pytest.mark.unit
 class TestDataIntegrity:
     """Test data integrity constraints and validation."""
 
@@ -1177,6 +1186,7 @@ class TestDataIntegrity:
         repository.session.commit()
 
 
+@pytest.mark.unit
 class TestBoundaryValues:
     """Test boundary value conditions."""
 
@@ -1253,6 +1263,7 @@ class TestBoundaryValues:
         )
 
 
+@pytest.mark.unit
 class TestSpecialCharacters:
     """Test handling of special characters in data."""
 

@@ -12,6 +12,7 @@ import os
 import pytest
 
 
+@pytest.mark.unit
 class TestVercelConfiguration:
     """Test Vercel deployment configuration."""
 
@@ -62,6 +63,7 @@ class TestVercelConfiguration:
         assert api_route["dest"] == "api/main.py"
 
 
+@pytest.mark.unit
 class TestEnvironmentConfiguration:
     """Test environment configuration."""
 
@@ -80,6 +82,7 @@ class TestEnvironmentConfiguration:
         assert "ALLOWED_ORIGINS" in content
 
 
+@pytest.mark.unit
 class TestGitIgnore:
     """Test .gitignore configuration."""
 
@@ -103,6 +106,7 @@ class TestGitIgnore:
         assert ".vercel" in content
 
 
+@pytest.mark.unit
 class TestDocumentationFiles:
     """Test that documentation files exist and are properly structured."""
 
@@ -133,6 +137,7 @@ class TestDocumentationFiles:
         assert "Installation" in content or "Setup" in content
 
 
+@pytest.mark.unit
 class TestShellScripts:
     """Test shell scripts for syntax, structure, and functionality."""
 

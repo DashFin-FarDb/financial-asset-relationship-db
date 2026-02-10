@@ -94,6 +94,7 @@ def session_factory(engine):
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestEngineCreation:
     """Test cases for database engine creation."""
 
@@ -140,6 +141,7 @@ class TestEngineCreation:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestSessionFactory:
     """Test cases for session factory creation."""
 
@@ -174,6 +176,7 @@ class TestSessionFactory:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestDatabaseInitialization:
     """Tests for database initialization and schema creation."""
 
@@ -249,6 +252,7 @@ class TestDatabaseInitialization:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestSessionScope:
     """Tests for transactional session_scope behavior."""
 
@@ -328,6 +332,7 @@ class TestSessionScope:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestDefaultDatabaseURL:
     """Tests for DEFAULT_DATABASE_URL behavior."""
 
@@ -352,6 +357,7 @@ class TestDefaultDatabaseURL:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Edge cases and defensive behavior tests."""
 

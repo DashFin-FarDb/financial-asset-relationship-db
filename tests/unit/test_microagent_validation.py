@@ -21,6 +21,7 @@ import pytest
 import yaml
 
 
+@pytest.mark.unit
 class TestMicroagentValidation:
     """Base test class for microagent validation."""
 
@@ -68,6 +69,7 @@ class TestMicroagentValidation:
         return frontmatter, body
 
 
+@pytest.mark.unit
 class TestRepoEngineerLead(TestMicroagentValidation):
     """Test cases for repo_engineer_lead.md microagent."""
 
@@ -284,6 +286,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             pytest.fail("File should be UTF-8 encoded")
 
 
+@pytest.mark.unit
 class TestAllMicroagents(TestMicroagentValidation):
     """Test cases for all microagent files in the directory."""
 
@@ -386,6 +389,7 @@ class TestAllMicroagents(TestMicroagentValidation):
                         assert len(trigger.strip()) > 0, f"{file_path.name} triggers should not be empty strings"
 
 
+@pytest.mark.unit
 class TestMicroagentSemantic:
     """Semantic validation tests for microagent content."""
 
@@ -480,6 +484,7 @@ class TestMicroagentSemantic:
         assert "issue" in body
 
 
+@pytest.mark.unit
 class TestMicroagentEdgeCases:
     """Test edge cases and error conditions."""
 

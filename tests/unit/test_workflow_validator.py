@@ -20,6 +20,7 @@ from workflow_validator import ValidationResult, validate_workflow
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 
+@pytest.mark.unit
 class TestValidationResult:
     """Test suite for ValidationResult class"""
 
@@ -48,6 +49,7 @@ class TestValidationResult:
         assert result.workflow_data == data
 
 
+@pytest.mark.unit
 class TestValidateWorkflow:
     """Test suite for validate_workflow function"""
 
@@ -284,6 +286,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and boundary conditions"""
 
@@ -376,6 +379,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test error handling and exception scenarios"""
 
@@ -423,6 +427,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestIntegrationWithActualWorkflows:
     """Integration tests with actual project workflows"""
 
@@ -487,6 +492,7 @@ class TestIntegrationWithActualWorkflows:
         assert len(failed) == 0, f"Failed workflows: {failed}"
 
 
+@pytest.mark.unit
 class TestValidationResultDataStructure:
     """Test ValidationResult data structure integrity"""
 
@@ -519,6 +525,7 @@ class TestValidationResultDataStructure:
         assert isinstance(result.workflow_data, dict)
 
 
+@pytest.mark.unit
 class TestAdvancedValidationScenarios:
     """Additional advanced validation scenarios with bias for action"""
 
@@ -742,6 +749,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestValidationResultBehavior:
     """Test ValidationResult behavior and edge cases"""
 
@@ -794,6 +802,7 @@ class TestValidationResultBehavior:
         assert len(result.errors) == 5
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorSecurityScenarios:
     """Test security-related scenarios and potential exploits"""
 
@@ -879,6 +888,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorPerformance:
     """Test performance-related aspects of workflow validation"""
 
@@ -946,6 +956,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorEdgeCasesExtended:
     """Extended edge cases and corner scenarios"""
 

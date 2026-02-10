@@ -30,6 +30,7 @@ from src.models.financial_models import (
 pytestmark = pytest.mark.unit
 
 
+@pytest.mark.unit
 class TestFormula:
     """Test the Formula dataclass."""
 
@@ -71,6 +72,7 @@ class TestFormula:
         assert formula.r_squared == 0.0
 
 
+@pytest.mark.unit
 class TestFormulaicAnalyzerInitialization:
     """Test FormulaicAnalyzer initialization."""
 
@@ -82,6 +84,7 @@ class TestFormulaicAnalyzerInitialization:
         assert isinstance(analyzer.formulas, list)
 
 
+@pytest.mark.unit
 class TestAnalyzeGraph:
     """Test the main analyze_graph method."""
 
@@ -221,6 +224,7 @@ class TestAnalyzeGraph:
         assert result["formula_count"] == len(result["formulas"])
 
 
+@pytest.mark.unit
 class TestExtractFundamentalFormulas:
     """Test _extract_fundamental_formulas method."""
 
@@ -330,6 +334,7 @@ class TestExtractFundamentalFormulas:
             assert isinstance(formula.r_squared, float)
 
 
+@pytest.mark.unit
 class TestAnalyzeCorrelationPatterns:
     """Test _analyze_correlation_patterns method."""
 
@@ -376,6 +381,7 @@ class TestAnalyzeCorrelationPatterns:
         assert "ρ" in corr_formula.variables
 
 
+@pytest.mark.unit
 class TestExtractValuationRelationships:
     """Test _extract_valuation_relationships method."""
 
@@ -448,6 +454,7 @@ class TestExtractValuationRelationships:
         assert pb_formula.category == "Valuation"
 
 
+@pytest.mark.unit
 class TestAnalyzeRiskReturnRelationships:
     """Test _analyze_risk_return_relationships method."""
 
@@ -491,6 +498,7 @@ class TestAnalyzeRiskReturnRelationships:
         assert "σ" in vol_formula.variables
 
 
+@pytest.mark.unit
 class TestExtractPortfolioTheoryFormulas:
     """Test _extract_portfolio_theory_formulas method."""
 
@@ -533,6 +541,7 @@ class TestExtractPortfolioTheoryFormulas:
         assert var_formula.category == "Portfolio Theory"
 
 
+@pytest.mark.unit
 class TestAnalyzeCrossAssetRelationships:
     """Test _analyze_cross_asset_relationships method."""
 
@@ -620,6 +629,7 @@ class TestAnalyzeCrossAssetRelationships:
         assert any("Commodity-Currency" in name for name in formula_names)
 
 
+@pytest.mark.unit
 class TestHelperMethods:
     """Test helper and utility methods."""
 
@@ -773,6 +783,7 @@ class TestHelperMethods:
         assert 0 <= result <= 1
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
@@ -915,6 +926,7 @@ class TestEdgeCases:
         assert result["summary"]["total_formulas"] == result["formula_count"]
 
 
+@pytest.mark.unit
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
@@ -1028,6 +1040,7 @@ class TestRegressionCases:
             )
 
 
+@pytest.mark.unit
 class TestBoundaryConditions:
     """Test boundary conditions and extreme values."""
 
@@ -1116,6 +1129,7 @@ class TestBoundaryConditions:
         assert 0 <= strength <= 1.0
 
 
+@pytest.mark.unit
 class TestIntegrationScenarios:
     """Test integrated scenarios with multiple components."""
 

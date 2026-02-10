@@ -108,6 +108,7 @@ def test_uri_style_memory_database_persists_schema_and_data(
     # Connection identity is an implementation detail; persistence is the contract.
 
 
+@pytest.mark.unit
 class TestIsMemoryDb:
     """Comprehensive tests for the _is_memory_db function."""
 
@@ -240,6 +241,7 @@ class TestIsMemoryDb:
         assert database._is_memory_db(":Memory:") is False
 
 
+@pytest.mark.unit
 class TestConnectWithMemoryDb:
     """Tests for _connect function with various memory database configurations."""
 
@@ -365,6 +367,7 @@ class TestConnectWithMemoryDb:
         assert conn is not None
 
 
+@pytest.mark.unit
 class TestGetConnectionWithMemoryDb:
     """Tests for get_connection context manager with memory databases."""
 
@@ -432,6 +435,7 @@ class TestGetConnectionWithMemoryDb:
                 os.remove(tmp_path)
 
 
+@pytest.mark.unit
 class TestThreadSafety:
     """Tests for thread safety of memory database connections."""
 
@@ -504,6 +508,7 @@ class TestThreadSafety:
         assert count == 5
 
 
+@pytest.mark.unit
 class TestEdgeCasesAndErrorHandling:
     """Tests for edge cases and error handling in database connection management."""
 

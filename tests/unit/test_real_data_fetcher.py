@@ -45,6 +45,7 @@ from src.models.financial_models import (
 pytestmark = pytest.mark.unit
 
 
+@pytest.mark.unit
 class TestRealDataFetcherInitialization:
     """Test RealDataFetcher initialization."""
 
@@ -104,6 +105,7 @@ class TestRealDataFetcherInitialization:
         assert fetcher.enable_network is False
 
 
+@pytest.mark.unit
 class TestCreateRealDatabase:
     """Test create_real_database method."""
 
@@ -189,6 +191,7 @@ class TestCreateRealDatabase:
         assert isinstance(graph, AssetRelationshipGraph)
 
 
+@pytest.mark.unit
 class TestFetchMethods:
     """Test data fetching methods."""
 
@@ -280,6 +283,7 @@ class TestFetchMethods:
             assert event.date
 
 
+@pytest.mark.unit
 class TestFallback:
     """Test fallback mechanism."""
 
@@ -318,6 +322,7 @@ class TestFallback:
         assert len(result.assets) > 0
 
 
+@pytest.mark.unit
 class TestSerialization:
     """Test serialization functions."""
 
@@ -388,6 +393,7 @@ class TestSerialization:
         assert len(serialized["regulatory_events"]) == 1
 
 
+@pytest.mark.unit
 class TestDeserialization:
     """Test deserialization functions."""
 
@@ -510,6 +516,7 @@ class TestDeserialization:
         assert event.impact_score == 0.5
 
 
+@pytest.mark.unit
 class TestCacheOperations:
     """Test cache loading and saving."""
 
@@ -573,6 +580,7 @@ class TestCacheOperations:
         assert cache_path.parent.exists()
 
 
+@pytest.mark.unit
 class TestCreateRealDatabaseFunction:
     """Test the module-level create_real_database function."""
 
@@ -592,6 +600,7 @@ class TestCreateRealDatabaseFunction:
         assert result == mock_graph
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -697,6 +706,7 @@ class TestEdgeCases:
         assert "TEST2" in serialized["relationships"]
 
 
+@pytest.mark.unit
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
@@ -734,6 +744,7 @@ class TestRegressionCases:
         assert isinstance(deserialized.asset_class, AssetClass)
 
 
+@pytest.mark.unit
 class TestNetworkDisabled:
     """Test behavior when network is explicitly disabled."""
 
@@ -776,6 +787,7 @@ class TestNetworkDisabled:
         assert result.assets["CACHED_ONLY"].price == 999.0
 
 
+@pytest.mark.unit
 class TestAllAssetTypes:
     """Test fetching and handling all asset types."""
 
@@ -851,6 +863,7 @@ class TestAllAssetTypes:
         assert mock_ticker_class.call_count == 3
 
 
+@pytest.mark.unit
 class TestRegulatoryEvents:
     """Test regulatory event creation and handling."""
 
@@ -888,6 +901,7 @@ class TestRegulatoryEvents:
             assert 0.0 <= event.impact_score <= 1.0
 
 
+@pytest.mark.unit
 class TestGraphBuilding:
     """Test the complete graph building process."""
 
@@ -991,6 +1005,7 @@ class TestGraphBuilding:
         assert total_relationships > 0
 
 
+@pytest.mark.unit
 class TestSerializationEdgeCases:
     """Test edge cases in serialization/deserialization."""
 
@@ -1105,6 +1120,7 @@ class TestSerializationEdgeCases:
         assert "E2" in serialized["relationships"]
 
 
+@pytest.mark.unit
 class TestCacheOverwriteOperations:
     """Test cache overwrite operations sequentially."""
 
@@ -1145,6 +1161,7 @@ class TestCacheOverwriteOperations:
         assert "V1" not in loaded.assets
 
 
+@pytest.mark.unit
 class TestFetchMethodsErrorHandling:
     """Test error handling in fetch methods."""
 

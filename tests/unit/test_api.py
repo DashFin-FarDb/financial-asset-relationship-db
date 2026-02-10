@@ -109,6 +109,7 @@ def mock_graph():
     return graph
 
 
+@pytest.mark.unit
 class TestRootAndHealth:
     """Test root and health check endpoints."""
 
@@ -135,6 +136,7 @@ class TestRootAndHealth:
         assert "graph_initialized" in data
 
 
+@pytest.mark.unit
 class TestCORSValidation:
     """Test CORS origin validation."""
 
@@ -178,6 +180,7 @@ class TestCORSValidation:
         assert validate_origin("") is False
 
 
+@pytest.mark.unit
 class TestAssetsEndpoint:
     """Test assets listing endpoint."""
 
@@ -281,19 +284,20 @@ class TestAssetsEndpoint:
         assert equity["additional_fields"]["pe_ratio"] == 25.5
 
     @patch("api.main.graph")
-def test_assets_error_handling(self, mock_graph_instance, client):
-    """Test error handling in assets endpoint."""
-    # Make graph.assets raise an exception when accessed
-    type(mock_graph_instance).assets = PropertyMock(
-        side_effect=Exception("Database error")
-    )
+    def test_assets_error_handling(self, mock_graph_instance, client):
+        """Test error handling in assets endpoint."""
+        # Make graph.assets raise an exception when accessed
+        type(mock_graph_instance).assets = PropertyMock(
+            side_effect=Exception("Database error")
+        )
 
-    response = client.get("/api/assets")
+        response = client.get("/api/assets")
 
-    assert response.status_code == 500
-    assert "detail" in response.json()
+        assert response.status_code == 500
+        assert "detail" in response.json()
 
 
+@pytest.mark.unit
 class TestAssetDetailEndpoint:
     """Test individual asset detail endpoint."""
 
@@ -351,6 +355,7 @@ class TestAssetDetailEndpoint:
         assert data["additional_fields"]["issuer_id"] == "TEST_AAPL"
 
 
+@pytest.mark.unit
 class TestRelationshipsEndpoint:
     """Test relationship endpoints."""
 
@@ -419,6 +424,7 @@ class TestRelationshipsEndpoint:
             assert 0 <= rel["strength"] <= 1
 
 
+@pytest.mark.unit
 class TestMetricsEndpoint:
     """Test metrics calculation endpoint."""
 
@@ -471,6 +477,7 @@ class TestMetricsEndpoint:
         assert data["asset_classes"]["Fixed Income"] == 1
 
 
+@pytest.mark.unit
 class TestVisualizationEndpoint:
     """Test 3D visualization data endpoint."""
 
@@ -552,6 +559,7 @@ class TestVisualizationEndpoint:
             assert 0 <= edge["strength"] <= 1
 
 
+@pytest.mark.unit
 class TestMetadataEndpoints:
     """Test metadata endpoints."""
 
@@ -593,6 +601,7 @@ class TestMetadataEndpoints:
         assert data["sectors"] == sorted(data["sectors"])
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -648,6 +657,7 @@ class TestEdgeCases:
         assert len(response.json()) == 0
 
 
+@pytest.mark.unit
 class TestConcurrency:
     """Test concurrent request handling."""
 
@@ -676,6 +686,7 @@ class TestConcurrency:
             assert len(response.json()) == 4
 
 
+@pytest.mark.unit
 class TestResponseValidation:
     """Test response data validation."""
 
@@ -731,6 +742,7 @@ class TestResponseValidation:
             assert 0 <= rel["strength"] <= 1
 
 
+@pytest.mark.unit
 class TestRealDataFetcherFallback:
     """Test RealDataFetcher fallback behavior when external APIs fail."""
 

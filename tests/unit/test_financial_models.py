@@ -29,6 +29,7 @@ from src.models.financial_models import (
 )
 
 
+@pytest.mark.unit
 class TestAsset:
     """Test cases for the Asset base class."""
 
@@ -106,6 +107,7 @@ class TestAsset:
             )
 
 
+@pytest.mark.unit
 class TestEquity:
     """Test cases for the Equity class."""
 
@@ -131,6 +133,7 @@ class TestEquity:
         assert sample_equity.dividend_yield == 0.005
 
 
+@pytest.mark.unit
 class TestBond:
     """Test cases for the Bond class."""
 
@@ -158,6 +161,7 @@ class TestBond:
         assert bond.issuer_id is None
 
 
+@pytest.mark.unit
 class TestCommodity:
     """Test cases for the Commodity class."""
 
@@ -169,6 +173,7 @@ class TestCommodity:
         assert sample_commodity.volatility == 0.15
 
 
+@pytest.mark.unit
 class TestCurrency:
     """Test cases for the Currency class."""
 
@@ -180,6 +185,7 @@ class TestCurrency:
         assert sample_currency.country == "Eurozone"
 
 
+@pytest.mark.unit
 class TestRegulatoryEvent:
     """Test cases for the RegulatoryEvent class."""
 

@@ -7,7 +7,10 @@ is unavailable, allowing tests to run without the plugin installed.
 
 from unittest.mock import MagicMock, patch
 
+import pytest
 
+
+@pytest.mark.unit
 class TestCovPluginAvailable:
     """Test cases for the _cov_plugin_available helper function."""
 
@@ -51,6 +54,7 @@ class TestCovPluginAvailable:
             assert args[0] == "pytest_cov"
 
 
+@pytest.mark.unit
 class TestPytestLoadInitialConftests:
     """Test cases for pytest_load_initial_conftests hook."""
 
@@ -194,6 +198,7 @@ class TestPytestLoadInitialConftests:
             assert args == ["--verbose", "tests/"]
 
 
+@pytest.mark.unit
 class TestCoverageFilteringEdgeCases:
     """Test edge cases and boundary conditions for coverage flag filtering."""
 
@@ -318,6 +323,7 @@ class TestCoverageFilteringEdgeCases:
             assert args == ["--verbose", "--strict-markers"]
 
 
+@pytest.mark.unit
 class TestDocumentationAndCodeQuality:
     """Test documentation and code quality aspects of conftest.py."""
 
@@ -385,6 +391,7 @@ class TestDocumentationAndCodeQuality:
         assert "pragma: no cover" in source
 
 
+@pytest.mark.unit
 class TestRealWorldScenarios:
     """Test real-world usage scenarios."""
 

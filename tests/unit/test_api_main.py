@@ -26,6 +26,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
 
+@pytest.mark.unit
 class TestValidateOrigin:
     """Test the validate_origin function for CORS configuration."""
 
@@ -81,6 +82,7 @@ class TestValidateOrigin:
         assert not validate_origin("https://.com")
 
 
+@pytest.mark.unit
 class TestGraphInitialization:
     """Test the lazy graph initialization via get_graph()."""
 
@@ -139,6 +141,7 @@ class TestGraphInitialization:
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
 
+@pytest.mark.unit
 class TestPydanticModels:
     """Test Pydantic response models."""
 
@@ -207,6 +210,7 @@ class TestPydanticModels:
         assert len(viz.edges) == 1
 
 
+@pytest.mark.unit
 class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
@@ -530,6 +534,7 @@ class TestAPIEndpoints:
         assert data["sectors"] == sorted(data["sectors"])
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test error handling and edge cases."""
 
@@ -626,6 +631,7 @@ def test_cors_allows_development_origins(cors_client):
     assert response.status_code == status.HTTP_200_OK  # nosec B101
 
 
+@pytest.mark.unit
 class TestAdditionalFields:
     """Test handling of asset-specific additional fields."""
 
@@ -678,6 +684,7 @@ class TestAdditionalFields:
             assert has_bond_field or len(additional) == 0
 
 
+@pytest.mark.unit
 class TestVisualizationDataProcessing:
     """Test the processing of visualization data."""
 
@@ -726,6 +733,7 @@ class TestVisualizationDataProcessing:
             assert 0 <= edge["strength"] <= 1
 
 
+@pytest.mark.unit
 class TestIntegrationScenarios:
     """Test realistic integration scenarios."""
 

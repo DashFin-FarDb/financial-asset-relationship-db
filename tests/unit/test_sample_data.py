@@ -10,8 +10,10 @@ This module contains comprehensive unit tests for sample data generation includi
 
 from src.data.sample_data import create_sample_database
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
+import pytest
 
 
+@pytest.mark.unit
 class TestSampleDatabaseCreation:
     """Test cases for sample database creation."""
 
@@ -79,6 +81,7 @@ class TestSampleDatabaseCreation:
         assert len(currencies) > 0, "Sample database should include currencies"
 
 
+@pytest.mark.unit
 class TestSampleAssetProperties:
     """Test cases for sample asset properties."""
 
@@ -167,6 +170,7 @@ class TestSampleAssetProperties:
             assert currency.exchange_rate > 0
 
 
+@pytest.mark.unit
 class TestSampleRelationships:
     """Test cases for sample database relationships."""
 
@@ -224,6 +228,7 @@ class TestSampleRelationships:
             assert bond_rel_found or len(bonds) == 0, "If bonds exist, corporate_bond relationships should be present"
 
 
+@pytest.mark.unit
 class TestSampleRegulatoryEvents:
     """Test cases for sample regulatory events."""
 
@@ -255,6 +260,7 @@ class TestSampleRegulatoryEvents:
                 ), f"Event {event.id} references non-existent asset {event.asset_id}"
 
 
+@pytest.mark.unit
 class TestSampleDataConsistency:
     """Test cases for data consistency in sample database."""
 
@@ -306,6 +312,7 @@ class TestSampleDataConsistency:
                 assert bond.issuer_id in graph.assets, f"Bond {bond.id} issuer {bond.issuer_id} should exist in assets"
 
 
+@pytest.mark.unit
 class TestSampleDatabaseMetrics:
     """Test cases for sample database metrics."""
 
@@ -351,6 +358,7 @@ class TestSampleDatabaseMetrics:
             assert actual_counts.get(asset_class, 0) == count
 
 
+@pytest.mark.unit
 class TestSampleDataReproducibility:
     """Test cases for sample data reproducibility."""
 
@@ -374,6 +382,7 @@ class TestSampleDataReproducibility:
         assert ids1 == ids2, "Sample database should produce consistent asset IDs"
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases in sample data generation."""
 

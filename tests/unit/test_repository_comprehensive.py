@@ -34,6 +34,7 @@ def repository(tmp_path):
     engine.dispose()
 
 
+@pytest.mark.unit
 class TestGetAssetById:
     """Test the get_asset_by_id method."""
 
@@ -107,6 +108,7 @@ class TestGetAssetById:
         assert retrieved.price == 200.0
 
 
+@pytest.mark.unit
 class TestRelationshipStrengthValidation:
     """Test validation of relationship strength values."""
 
@@ -355,6 +357,7 @@ class TestRelationshipStrengthValidation:
         assert rel.strength == 1
 
 
+@pytest.mark.unit
 class TestStrengthBoundaryValues:
     """Test boundary values for relationship strength."""
 
@@ -477,6 +480,7 @@ class TestStrengthBoundaryValues:
             )
 
 
+@pytest.mark.unit
 class TestStrengthTypeValidation:
     """Test type validation for relationship strength."""
 
@@ -565,6 +569,7 @@ class TestStrengthTypeValidation:
             )
 
 
+@pytest.mark.unit
 class TestNegativeTestCases:
     """Test negative scenarios and error conditions."""
 
@@ -614,6 +619,7 @@ class TestNegativeTestCases:
         # The relationship is created, but referential integrity depends on DB constraints
 
 
+@pytest.mark.unit
 class TestStressAndPerformance:
     """Test repository under stress conditions."""
 
@@ -672,6 +678,7 @@ class TestStressAndPerformance:
             assert rel.strength == strength
 
 
+@pytest.mark.unit
 class TestEdgeCasesAndRegression:
     """Test additional edge cases and regression scenarios."""
 

@@ -36,6 +36,7 @@ def db_session(tmp_path):
     engine.dispose()
 
 
+@pytest.mark.unit
 class TestAssetORM:
     """Test cases for AssetORM model."""
 
@@ -221,6 +222,7 @@ class TestAssetORM:
         assert retrieved is None
 
 
+@pytest.mark.unit
 class TestAssetRelationshipORM:
     """Test cases for AssetRelationshipORM model."""
 
@@ -427,6 +429,7 @@ class TestAssetRelationshipORM:
         assert len(relationships) == 3
 
 
+@pytest.mark.unit
 class TestRegulatoryEventORM:
     """Test cases for RegulatoryEventORM model."""
 
@@ -555,6 +558,7 @@ class TestRegulatoryEventORM:
         assert len(event.related_assets) == 2
 
 
+@pytest.mark.unit
 class TestRegulatoryEventAssetORM:
     """Test cases for RegulatoryEventAssetORM join table."""
 

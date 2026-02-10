@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestEnhancedTestSummary:
     """Test cases for ENHANCED_TEST_SUMMARY.md."""
 
@@ -123,6 +124,7 @@ class TestEnhancedTestSummary:
         assert "##" not in summary_content.replace("##", "# #")  # No triple hashes without space
 
 
+@pytest.mark.unit
 class TestFinalTestSummary:
     """Test cases for FINAL_TEST_SUMMARY.md."""
 
@@ -221,6 +223,7 @@ class TestFinalTestSummary:
             assert heading_levels[0] == 1, "Document should start with h1"
 
 
+@pytest.mark.unit
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
 

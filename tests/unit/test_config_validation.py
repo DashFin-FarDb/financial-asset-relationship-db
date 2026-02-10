@@ -2,7 +2,6 @@
 
 This module tests JSON and other configuration files to ensure:
 - Valid JSON/YAML syntax
-"""
 - Required keys are present
 - Values meet expected types and constraints
 - Configuration is internally consistent
@@ -15,6 +14,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
@@ -101,6 +101,7 @@ class TestVercelConfig:
             assert 1 <= size_value <= 250, "Lambda size should be between 1MB and 250MB"
 
 
+@pytest.mark.unit
 class TestNextConfig:
     """Test cases for Next.js configuration."""
 
@@ -136,6 +137,7 @@ class TestNextConfig:
         assert "env" in next_config_content or "NEXT_PUBLIC" in next_config_content
 
 
+@pytest.mark.unit
 class TestPackageJson:
     """Test cases for package.json configuration."""
 
@@ -221,6 +223,7 @@ class TestPackageJson:
         ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
 
 
+@pytest.mark.unit
 class TestTSConfig:
     """Test cases for TypeScript configuration."""
 
@@ -276,6 +279,7 @@ class TestTSConfig:
             assert isinstance(paths, dict)
 
 
+@pytest.mark.unit
 class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
@@ -312,6 +316,7 @@ class TestTailwindConfig:
         assert "app/" in tailwind_config_content or "./app/" in tailwind_config_content
 
 
+@pytest.mark.unit
 class TestEnvExample:
     """Test cases for .env.example file."""
 
@@ -361,6 +366,7 @@ def test_env_example_no_real_secrets(env_example_content):
         assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
 
 
+@pytest.mark.unit
 class TestGitignore:
     """Test cases for .gitignore configuration."""
 
@@ -410,6 +416,7 @@ class TestGitignore:
         assert "*.pyc" in gitignore_content or "*.py[cod]" in gitignore_content
 
 
+@pytest.mark.unit
 class TestRequirementsTxt:
     """Test cases for requirements.txt."""
 
@@ -459,6 +466,7 @@ class TestRequirementsTxt:
                 ), f"Package should have version constraint: {req}"
 
 
+@pytest.mark.unit
 class TestPostCSSConfig:
     """Test cases for PostCSS configuration."""
 
@@ -484,6 +492,7 @@ class TestPostCSSConfig:
         assert "autoprefixer" in postcss_config_content
 
 
+@pytest.mark.unit
 class TestConfigurationConsistency:
     """Test consistency across configuration files."""
 
