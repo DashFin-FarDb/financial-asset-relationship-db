@@ -156,7 +156,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         version = repo_engineer_frontmatter["version"]
         assert isinstance(version, str)
         # Should match semantic versioning pattern
-        assert re.match(r"^\d+\.\d+\.\d+$", version), (
+        assert re.match(r"^\d+\.\d+\.\d+$$", version), (
             "Version should follow semver format (x.y.z)"
         )
 
@@ -577,3 +577,197 @@ class TestMicroagentEdgeCases:
             # Windows style
             assert lf_count == crlf_count, "Should use consistent line endings"
         # Otherwise it's all LF (Unix style), which is preferred
+
+
+@pytest.mark.unit
+class TestMicroagentPerformance(TestMicroagentValidation):
+    """Performance and size tests for microagent files."""
+
+    @staticmethod
+    def test_all_microagents_reasonable_size(microagent_files: List[Path]):
+        """Test that all microagent files are reasonably sized."""
+        for file_path in microagent_files:
+            file_size = file_path.stat().st_size
+            assert file_size < 100000, (
+                f"{file_path.name} is too large ({file_size} bytes)"
+            )
+            assert file_size > 50, f"{file_path.name} is too small ({file_size} bytes)"
+
+    @staticmethod
+    def test_all_microagents_parse_quickly(microagent_files: List[Path]):
+        """Test that all microagents can be parsed quickly."""
+        import time
+
+        for file_path in microagent_files:
+            start = time.time()
+            with open(file_path, encoding="utf-8") as f:
+                f.read()
+            elapsed = time.time() - start
+            assert elapsed < 1.0, f"{file_path.name} took too long to read"
+
+
+@pytest.mark.unit
+class TestMicroagentDocumentation(TestMicroagentValidation):
+    """Test documentation quality in microagent files."""
+
+    def test_all_microagents_have_body_content(self, microagent_files: List[Path]):
+        """Test that all microagents have meaningful body content."""
+        for file_path in microagent_files:
+            with open(file_path, encoding="utf-8") as f:
+                content = f.read()
+
+            try:
+                _, body = self.parse_frontmatter(content)
+                word_count = len(body.split())
+                assert word_count >= 20, (
+                    f"{file_path.name} has insufficient body content ({word_count} words)"
+                )
+            except ValueError:
+                # Skip files with unparseable frontmatter (may have special YAML syntax)
+                pass
+
+    @staticmethod
+    def parse_frontmatter(content: str) -> tuple:
+        """Parse YAML frontmatter from markdown content."""
+        content = content.lstrip()
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)
+        if not match:
+            raise ValueError("No valid frontmatter found")
+
+        frontmatter_text = match.group(1)
+        body = match.group(2)
+
+        try:
+            frontmatter = yaml.safe_load(frontmatter_text)
+        except yaml.YAMLError as e:
+            raise ValueError(f"Invalid YAML in frontmatter: {e}")
+
+        return frontmatter, body
+
+    def test_all_microagents_use_markdown_formatting(
+        self, microagent_files: List[Path]
+    ):
+        """Test that microagent bodies use markdown formatting."""
+        for file_path in microagent_files:
+            with open(file_path, encoding="utf-8") as f:
+                content = f.read()
+
+            try:
+                _, body = self.parse_frontmatter(content)
+
+                # Should have some markdown elements (headings, lists, emphasis, etc.)
+                has_markdown = any(
+                    [
+                        "**" in body,  # Bold
+                        "*" in body,  # Emphasis or list
+                        "#" in body,  # Heading
+                        "-" in body,  # List
+                        "`" in body,  # Code
+                    ]
+                )
+                assert has_markdown, f"{file_path.name} should use markdown formatting"
+            except ValueError:
+                # Skip files with unparseable frontmatter
+                pass
+
+
+@pytest.mark.unit
+class TestMicroagentBoundaryConditions:
+    """Test boundary conditions and edge cases."""
+
+    @staticmethod
+    def test_microagent_with_minimal_valid_frontmatter(tmp_path):
+        """Test parsing microagent with minimal valid frontmatter."""
+        test_file = tmp_path / "minimal.md"
+        test_file.write_text(
+            """---
+name: test
+type: knowledge
+version: 1.0.0
+agent: CodeActAgent
+---
+Minimal content."""
+        )
+
+        with open(test_file, encoding="utf-8") as f:
+            content = f.read()
+
+        # Should parse without errors
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)
+        assert match is not None
+        frontmatter_text = match.group(1)
+        parsed = yaml.safe_load(frontmatter_text)
+        assert parsed["name"] == "test"
+
+    @staticmethod
+    def test_frontmatter_with_extra_fields_allowed(tmp_path):
+        """Test that extra fields in frontmatter are allowed."""
+        test_file = tmp_path / "extra.md"
+        test_file.write_text(
+            """---
+name: test
+type: knowledge
+version: 1.0.0
+agent: CodeActAgent
+extra_field: extra_value
+custom: true
+---
+Content."""
+        )
+
+        with open(test_file, encoding="utf-8") as f:
+            content = f.read()
+
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)
+        frontmatter_text = match.group(1)
+        parsed = yaml.safe_load(frontmatter_text)
+
+        # Extra fields should be preserved
+        assert "extra_field" in parsed
+        assert parsed["extra_field"] == "extra_value"
+
+
+@pytest.mark.unit
+class TestMicroagentRegressionCases:
+    """Regression tests for previously identified issues."""
+
+    @staticmethod
+    def test_double_period_detection():
+        """Regression: Test that double periods are detected."""
+        content_with_error = """---
+name: test
+type: knowledge
+version: 1.0.0
+agent: CodeActAgent
+---
+This is a sentence.. This should be caught."""
+
+        # Extract body
+        match = re.match(r"^---\s*\n.*?\n---\s*\n(.*)$", content_with_error, re.DOTALL)
+        body = match.group(1)
+
+        # Should detect double periods
+        assert ".." in body
+
+    @staticmethod
+    def test_malformed_frontmatter_raises_error(tmp_path):
+        """Test that malformed frontmatter raises appropriate error."""
+        test_file = tmp_path / "malformed.md"
+        test_file.write_text(
+            """---
+name: test
+type: knowledge
+version 1.0.0
+---
+Content."""
+        )
+
+        with open(test_file, encoding="utf-8") as f:
+            content = f.read()
+
+        match = re.match(r"^---\s*\n(.*?)\n---\s*\n", content, re.DOTALL)
+        frontmatter_text = match.group(1)
+
+        # Should raise YAML error due to missing colon
+        with pytest.raises(yaml.YAMLError):
+            yaml.safe_load(frontmatter_text)

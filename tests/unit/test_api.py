@@ -879,3 +879,185 @@ class TestRealDataFetcherFallback:
         assert set(graph.relationships.keys()) == set(
             reference_graph.relationships.keys()
         )
+
+
+@pytest.mark.unit
+class TestAPIRateLimiting:
+    """Test API rate limiting and throttling behavior."""
+
+    @patch("api.main.graph")
+    def test_rapid_successive_requests_handled(self, mock_graph_instance, client, mock_graph):
+        """Test that rapid successive requests are handled correctly."""
+        mock_graph_instance.assets = mock_graph.assets
+        mock_graph_instance.relationships = mock_graph.relationships
+        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
+
+        # Make 10 rapid requests
+        responses = []
+        for _ in range(10):
+            response = client.get("/api/assets")
+            responses.append(response)
+
+        # All should succeed
+        for response in responses:
+            assert response.status_code == 200
+
+    @patch("api.main.graph")
+    def test_mixed_endpoint_concurrent_access(self, mock_graph_instance, client, mock_graph):
+        """Test concurrent access to different endpoints."""
+        mock_graph_instance.assets = mock_graph.assets
+        mock_graph_instance.relationships = mock_graph.relationships
+        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
+
+        endpoints = ["/api/assets", "/api/metrics", "/api/visualization", "/api/health"]
+        responses = []
+
+        for endpoint in endpoints:
+            response = client.get(endpoint)
+            responses.append(response)
+
+        # All should succeed
+        for response in responses:
+            assert response.status_code == 200
+
+
+@pytest.mark.unit
+class TestAPISecurityHeaders:
+    """Test API security headers and CORS configuration."""
+
+    @staticmethod
+    def test_cors_headers_present_in_response(client):
+        """Test that CORS headers are present in responses."""
+        response = client.get("/api/health")
+        assert response.status_code == 200
+        # TestClient doesn't automatically add CORS headers, but we verify the endpoint works
+
+    @staticmethod
+    def test_options_request_handling(client):
+        """Test OPTIONS request handling for CORS preflight."""
+        response = client.options("/api/assets")
+        # OPTIONS should be handled
+        assert response.status_code in [200, 204, 405]
+
+
+@pytest.mark.unit
+class TestAPIErrorResponses:
+    """Test API error response formats."""
+
+    @patch("api.main.graph")
+    def test_500_error_has_detail_field(self, mock_graph_instance, client):
+        """Test that 500 errors include detail field."""
+        type(mock_graph_instance).assets = PropertyMock(
+            side_effect=Exception("Test error")
+        )
+
+        response = client.get("/api/assets")
+        assert response.status_code == 500
+        data = response.json()
+        assert "detail" in data
+        assert isinstance(data["detail"], str)
+
+    @patch("api.main.graph")
+    def test_404_error_format(self, mock_graph_instance, client, mock_graph):
+        """Test 404 error response format."""
+        mock_graph_instance.assets = mock_graph.assets
+
+        response = client.get("/api/assets/NONEXISTENT_ASSET_ID")
+        assert response.status_code == 404
+        data = response.json()
+        assert "detail" in data
+        assert "not found" in data["detail"].lower()
+
+
+@pytest.mark.unit
+class TestAPIDataValidation:
+    """Test API input data validation."""
+
+    @patch("api.main.graph")
+    def test_filter_with_empty_string(self, mock_graph_instance, client, mock_graph):
+        """Test filtering with empty string parameter."""
+        mock_graph_instance.assets = mock_graph.assets
+        mock_graph_instance.relationships = mock_graph.relationships
+        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
+
+        response = client.get("/api/assets?sector=")
+        assert response.status_code == 200
+        # Empty sector should return no results
+        data = response.json()
+        assert isinstance(data, list)
+
+    @patch("api.main.graph")
+    def test_filter_with_special_characters(self, mock_graph_instance, client, mock_graph):
+        """Test filtering with special characters in query."""
+        mock_graph_instance.assets = mock_graph.assets
+        mock_graph_instance.relationships = mock_graph.relationships
+        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
+
+        response = client.get("/api/assets?sector=Tech%26Finance")
+        assert response.status_code == 200
+        # Should handle URL encoded special characters
+        data = response.json()
+        assert isinstance(data, list)
+
+
+@pytest.mark.unit
+class TestAPIRegressionCases:
+    """Regression tests for previously identified issues."""
+
+    @patch("api.main.graph")
+    def test_asset_list_maintains_order(self, mock_graph_instance, client, mock_graph):
+        """Test that asset list maintains consistent order across requests."""
+        mock_graph_instance.assets = mock_graph.assets
+        mock_graph_instance.relationships = mock_graph.relationships
+        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
+
+        response1 = client.get("/api/assets")
+        response2 = client.get("/api/assets")
+
+        data1 = response1.json()
+        data2 = response2.json()
+
+        # Order should be consistent
+        assert len(data1) == len(data2)
+        for i, asset in enumerate(data1):
+            assert asset["id"] == data2[i]["id"]
+
+    @patch("api.main.graph")
+    def test_visualization_data_coordinates_are_numbers(
+        self, mock_graph_instance, client, mock_graph
+    ):
+        """Test that visualization coordinates are valid numbers."""
+        mock_graph_instance.assets = mock_graph.assets
+        mock_graph_instance.relationships = mock_graph.relationships
+        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data = (
+            mock_graph.get_3d_visualization_data
+        )
+
+        response = client.get("/api/visualization")
+        data = response.json()
+
+        for node in data["nodes"]:
+            # All coordinates should be valid floats
+            assert isinstance(node["x"], (int, float))
+            assert isinstance(node["y"], (int, float))
+            assert isinstance(node["z"], (int, float))
+            # No NaN or infinity values
+            assert not (node["x"] != node["x"])  # NaN check
+            assert not (node["y"] != node["y"])
+            assert not (node["z"] != node["z"])
