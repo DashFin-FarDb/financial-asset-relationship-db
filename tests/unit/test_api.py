@@ -973,7 +973,7 @@ class TestAPISecurityRegression:
     @staticmethod
     def test_cors_rejects_javascript_protocol():
         """Regression: Ensure javascript: protocol is rejected."""
-        
+
         assert validate_origin("javascript:alert(1)") is False
         assert validate_origin("javascript://example.com") is False
 

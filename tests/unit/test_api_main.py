@@ -543,6 +543,7 @@ class TestErrorHandling:
     @patch("api.main.graph")
     def test_get_assets_server_error(self, mock_graph_instance, client):
         """Test that server errors are handled gracefully."""
+
         # Make graph.assets raise exception
         def raise_database_error(self):
             """Function to raise a database exception for testing."""
