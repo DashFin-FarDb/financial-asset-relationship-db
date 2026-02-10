@@ -227,7 +227,7 @@ class TestFinalTestSummary:
         if heading_levels:
             assert heading_levels[0] == 1, "Document should start with h1"
 
-
+@staticmethod
 @pytest.mark.unit
 class TestDocumentationSummary:
     """
