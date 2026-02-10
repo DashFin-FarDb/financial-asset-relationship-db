@@ -250,23 +250,18 @@ export default function AssetList() {
   const AssetListStatus = ({
     loading,
     error,
-    querySummary,
+    querySummary = "",
   }: AssetListStatusProps) => {
     if (!loading && !error) {
-      return null;
+    return null;
     }
     return (
-      <div
-        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
-      >
-        error,
-        querySummary = "assets",
-      }: AssetListStatusProps) => {
-          : `Error: ${error}`}
+      <div className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}>
+        {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
       </div>
     );
   };
-
+    
   // Extracted component to handle table container and reduce nesting depth
   const AssetTable = ({ children }: { children: React.ReactNode }) => {
     return <div className="overflow-x-auto">{children}</div>;
