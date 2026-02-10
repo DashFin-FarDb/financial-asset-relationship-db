@@ -142,7 +142,7 @@ class TestPackageJson:
     """Test cases for package.json configuration."""
 
     @pytest.fixture
-    def package_json(self):
+    def package_json():
         """Load package.json configuration."""
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
@@ -226,7 +226,7 @@ class TestTSConfig:
     """Test cases for TypeScript configuration."""
 
     @pytest.fixture
-    def tsconfig(self):
+    def tsconfig():
         """Load tsconfig.json."""
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
@@ -317,7 +317,7 @@ class TestEnvExample:
     """Test cases for .env.example file."""
 
     @pytest.fixture
-    def env_example_content(self):
+    def env_example_content():
         """Load .env.example content."""
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
