@@ -179,7 +179,9 @@ class TestRequirementsInstallability:
             capture_output=True,
             text=True
         # Should not have syntax errors
-        assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
+        has_error = "error" in result.stderr.lower()
+        is_already_satisfied = "requirement already satisfied" in result.stdout.lower()
+        assert not has_error or is_already_satisfied, f"Unexpected error: {result.stderr}"
 
 
 
