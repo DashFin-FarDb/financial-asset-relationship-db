@@ -77,10 +77,10 @@ class TestGetWorkflowFiles:
         """Test that .yaml files are found."""
         workflows_dir = tmp_path / "workflows"
         workflows_dir.mkdir()
-        
+
         yaml_file = workflows_dir / "test.yaml"
         yaml_file.write_text("name: Test")
-        
+
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
             result = get_workflow_files()
             assert len(result) == 1
