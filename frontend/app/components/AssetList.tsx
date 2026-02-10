@@ -69,6 +69,12 @@ const SelectFilter = ({
   </div>
 );
 
+/**
+ * Props for the AssetListStatus component.
+ * @property {boolean} loading - Indicates if data is currently being loaded.
+ * @property {string | null} error - Error message to display, if any.
+ * @property {string} [querySummary] - Optional summary of the current query being executed.
+ */
 type AssetListStatusProps = {
   loading: boolean;
   error: string | null;
