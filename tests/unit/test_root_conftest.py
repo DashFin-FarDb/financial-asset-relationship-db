@@ -464,3 +464,123 @@ class TestRealWorldScenarios:
             conftest.pytest_load_initial_conftests(args, None, None)
 
             assert args == ["-v", "-x", "-s", "--tb=short", "tests/"]
+
+
+@pytest.mark.unit
+class TestConftestRobustness:
+    """Test robustness and edge cases in conftest functionality."""
+
+    @staticmethod
+    def test_args_with_double_dash_separator():
+        """Test handling of -- separator in args."""
+        import conftest
+
+        args = ["--cov=src", "--", "tests/", "-k", "test_something"]
+
+        with patch.object(conftest, "_cov_plugin_available", return_value=False):
+            conftest.pytest_load_initial_conftests(None, None, args)
+
+            # Coverage flags before -- should be removed
+            assert "--cov=src" not in args
+            assert "--" in args
+
+    @staticmethod
+    def test_consecutive_cov_report_flags():
+        """Test multiple consecutive --cov-report flags."""
+        import conftest
+
+        args = [
+            "--cov-report=html",
+            "--cov-report=term",
+            "--cov-report=xml",
+            "tests/",
+        ]
+
+        with patch.object(conftest, "_cov_plugin_available", return_value=False):
+            conftest.pytest_load_initial_conftests(None, None, args)
+
+            assert args == ["tests/"]
+
+    @staticmethod
+    def test_cov_flags_with_equals_containing_path_separators():
+        """Test --cov flags with path separators in values."""
+        import conftest
+
+        args = ["--cov=src/data/models", "--cov-report=html:htmlcov", "tests/"]
+
+        with patch.object(conftest, "_cov_plugin_available", return_value=False):
+            conftest.pytest_load_initial_conftests(None, None, args)
+
+            assert args == ["tests/"]
+
+
+@pytest.mark.unit
+class TestConftestPerformance:
+    """Test performance characteristics of conftest functions."""
+
+    @staticmethod
+    def test_large_argument_list_handled_efficiently():
+        """Test that large argument lists are processed efficiently."""
+        import conftest
+
+        # Create large args list
+        args = []
+        for i in range(100):
+            args.extend(["-m", f"marker{i}"])
+        args.append("tests/")
+
+        with patch.object(conftest, "_cov_plugin_available", return_value=False):
+            conftest.pytest_load_initial_conftests(None, None, args)
+
+            # Should not raise or timeout
+            assert len(args) > 100
+
+    @staticmethod
+    def test_repeated_hook_calls():
+        """Test that hook can be called multiple times safely."""
+        import conftest
+
+        for _ in range(10):
+            args = ["--cov=src", "tests/"]
+            with patch.object(conftest, "_cov_plugin_available", return_value=False):
+                conftest.pytest_load_initial_conftests(None, None, args)
+                assert args == ["tests/"]
+
+
+@pytest.mark.unit
+class TestConftestRegression:
+    """Regression tests for previously identified conftest issues."""
+
+    @staticmethod
+    def test_cov_flag_at_very_end_without_value():
+        """Regression: Test --cov flag at end with no following value."""
+        import conftest
+
+        args = ["tests/", "--cov"]
+
+        with patch.object(conftest, "_cov_plugin_available", return_value=False):
+            conftest.pytest_load_initial_conftests(None, None, args)
+
+            # --cov should be removed even at end
+            assert args == ["tests/"]
+
+    @staticmethod
+    def test_preserves_pytest_specific_flags():
+        """Test that pytest-specific flags are preserved."""
+        import conftest
+
+        args = [
+            "--collect-only",
+            "--setup-show",
+            "--durations=10",
+            "--cov=src",
+            "tests/",
+        ]
+
+        with patch.object(conftest, "_cov_plugin_available", return_value=False):
+            conftest.pytest_load_initial_conftests(None, None, args)
+
+            assert "--collect-only" in args
+            assert "--setup-show" in args
+            assert "--durations=10" in args
+            assert "--cov=src" not in args
