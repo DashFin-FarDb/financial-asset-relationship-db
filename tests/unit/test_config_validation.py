@@ -493,8 +493,9 @@ class TestConfigurationConsistency:
         # Check .env.example
         with open(".env.example") as f:
             env_content = f.read()
-            assert "NEXT_PUBLIC_API_URL" in env_content or "API_URL" in env_content, \
+            assert "NEXT_PUBLIC_API_URL" in env_content or "API_URL" in env_content, (
                 "API URL configuration not found in .env.example"
+            )
 
     @staticmethod
     def test_env_and_next_config():
