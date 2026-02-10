@@ -324,29 +324,24 @@ class TestEnvExample:
         with open(config_path) as f:
             return f.read()
 
-    @staticmethod
-    def test_env_example_exists():
+    def test_env_example_exists(self):
         """Test that .env.example exists."""
         config_path = Path(".env.example")
         assert config_path.exists()
 
-    @staticmethod
-    def test_env_example_has_api_url(env_example_content):
+    def test_env_example_has_api_url(self, env_example_content):
         """Test that NEXT_PUBLIC_API_URL is documented."""
         assert "NEXT_PUBLIC_API_URL" in env_example_content
 
-    @staticmethod
-    def test_env_example_has_cors_config(env_example_content):
+    def test_env_example_has_cors_config(self, env_example_content):
         """Test that CORS configuration is documented."""
         assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
-    @staticmethod
-    def test_env_example_has_comments(env_example_content):
+    def test_env_example_has_comments(self, env_example_content):
         """Test that .env.example has helpful comments."""
         assert "#" in env_example_content
 
-    @staticmethod
-    def test_env_example_no_real_secrets(env_example_content):
+    def test_env_example_no_real_secrets(self, env_example_content):
         """Test that .env.example does not contain real secrets."""
         # Check for common secret patterns
         suspicious_patterns = [
@@ -498,7 +493,8 @@ class TestConfigurationConsistency:
         # Check .env.example
         with open(".env.example") as f:
             env_content = f.read()
-            assert "NEXT_PUBLIC_API_URL" in env_content or "API_URL" in env_content
+            assert "NEXT_PUBLIC_API_URL" in env_content or "API_URL" in env_content, \
+                "API URL configuration not found in .env.example"
 
     @staticmethod
     def test_env_and_next_config():
