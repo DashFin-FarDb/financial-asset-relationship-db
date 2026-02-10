@@ -241,12 +241,20 @@ export default function AssetList() {
   );
 
   // Extracted component to handle loading and error display
-  const AssetListStatus = ({ loading, error }: { loading: boolean; error: string | null }) => {
+  const AssetListStatus = ({
+    loading,
+    error,
+  }: {
+    loading: boolean;
+    error: string | null;
+  }) => {
     if (!loading && !error) {
       return null;
     }
     return (
-      <div className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}>
+      <div
+        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+      >
         {loading ? "Loading..." : `Error: ${error}`}
       </div>
     );
