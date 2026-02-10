@@ -503,12 +503,13 @@ class TestConfigurationConsistency:
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
+            pass
 
-        @staticmethod
-        def test_env_and_next_config():
-            """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
-            with open(".env.local") as f:
-        env_content = f.read()
+    @staticmethod
+    def test_env_and_next_config():
+        """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
+        with open(".env.local") as f:
+            env_content = f.read()
 
         # Check next.config.js
         with open("frontend/next.config.js") as f:
