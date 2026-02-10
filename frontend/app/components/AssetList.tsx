@@ -318,7 +318,7 @@ const AssetListStatus = ({
 
       {/* Asset List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <AssetListStatus loading={loading} error={error} />
+        <AssetListStatus loading={loading} error={error} querySummary={querySummary} />
 
         <AssetTable>
           <table className="min-w-full divide-y divide-gray-200">
