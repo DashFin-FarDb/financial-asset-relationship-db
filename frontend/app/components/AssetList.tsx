@@ -169,7 +169,6 @@ export default function AssetList() {
       setError,
       querySummary,
     );
-    setLoading(false);
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
