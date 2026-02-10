@@ -64,10 +64,12 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
  *   Edges are objects with at least: `source`, `target`, `relationship_type`, `strength`.
  * @returns A JSX element rendering the 3D network plot when data is valid, or a centred status message when data is missing, invalid or too large.
  */
+import type { Data } from "plotly.js";
+
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<unknown[]>([]);
+  const [plotData, setPlotData] = useState<Data[]>([]);
   const [status, setStatus] = useState<
     "loading" | "ready" | "empty" | "tooLarge"
   >("loading");
