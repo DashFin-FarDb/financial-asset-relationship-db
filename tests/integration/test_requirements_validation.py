@@ -189,19 +189,10 @@ class TestRequirementsInstallability:
 
 
 
-
-
 class TestRequirementsDocumentation:
-    """Test requirements documentation and comments."""
 
     @staticmethod
     def test_requirements_has_helpful_comments():
-        """
-        Verify that requirements - dev.txt contains at least one comment line.
-
-        Asserts the file has at least one line, which after trimming leading whitespace,
-        begins with "#", indicating an explanatory comment for the dependency list.
-        """
         req_dev_path = Path("requirements-dev.txt")
         with open(req_dev_path, "r") as f:
             lines = f.readlines()
@@ -212,9 +203,6 @@ class TestRequirementsDocumentation:
 
     @staticmethod
     def test_pyyaml_purpose_documented():
-        """
-        Verify PyYAML addition has comment explaining purpose.
-        """
         req_dev_path = Path("requirements-dev.txt")
         with open(req_dev_path, "r") as f:
             content = f.read()
