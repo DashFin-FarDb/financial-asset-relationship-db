@@ -216,9 +216,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(semver_pattern, version), (
-            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
-        )
+        assert re.match(
+            semver_pattern, version
+        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
 
 
 @pytest.mark.unit
@@ -351,9 +351,7 @@ class TestEnvExample:
         ]
 
         for pattern in suspicious_patterns:
-            assert pattern not in env_example_content.lower(), (
-                f"Potential real secret found: {pattern}"
-            )
+            assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
 
 
 @pytest.mark.unit
@@ -419,9 +417,7 @@ class TestRequirementsTxt:
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
-            return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
     @staticmethod
     def test_requirements_exists():
@@ -452,9 +448,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(op in req for op in [">=", "==", "~=", "<="]), (
-                    f"Package should have version constraint: {req}"
-                )
+                assert any(
+                    op in req for op in [">=", "==", "~=", "<="]
+                ), f"Package should have version constraint: {req}"
 
 
 @pytest.mark.unit
@@ -533,9 +529,252 @@ class TestConfigurationConsistency:
 
         # Next.js standard scripts
         assert "next dev" in scripts.get("dev", "") or "next" in scripts.get("dev", "")
-        assert "next build" in scripts.get("build", "") or "next" in scripts.get(
-            "build", ""
-        )
+        assert "next build" in scripts.get("build", "") or "next" in scripts.get("build", "")
+        assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
+
+
+
+
+
         assert "next start" in scripts.get("start", "") or "next" in scripts.get(
             "start", ""
         )
+
+
+@pytest.mark.unit
+class TestConfigurationSecurityNegative:
+    """Negative test cases for configuration security issues."""
+
+    @staticmethod
+    def test_gitignore_prevents_env_file_leak():
+        """Negative: .env files should be gitignored to prevent secret leaks."""
+        gitignore_path = Path(".gitignore")
+        with open(gitignore_path) as f:
+            gitignore_content = f.read()
+
+        # Critical: .env files must be ignored
+        assert ".env" in gitignore_content or ".env.local" in gitignore_content
+
+    @staticmethod
+    def test_no_api_keys_in_example_env():
+        """Negative: .env.example should not contain real API keys."""
+        env_example_path = Path(".env.example")
+        if not env_example_path.exists():
+            pytest.skip(".env.example not found")
+
+        with open(env_example_path) as f:
+            content = f.read()
+
+        # Check for patterns that might indicate real keys
+        suspicious_patterns = [
+            r"[A-Za-z0-9]{32,}",  # Long alphanumeric strings
+            "sk_live",
+            "pk_live",
+            "prod_",
+        ]
+
+        import re
+
+        for pattern in suspicious_patterns:
+            matches = re.findall(pattern, content)
+            # If found, ensure they're in comments or placeholders
+            for match in matches:
+                if "your" not in content.lower() and "example" not in content.lower():
+                    # Might be a real key
+                    assert False, f"Potential real key found: {match[:10]}..."
+
+    @staticmethod
+    def test_package_json_no_vulnerable_scripts():
+        """Negative: package.json scripts should not have dangerous patterns."""
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        with open(package_path) as f:
+            package = json.load(f)
+
+        scripts = package.get("scripts", {})
+        for script_name, script_cmd in scripts.items():
+            # Should not have rm -rf / or similar dangerous commands
+            dangerous_patterns = ["rm -rf /", "rm -rf /*", "sudo rm"]
+            for pattern in dangerous_patterns:
+                assert pattern not in script_cmd, (
+                    f"Dangerous pattern '{pattern}' found in script '{script_name}'"
+                )
+
+
+@pytest.mark.unit
+class TestMalformedConfigurationHandling:
+    """Test handling of malformed configuration files."""
+
+    @staticmethod
+    def test_vercel_config_wellformed_json():
+        """Malformed: Vercel config must be valid JSON."""
+        vercel_path = Path("vercel.json")
+        if not vercel_path.exists():
+            pytest.skip("vercel.json not found")
+
+        try:
+            with open(vercel_path) as f:
+                json.load(f)
+        except json.JSONDecodeError as e:
+            pytest.fail(f"vercel.json is malformed JSON: {e}")
+
+    @staticmethod
+    def test_package_json_wellformed():
+        """Malformed: package.json must be valid JSON."""
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        try:
+            with open(package_path) as f:
+                data = json.load(f)
+            assert isinstance(data, dict)
+        except json.JSONDecodeError as e:
+            pytest.fail(f"package.json is malformed JSON: {e}")
+
+    @staticmethod
+    def test_tsconfig_allows_comments():
+        """Edge: tsconfig.json may have comments (JSONC format)."""
+        tsconfig_path = Path("frontend/tsconfig.json")
+        if not tsconfig_path.exists():
+            pytest.skip("frontend/tsconfig.json not found")
+
+        # JSONC allows comments, so we need special handling
+        with open(tsconfig_path) as f:
+            content = f.read()
+
+        # Try to parse; if it fails, check if it's because of comments
+        try:
+            json.loads(content)
+        except json.JSONDecodeError:
+            # Check if there are comments
+            if "//" in content or "/*" in content:
+                # This is expected for JSONC
+                pytest.skip("tsconfig.json uses JSONC format with comments")
+            else:
+                pytest.fail("tsconfig.json is malformed")
+
+
+@pytest.mark.unit
+class TestConfigurationBoundaryValues:
+    """Boundary value tests for configuration parameters."""
+
+    @staticmethod
+    def test_vercel_lambda_size_not_excessive():
+        """Boundary: Lambda size should not be unreasonably large."""
+        vercel_path = Path("vercel.json")
+        if not vercel_path.exists():
+            pytest.skip("vercel.json not found")
+
+        with open(vercel_path) as f:
+            vercel_config = json.load(f)
+
+        builds = vercel_config.get("builds", [])
+        for build in builds:
+            if "config" in build and "maxLambdaSize" in build["config"]:
+                size_str = build["config"]["maxLambdaSize"]
+                # Extract numeric value
+                size_value = int(size_str.replace("mb", "").replace("MB", ""))
+                # 250MB is Vercel's maximum
+                assert size_value <= 250, f"Lambda size {size_value}MB exceeds maximum"
+                # Should be at least 1MB
+                assert size_value >= 1, f"Lambda size {size_value}MB is too small"
+
+    @staticmethod
+    def test_package_version_not_zero():
+        """Boundary: Package version should not be 0.0.0."""
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        with open(package_path) as f:
+            package = json.load(f)
+
+        version = package.get("version", "0.0.0")
+        assert version != "0.0.0", "Package version should not be 0.0.0"
+
+    @staticmethod
+    def test_no_excessively_long_script_names():
+        """Boundary: Script names should be reasonably short."""
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        with open(package_path) as f:
+            package = json.load(f)
+
+        scripts = package.get("scripts", {})
+        for script_name in scripts.keys():
+            assert len(script_name) < 50, (
+                f"Script name '{script_name}' is excessively long"
+            )
+
+
+@pytest.mark.unit
+class TestConfigurationRobustness:
+    """Robustness tests for configuration edge cases."""
+
+    @staticmethod
+    def test_gitignore_covers_common_artifacts():
+        """Robustness: .gitignore should cover common build artifacts."""
+        gitignore_path = Path(".gitignore")
+        with open(gitignore_path) as f:
+            content = f.read()
+
+        # Essential patterns that should be present
+        essential_patterns = [
+            "node_modules",
+            "__pycache__",
+            ".env",
+        ]
+
+        for pattern in essential_patterns:
+            assert pattern in content, f"Missing essential pattern: {pattern}"
+
+    @staticmethod
+    def test_requirements_no_conflicting_versions():
+        """Robustness: requirements.txt should not have duplicate packages."""
+        requirements_path = Path("requirements.txt")
+        if not requirements_path.exists():
+            pytest.skip("requirements.txt not found")
+
+        with open(requirements_path) as f:
+            lines = [
+                line.strip()
+                for line in f
+                if line.strip() and not line.startswith("#")
+            ]
+
+        # Extract package names (before ==, >=, etc.)
+        packages = []
+        for line in lines:
+            if not line.startswith("-"):
+                # Extract package name
+                package_name = line.split("==")[0].split(">=")[0].split("~=")[0].split("<=")[0].strip()
+                packages.append(package_name.lower())
+
+        # Check for duplicates
+        from collections import Counter
+
+        counts = Counter(packages)
+        duplicates = [pkg for pkg, count in counts.items() if count > 1]
+        assert len(duplicates) == 0, f"Duplicate packages found: {duplicates}"
+
+    @staticmethod
+    def test_env_example_documents_all_required_vars():
+        """Robustness: .env.example should document key variables."""
+        env_example_path = Path(".env.example")
+        if not env_example_path.exists():
+            pytest.skip(".env.example not found")
+
+        with open(env_example_path) as f:
+            content = f.read()
+
+        # Key variables that should be documented
+        important_vars = ["API_URL", "NEXT_PUBLIC"]
+
+        # At least one should be present
+        has_important = any(var in content for var in important_vars)
+        assert has_important, "No important environment variables documented"
