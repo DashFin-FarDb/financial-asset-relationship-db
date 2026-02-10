@@ -2895,7 +2895,11 @@ class TestWorkflowScheduledExecutionBestPractices:
         triggers = data.get("on", {})
 
         if "schedule" in triggers:
-            pass
+            schedules = triggers["schedule"]
+            for schedule in schedules:
+                cron = schedule.get("cron", "")
+                # Add actual validation logic here, e.g., check cron frequency
+                assert not is_too_frequent(cron), f"Schedule {cron} is too frequent"
 
 
 if "schedule" in triggers:
