@@ -173,8 +173,21 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    void fetchAssets();
-  }, [fetchAssets]);
+    let isMounted = true;
+  const load = async () => {
+    try {
+      await fetchAssets();
+    } catch (err) {
+      // Error already handled by loadAssets
+    } finally {
+      if (isMounted) {
+        // Potentially needed if loadAssets doesn't guarantee setLoading(false)
+      }
+    }
+  };
+  void load();
+  return () => { isMounted = false; };
+}, [fetchAssets]);
 
   /**
    * Creates an event handler for changing a filter field.
