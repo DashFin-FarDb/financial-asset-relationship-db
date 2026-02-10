@@ -30,8 +30,6 @@ class TestDependencyMatrix:
         return Path(".elastic-copilot/memory/dependencyMatrix.md")
 
     @pytest.fixture
-    def dependency_matrix_content(self, dependency_matrix_path):
-        """
     @pytest.fixture
     @staticmethod
     def dependency_matrix_content(dependency_matrix_path):
@@ -40,6 +38,7 @@ class TestDependencyMatrix:
 
         Returns:
             The contents of the dependencyMatrix.md file as a string.
+        """
 
         Raises:
             AssertionError: If `dependency_matrix_path` does not exist.
