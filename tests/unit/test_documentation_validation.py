@@ -315,8 +315,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a project description entry formatted as '- Description: <text>'.
-        """
+        # Verify the system manifest contains a project description entry formatted as '- Description: <text>'.
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
         match = re.search(pattern, system_manifest_content)
@@ -339,14 +338,6 @@ class TestSystemManifest:
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         """Test that systemManifest.md has Current Phase section."""
         assert "## Current Phase" in system_manifest_content
-
-        Assert that the System Manifest declares a current project phase.
-
-        Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
-
-        Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md file to inspect.
-        """
         pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
 
