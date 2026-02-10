@@ -69,6 +69,41 @@ const SelectFilter = ({
   </div>
 );
 
+type AssetListStatusProps = {
+  loading: boolean;
+  error: string | null;
+  querySummary?: string;
+};
+
+/**
+ * Component to handle loading and error display.
+ * @param {boolean} loading - Whether data is currently loading.
+ * @param {string | null} error - Error message if any.
+ * @param {string} querySummary - Optional summary of the current query.
+ * @returns {JSX.Element | null} The status display or null if no status to show.
+ */
+const AssetListStatus = ({ loading, error, querySummary = "" }: AssetListStatusProps) => {
+  if (!loading && !error) {
+    return null;
+  }
+  return (
+    <div
+      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+    >
+      {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
+    </div>
+  );
+};
+
+/**
+ * Component to handle table container and reduce nesting depth.
+ * @param {React.ReactNode} children - Table content to render.
+ * @returns {JSX.Element} The table wrapper with overflow handling.
+ */
+const AssetTable = ({ children }: { children: React.ReactNode }) => {
+  return <div className="overflow-x-auto">{children}</div>;
+};
+
 /**
  * Fetches and displays a list of assets with filtering and pagination.
  * @returns {JSX.Element} The AssetList component.
@@ -249,31 +284,6 @@ export default function AssetList() {
       {size}
     </option>
   );
-
-  type AssetListStatusProps = {
-    loading: boolean;
-    error: string | null;
-    querySummary?: string;
-  };
-
-  // Extracted component to handle loading and error display
-  const AssetListStatus = ({ loading, error, querySummary = "" }: AssetListStatusProps) => {
-    if (!loading && !error) {
-      return null;
-    }
-    return (
-      <div
-        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
-      >
-        {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
-      </div>
-    );
-  };
-
-  // Extracted component to handle table container and reduce nesting depth
-  const AssetTable = ({ children }: { children: React.ReactNode }) => {
-    return <div className="overflow-x-auto">{children}</div>;
-  };
 
   return (
     <div className="space-y-6">
