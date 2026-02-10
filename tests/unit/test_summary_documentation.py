@@ -122,9 +122,10 @@ class TestEnhancedTestSummary:
             summary_content(str): The full text content of the summary markdown file to validate.
         """
         # Check for common markdown issues
-        assert "##" not in summary_content.replace(
-            "##", "# #"
-        )  # No triple hashes without space
+        # Ensure no heading markers (e.g., ###) appear without a trailing space
+        assert not re.search(r"^#{2,}[^ #\n]", summary_content, re.MULTILINE), (
+            "Found heading markers without proper spacing"
+        )
 
 
 @pytest.mark.unit
