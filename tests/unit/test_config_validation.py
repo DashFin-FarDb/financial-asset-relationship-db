@@ -504,8 +504,9 @@ class TestConfigurationConsistency:
     def test_api_url_consistency():
         """Test that API URL is consistent across configurations."""
         # Check .env.example
-        with open(".env.example"):
-            pass
+        with open(".env.example") as f:
+            env_content = f.read()
+        assert "NEXT_PUBLIC_API_URL" in env_content
 
     @staticmethod
     def test_env_and_next_config():
