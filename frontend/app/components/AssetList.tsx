@@ -130,10 +130,7 @@ const AssetListStatus = ({
   );
 };
 
-// Extracted component to handle table container and reduce nesting depth
-const AssetTable = ({ children }: { children: React.ReactNode }) => {
-  return <div className="overflow-x-auto">{children}</div>;
-};
+// AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
 
 /**
  * Fetches and displays a list of assets with filtering and pagination.
