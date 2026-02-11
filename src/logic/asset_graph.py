@@ -99,14 +99,21 @@ class AssetRelationshipGraph:
         """
         Add a directed relationship from source_id to target_id in the graph.
 
-        This mutates the instance's relationships mapping by appending a (target_id, rel_type, strength) entry for source_id if an entry with the same target and relation type does not already exist. If bidirectional is True, the mirror relationship (source_id, rel_type, strength) is added for target_id using the same duplicate check.
+        This mutates the instance's relationships mapping by appending a
+        (target_id, rel_type, strength) entry for source_id if an entry
+        with the same target and relation type does not already exist.
+
+        If bidirectional is True, the mirror relationship
+        (source_id, rel_type, strength) is added for target_id using the
+        same duplicate check.
 
         Parameters:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
             rel_type (str): Relationship type label.
             strength (float): Numeric strength of the relationship.
-            bidirectional (bool): If True, also add the reverse relationship with the same type and strength.
+            bidirectional (bool): If True, also add the reverse
+                relationship with the same type and strength.
         """
         if source_id not in self.relationships:
             self.relationships[source_id] = []
@@ -133,13 +140,22 @@ class AssetRelationshipGraph:
 
         Returns:
             metrics (Dict[str, Any]): A mapping containing:
-                total_assets (int): Number of distinct assets considered (includes assets discovered from relationships).
-                total_relationships (int): Total number of directed relationship entries.
-                average_relationship_strength (float): Mean of all relationship strength values (0.0 if none).
-                relationship_density (float): Percentage (0–100) of existing relationships relative to the maximum possible directed relationships between considered assets.
-                relationship_distribution (Dict[str, int]): Counts of relationships grouped by relationship type.
-                asset_class_distribution (Dict[str, int]): Counts of assets grouped by their `asset_class.value`.
-                top_relationships (List[Tuple[str, str, str, float]]): Up to 10 relationships sorted by descending strength; each entry is (source_id, target_id, relation_type, strength).
+                total_assets (int): Number of distinct assets considered
+                    (includes assets discovered from relationships).
+                total_relationships (int): Total number of directed
+                    relationship entries.
+                average_relationship_strength (float): Mean of all
+                    relationship strength values (0.0 if none).
+                relationship_density (float): Percentage (0–100) of existing
+                    relationships relative to the maximum possible directed
+                    relationships between considered assets.
+                relationship_distribution (Dict[str, int]): Counts of
+                    relationships grouped by relationship type.
+                asset_class_distribution (Dict[str, int]): Counts of assets
+                    grouped by their `asset_class.value`.
+                top_relationships (List[Tuple[str, str, str, float]]): Up to
+                    10 relationships sorted by descending strength; each entry
+                    is (source_id, target_id, relation_type, strength).
                 regulatory_event_count (int): Number of regulatory events stored.
         """
         total_assets = len(self.assets)
@@ -165,6 +181,7 @@ class AssetRelationshipGraph:
             )
             if effective_assets_count > 1
             else 0.0
+        )
         )
 
         rel_dist = {}

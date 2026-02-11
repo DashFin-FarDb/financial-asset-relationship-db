@@ -77,7 +77,10 @@ def _build_mcp_app():
         """
         Validate an Equity asset and add it to the graph if supported.
 
-        Constructs an Equity instance to validate the provided fields. If the module-level graph exposes an `add_asset` callable the asset is added to the graph; otherwise the function performs validation only and no graph mutation occurs.
+        Constructs an Equity instance to validate the provided fields.
+        If the module-level graph exposes an `add_asset` callable the asset is
+        added to the graph; otherwise the function performs validation only.
+        and no graph mutation occurs.
 
         Returns:
             A success message including the asset name and symbol on success, or
