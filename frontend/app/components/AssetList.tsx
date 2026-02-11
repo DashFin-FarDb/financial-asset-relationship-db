@@ -135,13 +135,14 @@ const AssetListStatus = ({
 
   return (
     <div
+      role={hasError ? "alert" : "status"}
+      aria-live={hasError ? "assertive" : "polite"}
       className={`px-6 py-3 text-sm ${
-        isError ? "text-red-500" : "text-gray-500"
+        hasError ? "text-red-500" : "text-gray-500"
       }`}
     >
-      {isError ? `Error: ${errorMessage}` : loadingMessage}
+      {hasError ? `Error: ${errorMessage}` : loadingMessage}
     </div>
-  );
 };
 
 // AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
