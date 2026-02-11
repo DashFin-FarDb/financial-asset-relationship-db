@@ -88,12 +88,7 @@ class TestThreadSafeGraph:
         original_release = lock.release
 
         def tracked_acquire(*args, **kwargs):
-            """
-            Record a lock acquisition event by appending "acquired" to the shared `lock_acquired` list, then delegate to and return the result of the original acquire call.
-
-            Returns:
-                The value returned by `original_acquire(*args, **kwargs)`.
-            """
+            """Record a lock release event and delegate to the original release call."""
             lock_acquired.append("acquired")
             return original_acquire(*args, **kwargs)
 
