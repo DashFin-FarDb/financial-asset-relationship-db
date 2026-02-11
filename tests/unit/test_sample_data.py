@@ -255,7 +255,7 @@ class TestSampleRelationships:
         # Just verify the structure is there if bonds exist
         bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
         if len(bonds) > 0:
-            assert bond_rel_found or len(bonds) == 0, (
+            assert bond_rel_found, (
                 "If bonds exist, corporate_bond relationships should be present"
             )
 
