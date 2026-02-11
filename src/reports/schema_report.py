@@ -1,118 +1,145 @@
+from __future__ import annotations
+
 from src.logic.asset_graph import AssetRelationshipGraph
 
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
-    """Generate schema and rules report"""
+    """Generate a schema and rules report for the asset relationship graph."""
     metrics = graph.calculate_metrics()
 
-    report = """# Financial Asset Relationship Database Schema & Rules
+    lines: list[str] = [
+        "# Financial Asset Relationship Database Schema & Rules",
+        "",
+        "## Schema Overview",
+        "",
+        "### Entity Types",
+        "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
+        "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
+        "3. **Commodity** - Physical assets with contracts and delivery dates",
+        "4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links",
+        "5. **Regulatory Events** - Corporate actions and SEC filings",
+        "",
+        "### Relationship Types",
+    ]
 
-## Schema Overview
+    relationship_dist = metrics.get("relationship_distribution", {})
+    for rel_type, count in sorted(
+        relationship_dist.items(),
+        key=lambda item: item[1],
+        reverse=True,
+    ):
+        lines.append(f"- **{rel_type}**: {count} instances")
 
-### Entity Types
-1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS
-2. **Bond** - Fixed income with yield, coupon, maturity, credit rating
-3. **Commodity** - Physical assets with contracts and delivery dates
-4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links
-5. **Regulatory Events** - Corporate actions and SEC filings
-
-### Relationship Types
-"""
-
-    for rel_type, count in sorted(metrics["relationship_distribution"].items(), key=lambda x: x[1], reverse=True):
-        report += f"- **{rel_type}**: {count} instances\n"
-
-    report += f"""
-
-## Calculated Metrics
-
-### Network Statistics
-- **Total Assets**: {metrics["total_assets"]}
-- **Total Relationships**: {metrics["total_relationships"]}
-- **Average Relationship Strength**: {metrics["average_relationship_strength"]:.3f}
-- **Relationship Density**: {metrics["relationship_density"]:.2f}%
-- **Regulatory Events**: {metrics["regulatory_event_count"]}
-
-### Asset Class Distribution
-"""
-
-    for asset_class, count in sorted(metrics["asset_class_distribution"].items()):
-        report += f"- **{asset_class}**: {count} assets\n"
-
-    report += """
-
-## Top Relationships
-"""
-
-    for idx, (source, target, rel_type, strength) in enumerate(metrics["top_relationships"], 1):
-        report += f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}\n"
-
-    report += """
-
-## Business Rules & Constraints
-
-### Cross-Asset Rules
-"""
-    report += (
-        "1. **Corporate Bond Linkage**: Corporate bonds link to"
-        " issuing company equity (directional)\n"
-        "2. **Sector Affinity**: Assets in same sector have baseline"
-        " relationship strength of 0.7 (bidirectional)\n"
-        "3. **Currency Exposure**: Non-USD assets link to their native"
-        " currency asset when available\n"
-        "4. **Income Linkage**: Equity dividends compared to bond yields"
-        " using similarity score\n"
-        "5. **Commodity Exposure**: Energy equities link to crude oil; miners"
-        " link to metal commodities\n"
+    lines.extend(
+        [
+            "",
+            "## Calculated Metrics",
+            "",
+            "### Network Statistics",
+            f"- **Total Assets**: {metrics.get('total_assets', 0)}",
+            f"- **Total Relationships**: {metrics.get('total_relationships', 0)}",
+            (
+                "- **Average Relationship Strength**: "
+                f"{metrics.get('average_relationship_strength', 0.0):.3f}"
+            ),
+            f"- **Relationship Density**: {metrics.get('relationship_density', 0.0):.2f}%",
+            f"- **Regulatory Events**: {metrics.get('regulatory_event_count', 0)}",
+            "",
+            "### Asset Class Distribution",
+        ]
     )
-    report += """
 
-### Regulatory Rules
-"""
-    report += "1. **Event Propagation**: Earnings events impact related bond and\n" "currency assets\n"
-    report += (
-        "2. **Event Types**: SEC filings, earnings reports, dividend announcements\n"
-        "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)\n"
-        "4. **Related Assets**: Each event automatically creates relationships "
-        "to impacted securities\n"
+    class_dist = metrics.get("asset_class_distribution", {})
+    for asset_class, count in sorted(class_dist.items()):
+        lines.append(f"- **{asset_class}**: {count} assets")
+
+    lines.extend(["", "## Top Relationships"])
+
+    top_relationships = metrics.get("top_relationships", [])
+    for idx, (source, target, rel_type, strength) in enumerate(top_relationships, start=1):
+        lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
+
+    lines.extend(
+        [
+            "",
+            "## Business Rules & Constraints",
+            "",
+            "### Cross-Asset Rules",
+            (
+                "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity "
+                "(directional)"
+            ),
+            (
+                "2. **Sector Affinity**: Assets in same sector have baseline relationship strength "
+                "of 0.7 (bidirectional)"
+            ),
+            (
+                "3. **Currency Exposure**: Non-USD assets link to their native currency asset when "
+                "available"
+            ),
+            (
+                "4. **Income Linkage**: Equity dividends compared to bond yields using similarity "
+                "score"
+            ),
+            (
+                "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal "
+                "commodities"
+            ),
+            "",
+            "### Regulatory Rules",
+            "1. **Event Propagation**: Earnings events impact related bond and currency assets",
+            "2. **Event Types**: SEC filings, earnings reports, dividend announcements",
+            "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)",
+            (
+                "4. **Related Assets**: Each event automatically creates relationships to impacted "
+                "securities"
+            ),
+            "",
+            "### Valuation Rules",
+            (
+                "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield indicates "
+                "relative value"
+            ),
+            (
+                "2. **Sector Rotation**: Commodity prices trigger evaluation of sector exposure"
+            ),
+            (
+                "3. **Currency Adjustment**: All cross-border assets adjusted for FX exposure"
+            ),
+            "",
+            "## Schema Optimization Metrics",
+            "",
+            "### Data Quality Score:",
+        ]
     )
-    report += """
 
-### Valuation Rules
-"""
-    report += (
-        "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
-        "indicates relative value\n"
-        "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
-        "exposure\n"
-        "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
-        "exposure\n"
-    )
-    report += """
+    avg_strength = float(metrics.get("average_relationship_strength", 0.0))
+    reg_events = float(metrics.get("regulatory_event_count", 0))
+    quality_score = min(1.0, avg_strength + (reg_events / 10.0))
+    lines.append(f"{quality_score:.1%}")
+    lines.append("")
+    lines.append("### Recommendation:")
 
-## Schema Optimization Metrics
-
-### Data Quality Score: """
-
-    quality_score = min(
-        1.0,
-        metrics["average_relationship_strength"] + (metrics["regulatory_event_count"] / 10),
-    )
-    report += f"{quality_score:.1%}\n"
-    report += "\n### Recommendation: "
-    if metrics["relationship_density"] > 30:
-        report += "High connectivity - consider normalization"
-    elif metrics["relationship_density"] > 10:
-        report += "Well-balanced relationship graph - optimal for most use cases"
+    density = float(metrics.get("relationship_density", 0.0))
+    if density > 30:
+        lines.append("High connectivity - consider normalization")
+    elif density > 10:
+        lines.append("Well-balanced relationship graph - optimal for most use cases")
     else:
-        report += "Sparse connections - consider adding more relationships"
+        lines.append("Sparse connections - consider adding more relationships")
 
-    report += "\n\n## Implementation Notes\n- All timestamps in ISO 8601 format\n"
-    report += "- Relationship strengths normalized to 0-1 range\n"
-    report += "- Impact scores on -1 to +1 scale for comparability\n"
-    report += (
-        "- Relationship directionality: some types are bidirectional (e.g.,\n"
-        "  same_sector, income_comparison);\n"
-        "  others are directional\n"
+    lines.extend(
+        [
+            "",
+            "## Implementation Notes",
+            "- All timestamps in ISO 8601 format",
+            "- Relationship strengths normalized to 0-1 range",
+            "- Impact scores on -1 to +1 scale for comparability",
+            (
+                "- Relationship directionality: some types are bidirectional "
+                "(e.g., same_sector, income_comparison); others are directional"
+            ),
+        ]
     )
-    return report
+
+    return "\n".join(lines)
