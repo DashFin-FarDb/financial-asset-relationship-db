@@ -69,7 +69,21 @@ const SelectFilter = ({
   </div>
 );
 
+interface AssetListStatusProps {
+  loading: boolean;
+  error: string | null;
+  querySummary?: string;
+}
+
 const MAX_QUERY_SUMMARY_LENGTH = 80;
+const MAX_ERROR_MESSAGE_LENGTH = 160;
+
+// Extracted component to handle loading and error display
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "",
+}: AssetListStatusProps) => {
 
 // Extracted component to handle loading and error display
 const AssetListStatus = ({
