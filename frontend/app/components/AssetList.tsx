@@ -241,7 +241,13 @@ export default function AssetList() {
   );
 
   // Extracted component to handle loading and error display
-  const AssetListStatus = ({ loading, error }: { loading: boolean; error: string | null }) => {
+  const AssetListStatus = ({
+    loading,
+    error,
+  }: {
+    loading: boolean;
+    error: string | null;
+  }) => {
     const hasError = error !== null;
 
     if (!loading && !hasError) {
@@ -249,7 +255,9 @@ export default function AssetList() {
     }
 
     return (
-      <div className={`px-6 py-3 text-sm ${hasError ? "text-red-500" : "text-gray-500"}`}>
+      <div
+        className={`px-6 py-3 text-sm ${hasError ? "text-red-500" : "text-gray-500"}`}
+      >
         {hasError ? `Error: ${error}` : "Loading..."}
       </div>
     );
