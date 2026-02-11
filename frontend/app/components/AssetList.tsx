@@ -92,14 +92,23 @@ const AssetListStatus = ({
 
   const trimmedQuerySummary = querySummary.trim();
 
-  const querySummaryChars = Array.from(trimmedQuerySummary);
+  let displayQuerySummary = trimmedQuerySummary;
 
-  const displayQuerySummary =
-    querySummaryChars.length > MAX_QUERY_SUMMARY_LENGTH
-      ? `${querySummaryChars
-          .slice(0, MAX_QUERY_SUMMARY_LENGTH - 1)
-          .join("")}…`
-      : trimmedQuerySummary;
+  if (trimmedQuerySummary) {
+    let prefix = "";
+    let count = 0;
+
+    for (const ch of trimmedQuerySummary) {
+      if (count >= MAX_QUERY_SUMMARY_LENGTH - 1) break;
+      prefix += ch;
+      count += 1;
+    }
+
+    // If we didn't consume the whole string, we truncated.
+    if (prefix.length < trimmedQuerySummary.length) {
+      displayQuerySummary = `${prefix}…`;
+    }
+  }
 
   const loadingMessage = displayQuerySummary.length
     ? `Loading results for ${displayQuerySummary}...`
