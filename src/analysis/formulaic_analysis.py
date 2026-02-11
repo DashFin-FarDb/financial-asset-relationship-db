@@ -680,9 +680,9 @@ class FormulaicAnalyzer:
         Determine whether the graph contains any equity assets with a dividend yield
         greater than zero.
 
-        @returns
-            `true` if at least one equity asset has a dividend yield
-            greater than zero, `false` otherwise.
+        Returns:
+            bool: True if at least one equity asset has a dividend yield
+                  greater than zero, False otherwise.
         """
         from src.models.financial_models import AssetClass
 
