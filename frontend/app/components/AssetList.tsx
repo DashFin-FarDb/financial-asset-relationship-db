@@ -173,7 +173,8 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    void fetchAssets();
+    fetchAssets();
+    return undefined;
   }, [fetchAssets]);
 
   /**
@@ -239,7 +240,6 @@ export default function AssetList() {
       {size}
     </option>
   );
-
   // Extracted component to handle loading and error display
   const AssetListStatus = ({
     loading,
@@ -262,6 +262,50 @@ export default function AssetList() {
       </div>
     );
   };
+
+  // Extracted component to handle table display
+  const AssetListTable = ({
+    assets,
+  }: {
+    assets: Array<{
+      id: string;
+      name: string;
+      asset_class: string;
+      sector: string;
+      value: number;
+    }>;
+  }) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Name
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Class
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Sector
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Value
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {assets.map((asset) => (
+            <tr key={asset.id}>
+              <td className="px-6 py-4 whitespace-nowrap">{asset.name}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{asset.asset_class}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{asset.sector}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{asset.value}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -289,7 +333,10 @@ export default function AssetList() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <AssetListStatus loading={loading} error={error} />
 
-        <div className="overflow-x-auto">
+        <AssetListTable assets={assets} />
+      </div>
+    </div>
+  );
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
