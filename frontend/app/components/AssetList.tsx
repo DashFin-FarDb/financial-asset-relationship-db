@@ -137,6 +137,7 @@ const AssetListStatus = ({
   );
 };
 
+// Remove this line:
 // AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
 
 /**
