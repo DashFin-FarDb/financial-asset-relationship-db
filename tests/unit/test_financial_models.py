@@ -241,3 +241,29 @@ class TestRegulatoryEvent:
                 description="",
                 impact_score=0.5,
             )
+
+    @staticmethod
+    def test_event_boundary_impact_score_negative_one():
+        """Test that impact score of exactly -1.0 is accepted (boundary case)."""
+        event = RegulatoryEvent(
+            id="EVENT_BOUNDARY_NEG",
+            asset_id="TEST_001",
+            event_type=RegulatoryActivity.SEC_FILING,
+            date="2024-01-15",
+            description="Boundary test with -1.0 impact",
+            impact_score=-1.0,
+        )
+        assert event.impact_score == -1.0
+
+    @staticmethod
+    def test_event_boundary_impact_score_positive_one():
+        """Test that impact score of exactly 1.0 is accepted (boundary case)."""
+        event = RegulatoryEvent(
+            id="EVENT_BOUNDARY_POS",
+            asset_id="TEST_001",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-01-15",
+            description="Boundary test with 1.0 impact",
+            impact_score=1.0,
+        )
+        assert event.impact_score == 1.0

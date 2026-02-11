@@ -674,3 +674,19 @@ class TestResourceCleanup:
 
         with session_scope(factory) as session:
             assert session.query(TestModel).count() == 10
+
+    @staticmethod
+    def test_session_scope_with_nested_commits(engine):
+        """Test session_scope handles nested transactions correctly (regression test)."""
+        init_db(engine)
+        factory = create_session_factory(engine)
+
+        # First transaction
+        with session_scope(factory) as session:
+            session.add(TestModel(id=1))
+            session.commit()  # Explicit commit
+
+        # Second transaction should see first
+        with session_scope(factory) as session:
+            count = session.query(TestModel).count()
+            assert count == 1

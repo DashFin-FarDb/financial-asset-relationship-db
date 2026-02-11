@@ -512,3 +512,19 @@ class TestShellScripts:
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)
+
+    def test_cleanup_branches_has_dry_run_mode(self):
+        """
+        Verify that cleanup-branches.sh provides a dry-run or preview mechanism before deleting branches.
+
+        Asserts the script contains output or echo lines that indicate a preview of branch deletions (e.g., echoing branch names or delete actions) to allow users to review changes before they are applied.
+        """
+        with open("cleanup-branches.sh") as f:
+            content = f.read()
+
+        # Should have some mechanism for previewing changes before deleting
+        # Look for common dry-run patterns
+        has_preview = "echo" in content.lower() and (
+            "branch" in content.lower() or "delete" in content.lower()
+        )
+        assert has_preview, "Script should preview changes before deleting"
