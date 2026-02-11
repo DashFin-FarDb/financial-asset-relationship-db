@@ -69,11 +69,13 @@ const SelectFilter = ({
   </div>
 );
 
+const MAX_ERROR_MESSAGE_LENGTH = 160;
+
 // Extracted component to handle loading and error display
 const AssetListStatus = ({
   loading,
   error,
-  querySummary = "", // Add optional prop
+  querySummary = "",
 }: {
   loading: boolean;
   error: string | null;
@@ -82,11 +84,41 @@ const AssetListStatus = ({
   if (!loading && !error) {
     return null;
   }
+
+  const trimmedQuerySummary = querySummary.trim();
+
+  const loadingMessage = trimmedQuerySummary.length
+    ? `Loading results for ${trimmedQuerySummary}...`
+    : "Loading results...";
+
+  const getDisplayError = (rawError: string | null): string => {
+    if (!rawError) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    // Normalize whitespace to avoid layout issues
+    const sanitized = rawError.replace(/\s+/g, " ").trim();
+
+    if (!sanitized) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
+      return `${sanitized.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
+    }
+
+    return sanitized;
+  };
+
+  const errorMessage = getDisplayError(error);
+
   return (
     <div
-      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+      className={`px-6 py-3 text-sm ${
+        loading ? "text-gray-500" : "text-red-500"
+      }`}
     >
-      {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
+      {loading ? loadingMessage : `Error: ${errorMessage}`}
     </div>
   );
 };
