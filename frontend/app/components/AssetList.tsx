@@ -147,8 +147,8 @@ const AssetListStatus = ({
 type AssetTableProps = { children: React.ReactNode };
 
 const AssetTable = ({ children }: AssetTableProps) => (
- );
-};
+  <div className="overflow-x-auto">{children}</div>
+);
 
 /**
  * Fetches and displays a list of assets with filtering and pagination.
