@@ -7,7 +7,7 @@ name = "financial-asset-relationship-db"
 version = "1.0.0"
 description = "Financial Asset Relationship Network visualization application"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 keywords = ["finance", "assets", "relationships", "visualization", "gradio"]
 authors = [
@@ -18,8 +18,6 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
@@ -45,6 +43,9 @@ dev = [
     "mypy>=1.0.0",
     "black>=23.0.0",
     "isort>=5.12.0",
+    "ruff>=0.4.0",
+    "autopep8>=2.0.0",
+    "radarlint>=0.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -84,7 +85,7 @@ exclude_lines = [
 
 [tool.black]
 line-length = 120
-target-version = ['py310', 'py311', 'py312']
+target-version = ['py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -106,8 +107,33 @@ line_length = 120
 skip_gitignore = true
 known_first_party = ["src"]
 
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+fix = true
+unsafe-fixes = true
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]
+
+[tool.autopep8]
+max_line_length = 120
+aggressive = 1
+
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -134,7 +160,7 @@ fail-under = 8.0
 jobs = 0
 limit-inference-results = 100
 persistent = true
-py-version = "3.10"
+py-version = "3.12"
 suggestion-mode = true
 
 [tool.pylint.messages_control]
