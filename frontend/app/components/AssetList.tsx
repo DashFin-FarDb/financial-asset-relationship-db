@@ -148,12 +148,7 @@ const AssetListStatus = ({
 type AssetTableProps = { children: React.ReactNode };
 
 const AssetTable = ({ children }: AssetTableProps) => (
-  <div className="overflow-x-auto">{children}</div>
-);
-
-const AssetTable = ({ children }: AssetTableProps) => (
-  <div className="overflow-x-auto">{children}</div>
-);
+ );
 };
 
 /**
