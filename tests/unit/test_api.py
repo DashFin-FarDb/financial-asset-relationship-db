@@ -1088,10 +1088,9 @@ class TestNegativeScenarios:
     @staticmethod
     def test_validate_origin_with_unicode_domain():
         """Negative: Test handling of internationalized domain names."""
-        # Punycode domains should work with https
         result = validate_origin("https://münchen.de")
-        # Implementation-dependent: either accepts or rejects consistently
-        assert isinstance(result, bool)
+        # IDN with HTTPS: validate_origin should accept valid HTTPS domains
+        assert result is True
 
     @staticmethod
     @patch("api.main.graph")
