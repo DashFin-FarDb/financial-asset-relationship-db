@@ -69,6 +69,76 @@ const SelectFilter = ({
   </div>
 );
 
+interface AssetListStatusProps {
+  loading: boolean;
+  error: string | null;
+  querySummary?: string;
+}
+
+const MAX_QUERY_SUMMARY_LENGTH = 80;
+const MAX_ERROR_MESSAGE_LENGTH = 160;
+
+// Extracted component to handle loading and error display
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "",
+}: AssetListStatusProps) => {
+  const hasError = error !== null;
+
+  if (!loading && !hasError) {
+    return null;
+  }
+
+  const trimmedQuerySummary = querySummary.trim();
+
+  let displayQuerySummary = trimmedQuerySummary;
+
+  if (trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH) {
+    const chars = Array.from(trimmedQuerySummary);
+    displayQuerySummary = `${chars.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1).join("")}…`;
+  }
+
+  const loadingMessage = displayQuerySummary.length
+    ? `Loading results for ${displayQuerySummary}...`
+    : "Loading results...";
+
+  const getDisplayError = (rawError: string | null): string => {
+    if (!rawError) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    // Normalize whitespace to avoid layout issues
+    const sanitized = rawError.replace(/\s+/g, " ").trim();
+
+    if (!sanitized) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
+      return `${sanitized.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
+    }
+
+    return sanitized;
+  };
+
+  const errorMessage = hasError ? getDisplayError(error) : "";
+
+  return (
+    <div
+      role={hasError ? "alert" : "status"}
+      aria-live={hasError ? "assertive" : "polite"}
+      className={`px-6 py-3 text-sm ${
+        hasError ? "text-red-500" : "text-gray-500"
+      }`}
+    >
+      {hasError ? `Error: ${errorMessage}` : loadingMessage}
+    </div>
+  );
+};
+
+// AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
+
 /**
  * Fetches and displays a list of assets with filtering and pagination.
  * @returns {JSX.Element} The AssetList component.
