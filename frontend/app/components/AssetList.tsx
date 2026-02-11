@@ -113,8 +113,8 @@ const AssetListStatus = ({
       return "An unexpected error occurred while loading results.";
     }
 
-    if (sanitized.length > 160) {
-      return `${sanitized.slice(0, 159)}…`;
+    if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
+      return `${sanitized.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
     }
 
     return sanitized;
