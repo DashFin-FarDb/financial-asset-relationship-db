@@ -451,8 +451,8 @@ class FinancialAssetApp:
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """
-        Builds a human-readable, markdown-formatted summary of formulaic analysis results
-        for display.
+        Builds a human-readable, markdown-formatted summary of formulaic analysis
+        results for display.
 
         Parameters:
             summary (Dict): Aggregated metrics and highlights produced by the analyzer.
@@ -467,8 +467,8 @@ class FinancialAssetApp:
                   of dicts with "pair", "correlation", and "strength" keys.
 
         Returns:
-            str: A multi-line markdown-ready string summarizing totals, average R², category counts,
-            key insights, and up to the top three strongest
+            str: A multi-line markdown-ready string summarizing totals, average R²,
+            category counts, key insights, and up to the top three strongest
             empirical correlations.
         """
         formulas = analysis_results.get("formulas", [])

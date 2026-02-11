@@ -763,13 +763,13 @@ class FormulaicAnalyzer:
         assets in the provided graph.
 
         Parameters:
-            graph (AssetRelationshipGraph): Asset relationship graph to source fixed-income
-                assets from.
+            graph (AssetRelationshipGraph): Asset relationship graph to source
+                fixed-income assets from.
 
         Returns:
             str: A semicolon-separated string with up to two examples like
-                "SYMBOL: YTM ≈ 3.45%", or a default example string when no valid YTMs are
-                found.
+                "SYMBOL: YTM ≈ 3.45%", or a default example string
+                when no valid YTMs are found.
         """
         from src.models.financial_models import AssetClass
 
@@ -789,13 +789,15 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
         """
-        Builds example market-capitalization strings for up to two equity assets found in
-        the graph.
+        Builds example market-capitalization strings for up to two equity assets
+        found in the graph.
 
         Scans the graph's assets for items classified as EQUITY that have a non-null
-        market_cap, formats up to two examples in billions (e.g., "SYM: Market Cap = $1.5B"),
-        and returns a semicolon-separated string. If no valid equity market-cap values are
-        found, returns the default example string.
+        market_cap, formats up to two examples in billions
+        (e.g., "SYM: Market Cap = $1.5B"),
+        and returns a semicolon-separated string.
+        If no valid equity market-cap values are found, returns the
+        default example string.
 
         Parameters:
             graph (AssetRelationshipGraph): Graph containing assets to sample for
@@ -893,14 +895,16 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_portfolio_variance_examples(graph: AssetRelationshipGraph) -> str:
         """
-        Generate an example string illustrating the portfolio variance calculation
-        for a two-asset portfolio.
+        Generate an example string illustrating the portfolio
+        variance calculation for a two-asset portfolio.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph used to source asset weights and volatilities when available.
+            graph (AssetRelationshipGraph): Graph used to source asset weights
+            and volatilities when available.
 
         Returns:
-            example (str): A formatted example showing the portfolio variance formula
+            example (str): A formatted example showing the portfolio
+            variance formula
             (σ²p) with numeric terms.
         """
         return (
@@ -911,7 +915,8 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
         """
-        Produce a sample exchange-rate calculation string using currencies found in the graph.
+        Produce a sample exchange-rate calculation string using currencies found in
+        the graph.
 
         Returns:
             example (str): A worked example of an exchange-rate

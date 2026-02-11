@@ -182,7 +182,6 @@ class AssetRelationshipGraph:
             if effective_assets_count > 1
             else 0.0
         )
-        )
 
         rel_dist = {}
         all_rels = []

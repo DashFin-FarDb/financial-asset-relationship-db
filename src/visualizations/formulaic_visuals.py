@@ -139,7 +139,8 @@ class FormulaicVisualizer:
         no trace is added.
 
         Parameters:
-            fig (go.Figure): The Plotly Figure (with subplots) to receive the heatmap trace.
+            fig (go.Figure): The Plotly Figure (with subplots)
+                to receive the heatmap trace.
             empirical_relationships (Mapping[str, Any]): Mapping expected to contain a
                 "correlation_matrix" key whose value is a dict mapping asset to asset to
                 correlation value.
@@ -574,19 +575,23 @@ class FormulaicVisualizer:
         positions: Dict[str, tuple[float, float]],
     ) -> go.Scatter:
         """
-        Constructs a Plotly line trace representing a correlation edge between two assets.
+        Constructs a Plotly line trace
+        representing a correlation edge between two assets.
 
         Parameters:
             asset1 (str): Identifier of the first asset.
             asset2 (str): Identifier of the second asset.
-            value (float): Correlation value between the two assets; sign determines trace color.
-            positions (Dict[str, tuple[float, float]]): Mapping of asset identifiers to (x, y) coordinates.
+            value (float): Correlation value between the two assets;
+                sign determines trace color.
+            positions (Dict[str, tuple[float, float]]):
+                Mapping of asset identifiers to (x, y) coordinates.
 
         Returns:
-            go.Scatter: A line trace connecting the two asset positions with
-            color indicating sign (red for negative, green for positive),
-            line width proportional to the absolute value (minimum width of 1),
-            and hover text formatted as "asset1 - asset2: value".
+            go.Scatter: A line trace connecting the two asset positions
+                with color indicating sign (red for negative, green for
+                positive), line width proportional to the absolute value
+                (minimum width of 1), and hover text formatted as
+                "asset1 - asset2: value".
         """
         x0, y0 = positions[asset1]
         x1, y1 = positions[asset2]
@@ -616,10 +621,12 @@ class FormulaicVisualizer:
 
         Parameters:
             assets (list[str]): Ordered list of asset names to include in the trace.
-            positions (Dict[str, tuple[float, float]]): Mapping from asset name to its (x, y) coordinates.
+            positions (Dict[str, tuple[float, float]]): Mapping from asset name to its
+                (x, y) coordinates.
 
         Returns:
-            go.Scatter: A Scatter trace with markers and text labels for the provided assets.
+            go.Scatter: A Scatter trace with markers and text labels
+                for the provided assets.
         """
         node_x = [positions[asset][0] for asset in assets]
         node_y = [positions[asset][1] for asset in assets]

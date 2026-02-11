@@ -94,15 +94,15 @@ def _create_spring_layout_2d(
     if not positions_3d or not asset_ids:
         return {}
 
-   positions_2d = {}
-   for asset_id in asset_ids:
-       if asset_id in positions_3d:
-           pos_3d = positions_3d[asset_id]
-           # Handle both tuple and array-like positions
-           if hasattr(pos_3d, "__getitem__"):
-               positions_2d[asset_id] = (float(pos_3d[0]), float(pos_3d[1]))
+    positions_2d = {}
+    for asset_id in asset_ids:
+        if asset_id in positions_3d:
+            pos_3d = positions_3d[asset_id]
+            # Handle both tuple and array-like positions
+            if hasattr(pos_3d, "__getitem__"):
+                positions_2d[asset_id] = (float(pos_3d[0]), float(pos_3d[1]))
 
-   return positions_2d
+    return positions_2d
 
 
 def _create_2d_relationship_traces(
