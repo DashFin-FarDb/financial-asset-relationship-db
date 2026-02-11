@@ -137,8 +137,7 @@ const AssetListStatus = ({
   );
 };
 
-// Remove this line:
-// AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
+// AssetTable wrapper to handle overflow and reduce nesting depth.
 
 /**
  * Component to handle table container and reduce nesting depth.
