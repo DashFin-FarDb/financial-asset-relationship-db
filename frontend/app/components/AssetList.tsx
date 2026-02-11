@@ -95,11 +95,11 @@ const AssetListStatus = ({
   error: string | null;
   querySummary?: string;
 }) => {
-  if (!loading && !error) {
+  const hasError = error !== null;
+
+  if (!loading && !hasError) {
     return null;
   }
-
-  const isError = Boolean(error);
 
   const trimmedQuerySummary = querySummary.trim();
 
