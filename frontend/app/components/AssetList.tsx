@@ -84,7 +84,7 @@ const AssetListStatus = ({
   error,
   querySummary = "",
 }: AssetListStatusProps) => {
-  const hasError = Boolean(error && error.trim().length > 0);
+  const hasError = error !== null;
 
   if (!loading && !hasError) {
     return null;
@@ -122,7 +122,7 @@ const AssetListStatus = ({
     return sanitized;
   };
 
-  const errorMessage = getDisplayError(error);
+  const errorMessage = hasError ? getDisplayError(error) : "";
 
   return (
     <div
