@@ -84,7 +84,7 @@ const AssetListStatus = ({
   error,
   querySummary = "",
 }: AssetListStatusProps) => {
-  const hasError = error !== null;
+  const hasError = Boolean(error && error.trim().length > 0);
 
   if (!loading && !hasError) {
     return null;
