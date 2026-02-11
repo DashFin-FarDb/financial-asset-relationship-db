@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
@@ -237,6 +238,7 @@ class TestDependencyMatrix:
                         assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
 
@@ -485,6 +487,7 @@ class TestSystemManifest:
                         assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestDocumentationConsistency:
     """Test cases for consistency between documentation files."""
 
@@ -616,6 +619,7 @@ class TestDocumentationConsistency:
                 )
 
 
+@pytest.mark.unit
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
 

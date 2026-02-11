@@ -29,6 +29,7 @@ from src.models.financial_models import (
 )
 
 
+@pytest.mark.unit
 class TestAsset:
     """Test cases for the Asset base class."""
 
@@ -80,7 +81,9 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_currency():
         """Test that invalid currency code raises ValueError."""
-        with pytest.raises(ValueError, match="Currency must be a valid 3-letter ISO code"):
+        with pytest.raises(
+            ValueError, match="Currency must be a valid 3-letter ISO code"
+        ):
             Asset(
                 id="TEST_001",
                 symbol="TEST",
@@ -94,7 +97,9 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_market_cap():
         """Test that negative market cap raises ValueError."""
-        with pytest.raises(ValueError, match="Market cap must be a non-negative number or None"):
+        with pytest.raises(
+            ValueError, match="Market cap must be a non-negative number or None"
+        ):
             Asset(
                 id="TEST_001",
                 symbol="TEST",
@@ -106,6 +111,7 @@ class TestAsset:
             )
 
 
+@pytest.mark.unit
 class TestEquity:
     """Test cases for the Equity class."""
 
@@ -131,6 +137,7 @@ class TestEquity:
         assert sample_equity.dividend_yield == 0.005
 
 
+@pytest.mark.unit
 class TestBond:
     """Test cases for the Bond class."""
 
@@ -158,6 +165,7 @@ class TestBond:
         assert bond.issuer_id is None
 
 
+@pytest.mark.unit
 class TestCommodity:
     """Test cases for the Commodity class."""
 
@@ -169,6 +177,7 @@ class TestCommodity:
         assert sample_commodity.volatility == 0.15
 
 
+@pytest.mark.unit
 class TestCurrency:
     """Test cases for the Currency class."""
 
@@ -180,6 +189,7 @@ class TestCurrency:
         assert sample_currency.country == "Eurozone"
 
 
+@pytest.mark.unit
 class TestRegulatoryEvent:
     """Test cases for the RegulatoryEvent class."""
 
@@ -194,7 +204,9 @@ class TestRegulatoryEvent:
     @staticmethod
     def test_event_invalid_impact_score():
         """Test that impact score outside [-1, 1] raises ValueError."""
-        with pytest.raises(ValueError, match="Impact score must be a float between -1 and 1"):
+        with pytest.raises(
+            ValueError, match="Impact score must be a float between -1 and 1"
+        ):
             RegulatoryEvent(
                 id="EVENT_002",
                 asset_id="TEST_001",

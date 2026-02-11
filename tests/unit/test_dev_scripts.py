@@ -12,6 +12,7 @@ import os
 import pytest
 
 
+@pytest.mark.unit
 class TestVercelConfiguration:
     """Test Vercel deployment configuration."""
 
@@ -62,6 +63,7 @@ class TestVercelConfiguration:
         assert api_route["dest"] == "api/main.py"
 
 
+@pytest.mark.unit
 class TestEnvironmentConfiguration:
     """Test environment configuration."""
 
@@ -80,6 +82,7 @@ class TestEnvironmentConfiguration:
         assert "ALLOWED_ORIGINS" in content
 
 
+@pytest.mark.unit
 class TestGitIgnore:
     """Test .gitignore configuration."""
 
@@ -103,6 +106,7 @@ class TestGitIgnore:
         assert ".vercel" in content
 
 
+@pytest.mark.unit
 class TestDocumentationFiles:
     """Test that documentation files exist and are properly structured."""
 
@@ -133,6 +137,7 @@ class TestDocumentationFiles:
         assert "Installation" in content or "Setup" in content
 
 
+@pytest.mark.unit
 class TestShellScripts:
     """Test shell scripts for syntax, structure, and functionality."""
 
@@ -398,7 +403,10 @@ class TestShellScripts:
             content = f.read()
 
         # Should reference the analysis document
-        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
+        assert (
+            "BRANCH_CLEANUP_ANALYSIS.md" in content
+            or "documentation" in content.lower()
+        )
 
     def test_shell_scripts_consistent_style(self):
         """Test that shell scripts use consistent coding style."""
@@ -498,7 +506,9 @@ class TestShellScripts:
         if "git branch" in content and "-" in content:
             # Check the context of deletion
             lines = content.split("\n")
-            delete_lines = [line for line in lines if "git branch -" in line and "xargs" in line]
+            delete_lines = [
+                line for line in lines if "git branch -" in line and "xargs" in line
+            ]
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)

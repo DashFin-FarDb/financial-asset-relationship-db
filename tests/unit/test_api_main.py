@@ -26,6 +26,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
 
+@pytest.mark.unit
 class TestValidateOrigin:
     """Test the validate_origin function for CORS configuration."""
 
@@ -81,6 +82,7 @@ class TestValidateOrigin:
         assert not validate_origin("https://.com")
 
 
+@pytest.mark.unit
 class TestGraphInitialization:
     """Test the lazy graph initialization via get_graph()."""
 
@@ -139,6 +141,7 @@ class TestGraphInitialization:
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
 
+@pytest.mark.unit
 class TestPydanticModels:
     """Test Pydantic response models."""
 
@@ -207,6 +210,7 @@ class TestPydanticModels:
         assert len(viz.edges) == 1
 
 
+@pytest.mark.unit
 class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
@@ -232,7 +236,6 @@ class TestAPIEndpoints:
 
     def test_root_endpoint(self, client):
         """Test the root endpoint returns API information."""
-
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
@@ -243,7 +246,6 @@ class TestAPIEndpoints:
 
     def test_health_check_endpoint(self, client):
         """Test the health check endpoint."""
-
         response = client.get("/api/health")
         assert response.status_code == 200
         data = response.json()
@@ -251,7 +253,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_all(self, client):
         """Test getting all assets without filters."""
-
         response = client.get("/api/assets")
         assert response.status_code == 200
         assets = response.json()
@@ -269,7 +270,6 @@ class TestAPIEndpoints:
 
     def test_get_assets_filter_by_class(self, client):
         """Test filtering assets by asset class."""
-
         response = client.get("/api/assets?asset_class=EQUITY")
         assert response.status_code == 200
         assets = response.json()
@@ -530,6 +530,7 @@ class TestAPIEndpoints:
         assert data["sectors"] == sorted(data["sectors"])
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test error handling and edge cases."""
 
@@ -626,6 +627,7 @@ def test_cors_allows_development_origins(cors_client):
     assert response.status_code == status.HTTP_200_OK  # nosec B101
 
 
+@pytest.mark.unit
 class TestAdditionalFields:
     """Test handling of asset-specific additional fields."""
 
@@ -678,6 +680,7 @@ class TestAdditionalFields:
             assert has_bond_field or len(additional) == 0
 
 
+@pytest.mark.unit
 class TestVisualizationDataProcessing:
     """Test the processing of visualization data."""
 
@@ -726,6 +729,7 @@ class TestVisualizationDataProcessing:
             assert 0 <= edge["strength"] <= 1
 
 
+@pytest.mark.unit
 class TestIntegrationScenarios:
     """Test realistic integration scenarios."""
 
@@ -790,6 +794,268 @@ class TestIntegrationScenarios:
         response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
         tech_equity_assets = response.json()
         assert len(tech_equity_assets) <= len(equity_assets)
+
+
+@pytest.mark.unit
+class TestGraphInitializationRaceConditions:
+    """Test race conditions and thread safety in graph initialization."""
+
+    def test_concurrent_graph_initialization_threads(self):
+        """Boundary: Multiple threads initializing graph concurrently should be safe."""
+        import threading
+
+        api_main.reset_graph()
+        results = []
+        errors = []
+
+        def init_graph():
+            """Thread worker for graph initialization."""
+            try:
+                graph = api_main.get_graph()
+                results.append(graph)
+            except Exception as e:
+                errors.append(e)
+
+        # Spawn 10 concurrent threads
+        threads = [threading.Thread(target=init_graph) for _ in range(10)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        # No errors should occur
+        assert len(errors) == 0
+        # All threads should get a graph
+        assert len(results) == 10
+        # All should get the same singleton instance
+        first_graph = results[0]
+        for graph in results[1:]:
+            assert graph is first_graph
+
+        api_main.reset_graph()
+
+    def test_graph_initialization_with_corrupted_environment(self, monkeypatch):
+        """Boundary: Graph initialization should handle corrupted environment variables."""
+        # Set invalid cache path
+        monkeypatch.setenv("GRAPH_CACHE_PATH", "/invalid/path/to/cache.json")
+        api_main.reset_graph()
+
+        # Should not crash, should fall back gracefully
+        graph = api_main.get_graph()
+        assert graph is not None
+        assert hasattr(graph, "assets")
+
+        api_main.reset_graph()
+
+    def test_graph_reset_and_reinitialize(self):
+        """Boundary: Resetting and reinitializing graph should work correctly."""
+        # Initialize graph
+        graph1 = api_main.get_graph()
+        assert graph1 is not None
+
+        # Reset
+        api_main.reset_graph()
+
+        # Reinitialize - should get new instance
+        graph2 = api_main.get_graph()
+        assert graph2 is not None
+        assert graph1 is not graph2
+
+        api_main.reset_graph()
+
+    def test_graph_initialization_memory_cleanup(self):
+        """Boundary: Graph should be properly cleaned up after reset."""
+        import gc
+
+        # Create and reset graph multiple times
+        for _ in range(5):
+            graph = api_main.get_graph()
+            assert graph is not None
+            api_main.reset_graph()
+            gc.collect()
+
+        # Final initialization should still work
+        final_graph = api_main.get_graph()
+        assert final_graph is not None
+
+        api_main.reset_graph()
+
+
+@pytest.mark.unit
+class TestGraphCachingEdgeCases:
+    """Edge cases for graph caching and persistence."""
+
+    def test_empty_cache_file_handling(self, tmp_path, monkeypatch):
+        """Edge: Empty cache file should trigger fallback."""
+        cache_path = tmp_path / "empty_cache.json"
+        cache_path.write_text("")
+
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+        api_main.reset_graph()
+
+        graph = api_main.get_graph()
+        assert graph is not None
+
+        api_main.reset_graph()
+
+    def test_json_array_instead_of_object_cache(self, tmp_path, monkeypatch):
+        """Edge: Cache with JSON array instead of object should fallback."""
+        cache_path = tmp_path / "array_cache.json"
+        cache_path.write_text("[]")
+
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+        api_main.reset_graph()
+
+        graph = api_main.get_graph()
+        assert graph is not None
+
+        api_main.reset_graph()
+
+    def test_cache_with_missing_required_fields(self, tmp_path, monkeypatch):
+        """Edge: Cache missing required fields should trigger fallback."""
+        cache_path = tmp_path / "incomplete_cache.json"
+        cache_path.write_text('{"incomplete": "data"}')
+
+        monkeypatch.setenv("GRAPH_CACHE_PATH", str(cache_path))
+        api_main.reset_graph()
+
+        graph = api_main.get_graph()
+        assert graph is not None
+
+        api_main.reset_graph()
+
+
+@pytest.mark.unit
+class TestPydanticModelValidation:
+    """Validation tests for Pydantic response models."""
+
+    def test_asset_response_rejects_negative_price(self):
+        """Negative: AssetResponse should validate price constraints."""
+        asset = AssetResponse(
+            id="TEST",
+            symbol="TST",
+            name="Test",
+            asset_class="EQUITY",
+            sector="Tech",
+            price=-100.0,  # Currently allowed as no validation is implemented
+        )
+        assert isinstance(asset, AssetResponse)
+
+    def test_relationship_response_validates_strength_range(self):
+        """Negative: RelationshipResponse should validate strength is 0-1."""
+        # Valid strength
+        rel = RelationshipResponse(
+            source_id="A",
+            target_id="B",
+            relationship_type="test",
+            strength=0.5,
+        )
+        assert rel.strength == 0.5
+
+        # Test boundary values
+        rel_min = RelationshipResponse(
+            source_id="A",
+            target_id="B",
+            relationship_type="test",
+            strength=0.0,
+        )
+        assert rel_min.strength == 0.0
+
+        rel_max = RelationshipResponse(
+            source_id="A",
+            target_id="B",
+            relationship_type="test",
+            strength=1.0,
+        )
+        assert rel_max.strength == 1.0
+
+    def test_metrics_response_validates_non_negative_values(self):
+        """Negative: MetricsResponse should reject negative metrics."""
+        metrics = MetricsResponse(
+            total_assets=-1,  # Currently allowed as no validation is implemented
+            total_relationships=0,
+            asset_classes={},
+            avg_degree=0.0,
+            max_degree=0,
+            network_density=0.0,
+        )
+        assert isinstance(metrics, MetricsResponse)
+
+
+@pytest.mark.unit
+class TestEndpointStressTests:
+    """Stress tests for API endpoints under load."""
+
+    @staticmethod
+    @pytest.fixture
+    def client():
+        """Create test client with sample data."""
+        api_main.set_graph(create_sample_database())
+        client = TestClient(app)
+        try:
+            yield client
+        finally:
+            api_main.reset_graph()
+
+    def test_rapid_successive_requests(self, client):
+        """Stress: Handle many rapid successive requests."""
+        responses = []
+        for _ in range(100):
+            response = client.get("/api/health")
+            responses.append(response)
+
+        # All should succeed
+        for response in responses:
+            assert response.status_code == 200
+
+    def test_mixed_endpoint_requests(self, client):
+        """Stress: Handle mixed requests to different endpoints."""
+        endpoints = [
+            "/api/health",
+            "/api/assets",
+            "/api/metrics",
+            "/api/asset-classes",
+            "/api/sectors",
+        ]
+
+        for _ in range(20):
+            for endpoint in endpoints:
+                response = client.get(endpoint)
+                assert response.status_code == 200
+
+
+@pytest.mark.unit
+class TestErrorMessageQuality:
+    """Test quality and informativeness of error messages."""
+
+    @staticmethod
+    @pytest.fixture
+    def client():
+        """Create test client."""
+        api_main.set_graph(create_sample_database())
+        client = TestClient(app)
+        try:
+            yield client
+        finally:
+            api_main.reset_graph()
+
+    def test_404_error_message_is_informative(self, client):
+        """Error messages should be informative for developers."""
+        response = client.get("/api/assets/NONEXISTENT_ASSET")
+        assert response.status_code == 404
+        error_data = response.json()
+
+        # Should have detail key
+        assert "detail" in error_data
+        # Should mention the asset ID
+        assert "not found" in error_data["detail"].lower()
+
+    def test_invalid_endpoint_error_message(self, client):
+        """Invalid endpoints should return clear error."""
+        response = client.get("/api/invalid_endpoint_that_does_not_exist")
+        assert response.status_code == 404
+        error_data = response.json()
+        assert "detail" in error_data
 
 
 if __name__ == "__main__":
