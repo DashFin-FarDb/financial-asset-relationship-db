@@ -109,6 +109,25 @@ def mock_graph():
     return graph
 
 
+
+def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRelationshipGraph) -> None:
+    """Apply shared configuration to the patched api.main.graph mock.
+
+    This keeps endpoint tests DRY by centralizing the common attribute wiring.
+    """
+    # The patched object is a Mock from unittest.mock; we set attributes dynamically.
+    mock_graph_instance.assets = graph.assets
+    mock_graph_instance.relationships = graph.relationships
+    mock_graph_instance.calculate_metrics = graph.calculate_metrics
+    mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data
+
+
+@pytest.fixture
+def apply_mock_graph():
+    """Return a helper callable that wires the patched graph to a concrete graph."""
+    return _apply_mock_graph_configuration
+
+
 @pytest.mark.unit
 class TestRootAndHealth:
     """Test root and health check endpoints."""
@@ -185,15 +204,10 @@ class TestAssetsEndpoint:
     """Test assets listing endpoint."""
 
     @patch("api.main.graph")
-    def test_get_all_assets(self, mock_graph_instance, client, mock_graph):
+    def test_get_all_assets(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving all assets without filters."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets")
         assert response.status_code == 200
@@ -211,15 +225,10 @@ class TestAssetsEndpoint:
         assert "currency" in asset
 
     @patch("api.main.graph")
-    def test_filter_by_asset_class(self, mock_graph_instance, client, mock_graph):
+    def test_filter_by_asset_class(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filtering assets by asset class."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
@@ -229,15 +238,10 @@ class TestAssetsEndpoint:
         assert data[0]["symbol"] == "AAPL"
 
     @patch("api.main.graph")
-    def test_filter_by_sector(self, mock_graph_instance, client, mock_graph):
+    def test_filter_by_sector(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filtering assets by sector."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
@@ -246,15 +250,10 @@ class TestAssetsEndpoint:
         assert data[0]["sector"] == "Technology"
 
     @patch("api.main.graph")
-    def test_filter_combined(self, mock_graph_instance, client, mock_graph):
+    def test_filter_combined(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filtering with multiple parameters."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets?asset_class=Equity&sector=Technology")
         assert response.status_code == 200
@@ -264,15 +263,10 @@ class TestAssetsEndpoint:
         assert data[0]["sector"] == "Technology"
 
     @patch("api.main.graph")
-    def test_assets_additional_fields(self, mock_graph_instance, client, mock_graph):
+    def test_assets_additional_fields(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test that additional fields are included for assets."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
@@ -284,12 +278,10 @@ class TestAssetsEndpoint:
         assert equity["additional_fields"]["pe_ratio"] == 25.5
 
     @patch("api.main.graph")
-    def test_assets_error_handling(self, mock_graph_instance, client):
+    def test_assets_error_handling(self, mock_graph_instance, client, apply_mock_graph):
         """Test error handling in assets endpoint."""
         # Make graph.assets raise an exception when accessed
-        type(mock_graph_instance).assets = PropertyMock(
-            side_effect=Exception("Database error")
-        )
+        type(mock_graph_instance).assets = PropertyMock(side_effect=Exception("Database error"))
 
         response = client.get("/api/assets")
 
@@ -302,15 +294,10 @@ class TestAssetDetailEndpoint:
     """Test individual asset detail endpoint."""
 
     @patch("api.main.graph")
-    def test_get_asset_detail_success(self, mock_graph_instance, client, mock_graph):
+    def test_get_asset_detail_success(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving details for a specific asset."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets/TEST_AAPL")
         assert response.status_code == 200
@@ -322,30 +309,20 @@ class TestAssetDetailEndpoint:
         assert data["price"] == 150.00
 
     @patch("api.main.graph")
-    def test_get_asset_detail_not_found(self, mock_graph_instance, client, mock_graph):
+    def test_get_asset_detail_not_found(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test 404 response for non-existent asset."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets/NONEXISTENT")
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
     @patch("api.main.graph")
-    def test_get_bond_detail_with_issuer(self, mock_graph_instance, client, mock_graph):
+    def test_get_bond_detail_with_issuer(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test bond details include issuer_id."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets/TEST_CORP")
         assert response.status_code == 200
@@ -360,15 +337,10 @@ class TestRelationshipsEndpoint:
     """Test relationship endpoints."""
 
     @patch("api.main.graph")
-    def test_get_asset_relationships(self, mock_graph_instance, client, mock_graph):
+    def test_get_asset_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving relationships for a specific asset."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets/TEST_AAPL/relationships")
         assert response.status_code == 200
@@ -384,31 +356,19 @@ class TestRelationshipsEndpoint:
             assert "strength" in rel
 
     @patch("api.main.graph")
-    def test_get_asset_relationships_not_found(
-        self, mock_graph_instance, client, mock_graph
-    ):
+    def test_get_asset_relationships_not_found(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test 404 for relationships of non-existent asset."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets/NONEXISTENT/relationships")
         assert response.status_code == 404
 
     @patch("api.main.graph")
-    def test_get_all_relationships(self, mock_graph_instance, client, mock_graph):
+    def test_get_all_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving all relationships in the graph."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/relationships")
         assert response.status_code == 200
@@ -429,15 +389,10 @@ class TestMetricsEndpoint:
     """Test metrics calculation endpoint."""
 
     @patch("api.main.graph")
-    def test_get_metrics(self, mock_graph_instance, client, mock_graph):
+    def test_get_metrics(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving network metrics."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/metrics")
         assert response.status_code == 200
@@ -456,17 +411,10 @@ class TestMetricsEndpoint:
         assert data["network_density"] >= 0
 
     @patch("api.main.graph")
-    def test_metrics_asset_class_distribution(
-        self, mock_graph_instance, client, mock_graph
-    ):
+    def test_metrics_asset_class_distribution(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test asset class distribution in metrics."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/metrics")
         data = response.json()
@@ -482,15 +430,10 @@ class TestVisualizationEndpoint:
     """Test 3D visualization data endpoint."""
 
     @patch("api.main.graph")
-    def test_get_visualization_data(self, mock_graph_instance, client, mock_graph):
+    def test_get_visualization_data(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving visualization data."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/visualization")
         assert response.status_code == 200
@@ -503,17 +446,10 @@ class TestVisualizationEndpoint:
         assert len(data["nodes"]) == 4
 
     @patch("api.main.graph")
-    def test_visualization_node_structure(
-        self, mock_graph_instance, client, mock_graph
-    ):
+    def test_visualization_node_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test visualization node data structure."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/visualization")
         data = response.json()
@@ -535,17 +471,10 @@ class TestVisualizationEndpoint:
         assert isinstance(node["z"], float)
 
     @patch("api.main.graph")
-    def test_visualization_edge_structure(
-        self, mock_graph_instance, client, mock_graph
-    ):
+    def test_visualization_edge_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test visualization edge data structure."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/visualization")
         data = response.json()
@@ -579,15 +508,10 @@ class TestMetadataEndpoints:
 
     @staticmethod
     @patch("api.main.graph")
-    def test_get_sectors(mock_graph_instance, client, mock_graph):
+    def test_get_sectors(mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving available sectors."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/sectors")
         assert response.status_code == 200
@@ -606,13 +530,11 @@ class TestEdgeCases:
     """Test edge cases and error conditions."""
 
     @patch("api.main.graph")
-    def test_empty_graph(self, mock_graph_instance, client):
+    def test_empty_graph(self, mock_graph_instance, client, apply_mock_graph):
         """Test handling of empty graph."""
         empty_graph = AssetRelationshipGraph()
         mock_graph_instance.relationships = empty_graph.relationships
-        mock_graph_instance.get_3d_visualization_data_enhanced = (
-            empty_graph.get_3d_visualization_data_enhanced
-        )
+        mock_graph_instance.get_3d_visualization_data_enhanced = empty_graph.get_3d_visualization_data_enhanced
 
         response = client.get("/api/assets")
         assert response.status_code == 200
@@ -625,32 +547,20 @@ class TestEdgeCases:
         assert data["total_relationships"] == 0
 
     @patch("api.main.graph")
-    def test_special_characters_in_asset_id(
-        self, mock_graph_instance, client, mock_graph
-    ):
+    def test_special_characters_in_asset_id(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test handling of special characters in asset IDs."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         # Test URL encoding
         response = client.get("/api/assets/TEST%20SPACE")
         assert response.status_code == 404
 
     @patch("api.main.graph")
-    def test_filter_no_matches(self, mock_graph_instance, client, mock_graph):
+    def test_filter_no_matches(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filter that returns no results."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets?sector=NonExistent")
         assert response.status_code == 200
@@ -662,17 +572,10 @@ class TestConcurrency:
     """Test concurrent request handling."""
 
     @patch("api.main.graph")
-    def test_multiple_concurrent_requests(
-        self, mock_graph_instance, client, mock_graph
-    ):
+    def test_multiple_concurrent_requests(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test handling multiple concurrent requests."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         # Simulate concurrent requests
         responses = []
@@ -691,15 +594,10 @@ class TestResponseValidation:
     """Test response data validation."""
 
     @patch("api.main.graph")
-    def test_asset_response_schema(self, mock_graph_instance, client, mock_graph):
+    def test_asset_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test asset response matches Pydantic schema."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/assets")
         data = response.json()
@@ -719,17 +617,10 @@ class TestResponseValidation:
                 assert isinstance(asset["market_cap"], (int, float))
 
     @patch("api.main.graph")
-    def test_relationship_response_schema(
-        self, mock_graph_instance, client, mock_graph
-    ):
+    def test_relationship_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test relationship response matches schema."""
-        # Configure patched graph with mock_graph attributes
-        mock_graph_instance.assets = mock_graph.assets
-        mock_graph_instance.relationships = mock_graph.relationships
-        mock_graph_instance.calculate_metrics = mock_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            mock_graph.get_3d_visualization_data
-        )
+        apply_mock_graph(mock_graph_instance, mock_graph)
+
 
         response = client.get("/api/relationships")
         data = response.json()
@@ -761,9 +652,7 @@ class TestRealDataFetcherFallback:
         fetcher = RealDataFetcher()
 
         # Mock the individual fetch methods to raise exceptions
-        with patch.object(
-            fetcher, "_fetch_equity_data", side_effect=Exception("Equity fetch failed")
-        ):
+        with patch.object(fetcher, "_fetch_equity_data", side_effect=Exception("Equity fetch failed")):
             graph = fetcher.create_real_database()
 
             # Should fall back to sample data and return a valid graph
@@ -827,9 +716,7 @@ class TestRealDataFetcherFallback:
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
     @staticmethod
-    def test_real_data_fetcher_logs_fallback_on_exception(
-        mock_fetch_equity, mock_logger
-    ):
+    def test_real_data_fetcher_logs_fallback_on_exception(mock_fetch_equity, mock_logger):
         """Test that RealDataFetcher logs when falling back to sample data."""
         from src.data.real_data_fetcher import RealDataFetcher
 
@@ -876,13 +763,9 @@ class TestRealDataFetcherFallback:
         graph = fetcher.create_real_database()
 
         assert len(graph.assets) == len(reference_graph.assets)
-        assert set(graph.relationships.keys()) == set(
-            reference_graph.relationships.keys()
-        )
+        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
 
-        assert set(graph.relationships.keys()) == set(
-            reference_graph.relationships.keys()
-        )
+        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
 
 
 @pytest.mark.unit
@@ -926,9 +809,7 @@ class TestCacheCorruptionRegression:
             try:
                 from src.data.real_data_fetcher import RealDataFetcher
 
-                fetcher = RealDataFetcher(
-                    cache_path=str(cache_path), enable_network=False
-                )
+                fetcher = RealDataFetcher(cache_path=str(cache_path), enable_network=False)
                 graph = fetcher.create_real_database()
                 results.append(graph)
             except Exception as e:
@@ -1035,9 +916,7 @@ class TestAPIBoundaryConditions:
         mock_graph_instance.assets = large_graph.assets
         mock_graph_instance.relationships = large_graph.relationships
         mock_graph_instance.calculate_metrics = large_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = (
-            large_graph.get_3d_visualization_data
-        )
+        mock_graph_instance.get_3d_visualization_data = large_graph.get_3d_visualization_data
 
         # Should not timeout or error
         response = client.get("/api/assets")
@@ -1107,3 +986,4 @@ class TestNegativeScenarios:
         data = response.json()
         assert data["total_assets"] == 0
         assert data["network_density"] == 0
+ 
