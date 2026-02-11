@@ -498,7 +498,11 @@ class TestConfigurationConsistency:
     @staticmethod
     def test_env_and_next_config():
         """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
-        with open(".env.local") as f:
+        env_path = Path(".env.local")
+        if not env_path.exists():
+            env_path = Path(".env.example")
+
+        with open(env_path) as f:
             env_content = f.read()
 
         # Check next.config.js
