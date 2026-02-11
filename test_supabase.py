@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 def test_supabase_connection():
     """Test connection to Supabase database"""
-
     # Load environment variables
     load_dotenv()
 

@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 def test_postgres_connection():
     """Test direct PostgreSQL connection to Supabase"""
-
     # Load environment variables
     load_dotenv()
 

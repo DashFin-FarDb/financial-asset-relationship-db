@@ -56,7 +56,6 @@ def session_scope(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
     """Provide a transactional scope around a series of operations."""
-
     session = session_factory()
     try:
         yield session

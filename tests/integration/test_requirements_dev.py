@@ -35,7 +35,6 @@ def _extract_package_name(line: str, req: Requirement) -> str:
     Returns:
         The package name as written in the requirements file.
     """
-
     # Drop environment markers
     raw_pkg_token = line.split(";", 1)[0]
     # Drop extras
@@ -838,7 +837,6 @@ class TestComprehensivePackageValidation:
     @staticmethod
     def test_all_packages_loadable_by_pip(requirements: List[Tuple[str, str]]):
         """Test that all package specifications are valid pip requirements."""
-
         # Re-read file and try to parse each line with pip
         with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             for line in f:
