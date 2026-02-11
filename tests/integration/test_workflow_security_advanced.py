@@ -82,16 +82,16 @@ class TestWorkflowSecretHandling:
     def test_secrets_not_echoed_in_logs(all_workflows):
         """
         Ensure workflow secrets are not output to logs via `echo`, `print`, or `printf`.
-        
+
         Scans each workflow's raw YAML for references of the form `secrets.<name>` and verifies
         that any line containing such a reference does not invoke `echo`, `print`, or `printf`
         (case-insensitive).
-        
+
         Parameters:
             all_workflows (Iterable[Mapping]): Iterable of workflow dictionaries. Each workflow
                 must provide a `raw` key with the YAML content as a string and a `path` key
                 used in assertion messages.
-        
+
         Raises:
             AssertionError: If a secret reference appears on a line that uses `echo`, `print`,
             or `printf`. The assertion message includes the secret name, workflow path, and line
@@ -137,7 +137,7 @@ class TestWorkflowPermissionsHardening:
     def test_workflows_define_explicit_permissions(all_workflows):
         """
         Require each workflow to include a top-level 'permissions' key.
-        
+
         Parameters:
             all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item contains a 'content' mapping for the workflow YAML and a 'path' string used in failure messages.
         """
@@ -148,11 +148,11 @@ class TestWorkflowPermissionsHardening:
     def test_default_permissions_are_restrictive(all_workflows):
         """
         Ensure each workflow defines least-privilege default permissions.
-        
+
         For each workflow in `all_workflows`:
         - If `permissions` is a string, it must be "read-all" or "none".
         - If `permissions` is a dict, no permission key may have the value "write" except for the allowed set {"contents", "pull-requests", "issues", "checks"}.
-        
+
         Parameters:
             all_workflows (iterable): Iterable of workflow mappings; each mapping is expected to contain at least
                 "path" (str) and "content" (dict) keys where "content" holds the workflow YAML structure.
@@ -177,13 +177,13 @@ class TestWorkflowPermissionsHardening:
     def test_no_workflows_with_write_all_permission(all_workflows):
         """
         Ensure no workflow sets the top-level permissions string to "write-all".
-        
+
         Checks each workflow's top-level `permissions` value and raises an AssertionError if it is the string "write-all".
-        
+
         Parameters:
             all_workflows (Iterable[dict]): Iterable of workflow objects where each workflow is a dict
                 containing at least the keys "path" (str) and "content" (dict).
-        
+
         Raises:
             AssertionError: If any workflow's top-level `permissions` is the string "write-all".
         """
@@ -218,7 +218,7 @@ class TestWorkflowSupplyChainSecurity:
     def test_no_insecure_downloads(all_workflows):
         """
         Ensure workflows do not perform insecure HTTP downloads using `http://` URLs with common download tools.
-        
+
         Parameters:
             all_workflows (iterable[dict]): Iterable of workflow dictionaries where each dictionary contains
                 'raw' (str): raw workflow YAML/content and

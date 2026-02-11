@@ -59,7 +59,7 @@ class AssetGraphRepository:
     def list_assets(self) -> List[Asset]:
         """
         Retrieve all assets ordered by id.
-        
+
         Returns:
             List[Asset]: A list of domain Asset instances representing all assets in the database, ordered by asset id.
         """
@@ -70,7 +70,7 @@ class AssetGraphRepository:
     def get_assets_map(self) -> Dict[str, Asset]:
         """
         Builds a mapping from asset id to Asset domain objects.
-        
+
         Returns:
             Dict[str, Asset]: Mapping where each key is an asset id and each value is the corresponding Asset instance.
         """

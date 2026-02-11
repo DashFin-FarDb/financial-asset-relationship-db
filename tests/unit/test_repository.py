@@ -791,7 +791,7 @@ class TestComplexScenarios:
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
         """
         Builds a diversified portfolio in the repository, adds inter-asset relationships, and verifies persistence.
-        
+
         Creates four assets (equity, bond, commodity, currency), upserts them into the repository, creates two relationships between them, commits the session, and asserts that the repository contains four assets and at least two relationships.
         """
         # Add diverse assets

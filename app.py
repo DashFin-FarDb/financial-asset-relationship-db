@@ -221,10 +221,10 @@ class FinancialAssetApp:
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """
         Refresh all visualizations, metrics, schema report, and asset selector options for the UI.
-        
+
         Parameters:
             graph_state (AssetRelationshipGraph): Current graph state passed by the UI callback (not used; the function ensures and uses the internally stored graph).
-        
+
         Returns:
             tuple: A sequence of UI outputs in the order expected by the Gradio callback:
                 - 3D visualization figure
@@ -343,10 +343,10 @@ class FinancialAssetApp:
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
         """
         Generate a formulaic analysis of the provided asset graph and produce visualization outputs and UI updates.
-        
+
         Parameters:
             graph_state (AssetRelationshipGraph | None): Optional graph to analyze. If None, the app's ensured graph will be used.
-        
+
         Returns:
             tuple: A 6-tuple containing:
                 - dashboard_fig (plotly.graph_objects.Figure): Dashboard figure summarizing formula analytics.
@@ -428,7 +428,7 @@ class FinancialAssetApp:
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """
         Builds a human-readable, markdown-formatted summary of formulaic analysis results for display.
-        
+
         Parameters:
             summary (Dict): Aggregated metrics and highlights produced by the analyzer.
                 Expected keys include:
@@ -440,7 +440,7 @@ class FinancialAssetApp:
                 - "formulas" (List): identified formulas
                 - "empirical_relationships" (Dict): may include "strongest_correlations" as a list
                   of dicts with "pair", "correlation", and "strength" keys.
-        
+
         Returns:
             str: A multi-line markdown-ready string summarizing totals, average R², category counts,
             key insights, and up to the top three strongest empirical correlations.
@@ -480,9 +480,9 @@ class FinancialAssetApp:
     def create_interface(self):
         """
         Create and configure the Gradio Blocks interface for the Financial Asset Relationship Database.
-        
+
         Sets up tabs for network visualization, metrics & analytics, schema & rules, asset explorer, documentation, and formulaic analysis, and wires UI controls and event handlers to the app's refresh, visualization, and analysis methods.
-        
+
         Returns:
             demo (gr.Blocks): The configured Gradio Blocks instance for the application UI.
         """

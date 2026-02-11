@@ -211,7 +211,7 @@ class TestSampleRelationships:
     def test_corporate_bond_relationships_exist():
         """
         Verify corporate_bond relationships are present when bond assets exist.
-        
+
         If the generated sample database contains any Bond assets, this test asserts that at least one relationship with type "corporate_bond" appears in graph.relationships. The test does not fail when no Bond assets are present.
         """
         graph = create_sample_database()

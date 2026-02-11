@@ -369,7 +369,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_job_names_valid(self, snyk_workflow_path):
         """
         Ensure workflow job names contain only ASCII letters, digits, hyphens, or underscores.
-        
+
         Fails if any job name includes characters outside the set [A-Za-z0-9-_].
         """
         with open(snyk_workflow_path) as f:

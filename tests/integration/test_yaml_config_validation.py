@@ -45,7 +45,7 @@ class TestYAMLSyntaxAndStructure:
     def test_yaml_files_use_consistent_indentation():
         """
         Check that YAML files under .github use 2-space indentation while ignoring block scalar contents.
-        
+
         Scans all .yml and .yaml files under .github and reports any non-empty, non-comment lines whose leading indentation is not a multiple of two spaces. Lines inside block scalars (introduced with `|` or `>`, including optional chomping or indent indicators) are excluded from indentation checks. The test fails with a consolidated list of file paths and line numbers for each indentation violation.
         """
         yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
@@ -99,7 +99,7 @@ class TestYAMLSyntaxAndStructure:
 def test_no_duplicate_keys_in_yaml():
     """
     Validate that all .github/*.yml and .github/*.yaml files parse without duplicate keys or other YAML errors when checked with ruamel.yaml.
-    
+
     If ruamel.yaml is not available, the test is skipped. Each YAML file is loaded with ruamel.yaml.YAML(typ="safe"); parsing errors (YAMLError), file system errors (OSError), and unexpected exceptions are recorded with file context and reported so the test fails when any such errors are found.
     """
     try:
@@ -148,9 +148,9 @@ class TestWorkflowSchemaCompliance:
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """
         Validate each workflow has required top-level keys and that checkout action versions are reasonably consistent.
-        
+
         Checks that every workflow mapping in `all_workflows` contains the top-level keys "name" and "jobs". Also verifies that the set of observed checkout action versions across workflows does not exceed two unique values; if it does, an assertion failure includes the collected `checkout_versions`.
-        
+
         Parameters:
             all_workflows (list): Iterable of workflow descriptors where each item is a dict with at least:
                 - 'path' (str): filesystem path to the workflow file
@@ -194,7 +194,7 @@ class TestDefaultValueHandling:
     def test_workflow_timeout_defaults():
         """
         Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
-        
+
         Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive); assertion messages include the workflow file path and job id.
         """
         workflow_dir = Path(".github/workflows")

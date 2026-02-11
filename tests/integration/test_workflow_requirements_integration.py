@@ -183,7 +183,7 @@ class TestRequirementsMatchWorkflowNeeds:
     def test_has_pytest_for_testing():
         """
         Ensure 'pytest' is listed in requirements-dev.txt.
-        
+
         Asserts that the requirements file exists and that at least one requirement has the package name 'pytest' (case-insensitive).
         """
         assert REQUIREMENTS_FILE.exists(), "requirements-dev.txt not found"
@@ -211,7 +211,7 @@ class TestRequirementsMatchWorkflowNeeds:
     def test_requirements_support_python_version_in_workflow():
         """
         Verify the pr-agent workflow's declared Python version (from a setup-python step) is at least Python 3.8.
-        
+
         If .github/workflows/pr-agent.yml is missing the test is skipped. If a setup-python step in the workflow declares a `python-version`, this test asserts its major.minor is 3.8 or higher; if no `python-version` is found the test makes no assertion.
         """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"

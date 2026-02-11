@@ -120,7 +120,7 @@ def _create_2d_relationship_traces(
 ) -> List[go.Scatter]:
     """
     Build Plotly Scatter traces for asset-to-asset relationships, grouped and colored by relationship type and filtered by the provided toggles.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing relationship tuples of the form (target_id, rel_type, strength).
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to 2D (x, y) coordinates used to draw edges.
@@ -133,7 +133,7 @@ def _create_2d_relationship_traces(
         show_income_comparison (bool): Include relationships of type "income_comparison".
         show_regulatory (bool): Include relationships of type "regulatory_impact".
         show_all_relationships (bool): If True, ignore individual show_* flags and include all relationship types found in the graph.
-    
+
     Returns:
         List[go.Scatter]: A list of Plotly Scatter traces where each trace represents one relationship type (edges drawn as lines with hover text showing source → target, type, and strength). Returns an empty list if `asset_ids` or `positions` is empty.
     """
@@ -237,7 +237,7 @@ def visualize_2d_graph(
 ) -> go.Figure:
     """
     Render a 2D Plotly visualization of an asset relationship graph using a chosen layout and relationship filters.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
         layout_type (str): Layout algorithm to use; one of "spring", "circular", or "grid".
@@ -249,10 +249,10 @@ def visualize_2d_graph(
         show_income_comparison (bool): Include "income comparison" relationships when True.
         show_regulatory (bool): Include "regulatory" relationships when True.
         show_all_relationships (bool): If True, override individual toggles and include all relationship types.
-    
+
     Returns:
         go.Figure: A Plotly Figure containing the 2D network visualization of assets and filtered relationships.
-    
+
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
     """

@@ -530,10 +530,10 @@ class TestConcurrentDatabaseAccess:
         def write_data(thread_id: int) -> None:
             """
             Worker used by a thread to insert a TestModel row and record any exception.
-            
+
             Parameters:
                 thread_id (int): Value used as the TestModel `id` for the inserted row.
-            
+
             Notes:
                 On failure, the raised exception is appended to the shared `errors` list as a side effect.
             """

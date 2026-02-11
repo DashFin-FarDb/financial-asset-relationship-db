@@ -21,7 +21,7 @@ class DummyGraph(AssetRelationshipGraph):
     def get_3d_visualization_data_enhanced(self):
         """
         Produce synthetic 3D visualization data for the graph's assets.
-        
+
         Returns:
             positions (np.ndarray): Float array of shape (n, 3) containing sequential coordinates for n assets.
             asset_ids (List[str]): Sorted list of unique asset IDs discovered from relationship sources and targets.

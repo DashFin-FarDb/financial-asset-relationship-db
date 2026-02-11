@@ -490,7 +490,7 @@ class TestStrengthTypeValidation:
     def test_strength_rejects_list(repository):
         """
         Ensure providing a list as the relationship strength raises a ValueError stating the strength must be numeric.
-        
+
         Creates two Equity assets, upserts them, and verifies that calling add_or_update_relationship with a list for the strength parameter raises ValueError with the message "strength must be a numeric value".
         """
         asset1 = Equity(

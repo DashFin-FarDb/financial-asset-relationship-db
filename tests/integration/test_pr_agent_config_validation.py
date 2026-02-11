@@ -250,7 +250,7 @@ class TestPRAgentConfigYAMLValidity:
     def test_no_duplicate_keys():
         """
         Check .github/pr-agent-config.yml for duplicate mapping keys and fail the test if any are found.
-        
+
         Parses the file and fails with pytest.fail when a mapping key appears more than once at any nesting level; the failure message includes the duplicated key and its line number.
         """
         config_path = Path(".github/pr-agent-config.yml")
@@ -267,14 +267,14 @@ class TestPRAgentConfigYAMLValidity:
             def construct_mapping(self, node, deep=False):
                 """
                 Construct a Python dict from a YAML mapping node, failing the test if duplicate keys are encountered.
-                
+
                 Parameters:
                     node: The YAML mapping node to construct (expected to provide `.value` pairs and `.start_mark.line`).
                     deep (bool): If True, construct nested objects recursively.
-                
+
                 Returns:
                     dict: Mapping of constructed keys to their constructed values.
-                
+
                 Raises:
                     pytest.fail: Fails the current test with a message that includes the 1-based line number when a duplicate key is found.
                 """
@@ -343,7 +343,7 @@ class TestPRAgentConfigSecurity:
     ) -> None:
         """
         Scan the PR agent configuration for values that resemble hardcoded credentials and fail the test if any are detected.
-        
+
         Parameters:
             pr_agent_config (dict[str, object]): Parsed PR agent YAML configuration to inspect.
         """
@@ -353,7 +353,7 @@ class TestPRAgentConfigSecurity:
         def _redact(value: str) -> str:
             """
             Return a redacted version of a string preserving the first and last four characters when possible.
-            
+
             Returns:
                 A redacted string: '***' if the input length is 8 characters or fewer, otherwise a string of the form
                 '<first4>...<last4>' where the middle is replaced by an ellipsis.
@@ -402,13 +402,13 @@ class TestPRAgentConfigSecurity:
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
             Recursively scan a nested configuration object for keys that indicate sensitive values and assert those values are allowed placeholders.
-            
+
             When a dictionary key contains any configured sensitive pattern, its value is validated with `is_allowed_placeholder(value)`; an AssertionError is raised with the node path if the value is not allowed.
-            
+
             Parameters:
                 node (object): The current node to inspect; may be a mapping, sequence, or scalar.
                 path (str): Dot/bracket-notation path to `node` used in assertion messages (default "root").
-            
+
             Raises:
                 AssertionError: If a sensitive key contains a disallowed hardcoded value.
             """

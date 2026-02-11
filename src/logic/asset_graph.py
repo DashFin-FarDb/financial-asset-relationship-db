@@ -98,9 +98,9 @@ class AssetRelationshipGraph:
     ) -> None:
         """
         Add a directed relationship from source_id to target_id in the graph.
-        
+
         This mutates the instance's relationships mapping by appending a (target_id, rel_type, strength) entry for source_id if an entry with the same target and relation type does not already exist. If bidirectional is True, the mirror relationship (source_id, rel_type, strength) is added for target_id using the same duplicate check.
-        
+
         Parameters:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
@@ -124,7 +124,7 @@ class AssetRelationshipGraph:
     def calculate_metrics(self) -> Dict[str, Any]:
         """
         Compute network-wide metrics and distributions for the asset relationship graph.
-        
+
         Returns:
             metrics (Dict[str, Any]): A mapping containing:
                 total_assets (int): Number of distinct assets considered (includes assets discovered from relationships).

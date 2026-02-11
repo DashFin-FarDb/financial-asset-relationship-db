@@ -378,7 +378,7 @@ class TestErrorHandling:
     def test_workflow_with_duplicate_keys():
         """
         Verify that a workflow YAML containing duplicate mapping keys parses successfully and that the parser retains the last occurrence of a duplicated key.
-        
+
         This test writes a temporary YAML file where "name" appears twice and asserts validation is successful and workflow_data["name"] equals "Second".
         """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -433,7 +433,7 @@ class TestIntegrationWithActualWorkflows:
     def test_validate_all_project_workflows():
         """
         Validate every GitHub Actions workflow file in the repository's .github/workflows directory.
-        
+
         Skips the test if the workflows directory or any workflow files are missing. Collects validation failures for each workflow and fails the test if any workflows are invalid, reporting their filenames and error lists.
         """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
