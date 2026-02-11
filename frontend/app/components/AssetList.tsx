@@ -69,103 +69,6 @@ const SelectFilter = ({
   </div>
 );
 
-interface AssetListStatusProps {
-  loading: boolean;
-  error: string | null;
-  querySummary?: string;
-}
-
-const MAX_QUERY_SUMMARY_LENGTH = 80;
-const MAX_ERROR_MESSAGE_LENGTH = 160;
-
-// Extracted component to handle loading and error display
-const AssetListStatus = ({
-  loading,
-  error,
-  querySummary = "",
-}: AssetListStatusProps) => {
-  const hasError = error !== null;
-
-  if (!loading && !hasError) {
-    return null;
-  }
-
-  const trimmedQuerySummary = querySummary.trim();
-
-  let displayQuerySummary = trimmedQuerySummary;
-
-  if (trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH) {
-    const chars = Array.from(trimmedQuerySummary);
-    displayQuerySummary = `${chars.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1).join("")}…`;
-  }
-
-  const loadingMessage = displayQuerySummary.length
-    ? `Loading results for ${displayQuerySummary}...`
-    : "Loading results...";
-
-  const getDisplayError = (rawError: string | null): string => {
-    if (!rawError) {
-      return "An unexpected error occurred while loading results.";
-    }
-
-    // Normalize whitespace to avoid layout issues
-    const sanitized = rawError.replace(/\s+/g, " ").trim();
-
-    if (!sanitized) {
-      return "An unexpected error occurred while loading results.";
-    }
-
-    if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
-      return `${sanitized.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
-    }
-
-    return sanitized;
-  };
-
-  const errorMessage = hasError ? getDisplayError(error) : "";
-
-  return (
-    <div
-      role={hasError ? "alert" : "status"}
-      aria-live={hasError ? "assertive" : "polite"}
-      className={`px-6 py-3 text-sm ${
-        hasError ? "text-red-500" : "text-gray-500"
-      }`}
-    >
-      {hasError ? `Error: ${errorMessage}` : loadingMessage}
-    </div>
-  );
-};
-
-// AssetTable wrapper to handle overflow and reduce nesting depth.
-
-/**
- * Component to handle table container and reduce nesting depth.
- * @param {React.ReactNode} children - Table content to render.
- * @returns {JSX.Element} The table wrapper with overflow handling.
- */
-type AssetTableProps = {
-  children: React.ReactElement;
-  className?: string;
-};
-
-const AssetTable = ({ children, className }: AssetTableProps) => {
-  if (
-    process.env.NODE_ENV !== "production" &&
-    React.isValidElement(children) &&
-    typeof children.type === "string" &&
-    children.type !== "table"
-  ) {
-    console.warn("AssetTable expects a <table> as its direct child.");
-  }
-
-  return (
-    <div className={["overflow-x-auto", className].filter(Boolean).join(" ")}>
-      {children}
-    </div>
-  );
-};
-
 /**
  * Fetches and displays a list of assets with filtering and pagination.
  * @returns {JSX.Element} The AssetList component.
@@ -266,21 +169,13 @@ export default function AssetList() {
       setError,
       querySummary,
     );
+    setLoading(false);
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    void fetchAssets(controller.signal).catch((err) => {
-      if (controller.signal.aborted) return;
-      if (err instanceof DOMException && err.name === "AbortError") return;
-      setError(err instanceof Error ? err.message : "Failed to load assets");
-      setLoading(false);
-    });
-
-    return () => {
-      controller.abort();
-    };
+    fetchAssets();
+    return undefined;
+  }, [fetchAssets]);
 
   /**
    * Creates an event handler for changing a filter field.
@@ -345,13 +240,6 @@ export default function AssetList() {
       {size}
     </option>
   );
-
-  type AssetListStatusProps = {
-    loading: boolean;
-    error: string | null;
-    querySummary?: string;
-  };
-
   // Extracted component to handle loading and error display
   const AssetListStatus = ({
     loading,
@@ -360,22 +248,121 @@ export default function AssetList() {
     loading: boolean;
     error: string | null;
   }) => {
-    if (!loading && !error) {
+    const hasError = error !== null;
+
+    if (!loading && !hasError) {
       return null;
     }
+
     return (
       <div
-        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+        className={`px-6 py-3 text-sm ${hasError ? "text-red-500" : "text-gray-500"}`}
       >
-        {loading ? "Loading..." : `Error: ${error}`}
+        {hasError ? `Error: ${error}` : "Loading..."}
       </div>
     );
   };
 
-  // Extracted component to handle table container and reduce nesting depth
-  const AssetTable = ({ children }: { children: React.ReactNode }) => {
-    return <div className="overflow-x-auto">{children}</div>;
+  // Extracted component to handle loading and error display
+  const AssetListStatus = ({
+    loading: isLoading,
+    error: loadError,
+  }: {
+    loading: boolean;
+    error: string | null;
+  }) => {
+    const hasError = loadError !== null;
+
+    if (!isLoading && !hasError) {
+      return null;
+    }
+
+    return (
+      <div
+        className={`px-6 py-3 text-sm ${
+          hasError ? "text-red-500" : "text-gray-500"
+        }`}
+      >
+        {hasError ? `Error: ${loadError}` : "Loading..."}
+      </div>
+    );
   };
+
+  // Extracted component to handle table display
+  const AssetListTable = ({
+    assets: tableAssets,
+    loading: isLoading,
+    error: loadError,
+  }: {
+    assets: Asset[];
+    loading: boolean;
+    error: string | null;
+  }) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {["Symbol", "Name", "Class", "Sector", "Price", "Market Cap"].map(
+              (col) => (
+                <th
+                  key={col}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {col}
+                </th>
+              ),
+            )}
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {isLoading ? (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                Loading...
+              </td>
+            </tr>
+          ) : loadError ? (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center text-red-600">
+                {loadError}
+              </td>
+            </tr>
+          ) : tableAssets.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                No assets found
+              </td>
+            </tr>
+          ) : (
+            tableAssets.map((asset) => (
+              <tr key={asset.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {asset.symbol}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.asset_class}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.sector}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.currency} {asset.price.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {typeof asset.market_cap === "number"
+                    ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
+                    : "N/A"}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -403,84 +390,7 @@ export default function AssetList() {
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <AssetListStatus loading={loading} error={error} />
 
-        <AssetTable>
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {[
-                  "Symbol",
-                  "Name",
-                  "Class",
-                  "Sector",
-                  "Price",
-                  "Market Cap",
-                ].map((col) => (
-                  <th
-                    key={col}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    Loading...
-                  </td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-red-600"
-                  >
-                    {error}
-                  </td>
-                </tr>
-              ) : assets.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    No assets found
-                  </td>
-                </tr>
-              ) : (
-                assets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {asset.symbol}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.asset_class}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.sector}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.currency} {asset.price.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {typeof asset.market_cap === "number"
-                        ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
-                        : "N/A"}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </AssetTable>
+        <AssetListTable assets={assets} loading={loading} error={error} />
 
         {/* Pagination */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gray-50 px-6 py-4 border-t border-gray-100">
@@ -532,4 +442,3 @@ export default function AssetList() {
       </div>
     </div>
   );
-}
