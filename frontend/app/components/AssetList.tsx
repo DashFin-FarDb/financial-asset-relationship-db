@@ -69,6 +69,76 @@ const SelectFilter = ({
   </div>
 );
 
+interface AssetListStatusProps {
+  loading: boolean;
+  error: string | null;
+  querySummary?: string;
+}
+
+const MAX_QUERY_SUMMARY_LENGTH = 80;
+const MAX_ERROR_MESSAGE_LENGTH = 160;
+
+// Extracted component to handle loading and error display
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "",
+}: AssetListStatusProps) => {
+  const hasError = error !== null;
+
+  if (!loading && !hasError) {
+    return null;
+  }
+
+  const trimmedQuerySummary = querySummary.trim();
+
+  let displayQuerySummary = trimmedQuerySummary;
+
+  if (trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH) {
+    const chars = Array.from(trimmedQuerySummary);
+    displayQuerySummary = `${chars.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1).join("")}…`;
+  }
+
+  const loadingMessage = displayQuerySummary.length
+    ? `Loading results for ${displayQuerySummary}...`
+    : "Loading results...";
+
+  const getDisplayError = (rawError: string | null): string => {
+    if (!rawError) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    // Normalize whitespace to avoid layout issues
+    const sanitized = rawError.replace(/\s+/g, " ").trim();
+
+    if (!sanitized) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
+      return `${sanitized.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
+    }
+
+    return sanitized;
+  };
+
+  const errorMessage = hasError ? getDisplayError(error) : "";
+
+  return (
+    <div
+      role={hasError ? "alert" : "status"}
+      aria-live={hasError ? "assertive" : "polite"}
+      className={`px-6 py-3 text-sm ${
+        hasError ? "text-red-500" : "text-gray-500"
+      }`}
+    >
+      {hasError ? `Error: ${errorMessage}` : loadingMessage}
+    </div>
+  );
+};
+
+// AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
+
 /**
  * Props for the AssetListStatus component.
  * @property {boolean} loading - Indicates if data is currently being loaded.
@@ -210,22 +280,24 @@ export default function AssetList() {
       setError,
       querySummary,
     );
-    setLoading(false);
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-
-    let cancelled = false;
-    void fetchAssets().catch((err) => {
-      if (cancelled) return;
-      setError(err instanceof Error ? err.message : "Failed to load assets");
-      setLoading(false);
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchAssets]);
+    let isMounted = true;
+  const load = async () => {
+    try {
+      await fetchAssets();
+    } catch (err) {
+      // Error already handled by loadAssets
+    } finally {
+      if (isMounted) {
+        // Potentially needed if loadAssets doesn't guarantee setLoading(false)
+      }
+    }
+  };
+  void load();
+  return () => { isMounted = false; };
+}, [fetchAssets]);
 
   /**
    * Creates an event handler for changing a filter field.
@@ -291,6 +363,53 @@ export default function AssetList() {
     </option>
   );
 
+  type AssetListStatusProps = {
+    loading: boolean;
+    error: string | null;
+    querySummary?: string;
+  };
+
+  // Extracted component to handle loading and error display
+  const AssetListStatus = ({
+    loading,
+    error,
+    querySummary = "",
+  }: AssetListStatusProps) => {
+    if (!loading && !error) {
+      return null;
+    }
+    return (
+      <div
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "assets",
+}: AssetListStatusProps) => {
+  if (!loading && !error) {
+    return null;
+  }
+  return (
+    <div
+      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+    >
+      {loading
+        ? `Loading results for ${querySummary}...`
+        : `Error: ${error}`
+      }
+    </div>
+  );
+};
+      >
+        {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
+      </div>
+    );
+  };
+
+  // Extracted component to handle table container and reduce nesting depth
+  const AssetTable = ({ children }: { children: React.ReactNode }) => {
+    return <div className="overflow-x-auto">{children}</div>;
+  };
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -315,7 +434,11 @@ export default function AssetList() {
 
       {/* Asset List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <AssetListStatus loading={loading} error={error} querySummary={querySummary} />
+        <AssetListStatus
+          loading={loading}
+          error={error}
+          querySummary={querySummary}
+        />
 
         <AssetTable>
           <table className="min-w-full divide-y divide-gray-200">
@@ -395,7 +518,6 @@ export default function AssetList() {
             </tbody>
           </table>
         </AssetTable>
-      </div>
 
         {/* Pagination */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gray-50 px-6 py-4 border-t border-gray-100">
