@@ -175,7 +175,11 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_consecutive_skip_args():
-        """Test handling of multiple consecutive skip arguments."""
+        """
+        Ensure consecutive coverage-related arguments and their values are removed when pytest-cov is unavailable.
+
+        Verifies the provided `args` list is modified in place to strip `--cov`, `--cov-report` and their following values, preserving non-coverage arguments.
+        """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
 
@@ -225,7 +229,11 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_args_with_equals_in_value():
-        """Test handling arguments that contain equals signs in their values."""
+        """
+        Ensures pytest_load_initial_conftests removes pytest-cov related arguments whose values contain equals signs while preserving other arguments.
+
+        Verifies that an inline `--cov-report=...` argument with a value containing `=` is removed from the provided args list and that unrelated args remain unchanged.
+        """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
 
@@ -293,7 +301,9 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_function_signature():
-        """Test that the function has the correct signature."""
+        """
+        Verify that `pytest_load_initial_conftests` is callable and has a single parameter named `args`.
+        """
         from conftest import pytest_load_initial_conftests
 
         # Check function exists and is callable

@@ -528,7 +528,14 @@ class TestConcurrentDatabaseAccess:
         errors: list[Exception] = []
 
         def write_data(thread_id: int) -> None:
-            """Thread worker for concurrent writes."""
+            """
+            Worker that inserts a TestModel row after a short staggered delay.
+
+            Sleeps for 0.001 * thread_id seconds, opens a session via session_scope(factory), and adds a TestModel with id equal to thread_id. Any exception raised is appended to the shared `errors` list.
+
+            Parameters:
+                thread_id (int): Identifier used as the TestModel.id and to compute the staggered delay.
+            """
             try:
                 time.sleep(0.001 * thread_id)
                 with session_scope(factory) as session:

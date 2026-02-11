@@ -88,10 +88,23 @@ class TestThreadSafeGraph:
         original_release = lock.release
 
         def tracked_acquire(*args, **kwargs):
+            """Record a lock release event and delegate to the original release call."""
             lock_acquired.append("acquired")
             return original_acquire(*args, **kwargs)
 
         def tracked_release(*args, **kwargs):
+            """
+            Wrapper for a lock's release method that records each release event.
+
+            Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
+
+            Parameters:
+                *args: Positional arguments forwarded to the original release callable.
+                **kwargs: Keyword arguments forwarded to the original release callable.
+
+            Returns:
+                The value returned by the original release callable.
+            """
             lock_acquired.append("released")
             return original_release(*args, **kwargs)
 
@@ -200,7 +213,11 @@ class TestAddEquityNode:
 
     @staticmethod
     def test_add_equity_node_fallback_without_add_asset():
-        """Test fallback behavior when graph doesn't expose add_asset."""
+        """
+        Verify add_equity_node falls back to validation-only behavior when the global graph lacks an add_asset method.
+
+        Asserts the tool returns a message indicating validation-only mode or a success message when invoked against a graph mock that does not provide `add_asset`.
+        """
         from mcp_server import _build_mcp_app
 
         # Create a minimal graph mock without add_asset method
@@ -428,7 +445,12 @@ class TestBuildMcpApp:
 
     @staticmethod
     def test_build_mcp_app_tool_has_correct_signature():
-        """Test that add_equity_node tool has correct parameters."""
+        """
+        Verify the registered "add_equity_node" tool exposes the expected function parameters.
+
+        Builds the MCP app, locates the tool named "add_equity_node", and confirms the tool's callable `fn`
+        accepts the parameters: `asset_id`, `symbol`, `name`, `sector`, and `price`.
+        """
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()
