@@ -222,9 +222,7 @@ class TestDatabaseInitialization:
         inspector = inspect(engine)
         assert "test_idempotent" in inspector.get_table_names()
 
-    def test_init_db_preserves_existing_data(
-        self, engine, session_factory, isolated_base
-    ):
+    def test_init_db_preserves_existing_data(self, engine, session_factory, isolated_base):
         """init_db should not wipe existing data."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
@@ -557,9 +555,7 @@ class TestConcurrentDatabaseAccess:
                 errors.append(e)
 
         num_threads = 20
-        threads = [
-            threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)
-        ]
+        threads = [threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)]
         for t in threads:
             t.start()
         for t in threads:
@@ -569,9 +565,7 @@ class TestConcurrentDatabaseAccess:
         with session_scope(factory) as session:
             count = session.query(TestModel).count()
             # Expect all or nearly all to succeed
-            assert count >= num_threads - 1, (
-                f"Expected at least {num_threads - 1} writes but found {count}"
-            )
+            assert count >= num_threads - 1, f"Expected at least {num_threads - 1} writes but found {count}"
 
         # Should have minimal errors
         assert len(errors) <= 1, f"Too many errors: {len(errors)}"
