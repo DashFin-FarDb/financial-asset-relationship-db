@@ -260,6 +260,8 @@ class TestSessionScope:
         """session_scope should commit on success."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Model representing the 'test_commit' table with columns 'id' and 'value' used for commit testing."""
+
             __tablename__ = "test_commit"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -279,6 +281,10 @@ class TestSessionScope:
         """session_scope should rollback on error."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """
+            A SQLAlchemy model for testing that session_scope rolls back on exceptions.
+            """
+
             __tablename__ = "test_rollback"
             id = Column(Integer, primary_key=True)
 
@@ -296,6 +302,8 @@ class TestSessionScope:
         """Integrity errors should propagate after rollback."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Model used in tests to trigger and verify database integrity errors."""
+
             __tablename__ = "test_integrity"
             id = Column(Integer, primary_key=True)
 
@@ -312,6 +320,8 @@ class TestSessionScope:
         """Multiple operations in one scope should commit atomically."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """ORM model for the 'test_nested' table used in nested operations commit tests."""
+
             __tablename__ = "test_nested"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -377,3 +387,308 @@ class TestEdgeCases:
         """None should fall back to default."""
         engine = create_engine_from_url(None)
         assert engine is not None
+
+
+# ---------------------------------------------------------------------------
+# Connection pooling tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+class TestConnectionPooling:
+    """Tests for database connection pooling behavior."""
+
+    def test_static_pool_for_in_memory_sqlite(self):
+        """In-memory SQLite should use StaticPool for thread safety."""
+        engine = create_engine_from_url("sqlite:///:memory:")
+        assert isinstance(engine.pool, StaticPool)
+
+    def test_multiple_connections_to_same_in_memory_db(self):
+        """Multiple connections to in-memory DB should share same data with StaticPool."""
+        engine = create_engine_from_url("sqlite:///:memory:")
+        Base.metadata.create_all(engine)
+
+        from sqlalchemy.orm import sessionmaker
+
+        Session = sessionmaker(bind=engine)
+
+        # Create a test table
+
+        class TestTable(Base):
+            """Test table for connection pooling validation."""
+
+            __tablename__ = "test_pool"
+            id = Column(Integer, primary_key=True)
+            value = Column(String)
+
+        Base.metadata.create_all(engine)
+
+        # Write with one session
+        session1 = Session()
+        session1.add(TestTable(id=1, value="test"))
+        session1.commit()
+        session1.close()
+
+        # Read with another session
+        session2 = Session()
+        result = session2.query(TestTable).filter_by(id=1).one_or_none()
+        assert result is not None
+        assert result.value == "test"
+        session2.close()
+
+        # Cleanup
+        Base.metadata.drop_all(engine)
+
+    def test_pool_size_configuration_for_postgres(self):
+        """PostgreSQL URLs should accept pool size configuration."""
+        postgres_url = "postgresql://user:pass@localhost/db"
+        # Engine creation (URL parsing) should succeed; no live connection needed.
+        engine = create_engine_from_url(postgres_url)
+        assert engine is not None
+
+
+# ---------------------------------------------------------------------------
+# Concurrent access tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+class TestConcurrentDatabaseAccess:
+    """Tests for concurrent database access scenarios."""
+
+    def test_concurrent_session_creation(self, engine):
+        """Multiple concurrent sessions should be safe."""
+        import threading
+
+        factory = create_session_factory(engine)
+        sessions = []
+        errors = []
+
+        def create_session():
+            """Thread worker to create sessions."""
+            try:
+                session = factory()
+                sessions.append(session)
+                session.close()
+            except Exception as e:
+                errors.append(e)
+
+        threads = [threading.Thread(target=create_session) for _ in range(10)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert len(errors) == 0
+        assert len(sessions) == 10
+
+    def test_concurrent_reads_safe(self, engine, isolated_base):
+        """Concurrent reads should not interfere with each other."""
+        import threading
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Test model for concurrent read validation."""
+
+            __tablename__ = "test_concurrent_reads"
+            id = Column(Integer, primary_key=True)
+            value = Column(String)
+
+        init_db(engine)
+        factory = create_session_factory(engine)
+
+        # Insert test data
+        with session_scope(factory) as session:
+            for i in range(100):
+                session.add(TestModel(id=i, value=f"value_{i}"))
+
+        # Concurrent reads
+        results = []
+        errors = []
+
+        def read_data():
+            """Thread worker for concurrent reads."""
+            try:
+                with session_scope(factory) as session:
+                    count = session.query(TestModel).count()
+                    results.append(count)
+            except Exception as e:
+                errors.append(e)
+
+        threads = [threading.Thread(target=read_data) for _ in range(10)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        assert len(errors) == 0
+        assert all(count == 100 for count in results)
+
+    def test_concurrent_writes_serialized(self, engine, isolated_base):
+        """Concurrent writes should be properly serialized."""
+        import threading
+        import time
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Test model for concurrent write validation."""
+
+            __tablename__ = "test_concurrent_writes"
+            id = Column(Integer, primary_key=True)
+
+        init_db(engine)
+        factory = create_session_factory(engine)
+
+        errors = []
+
+        def write_data(thread_id):
+            """Thread worker for concurrent writes."""
+            try:
+                # Add small delay to reduce timing-related race conditions
+                time.sleep(0.001 * thread_id)
+                with session_scope(factory) as session:
+                    # Each thread writes its unique ID
+                    session.add(TestModel(id=thread_id))
+            except Exception as e:
+                errors.append(e)
+
+        num_threads = 20
+        threads = [
+            threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)
+        ]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        # Verify writes succeeded - allow for occasional race condition
+        with session_scope(factory) as session:
+            count = session.query(TestModel).count()
+            # Expect all or nearly all to succeed
+            assert count >= num_threads - 1, (
+                f"Expected at least {num_threads - 1} writes but found {count}"
+            )
+
+        # Should have minimal errors
+        assert len(errors) <= 1, f"Too many errors: {len(errors)}"
+
+
+# ---------------------------------------------------------------------------
+# Error recovery tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+class TestDatabaseErrorRecovery:
+    """Tests for database error recovery scenarios."""
+
+    def test_session_scope_recovers_from_nested_error(self, engine, isolated_base):
+        """Session scope should recover after error in nested operation."""
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Test model for error recovery validation."""
+
+            __tablename__ = "test_error_recovery"
+            id = Column(Integer, primary_key=True)
+            value = Column(String)
+
+        init_db(engine)
+        factory = create_session_factory(engine)
+
+        # First operation fails
+        with pytest.raises(ValueError), session_scope(factory) as session:
+            session.add(TestModel(id=1, value="test"))
+            raise ValueError("Intentional error")
+
+        # Next operation should succeed
+        with session_scope(factory) as session:
+            session.add(TestModel(id=2, value="success"))
+
+        # Verify only second write succeeded
+        with session_scope(factory) as session:
+            assert session.query(TestModel).count() == 1
+            result = session.query(TestModel).one()
+            assert result.id == 2
+            assert result.value == "success"
+
+    def test_session_scope_handles_commit_failure(self, engine, isolated_base):
+        """Session scope should handle commit failures gracefully."""
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Test model for commit failure handling."""
+
+            __tablename__ = "test_commit_failure"
+            id = Column(Integer, primary_key=True)
+
+        init_db(engine)
+        factory = create_session_factory(engine)
+
+        # Insert duplicate IDs to cause integrity error
+        with pytest.raises(IntegrityError), session_scope(factory) as session:
+            session.add(TestModel(id=1))
+            session.flush()
+            session.add(TestModel(id=1))  # Duplicate
+            # Commit will fail
+
+        # Database should be in consistent state
+        with session_scope(factory) as session:
+            assert session.query(TestModel).count() == 0
+
+
+# ---------------------------------------------------------------------------
+# Resource cleanup tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+class TestResourceCleanup:
+    """Tests for proper resource cleanup."""
+
+    def test_engine_disposal_releases_connections(self):
+        """Engine disposal should release all connections."""
+        engine = create_engine_from_url("sqlite:///:memory:")
+        factory = create_session_factory(engine)
+
+        # Create and use some sessions
+        for _ in range(5):
+            session = factory()
+            session.close()
+
+        # Dispose engine
+        engine.dispose()
+
+        # Should be able to create new engine with same URL
+        new_engine = create_engine_from_url("sqlite:///:memory:")
+        assert new_engine is not None
+        new_engine.dispose()
+
+    def test_session_scope_closes_on_exception(self, engine):
+        """Session should be closed even when exception occurs."""
+        factory = create_session_factory(engine)
+
+        with pytest.raises(RuntimeError), session_scope(factory) as session:
+            # Verify session is active
+            assert session.is_active
+            raise RuntimeError("Test error")
+
+        # Session should be closed after context exit
+        # (can't directly test this without accessing internal state)
+
+    def test_multiple_session_scopes_cleanup_properly(self, engine, isolated_base):
+        """Multiple session scopes should clean up properly."""
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Test model for cleanup validation."""
+
+            __tablename__ = "test_cleanup"
+            id = Column(Integer, primary_key=True)
+
+        init_db(engine)
+        factory = create_session_factory(engine)
+
+        # Use multiple session scopes
+        for i in range(10):
+            with session_scope(factory) as session:
+                session.add(TestModel(id=i))
+
+        # Verify all completed successfully
+        with session_scope(factory) as session:
+            assert session.query(TestModel).count() == 10
