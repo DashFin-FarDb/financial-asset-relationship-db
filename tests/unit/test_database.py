@@ -441,15 +441,10 @@ class TestConnectionPooling:
 
     def test_pool_size_configuration_for_postgres(self):
         """PostgreSQL URLs should accept pool size configuration."""
-        # This test verifies the engine accepts pool_size parameter
         postgres_url = "postgresql://user:pass@localhost/db"
-        try:
-            engine = create_engine_from_url(postgres_url)
-            # Just verify it was created, don't try to connect
-            assert engine is not None
-        except Exception:
-            # Connection failure is expected, we're just testing URL parsing
-            pass
+        # Engine creation (URL parsing) should succeed; no live connection needed.
+        engine = create_engine_from_url(postgres_url)
+        assert engine is not None
 
 
 # ---------------------------------------------------------------------------
