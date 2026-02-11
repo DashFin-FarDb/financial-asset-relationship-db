@@ -56,8 +56,6 @@ type NodeTrace = {
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
-import type { Data } from "plotly.js";
-
 /**
  * Display an interactive 3D network of assets from the provided visualization payload.
  *
@@ -69,7 +67,7 @@ import type { Data } from "plotly.js";
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<any[]>([]);
+  const [plotData, setPlotData] = useState<unknown[]>([]);
   const [status, setStatus] = useState<
     "loading" | "ready" | "empty" | "tooLarge"
   >("loading");
