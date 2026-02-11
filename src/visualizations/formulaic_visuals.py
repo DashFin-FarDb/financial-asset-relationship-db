@@ -526,8 +526,10 @@ class FormulaicVisualizer:
             Mapping from asset identifier to its (x, y) coordinate
             on the unit circle.
 
-        Raises:
-            ZeroDivisionError: If `assets` is empty.
+        Returns:
+            positions (Dict[str, tuple[float, float]]):
+            Mapping from asset identifier to its (x, y) coordinate
+            on the unit circle.
         """
         import math
 
