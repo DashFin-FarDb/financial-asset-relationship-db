@@ -58,14 +58,18 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
         ]
     )
-            "### Regulatory Rules",
-            "1. **Event Propagation**: Earnings events impact related bond and currency assets",
-            "2. **Event Types**: SEC filings, earnings reports, dividend announcements",
-            "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)",
-            (
-                "4. **Related Assets**: Each event automatically creates relationships to impacted "
-                "securities"
-            ),
+    ("### Regulatory Rules",)
+    (
+        "1. **Event Propagation**: Earnings events impact related bond and currency assets",
+    )
+    ("2. **Event Types**: SEC filings, earnings reports, dividend announcements",)
+    ("3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)",)
+    (
+        (
+            "4. **Related Assets**: Each event automatically creates relationships to impacted "
+            "securities"
+        ),
+    )
     avg_strength = metrics.get("average_relationship_strength", 0.0)
     reg_events = metrics.get("regulatory_event_count", 0)
     quality_score = min(1.0, avg_strength + (reg_events / 10.0))

@@ -546,7 +546,6 @@ class FinancialAssetApp:
                             )
                         with gr.Column(scale=1):
                             layout_type = gr.Radio(
-                                
                                 label="2D Layout Type",
                                 choices=["spring", "circular", "grid"],
                                 value="spring",
