@@ -318,7 +318,15 @@ class TestEnvExample:
 
     @pytest.fixture
     def env_example_content(self):
-        """Load .env.example content."""
+        """
+        Load and return the contents of the project's .env.example file.
+        
+        Returns:
+            str: The full text contents of .env.example.
+        
+        Raises:
+            AssertionError: If .env.example does not exist.
+        """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
         with open(config_path) as f:

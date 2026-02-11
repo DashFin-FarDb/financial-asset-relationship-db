@@ -19,20 +19,12 @@ def pytest_load_initial_conftests(
     args: List[str],
 ) -> None:  # pragma: no cover - exercised via pytest
     """
-    Remove pytest-cov related command-line options when the plugin is unavailable.
-
-    Also strips inline forms starting with ``--cov=`` or ``--cov-report=``.
-    The original *args* list is updated in-place.
-
+    Remove pytest-cov command-line options from args when the pytest-cov plugin is not installed.
+    
+    If the plugin is unavailable, strips standalone `--cov` / `--cov-report` and inline forms starting with `--cov=` or `--cov-report=`. Modifies the input list in place.
+    
     Parameters:
-        args (List[str]): Mutable list of command-line arguments;
-            coverage-related options are removed from this list in-place.
-
-    Returns:
-        None
-
-    Raises:
-        None
+        args (List[str]): Mutable list of command-line arguments to filter.
     """
 
     if _cov_plugin_available():
@@ -59,9 +51,10 @@ def pytest_load_initial_conftests(
 
 
 def _cov_plugin_available() -> bool:  # pragma: no cover
-    """Check if pytest-cov plugin is available.
-
+    """
+    Detects whether the pytest-cov plugin is available.
+    
     Returns:
-        bool: True if pytest-cov is available, False otherwise.
+        True if the pytest-cov plugin is available, False otherwise.
     """
     return importlib.util.find_spec("pytest_cov") is not None
