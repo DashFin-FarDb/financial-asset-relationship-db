@@ -442,4 +442,3 @@ export default function AssetList() {
       </div>
     </div>
   );
-  
