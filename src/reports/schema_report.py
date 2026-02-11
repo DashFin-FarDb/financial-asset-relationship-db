@@ -110,30 +110,14 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
                 "4. **Related Assets**: Each event automatically creates relationships to impacted "
                 "securities"
             ),
-            "",
-            "### Valuation Rules",
-            (
-                "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield indicates "
-                "relative value"
-            ),
-            (
-                "2. **Sector Rotation**: Commodity prices trigger evaluation of sector exposure"
-            ),
-            (
-                "3. **Currency Adjustment**: All cross-border assets adjusted for FX exposure"
-            ),
-            "",
-            "## Schema Optimization Metrics",
-            "",
-        ]
-    )
-
-    avg_strength = float(metrics.get("average_relationship_strength", 0.0))
-    reg_events = float(metrics.get("regulatory_event_count", 0))
+    avg_strength = metrics.get("average_relationship_strength", 0.0)
+    reg_events = metrics.get("regulatory_event_count", 0)
     quality_score = min(1.0, avg_strength + (reg_events / 10.0))
-    lines.append(f"### Data Quality Score: {quality_score:.1%}")
+    lines.append(f"{quality_score:.1%}")
     lines.append("")
     lines.append("### Recommendation:")
+
+    density = metrics.get("relationship_density", 0.0)
 
     density = float(metrics.get("relationship_density", 0.0))
     if density > 30:
