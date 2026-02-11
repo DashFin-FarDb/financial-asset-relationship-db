@@ -313,8 +313,8 @@ class TestTailwindConfig:
 
 
 @pytest.mark.unit
-class TestEnvExample:
-    """Test cases for .env.example file."""
+class TestEnvExampleFixture:
+    """Test cases for .env.example file fixture."""
 
     @pytest.fixture
     def env_example_content(self):
