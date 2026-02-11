@@ -85,7 +85,10 @@ const AssetListStatus = ({
     return null;
   }
 
+  const isError = Boolean(error);
+  
   const trimmedQuerySummary = querySummary.trim();
+  
   const displayQuerySummary =
     trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH
       ? `${trimmedQuerySummary.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1)}…`
@@ -119,10 +122,10 @@ const AssetListStatus = ({
   return (
     <div
       className={`px-6 py-3 text-sm ${
-        loading ? "text-gray-500" : "text-red-500"
+        isError ? "text-red-500" : "text-gray-500"
       }`}
     >
-      {loading ? loadingMessage : `Error: ${errorMessage}`}
+      {isError ? `Error: ${errorMessage}` : loadingMessage}
     </div>
   );
 };
