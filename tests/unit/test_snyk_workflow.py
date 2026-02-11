@@ -53,7 +53,7 @@ class TestSnykWorkflowStructure:
         """Test that workflow name is descriptive."""
         name = snyk_workflow["name"].lower()
         assert "snyk" in name
-        assert "infrastructure" in name or "iac" in name.lower()
+        assert "infrastructure" in name or "iac" in name
 
     def test_workflow_has_trigger(self, snyk_workflow):
         """Test that workflow has trigger configuration."""
