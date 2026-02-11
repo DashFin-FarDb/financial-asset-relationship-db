@@ -13,37 +13,24 @@ from __future__ import annotations
 
 import importlib.util
 from typing import List
-
-
-def _cov_plugin_available() -> bool:
-    """
-    Check whether the pytest-cov plugin is importable.
-
-    Returns:
-        `True` if the pytest-cov plugin is importable, `False` otherwise.
-    """
-
-    return importlib.util.find_spec("pytest_cov") is not None
-
-
 def pytest_load_initial_conftests(
-    early_config, parser, args: List[str]
+    args: List[str],
 ) -> None:  # pragma: no cover - exercised via pytest
     """
-    Remove pytest - cov related command - line options from the provided,
-    argument list when the pytest - cov plugin is not available.,
-    Also remove any inline forms starting with --cov = or --cov - report = .,
-    The original `args` list is updated in -place.,
+    Remove pytest-cov related command-line options when the plugin is unavailable.
+
+    Also strips inline forms starting with ``--cov=`` or ``--cov-report=``.
+    The original *args* list is updated in-place.
+
     Parameters:
-        early_config: pytest early config object,
-        parser: pytest parser object,
-        args(List[str]): Mutable list of command - line arguments;
-            coverage - related options are removed from this list in -place.
+        args (List[str]): Mutable list of command-line arguments;
+            coverage-related options are removed from this list in-place.
 
     Returns:
-    None.
+        None
+
     Raises:
-    None.
+        None
     """
 
     if _cov_plugin_available():
