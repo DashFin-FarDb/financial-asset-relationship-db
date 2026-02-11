@@ -92,9 +92,13 @@ const AssetListStatus = ({
 
   const trimmedQuerySummary = querySummary.trim();
 
+  const querySummaryChars = Array.from(trimmedQuerySummary);
+
   const displayQuerySummary =
-    trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH
-      ? `${trimmedQuerySummary.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1)}…`
+    querySummaryChars.length > MAX_QUERY_SUMMARY_LENGTH
+      ? `${querySummaryChars
+          .slice(0, MAX_QUERY_SUMMARY_LENGTH - 1)
+          .join("")}…`
       : trimmedQuerySummary;
 
   const loadingMessage = displayQuerySummary.length
