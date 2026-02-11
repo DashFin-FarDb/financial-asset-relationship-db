@@ -79,7 +79,7 @@ def _build_mcp_app():
 
         Constructs an Equity instance to validate the provided fields.
         If the module-level graph exposes an `add_asset` callable the asset is
-        added to the graph; otherwise the function performs validation only.
+        added to the graph; otherwise the function performs validation only,
         and no graph mutation occurs.
 
         Returns:
