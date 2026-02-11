@@ -24,7 +24,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     lines.extend(["", "## Top Relationships", ""])
 
     top_relationships = metrics.get("top_relationships", [])
-    for idx, (source, target, rel_type, strength) in enumerate(top_relationships, start=1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        top_relationships, start=1
+    ):
         lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
 
     lines.extend(
@@ -33,22 +35,41 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            ("1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity " "(directional)"),
+            (
+                "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity "
+                "(directional)"
+            ),
             (
                 "2. **Sector Affinity**: Assets in same sector have baseline relationship strength "
                 "of 0.7 (bidirectional)"
             ),
-            ("3. **Currency Exposure**: Non-USD assets link to their native currency asset when " "available"),
-            ("4. **Income Linkage**: Equity dividends compared to bond yields using similarity " "score"),
-            ("5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal " "commodities"),
+            (
+                "3. **Currency Exposure**: Non-USD assets link to their native currency asset when "
+                "available"
+            ),
+            (
+                "4. **Income Linkage**: Equity dividends compared to bond yields using similarity "
+                "score"
+            ),
+            (
+                "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal "
+                "commodities"
+            ),
             "",
         ]
     )
     ("### Regulatory Rules",)
-    ("1. **Event Propagation**: Earnings events impact related bond and currency assets",)
+    (
+        "1. **Event Propagation**: Earnings events impact related bond and currency assets",
+    )
     ("2. **Event Types**: SEC filings, earnings reports, dividend announcements",)
     ("3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)",)
-    (("4. **Related Assets**: Each event automatically creates relationships to impacted " "securities"),)
+    (
+        (
+            "4. **Related Assets**: Each event automatically creates relationships to impacted "
+            "securities"
+        ),
+    )
     avg_strength = metrics.get("average_relationship_strength", 0.0)
     reg_events = metrics.get("regulatory_event_count", 0)
     quality_score = min(1.0, avg_strength + (reg_events / 10.0))

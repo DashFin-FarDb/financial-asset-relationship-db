@@ -243,7 +243,7 @@ class FormulaicAnalyzer:
         formulas.append(beta_formula)
 
         # Correlation coefficient
-        latex=(r"ho = \frac{Cov(X, Y)}{\sigma_X \times \sigma_Y}"),
+        latex = (r"ho = \frac{Cov(X, Y)}{\sigma_X \times \sigma_Y}"),
                 "ρ": "Correlation coefficient (-1 to 1)",
                 "Cov(X,Y)": "Covariance between X and Y",
                 "σ_X": "Standard deviation of X",
