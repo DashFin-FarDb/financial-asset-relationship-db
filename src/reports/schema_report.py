@@ -21,53 +21,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
     metrics = graph.calculate_metrics()
 
-    lines: list[str] = [
-        "# Financial Asset Relationship Database Schema & Rules",
-        "",
-        "## Schema Overview",
-        "",
-        "### Entity Types",
-        "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
-        "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
-        "3. **Commodity** - Physical assets with contracts and delivery dates",
-        "4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links",
-        "5. **Regulatory Events** - Corporate actions and SEC filings",
-        "",
-        "### Relationship Types",
-    ]
-
-    relationship_dist = metrics.get("relationship_distribution", {})
-    for rel_type, count in sorted(
-        relationship_dist.items(),
-        key=lambda item: item[1],
-        reverse=True,
-    ):
-        lines.append(f"- **{rel_type}**: {count} instances")
-
-    lines.extend(
-        [
-            "",
-            "## Calculated Metrics",
-            "",
-            "### Network Statistics",
-            f"- **Total Assets**: {metrics.get('total_assets', 0)}",
-            f"- **Total Relationships**: {metrics.get('total_relationships', 0)}",
-            (
-                "- **Average Relationship Strength**: "
-                f"{metrics.get('average_relationship_strength', 0.0):.3f}"
-            ),
-            f"- **Relationship Density**: {metrics.get('relationship_density', 0.0):.2f}%",
-            f"- **Regulatory Events**: {metrics.get('regulatory_event_count', 0)}",
-            "",
-            "### Asset Class Distribution",
-        ]
-    )
-
-    class_dist = metrics.get("asset_class_distribution", {})
-    for asset_class, count in sorted(class_dist.items()):
-        lines.append(f"- **{asset_class}**: {count} assets")
-
-    lines.extend(["", "## Top Relationships"])
+    lines.extend(["", "## Top Relationships", ""])
 
     top_relationships = metrics.get("top_relationships", [])
     for idx, (source, target, rel_type, strength) in enumerate(
