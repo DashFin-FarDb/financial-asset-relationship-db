@@ -346,37 +346,6 @@ export default function AssetList() {
     </option>
   );
 
-  type AssetListStatusProps = {
-    loading: boolean;
-    error: string | null;
-    querySummary?: string;
-  };
-
-  // Extracted component to handle loading and error display
-  const AssetListStatus = ({
-    loading,
-    error,
-  }: {
-    loading: boolean;
-    error: string | null;
-  }) => {
-    if (!loading && !error) {
-      return null;
-    }
-    return (
-      <div
-        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
-      >
-        {loading ? "Loading..." : `Error: ${error}`}
-      </div>
-    );
-  };
-
-  // Extracted component to handle table container and reduce nesting depth
-  const AssetTable = ({ children }: { children: React.ReactNode }) => {
-    return <div className="overflow-x-auto">{children}</div>;
-  };
-
   return (
     <div className="space-y-6">
       {/* Filters */}
