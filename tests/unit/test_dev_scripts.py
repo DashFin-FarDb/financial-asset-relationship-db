@@ -403,10 +403,7 @@ class TestShellScripts:
             content = f.read()
 
         # Should reference the analysis document
-        assert (
-            "BRANCH_CLEANUP_ANALYSIS.md" in content
-            or "documentation" in content.lower()
-        )
+        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
 
     def test_shell_scripts_consistent_style(self):
         """Test that shell scripts use consistent coding style."""
@@ -506,9 +503,20 @@ class TestShellScripts:
         if "git branch" in content and "-" in content:
             # Check the context of deletion
             lines = content.split("\n")
-            delete_lines = [
-                line for line in lines if "git branch -" in line and "xargs" in line
-            ]
+            delete_lines = [line for line in lines if "git branch -" in line and "xargs" in line]
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)
+
+    def test_cleanup_branches_has_dry_run_mode(self):
+        """Test that cleanup-branches.sh supports dry run mode (additional test)."""
+        with open("cleanup-branches.sh") as f:
+            content = f.read()
+
+        # Should have some mechanism for previewing changes before deleting
+        # Look for common dry-run patterns
+        has_preview = (
+            "echo" in content.lower()
+            and ("branch" in content.lower() or "delete" in content.lower())
+        )
+        assert has_preview, "Script should preview changes before deleting"

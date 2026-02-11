@@ -81,9 +81,7 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_currency():
         """Test that invalid currency code raises ValueError."""
-        with pytest.raises(
-            ValueError, match="Currency must be a valid 3-letter ISO code"
-        ):
+        with pytest.raises(ValueError, match="Currency must be a valid 3-letter ISO code"):
             Asset(
                 id="TEST_001",
                 symbol="TEST",
@@ -97,9 +95,7 @@ class TestAsset:
     @staticmethod
     def test_asset_invalid_market_cap():
         """Test that negative market cap raises ValueError."""
-        with pytest.raises(
-            ValueError, match="Market cap must be a non-negative number or None"
-        ):
+        with pytest.raises(ValueError, match="Market cap must be a non-negative number or None"):
             Asset(
                 id="TEST_001",
                 symbol="TEST",
@@ -204,9 +200,7 @@ class TestRegulatoryEvent:
     @staticmethod
     def test_event_invalid_impact_score():
         """Test that impact score outside [-1, 1] raises ValueError."""
-        with pytest.raises(
-            ValueError, match="Impact score must be a float between -1 and 1"
-        ):
+        with pytest.raises(ValueError, match="Impact score must be a float between -1 and 1"):
             RegulatoryEvent(
                 id="EVENT_002",
                 asset_id="TEST_001",
@@ -241,3 +235,29 @@ class TestRegulatoryEvent:
                 description="",
                 impact_score=0.5,
             )
+
+    @staticmethod
+    def test_event_boundary_impact_score_negative_one():
+        """Test that impact score of exactly -1.0 is accepted (boundary case)."""
+        event = RegulatoryEvent(
+            id="EVENT_BOUNDARY_NEG",
+            asset_id="TEST_001",
+            event_type=RegulatoryActivity.SEC_FILING,
+            date="2024-01-15",
+            description="Boundary test with -1.0 impact",
+            impact_score=-1.0,
+        )
+        assert event.impact_score == -1.0
+
+    @staticmethod
+    def test_event_boundary_impact_score_positive_one():
+        """Test that impact score of exactly 1.0 is accepted (boundary case)."""
+        event = RegulatoryEvent(
+            id="EVENT_BOUNDARY_POS",
+            asset_id="TEST_001",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-01-15",
+            description="Boundary test with 1.0 impact",
+            impact_score=1.0,
+        )
+        assert event.impact_score == 1.0

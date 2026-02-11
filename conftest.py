@@ -56,3 +56,12 @@ def pytest_load_initial_conftests(
         filtered_args.append(arg)
 
     args[:] = filtered_args
+
+
+def _cov_plugin_available() -> bool:  # pragma: no cover
+    """Check if pytest-cov plugin is available.
+
+    Returns:
+        bool: True if pytest-cov is available, False otherwise.
+    """
+    return importlib.util.find_spec("pytest_cov") is not None
