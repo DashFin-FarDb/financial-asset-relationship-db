@@ -140,50 +140,15 @@ const AssetListStatus = ({
 // AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
 
 /**
- * Props for the AssetListStatus component.
- * @property {boolean} loading - Indicates if data is currently being loaded.
- * @property {string | null} error - Error message to display, if any.
- * @property {string} [querySummary] - Optional summary of the current query being executed.
+ * Component to handle table container and reduce nesting depth.
+ * @param {React.ReactNode} children - Table content to render.
+ * @returns {JSX.Element} The table wrapper with overflow handling.
  */
-type AssetListStatusProps = {
-  loading: boolean;
-  error: string | null;
-  querySummary?: string;
-// Removed duplicate `AssetListStatusProps` / `AssetListStatus` declarations.
-// Use the single top-level `AssetListStatus` implementation defined above.
-
-/**
- * Component to handle loading and error display.
- * @param {boolean} loading - Whether data is currently loading.
- * @param {string | null} error - Error message if any.
- * @param {string} querySummary - Optional summary of the current query.
- * @returns {JSX.Element | null} The status display or null if no status to show.
- */
-/** Table container that provides horizontal scrolling for wide tables. */
 type AssetTableProps = { children: React.ReactNode };
 
 const AssetTable = ({ children }: AssetTableProps) => (
   <div className="overflow-x-auto">{children}</div>
 );
-  if (!loading && !error) {
-    return null;
-  }
-  return (
-    <div
-      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
-    >
-      {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
-    </div>
-  );
-};
-
-/**
- * Component to handle table container and reduce nesting depth.
- * @param {React.ReactNode} children - Table content to render.
- */
-const AssetTable = ({ children }: React.PropsWithChildren) => {
-  return <div className="overflow-x-auto">{children}</div>;
-type AssetTableProps = { children: React.ReactNode };
 
 const AssetTable = ({ children }: AssetTableProps) => (
   <div className="overflow-x-auto">{children}</div>
