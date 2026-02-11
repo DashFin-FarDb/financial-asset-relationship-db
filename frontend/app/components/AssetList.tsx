@@ -144,11 +144,27 @@ const AssetListStatus = ({
  * @param {React.ReactNode} children - Table content to render.
  * @returns {JSX.Element} The table wrapper with overflow handling.
  */
-type AssetTableProps = { children: React.ReactNode };
+type AssetTableProps = {
+  children: React.ReactElement;
+  className?: string;
+};
 
-const AssetTable = ({ children }: AssetTableProps) => (
-  <div className="overflow-x-auto">{children}</div>
-);
+const AssetTable = ({ children, className }: AssetTableProps) => {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    React.isValidElement(children) &&
+    typeof children.type === "string" &&
+    children.type !== "table"
+  ) {
+    console.warn("AssetTable expects a <table> as its direct child.");
+  }
+
+  return (
+    <div className={["overflow-x-auto", className].filter(Boolean).join(" ")}>
+      {children}
+    </div>
+  );
+};
 
 /**
  * Fetches and displays a list of assets with filtering and pagination.
