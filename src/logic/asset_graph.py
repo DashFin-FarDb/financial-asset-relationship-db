@@ -128,17 +128,22 @@ class AssetRelationshipGraph:
 
         effective_assets_count = max(total_assets, len(all_ids))
 
-        total_relationships = sum(len(rels) for rels in self.relationships.values())
+        total_relationships = sum(
+            len(rels) for rels in self.relationships.values()
+        )
 
-        strengths = [r[2] for rels in self.relationships.values() for r in rels]
+        strengths = [
+            r[2]
+            for rels in self.relationships.values()
+            for r in rels
+        ]
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
 
         density = (
-            (
-                total_relationships
-                / (effective_assets_count * (effective_assets_count - 1))
-                * 100
-            )
+            (total_relationships
+             / (effective_assets_count
+                * (effective_assets_count - 1))
+             * 100)
             if effective_assets_count > 1
             else 0.0
         )

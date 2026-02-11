@@ -23,13 +23,13 @@ lint:  ## Run all linters
 	flake8 src/ tests/
 	pylint src/
 
-format:  ## Format code with black and isort
+format:  ## Format code with black and ruff
 	black src/ tests/ app.py
-	isort src/ tests/ app.py
+	ruff check --fix --select I src/ tests/ app.py
 
 format-check:  ## Check code formatting without making changes
 	black --check --diff src/ tests/ app.py
-	isort --check-only --diff src/ tests/ app.py
+	ruff check --select I src/ tests/ app.py
 
 type-check:  ## Run type checking with mypy
 	mypy src/ --ignore-missing-imports

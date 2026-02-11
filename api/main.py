@@ -12,13 +12,7 @@ from typing import Any, Dict, List
 import pytest
 import yaml
 
-from .auth import (
-    Token,
-    User,
-    authenticate_user,
-    create_access_token,
-    get_current_active_user,
-)
+from .auth import Token, User, authenticate_user, create_access_token, get_current_active_user
 
 
 class TestWorkflowYAMLSyntax:

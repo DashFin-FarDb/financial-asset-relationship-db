@@ -44,7 +44,8 @@ dev = [
     "pylint>=2.17.0",
     "mypy>=1.0.0",
     "black>=23.0.0",
-    "isort>=5.12.0",
+    "ruff>=0.4.0,<1.0.0",  # Cap major versions since Ruff is the sole import-sorting implementation
+    "radarlint>=0.1.0",
 ]
 
 [tool.pytest.ini_options]
@@ -84,7 +85,7 @@ exclude_lines = [
 
 [tool.black]
 line-length = 120
-target-version = ['py310', 'py311', 'py312']
+target-version = ['py312']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -100,14 +101,34 @@ extend-exclude = '''
 )/
 '''
 
-[tool.isort]
-profile = "black"
-line_length = 120
-skip_gitignore = true
-known_first_party = ["src"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+target-version = "py312"
+fix = false
+unsafe-fixes = false
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.flake8]
+max-line-length = 120
+extend-ignore = ["E203", "W503"]
+
+[tool.autopep8]
+max_line_length = 120
+aggressive = 1
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.12"
 warn_return_any = false
 warn_unused_configs = true
 disallow_untyped_defs = false
@@ -134,7 +155,7 @@ fail-under = 8.0
 jobs = 0
 limit-inference-results = 100
 persistent = true
-py-version = "3.10"
+py-version = "3.12"
 suggestion-mode = true
 
 [tool.pylint.messages_control]

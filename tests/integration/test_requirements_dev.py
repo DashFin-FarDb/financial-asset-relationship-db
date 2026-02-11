@@ -401,12 +401,15 @@ class TestSpecificChanges:
             "pylint",
             "mypy",
             "black",
-            "isort",
             "pre-commit",
         ]
 
         for expected_pkg in expected_packages:
             assert expected_pkg in package_names
+
+        # Do not mandate a specific import-sorting tool; require at least one supported option.
+        import_sorters = {"ruff", "isort", "reorder-python-imports"}
+        assert any(sorter in package_names for sorter in import_sorters)
 
 
 class TestEdgeCasesAndErrorHandling:
@@ -494,9 +497,9 @@ class TestVersionConstraintValidation:
                 # Compound spec should not have spaces after comma
                 parts = ver.split(",")
                 for part in parts:
-                    assert (
-                        part.strip() == part or part == ""
-                    ), f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
+                    assert part.strip() == part or part == "", (
+                        f"Compound version spec has improper spacing: '{ver}' for package '{pkg}'"
+                    )
 
     @staticmethod
     def test_minimum_version_numbers_reasonable(requirements: List[Tuple[str, str]]):
@@ -556,9 +559,9 @@ class TestPackageNamingAndCasing:
             normalized = pkg.lower().replace("-", "_")
             if normalized in normalized_names:
                 original = normalized_names[normalized]
-                assert original.lower().replace("-", "_") == pkg.lower().replace(
-                    "-", "_"
-                ), f"Potential conflict between {original} and {pkg}"
+                pytest.fail(
+                    f"Duplicate/ambiguous requirement name after normalization ('{normalized}'): {original!r} vs {pkg!r}"
+                )
             normalized_names[normalized] = pkg
 
     def test_common_package_name_patterns(self, requirements: List[Tuple[str, str]]):
@@ -606,14 +609,16 @@ class TestDevelopmentToolsPresence:
 
     @staticmethod
     def test_has_import_sorter(package_names: List[str]):
-        """Test that an import sorter is present."""
-        import_sorters = ["isort", "reorder-python-imports"]
-        # This is optional but good to have
-        if any(sorter in package_names for sorter in import_sorters):
-            assert True
-        else:
-            # Not required but log it
-            pass
+        """Test that an import sorter is present (optional but recommended)."""
+def test_has_type_checker(package_names: List[str]):
+    """Test that an import sorter is present (optional but recommended)."""
+    import_sorters = ["ruff", "isort", "reorder-python-imports"]
+    assert any(sorter in package_names for sorter in import_sorters)
+    import_sorters = ["ruff", "isort", "reorder-python-imports"]
+    if not any(sorter in package_names for sorter in import_sorters):
+        pytest.skip("No import-sorting tool found (optional)")
+    if not any(sorter in package_names for sorter in import_sorters):
+        pytest.skip("No import-sorting tool found (optional)")
 
 
 class TestPytestEcosystem:
@@ -696,9 +701,9 @@ class TestTypeStubConsistency:
                 # Type stubs may or may not have version constraints
                 # but if they do, they should be valid
                 if ver:
-                    assert any(
-                        op in ver for op in [">=", "==", "~="]
-                    ), f"Type stub {pkg} has invalid version spec: {ver}"
+                    assert any(op in ver for op in [">=", "==", "~="]), (
+                        f"Type stub {pkg} has invalid version spec: {ver}"
+                    )
 
 
 class TestFileStructureAndOrganization:
@@ -714,9 +719,9 @@ class TestFileStructureAndOrganization:
             if line.strip().startswith("#"):
                 # Comments should have a space after #
                 if len(line.strip()) > 1:
-                    assert (
-                        line.strip()[1] == " " or line.strip()[1] == "#"
-                    ), f"Line {i}: Comment should have space after #: {line.strip()}"
+                    assert line.strip()[1] == " " or line.strip()[1] == "#", (
+                        f"Line {i}: Comment should have space after #: {line.strip()}"
+                    )
 
     @staticmethod
     def test_sections_are_organized():

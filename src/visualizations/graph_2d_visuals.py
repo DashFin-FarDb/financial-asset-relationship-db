@@ -351,10 +351,13 @@ def visualize_2d_graph(
     hover_texts = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        hover_text = f"{asset_id}<br>Class: " + (
-            asset.asset_class.value
-            if hasattr(asset.asset_class, "value")
-            else str(asset.asset_class)
+        hover_text = (
+            f"{asset_id}<br>Class: "
+            + (
+                asset.asset_class.value
+                if hasattr(asset.asset_class, "value")
+                else str(asset.asset_class)
+            )
         )
         hover_texts.append(hover_text)
 

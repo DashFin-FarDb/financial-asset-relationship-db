@@ -33,7 +33,8 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Initialise the RealDataFetcher with optional cache, fallback and network controls.
+        Initialise the RealDataFetcher with optional cache, fallback and
+        network controls.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -58,11 +59,15 @@ class RealDataFetcher:
 
         if not self.enable_network:
             logger.info(
-                "Network fetching disabled. Using fallback dataset if available."
+                "Network fetching disabled. Using fallback dataset "
+                "if available."
             )
             return self._fallback()
 
-        logger.info("Creating database with real financial data from Yahoo Finance")
+        logger.info(
+            "Creating database with real financial data from "
+            "Yahoo Finance"
+        )
         graph = AssetRelationshipGraph()
 
         try:
@@ -194,7 +199,12 @@ class RealDataFetcher:
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
-            "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
+            "TLT": (
+                "iShares 20+ Year Treasury Bond ETF",
+                "Government",
+                None,
+                "AAA",
+            ),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
                 "Corporate",
@@ -222,18 +232,20 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(
-                        info.get("yield", 0.03)
-                    ),  # Default 3% if not available
+                    yield_to_maturity=(info.get("yield", 0.03)),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
                     issuer_id=issuer_id,
                 )
                 bonds.append(bond)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f", symbol, name, current_price
+                )
             except Exception as e:
-                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
+                logger.error(
+                    "Failed to fetch bond data for %s: %s", symbol, e
+                )
                 continue
 
         return bonds
@@ -370,7 +382,8 @@ class RealDataFetcher:
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
             description=(
-                "10-K Filing - Increased oil reserves and sustainability initiatives"
+                "10-K Filing - Increased oil reserves and sustainability "
+                "initiatives"
             ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
@@ -464,9 +477,13 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             incoming_relationships[target].append((source, rel_type, strength))
 
     return {
-        "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
+        "assets": [
+            _serialize_dataclass(asset)
+            for asset in graph.assets.values()
+        ],
         "regulatory_events": [
-            _serialize_dataclass(event) for event in graph.regulatory_events
+            _serialize_dataclass(event)
+            for event in graph.regulatory_events
         ],
         "relationships": {
             source: [
@@ -491,6 +508,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             for target, rels in incoming_relationships.items()
         },
     }
+
 
 
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
