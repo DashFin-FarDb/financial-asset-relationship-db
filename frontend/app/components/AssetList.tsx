@@ -159,7 +159,12 @@ type AssetListStatusProps = {
  * @param {string} querySummary - Optional summary of the current query.
  * @returns {JSX.Element | null} The status display or null if no status to show.
  */
-const AssetListStatus = ({ loading, error, querySummary = "" }: AssetListStatusProps) => {
+/** Table container that provides horizontal scrolling for wide tables. */
+type AssetTableProps = { children: React.ReactNode };
+
+const AssetTable = ({ children }: AssetTableProps) => (
+  <div className="overflow-x-auto">{children}</div>
+);
   if (!loading && !error) {
     return null;
   }
