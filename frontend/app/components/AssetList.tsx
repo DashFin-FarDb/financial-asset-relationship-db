@@ -111,7 +111,7 @@ const AssetListStatus = ({
     }
 
     if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
-      return `${sanitized.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
+      return `${sanitized.substring(0, MAX_ERROR_MESSAGE_LENGTH)}…`;
     }
 
     return sanitized;
