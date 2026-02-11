@@ -384,7 +384,6 @@ class TestEdgeCases:
     def test_create_engine_with_none(self):
         """None should fall back to default."""
         engine = create_engine_from_url(None)
-        engine = create_engine_from_url(None)
         assert engine is not None
 
 
