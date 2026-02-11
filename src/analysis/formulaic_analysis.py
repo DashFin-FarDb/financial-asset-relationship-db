@@ -554,14 +554,14 @@ class FormulaicAnalyzer:
         Returns:
             summary (dict): Summary values with keys:
                 - total_formulas (int): Number of formulas analyzed.
-                - avg_r_squared (float): Average `r_squared` across provided formulas
-                  (0 if none).
-                - formula_categories (dict): Mapping of category name to count of formulas
-                  in that category.
+                - avg_r_squared (float): Average `r_squared` across provided
+                  formulas (0 if none).
+                - formula_categories (dict): Mapping of category name to count of
+                  formulas in that category.
                 - empirical_data_points (int): Number of entries in
                   `empirical_relationships["correlation_matrix"]` (0 if missing).
-                - key_insights (list[str]): Human-readable insight strings derived from
-                  the formulas and empirical data.
+                - key_insights (list[str]): Human-readable insight strings
+                  derived from the formulas and empirical data.
         """
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
             empirical_relationships

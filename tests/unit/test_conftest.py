@@ -13,7 +13,6 @@ approach for pytest. The S101 rule is suppressed because tests are not run with
 Python optimization flags that would remove assert statements.
 """
 
-import sys
 from typing import List
 from unittest.mock import MagicMock, patch
 

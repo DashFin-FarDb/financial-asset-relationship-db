@@ -451,8 +451,8 @@ class FinancialAssetApp:
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
         """
-        Builds a human-readable, markdown-formatted summary of formulaic analysis
-        results for display.
+        Builds a human-readable, markdown-formatted summary of
+        formulaic analysis results for display.
 
         Parameters:
             summary (Dict): Aggregated metrics and highlights produced by the analyzer.
@@ -463,8 +463,9 @@ class FinancialAssetApp:
                   - "key_insights" (List[str]): short insight strings
             analysis_results (Dict): Detailed analysis output containing at least:
                 - "formulas" (List): identified formulas
-                - "empirical_relationships" (Dict): may include "strongest_correlations" as a list
-                  of dicts with "pair", "correlation", and "strength" keys.
+                - "empirical_relationships" (Dict): may include
+                  "strongest_correlations" as a list of dicts with "pair",
+                  "correlation", and "strength" keys.
 
         Returns:
             str: A multi-line markdown-ready string summarizing totals, average R²,
@@ -516,10 +517,10 @@ class FinancialAssetApp:
         event handlers to the app's refresh, visualization, and analysis methods.
 
         Returns:
-            demo (gr.Blocks): The configured Gradio Blocks instance for the application
+            interface (gr.Blocks): The configured Gradio Blocks instance for the application
             UI.
         """
-        with gr.Blocks(title=AppConstants.TITLE) as demo:
+        with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
@@ -545,6 +546,7 @@ class FinancialAssetApp:
                             )
                         with gr.Column(scale=1):
                             layout_type = gr.Radio(
+                                
                                 label="2D Layout Type",
                                 choices=["spring", "circular", "grid"],
                                 value="spring",

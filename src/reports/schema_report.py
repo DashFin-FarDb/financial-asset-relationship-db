@@ -56,6 +56,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
                 "commodities"
             ),
             "",
+        ]
+    )
             "### Regulatory Rules",
             "1. **Event Propagation**: Earnings events impact related bond and currency assets",
             "2. **Event Types**: SEC filings, earnings reports, dividend announcements",

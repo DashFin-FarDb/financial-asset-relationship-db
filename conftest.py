@@ -29,7 +29,6 @@ def pytest_load_initial_conftests(
     Parameters:
         args (List[str]): Mutable list of command-line arguments to filter.
     """
-
     if _cov_plugin_available():
         return
 

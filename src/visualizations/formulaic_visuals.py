@@ -320,16 +320,23 @@ class FormulaicVisualizer:
         formulas: Any,
     ) -> tuple[list[str], list[str], list[str]]:
         """
-        Prepare parallel lists of formula display names, categories, and formatted R-squared values for table rendering.
+        Prepare parallel lists of formula display names, categories, and
+        formatted R-squared values for table rendering.
 
         Parameters:
-                formulas (Iterable): An iterable of objects (typically Formula instances) from which `name`, `category`, and `r_squared` attributes are read. Missing values are handled gracefully.
+                formulas (Iterable): An iterable of objects
+                    (typically Formula instances)
+                    from which `name`, `category`, and `r_squared` attributes are read.
+                    Missing values are handled gracefully.
 
         Returns:
                 tuple[list[str], list[str], list[str]]: Three lists in order:
-                        - names: Display-ready formula names (truncated with ellipsis when long or "N/A" if unavailable).
+                        - names: Display-ready formula names
+                            (truncated with ellipsis when long or
+                             "N/A" if unavailable).
                         - categories: Formula category strings or "N/A" if missing.
-                        - r_squared_values: R-squared values formatted as strings (four decimals) or "N/A" if not numeric.
+                        - r_squared_values: R-squared values formatted as
+                            strings (four decimals) or "N/A" if not numeric.
         """
         names = [
             FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
