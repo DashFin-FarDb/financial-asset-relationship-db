@@ -94,7 +94,7 @@ const AssetListStatus = ({
 
   let displayQuerySummary = trimmedQuerySummary;
 
-  if (trimmedQuerySummary) {
+  if (trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH) {
     let prefix = "";
     let count = 0;
 
@@ -104,10 +104,7 @@ const AssetListStatus = ({
       count += 1;
     }
 
-    // If we didn't consume the whole string, we truncated.
-    if (prefix.length < trimmedQuerySummary.length) {
-      displayQuerySummary = `${prefix}…`;
-    }
+    displayQuerySummary = `${prefix}…`;
   }
 
   const loadingMessage = displayQuerySummary.length
