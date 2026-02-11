@@ -131,6 +131,8 @@ def test_no_duplicate_keys_in_yaml():
         except Exception as e:
             parse_errors.append(f"{yaml_file}: Unexpected error - {e}")
 
+    assert not parse_errors, "YAML errors found:\n" + "\n".join(parse_errors)
+
 
 class TestWorkflowSchemaCompliance:
     """Tests for GitHub Actions workflow schema compliance."""
