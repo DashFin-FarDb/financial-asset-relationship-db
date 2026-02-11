@@ -109,7 +109,6 @@ def mock_graph():
     return graph
 
 
-
 def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRelationshipGraph) -> None:
     """Apply shared configuration to the patched api.main.graph mock.
 
@@ -208,7 +207,6 @@ class TestAssetsEndpoint:
         """Test retrieving all assets without filters."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/assets")
         assert response.status_code == 200
         data = response.json()
@@ -229,7 +227,6 @@ class TestAssetsEndpoint:
         """Test filtering assets by asset class."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
         data = response.json()
@@ -242,7 +239,6 @@ class TestAssetsEndpoint:
         """Test filtering assets by sector."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
         data = response.json()
@@ -253,7 +249,6 @@ class TestAssetsEndpoint:
     def test_filter_combined(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filtering with multiple parameters."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/assets?asset_class=Equity&sector=Technology")
         assert response.status_code == 200
@@ -266,7 +261,6 @@ class TestAssetsEndpoint:
     def test_assets_additional_fields(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test that additional fields are included for assets."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/assets?asset_class=Equity")
         assert response.status_code == 200
@@ -298,7 +292,6 @@ class TestAssetDetailEndpoint:
         """Test retrieving details for a specific asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/assets/TEST_AAPL")
         assert response.status_code == 200
         data = response.json()
@@ -313,7 +306,6 @@ class TestAssetDetailEndpoint:
         """Test 404 response for non-existent asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/assets/NONEXISTENT")
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
@@ -322,7 +314,6 @@ class TestAssetDetailEndpoint:
     def test_get_bond_detail_with_issuer(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test bond details include issuer_id."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/assets/TEST_CORP")
         assert response.status_code == 200
@@ -340,7 +331,6 @@ class TestRelationshipsEndpoint:
     def test_get_asset_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving relationships for a specific asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/assets/TEST_AAPL/relationships")
         assert response.status_code == 200
@@ -360,7 +350,6 @@ class TestRelationshipsEndpoint:
         """Test 404 for relationships of non-existent asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/assets/NONEXISTENT/relationships")
         assert response.status_code == 404
 
@@ -368,7 +357,6 @@ class TestRelationshipsEndpoint:
     def test_get_all_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving all relationships in the graph."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/relationships")
         assert response.status_code == 200
@@ -393,7 +381,6 @@ class TestMetricsEndpoint:
         """Test retrieving network metrics."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/metrics")
         assert response.status_code == 200
         data = response.json()
@@ -415,7 +402,6 @@ class TestMetricsEndpoint:
         """Test asset class distribution in metrics."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/metrics")
         data = response.json()
 
@@ -434,7 +420,6 @@ class TestVisualizationEndpoint:
         """Test retrieving visualization data."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/visualization")
         assert response.status_code == 200
         data = response.json()
@@ -449,7 +434,6 @@ class TestVisualizationEndpoint:
     def test_visualization_node_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test visualization node data structure."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/visualization")
         data = response.json()
@@ -474,7 +458,6 @@ class TestVisualizationEndpoint:
     def test_visualization_edge_structure(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test visualization edge data structure."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/visualization")
         data = response.json()
@@ -511,7 +494,6 @@ class TestMetadataEndpoints:
     def test_get_sectors(mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test retrieving available sectors."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/sectors")
         assert response.status_code == 200
@@ -551,7 +533,6 @@ class TestEdgeCases:
         """Test handling of special characters in asset IDs."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         # Test URL encoding
         response = client.get("/api/assets/TEST%20SPACE")
         assert response.status_code == 404
@@ -560,7 +541,6 @@ class TestEdgeCases:
     def test_filter_no_matches(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test filter that returns no results."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/assets?sector=NonExistent")
         assert response.status_code == 200
@@ -575,7 +555,6 @@ class TestConcurrency:
     def test_multiple_concurrent_requests(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test handling multiple concurrent requests."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         # Simulate concurrent requests
         responses = []
@@ -598,7 +577,6 @@ class TestResponseValidation:
         """Test asset response matches Pydantic schema."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
-
         response = client.get("/api/assets")
         data = response.json()
 
@@ -620,7 +598,6 @@ class TestResponseValidation:
     def test_relationship_response_schema(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
         """Test relationship response matches schema."""
         apply_mock_graph(mock_graph_instance, mock_graph)
-
 
         response = client.get("/api/relationships")
         data = response.json()
@@ -986,4 +963,3 @@ class TestNegativeScenarios:
         data = response.json()
         assert data["total_assets"] == 0
         assert data["network_density"] == 0
- 
