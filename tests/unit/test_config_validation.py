@@ -320,10 +320,10 @@ class TestEnvExample:
     def env_example_content(self):
         """
         Load and return the contents of the project's .env.example file.
-        
+
         Returns:
             str: The full text contents of .env.example.
-        
+
         Raises:
             AssertionError: If .env.example does not exist.
         """

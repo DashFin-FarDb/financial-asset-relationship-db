@@ -177,7 +177,7 @@ class TestConftestHelpers:
     def test_pytest_load_initial_conftests_consecutive_skip_args():
         """
         Ensure consecutive coverage-related arguments and their values are removed when pytest-cov is unavailable.
-        
+
         Verifies the provided `args` list is modified in place to strip `--cov`, `--cov-report` and their following values, preserving non-coverage arguments.
         """
         with patch("conftest.importlib.util.find_spec", return_value=None):
@@ -231,7 +231,7 @@ class TestConftestHelpers:
     def test_pytest_load_initial_conftests_args_with_equals_in_value():
         """
         Ensures pytest_load_initial_conftests removes pytest-cov related arguments whose values contain equals signs while preserving other arguments.
-        
+
         Verifies that an inline `--cov-report=...` argument with a value containing `=` is removed from the provided args list and that unrelated args remain unchanged.
         """
         with patch("conftest.importlib.util.find_spec", return_value=None):

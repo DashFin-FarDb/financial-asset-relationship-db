@@ -90,7 +90,7 @@ class TestThreadSafeGraph:
         def tracked_acquire(*args, **kwargs):
             """
             Record a lock acquisition event by appending "acquired" to the shared `lock_acquired` list, then delegate to and return the result of the original acquire call.
-            
+
             Returns:
                 The value returned by `original_acquire(*args, **kwargs)`.
             """
@@ -100,13 +100,13 @@ class TestThreadSafeGraph:
         def tracked_release(*args, **kwargs):
             """
             Wrapper for a lock's release method that records each release event.
-            
+
             Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
-            
+
             Parameters:
                 *args: Positional arguments forwarded to the original release callable.
                 **kwargs: Keyword arguments forwarded to the original release callable.
-            
+
             Returns:
                 The value returned by the original release callable.
             """
@@ -220,7 +220,7 @@ class TestAddEquityNode:
     def test_add_equity_node_fallback_without_add_asset():
         """
         Verify add_equity_node falls back to validation-only behavior when the global graph lacks an add_asset method.
-        
+
         Asserts the tool returns a message indicating validation-only mode or a success message when invoked against a graph mock that does not provide `add_asset`.
         """
         from mcp_server import _build_mcp_app
@@ -452,7 +452,7 @@ class TestBuildMcpApp:
     def test_build_mcp_app_tool_has_correct_signature():
         """
         Verify the registered "add_equity_node" tool exposes the expected function parameters.
-        
+
         Builds the MCP app, locates the tool named "add_equity_node", and confirms the tool's callable `fn`
         accepts the parameters: `asset_id`, `symbol`, `name`, `sector`, and `price`.
         """
