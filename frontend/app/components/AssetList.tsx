@@ -149,7 +149,8 @@ type AssetListStatusProps = {
   loading: boolean;
   error: string | null;
   querySummary?: string;
-};
+// Removed duplicate `AssetListStatusProps` / `AssetListStatus` declarations.
+// Use the single top-level `AssetListStatus` implementation defined above.
 
 /**
  * Component to handle loading and error display.
