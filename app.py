@@ -220,7 +220,7 @@ class FinancialAssetApp:
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """
-        
+
         Refresh all visualizations, metrics, schema report, and
         asset selector options for the UI.
 

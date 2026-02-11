@@ -232,7 +232,7 @@ class AssetRelationshipGraph:
                 np.sin(theta),
                 np.zeros_like(theta),
             ],
-            axis=1,
+            axis = 1,
         )
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]

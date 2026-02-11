@@ -451,7 +451,6 @@ def _enum_to_value(value: Any) -> Any:
     return value.value if isinstance(value, Enum) else value
 
 
-
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
     Serialize a dataclass instance into a JSON - friendly dictionary
@@ -469,7 +468,6 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     serialized = {key: _enum_to_value(val) for key, val in data.items()}
     serialized["__type__"] = obj.__class__.__name__
     return serialized
-
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
