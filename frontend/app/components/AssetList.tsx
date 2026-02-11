@@ -110,7 +110,9 @@ const AssetListStatus = ({
 
   const loadingMessage = displayQuerySummary.length
     ? `Loading results for ${displayQuerySummary}...`
-    : "Loading results...";
+    const MAX_ERROR_MESSAGE_LENGTH = 200;
+
+    if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
 
   const getDisplayError = (rawError: string | null): string => {
     if (!rawError) {
