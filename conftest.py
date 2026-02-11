@@ -13,6 +13,8 @@ from __future__ import annotations
 
 import importlib.util
 from typing import List
+
+
 def pytest_load_initial_conftests(
     args: List[str],
 ) -> None:  # pragma: no cover - exercised via pytest
