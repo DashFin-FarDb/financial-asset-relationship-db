@@ -69,7 +69,7 @@ const SelectFilter = ({
   </div>
 );
 
-const MAX_ERROR_MESSAGE_LENGTH = 160;
+const MAX_QUERY_SUMMARY_LENGTH = 80;
 
 // Extracted component to handle loading and error display
 const AssetListStatus = ({
@@ -86,9 +86,13 @@ const AssetListStatus = ({
   }
 
   const trimmedQuerySummary = querySummary.trim();
+  const displayQuerySummary =
+    trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH
+      ? `${trimmedQuerySummary.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1)}…`
+      : trimmedQuerySummary;
 
-  const loadingMessage = trimmedQuerySummary.length
-    ? `Loading results for ${trimmedQuerySummary}...`
+  const loadingMessage = displayQuerySummary.length
+    ? `Loading results for ${displayQuerySummary}...`
     : "Loading results...";
 
   const getDisplayError = (rawError: string | null): string => {
