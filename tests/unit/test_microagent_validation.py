@@ -676,35 +676,7 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                 # Skip files with unparseable frontmatter (may have special YAML syntax)
                 pass
 
-    @staticmethod
-    def parse_frontmatter(content: str) -> tuple:
-        """
-        Extracts YAML frontmatter and the markdown body from a markdown string.
-
-        Parameters:
-                content (str): Markdown text expected to start with YAML frontmatter delimited by `---`.
-
-        Returns:
-                frontmatter, body (tuple): `frontmatter` is the parsed YAML value (typically a dict) from the frontmatter; `body` is the remaining markdown text after the frontmatter.
-
-        Raises:
-                ValueError: If no valid YAML frontmatter is found or if the frontmatter contains invalid YAML.
-        """
-        content = content.lstrip()
-        match = re.match(r"^---\s*\n(.*?)\n---\s*\n(.*)$", content, re.DOTALL)
-        if not match:
-            raise ValueError("No valid frontmatter found")
-
-        frontmatter_text = match.group(1)
-        body = match.group(2)
-
-        try:
-            frontmatter = yaml.safe_load(frontmatter_text)
-        except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML in frontmatter: {e}")
-
-        return frontmatter, body
-
+    
     def test_all_microagents_use_markdown_formatting(
         self, microagent_files: List[Path]
     ):
