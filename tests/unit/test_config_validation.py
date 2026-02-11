@@ -568,12 +568,17 @@ class TestConfigurationSecurityNegative:
         ]
 
         for pattern in suspicious_patterns:
-            matches = re.findall(pattern, content)
-            # If found, ensure they're in comments or placeholders
-            for match in matches:
-                if "your" not in content.lower() and "example" not in content.lower():
+            for match in re.finditer(pattern, content):
+                # Look at the line containing the match to see if it's a placeholder
+                line_start = content.rfind("\n", 0, match.start()) + 1
+                line_end = content.find("\n", match.end())
+                if line_end == -1:
+                    line_end = len(content)
+                line = content[line_start:line_end]
+                if "your" not in line.lower() and "example" not in line.lower():
                     # Might be a real key
-                    assert False, f"Potential real key found: {match[:10]}..."
+                    snippet = match.group(0)[:10]
+                    assert False, f"Potential real key found: {snippet}..."
 
     @staticmethod
     def test_package_json_no_vulnerable_scripts():
