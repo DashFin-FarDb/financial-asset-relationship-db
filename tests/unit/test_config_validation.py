@@ -323,6 +323,16 @@ class TestEnvExample:
         assert config_path.exists(), ".env.example not found"
         with open(config_path) as f:
             return f.read()
+class TestEnvExample:
+    """Test cases for .env.example file."""
+
+    @pytest.fixture
+    def env_example_content(self):
+        """Load .env.example content."""
+        config_path = Path(".env.example")
+        assert config_path.exists(), ".env.example not found"
+        with open(config_path) as f:
+            return f.read()
 
     def test_env_example_exists(self):
         """Test that .env.example exists."""
