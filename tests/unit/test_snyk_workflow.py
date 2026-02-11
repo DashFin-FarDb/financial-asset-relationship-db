@@ -290,7 +290,9 @@ class TestSnykJobConfiguration:
         assert "@v4" in sarif_action
 
     def test_sarif_upload_has_file_input(self, snyk_job):
-        """Test that SARIF upload specifies file."""
+        """
+        Asserts the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
+        """
         steps = snyk_job["steps"]
         sarif_steps = [
             s
@@ -381,7 +383,11 @@ class TestSnykWorkflowEdgeCases:
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
-        """Test that job names don't have special characters that might cause issues."""
+        """
+        Ensure workflow job names contain only ASCII letters, digits, hyphens, or underscores.
+
+        Fails if any job name includes characters outside the set [A-Za-z0-9-_].
+        """
         with open(snyk_workflow_path) as f:
             workflow = yaml.safe_load(f)
 

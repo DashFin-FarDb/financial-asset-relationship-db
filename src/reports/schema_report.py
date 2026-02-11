@@ -5,19 +5,19 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown-formatted schema and rules report for a given asset
-    relationship graph.
-
-    Builds a human-readable report that summarizes schema entities,
-    relationship type distribution, calculated network metrics, top
-    relationships, business and regulatory rules, and schema optimization
-    recommendations.
+    Generate a Markdown report describing the database schema,
+    relationship distributions, calculated metrics,
+    business/regulatory/valuation rules, and optimization recommendations
+    for an asset relationship graph.
 
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to analyze.
+        graph (AssetRelationshipGraph): The asset relationship graph to analyze and summarize.
 
     Returns:
-        str: The assembled Markdown report as a single string.
+        markdown (str): A Markdown-formatted string containing the schema overview,
+        relationship type distribution, network statistics and asset-class distributions,
+        top relationships, business/regulatory/valuation rules, a computed data quality
+        score with recommendation, and implementation notes.
     """
     metrics = graph.calculate_metrics()
 

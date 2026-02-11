@@ -529,12 +529,13 @@ class TestConcurrentDatabaseAccess:
 
         def write_data(thread_id: int) -> None:
             """
-            Worker that inserts a TestModel row after a short staggered delay.
-
-            Sleeps for 0.001 * thread_id seconds, opens a session via session_scope(factory), and adds a TestModel with id equal to thread_id. Any exception raised is appended to the shared `errors` list.
+            Worker used by a thread to insert a TestModel row and record any exception.
 
             Parameters:
-                thread_id (int): Identifier used as the TestModel.id and to compute the staggered delay.
+                thread_id (int): Value used as the TestModel `id` for the inserted row.
+
+            Notes:
+                On failure, the raised exception is appended to the shared `errors` list as a side effect.
             """
             try:
                 time.sleep(0.001 * thread_id)

@@ -42,7 +42,20 @@ def client():
 
 @pytest.fixture
 def mock_graph():
-    """Create a mock graph with sample data."""
+    """
+    Create an in-memory AssetRelationshipGraph populated with sample assets and relationships.
+
+    The graph contains:
+    - An Equity with id "TEST_AAPL" (Apple Inc.) including market fields such as price, market_cap, and pe_ratio.
+    - A Bond with id "TEST_CORP" whose issuer_id is "TEST_AAPL" and includes fixed-income fields.
+    - A Commodity with id "TEST_GC" (Gold) including contract and delivery fields.
+    - A Currency with id "TEST_EUR" (Euro) including exchange_rate and country.
+
+    Relationships between these assets are built before the graph is returned.
+
+    Returns:
+        AssetRelationshipGraph: An in-memory graph populated with the sample assets and their relationships.
+    """
     graph = AssetRelationshipGraph(database_url="sqlite:///:memory:")
 
     # Add sample equity
@@ -112,9 +125,14 @@ def mock_graph():
 def _apply_mock_graph_configuration(
     mock_graph_instance: object, graph: AssetRelationshipGraph
 ) -> None:
-    """Apply shared configuration to the patched api.main.graph mock.
+    """
+    Configure a patched graph mock with attributes copied from a real AssetRelationshipGraph.
 
-    This keeps endpoint tests DRY by centralizing the common attribute wiring.
+    Sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data attributes to match the provided graph so tests can reuse a consistent mocked graph surface.
+
+    Parameters:
+        mock_graph_instance (object): A unittest.mock.Mock instance that represents the patched api.main.graph.
+        graph (AssetRelationshipGraph): The concrete graph whose attributes should be mirrored on the mock.
     """
     # The patched object is a Mock from unittest.mock; we set attributes dynamically.
     mock_graph_instance.assets = graph.assets
@@ -620,7 +638,11 @@ class TestResponseValidation:
     def test_asset_response_schema(
         self, mock_graph_instance, client, mock_graph, apply_mock_graph
     ):
-        """Test asset response matches Pydantic schema."""
+        """
+        Validate that each asset in the /api/assets response matches the expected schema.
+
+        Checks that required fields are present and have the correct types (id, symbol, name, asset_class, sector, price, currency) and that `market_cap`, when not null, is a number.
+        """
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/assets")
@@ -824,7 +846,11 @@ class TestCacheCorruptionRegression:
 
     @staticmethod
     def test_api_handles_concurrent_cache_reads(tmp_path):
-        """Regression: API should handle concurrent cache read attempts."""
+        """
+        Verify concurrent cache reads do not raise errors and produce consistent graphs.
+
+        Spawns multiple threads that each instantiate a RealDataFetcher pointed at the same cache file and create a database from it; the test asserts no thread raises an exception and every returned graph has the same number of assets as the reference graph.
+        """
         import threading
 
         from src.data.real_data_fetcher import _save_to_cache
@@ -838,7 +864,11 @@ class TestCacheCorruptionRegression:
         errors = []
 
         def load_from_cache():
-            """Thread worker to load from cache."""
+            """
+            Load a cached real-data graph and record the outcome.
+
+            Attempts to instantiate RealDataFetcher with network disabled and create the cached graph. On success appends the resulting graph to the outer-scope `results` list; on failure appends the caught exception to the outer-scope `errors` list.
+            """
             try:
                 from src.data.real_data_fetcher import RealDataFetcher
 

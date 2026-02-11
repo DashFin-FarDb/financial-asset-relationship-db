@@ -219,7 +219,30 @@ class FinancialAssetApp:
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
-        """Refreshes all visualizations and reports in the Gradio interface."""
+        """
+
+        Refresh all visualizations, metrics, schema report, and
+        asset selector options for the UI.
+
+        Parameters:
+            graph_state (AssetRelationshipGraph): Current graph state passed
+                by the UI callback (not used; the function ensures and
+                uses the internally stored graph).
+
+        Returns:
+            tuple: A sequence of UI outputs in the order expected by the
+                Gradio callback:
+                - 3D visualization figure
+                - metric figure 1
+                - metric figure 2
+                - metric figure 3
+                - metrics text (str)
+                - schema report (str)
+                - updated asset selector (Gradio update with new choices
+                  and cleared value)
+                - error message update (hidden on success; contains visible
+                  error text on failure)
+        """
         try:
             graph = (
                 self.ensure_graph()
@@ -327,7 +350,32 @@ class FinancialAssetApp:
             return empty_fig, gr.update(value=error_msg, visible=True)
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
-        """Generate comprehensive formulaic analysis of the asset graph."""
+        """
+        Generate a formulaic analysis of the provided asset graph and produce
+        visualization outputs and UI updates.
+
+        Parameters:
+            graph_state (AssetRelationshipGraph | None):
+                Optional graph to analyze.
+                If None, the app's ensured graph will be used.
+
+        Returns:
+            tuple: A 6-tuple containing:
+                - dashboard_fig (plotly.graph_objects.Figure):
+                  Dashboard figure summarizing formula analytics.
+                - correlation_network_fig (plotly.graph_objects.Figure):
+                  Network figure of empirical correlations.
+                - metric_comparison_fig (plotly.graph_objects.Figure):
+                  Figure comparing metrics across formulas.
+                - formula_selector_update (gradio.Update):
+                  Update for the formula selector
+                  containing available choices and selected value.
+                - summary_text (str):
+                  Human-readable summary of the analysis and key insights.
+                - error_visibility_update (gradio.Update):
+                  UI update controlling visibility (and value on error) of
+                  the error message.
+        """
         try:
             logger.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
@@ -402,7 +450,27 @@ class FinancialAssetApp:
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
-        """Format the formula analysis summary for display."""
+        """
+        Builds a human-readable, markdown-formatted summary of formulaic analysis
+        results for display.
+
+        Parameters:
+            summary (Dict): Aggregated metrics and highlights produced by the analyzer.
+                Expected keys include:
+                  - "avg_r_squared" (float): average reliability metric
+                  - "empirical_data_points" (int): count of empirical data points
+                  - "formula_categories" (Dict[str, int]): mapping of category name to count
+                  - "key_insights" (List[str]): short insight strings
+            analysis_results (Dict): Detailed analysis output containing at least:
+                - "formulas" (List): identified formulas
+                - "empirical_relationships" (Dict): may include "strongest_correlations" as a list
+                  of dicts with "pair", "correlation", and "strength" keys.
+
+        Returns:
+            str: A multi-line markdown-ready string summarizing totals, average R²,
+            category counts, key insights, and up to the top three strongest
+            empirical correlations.
+        """
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
@@ -440,8 +508,16 @@ class FinancialAssetApp:
 
     def create_interface(self):
         """
-        Creates the Gradio interface for the Financial Asset Relationship Database.
+        Create and configure the Gradio Blocks interface for the Financial Asset
+        Relationship Database.
 
+        Sets up tabs for network visualization, metrics & analytics, schema & rules,
+        asset explorer, documentation, and formulaic analysis. Wires UI controls and
+        event handlers to the app's refresh, visualization, and analysis methods.
+
+        Returns:
+            demo (gr.Blocks): The configured Gradio Blocks instance for the application
+            UI.
         """
         with gr.Blocks(title=AppConstants.TITLE):
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
