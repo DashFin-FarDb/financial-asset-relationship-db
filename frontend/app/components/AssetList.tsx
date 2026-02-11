@@ -86,9 +86,9 @@ const AssetListStatus = ({
   }
 
   const isError = Boolean(error);
-  
+
   const trimmedQuerySummary = querySummary.trim();
-  
+
   const displayQuerySummary =
     trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH
       ? `${trimmedQuerySummary.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1)}…`
