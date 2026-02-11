@@ -175,9 +175,9 @@ const AssetListStatus = ({ loading, error, querySummary = "" }: AssetListStatusP
 /**
  * Component to handle table container and reduce nesting depth.
  * @param {React.ReactNode} children - Table content to render.
- * @returns {JSX.Element} The table wrapper with overflow handling.
  */
-/** Table container that provides horizontal scrolling for wide tables. */
+const AssetTable = ({ children }: React.PropsWithChildren) => {
+  return <div className="overflow-x-auto">{children}</div>;
 type AssetTableProps = { children: React.ReactNode };
 
 const AssetTable = ({ children }: AssetTableProps) => (
