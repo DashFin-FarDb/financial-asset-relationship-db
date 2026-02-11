@@ -133,7 +133,6 @@ const AssetListStatus = ({
       {hasError ? `Error: ${errorMessage}` : loadingMessage}
     </div>
   );
-  };
 
 // AssetTable wrapper removed — inline `className="overflow-x-auto"` where the table is rendered.
 
