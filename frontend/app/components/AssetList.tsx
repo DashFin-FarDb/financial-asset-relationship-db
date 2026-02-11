@@ -84,17 +84,6 @@ const AssetListStatus = ({
   error,
   querySummary = "",
 }: AssetListStatusProps) => {
-
-// Extracted component to handle loading and error display
-const AssetListStatus = ({
-  loading,
-  error,
-  querySummary = "",
-}: {
-  loading: boolean;
-  error: string | null;
-  querySummary?: string;
-}) => {
   const hasError = error !== null;
 
   if (!loading && !hasError) {
