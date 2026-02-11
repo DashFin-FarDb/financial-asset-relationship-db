@@ -95,16 +95,8 @@ const AssetListStatus = ({
   let displayQuerySummary = trimmedQuerySummary;
 
   if (trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH) {
-    let prefix = "";
-    let count = 0;
-
-    for (const ch of trimmedQuerySummary) {
-      if (count >= MAX_QUERY_SUMMARY_LENGTH - 1) break;
-      prefix += ch;
-      count += 1;
-    }
-
-    displayQuerySummary = `${prefix}…`;
+    const chars = Array.from(trimmedQuerySummary);
+    displayQuerySummary = `${chars.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1).join("")}…`;
   }
 
   const loadingMessage = displayQuerySummary.length
