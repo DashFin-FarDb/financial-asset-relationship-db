@@ -109,7 +109,9 @@ class AssetRelationshipGraph:
                 strength_count += 1
 
         avg_strength = (strength_sum / strength_count) if strength_count else 0.0
-        density = self._relationship_density(effective_assets_count, total_relationships)
+        density = self._relationship_density(
+            effective_assets_count, total_relationships
+        )
 
         all_rels.sort(key=lambda x: x[3], reverse=True)
         top_relationships = all_rels[:10]
@@ -148,7 +150,9 @@ class AssetRelationshipGraph:
 
         n = len(asset_ids)
         theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
-        positions = np.stack((np.cos(theta), np.sin(theta), np.zeros_like(theta)), axis=1)
+        positions = np.stack(
+            (np.cos(theta), np.sin(theta), np.zeros_like(theta)), axis=1
+        )
 
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]
