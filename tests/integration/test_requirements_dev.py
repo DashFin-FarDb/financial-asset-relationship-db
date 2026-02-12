@@ -17,20 +17,16 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
-from typing import Any
 
 import pytest
 from packaging.requirements import Requirement
 
+# tests/integration/test_requirements_dev.py -> repo root is parents[2]
 REQUIREMENTS_FILE = Path(__file__).resolve().parents[2] / "requirements-dev.txt"
 
 
-# -----------------------
-# Parsing helpers
-# -----------------------
 def _strip_inline_comment(line: str) -> str:
-    # Requirements files treat '#' as comment delimiters commonly.
-    # This is conservative and matches your previous approach.
+    """Strip trailing inline comments from a requirements line."""
     return line.split("#", 1)[0].strip()
 
 
@@ -39,7 +35,6 @@ def _extract_package_token(raw_line: str, req: Requirement) -> str:
     Extract the package token as written in the file (preserve original casing),
     excluding extras and environment markers.
     """
-    # Drop inline comment (already done upstream often, but safe)
     line = _strip_inline_comment(raw_line)
 
     # Drop environment markers
@@ -67,8 +62,7 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
     - Preserves package token casing as written in the file where possible.
     - Normalizes specifiers (removes spaces around commas).
     - Ignores empty lines and comment-only lines.
-    - Ignores environment markers for package token extraction (but packaging.Requirement
-      still parses them if present).
+    - Strips inline comments before parsing.
     """
     try:
         text = file_path.read_text(encoding="utf-8")
@@ -85,12 +79,8 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
         if not line:
             continue
 
-        try:
-            req = Requirement(line)
-        except (ValueError, TypeError) as exc:
-            # Keep going, but the test suite below will fail on parseability.
-            # This makes the parse helper robust for other checks.
-            continue
+        # Fail fast if malformed (keeps failures obvious and consistent)
+        req = Requirement(line)
 
         pkg = _extract_package_token(line, req)
         spec = _normalize_specifier(str(req.specifier).strip())
@@ -100,7 +90,7 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
 
 
 def _normalize_name_for_dupe_check(name: str) -> str:
-    # PEP 503-ish normalization (sufficient for duplicate detection here).
+    """PEP 503-ish normalization sufficient for duplicate detection."""
     return name.strip().lower().replace("-", "_")
 
 
@@ -163,8 +153,7 @@ def test_all_non_comment_lines_parse_with_packaging() -> None:
         if not line:
             continue
 
-        # Should not raise
-        Requirement(line)
+        Requirement(line)  # should not raise
 
 
 def test_no_duplicate_packages_case_insensitive(package_names: list[str]) -> None:
@@ -217,13 +206,10 @@ def test_version_specifiers_are_valid(
     parsed_requirements: list[tuple[str, str]],
 ) -> None:
     """
-    Validate that each non-empty specifier string is acceptable to packaging
-    (already parsed by Requirement) and not obviously malformed.
+    Validate that each non-empty specifier string is acceptable in practice.
 
-    Also allows compound constraints like ">=6.0,<7.0" and operators like "!=".
+    Allows compound constraints like ">=6.0,<7.0" and operators like "!=".
     """
-    # Basic “shape” check: comma-separated specifiers each starting with a valid operator.
-    # packaging has already parsed these, so this mainly catches empty segments or junk.
     allowed_ops = (">=", "==", "<=", ">", "<", "~=", "!=")
 
     for pkg, spec in parsed_requirements:
@@ -235,7 +221,6 @@ def test_version_specifiers_are_valid(
             assert part.startswith(allowed_ops), (
                 f"Invalid operator in spec '{spec}' for {pkg}"
             )
-            # After operator should start with a digit (loose but practical)
             op = next(op for op in allowed_ops if part.startswith(op))
             tail = part[len(op) :].strip()
             assert tail and tail[0].isdigit(), (
@@ -244,7 +229,7 @@ def test_version_specifiers_are_valid(
 
 
 # -----------------------
-# PyYAML specific checks (if relevant to your diff)
+# PyYAML specific checks
 # -----------------------
 def test_pyyaml_present(package_names: list[str]) -> None:
     lowered = {_normalize_name_for_dupe_check(p) for p in package_names}
@@ -257,16 +242,13 @@ def test_types_pyyaml_present(package_names: list[str]) -> None:
 
 
 def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> None:
-    # Accept casing variants: PyYAML vs pyyaml
     pyyaml_specs = [
         ver
         for pkg, ver in parsed_requirements
         if _normalize_name_for_dupe_check(pkg) == "pyyaml"
     ]
     assert len(pyyaml_specs) == 1
-    assert pyyaml_specs[0].startswith(">="), (
-        "PyYAML should use a minimum version constraint"
-    )
+    assert pyyaml_specs[0].startswith(">="), "PyYAML should use a minimum version constraint"
     assert pyyaml_specs[0].startswith(">=6.0"), (
         f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
     )
