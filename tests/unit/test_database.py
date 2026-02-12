@@ -30,7 +30,6 @@ from src.data.database import (
     init_db,
     session_scope,
 )
-from src.data.models import TestModel
 
 pytest.importorskip("sqlalchemy")
 
