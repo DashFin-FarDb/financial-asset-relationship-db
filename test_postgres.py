@@ -26,8 +26,11 @@ pytest.importorskip("psycopg2")
 
 from psycopg2 import connect  # noqa: E402  # pylint: disable=wrong-import-position
 
-
-PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = ("[YOUR-PASSWORD]", "<PASSWORD>", "YOUR_PASSWORD")
+PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
+    "[YOUR-PASSWORD]",
+    "<PASSWORD>",
+    "YOUR_PASSWORD",
+)
 
 
 def _get_database_url() -> Optional[str]:
@@ -76,7 +79,9 @@ def test_postgres_connection_smoke() -> None:
     - A trivial query returns a row
     """
     if os.getenv("RUN_POSTGRES_TESTS") != "1":
-        pytest.skip("Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test")
+        pytest.skip(
+            "Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test"
+        )
 
     database_url = _get_database_url()
     if not database_url:
@@ -97,7 +102,9 @@ def test_postgres_connection_smoke() -> None:
                 cur.execute("SELECT current_database(), current_user, version();")
                 row = cur.fetchone()
     except Exception as exc:  # noqa: BLE001
-        pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
+        pytest.fail(
+            f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}"
+        )
 
     assert row is not None  # nosec B101
     assert len(row) == 3  # nosec B101
