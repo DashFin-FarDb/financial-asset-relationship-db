@@ -206,12 +206,16 @@ def test_required_dev_tools_present(package_names: list[str]) -> None:
 # -----------------------
 # Version constraints
 # -----------------------
-def test_all_packages_have_version_constraints(parsed_requirements: list[tuple[str, str]]) -> None:
+def test_all_packages_have_version_constraints(
+    parsed_requirements: list[tuple[str, str]],
+) -> None:
     missing = [pkg for pkg, ver in parsed_requirements if not ver]
     assert missing == []
 
 
-def test_version_specifiers_are_valid(parsed_requirements: list[tuple[str, str]]) -> None:
+def test_version_specifiers_are_valid(
+    parsed_requirements: list[tuple[str, str]],
+) -> None:
     """
     Validate that each non-empty specifier string is acceptable to packaging
     (already parsed by Requirement) and not obviously malformed.
@@ -228,11 +232,15 @@ def test_version_specifiers_are_valid(parsed_requirements: list[tuple[str, str]]
         parts = [p.strip() for p in spec.split(",") if p.strip()]
         assert parts, f"Empty specifier for {pkg}"
         for part in parts:
-            assert part.startswith(allowed_ops), f"Invalid operator in spec '{spec}' for {pkg}"
+            assert part.startswith(allowed_ops), (
+                f"Invalid operator in spec '{spec}' for {pkg}"
+            )
             # After operator should start with a digit (loose but practical)
             op = next(op for op in allowed_ops if part.startswith(op))
-            tail = part[len(op):].strip()
-            assert tail and tail[0].isdigit(), f"Invalid version in spec '{spec}' for {pkg}"
+            tail = part[len(op) :].strip()
+            assert tail and tail[0].isdigit(), (
+                f"Invalid version in spec '{spec}' for {pkg}"
+            )
 
 
 # -----------------------
@@ -250,17 +258,29 @@ def test_types_pyyaml_present(package_names: list[str]) -> None:
 
 def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> None:
     # Accept casing variants: PyYAML vs pyyaml
-    pyyaml_specs = [ver for pkg, ver in parsed_requirements if _normalize_name_for_dupe_check(pkg) == "pyyaml"]
+    pyyaml_specs = [
+        ver
+        for pkg, ver in parsed_requirements
+        if _normalize_name_for_dupe_check(pkg) == "pyyaml"
+    ]
     assert len(pyyaml_specs) == 1
-    assert pyyaml_specs[0].startswith(">="), "PyYAML should use a minimum version constraint"
-    assert pyyaml_specs[0].startswith(">=6.0"), f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
+    assert pyyaml_specs[0].startswith(">="), (
+        "PyYAML should use a minimum version constraint"
+    )
+    assert pyyaml_specs[0].startswith(">=6.0"), (
+        f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
+    )
 
 
-def test_type_stubs_have_base_packages(parsed_requirements: list[tuple[str, str]]) -> None:
+def test_type_stubs_have_base_packages(
+    parsed_requirements: list[tuple[str, str]],
+) -> None:
     lowered = {_normalize_name_for_dupe_check(p) for p, _ in parsed_requirements}
 
     for pkg, _ in parsed_requirements:
         norm = _normalize_name_for_dupe_check(pkg)
         if norm.startswith("types_"):
             base = norm.removeprefix("types_")
-            assert base in lowered, f"Type stub package '{pkg}' has no corresponding base package"
+            assert base in lowered, (
+                f"Type stub package '{pkg}' has no corresponding base package"
+            )
