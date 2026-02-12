@@ -326,7 +326,9 @@ class TestSessionScope:
             session.flush()
 
     @staticmethod
-    def test_multiple_operations_commit(engine: Engine, isolated_base: type[Base]) -> None:
+    def test_multiple_operations_commit(
+        engine: Engine, isolated_base: type[Base]
+    ) -> None:
         """Multiple operations in one scope should commit atomically."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name

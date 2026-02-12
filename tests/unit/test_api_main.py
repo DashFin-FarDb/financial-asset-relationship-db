@@ -144,7 +144,9 @@ class TestGraphInitialization:
         graph2 = api_main.get_graph()
         assert graph1 is graph2
 
-    def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
+    def test_graph_uses_cache_when_configured(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
@@ -359,7 +361,9 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(
+        self, client: TestClient
+    ) -> None:
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -515,6 +519,7 @@ class TestErrorHandling:
 
         def _raise() -> AssetRelationshipGraph:
             raise Exception("Database error")
+
         with patch.object(api_main, "get_graph", side_effect=_raise):
             response = bare_client.get("/api/assets")
             assert response.status_code == 500
