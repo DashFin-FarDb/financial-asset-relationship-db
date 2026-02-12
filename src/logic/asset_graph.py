@@ -122,9 +122,7 @@ class AssetRelationshipGraph:
         w_events = 0.3
         avg_strength_n = self._clamp01(avg_strength)
         reg_events_norm = self._saturating_norm(reg_events, k)
-        quality_score = self._clamp01(
-            (w_strength * avg_strength_n) + (w_events * reg_events_norm)
-        )
+        quality_score = self._clamp01((w_strength * avg_strength_n) + (w_events * reg_events_norm))
 
         return {
             "total_assets": effective_assets_count,
@@ -162,9 +160,7 @@ class AssetRelationshipGraph:
         return asset1.sector == asset2.sector and asset1.sector != "Unknown"
 
     @staticmethod
-    def _issuer_link(
-        asset1: Asset, asset2: Asset, id1: str, id2: str
-    ) -> tuple[str, str] | None:
+    def _issuer_link(asset1: Asset, asset2: Asset, id1: str, id2: str) -> tuple[str, str] | None:
         """Return (bond_id, issuer_id) if a bond-to-issuer link exists."""
         if isinstance(asset1, Bond) and asset1.issuer_id == id2:
             return (id1, id2)
@@ -189,9 +185,7 @@ class AssetRelationshipGraph:
                     bidirectional=False,
                 )
 
-    def _append_relationship(
-        self, source_id: str, target_id: str, rel_type: str, strength: float
-    ) -> None:
+    def _append_relationship(self, source_id: str, target_id: str, rel_type: str, strength: float) -> None:
         """Append a relationship to a source list if not already present."""
         rels = self.relationships.setdefault(source_id, [])
         if any(t == target_id and rt == rel_type for t, rt, _ in rels):
