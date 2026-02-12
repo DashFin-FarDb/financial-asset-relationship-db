@@ -8,7 +8,9 @@ Validates:
 - Required dev tools are present (pytest, mypy, black, etc.)
 - Version specifiers exist and are syntactically valid (including compound specifiers)
 
-Note: Bandit B101 (assert_used) is suppressed for this test file since pytest uses asserts.
+Policy:
+- All non-types packages must have a version constraint.
+- Type stub packages (types-*) may omit a version constraint (common in repos).
 """
 
 # nosec B101
@@ -79,7 +81,7 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
         if not line:
             continue
 
-        # Fail fast if malformed (keeps failures obvious and consistent)
+        # Fail fast if malformed
         req = Requirement(line)
 
         pkg = _extract_package_token(line, req)
@@ -195,10 +197,18 @@ def test_required_dev_tools_present(package_names: list[str]) -> None:
 # -----------------------
 # Version constraints
 # -----------------------
-def test_all_packages_have_version_constraints(
+def test_all_non_types_packages_have_version_constraints(
     parsed_requirements: list[tuple[str, str]],
 ) -> None:
-    missing = [pkg for pkg, ver in parsed_requirements if not ver]
+    """
+    Enforce version constraints for all non-types packages.
+    Allow types-* packages to omit a constraint.
+    """
+    missing = [
+        pkg
+        for pkg, ver in parsed_requirements
+        if not ver and not _normalize_name_for_dupe_check(pkg).startswith("types_")
+    ]
     assert missing == []
 
 
