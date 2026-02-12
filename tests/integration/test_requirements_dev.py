@@ -248,7 +248,9 @@ def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> N
         if _normalize_name_for_dupe_check(pkg) == "pyyaml"
     ]
     assert len(pyyaml_specs) == 1
-    assert pyyaml_specs[0].startswith(">="), "PyYAML should use a minimum version constraint"
+    assert pyyaml_specs[0].startswith(">="), (
+        "PyYAML should use a minimum version constraint"
+    )
     assert pyyaml_specs[0].startswith(">=6.0"), (
         f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
     )
