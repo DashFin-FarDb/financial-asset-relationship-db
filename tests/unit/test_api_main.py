@@ -144,7 +144,9 @@ class TestGraphInitialization:
         graph2 = api_main.get_graph()
         assert graph1 is graph2
 
-    def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
+    def test_graph_uses_cache_when_configured(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
@@ -357,7 +359,9 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(
+        self, client: TestClient
+    ) -> None:
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -452,7 +456,17 @@ class TestAPIEndpoints:
 
         if viz_data["nodes"]:
             node = viz_data["nodes"][0]
-            for key in ("id", "name", "symbol", "asset_class", "x", "y", "z", "color", "size"):
+            for key in (
+                "id",
+                "name",
+                "symbol",
+                "asset_class",
+                "x",
+                "y",
+                "z",
+                "color",
+                "size",
+            ):
                 assert key in node
             assert isinstance(node["x"], (int, float))
             assert isinstance(node["y"], (int, float))
@@ -500,6 +514,7 @@ class TestErrorHandling:
         This is more robust than patching a module-level `graph` variable, because
         implementations often use get_graph() internally.
         """
+
 
         def _raise() -> AssetRelationshipGraph:
             raise Exception("Database error")
@@ -570,7 +585,12 @@ class TestAdditionalFields:
         if assets:
             asset = assets[0]
             additional = asset.get("additional_fields", {})
-            possible_fields = {"pe_ratio", "dividend_yield", "earnings_per_share", "book_value"}
+            possible_fields = {
+                "pe_ratio",
+                "dividend_yield",
+                "earnings_per_share",
+                "book_value",
+            }
             has_equity_field = any(field in additional for field in possible_fields)
             assert has_equity_field or additional == {}
 
@@ -581,7 +601,12 @@ class TestAdditionalFields:
         if assets:
             asset = assets[0]
             additional = asset.get("additional_fields", {})
-            possible_fields = {"yield_to_maturity", "coupon_rate", "maturity_date", "credit_rating"}
+            possible_fields = {
+                "yield_to_maturity",
+                "coupon_rate",
+                "maturity_date",
+                "credit_rating",
+            }
             has_bond_field = any(field in additional for field in possible_fields)
             assert has_bond_field or additional == {}
 
