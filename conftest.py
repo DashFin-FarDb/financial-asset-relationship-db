@@ -90,6 +90,18 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
 
     def _setter(**kwargs: str) -> None:
+        """Set one or more environment variables for the duration of a test.
+
+        This helper is returned by the `set_env` fixture and is intended to be called
+        from within tests to configure environment-dependent behaviour in a scoped,
+        reversible way via pytest's `monkeypatch`.
+
+        Args:
+            **kwargs: Environment variable names and their desired values.
+
+        Returns:
+            None
+        """
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
 
@@ -106,6 +118,7 @@ def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
 
     def _unsetter(*keys: str) -> None:
+        """Unset environment variables using monkeypatch, ignoring missing keys."""
         for key in keys:
             monkeypatch.delenv(key, raising=False)
 
