@@ -126,9 +126,14 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     lines.extend(["", "## Top Relationships"])
 
     top_relationships = _as_top_relationships(metrics.get("top_relationships"))
+
     for idx, (source, target, rel_type, strength) in enumerate(
         top_relationships, start=1
-            lines.append(f"Data Quality Score: {quality_score:.1%}")
+    ):
+        lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
+
+    lines.append("")
+    lines.append(f"Data Quality Score: {quality_score:.1%}")
 
     if density > 30.0:
         lines.append("High connectivity - consider normalization")
