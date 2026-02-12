@@ -82,24 +82,24 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
             "### Cross-Asset Rules",
             (
-                "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity "
-                "(directional)"
+                "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
+                "equity (directional)"
             ),
             (
-                "2. **Sector Affinity**: Assets in same sector have baseline relationship strength "
-                "of 0.7 (bidirectional)"
+                "2. **Sector Affinity**: Assets in same sector have baseline relationship "
+                "strength of 0.7 (bidirectional)"
             ),
             (
-                "3. **Currency Exposure**: Non-USD assets link to their native currency asset when "
-                "available"
+                "3. **Currency Exposure**: Non-USD assets link to their native currency "
+                "asset when available"
             ),
             (
-                "4. **Income Linkage**: Equity dividends compared to bond yields using similarity "
-                "score"
+                "4. **Income Linkage**: Equity dividends compared to bond yields using "
+                "similarity score"
             ),
             (
-                "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal "
-                "commodities"
+                "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to "
+                "metal commodities"
             ),
             "",
             "### Regulatory Rules",
@@ -107,20 +107,22 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "2. **Event Types**: SEC filings, earnings reports, dividend announcements",
             "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)",
             (
-                "4. **Related Assets**: Each event automatically creates relationships to impacted "
-                "securities"
+                "4. **Related Assets**: Each event automatically creates relationships to "
+                "impacted securities"
             ),
             "",
             "### Valuation Rules",
             (
-                "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield indicates "
-                "relative value"
+                "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
+                "indicates relative value"
             ),
             (
-                "2. **Sector Rotation**: Commodity prices trigger evaluation of sector exposure"
+                "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
+                "exposure"
             ),
             (
-                "3. **Currency Adjustment**: All cross-border assets adjusted for FX exposure"
+                "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
+                "exposure"
             ),
             "",
             "## Schema Optimization Metrics",
