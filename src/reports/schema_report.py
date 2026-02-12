@@ -4,7 +4,21 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
-    """Generate a schema and rules report for the asset relationship graph."""
+    """
+    Generate a Markdown report describing the database schema,
+    relationship distributions, calculated metrics,
+    business/regulatory/valuation rules, and optimization recommendations
+    for an asset relationship graph.
+
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to analyze and summarize.
+
+    Returns:
+        str: A Markdown-formatted string containing the schema overview,
+            relationship type distribution, network statistics and asset-class distributions,
+            top relationships, business/regulatory/valuation rules, a computed data quality
+            score with recommendation, and implementation notes.
+    """
     metrics = graph.calculate_metrics()
 
     lines: list[str] = [
@@ -114,14 +128,14 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         ]
     )
 
-    avg_strength = float(metrics.get("average_relationship_strength", 0.0))
-    reg_events = float(metrics.get("regulatory_event_count", 0))
+    avg_strength = metrics.get("average_relationship_strength", 0.0)
+    reg_events = metrics.get("regulatory_event_count", 0)
     quality_score = min(1.0, avg_strength + (reg_events / 10.0))
     lines.append(f"### Data Quality Score: {quality_score:.1%}")
     lines.append("")
     lines.append("### Recommendation:")
 
-    density = float(metrics.get("relationship_density", 0.0))
+    density = metrics.get("relationship_density", 0.0)
     if density > 30:
         lines.append("High connectivity - consider normalization")
     elif density > 10:
