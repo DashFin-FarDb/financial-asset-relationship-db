@@ -136,8 +136,7 @@ class FormulaicAnalyzer:
                 formula="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
                 description=(
-                    "Valuation metric comparing stock price to earnings "
-                    "per share"
+                    "Valuation metric comparing stock price to earnings per share"
                 ),
                 variables={
                     "PE": "Price-to-Earnings Ratio",
