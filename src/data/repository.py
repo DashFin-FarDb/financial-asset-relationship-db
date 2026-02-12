@@ -345,7 +345,7 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
-        """Convert a RegulatoryEventORM database object to a RegulatoryEvent domain model."""
+        """Convert a RegulatoryEventORM row into a RegulatoryEvent domain model."""
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(
             id=orm.id,
