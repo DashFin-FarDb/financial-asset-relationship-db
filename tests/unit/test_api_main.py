@@ -144,9 +144,7 @@ class TestGraphInitialization:
         graph2 = api_main.get_graph()
         assert graph1 is graph2
 
-    def test_graph_uses_cache_when_configured(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
@@ -163,9 +161,7 @@ class TestGraphInitialization:
         api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
-    def test_graph_fallback_on_corrupted_cache(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_fallback_on_corrupted_cache(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should fallback when cache is corrupted or invalid."""
         cache_path = tmp_path / "graph_snapshot.json"
         cache_path.write_text("not valid json", encoding="utf-8")
@@ -192,6 +188,7 @@ class TestPydanticModels:
     """Test Pydantic response models."""
 
     def test_asset_response_model_valid(self) -> None:
+        """AssetResponse accepts full payload and preserves additional fields."""
         asset = AssetResponse(
             id="AAPL",
             symbol="AAPL",
@@ -208,6 +205,7 @@ class TestPydanticModels:
         assert asset.additional_fields["pe_ratio"] == 25.5
 
     def test_asset_response_model_optional_fields(self) -> None:
+        """AssetResponse populates defaults when optional fields are omitted."""
         asset = AssetResponse(
             id="AAPL",
             symbol="AAPL",
@@ -221,6 +219,7 @@ class TestPydanticModels:
         assert asset.additional_fields == {}
 
     def test_relationship_response_model(self) -> None:
+        """RelationshipResponse validates relationship payload fields."""
         rel = RelationshipResponse(
             source_id="AAPL",
             target_id="MSFT",
@@ -231,6 +230,7 @@ class TestPydanticModels:
         assert rel.strength == 0.8
 
     def test_metrics_response_model(self) -> None:
+        """MetricsResponse accepts metric fields and preserves asset class counts."""
         metrics = MetricsResponse(
             total_assets=10,
             total_relationships=20,
@@ -243,6 +243,7 @@ class TestPydanticModels:
         assert metrics.asset_classes["EQUITY"] == 5
 
     def test_visualization_data_response_model(self) -> None:
+        """VisualizationDataResponse accepts node/edge lists for graph rendering."""
         viz = VisualizationDataResponse(
             nodes=[{"id": "AAPL", "x": 1.0, "y": 2.0, "z": 3.0}],
             edges=[{"source": "AAPL", "target": "MSFT"}],
@@ -258,6 +259,7 @@ class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
     def test_root_endpoint(self, client: TestClient) -> None:
+        """Root endpoint returns API metadata and expected version string."""
         response = client.get("/")
         assert response.status_code == 200
         data = response.json()
@@ -267,12 +269,14 @@ class TestAPIEndpoints:
         assert data["version"] == "1.0.0"
 
     def test_health_check_endpoint(self, client: TestClient) -> None:
+        """Health check endpoint returns a healthy status payload."""
         response = client.get("/api/health")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
 
     def test_get_assets_all(self, client: TestClient) -> None:
+        """Assets endpoint returns a non-empty list with required fields."""
         response = client.get("/api/assets")
         assert response.status_code == 200
         assets = response.json()
@@ -288,6 +292,7 @@ class TestAPIEndpoints:
         assert "price" in asset
 
     def test_get_assets_filter_by_class(self, client: TestClient) -> None:
+        """Assets endpoint supports filtering by asset class."""
         response = client.get("/api/assets?asset_class=EQUITY")
         assert response.status_code == 200
         assets = response.json()
@@ -296,6 +301,7 @@ class TestAPIEndpoints:
             assert asset["asset_class"] == "EQUITY"
 
     def test_get_assets_filter_by_sector(self, client: TestClient) -> None:
+        """Assets endpoint supports filtering by sector."""
         response = client.get("/api/assets?sector=Technology")
         assert response.status_code == 200
         assets = response.json()
@@ -304,6 +310,7 @@ class TestAPIEndpoints:
             assert asset["sector"] == "Technology"
 
     def test_get_assets_filter_by_class_and_sector(self, client: TestClient) -> None:
+        """Assets endpoint supports combined asset_class and sector filters."""
         # IMPORTANT: use '&' not '&amp;' (HTML entity should not appear in test URLs)
         response = client.get("/api/assets?asset_class=EQUITY&sector=Technology")
         assert response.status_code == 200
@@ -314,6 +321,7 @@ class TestAPIEndpoints:
             assert asset["sector"] == "Technology"
 
     def test_get_metrics_enriched_statistics(self, client: TestClient) -> None:
+        """Metrics endpoint returns populated statistics and valid bounds."""
         response = client.get("/api/metrics")
         assert response.status_code == 200
         data: Dict[str, Any] = response.json()
@@ -329,6 +337,7 @@ class TestAPIEndpoints:
             assert 0 <= data["relationship_density"] <= 100
 
     def test_get_metrics_no_assets(self, client: TestClient) -> None:
+        """Metrics endpoint returns zeros for an empty graph."""
         api_main.set_graph(AssetRelationshipGraph())
         response = client.get("/api/metrics")
         assert response.status_code == 200
@@ -340,6 +349,7 @@ class TestAPIEndpoints:
         assert data["network_density"] == 0
 
     def test_get_metrics_one_asset_no_relationships(self, client: TestClient) -> None:
+        """Metrics endpoint handles one-node graphs with no relationships."""
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -361,9 +371,8 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(
-        self, client: TestClient
-    ) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
+        """Metrics endpoint handles multi-node graphs with no relationships."""
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -396,6 +405,7 @@ class TestAPIEndpoints:
         assert data["network_density"] == 0
 
     def test_get_asset_detail_valid(self, client: TestClient) -> None:
+        """Asset detail endpoint returns the requested asset when it exists."""
         response = client.get("/api/assets")
         assets = response.json()
         asset_id = assets[0]["id"]
@@ -406,11 +416,13 @@ class TestAPIEndpoints:
         assert asset["id"] == asset_id
 
     def test_get_asset_detail_not_found(self, client: TestClient) -> None:
+        """Asset detail endpoint returns 404 for unknown asset IDs."""
         response = client.get("/api/assets/NONEXISTENT")
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
 
     def test_get_asset_relationships_valid(self, client: TestClient) -> None:
+        """Asset relationships endpoint returns relationships for a valid asset."""
         response = client.get("/api/assets")
         assets = response.json()
         asset_id = assets[0]["id"]
@@ -429,10 +441,12 @@ class TestAPIEndpoints:
             assert rel["source_id"] == asset_id
 
     def test_get_asset_relationships_not_found(self, client: TestClient) -> None:
+        """Asset relationships endpoint returns 404 for unknown asset IDs."""
         response = client.get("/api/assets/NONEXISTENT/relationships")
         assert response.status_code == 404
 
     def test_get_all_relationships(self, client: TestClient) -> None:
+        """Relationships endpoint returns a list of relationships with valid strength."""
         response = client.get("/api/relationships")
         assert response.status_code == 200
         relationships = response.json()
@@ -447,6 +461,7 @@ class TestAPIEndpoints:
             assert 0 <= rel["strength"] <= 1
 
     def test_get_visualization_data(self, client: TestClient) -> None:
+        """Visualization endpoint returns node/edge structures with numeric coords."""
         response = client.get("/api/visualization")
         assert response.status_code == 200
         viz_data = response.json()
@@ -481,6 +496,7 @@ class TestAPIEndpoints:
             assert 0 <= edge["strength"] <= 1
 
     def test_get_asset_classes(self, client: TestClient) -> None:
+        """Asset classes endpoint returns all AssetClass enum values."""
         response = client.get("/api/asset-classes")
         assert response.status_code == 200
         data = response.json()
@@ -493,6 +509,7 @@ class TestAPIEndpoints:
         assert set(data["asset_classes"]) == set(expected_classes)
 
     def test_get_sectors(self, client: TestClient) -> None:
+        """Sectors endpoint returns a non-empty, sorted list of sectors."""
         response = client.get("/api/sectors")
         assert response.status_code == 200
         data = response.json()
@@ -518,6 +535,7 @@ class TestErrorHandling:
         """
 
         def _raise() -> AssetRelationshipGraph:
+            """Raise a generic exception to simulate a backend graph access failure."""
             raise Exception("Database error")
 
         with patch.object(api_main, "get_graph", side_effect=_raise):
@@ -526,6 +544,7 @@ class TestErrorHandling:
             assert "database error" in response.json()["detail"].lower()
 
     def test_get_metrics_server_error(self, bare_client: TestClient) -> None:
+        """Metrics endpoint returns 500 when metric calculation raises an exception."""
         mock_graph = Mock(spec=AssetRelationshipGraph)
         mock_graph.calculate_metrics.side_effect = Exception("Calculation error")
 
@@ -536,6 +555,7 @@ class TestErrorHandling:
 
     @staticmethod
     def test_invalid_http_methods(bare_client: TestClient) -> None:
+        """Unsupported HTTP methods return 405 for these endpoints."""
         response = bare_client.post("/api/assets")
         assert response.status_code == 405
 
@@ -569,6 +589,7 @@ def test_cors_rejects_disallowed_origin(bare_client: TestClient) -> None:
 
 @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
 def test_cors_allows_development_origins(bare_client: TestClient) -> None:
+    """Allow default dev origins when running in development mode."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
     assert response.status_code == status.HTTP_200_OK  # nosec B101
 
@@ -580,6 +601,7 @@ class TestAdditionalFields:
     """Test handling of asset-specific additional fields."""
 
     def test_equity_additional_fields(self, client: TestClient) -> None:
+        """Equity assets include expected equity-specific fields in additional_fields."""
         response = client.get("/api/assets?asset_class=EQUITY")
         assets = response.json()
 
@@ -596,6 +618,7 @@ class TestAdditionalFields:
             assert has_equity_field or additional == {}
 
     def test_bond_additional_fields(self, client: TestClient) -> None:
+        """Bond assets include expected bond-specific fields in additional_fields."""
         response = client.get("/api/assets?asset_class=BOND")
         assets = response.json()
 
@@ -619,6 +642,7 @@ class TestVisualizationDataProcessing:
     """Test the processing of visualization data."""
 
     def test_visualization_coordinate_types(self, client: TestClient) -> None:
+        """Visualization nodes expose numeric x/y/z coordinates (int or float)."""
         response = client.get("/api/visualization")
         viz_data = response.json()
 
@@ -628,6 +652,7 @@ class TestVisualizationDataProcessing:
             assert isinstance(node["z"], (int, float))
 
     def test_visualization_node_defaults(self, client: TestClient) -> None:
+        """Visualization nodes include default color/size fields with expected types."""
         response = client.get("/api/visualization")
         viz_data = response.json()
 
@@ -638,6 +663,7 @@ class TestVisualizationDataProcessing:
             assert isinstance(node["size"], (int, float))
 
     def test_visualization_edge_defaults(self, client: TestClient) -> None:
+        """Visualization edges include relationship metadata and bounded strength."""
         response = client.get("/api/visualization")
         viz_data = response.json()
 
@@ -654,6 +680,7 @@ class TestIntegrationScenarios:
     """Test realistic integration scenarios."""
 
     def test_full_workflow_asset_exploration(self, client: TestClient) -> None:
+        """Exercise the core browse flow: list assets, fetch detail, fetch relationships."""
         response = client.get("/api/assets")
         assert response.status_code == 200
         assets = response.json()
@@ -671,6 +698,7 @@ class TestIntegrationScenarios:
         assert isinstance(relationships, list)
 
     def test_full_workflow_visualization_and_metrics(self, client: TestClient) -> None:
+        """Validate metrics and visualization endpoints are consistent on node counts."""
         response = client.get("/api/metrics")
         assert response.status_code == 200
         metrics = response.json()
@@ -682,6 +710,7 @@ class TestIntegrationScenarios:
         assert len(viz_data["nodes"]) == metrics["total_assets"]
 
     def test_filter_refinement_workflow(self, client: TestClient) -> None:
+        """Confirm progressive filters reduce (or keep) result sets, never increase them."""
         response = client.get("/api/assets")
         all_assets = response.json()
 
