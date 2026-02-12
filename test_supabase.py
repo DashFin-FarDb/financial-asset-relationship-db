@@ -34,6 +34,7 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
 
 
 def _get_env(name: str) -> Optional[str]:
+    """Return the environment variable value for name, or None if unset."""
     value = os.getenv(name)
     if value is None:
         return None
@@ -42,6 +43,7 @@ def _get_env(name: str) -> Optional[str]:
 
 
 def _redact(value: str) -> str:
+    """Redact a secret value for logs, preserving only the first/last 4 chars."""
     if len(value) <= 8:
         return "***"
     return f"{value[:4]}***{value[-4:]}"
