@@ -127,7 +127,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     lines.extend(["", "## Top Relationships"])
 
     top_relationships = _as_top_relationships(metrics.get("top_relationships"))
-    for idx, (source, target, rel_type, strength) in enumerate(top_relationships, start=1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        top_relationships, start=1
+    ):
         lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
 
     lines.extend(
