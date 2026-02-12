@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from contextlib import contextmanager
-from typing import Callable, Generator, Optional
+from typing import Callable, Iterator, Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -13,36 +13,50 @@ from sqlalchemy.pool import StaticPool
 
 Base = declarative_base()
 
-
 DEFAULT_DATABASE_URL = os.getenv(
     "ASSET_GRAPH_DATABASE_URL",
     "sqlite:///./asset_graph.db",
 )
 
 
+def _is_sqlite_memory_url(url: str) -> bool:
+    """
+    Return True if the given SQLAlchemy URL indicates a SQLite in-memory database.
+
+    Covers common forms:
+    - sqlite:///:memory:
+    - sqlite:///file::memory:?cache=shared
+    - sqlite+pysqlite:///:memory: (etc.)
+    """
+    if not url.startswith("sqlite"):
+        return False
+    lowered = url.lower()
+    return ":memory:" in lowered or "file::memory:" in lowered
+
+
 def create_engine_from_url(url: Optional[str] = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
     resolved_url = url or DEFAULT_DATABASE_URL
 
-    #
-
-    if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
+    if _is_sqlite_memory_url(resolved_url):
         return create_engine(
             resolved_url,
             future=True,
             connect_args={"check_same_thread": False},
             poolclass=StaticPool,
         )
+
     return create_engine(resolved_url, future=True)
 
 
-def create_session_factory(engine: Engine) -> sessionmaker:
+def create_session_factory(engine: Engine) -> sessionmaker[Session]:
     """Create a configured session factory bound to the supplied engine."""
     return sessionmaker(
         bind=engine,
         autocommit=False,
         autoflush=False,
         future=True,
+        class_=Session,
     )
 
 
@@ -52,9 +66,7 @@ def init_db(engine: Engine) -> None:
 
 
 @contextmanager
-def session_scope(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
+def session_scope(session_factory: Callable[[], Session]) -> Iterator[Session]:
     """Provide a transactional scope around a series of operations."""
     session = session_factory()
     try:
