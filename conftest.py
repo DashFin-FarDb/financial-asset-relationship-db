@@ -9,19 +9,14 @@ This file centralizes:
 
 from __future__ import annotations
 
-import os
-from collections.abc import Generator, Iterator
+from collections.abc import Callable, Generator, Iterator
+from pathlib import Path
 
 import pytest
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, sessionmaker
 
-from src.data.database import (
-    Base,
-    create_engine_from_url,
-    create_session_factory,
-    session_scope,
-)
+from src.data.database import Base, create_engine_from_url, create_session_factory, session_scope
 
 
 @pytest.fixture(autouse=True)
@@ -38,7 +33,7 @@ def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.fixture()
-def database_url(tmp_path: pytest.TempPathFactory) -> str:
+def database_url(tmp_path: Path) -> str:
     """
     Default test DB URL.
 
@@ -46,7 +41,7 @@ def database_url(tmp_path: pytest.TempPathFactory) -> str:
     If you want in-memory for speed, replace with:
         "sqlite:///:memory:"
     """
-    db_path = tmp_path.mktemp("db") / "test_asset_graph.db"
+    db_path = tmp_path / "test_asset_graph.db"
     return f"sqlite:///{db_path}"
 
 
@@ -62,13 +57,13 @@ def engine(database_url: str) -> Iterator[Engine]:
 
 
 @pytest.fixture()
-def session_factory(engine: Engine):
+def session_factory(engine: Engine) -> sessionmaker[Session]:
     """Create a sessionmaker bound to the test engine."""
     return create_session_factory(engine)
 
 
 @pytest.fixture()
-def db_session(session_factory) -> Generator[Session, None, None]:
+def db_session(session_factory: Callable[[], Session]) -> Generator[Session, None, None]:
     """
     Provide a transaction-scoped SQLAlchemy Session.
 
@@ -79,7 +74,7 @@ def db_session(session_factory) -> Generator[Session, None, None]:
 
 
 @pytest.fixture()
-def set_env(monkeypatch: pytest.MonkeyPatch):
+def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to set env vars in tests:
 
@@ -95,7 +90,7 @@ def set_env(monkeypatch: pytest.MonkeyPatch):
 
 
 @pytest.fixture()
-def unset_env(monkeypatch: pytest.MonkeyPatch):
+def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to unset env vars in tests:
 
