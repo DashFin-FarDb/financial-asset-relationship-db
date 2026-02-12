@@ -57,7 +57,9 @@ class AssetGraphRepository:
 
     def list_assets(self) -> list[Asset]:
         """Return all assets as dataclass instances ordered by id."""
-        records = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        records = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        )
         return [self._to_asset_model(record) for record in records]
 
     def get_assets_map(self) -> dict[str, Asset]:
@@ -145,7 +147,9 @@ class AssetGraphRepository:
     ) -> RelationshipRecord | None:
         """Return a single relationship matching the given identifiers, if present."""
         relationship = self._get_relationship_orm(source_id, target_id, rel_type)
-        return None if relationship is None else self._to_relationship_record(relationship)
+        return (
+            None if relationship is None else self._to_relationship_record(relationship)
+        )
 
     def delete_relationship(
         self,
@@ -223,7 +227,9 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         # Reset optional fields
