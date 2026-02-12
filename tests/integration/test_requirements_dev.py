@@ -263,7 +263,9 @@ def test_version_specifiers_are_valid(
             assert op is not None, f"Invalid operator in spec '{spec}' for {pkg}"
 
             tail = part[len(op) :].strip()
-            assert tail and tail[0].isdigit(), f"Invalid version in spec '{spec}' for {pkg}"
+            assert tail and tail[0].isdigit(), (
+                f"Invalid version in spec '{spec}' for {pkg}"
+            )
 
 
 # -----------------------
