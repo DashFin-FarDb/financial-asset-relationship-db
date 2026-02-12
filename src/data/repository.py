@@ -49,7 +49,6 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
         """Create or update an asset record."""
-
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -65,7 +64,6 @@ class AssetGraphRepository:
                 representing all assets in the database,
                 ordered by asset id.
         """
-
         result = (
             self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         )
@@ -79,7 +77,6 @@ class AssetGraphRepository:
             Dict[str, Asset]: Mapping where each key is an asset id and
                 each value is the corresponding Asset instance.
         """
-
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 

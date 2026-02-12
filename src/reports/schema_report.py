@@ -83,7 +83,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
         "3. **Commodity** - Physical assets with contracts and delivery dates",
-        "4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links",
+        ("4. **Currency** - FX pairs or single-currency proxies with exchange rates and "
+         "policy links"),
         "5. **Regulatory Events** - Corporate actions and SEC filings",
         "",
         "### Relationship Types",
@@ -124,7 +125,6 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         lines.append(f"- **{asset_class}**: {count} assets")
 
     lines.extend(["", "## Top Relationships"])
-
     top_relationships = _as_top_relationships(metrics.get("top_relationships"))
 
     for idx, (source, target, rel_type, strength) in enumerate(
@@ -133,6 +133,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
 
     lines.append("")
+    quality_score = metrics.get("quality_score", 0.0)
     lines.append(f"Data Quality Score: {quality_score:.1%}")
 
     if density > 30.0:
@@ -149,7 +150,10 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "- All timestamps in ISO 8601 format",
             "- Relationship strengths normalized to 0-1 range",
             "- Impact scores on -1 to +1 scale for comparability",
-            "- Relationship directionality: some types are bidirectional (e.g., same_sector, income_comparison); others are directional",
+            (
+                "- Relationship directionality: some types are bidirectional "
+                "(e.g., same_sector, income_comparison); others are directional"
+            ),
         ]
     )
 

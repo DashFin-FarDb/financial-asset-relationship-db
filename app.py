@@ -149,7 +149,7 @@ def _asset_to_json_dict(asset: Asset) -> dict[str, Any]:
     data = asdict(asset)
     # Ensure common enum field is exposed as a plain value string.
     if hasattr(asset, "asset_class"):
-        data["asset_class"] = getattr(asset, "asset_class").value
+        data["asset_class"] = asset.asset_class.value
     for k, v in list(data.items()):
         data[k] = _coerce_json_safe(v)
     return data
@@ -180,7 +180,8 @@ class FinancialAssetApp:
 
         raise AttributeError(
             "No known database factory found in src.data.real_data_fetcher. "
-            f"Tried: {', '.join(candidates)}"
+            "Tried: "
+            f"{', '.join(candidates)}"
         )
 
     @staticmethod
@@ -576,21 +577,19 @@ class FinancialAssetApp:
                         with gr.Column(scale=1):
                             rel_types_chart = gr.Plot(label="Relationship Types")
 
-                    with gr.Row():
-                        with gr.Column(scale=1):
-                            events_timeline_chart = gr.Plot(label="Events Timeline")
+                    with gr.Row(), gr.Column(scale=1):
+                        events_timeline_chart = gr.Plot(label="Events Timeline")
 
-                    with gr.Row():
-                        with gr.Column(scale=1):
-                            refresh_metrics_btn = gr.Button(
-                                "🔄 Refresh Metrics",
-                                variant="primary",
-                            )
-                            metrics_text = gr.Textbox(
-                                label=AppConstants.NETWORK_STATISTICS_LABEL,
-                                lines=15,
-                                interactive=False,
-                            )
+                    with gr.Row(), gr.Column(scale=1):
+                        refresh_metrics_btn = gr.Button(
+                            "🔄 Refresh Metrics",
+                            variant="primary",
+                        )
+                        metrics_text = gr.Textbox(
+                            label=AppConstants.NETWORK_STATISTICS_LABEL,
+                            lines=15,
+                            interactive=False,
+                        )
 
                 with gr.Tab("📋 Schema & Rules"):
                     gr.Markdown(AppConstants.SCHEMA_RULES_GUIDE_MD)
