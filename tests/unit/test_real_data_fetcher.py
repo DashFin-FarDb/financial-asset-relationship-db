@@ -844,7 +844,7 @@ class TestAllAssetTypes:
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
-        mock_close.pct_change.return_value.std.return_value = 0.02
+        mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         mock_hist.__getitem__ = (
             lambda self, key: mock_close if key == "Close" else Mock()
         )
