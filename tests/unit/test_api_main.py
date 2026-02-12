@@ -161,7 +161,9 @@ class TestGraphInitialization:
         api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
-    def test_graph_fallback_on_corrupted_cache(self, tmp_path: Path, monkeypatch) -> None:
+    def test_graph_fallback_on_corrupted_cache(
+        self, tmp_path: Path, monkeypatch
+    ) -> None:
         """Graph initialization should fallback when cache is corrupted or invalid."""
         cache_path = tmp_path / "graph_snapshot.json"
         cache_path.write_text("not valid json", encoding="utf-8")
@@ -513,7 +515,6 @@ class TestErrorHandling:
 
         def _raise() -> AssetRelationshipGraph:
             raise Exception("Database error")
-
         with patch.object(api_main, "get_graph", side_effect=_raise):
             response = bare_client.get("/api/assets")
             assert response.status_code == 500
