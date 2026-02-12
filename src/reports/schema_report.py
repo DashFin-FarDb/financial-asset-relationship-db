@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Mapping, Tuple, cast
+from typing import Any, Mapping
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -25,26 +25,26 @@ def _as_float(value: Any, default: float = 0.0) -> float:
         return default
 
 
-def _as_str_int_map(value: Any) -> Dict[str, int]:
+def _as_str_int_map(value: Any) -> dict[str, int]:
     """Return a dict[str, int] if possible, otherwise {}."""
     if not isinstance(value, Mapping):
         return {}
-    out: Dict[str, int] = {}
+    out: dict[str, int] = {}
     for k, v in value.items():
         if isinstance(k, str):
             out[k] = _as_int(v, 0)
     return out
 
 
-def _as_top_relationships(value: Any) -> List[Tuple[str, str, str, float]]:
+def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
     Coerce the top_relationships list into a stable typed structure:
-    List[(source, target, rel_type, strength)].
+    list[(source, target, rel_type, strength)].
     """
     if not isinstance(value, list):
         return []
 
-    out: List[Tuple[str, str, str, float]] = []
+    out: list[tuple[str, str, str, float]] = []
     for item in value:
         if (
             isinstance(item, tuple)
@@ -59,23 +59,22 @@ def _as_top_relationships(value: Any) -> List[Tuple[str, str, str, float]]:
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown report describing the database schema,
-    relationship distributions, calculated metrics,
-    business/regulatory/valuation rules, and optimization recommendations
-    for an asset relationship graph.
+    Generate a Markdown report describing the database schema, relationship
+    distributions, calculated metrics, business/regulatory/valuation rules,
+    and optimization recommendations for an asset relationship graph.
 
     Args:
         graph: The asset relationship graph to analyze and summarize.
 
     Returns:
         A Markdown-formatted string containing the schema overview, relationship
-        type distribution, network statistics, asset-class distributions,
-        top relationships, business/regulatory/valuation rules, data quality
-        score (from graph metrics), recommendation, and implementation notes.
+        type distribution, network statistics, asset-class distributions, top
+        relationships, business/regulatory/valuation rules, data quality score
+        (from graph metrics), recommendation, and implementation notes.
     """
-    metrics: Dict[str, Any] = graph.calculate_metrics()
+    metrics: dict[str, Any] = graph.calculate_metrics()
 
-    lines: List[str] = [
+    lines: list[str] = [
         "# Financial Asset Relationship Database Schema & Rules",
         "",
         "## Schema Overview",
@@ -127,7 +126,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     lines.extend(["", "## Top Relationships"])
 
     top_relationships = _as_top_relationships(metrics.get("top_relationships"))
-    for idx, (source, target, rel_type, strength) in enumerate(top_relationships, start=1):
+    for idx, (source, target, rel_type, strength) in enumerate(
+        top_relationships, start=1
+    ):
         lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
 
     lines.extend(
