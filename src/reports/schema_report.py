@@ -11,13 +11,15 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     for an asset relationship graph.
 
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to analyze and summarize.
+        graph (AssetRelationshipGraph): The asset relationship graph to analyze and
+            summarize.
 
     Returns:
         markdown (str): A Markdown-formatted string containing the schema overview,
-        relationship type distribution, network statistics and asset-class distributions,
+        relationship type distribution, network statistics and
+            asset-class distributions,
         top relationships, business/regulatory/valuation rules, a computed data quality
-        score with recommendation, and implementation notes.
+            score with recommendation, and implementation notes.
     """
     metrics = graph.calculate_metrics()
 
@@ -30,7 +32,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
         "3. **Commodity** - Physical assets with contracts and delivery dates",
-        "4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links",
+        "4. **Currency** - FX pairs or single-currency proxies "
+        "with exchange rates and policy links",
         "5. **Regulatory Events** - Corporate actions and SEC filings",
         "",
         "### Relationship Types",
@@ -73,7 +76,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     for idx, (source, target, rel_type, strength) in enumerate(
         top_relationships, start=1
     ):
-        lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
+        lines.append(
+            f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}"
+        )
 
     lines.extend(
         [
@@ -82,24 +87,24 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
             "### Cross-Asset Rules",
             (
-                "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company "
-                "equity (directional)"
+                "1. **Corporate Bond Linkage**: Corporate bonds link to "
+                "issuing company equity (directional)"
             ),
             (
-                "2. **Sector Affinity**: Assets in same sector have baseline relationship "
-                "strength of 0.7 (bidirectional)"
+                "2. **Sector Affinity**: Assets in same sector have baseline "
+                "relationship strength of 0.7 (bidirectional)"
             ),
             (
-                "3. **Currency Exposure**: Non-USD assets link to their native currency "
-                "asset when available"
+                "3. **Currency Exposure**: Non-USD assets link to their native "
+                "currency asset when available"
             ),
             (
-                "4. **Income Linkage**: Equity dividends compared to bond yields using "
-                "similarity score"
+                "4. **Income Linkage**: Equity dividends compared to bond yields "
+                "using similarity score"
             ),
             (
-                "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to "
-                "metal commodities"
+                "5. **Commodity Exposure**: Energy equities link to crude oil; "
+                "miners link to metal commodities"
             ),
             "",
             "### Regulatory Rules",
@@ -107,22 +112,22 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "2. **Event Types**: SEC filings, earnings reports, dividend announcements",
             "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)",
             (
-                "4. **Related Assets**: Each event automatically creates relationships to "
-                "impacted securities"
+                "4. **Related Assets**: Each event automatically creates "
+                "relationships to impacted securities"
             ),
             "",
             "### Valuation Rules",
             (
-                "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield "
-                "indicates relative value"
+                "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend "
+                "yield indicates relative value"
             ),
             (
-                "2. **Sector Rotation**: Commodity prices trigger evaluation of sector "
-                "exposure"
+                "2. **Sector Rotation**: Commodity prices trigger evaluation of "
+                "sector exposure"
             ),
             (
-                "3. **Currency Adjustment**: All cross-border assets adjusted for FX "
-                "exposure"
+                "3. **Currency Adjustment**: All cross-border assets adjusted "
+                "for FX exposure"
             ),
             "",
             "## Schema Optimization Metrics",
