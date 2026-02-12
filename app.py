@@ -15,10 +15,7 @@ from src.models.financial_models import Asset
 from src.reports.schema_report import generate_schema_report
 from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
-from src.visualizations.graph_visuals import (
-    visualize_3d_graph,
-    visualize_3d_graph_with_filters,
-)
+from src.visualizations.graph_visuals import visualize_3d_graph, visualize_3d_graph_with_filters
 
 logger = logging.getLogger(__name__)
 
@@ -128,31 +125,39 @@ Top Relationships:
 
 
 def _coerce_json_safe(value: Any) -> Any:
-    """Coerce common non-JSON-safe values into safe primitives."""
-    # Keep the common JSON primitives as-is.
+    """Coerce values into JSON-safe primitives.
+
+    This helper recurses into lists/tuples/dicts to avoid Gradio JSON
+    serialization failures when nested objects contain non-JSON-safe types.
+    """
     if value is None or isinstance(value, (bool, int, float, str)):
         return value
-    # Convert enums / custom objects to string representation.
+
+    if isinstance(value, dict):
+        return {str(k): _coerce_json_safe(v) for k, v in value.items()}
+
+    if isinstance(value, (list, tuple)):
+        return [_coerce_json_safe(v) for v in value]
+
     try:
         import enum  # local import to avoid unused warnings in some setups
 
         if isinstance(value, enum.Enum):
-            return value.value  # type: ignore[no-any-return]
+            return value.value
     except Exception:
-        # If enum is not available or detection fails, fall back below.
         pass
+
     return str(value)
 
 
 def _asset_to_json_dict(asset: Asset) -> dict[str, Any]:
     """Convert an Asset dataclass to a JSON-serialisable dictionary."""
     data = asdict(asset)
-    # Ensure common enum field is exposed as a plain value string.
+
     if hasattr(asset, "asset_class"):
-        data["asset_class"] = asset.asset_class.value
-    for k, v in list(data.items()):
-        data[k] = _coerce_json_safe(v)
-    return data
+        data["asset_class"] = getattr(asset, "asset_class").value
+
+    return {k: _coerce_json_safe(v) for k, v in data.items()}
 
 
 class FinancialAssetApp:
@@ -160,7 +165,7 @@ class FinancialAssetApp:
     def _create_database() -> AssetRelationshipGraph:
         """Create a database/graph via a compatible factory in real_data_fetcher.
 
-        This avoids hard failures when the project refactors the exact factory name.
+        Avoids hard failures if the project refactors the factory name.
         """
         candidates = (
             "create_real_database",
@@ -180,8 +185,7 @@ class FinancialAssetApp:
 
         raise AttributeError(
             "No known database factory found in src.data.real_data_fetcher. "
-            "Tried: "
-            f"{', '.join(candidates)}"
+            f"Tried: {', '.join(candidates)}"
         )
 
     @staticmethod
@@ -260,25 +264,21 @@ class FinancialAssetApp:
         metrics_text = self._update_metrics_text(graph)
         return go.Figure(), go.Figure(), go.Figure(), metrics_text
 
-    def refresh_all_outputs(
-        self, graph_state: AssetRelationshipGraph
-    ) -> tuple[Any, ...]:
+    def refresh_all_outputs(self, graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
         """Refresh all UI outputs derived from the current graph state."""
         try:
             graph = graph_state
             logger.info("Refreshing all visualization outputs")
 
-            viz_3d = visualize_3d_graph(graph)
+            network_plot = visualize_3d_graph(graph)
             f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
             schema_rpt = generate_schema_report(graph)
 
             asset_choices = sorted(graph.assets.keys())
-            logger.info(
-                "Successfully refreshed outputs for %s assets", len(asset_choices)
-            )
+            logger.info("Successfully refreshed outputs for %s assets", len(asset_choices))
 
             return (
-                viz_3d,
+                network_plot,
                 f1,
                 f2,
                 f3,
@@ -315,7 +315,10 @@ class FinancialAssetApp:
         show_all_relationships: bool,
         toggle_arrows: bool,
     ) -> tuple[go.Figure, Any]:
-        """Refresh the graph visualisation with 2D/3D mode and filters."""
+        """Refresh the graph visualisation.
+
+        Supports 2D/3D mode and relationship filters.
+        """
         try:
             graph = graph_state
 
@@ -353,6 +356,39 @@ class FinancialAssetApp:
             empty_fig = go.Figure()
             error_msg = f"Error refreshing visualization: {exc}"
             return empty_fig, gr.update(value=error_msg, visible=True)
+
+    def on_view_mode_change(
+        self,
+        graph_state: AssetRelationshipGraph,
+        view_mode: str,
+        layout_type: str,
+        show_same_sector: bool,
+        show_market_cap: bool,
+        show_correlation: bool,
+        show_corporate_bond: bool,
+        show_commodity_currency: bool,
+        show_income_comparison: bool,
+        show_regulatory: bool,
+        show_all_relationships: bool,
+        toggle_arrows: bool,
+    ) -> tuple[Any, go.Figure, Any]:
+        """Handle view mode changes and propagate visualization errors."""
+        layout_update = gr.update(visible=view_mode == "2D")
+        fig, err_update = self.refresh_visualization(
+            graph_state,
+            view_mode,
+            layout_type,
+            show_same_sector,
+            show_market_cap,
+            show_correlation,
+            show_corporate_bond,
+            show_commodity_currency,
+            show_income_comparison,
+            show_regulatory,
+            show_all_relationships,
+            toggle_arrows,
+        )
+        return layout_update, fig, err_update
 
     def generate_formulaic_analysis(
         self, graph_state: AssetRelationshipGraph
@@ -431,7 +467,10 @@ class FinancialAssetApp:
         summary: dict[str, Any],
         analysis_results: dict[str, Any],
     ) -> str:
-        """Build a human-readable formulaic analysis summary for display."""
+        """Build a human-readable formulaic analysis summary.
+
+        Intended for display in the UI.
+        """
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
@@ -482,7 +521,6 @@ class FinancialAssetApp:
         """Create a per-session graph and return initial UI outputs."""
         graph = self._create_database()
         outputs = self.refresh_all_outputs(graph)
-        # prepend graph for gr.State output
         return (graph, *outputs)
 
     def create_interface(self) -> gr.Blocks:
@@ -567,7 +605,7 @@ class FinancialAssetApp:
                             variant="primary",
                         )
 
-                    visualization_3d = gr.Plot(label="Network Graph")
+                    network_plot = gr.Plot(label="Network Graph")
 
                 with gr.Tab("📊 Metrics & Analytics"):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
@@ -577,19 +615,21 @@ class FinancialAssetApp:
                         with gr.Column(scale=1):
                             rel_types_chart = gr.Plot(label="Relationship Types")
 
-                    with gr.Row(), gr.Column(scale=1):
-                        events_timeline_chart = gr.Plot(label="Events Timeline")
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            events_timeline_chart = gr.Plot(label="Events Timeline")
 
-                    with gr.Row(), gr.Column(scale=1):
-                        refresh_metrics_btn = gr.Button(
-                            "🔄 Refresh Metrics",
-                            variant="primary",
-                        )
-                        metrics_text = gr.Textbox(
-                            label=AppConstants.NETWORK_STATISTICS_LABEL,
-                            lines=15,
-                            interactive=False,
-                        )
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            refresh_metrics_btn = gr.Button(
+                                "🔄 Refresh Metrics",
+                                variant="primary",
+                            )
+                            metrics_text = gr.Textbox(
+                                label=AppConstants.NETWORK_STATISTICS_LABEL,
+                                lines=15,
+                                interactive=False,
+                            )
 
                 with gr.Tab("📋 Schema & Rules"):
                     gr.Markdown(AppConstants.SCHEMA_RULES_GUIDE_MD)
@@ -623,9 +663,7 @@ class FinancialAssetApp:
                             )
 
                     with gr.Row():
-                        related_assets = gr.JSON(
-                            label=AppConstants.RELATED_ASSETS_LABEL
-                        )
+                        related_assets = gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
 
                 with gr.Tab("🧮 Formulaic Analysis"):
                     gr.Markdown("## 🧮 Formulaic Financial Analysis")
@@ -662,16 +700,17 @@ class FinancialAssetApp:
                                 label="Asset Correlation Network"
                             )
                         with gr.Column(scale=1):
-                            metric_comparison = gr.Plot(label="Metric Comparison Chart")
+                            metric_comparison = gr.Plot(
+                                label="Metric Comparison Chart"
+                            )
 
                 with gr.Tab("📖 Documentation"):
                     gr.Markdown(AppConstants.DOC_MARKDOWN)
 
-            # Per-session graph state, created at load time.
             graph_state: gr.State = gr.State()
 
             all_refresh_outputs = [
-                visualization_3d,
+                network_plot,
                 asset_dist_chart,
                 rel_types_chart,
                 events_timeline_chart,
@@ -710,17 +749,13 @@ class FinancialAssetApp:
             refresh_btn.click(
                 self.refresh_visualization,
                 inputs=visualization_inputs,
-                outputs=[visualization_3d, error_message],
+                outputs=[network_plot, error_message],
             )
 
             view_mode.change(
-                lambda *args: (
-                    gr.update(visible=args[1] == "2D"),
-                    self.refresh_visualization(*args)[0],
-                    gr.update(visible=False),
-                ),
+                self.on_view_mode_change,
                 inputs=visualization_inputs,
-                outputs=[layout_type, visualization_3d, error_message],
+                outputs=[layout_type, network_plot, error_message],
             )
 
             refresh_formulas_btn.click(
@@ -748,7 +783,6 @@ class FinancialAssetApp:
                 outputs=[asset_details, related_assets],
             )
 
-            # Initialise per session at load.
             interface.load(
                 self._initialize_session,
                 inputs=[],
