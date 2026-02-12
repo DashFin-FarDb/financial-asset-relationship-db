@@ -98,11 +98,22 @@ def _normalize_name_for_dupe_check(name: str) -> str:
 
 @pytest.fixture()
 def parsed_requirements() -> list[tuple[str, str]]:
+    """Parse requirements-dev.txt and return (package_token, normalized_specifier) pairs.
+
+    This fixture centralizes file parsing so multiple tests can share a single,
+    consistent interpretation of the requirements file (including comment stripping
+    and specifier normalization).
+    """
     return parse_requirements(REQUIREMENTS_FILE)
 
 
 @pytest.fixture()
 def package_names(parsed_requirements: list[tuple[str, str]]) -> list[str]:
+    """Return just the package tokens extracted from the parsed requirements.
+
+    This is used by tests that only care about package presence/duplication and not
+    the associated version specifier.
+    """
     return [pkg for pkg, _ in parsed_requirements]
 
 
@@ -110,24 +121,29 @@ def package_names(parsed_requirements: list[tuple[str, str]]) -> list[str]:
 # File existence / format
 # -----------------------
 def test_file_exists() -> None:
+    """Ensure the development requirements file path exists."""
     assert REQUIREMENTS_FILE.exists()
 
 
 def test_file_is_file() -> None:
+    """Ensure the requirements path points to a regular file (not a directory)."""
     assert REQUIREMENTS_FILE.is_file()
 
 
 def test_file_is_readable_and_nonempty() -> None:
+    """Ensure the file can be read as UTF-8 and is not empty."""
     content = REQUIREMENTS_FILE.read_text(encoding="utf-8")
     assert len(content) > 0
 
 
 def test_file_ends_with_newline() -> None:
+    """Ensure the file ends with a trailing newline (POSIX-friendly formatting)."""
     content = REQUIREMENTS_FILE.read_text(encoding="utf-8")
     assert content.endswith("\n")
 
 
 def test_no_trailing_whitespace() -> None:
+    """Ensure no line contains trailing whitespace (excluding the newline)."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines(True)
     lines_with_trailing = [
         (i + 1, line)
@@ -138,6 +154,7 @@ def test_no_trailing_whitespace() -> None:
 
 
 def test_reasonable_file_size() -> None:
+    """Ensure the requirements file is not unexpectedly large for dev tooling."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines()
     assert len(lines) < 200
 
@@ -146,6 +163,7 @@ def test_reasonable_file_size() -> None:
 # Parseability / validity
 # -----------------------
 def test_all_non_comment_lines_parse_with_packaging() -> None:
+    """Ensure every non-empty, non-comment requirement line parses via packaging.Requirement."""
     for raw in REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines():
         stripped = raw.strip()
         if not stripped or stripped.startswith("#"):
@@ -159,6 +177,7 @@ def test_all_non_comment_lines_parse_with_packaging() -> None:
 
 
 def test_no_duplicate_packages_case_insensitive(package_names: list[str]) -> None:
+    """Ensure no duplicate packages exist after normalizing case and hyphen/underscore."""
     seen: set[str] = set()
     duplicates: list[str] = []
     for pkg in package_names:
@@ -170,6 +189,7 @@ def test_no_duplicate_packages_case_insensitive(package_names: list[str]) -> Non
 
 
 def test_package_names_valid_characters(package_names: list[str]) -> None:
+    """Ensure extracted package tokens contain only allowed characters."""
     valid_name_pattern = re.compile(r"^[a-zA-Z0-9_.-]+$")
     invalid = [pkg for pkg in package_names if not valid_name_pattern.match(pkg)]
     assert invalid == []
@@ -179,6 +199,7 @@ def test_package_names_valid_characters(package_names: list[str]) -> None:
 # Required tooling
 # -----------------------
 def test_required_dev_tools_present(package_names: list[str]) -> None:
+    """Ensure the dev requirements include core tooling (test, lint, type, formatting, hooks)."""
     lowered = {_normalize_name_for_dupe_check(p) for p in package_names}
     required = {
         "pytest",
@@ -220,38 +241,48 @@ def test_version_specifiers_are_valid(
 
     Allows compound constraints like ">=6.0,<7.0" and operators like "!=".
     """
-    allowed_ops = (">=", "==", "<=", ">", "<", "~=", "!=")
+    # Longest-first prevents accidental matches of ">" before ">=", etc.
+    allowed_ops: tuple[str, ...] = (">=", "==", "<=", "~=", "!=", ">", "<")
+
+    def _leading_operator(text: str) -> str | None:
+        """Return the leading operator from allowed_ops, or None if none match."""
+        for op in allowed_ops:
+            if text.startswith(op):
+                return op
+        return None
 
     for pkg, spec in parsed_requirements:
         if not spec:
             continue
+
         parts = [p.strip() for p in spec.split(",") if p.strip()]
         assert parts, f"Empty specifier for {pkg}"
+
         for part in parts:
-            assert part.startswith(allowed_ops), (
-                f"Invalid operator in spec '{spec}' for {pkg}"
-            )
-            op = next(op for op in allowed_ops if part.startswith(op))
+            op = _leading_operator(part)
+            assert op is not None, f"Invalid operator in spec '{spec}' for {pkg}"
+
             tail = part[len(op) :].strip()
-            assert tail and tail[0].isdigit(), (
-                f"Invalid version in spec '{spec}' for {pkg}"
-            )
+            assert tail and tail[0].isdigit(), f"Invalid version in spec '{spec}' for {pkg}"
 
 
 # -----------------------
 # PyYAML specific checks
 # -----------------------
 def test_pyyaml_present(package_names: list[str]) -> None:
+    """Ensure PyYAML is present in requirements-dev.txt (case/format normalized)."""
     lowered = {_normalize_name_for_dupe_check(p) for p in package_names}
     assert "pyyaml" in lowered
 
 
 def test_types_pyyaml_present(package_names: list[str]) -> None:
+    """Ensure the PyYAML type stubs (types-PyYAML) are present (normalized token check)."""
     lowered = {_normalize_name_for_dupe_check(p) for p in package_names}
     assert "types_pyyaml" in lowered
 
 
 def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> None:
+    """Ensure PyYAML specifies a minimum supported version (>=6.0)."""
     pyyaml_specs = [
         ver
         for pkg, ver in parsed_requirements
@@ -269,6 +300,7 @@ def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> N
 def test_type_stubs_have_base_packages(
     parsed_requirements: list[tuple[str, str]],
 ) -> None:
+    """Ensure each types-* stub package has its corresponding base package present."""
     lowered = {_normalize_name_for_dupe_check(p) for p, _ in parsed_requirements}
 
     for pkg, _ in parsed_requirements:
