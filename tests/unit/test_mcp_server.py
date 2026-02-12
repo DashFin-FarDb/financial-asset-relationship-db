@@ -515,12 +515,10 @@ class TestEdgeCases:
         lock = threading.Lock()
         safe_graph = _ThreadSafeGraph(graph, lock)
 
-        # Try calling a method that will raise an exception
-        try:
-            # Calling add_asset with invalid data should raise ValueError
+        # Calling add_asset with invalid data should raise ValueError, but the
+        # lock must still be released after the exception.
+        with pytest.raises(ValueError):
             safe_graph.add_asset(None)
-        except Exception:
-            pass
 
         # Lock should not be held after exception
         acquired = lock.acquire(blocking=False)
