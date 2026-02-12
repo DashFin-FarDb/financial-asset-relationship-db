@@ -675,18 +675,25 @@ class TestResourceCleanup:
         with session_scope(factory) as session:
             assert session.query(TestModel).count() == 10
 
-    @staticmethod
-    def test_session_scope_with_nested_commits(engine):
-        """Test session_scope handles nested transactions correctly (regression test)."""
+    def test_session_scope_with_nested_commits(
+        self, engine: Engine, isolated_base
+    ) -> None:
+        """Regression: explicit commits inside session_scope persist data."""
+
+        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Minimal model used to validate nested commit behaviour."""
+
+            __tablename__ = "test_nested_commits"
+            id = Column(Integer, primary_key=True)
+
         init_db(engine)
         factory = create_session_factory(engine)
 
         # First transaction
         with session_scope(factory) as session:
             session.add(TestModel(id=1))
-            session.commit()  # Explicit commit
+            session.commit()  # Explicit commit (regression scenario)
 
         # Second transaction should see first
         with session_scope(factory) as session:
-            count = session.query(TestModel).count()
-            assert count == 1
+            assert session.query(TestModel).count() == 1
