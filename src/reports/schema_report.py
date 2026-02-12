@@ -135,7 +135,6 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "### Data Quality Score:",
         ]
     )
-    )
 
     avg_strength = float(metrics.get("average_relationship_strength", 0.0))
     reg_events = float(metrics.get("regulatory_event_count", 0))
