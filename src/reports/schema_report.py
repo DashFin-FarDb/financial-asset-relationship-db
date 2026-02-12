@@ -160,7 +160,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         ]
     )
 
-    # The score should be computed in graph.calculate_metrics() for consistency/testability.
+    lines[-1] = f"### Data Quality Score: {quality_score:.1%}"
     quality_score = _as_float(metrics.get("quality_score"), 0.0)
     lines.append(f"{quality_score:.1%}")
     lines.append("")
