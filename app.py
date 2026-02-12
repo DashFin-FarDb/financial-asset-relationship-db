@@ -865,12 +865,12 @@ class FinancialAssetApp:
                 outputs=[asset_info, asset_relationships],
             )
 
-            demo.load(
+            interface.load(
                 self.refresh_all_outputs,
                 inputs=[graph_state],
                 outputs=all_refresh_outputs,
             )
-        return demo
+        return interface
 
 
 if __name__ == "__main__":
