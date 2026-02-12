@@ -118,13 +118,19 @@ class AssetRelationshipGraph:
             self.relationships[source_id] = []
 
         # Avoid duplicates
-        if not any(r[0] == target_id and r[1] == rel_type for r in self.relationships[source_id]):
+        if not any(
+            r[0] == target_id and r[1] == rel_type
+            for r in self.relationships[source_id]
+        ):
             self.relationships[source_id].append((target_id, rel_type, strength))
 
         if bidirectional:
             if target_id not in self.relationships:
                 self.relationships[target_id] = []
-            if not any(r[0] == source_id and r[1] == rel_type for r in self.relationships[target_id]):
+            if not any(
+                r[0] == source_id and r[1] == rel_type
+                for r in self.relationships[target_id]
+            ):
                 self.relationships[target_id].append((source_id, rel_type, strength))
 
     @staticmethod
@@ -216,7 +222,9 @@ class AssetRelationshipGraph:
 
         avg_strength_n = self._clamp01(avg_strength)
         reg_events_norm = self._saturating_norm(reg_events, k)
-        quality_score = self._clamp01((w_strength * avg_strength_n) + (w_events * reg_events_norm))
+        quality_score = self._clamp01(
+            (w_strength * avg_strength_n) + (w_events * reg_events_norm)
+        )
 
         return {
             "total_assets": effective_assets_count,
