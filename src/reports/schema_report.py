@@ -1,25 +1,78 @@
 from __future__ import annotations
 
+from typing import Any, Mapping
+
 from src.logic.asset_graph import AssetRelationshipGraph
+
+
+def _as_int(value: Any, default: int = 0) -> int:
+    """Best-effort conversion to int (for count-like metrics)."""
+    try:
+        if value is None:
+            return default
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _as_float(value: Any, default: float = 0.0) -> float:
+    """Best-effort conversion to float (for ratio/score-like metrics)."""
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _as_str_int_map(value: Any) -> dict[str, int]:
+    """Return a dict[str, int] if possible, otherwise {}."""
+    if not isinstance(value, Mapping):
+        return {}
+    out: dict[str, int] = {}
+    for k, v in value.items():
+        if isinstance(k, str):
+            out[k] = _as_int(v, 0)
+    return out
+
+
+def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
+    """
+    Coerce the top_relationships list into a stable typed structure:
+    list[(source, target, rel_type, strength)].
+    """
+    if not isinstance(value, list):
+        return []
+
+    out: list[tuple[str, str, str, float]] = []
+    for item in value:
+        if (
+            isinstance(item, tuple)
+            and len(item) == 4
+            and isinstance(item[0], str)
+            and isinstance(item[1], str)
+            and isinstance(item[2], str)
+        ):
+            out.append((item[0], item[1], item[2], _as_float(item[3], 0.0)))
+    return out
 
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown report describing the database schema,
-    relationship distributions, calculated metrics,
-    business/regulatory/valuation rules, and optimization recommendations
-    for an asset relationship graph.
+    Generate a Markdown report describing the database schema, relationship
+    distributions, calculated metrics, business/regulatory/valuation rules,
+    and optimization recommendations for an asset relationship graph.
 
-    Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to analyze and summarize.
+    Args:
+        graph: The asset relationship graph to analyze and summarize.
 
     Returns:
-        str: A Markdown-formatted string containing the schema overview,
-            relationship type distribution, network statistics and asset-class distributions,
-            top relationships, business/regulatory/valuation rules, a computed data quality
-            score with recommendation, and implementation notes.
+        A Markdown-formatted string containing the schema overview, relationship
+        type distribution, network statistics, asset-class distributions, top
+        relationships, business/regulatory/valuation rules, data quality score
+        (from graph metrics), recommendation, and implementation notes.
     """
-    metrics = graph.calculate_metrics()
+    metrics: dict[str, Any] = graph.calculate_metrics()
 
     lines: list[str] = [
         "# Financial Asset Relationship Database Schema & Rules",
@@ -36,7 +89,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "### Relationship Types",
     ]
 
-    relationship_dist = metrics.get("relationship_distribution", {})
+    relationship_dist = _as_str_int_map(metrics.get("relationship_distribution"))
     for rel_type, count in sorted(
         relationship_dist.items(),
         key=lambda item: item[1],
@@ -44,35 +97,36 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     ):
         lines.append(f"- **{rel_type}**: {count} instances")
 
+    total_assets = _as_int(metrics.get("total_assets"), 0)
+    total_relationships = _as_int(metrics.get("total_relationships"), 0)
+    avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
+    density = _as_float(metrics.get("relationship_density"), 0.0)  # expected 0–100 (%)
+    reg_events = _as_int(metrics.get("regulatory_event_count"), 0)
+
     lines.extend(
         [
             "",
             "## Calculated Metrics",
             "",
             "### Network Statistics",
-            f"- **Total Assets**: {metrics.get('total_assets', 0)}",
-            f"- **Total Relationships**: {metrics.get('total_relationships', 0)}",
-            (
-                "- **Average Relationship Strength**: "
-                f"{metrics.get('average_relationship_strength', 0.0):.3f}"
-            ),
-            f"- **Relationship Density**: {metrics.get('relationship_density', 0.0):.2f}%",
-            f"- **Regulatory Events**: {metrics.get('regulatory_event_count', 0)}",
+            f"- **Total Assets**: {total_assets}",
+            f"- **Total Relationships**: {total_relationships}",
+            f"- **Average Relationship Strength**: {avg_strength:.3f}",
+            f"- **Relationship Density**: {density:.2f}%",
+            f"- **Regulatory Events**: {reg_events}",
             "",
             "### Asset Class Distribution",
         ]
     )
 
-    class_dist = metrics.get("asset_class_distribution", {})
+    class_dist = _as_str_int_map(metrics.get("asset_class_distribution"))
     for asset_class, count in sorted(class_dist.items()):
         lines.append(f"- **{asset_class}**: {count} assets")
 
     lines.extend(["", "## Top Relationships"])
 
-    top_relationships = metrics.get("top_relationships", [])
-    for idx, (source, target, rel_type, strength) in enumerate(
-        top_relationships, start=1
-    ):
+    top_relationships = _as_top_relationships(metrics.get("top_relationships"))
+    for idx, (source, target, rel_type, strength) in enumerate(top_relationships, start=1):
         lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
 
     lines.extend(
@@ -81,64 +135,38 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            (
-                "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity "
-                "(directional)"
-            ),
-            (
-                "2. **Sector Affinity**: Assets in same sector have baseline relationship strength "
-                "of 0.7 (bidirectional)"
-            ),
-            (
-                "3. **Currency Exposure**: Non-USD assets link to their native currency asset when "
-                "available"
-            ),
-            (
-                "4. **Income Linkage**: Equity dividends compared to bond yields using similarity "
-                "score"
-            ),
-            (
-                "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal "
-                "commodities"
-            ),
+            "1. **Corporate Bond Linkage**: Corporate bonds link to issuing company equity (directional)",
+            "2. **Sector Affinity**: Assets in same sector have baseline relationship strength of 0.7 (bidirectional)",
+            "3. **Currency Exposure**: Non-USD assets link to their native currency asset when available",
+            "4. **Income Linkage**: Equity dividends compared to bond yields using similarity score",
+            "5. **Commodity Exposure**: Energy equities link to crude oil; miners link to metal commodities",
             "",
             "### Regulatory Rules",
             "1. **Event Propagation**: Earnings events impact related bond and currency assets",
             "2. **Event Types**: SEC filings, earnings reports, dividend announcements",
             "3. **Impact Scoring**: Events range from -1 (negative) to +1 (positive)",
-            (
-                "4. **Related Assets**: Each event automatically creates relationships to impacted "
-                "securities"
-            ),
+            "4. **Related Assets**: Each event automatically creates relationships to impacted securities",
             "",
             "### Valuation Rules",
-            (
-                "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield indicates "
-                "relative value"
-            ),
-            (
-                "2. **Sector Rotation**: Commodity prices trigger evaluation of sector exposure"
-            ),
-            (
-                "3. **Currency Adjustment**: All cross-border assets adjusted for FX exposure"
-            ),
+            "1. **Bond-Stock Spread**: Corporate bond yield - equity dividend yield indicates relative value",
+            "2. **Sector Rotation**: Commodity prices trigger evaluation of sector exposure",
+            "3. **Currency Adjustment**: All cross-border assets adjusted for FX exposure",
             "",
             "## Schema Optimization Metrics",
             "",
+            "### Data Quality Score:",
         ]
     )
 
-    avg_strength = metrics.get("average_relationship_strength", 0.0)
-    reg_events = metrics.get("regulatory_event_count", 0)
-    quality_score = min(1.0, avg_strength + (reg_events / 10.0))
-    lines.append(f"### Data Quality Score: {quality_score:.1%}")
+    # The score should be computed in graph.calculate_metrics() for consistency/testability.
+    quality_score = _as_float(metrics.get("quality_score"), 0.0)
+    lines.append(f"{quality_score:.1%}")
     lines.append("")
     lines.append("### Recommendation:")
 
-    density = metrics.get("relationship_density", 0.0)
-    if density > 30:
+    if density > 30.0:
         lines.append("High connectivity - consider normalization")
-    elif density > 10:
+    elif density > 10.0:
         lines.append("Well-balanced relationship graph - optimal for most use cases")
     else:
         lines.append("Sparse connections - consider adding more relationships")
@@ -150,10 +178,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "- All timestamps in ISO 8601 format",
             "- Relationship strengths normalized to 0-1 range",
             "- Impact scores on -1 to +1 scale for comparability",
-            (
-                "- Relationship directionality: some types are bidirectional "
-                "(e.g., same_sector, income_comparison); others are directional"
-            ),
+            "- Relationship directionality: some types are bidirectional (e.g., same_sector, income_comparison); others are directional",
         ]
     )
 
