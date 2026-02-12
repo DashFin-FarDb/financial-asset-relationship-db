@@ -34,6 +34,7 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
 
 
 def _get_database_url() -> Optional[str]:
+    """Get the database URL from env vars (prefer ASSET_GRAPH..., fallback DATABASE_URL)."""
     # Prefer the same env var used by the app. Fall back for legacy/local usage.
     return os.getenv("ASSET_GRAPH_DATABASE_URL") or os.getenv("DATABASE_URL")
 
