@@ -76,7 +76,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     for idx, (source, target, rel_type, strength) in enumerate(
         top_relationships, start=1
     ):
-        lines.append(f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}")
+        lines.append(
+            f"{idx}. {source} → {target} ({rel_type}): {strength:.2%}"
+        )
 
     lines.extend(
         [
@@ -132,6 +134,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
             "### Data Quality Score:",
         ]
+    )
     )
 
     avg_strength = float(metrics.get("average_relationship_strength", 0.0))
