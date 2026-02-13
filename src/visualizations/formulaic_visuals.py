@@ -572,7 +572,7 @@ class FormulaicVisualizer:
         """
         edge_traces = []
         if not isinstance(correlations, (list, tuple)):
-            return  # or raise an exception
+            return []
         for corr in correlations:
             asset1, asset2, value = FormulaicVisualizer._parse_correlation_item(corr)
             if asset1 in positions and asset2 in positions:
