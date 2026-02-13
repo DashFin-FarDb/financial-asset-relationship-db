@@ -13,6 +13,7 @@ from src.data import real_data_fetcher
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import Asset
 from src.reports.schema_report import generate_schema_report
+from src.visualizations.metric_visuals import visualize_metrics
 from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
 from src.visualizations.graph_visuals import (
@@ -251,14 +252,13 @@ class FinancialAssetApp:
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
     def update_all_metrics_outputs(
-        self, graph: AssetRelationshipGraph
+        self,
+        graph: AssetRelationshipGraph,
     ) -> tuple[go.Figure, go.Figure, go.Figure, str]:
-        """
-        If you already have an implementation elsewhere, keep that and remove
-        this method. This placeholder keeps the UI wiring coherent.
-        """
+        """Build metric figures and formatted network statistics text."""
+        fig1, fig2, fig3 = visualize_metrics(graph)
         metrics_text = self._update_metrics_text(graph)
-        return go.Figure(), go.Figure(), go.Figure(), metrics_text
+        return fig1, fig2, fig3, metrics_text
 
     def refresh_all_outputs(
         self, graph_state: AssetRelationshipGraph
