@@ -153,13 +153,10 @@ class FinancialAssetApp:
                 graph = fn()
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
-                raise TypeError(
-                    f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
-                )
+                raise TypeError(f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph")
 
         raise AttributeError(
-            "No known database factory found in src.data.real_data_fetcher. "
-            f"Tried: {', '.join(candidates)}"
+            "No known database factory found in src.data.real_data_fetcher. " f"Tried: {', '.join(candidates)}"
         )
 
     def _initialize_graph(self) -> None:
@@ -238,9 +235,7 @@ class FinancialAssetApp:
 
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
-    def update_all_metrics_outputs(
-        self, graph: AssetRelationshipGraph
-    ) -> tuple[go.Figure, go.Figure, go.Figure, str]:
+    def update_all_metrics_outputs(self, graph: AssetRelationshipGraph) -> tuple[go.Figure, go.Figure, go.Figure, str]:
         """
         If you already have an implementation elsewhere, keep that and remove this method.
         This placeholder keeps the UI wiring coherent.
@@ -355,9 +350,7 @@ class FinancialAssetApp:
             correlation_network_fig = formulaic_visualizer.create_correlation_network(
                 analysis_results.get("empirical_relationships", {})
             )
-            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
-                analysis_results
-            )
+            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
 
             formulas = analysis_results.get("formulas", [])
             formula_choices = [f.name for f in formulas] if isinstance(formulas, list) else []
@@ -644,7 +637,9 @@ class FinancialAssetApp:
                 formula_summary,
                 error_message,
             ]
-            refresh_formulas_btn.click(self.generate_formulaic_analysis, inputs=[graph_state], outputs=formulaic_outputs)
+            refresh_formulas_btn.click(
+                self.generate_formulaic_analysis, inputs=[graph_state], outputs=formulaic_outputs
+            )
 
             formula_selector.change(
                 self.show_formula_details,
