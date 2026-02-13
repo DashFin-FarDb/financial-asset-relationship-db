@@ -686,7 +686,7 @@ class TestResourceCleanup:
             __tablename__ = "test_nested_commits"
             id = Column(Integer, primary_key=True)
 
-        class TestModel(Base):  # pylint: disable=redefined-outer-name
+        class TestModelBase(Base):  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
 
             __tablename__ = "test_nested_commits"
@@ -696,9 +696,9 @@ class TestResourceCleanup:
 
         # First transaction
         with session_scope(factory) as session:
-            session.add(TestModel(id=1))
+            session.add(TestModelBase(id=1))
             session.commit()  # Explicit commit (regression scenario)
 
         # Second transaction should see first
         with session_scope(factory) as session:
-            assert session.query(TestModel).count() == 1
+            assert session.query(TestModelBase).count() == 1

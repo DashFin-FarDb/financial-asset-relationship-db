@@ -97,14 +97,3 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
             monkeypatch.setenv(key, value)
 
     return _setter
-
-    def _unsetter(*keys: str) -> None:
-        """
-        Unset the given environment variables in tests using monkeypatch.
-
-        :param keys: Environment variable keys to unset.
-        """
-        for key in keys:
-            monkeypatch.delenv(key, raising=False)
-
-    return _unsetter

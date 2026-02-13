@@ -481,7 +481,7 @@ class FinancialAssetApp:
 
     def create_interface(self) -> gr.Blocks:
         """Create and configure the Gradio Blocks interface."""
-        with gr.Blocks(title=AppConstants.TITLE) as demo:
+        with gr.Blocks(title=AppConstants.TITLE):
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
@@ -791,13 +791,13 @@ class FinancialAssetApp:
                 outputs=[asset_info, asset_relationships],
             )
 
-            interface.load(
+            self.interface.load(
                 self.refresh_all_outputs,
                 inputs=[graph_state],
                 outputs=all_refresh_outputs,
             )
 
-        return interface
+        return self.interface
 
 
 if __name__ == "__main__":
