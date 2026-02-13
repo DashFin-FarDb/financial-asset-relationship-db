@@ -175,10 +175,11 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_consecutive_skip_args():
-        """
-        Ensure consecutive coverage-related arguments and their values are removed when pytest-cov is unavailable.
+        """Ensure consecutive coverage-related args and their values are removed.
 
-        Verifies the provided `args` list is modified in place to strip `--cov`, `--cov-report` and their following values, preserving non-coverage arguments.
+        When pytest-cov is unavailable, verifies `args` is modified in place to strip
+        `--cov`, `--cov-report`, and their following values, while preserving
+        non-coverage arguments.
         """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
@@ -229,10 +230,10 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_args_with_equals_in_value():
-        """
-        Ensures pytest_load_initial_conftests removes pytest-cov related arguments whose values contain equals signs while preserving other arguments.
+        """Remove pytest-cov args whose values contain '=' while preserving others.
 
-        Verifies that an inline `--cov-report=...` argument with a value containing `=` is removed from the provided args list and that unrelated args remain unchanged.
+        Verifies an inline `--cov-report=...` argument with a value containing '=' is
+        removed from the provided args list and unrelated args remain unchanged.
         """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
@@ -301,9 +302,7 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_function_signature():
-        """
-        Verify that `pytest_load_initial_conftests` is callable and has a single parameter named `args`.
-        """
+        """Verify `pytest_load_initial_conftests` is callable with one `args` param."""
         from conftest import pytest_load_initial_conftests
 
         # Check function exists and is callable
