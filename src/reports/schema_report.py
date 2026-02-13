@@ -60,6 +60,9 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
     Generate a Markdown report describing the database schema and
+def generate_schema_report(graph: AssetRelationshipGraph) -> str:
+    """
+    Generate a Markdown report describing the database schema and
     relationship distributions, calculated metrics,
     business / regulatory / valuation rules, and optimization recommendations
     for an asset relationship graph.
@@ -73,7 +76,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         distributions, top relationships, business / regulatory / valuation
         rules, data quality score (from graph metrics), recommendations,
         and implementation notes.
-
+    
     Raises:
         Exception: Propagates errors from graph.calculate_metrics().
     """
