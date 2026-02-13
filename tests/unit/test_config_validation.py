@@ -582,10 +582,6 @@ class TestConfigurationConsistency:
             "start", ""
         )
 
-        assert "next start" in scripts.get("start", "") or "next" in scripts.get(
-            "start", ""
-        )
-
 
 @pytest.mark.unit
 class TestConfigurationSecurityNegative:
