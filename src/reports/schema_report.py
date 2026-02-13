@@ -73,6 +73,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         distributions, top relationships, business / regulatory / valuation
         rules, data quality score (from graph metrics), recommendations,
         and implementation notes.
+    
+    Raises:
+        Exception: Propagates errors from graph.calculate_metrics().
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 
