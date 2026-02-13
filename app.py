@@ -513,25 +513,21 @@ class FinancialAssetApp:
                 with gr.Row():
                     gr.Markdown("### 🔗 Relationship Visibility Controls")
                 with gr.Row(), gr.Column(scale=1):
-                    show_same_sector = gr.Checkbox(
-                        label="Same Sector (↔)", value=True
+                    show_same_sector = gr.Checkbox(label="Same Sector (↔)", value=True)
+                    show_market_cap = gr.Checkbox(
+                        label="Market Cap Similar (↔)", value=True
                     )
-                        show_market_cap = gr.Checkbox(
-                            label="Market Cap Similar (↔)", value=True
+                    show_correlation = gr.Checkbox(label="Correlation (↔)", value=True)
+                    with gr.Column(scale=1):
+                        show_corporate_bond = gr.Checkbox(
+                            label="Corporate Bond → Equity (→)", value=True
                         )
-                        show_correlation = gr.Checkbox(
-                            label="Correlation (↔)", value=True
+                        show_commodity_currency = gr.Checkbox(
+                            label="Commodity ↔ Currency", value=True
                         )
-                        with gr.Column(scale=1):
-                            show_corporate_bond = gr.Checkbox(
-                                label="Corporate Bond → Equity (→)", value=True
-                            )
-                            show_commodity_currency = gr.Checkbox(
-                                label="Commodity ↔ Currency", value=True
-                            )
-                            show_income_comparison = gr.Checkbox(
-                                label="Income Comparison (↔)", value=True
-                            )
+                        show_income_comparison = gr.Checkbox(
+                            label="Income Comparison (↔)", value=True
+                        )
         with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
