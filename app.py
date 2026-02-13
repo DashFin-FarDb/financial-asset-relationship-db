@@ -491,32 +491,31 @@ class FinancialAssetApp:
                 elem_id="error_message",
             )
 
-            with gr.Tabs():
-                with gr.Tab("🌐 Network Visualization (2D/3D)"):
-                    gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
+            with gr.Tabs(), gr.Tab("🌐 Network Visualization (2D/3D)"):
+                gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
 
-                    with gr.Row():
-                        gr.Markdown("### 🎛️ Visualization Controls")
-                    with gr.Row(), gr.Column(scale=1):
-                        view_mode = gr.Radio(
-                            label="Visualization Mode",
-                            choices=["3D", "2D"],
-                            value="3D",
-                        )
-                    with gr.Row(), gr.Column(scale=1):
-                        layout_type = gr.Radio(
-                            label="2D Layout Type",
-                            choices=["spring", "circular", "grid"],
-                            value="spring",
-                            visible=False,
-                        )
+                with gr.Row():
+                    gr.Markdown("### 🎛️ Visualization Controls")
+                with gr.Row(), gr.Column(scale=1):
+                    view_mode = gr.Radio(
+                        label="Visualization Mode",
+                        choices=["3D", "2D"],
+                        value="3D",
+                    )
+                with gr.Row(), gr.Column(scale=1):
+                    layout_type = gr.Radio(
+                        label="2D Layout Type",
+                        choices=["spring", "circular", "grid"],
+                        value="spring",
+                        visible=False,
+                    )
 
-                    with gr.Row():
-                        gr.Markdown("### 🔗 Relationship Visibility Controls")
-                    with gr.Row(), gr.Column(scale=1):
-                        show_same_sector = gr.Checkbox(
-                            label="Same Sector (↔)", value=True
-                        )
+                with gr.Row():
+                    gr.Markdown("### 🔗 Relationship Visibility Controls")
+                with gr.Row(), gr.Column(scale=1):
+                    show_same_sector = gr.Checkbox(
+                        label="Same Sector (↔)", value=True
+                    )
                         show_market_cap = gr.Checkbox(
                             label="Market Cap Similar (↔)", value=True
                         )
