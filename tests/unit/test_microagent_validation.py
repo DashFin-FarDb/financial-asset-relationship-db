@@ -144,12 +144,16 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert agent_type == "knowledge", "Expected knowledge type for repo_engineer_lead"
 
     @staticmethod
-    def test_frontmatter_version_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_version_field(repo_engineer_frontmatter: Dict[str, Any]) -> None:
         """
         Validate that the frontmatter contains a `version` field and that its value matches semantic versioning in the form `x.y.z`.
 
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for the microagent.
+         Returns:
+            None
+        Raises:
+            AssertionError: If the version field is missing or invalid.
         """
         assert "version" in repo_engineer_frontmatter
         version = repo_engineer_frontmatter["version"]
@@ -158,7 +162,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert re.match(r"^\d+\.\d+\.\d+$", version), "Version should follow semver format (x.y.z)"
 
     @staticmethod
-    def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]):
+    def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]) -> None:
         """
         Validate the frontmatter 'agent' field for the repo_engineer_lead microagent.
 
@@ -166,6 +170,10 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for repo_engineer_lead.md
+        Returns:
+            None
+        Raises:
+            AssertionError: If the agent field is missing or invalid.
         """
         assert "agent" in repo_engineer_frontmatter
         agent = repo_engineer_frontmatter["agent"]
