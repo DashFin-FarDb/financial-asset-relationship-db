@@ -791,7 +791,10 @@ class FinancialAssetApp:
                 outputs=[asset_info, asset_relationships],
             )
 
+            interface.load(
             self.interface.load(
+                 self.refresh_all_outputs,
+                 inputs=[graph_state],
                 self.refresh_all_outputs,
                 inputs=[graph_state],
                 outputs=all_refresh_outputs,
