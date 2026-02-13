@@ -53,7 +53,7 @@ class TestConftestHelpers:
             pytest_load_initial_conftests(args)
 
             # Coverage args should be removed, other args preserved
-            assert "--cov=src" not in args
+            assert "--cov=src" not in args and "--cov-report=html" not in args
             assert "--cov-report=html" not in args
             assert "tests/" in args
             assert "-v" in args
@@ -106,7 +106,8 @@ class TestConftestHelpers:
             assert "tests/" in args
 
     @staticmethod
-    def test_pytest_load_initial_conftests_preserves_non_cov_args():
+    @pytest.mark.parametrize("args, expected", [([...], [...]), ([...], [...])])
+    def test_pytest_load_initial_conftests_preserves_non_cov_args(args, expected):
         """Test that non-coverage arguments are preserved."""
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
