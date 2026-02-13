@@ -684,7 +684,7 @@ class TestResourceCleanup:
             __tablename__ = "test_nested_commits"
             id = Column(Integer, primary_key=True)
 
-        factory = create_session_factory(engine)
+        init_db(engine)
 
         # First transaction
         with session_scope(factory) as session:
