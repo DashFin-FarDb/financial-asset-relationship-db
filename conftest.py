@@ -85,6 +85,7 @@ def db_session(
 Module providing a pytest fixture to manage environment variables during tests.
 """
 
+
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to set env vars in tests:
