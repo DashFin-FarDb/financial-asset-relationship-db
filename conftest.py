@@ -95,6 +95,7 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         """
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
+
     return _setter
 
     def _unsetter(*keys: str) -> None:
