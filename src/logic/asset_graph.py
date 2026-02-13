@@ -68,9 +68,9 @@ class AssetRelationshipGraph:
         bidirectional: bool = False,
     ) -> None:
         """Add a relationship, skipping duplicates and optionally adding its reverse."""
-        self._append_relationship(source_id, target_id, rel_type, strength)
+        self._append_relationship(source_id, rel_type, target_id, strength)
         if bidirectional:
-            self._append_relationship(target_id, source_id, rel_type, strength)
+            self._append_relationship(target_id, rel_type, source_id, strength)
 
     @staticmethod
     def _clamp01(value: float) -> float:
