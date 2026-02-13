@@ -649,7 +649,6 @@ class TestResourceCleanup:
     def test_session_scope_closes_on_exception(self, engine: Engine) -> None:
         """Session should be closed even when exception occurs."""
         factory = create_session_factory(engine)
-
         with pytest.raises(RuntimeError), session_scope(factory) as session:
             assert session.is_active
             raise RuntimeError("Test error")
@@ -676,15 +675,9 @@ class TestResourceCleanup:
             assert session.query(TestModel).count() == 10
 
     def test_session_scope_with_nested_commits(
-        self, engine: Engine, isolated_base
+        self, engine: Engine
     ) -> None:
         """Regression: explicit commits inside session_scope persist data."""
-
-        class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
-            """Minimal model used to validate nested commit behaviour."""
-
-            __tablename__ = "test_nested_commits"
-            id = Column(Integer, primary_key=True)
 
         class TestModelBase(Base):  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
