@@ -678,6 +678,7 @@ class TestResourceCleanup:
         """Regression: explicit commits inside session_scope persist data."""
 
         class TestModelBase(Base):  # pylint: disable=redefined-outer-name
+             """Test model for nested commit validation."""
             """Test model for nested commit validation."""
 
             __tablename__ = "test_nested_commits"
