@@ -272,12 +272,16 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         )
 
     @staticmethod
-    def test_content_appropriate_length(repo_engineer_body: str):
+    def test_content_appropriate_length(repo_engineer_body: str) -> None:
         """
         Ensure the microagent body length is between 30 and 1000 words.
 
         Parameters:
             repo_engineer_body (str): The microagent file body to check (markdown text).
+        Returns:
+            None
+        Raises:
+            AssertionError: If the word count is outside the allowed bounds.
         """
         word_count = len(repo_engineer_body.split())
         assert word_count >= 30, "Content should be at least 30 words"
