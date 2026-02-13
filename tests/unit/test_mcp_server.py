@@ -143,7 +143,14 @@ class TestAddEquityNode:
         mcp_app = _build_mcp_app()
 
         # Access the registered tool
-        tool_func = next((tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"), None)
+        tool_func = next(
+            (
+                tool.fn
+                for tool in mcp_app.list_tools()
+                if tool.name == "add_equity_node"
+            ),
+            None,
+        )
         assert tool_func is not None, "add_equity_node tool not found"
 
         result = tool_func(
@@ -263,7 +270,14 @@ class TestGet3DLayout:
         mcp_app = _build_mcp_app()
 
         # Access the registered resource
-        resource_func = next((resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri), None)
+        resource_func = next(
+            (
+                resource.fn
+                for resource in mcp_app.list_resources()
+                if "3d-layout" in resource.uri
+            ),
+            None,
+        )
         assert resource_func is not None, "3d-layout resource not found"
 
         assert resource_func is not None, "3d-layout resource not found"
