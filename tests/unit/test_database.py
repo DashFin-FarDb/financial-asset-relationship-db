@@ -686,7 +686,10 @@ class TestResourceCleanup:
         init_db(engine)
 
         # First transaction
+        # First transaction
         with session_scope(engine) as session:
+            session.add(TestModelBase(id=1))
+            session.commit()  # Explicit commit (regression scenario)
             session.add(TestModelBase(id=1))
             session.commit()  # Explicit commit (regression scenario)
 
