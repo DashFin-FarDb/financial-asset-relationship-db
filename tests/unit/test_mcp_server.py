@@ -186,8 +186,8 @@ class TestAddEquityNode:
             price=-100.0,  # Invalid negative price
         )
 
-        assert "Validation Error" in result
-        assert "price" in result.lower()
+        assert "Validation Error" in result if isinstance(result, str) else False
+        assert "price" in result.lower() if isinstance(result, str) else False
 
     @staticmethod
     def test_add_equity_node_validation_error_empty_id():
