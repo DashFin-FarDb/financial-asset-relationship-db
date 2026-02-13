@@ -686,7 +686,13 @@ class TestResourceCleanup:
             __tablename__ = "test_nested_commits"
             id = Column(Integer, primary_key=True)
 
-        init_db(engine)
+
+        class TestModel(Base):  # pylint: disable=redefined-outer-name
+            """Test model for nested commit validation."""
+
+            __tablename__ = "test_nested_commits"
+            id = Column(Integer, primary_key=True)
+
         factory = create_session_factory(engine)
 
         # First transaction
