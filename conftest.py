@@ -1,62 +1,105 @@
-"""Pytest configuration helpers for the repository.
+"""
+Pytest configuration and shared fixtures.
 
-This module removes optional coverage-related command line arguments when the
-``pytest-cov`` plugin is not installed. Some environments (for example, local
-developer shells or CI configurations) may inject coverage options via
-``PYTEST_ADDOPTS``. Without ``pytest-cov`` those options cause pytest to fail
-before executing any tests. By trimming the coverage options when the plugin is
-missing we allow the default test command to succeed while still preserving
-coverage reporting where the dependency is available.
+This file centralizes:
+- Database engine/session fixtures (SQLite file or in-memory)
+- Environment isolation for tests
+- Common test helpers (e.g., factories) to avoid repeated boilerplate
 """
 
 from __future__ import annotations
 
-import importlib.util
-from typing import List
+from collections.abc import Callable, Generator, Iterator
+from pathlib import Path
+
+import pytest
+from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
+
+from src.data.database import Base, create_engine_from_url, create_session_factory, session_scope
 
 
-def pytest_load_initial_conftests(
-    args: List[str],
-) -> None:  # pragma: no cover - exercised via pytest
+@pytest.fixture(autouse=True)
+def _isolate_env(monkeypatch: pytest.MonkeyPatch) -> None:
     """
-    Remove pytest-cov command-line options from args when the pytest-cov plugin
-    is not installed.
+    Ensure tests do not accidentally read developer/prod environment variables.
 
-    If the plugin is unavailable, strips standalone `--cov` / `--cov-report` and
-    inline forms starting with `--cov=` or `--cov-report=`.
-    Modifies the input list in place.
-
-    Parameters:
-        args (List[str]): Mutable list of command-line arguments to filter.
+    You can extend this list as the codebase grows.
     """
-    if _cov_plugin_available():
-        return
-
-    filtered_args: List[str] = []
-    skip_next = False
-
-    for arg in args:
-        if skip_next:
-            skip_next = False
-            continue
-
-        if arg in {"--cov", "--cov-report"}:
-            skip_next = True
-            continue
-
-        if arg.startswith(("--cov=", "--cov-report=")):
-            continue
-
-        filtered_args.append(arg)
-
-    args[:] = filtered_args
+    monkeypatch.delenv("ASSET_GRAPH_DATABASE_URL", raising=False)
+    monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
+    monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
+    monkeypatch.delenv("REAL_DATA_CACHE_PATH", raising=False)
 
 
-def _cov_plugin_available() -> bool:  # pragma: no cover
+@pytest.fixture()
+def database_url(tmp_path: Path) -> str:
     """
-    Detects whether the pytest-cov plugin is available.
+    Default test DB URL.
 
-    Returns:
-        True if the pytest-cov plugin is available, False otherwise.
+    Uses a temporary on-disk SQLite DB to behave closer to production than :memory:.
+    If you want in-memory for speed, replace with:
+        "sqlite:///:memory:"
     """
-    return importlib.util.find_spec("pytest_cov") is not None
+    db_path = tmp_path / "test_asset_graph.db"
+    return f"sqlite:///{db_path}"
+
+
+@pytest.fixture()
+def engine(database_url: str) -> Iterator[Engine]:
+    """Create a SQLAlchemy Engine for tests and ensure schema exists."""
+    eng = create_engine_from_url(database_url)
+    Base.metadata.create_all(eng)
+    try:
+        yield eng
+    finally:
+        eng.dispose()
+
+
+@pytest.fixture()
+def session_factory(engine: Engine) -> sessionmaker[Session]:
+    """Create a sessionmaker bound to the test engine."""
+    return create_session_factory(engine)
+
+
+@pytest.fixture()
+def db_session(session_factory: Callable[[], Session]) -> Generator[Session, None, None]:
+    """
+    Provide a transaction-scoped SQLAlchemy Session.
+
+    Uses the project's session_scope helper to ensure commit/rollback/close semantics.
+    """
+    with session_scope(session_factory) as session:
+        yield session
+
+
+@pytest.fixture()
+def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
+    """
+    Utility fixture to set env vars in tests:
+
+        def test_x(set_env):
+            set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
+    """
+
+    def _setter(**kwargs: str) -> None:
+        for key, value in kwargs.items():
+            monkeypatch.setenv(key, value)
+
+    return _setter
+
+
+@pytest.fixture()
+def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
+    """
+    Utility fixture to unset env vars in tests:
+
+        def test_x(unset_env):
+            unset_env("ASSET_GRAPH_DATABASE_URL")
+    """
+
+    def _unsetter(*keys: str) -> None:
+        for key in keys:
+            monkeypatch.delenv(key, raising=False)
+
+    return _unsetter
