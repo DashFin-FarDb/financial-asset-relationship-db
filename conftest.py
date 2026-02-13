@@ -101,6 +101,7 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
     return _setter
+    """
     Utility fixture to unset env vars in tests:
 
         def test_x(unset_env):
