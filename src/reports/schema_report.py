@@ -71,12 +71,12 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         graph: The asset relationship graph to analyze and summarize.
 
     Returns:
-        A Markdown-formatted string containing the schema overview,
-        relationship type distribution, network statistics, asset-class
+        A Markdown - formatted string containing the schema overview,
+        relationship type distribution, network statistics, asset - class
         distributions, top relationships, business / regulatory / valuation
-        rules, data quality score (from graph metrics), recommendations,
+        rules, data quality score(from graph metrics), recommendations,
         and implementation notes.
-    
+
     Raises:
         Exception: Propagates errors from graph.calculate_metrics().
     """
