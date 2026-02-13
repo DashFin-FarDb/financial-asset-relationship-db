@@ -81,11 +81,6 @@ def db_session(
 
 
 @pytest.fixture()
-"""
-Module providing a pytest fixture to manage environment variables during tests.
-"""
-
-
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to set env vars in tests:
@@ -101,12 +96,6 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
     return _setter
-    """
-    Utility fixture to unset env vars in tests:
-
-        def test_x(unset_env):
-            unset_env("ASSET_GRAPH_DATABASE_URL")
-    """
 
     def _unsetter(*keys: str) -> None:
         """
