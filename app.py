@@ -535,6 +535,60 @@ class FinancialAssetApp:
                             show_income_comparison = gr.Checkbox(
                                 label="Income Comparison (↔)", value=True
                             )
+        with gr.Blocks(title=AppConstants.TITLE) as interface:
+            gr.Markdown(AppConstants.MARKDOWN_HEADER)
+
+            error_message = gr.Textbox(
+                label=AppConstants.ERROR_LABEL,
+                visible=False,
+                interactive=False,
+                elem_id="error_message",
+            )
+
+            with gr.Tabs():
+                with gr.Tab("🌐 Network Visualization (2D/3D)"):
+                    gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
+
+                    with gr.Row():
+                        gr.Markdown("### 🎛️ Visualization Controls")
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            view_mode = gr.Radio(
+                                label="Visualization Mode",
+                                choices=["3D", "2D"],
+                                value="3D",
+                            )
+                        with gr.Column(scale=1):
+                            layout_type = gr.Radio(
+                                label="2D Layout Type",
+                                choices=["spring", "circular", "grid"],
+                                value="spring",
+                                visible=False,
+                            )
+
+                    with gr.Row():
+                        gr.Markdown("### 🔗 Relationship Visibility Controls")
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            show_same_sector = gr.Checkbox(
+                                label="Same Sector (↔)", value=True
+                            )
+                            show_market_cap = gr.Checkbox(
+                                label="Market Cap Similar (↔)", value=True
+                            )
+                            show_correlation = gr.Checkbox(
+                                label="Correlation (↔)", value=True
+                            )
+                        with gr.Column(scale=1):
+                            show_corporate_bond = gr.Checkbox(
+                                label="Corporate Bond → Equity (→)", value=True
+                            )
+                            show_commodity_currency = gr.Checkbox(
+                                label="Commodity ↔ Currency", value=True
+                            )
+                            show_income_comparison = gr.Checkbox(
+                                label="Income Comparison (↔)", value=True
+                            )
                         with gr.Column(scale=1):
                             show_regulatory = gr.Checkbox(
                                 label="Regulatory Impact (→)", value=True
@@ -792,15 +846,12 @@ class FinancialAssetApp:
             )
 
             interface.load(
-            self.interface.load(
-                 self.refresh_all_outputs,
-                 inputs=[graph_state],
                 self.refresh_all_outputs,
                 inputs=[graph_state],
                 outputs=all_refresh_outputs,
             )
 
-        return self.interface
+        return interface
 
 
 if __name__ == "__main__":
