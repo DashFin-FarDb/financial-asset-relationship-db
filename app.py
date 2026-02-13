@@ -19,13 +19,13 @@ from src.visualizations.graph_visuals import (
     visualize_3d_graph,
     visualize_3d_graph_with_filters,
 )
-from src.visualizations.metric_visuals import visualize_metrics
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
+from src.visualizations.metric_visuals import visualize_metrics
 logger = logging.getLogger(__name__)
 
 
