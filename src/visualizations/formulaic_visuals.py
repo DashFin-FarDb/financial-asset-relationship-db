@@ -212,9 +212,7 @@ class FormulaicVisualizer:
                 Items missing these attributes are treated as category "Unknown"
                 and r_squared 0.0.
         """
-        if not formulas or any(
-            not hasattr(f, "category") or not hasattr(f, "r_squared") for f in formulas
-        ):
+        if not formulas:
             return
 
         # Simple sector distribution based on categories
