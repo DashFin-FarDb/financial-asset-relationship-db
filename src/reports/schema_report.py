@@ -61,17 +61,17 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
     """
     Generate a Markdown report describing the database schema and
-    relationship distributions, calculated metrics, business/regulatory/valuation
+    relationship distributions, calculated metrics, business / regulatory / valuation
     rules, and optimization recommendations for an asset relationship graph.
 
     Args:
         graph: The asset relationship graph to analyze and summarize.
 
     Returns:
-        A Markdown-formatted string containing the schema overview,
-        relationship type distribution, network statistics, asset-class
-        distributions, top relationships, business/regulatory/valuation
-        rules, data quality score (from graph metrics), recommendation,
+        A Markdown - formatted string containing the schema overview,
+        relationship type distribution, network statistics, asset - class
+        distributions, top relationships, business / regulatory / valuation
+        rules, data quality score(from graph metrics), recommendation,
         and implementation notes.
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
