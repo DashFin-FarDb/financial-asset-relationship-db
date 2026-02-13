@@ -514,9 +514,8 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         gr.Markdown("### 🔗 Relationship Visibility Controls")
-                    with gr.Row():
-                        with gr.Column(scale=1):
-                            show_same_sector = gr.Checkbox(
+                    with gr.Row(), gr.Column(scale=1):
+                        show_same_sector = gr.Checkbox(
                                 label="Same Sector (↔)", value=True
                             )
                             show_market_cap = gr.Checkbox(
