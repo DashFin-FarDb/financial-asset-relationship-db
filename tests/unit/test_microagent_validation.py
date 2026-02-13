@@ -623,7 +623,9 @@ class TestMicroagentPerformance(TestMicroagentValidation):
 class TestMicroagentDocumentation(TestMicroagentValidation):
     """Test documentation quality in microagent files."""
 
-    def test_all_microagents_have_body_content(self, microagent_files: List[Path]) -> None:
+    def test_all_microagents_have_body_content(
+        self, microagent_files: List[Path]
+    ) -> None:
         """
         Verify each microagent markdown file contains at least 20 words in its body section.
 
@@ -645,7 +647,9 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                 # Skip files with unparseable frontmatter (may have special YAML syntax)
                 pass
 
-    def test_all_microagents_use_markdown_formatting(self, microagent_files: List[Path]) -> None:
+    def test_all_microagents_use_markdown_formatting(
+        self, microagent_files: List[Path]
+    ) -> None:
         """Test that microagent bodies use markdown formatting."""
         for file_path in microagent_files:
             with open(file_path, encoding="utf-8") as f:
