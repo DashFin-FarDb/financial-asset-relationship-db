@@ -497,20 +497,19 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         gr.Markdown("### 🎛️ Visualization Controls")
-                    with gr.Row():
-                        with gr.Column(scale=1):
-                            view_mode = gr.Radio(
-                                label="Visualization Mode",
-                                choices=["3D", "2D"],
-                                value="3D",
-                            )
-                        with gr.Column(scale=1):
-                            layout_type = gr.Radio(
-                                label="2D Layout Type",
-                                choices=["spring", "circular", "grid"],
-                                value="spring",
-                                visible=False,
-                            )
+                    with gr.Row(), gr.Column(scale=1):
+                        view_mode = gr.Radio(
+                            label="Visualization Mode",
+                            choices=["3D", "2D"],
+                            value="3D",
+                        )
+                    with gr.Row(), gr.Column(scale=1):
+                        layout_type = gr.Radio(
+                            label="2D Layout Type",
+                            choices=["spring", "circular", "grid"],
+                            value="spring",
+                            visible=False,
+                        )
 
                     with gr.Row():
                         gr.Markdown("### 🔗 Relationship Visibility Controls")
