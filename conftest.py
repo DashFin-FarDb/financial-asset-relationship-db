@@ -16,7 +16,12 @@ import pytest
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.data.database import Base, create_engine_from_url, create_session_factory, session_scope
+from src.data.database import (
+    Base,
+    create_engine_from_url,
+    create_session_factory,
+    session_scope,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -63,7 +68,9 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 @pytest.fixture()
-def db_session(session_factory: Callable[[], Session]) -> Generator[Session, None, None]:
+def db_session(
+    session_factory: Callable[[], Session],
+) -> Generator[Session, None, None]:
     """
     Provide a transaction-scoped SQLAlchemy Session.
 
