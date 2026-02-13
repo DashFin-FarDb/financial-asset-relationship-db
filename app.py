@@ -157,7 +157,8 @@ class FinancialAssetApp:
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
                 raise TypeError(
-                    f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
+                    f"{name}() returned {type(graph)!r}, "
+                    f"expected AssetRelationshipGraph"
                 )
 
         raise AttributeError(
@@ -253,8 +254,8 @@ class FinancialAssetApp:
         self, graph: AssetRelationshipGraph
     ) -> tuple[go.Figure, go.Figure, go.Figure, str]:
         """
-        If you already have an implementation elsewhere, keep that and remove this method.
-        This placeholder keeps the UI wiring coherent.
+        If you already have an implementation elsewhere, keep that and remove
+        this method. This placeholder keeps the UI wiring coherent.
         """
         metrics_text = self._update_metrics_text(graph)
         return go.Figure(), go.Figure(), go.Figure(), metrics_text
@@ -263,7 +264,8 @@ class FinancialAssetApp:
         self, graph_state: AssetRelationshipGraph
     ) -> tuple[Any, ...]:
         """
-        Refresh all visualizations, metrics, schema report, and asset selector options for the UI.
+        Refresh all visualizations, metrics, schema report,
+        and asset selector options for the UI.
         """
         try:
             graph = self.ensure_graph()
@@ -437,9 +439,12 @@ class FinancialAssetApp:
         summary_lines: list[str] = [
             "🔍 **Formulaic Analysis Summary**",
             "",
-            f"📊 **Total Formulas Identified:** {len(formulas) if isinstance(formulas, list) else 0}",
-            f"📈 **Average Reliability (R²):** {float(summary.get('avg_r_squared', 0.0)):.3f}",
-            f"🔗 **Empirical Data Points:** {int(summary.get('empirical_data_points', 0))}",
+            f"📊 **Total Formulas Identified:** "
+            f"{len(formulas) if isinstance(formulas, list) else 0}",
+            f"📈 **Average Reliability (R²):** "
+            f"{float(summary.get('avg_r_squared', 0.0)):.3f}",
+            f"🔗 **Empirical Data Points:** "
+            f"{int(summary.get('empirical_data_points', 0))}",
             "",
             "📋 **Formula Categories:**",
         ]
@@ -615,10 +620,13 @@ class FinancialAssetApp:
                 with gr.Tab("📊 Formulaic Analysis"):
                     gr.Markdown(
                         "## Mathematical Relationships & Formulas\n\n"
-                        "This section extracts and visualizes mathematical formulas and relationships\n"
+                        "This section extracts and visualizes\n"
+                        "mathematical formulas and relationships\n"
                         "between financial variables.\n"
                         "It includes fundamental financial ratios,\n"
-                        "correlation patterns, valuation models, and empirical relationships derived\n"
+                        "correlation patterns,\n"
+                        "valuation models,\n"
+                        "and empirical relationships derived\n"
                         "from the asset database."
                     )
 
