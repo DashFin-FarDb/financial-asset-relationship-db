@@ -484,7 +484,7 @@ class FinancialAssetApp:
         with gr.Blocks(title=AppConstants.TITLE):
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
-            error_message = gr.Textbox(
+            gr.Textbox(
                 label=AppConstants.ERROR_LABEL,
                 visible=False,
                 interactive=False,
