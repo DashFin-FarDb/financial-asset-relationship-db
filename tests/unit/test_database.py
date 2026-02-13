@@ -674,9 +674,7 @@ class TestResourceCleanup:
         with session_scope(factory) as session:
             assert session.query(TestModel).count() == 10
 
-    def test_session_scope_with_nested_commits(
-        self, engine: Engine
-    ) -> None:
+    def test_session_scope_with_nested_commits(self, engine: Engine) -> None:
         """Regression: explicit commits inside session_scope persist data."""
 
         class TestModelBase(Base):  # pylint: disable=redefined-outer-name
