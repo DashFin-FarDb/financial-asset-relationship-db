@@ -158,7 +158,7 @@ def _asset_to_json_dict(asset: Asset) -> dict[str, Any]:
     data = asdict(asset)
 
     if hasattr(asset, "asset_class"):
-        data["asset_class"] = getattr(asset, "asset_class").value
+        data["asset_class"] = asset.asset_class.value
 
     return {k: _coerce_json_safe(v) for k, v in data.items()}
 
@@ -183,7 +183,8 @@ class FinancialAssetApp:
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
                 raise TypeError(
-                    f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
+                    f"{name}() returned {type(graph)!r}, "
+                    "expected AssetRelationshipGraph"
                 )
 
         raise AttributeError(
@@ -622,21 +623,19 @@ class FinancialAssetApp:
                         with gr.Column(scale=1):
                             rel_types_chart = gr.Plot(label="Relationship Types")
 
-                    with gr.Row():
-                        with gr.Column(scale=1):
-                            events_timeline_chart = gr.Plot(label="Events Timeline")
+                    with gr.Row(), gr.Column(scale=1):
+                        events_timeline_chart = gr.Plot(label="Events Timeline")
 
-                    with gr.Row():
-                        with gr.Column(scale=1):
-                            refresh_metrics_btn = gr.Button(
-                                "🔄 Refresh Metrics",
-                                variant="primary",
-                            )
-                            metrics_text = gr.Textbox(
-                                label=AppConstants.NETWORK_STATISTICS_LABEL,
-                                lines=15,
-                                interactive=False,
-                            )
+                    with gr.Row(), gr.Column(scale=1):
+                        refresh_metrics_btn = gr.Button(
+                            "🔄 Refresh Metrics",
+                            variant="primary",
+                        )
+                        metrics_text = gr.Textbox(
+                            label=AppConstants.NETWORK_STATISTICS_LABEL,
+                            lines=15,
+                            interactive=False,
+                        )
 
                 with gr.Tab("📋 Schema & Rules"):
                     gr.Markdown(AppConstants.SCHEMA_RULES_GUIDE_MD)
