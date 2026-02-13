@@ -806,8 +806,8 @@ class FinancialAssetApp:
 if __name__ == "__main__":
     try:
         logger.info(AppConstants.APP_START_INFO)
-        app = FinancialAssetApp()
-        demo = app.create_interface()
+        app=FinancialAssetApp()
+        demo=app.create_interface()
         logger.info(AppConstants.APP_LAUNCH_INFO)
         demo.launch()
     except Exception as exc:
