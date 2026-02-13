@@ -679,6 +679,7 @@ class TestResourceCleanup:
 
         class TestModelBase(Base):  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
+
             __tablename__ = "test_nested_commits"
             id = Column(Integer, primary_key=True)
 

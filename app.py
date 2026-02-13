@@ -516,14 +516,14 @@ class FinancialAssetApp:
                         gr.Markdown("### 🔗 Relationship Visibility Controls")
                     with gr.Row(), gr.Column(scale=1):
                         show_same_sector = gr.Checkbox(
-                                label="Same Sector (↔)", value=True
-                            )
-                            show_market_cap = gr.Checkbox(
-                                label="Market Cap Similar (↔)", value=True
-                            )
-                            show_correlation = gr.Checkbox(
-                                label="Correlation (↔)", value=True
-                            )
+                            label="Same Sector (↔)", value=True
+                        )
+                        show_market_cap = gr.Checkbox(
+                            label="Market Cap Similar (↔)", value=True
+                        )
+                        show_correlation = gr.Checkbox(
+                            label="Correlation (↔)", value=True
+                        )
                         with gr.Column(scale=1):
                             show_corporate_bond = gr.Checkbox(
                                 label="Corporate Bond → Equity (→)", value=True
