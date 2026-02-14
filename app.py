@@ -378,9 +378,7 @@ class FinancialAssetApp:
             correlation_network_fig = formulaic_visualizer.create_correlation_network(
                 analysis_results.get("empirical_relationships", {})
             )
-            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
-                analysis_results
-            )
+            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
 
             formulas = analysis_results.get("formulas", [])
             formula_choices = (
@@ -594,9 +592,7 @@ class FinancialAssetApp:
                                 "Reset View & Show All", variant="secondary"
                             )
                         with gr.Column(scale=2):
-                            gr.Markdown(
-                                "**Legend:** ↔ = Bidirectional, → = Unidirectional"
-                            )
+                            gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
 
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
@@ -669,9 +665,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=2):
-                            formulaic_dashboard = gr.Plot(
-                                label="Formulaic Analysis Dashboard"
-                            )
+                            formulaic_dashboard = gr.Plot(label="Formulaic Analysis Dashboard")
                         with gr.Column(scale=1):
                             formula_selector = gr.Dropdown(
                                 label="Select Formula for Details",
@@ -683,9 +677,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            correlation_network = gr.Plot(
-                                label="Asset Correlation Network"
-                            )
+                            correlation_network = gr.Plot(label="Asset Correlation Network")
                         with gr.Column(scale=1):
                             metric_comparison = gr.Plot(label="Metric Comparison Chart")
 

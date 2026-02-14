@@ -79,6 +79,10 @@ def db_session(
     with session_scope(session_factory) as session:
         yield session
 
+@pytest.fixture()
+def database_url(tmp_path: Path) -> str:
+    """
+    Default test DB URL.
 
 @pytest.fixture()
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
@@ -89,6 +93,7 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         def test_x(set_env):
             set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
     """
+    Provide a transaction-scoped SQLAlchemy Session.
 
     def _setter(**kwargs: str) -> None:
         """
