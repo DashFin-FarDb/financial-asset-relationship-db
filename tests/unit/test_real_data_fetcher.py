@@ -837,9 +837,7 @@ class TestAllAssetTypes:
         mock_hist = Mock(empty=False)
         mock_close = Mock()
         mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
-        mock_hist.__getitem__ = (
-            lambda self, key: mock_close if key == "Close" else Mock()
-        )
+        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
@@ -1239,9 +1237,7 @@ class TestAssetFieldValidation:
 
         for event in events:
             # Should be in YYYY-MM-DD format
-            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), (
-                f"Invalid date format: {event.date}"
-            )
+            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), f"Invalid date format: {event.date}"
 
 
 @pytest.mark.unit
@@ -1338,9 +1334,9 @@ class TestDataFetcherConsistency:
 
         # At least some events should reference known symbols
         referenced_assets = {event.asset_id for event in events}
-        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
-            "Events should reference known asset IDs"
-        )
+        assert any(
+            asset_id in known_symbols for asset_id in referenced_assets
+        ), "Events should reference known asset IDs"
 
 
 @pytest.mark.unit

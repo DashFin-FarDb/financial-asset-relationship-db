@@ -48,9 +48,7 @@ class TestYAMLSyntaxAndStructure:
 
         Scans all .yml and .yaml files under .github and reports any non-empty, non-comment lines whose leading indentation is not a multiple of two spaces. Lines inside block scalars (introduced with `|` or `>`, including optional chomping or indent indicators) are excluded from indentation checks. The test fails with a consolidated list of file paths and line numbers for each indentation violation.
         """
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(
-            Path(".github").rglob("*.yaml")
-        )
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
         indentation_errors = []
 
         for yaml_file in yaml_files:

@@ -113,9 +113,7 @@ class FormulaicAnalyzer:
             ),
         }
 
-    def _extract_fundamental_formulas(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+    def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Builds a list of fundamental financial formulas applicable to the
         provided asset graph.
@@ -135,9 +133,7 @@ class FormulaicAnalyzer:
                 name="Price-to-Earnings Ratio",
                 formula="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
-                description=(
-                    "Valuation metric comparing stock price to earnings per share"
-                ),
+                description=("Valuation metric comparing stock price to earnings per share"),
                 variables={
                     "PE": "Price-to-Earnings Ratio",
                     "P": "Current Stock Price ($)",
@@ -207,9 +203,7 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_correlation_patterns(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+    def _analyze_correlation_patterns(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Create Formula objects that describe correlation and systematic risk measures.
         between assets.
@@ -260,9 +254,7 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_valuation_relationships(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+    def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Assemble valuation-related formulas derived from the provided asset
         relationship graph.
@@ -319,9 +311,7 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_risk_return_relationships(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+    def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Assemble formulaic representations of common risk–return relationships.
 
@@ -376,9 +366,7 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_portfolio_theory_formulas(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+    def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Builds Modern Portfolio Theory formulas derived from the asset relationship
         graph.
@@ -428,9 +416,7 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _analyze_cross_asset_relationships(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+    def _analyze_cross_asset_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Identify and assemble formulas that describe relationships
         between different asset classes present in the graph.
@@ -506,9 +492,7 @@ class FormulaicAnalyzer:
             strength; returns 0.5 when the graph contains no relationship
             strength data.
         """
-        strengths = [
-            strength for rels in graph.relationships.values() for _, _, strength in rels
-        ]
+        strengths = [strength for rels in graph.relationships.values() for _, _, strength in rels]
         if strengths:
             avg_strength = sum(strengths) / len(strengths)
             return min(0.75, max(0.0, avg_strength))
@@ -549,9 +533,7 @@ class FormulaicAnalyzer:
                 - key_insights (list[str]): Human-readable insight strings
                   derived from the formulas and empirical data.
         """
-        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
-            empirical_relationships
-        )
+        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
         return {
             "total_formulas": len(formulas),
             "avg_r_squared": (sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0),
@@ -852,10 +834,7 @@ class FormulaicAnalyzer:
             variance formula
             (σ²p) with numeric terms.
         """
-        return (
-            "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + "
-            "(2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
-        )
+        return "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + " "(2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
 
     @staticmethod
     def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
