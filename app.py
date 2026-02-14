@@ -714,7 +714,7 @@ class FinancialAssetApp:
                 checkbox.change(
                     self.refresh_visualization,
                     inputs=visualization_inputs,
-                    outputs=[visualization_output],
+                    outputs=[visualization_3d, error_message],
                 )
 
             layout_type.change(
