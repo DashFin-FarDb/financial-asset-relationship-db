@@ -110,7 +110,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
     density = _as_float(metrics.get("relationship_density"), 0.0)  # expected 0–100 (%)
     reg_events = _as_int(metrics.get("regulatory_event_count"), 0)
-        lines.extend(
+    lines.extend(
         [
             "",
             "",
