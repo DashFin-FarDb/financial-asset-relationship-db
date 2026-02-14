@@ -158,7 +158,9 @@ class FinancialAssetApp:
                 graph = fn()
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
-                raise TypeError(f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph")
+                raise TypeError(
+                    f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
+                )
 
         raise AttributeError(
             f"No known database factory found in src.data.real_data_fetcher. Tried: {', '.join(candidates)}"
@@ -733,16 +735,16 @@ class FinancialAssetApp:
                 show_corporate_bond,
                 show_commodity_currency,
                 gr.Markdown(
-                        "## Mathematical Relationships & Formulas\n\n"
-                        + "This section extracts and visualizes\n"
-                        + "mathematical formulas and relationships\n"
-                        + "between financial variables.\n"
-                        + "It includes fundamental financial ratios,\n"
-                        + "correlation patterns,\n"
-                        + "valuation models,\n"
-                        + "and empirical relationships derived\n"
-                        + "from the asset database."
-                    )
+                    "## Mathematical Relationships & Formulas\n\n"
+                    + "This section extracts and visualizes\n"
+                    + "mathematical formulas and relationships\n"
+                    + "between financial variables.\n"
+                    + "It includes fundamental financial ratios,\n"
+                    + "correlation patterns,\n"
+                    + "valuation models,\n"
+                    + "and empirical relationships derived\n"
+                    + "from the asset database."
+                ),
             ]
 
             view_mode.change(
