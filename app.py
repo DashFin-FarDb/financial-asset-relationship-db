@@ -159,11 +159,14 @@ class FinancialAssetApp:
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
                 raise TypeError(
-                    f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
+                    f"{name}() returned {type(graph)!r}, "
+                    "expected AssetRelationshipGraph"
                 )
 
         raise AttributeError(
-            f"No known database factory found in src.data.real_data_fetcher. Tried: {', '.join(candidates)}"
+            "No known database factory found in "
+            "src.data.real_data_fetcher. Tried: "
+            f"{', '.join(candidates)}"
         )
 
     def _initialize_graph(self) -> None:
@@ -432,7 +435,6 @@ class FinancialAssetApp:
         summary: dict[str, Any], analysis_results: dict[str, Any]
     ) -> str:
         """Build a human-readable summary of formulaic analysis results for display."""
-        formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
         summary_lines: list[str] = []
@@ -584,7 +586,7 @@ class FinancialAssetApp:
                         visualization_3d = gr.Plot()
                     with gr.Row():
                         with gr.Column(scale=1):
-                            refresh_btn = gr.Button(
+                            gr.Button(
                                 AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
                             )
                         with gr.Column(scale=1):
@@ -791,13 +793,13 @@ class FinancialAssetApp:
                 checkbox.change(
                     self.refresh_visualization,
                     inputs=visualization_inputs,
-                    outputs=visualization_outputs,
+                    outputs=visualization_output,
                 )
 
             layout_type.change(
                 self.refresh_visualization,
                 inputs=visualization_inputs,
-                outputs=visualization_outputs,
+                outputs=visualization_output,
             )
 
             reset_view_btn.click(
@@ -816,7 +818,7 @@ class FinancialAssetApp:
                     True,
                 ),
                 inputs=[graph_state, view_mode, layout_type],
-                outputs=visualization_outputs,
+                outputs=visualization_output,
             )
 
             asset_selector.change(
