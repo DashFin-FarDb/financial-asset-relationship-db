@@ -242,8 +242,7 @@ class TestRegulatoryEvent:
                 impact_score=0.5,
             )
 
-    `@staticmethod`
-
+    @staticmethod
     def test_event_boundary_impact_score_negative_one() -> None:
         """Test that impact score of exactly -1.0 is accepted (boundary case)."""
         event = RegulatoryEvent(
