@@ -255,8 +255,7 @@ class TestRegulatoryEvent:
         )
         assert event.impact_score == pytest.approx(-1.0)
 
-    `@staticmethod`
-
+    @staticmethod
     def test_event_boundary_impact_score_positive_one() -> None:
         """Test that impact score of exactly 1.0 is accepted (boundary case)."""
         event = RegulatoryEvent(
