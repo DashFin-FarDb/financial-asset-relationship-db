@@ -158,8 +158,11 @@ class FinancialAssetApp:
                 graph = fn()
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
-                raise TypeError(f"{name}() returned {type(graph)!r}, " "expected AssetRelationshipGraph")
-
+                raise TypeError(f"{name}() returned {type(graph)!r}, "
+        raise AttributeError(
+            "No known database factory found in src.data.real_data_fetcher. Tried: "
+            f"{', '.join(candidates)}"
+        )
         raise AttributeError(
             "No known database factory found in " "src.data.real_data_fetcher. Tried: " f"{', '.join(candidates)}"
         )
@@ -342,7 +345,9 @@ class FinancialAssetApp:
             error_msg = f"Error refreshing visualization: {exc}"
             return empty_fig, gr.update(value=error_msg, visible=True)
 
-    def generate_formulaic_analysis(self, _graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
+    def generate_formulaic_analysis(
+        self, _graph_state: AssetRelationshipGraph
+    ) -> tuple[Any, ...]:
         """Generate formulaic analysis outputs and UI updates."""
         try:
             logger.info("Generating formulaic analysis")
