@@ -132,9 +132,9 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         lines.append(f"- **{asset_class}**: {count} assets")
 
     quality_score = _as_float(metrics.get("quality_score"), 0.0)
-    
+
     lines.append(f"Data Quality Score: {quality_score:.1%}")
-    
+
     quality_score = metrics.get("quality_score", 0.0)
     lines.append(f"Data Quality Score: {quality_score:.1%}")
 
