@@ -438,7 +438,7 @@ class FinancialAssetApp:
          return json.dumps({"empirical_relationships": empirical}, indent=2)
 
             # The following UI layout code is defined elsewhere in the class.
-                 elem_id="error_message",
+                 elem_id = "error_message",
             )
 
             with gr.Tabs(), gr.Tab("🌐 Network Visualization (2D/3D)"):
