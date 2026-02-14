@@ -29,8 +29,6 @@ class TestSnykWorkflowStructure:
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     @pytest.fixture
-    `@pytest.fixture`
-
     def snyk_workflow(self, snyk_workflow_path: Path) -> dict:
         """Load and parse Snyk workflow YAML.
 
