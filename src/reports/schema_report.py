@@ -88,10 +88,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
         "3. **Commodity** - Physical assets with contracts and delivery dates",
-        (
-            "4. **Currency** - FX pairs or single-currency proxies with "
-            "exchange rates and policy links"
-        ),
+        ("4. **Currency** - FX pairs or single-currency proxies with " "exchange rates and policy links"),
         "5. **Regulatory Events** - Corporate actions and SEC filings",
         "",
         "### Relationship Types",
@@ -135,7 +132,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     top_relationships = _as_top_relationships(metrics.get("top_relationships"))
 
     quality_score = _as_float(metrics.get("quality_score"), 0.0)
-    
+
     lines.append(f"Data Quality Score: {quality_score:.1%}")
 
     quality_score = _as_float(metrics.get("quality_score"), 0.0)
