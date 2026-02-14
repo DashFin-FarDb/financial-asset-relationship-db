@@ -818,7 +818,7 @@ class FinancialAssetApp:
                     True,
                 ),
                 inputs=[graph_state, view_mode, layout_type],
-                outputs=visualization_output,
+                outputs=visualization_outputs,
             )
 
             asset_selector.change(
