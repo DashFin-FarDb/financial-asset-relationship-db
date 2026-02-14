@@ -103,12 +103,6 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
 
 
 @pytest.fixture()
-"""
-Pytest fixtures for environment variable management.
-
-This module provides utilities to remove environment variables in tests using monkeypatch.
-"""
-
 
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
