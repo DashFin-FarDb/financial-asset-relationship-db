@@ -360,7 +360,7 @@ class FinancialAssetApp:
             return empty_fig, gr.update(value=error_msg, visible=True)
 
     def generate_formulaic_analysis(
-        self, graph_state: AssetRelationshipGraph
+        self, _graph_state: AssetRelationshipGraph
     ) -> tuple[Any, ...]:
         """Generate formulaic analysis outputs and UI updates."""
         try:
