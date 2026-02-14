@@ -131,14 +131,12 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     for asset_class, count in sorted(class_dist.items()):
         lines.append(f"- **{asset_class}**: {count} assets")
 
-    lines.extend(["", "## Top Relationships"])
-    top_relationships = _as_top_relationships(metrics.get("top_relationships"))
-
     quality_score = _as_float(metrics.get("quality_score"), 0.0)
-
+    
     lines.append(f"Data Quality Score: {quality_score:.1%}")
-
-    quality_score = _as_float(metrics.get("quality_score"), 0.0)
+    
+    quality_score = metrics.get("quality_score", 0.0)
+    lines.append(f"Data Quality Score: {quality_score:.1%}")
 
     quality_score = metrics.get("quality_score", 0.0)
     lines.append(f"Data Quality Score: {quality_score:.1%}")
@@ -163,6 +161,3 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             ),
         ]
     )
-
-    return "\n".join(lines)
-    return "\n".join(lines)
