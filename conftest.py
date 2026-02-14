@@ -81,15 +81,26 @@ def db_session(
 
 
 @pytest.fixture()
+"""Module for pytest fixtures to set environment variables in tests.
+
+This module provides fixtures to simplify setting environment variables during testing.
+"""
+
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
-    Utility fixture to set env vars in tests:
+    Utility fixture to set environment variables in tests.
 
+    Example:
         def test_x(set_env):
             set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
     """
 
     def _setter(**kwargs: str) -> None:
+        """
+        Set environment variables using the provided monkeypatch fixture.
+
+        Iterates through each keyword argument and sets the corresponding environment variable.
+        """
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
 
@@ -97,6 +108,12 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
 
 
 @pytest.fixture()
+"""
+Pytest fixtures for environment variable management.
+
+This module provides utilities to remove environment variables in tests using monkeypatch.
+"""
+
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to unset env vars in tests:
@@ -106,6 +123,12 @@ def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
 
     def _unsetter(*keys: str) -> None:
+        """
+        Unset the specified environment variables in the test environment.
+
+        Args:
+            *keys: Names of environment variables to remove.
+        """
         for key in keys:
             monkeypatch.delenv(key, raising=False)
 
