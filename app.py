@@ -764,6 +764,7 @@ class FinancialAssetApp:
                 formula_summary,
                 error_message,
             ]
+
             refresh_formulas_btn.click(
                 self.generate_formulaic_analysis,
                 inputs=[graph_state],
