@@ -205,6 +205,7 @@ class AssetRelationshipGraph:
     def _collect_participating_asset_ids(self) -> set[str]:
         """Return ids from assets plus relationship targets."""
         all_ids = set(self.assets.keys())
+        all_ids.update(self.relationships.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
                 all_ids.add(target_id)
