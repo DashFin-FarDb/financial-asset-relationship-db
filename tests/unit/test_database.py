@@ -226,7 +226,7 @@ class TestDatabaseInitialization:
         engine: Engine,
         session_factory,
         isolated_base,
-    ) -> None:
+        ) -> None:
         """init_db should not wipe existing data."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
