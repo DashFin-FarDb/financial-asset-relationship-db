@@ -144,11 +144,7 @@ class TestAddEquityNode:
 
         # Access the registered tool
         tool_func = next(
-            (
-                tool.fn
-                for tool in mcp_app.list_tools()
-                if tool.name == "add_equity_node"
-            ),
+            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
             None,
         )
         assert tool_func is not None, "add_equity_node tool not found"
@@ -271,11 +267,7 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (
-                resource.fn
-                for resource in mcp_app.list_resources()
-                if "3d-layout" in resource.uri
-            ),
+            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
             None,
         )
         assert resource_func is not None, "3d-layout resource not found"
@@ -590,3 +582,28 @@ class TestEdgeCases:
         # Should handle unrecognized arguments gracefully
         with pytest.raises(SystemExit):
             main(["--invalid-arg"])
+
+    @staticmethod
+    def test_add_equity_node_with_very_large_price():
+        """Test add_equity_node with very large price value (boundary case)."""
+        from mcp_server import _build_mcp_app
+
+        mcp_app = _build_mcp_app()
+
+        tool_func = None
+        for tool in mcp_app.list_tools():
+            if tool.name == "add_equity_node":
+                tool_func = tool.fn
+                break
+
+        result = tool_func(
+            asset_id="TEST_LARGE_PRICE",
+            symbol="TLP",
+            name="Large Price Company",
+            sector="Technology",
+            price=1e15,  # Very large price
+        )
+
+        # Should accept very large valid price
+        assert "Validation Error" not in result
+        assert "Successfully" in result

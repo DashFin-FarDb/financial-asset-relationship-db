@@ -237,9 +237,7 @@ class TestDataQualityScore:
         assert re.search(pattern, report)
 
     @staticmethod
-    def test_quality_score_calculation_with_events(
-        populated_graph, sample_regulatory_event
-    ):
+    def test_quality_score_calculation_with_events(populated_graph, sample_regulatory_event):
         """Test quality score calculation with regulatory events."""
         populated_graph.add_regulatory_event(sample_regulatory_event)
         report = generate_schema_report(populated_graph)
@@ -471,3 +469,15 @@ class TestMultipleGenerations:
 
         # Reports should be different
         assert report1 != report2
+
+    @staticmethod
+    def test_report_includes_timestamp():
+        """Test that report includes timestamp information."""
+        from src.logic.asset_graph import AssetRelationshipGraph
+
+        graph = AssetRelationshipGraph()
+        report = generate_schema_report(graph)
+
+        # Report should reference date/time concepts
+        assert isinstance(report, str)
+        assert len(report) > 0

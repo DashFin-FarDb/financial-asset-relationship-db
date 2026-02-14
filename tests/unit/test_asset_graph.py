@@ -210,3 +210,16 @@ class TestGet3DVisualizationDataEnhanced:
         assert positions.shape[0] == n
         assert len(colors) == n
         assert len(hover_texts) == n
+
+    @staticmethod
+    def test_asset_ids_sorted():
+        """Test that asset IDs are returned in sorted order."""
+        graph = AssetRelationshipGraph()
+        # Add relationships in non-sorted order
+        graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
+        graph.relationships["mango"] = [("banana", "correlation", 0.7)]
+
+        _positions, asset_ids, _colors, _hover_texts = graph.get_3d_visualization_data_enhanced()
+
+        # Verify they are sorted
+        assert asset_ids == sorted(asset_ids)

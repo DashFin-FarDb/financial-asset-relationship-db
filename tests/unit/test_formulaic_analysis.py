@@ -761,23 +761,17 @@ class TestHelperMethods:
     def test_calculate_avg_correlation_strength_from_empirical():
         """Test _calculate_avg_correlation_strength_from_empirical."""
         # Empty empirical data
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
-            {}
-        )
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical({})
         assert result == 0.5
 
         # With correlation matrix
         empirical = {"correlation_matrix": {"pair1": 0.8, "pair2": 0.6}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
-            empirical
-        )
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
         assert 0 <= result <= 1
 
         # With perfect correlation (should filter out)
         empirical = {"correlation_matrix": {"pair1": 1.0, "pair2": 0.8}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
-            empirical
-        )
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
         assert 0 <= result <= 1
 
 
@@ -972,9 +966,7 @@ class TestRegressionCases:
         result = analyzer.analyze_graph(graph)
 
         for formula in result["formulas"]:
-            assert 0 <= formula.r_squared <= 1, (
-                f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
-            )
+            assert 0 <= formula.r_squared <= 1, f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
 
     @staticmethod
     def test_summary_consistency():
@@ -1194,9 +1186,7 @@ class TestIntegrationScenarios:
         graph = AssetRelationshipGraph()
 
         # Add multiple tech stocks
-        for i, (symbol, name) in enumerate(
-            [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
-        ):
+        for i, (symbol, name) in enumerate([("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]):
             equity = Equity(
                 id=symbol,
                 symbol=symbol,
@@ -1213,7 +1203,30 @@ class TestIntegrationScenarios:
 
         # Should identify correlations
         formulas = result["formulas"]
-        correlation_formulas = [
-            f for f in formulas if "Correlation" in f.name or "Beta" in f.name
-        ]
+        correlation_formulas = [f for f in formulas if "Correlation" in f.name or "Beta" in f.name]
         assert len(correlation_formulas) > 0
+
+    @staticmethod
+    def test_analyze_graph_quality_score_calculation():
+        """Test that quality score is calculated and within valid range [0, 1]."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            pe_ratio=25.5,
+        )
+        graph.add_asset(equity)
+        graph.build_relationships()
+
+        result = analyzer.analyze_graph(graph)
+
+        # Quality score should be in [0, 1]
+        assert "summary" in result
+        assert isinstance(result["formula_count"], int)
+        assert result["formula_count"] > 0

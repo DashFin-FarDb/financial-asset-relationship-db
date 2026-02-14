@@ -271,21 +271,13 @@ class TestSnykJobConfiguration:
     def test_job_uploads_sarif(self, snyk_job):
         """Test that job uploads SARIF results."""
         steps = snyk_job["steps"]
-        sarif_steps = [
-            s
-            for s in steps
-            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
-        ]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         assert len(sarif_steps) > 0
 
     def test_sarif_upload_uses_v4(self, snyk_job):
         """Test that SARIF upload uses CodeQL action v4."""
         steps = snyk_job["steps"]
-        sarif_steps = [
-            s
-            for s in steps
-            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
-        ]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         sarif_action = sarif_steps[0]["uses"]
         assert "@v4" in sarif_action
 
@@ -294,11 +286,7 @@ class TestSnykJobConfiguration:
         Asserts the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
         """
         steps = snyk_job["steps"]
-        sarif_steps = [
-            s
-            for s in steps
-            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
-        ]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         sarif_step = sarif_steps[0]
 
         assert "with" in sarif_step
@@ -375,11 +363,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(self, snyk_workflow_path):
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
-        lines = [
-            l
-            for l in content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
-        ]
+        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
@@ -420,9 +404,30 @@ class TestSnykWorkflowComments:
     def test_workflow_provides_context(self, snyk_workflow_content):
         """Test that workflow provides context about its purpose."""
         comments = " ".join(
-            l.strip("# ").lower()
-            for l in snyk_workflow_content.split("\n")
-            if l.strip().startswith("#")
+            l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments
+
+    def test_workflow_snyk_action_version_format(self, snyk_workflow_content):
+        """Test that Snyk action version follows expected format (SHA pinning)."""
+        workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
+        with open(workflow_path) as f:
+            workflow = yaml.safe_load(f)
+
+        snyk_job = workflow["jobs"]["snyk"]
+        steps = snyk_job["steps"]
+        snyk_steps = [s for s in steps if "uses" in s and "snyk/actions/iac@" in s["uses"]]
+
+        assert len(snyk_steps) > 0, "Should have at least one Snyk IaC action step"
+        snyk_action = snyk_steps[0]["uses"]
+
+        # Verify format: snyk/actions/iac@<SHA>
+        parts = snyk_action.split("@")
+        assert len(parts) == 2, "Action should have exactly one @ separator"
+        assert parts[0] == "snyk/actions/iac", "Action path should be snyk/actions/iac"
+
+        sha = parts[1]
+        # SHA-1 is 40 hex characters
+        assert len(sha) == 40, f"SHA should be 40 characters, got {len(sha)}"
+        assert all(c in "0123456789abcdef" for c in sha.lower()), "SHA should only contain hex characters"

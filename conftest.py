@@ -81,11 +81,6 @@ def db_session(
 
 
 @pytest.fixture()
-def database_url(tmp_path: Path) -> str:
-    """
-    Default test DB URL.
-
-@pytest.fixture()
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to set environment variables in tests.
@@ -94,7 +89,6 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         def test_x(set_env):
             set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
     """
-    Provide a transaction-scoped SQLAlchemy Session.
 
     def _setter(**kwargs: str) -> None:
         """

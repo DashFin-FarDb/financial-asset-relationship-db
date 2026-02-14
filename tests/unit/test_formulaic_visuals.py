@@ -500,3 +500,20 @@ class TestFormulaicVisualizer:
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
         assert abs(avg_value - 0.8) < 0.01, "Should correctly calculate average R-squared"
+
+    @staticmethod
+    def test_formula_dashboard_with_zero_formulas():
+        """Test dashboard creation with empty formula list."""
+        visualizer = FormulaicVisualizer()
+
+        analysis_results = {
+            "formulas": [],
+            "formula_count": 0,
+            "categories": {},
+        }
+
+        fig = visualizer.create_formula_dashboard(analysis_results)
+
+        # Should still create a valid figure
+        assert isinstance(fig, go.Figure)
+        assert fig.layout.title.text == "Financial Formula Analysis Dashboard"
