@@ -774,74 +774,64 @@ class FinancialAssetApp:
             )
 
             formula_selector.change(
-                self.show_formula_details,
-                inputs=[formula_selector, graph_state],
-                outputs=[formula_detail_view, error_message],
-            )
+        self.show_formula_details,
+        inputs=[formula_selector, graph_state],
+        outputs=[formula_detail_view, error_message],
+    )
 
-            for checkbox in [
-                show_same_sector,
-                show_market_cap,
-                show_correlation,
-                show_corporate_bond,
-                show_commodity_currency,
-                show_income_comparison,
-                show_regulatory,
-                show_all_relationships,
-                toggle_arrows,
-            ]:
-                checkbox.change(
-                    self.refresh_visualization,
-                    inputs=visualization_inputs,
-                    outputs=[visualization_3d, error_message],
-                )
+    for checkbox in [
+        show_same_sector,
+        show_market_cap,
+        show_correlation,
+        show_corporate_bond,
+        show_commodity_currency,
+        show_income_comparison,
+        show_regulatory,
+        show_all_relationships,
+        toggle_arrows,
+    ]:
+        checkbox.change(
+            self.refresh_visualization,
+            inputs=visualization_inputs,
+            outputs=[visualization_3d, error_message],
+        )
 
-            layout_type.change(
-                self.refresh_visualization,
-                inputs=visualization_inputs,
-                outputs=[visualization_outputs],
-            )
+    layout_type.change(
+        self.refresh_visualization,
+        inputs=visualization_inputs,
+        outputs=[visualization_3d, error_message],
+    )
 
-            reset_view_btn.click(
-                lambda graph_state, view_mode, layout_type: self.refresh_visualization(
-                    graph_state,
-                    view_mode,
-                    layout_type,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                ),
-                inputs=[graph_state, view_mode, layout_type],
-                outputs=[visualization_outputs],
-            )
+    reset_view_btn.click(
+        lambda graph_state, view_mode, layout_type: self.refresh_visualization(
+            graph_state,
+            view_mode,
+            layout_type,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+        ),
+        inputs=[graph_state, view_mode, layout_type],
+        outputs=[visualization_3d, error_message],
+    )
 
-            asset_selector.change(
-                self.update_asset_info,
-                inputs=[asset_selector, graph_state],
-                outputs=[asset_info, asset_relationships],
-            )
+    asset_selector.change(
+        self.update_asset_info,
+        inputs=[asset_selector, graph_state],
+        outputs=[asset_info, asset_relationships],
+    )
 
-            interface.load(
-                self.refresh_all_outputs,
-                inputs=[graph_state],
-                outputs=all_refresh_outputs,
-            )
+    interface.load(
+        self.refresh_all_outputs,
+        inputs=[graph_state],
+        outputs=all_refresh_outputs,
+    )
 
-        return interface
-
-
-if __name__ == "__main__":
-    try:
-        logger.info(AppConstants.APP_START_INFO)
-        app = FinancialAssetApp()
-        demo = app.create_interface()
-        logger.info(AppConstants.APP_LAUNCH_INFO)
-        demo.launch()
-    except Exception as exc:
+return interface
         logger.error("%s: %s", AppConstants.APP_START_ERROR, exc)
