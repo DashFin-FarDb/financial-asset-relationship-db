@@ -818,7 +818,7 @@ class FinancialAssetApp:
                     True,
                 ),
                 inputs=[graph_state, view_mode, layout_type],
-                    outputs=[visualization_3d, error_message],
+                outputs=[visualization_3d, error_message],
             )
 
             asset_selector.change(
