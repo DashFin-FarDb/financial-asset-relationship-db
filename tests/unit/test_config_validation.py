@@ -226,6 +226,7 @@ class TestPackageJson:
 class TestTSConfig:
     """Test cases for TypeScript configuration."""
 
+    @staticmethod
     @pytest.fixture
     def tsconfig():
         """Load tsconfig.json."""
