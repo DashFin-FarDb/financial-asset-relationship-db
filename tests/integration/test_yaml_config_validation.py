@@ -178,6 +178,12 @@ class TestWorkflowSchemaCompliance:
             assert len(unique_versions) <= 2, (
                 f"Too many different checkout versions: {checkout_versions}"
             )
+            for job_name, job in workflow["content"].get("jobs", {}).items():
+                for step in job.get("steps", []):
+                    uses = step.get("uses", "")
+                    if "actions/checkout@" in uses:
+                        version = uses.split("@")[-1]
+                        checkout_versions[str(workflow["path"])] = version
 
 
 class TestDefaultValueHandling:
