@@ -254,6 +254,7 @@ class TestRegulatoryEvent:
         """Test that impact score of exactly 1.0 is accepted (boundary case)."""
         event = RegulatoryEvent(
             id="EVENT_BOUNDARY_POS",
+
             asset_id="TEST_001",
             event_type=RegulatoryActivity.EARNINGS_REPORT,
             date="2024-01-15",
