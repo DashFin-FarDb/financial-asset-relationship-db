@@ -751,7 +751,7 @@ class FinancialAssetApp:
                         + "and empirical relationships derived\n"
                         + "from the asset database."
                     )
-            )
+            ]
 
             view_mode.change(
                 lambda *args: (
