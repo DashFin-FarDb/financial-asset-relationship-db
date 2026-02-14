@@ -81,21 +81,17 @@ class TestWorkflowSecretHandling:
     @staticmethod
     def test_secrets_not_echoed_in_logs(all_workflows):
         """
-        Ensure workflow secrets are not output to logs via `echo`, `print`, or `printf`.
+        Ensure workflow secrets are not written to logs using shell or print commands.
 
-        Scans each workflow's raw YAML for references of the form `secrets.<name>` and verifies
-        that any line containing such a reference does not invoke `echo`, `print`, or `printf`
-        (case-insensitive).
+        Scans each workflow's raw YAML content for references to `secrets.<name>` and asserts that any line containing a secret reference does not call `echo`, `print`, or `printf` (case-insensitive).
 
         Parameters:
-            all_workflows (Iterable[Mapping]): Iterable of workflow dictionaries. Each workflow
-                must provide a `raw` key with the YAML content as a string and a `path` key
-                used in assertion messages.
+            all_workflows (Iterable[Mapping]): Iterable of workflow dictionaries. Each item must include:
+                - `raw` (str): the workflow YAML content as a string.
+                - `path` (str): the workflow file path used in assertion messages.
 
         Raises:
-            AssertionError: If a secret reference appears on a line that uses `echo`, `print`,
-            or `printf`. The assertion message includes the secret name, workflow path, and line
-            number.
+            AssertionError: If a line containing a secret reference also invokes `echo`, `print`, or `printf`.
         """
         for workflow in all_workflows:
             raw_content = workflow["raw"]
@@ -138,10 +134,15 @@ class TestWorkflowPermissionsHardening:
     @staticmethod
     def test_workflows_define_explicit_permissions(all_workflows):
         """
-        Require each workflow to include a top-level 'permissions' key.
+        Ensure each workflow defines a top-level `permissions` key.
 
         Parameters:
-            all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item contains a 'content' mapping for the workflow YAML and a 'path' string used in failure messages.
+            all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item is a mapping containing:
+                - "content": mapping of the parsed workflow YAML
+                - "path": string path used in assertion failure messages
+
+        Raises:
+            AssertionError: If any workflow is missing the top-level `permissions` key; the assertion message includes the workflow `path`.
         """
         for workflow in all_workflows:
             assert "permissions" in workflow["content"], (
@@ -151,15 +152,14 @@ class TestWorkflowPermissionsHardening:
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
         """
-        Ensure each workflow defines least-privilege default permissions.
+        Enforces least-privilege default permissions for each workflow.
 
-        For each workflow in `all_workflows`:
-        - If `permissions` is a string, it must be "read-all" or "none".
-        - If `permissions` is a dict, no permission key may have the value "write" except for the allowed set {"contents", "pull-requests", "issues", "checks"}.
+        For each workflow in `all_workflows` this test asserts one of:
+        - When `permissions` is a string, it must be "read-all" or "none".
+        - When `permissions` is a mapping, any permission set to "write" must be one of: "contents", "pull-requests", "issues", "checks".
 
         Parameters:
-            all_workflows (iterable): Iterable of workflow mappings; each mapping is expected to contain at least
-                "path" (str) and "content" (dict) keys where "content" holds the workflow YAML structure.
+            all_workflows (iterable): Iterable of workflow mappings; each mapping must include "path" (str) and "content" (dict) where "content" contains the workflow YAML structure. Assertion failures reference the workflow's path.
         """
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})

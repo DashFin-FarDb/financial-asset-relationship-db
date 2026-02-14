@@ -141,12 +141,12 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-        Collects and parses all YAML workflow files found in .github / workflows.
+        Collect and parse all YAML workflow files in .github/workflows.
 
         Returns:
-            workflows(List[Dict[str, Any]]): A list of dictionaries, each containing:
+            List[Dict[str, Any]]: A list of mappings for each workflow file with keys:
                 - 'path' (Path): Path to the workflow file.
-                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load(typically a dict, or None if the file is empty).
+                - 'content' (Any): Parsed YAML content from yaml.safe_load (typically a dict, or `None` if the file is empty).
         """
         workflow_dir = Path(".github/workflows")
         workflows = []
@@ -207,9 +207,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
+        Validate `timeout-minutes` values for jobs in workflow files under .github/workflows.
 
-        Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive); assertion messages include the workflow file path and job id.
+        Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive). Assertion messages include the workflow file path and the job id for context.
         """
         workflow_dir = Path(".github/workflows")
 

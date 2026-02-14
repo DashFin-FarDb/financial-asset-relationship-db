@@ -143,7 +143,14 @@ def _apply_mock_graph_configuration(
 
 @pytest.fixture
 def apply_mock_graph():
-    """Return a helper callable that wires the patched graph to a concrete graph."""
+    """
+    Provide a helper callable that copies key graph attributes from a real AssetRelationshipGraph onto a patched graph instance.
+
+    The returned callable has the signature (mock_graph_instance, graph) and mutates mock_graph_instance so its public attributes (assets, relationships, calculate_metrics, get_3d_visualization_data) mirror those of the provided graph.
+
+    Returns:
+        callable: A function accepting (mock_graph_instance, graph) that updates the mock_graph_instance in-place to reflect the graph.
+    """
     return _apply_mock_graph_configuration
 
 
@@ -369,7 +376,9 @@ class TestRelationshipsEndpoint:
     def test_get_asset_relationships(
         self, mock_graph_instance, client, mock_graph, apply_mock_graph
     ):
-        """Test retrieving relationships for a specific asset."""
+        """
+        Verify that requesting /api/assets/TEST_AAPL/relationships returns a 200 response with a list of relationships, and that each relationship contains the fields `source_id`, `target_id`, `relationship_type`, and `strength`.
+        """
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/assets/TEST_AAPL/relationships")
@@ -865,9 +874,9 @@ class TestCacheCorruptionRegression:
 
         def load_from_cache():
             """
-            Load a cached real-data graph and record the outcome.
+            Load a cached real-data graph and record success or failure.
 
-            Attempts to instantiate RealDataFetcher with network disabled and create the cached graph. On success appends the resulting graph to the outer-scope `results` list; on failure appends the caught exception to the outer-scope `errors` list.
+            On success appends the created AssetRelationshipGraph to the outer-scope `results` list. On failure appends the caught Exception to the outer-scope `errors` list.
             """
             try:
                 from src.data.real_data_fetcher import RealDataFetcher

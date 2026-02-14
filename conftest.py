@@ -72,9 +72,15 @@ def db_session(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
     """
-    Provide a transaction-scoped SQLAlchemy Session.
+    Provide a transaction-scoped SQLAlchemy Session for a test.
 
-    Uses the project's session_scope helper to ensure commit/rollback/close semantics.
+    The yielded session is managed by the project's transaction scope: it will be committed if the test completes successfully and rolled back on failure, and it will be closed afterwards.
+
+    Parameters:
+        session_factory (Callable[[], Session]): Factory callable that returns a new SQLAlchemy Session bound to the test engine.
+
+    Returns:
+        session (Session): A SQLAlchemy Session managed for the duration of the test.
     """
     with session_scope(session_factory) as session:
         yield session
@@ -86,7 +92,18 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     Utility fixture to set environment variables in tests.
 
     Example:
-        def test_x(set_env):
+        """
+    Provide a default test SQLite database URL that points to a temporary on-disk file.
+
+    Creates a SQLite database file under the supplied `tmp_path` and returns a connection URL to that file. For faster, ephemeral tests use `"sqlite:///:memory:"` instead of this URL.
+
+    Parameters:
+        tmp_path (Path): pytest-provided temporary directory for the test.
+
+    Returns:
+        db_url (str): SQLite connection URL pointing to a file inside `tmp_path`.
+    """
+    def test_x(set_env):
             set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
     """
 
