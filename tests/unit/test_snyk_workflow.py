@@ -29,7 +29,6 @@ class TestSnykWorkflowStructure:
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     @pytest.fixture
-
         Args:
             snyk_workflow_path: Path to the Snyk workflow file.
 
@@ -149,11 +148,11 @@ class TestSnykWorkflowPermissions:
             return yaml.safe_load(f)
 
     def test_workflow_has_top_level_permissions(self, snyk_workflow):
-        """Test that workflow declares top-level permissions."""
+        """Test that workflow declares top - level permissions."""
         assert "permissions" in snyk_workflow
 
     def test_workflow_permissions_minimal(self, snyk_workflow):
-        """Test that top-level permissions follow principle of least privilege."""
+        """Test that top - level permissions follow principle of least privilege."""
         permissions = snyk_workflow["permissions"]
         # Top-level should be minimal (e.g., contents: read)
         if "contents" in permissions:
@@ -383,7 +382,7 @@ class TestSnykWorkflowEdgeCases:
         """
         Ensure workflow job names contain only ASCII letters, digits, hyphens, or underscores.
 
-        Fails if any job name includes characters outside the set [A-Za-z0-9-_].
+        Fails if any job name includes characters outside the set[A - Za - z0 - 9 - _].
         """
         with open(snyk_workflow_path) as f:
             workflow = yaml.safe_load(f)
@@ -408,7 +407,7 @@ class TestSnykWorkflowComments:
         assert "#" in snyk_workflow_content
 
     def test_workflow_documents_third_party_actions(self, snyk_workflow_content):
-        """Test that third-party action usage is documented."""
+        """Test that third - party action usage is documented."""
         # Should mention that actions are not certified by GitHub
         lines = snyk_workflow_content.split("\n")
         comment_lines = [l for l in lines if l.strip().startswith("#")]
@@ -423,7 +422,7 @@ class TestSnykWorkflowComments:
         assert "scan" in comments or "security" in comments
 
     def test_workflow_snyk_action_version_format(self, snyk_workflow_content):
-        """Test that Snyk action version follows expected format (SHA pinning)."""
+        """Test that Snyk action version follows expected format(SHA pinning)."""
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             workflow = yaml.safe_load(f)
