@@ -19,8 +19,7 @@ import yaml
 class TestSnykWorkflowStructure:
     """Test cases for Snyk workflow structure validation."""
 
-    `@pytest.fixture`
-
+    @pytest.fixture
     def snyk_workflow_path(self) -> Path:
         """Provide path to Snyk workflow file.
 
@@ -29,6 +28,7 @@ class TestSnykWorkflowStructure:
         """
         return Path(".github/workflows/snyk-infrastructure.yml")
 
+    @pytest.fixture
     `@pytest.fixture`
 
     def snyk_workflow(self, snyk_workflow_path: Path) -> dict:
