@@ -100,7 +100,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     relationship_dist = _as_str_int_map(metrics.get("relationship_distribution"))
     for rel_type, count in sorted(
         relationship_dist.items(),
-        key=lambda item: item[1],
+        key=lambda rel_tuple: rel_tuple[1],
         reverse=True,
     ):
         lines.append(f"- **{rel_type}**: {count} instances")
