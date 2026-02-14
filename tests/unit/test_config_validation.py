@@ -145,10 +145,10 @@ class TestPackageJson:
     def package_json(self):
         """
         Load and parse the frontend/package.json file.
-        
+
         Returns:
             dict: Parsed JSON content of frontend/package.json.
-        
+
         Raises:
             AssertionError: If frontend/package.json does not exist.
         """
@@ -237,9 +237,9 @@ class TestTSConfig:
     def tsconfig(self):
         """
         Load and parse frontend/tsconfig.json.
-        
+
         Asserts that the file exists and returns its parsed JSON content.
-        
+
         Returns:
             dict: Parsed contents of frontend/tsconfig.json.
         """
@@ -335,10 +335,10 @@ class TestEnvExampleFixture:
     def env_example_content(self):
         """
         Return the text contents of the repository's .env.example file.
-        
+
         Returns:
             str: Contents of .env.example.
-        
+
         Raises:
             AssertionError: If .env.example does not exist.
         """
@@ -355,9 +355,9 @@ class TestEnvExample:
     def env_example_content(self):
         """
         Return the contents of the .env.example file.
-        
+
         Asserts that .env.example exists; raises AssertionError if it does not.
-        
+
         Returns:
             content (str): The full text contents of .env.example.
         """
@@ -405,10 +405,10 @@ class TestGitignore:
     def gitignore_content():
         """
         Load and return the repository's .gitignore file content.
-        
+
         Returns:
             str: The raw text contents of `.gitignore`.
-        
+
         Raises:
             AssertionError: If `.gitignore` does not exist in the current working directory.
         """
@@ -551,7 +551,7 @@ class TestConfigurationConsistency:
     def test_api_url_consistency():
         """
         Assert that .env.example documents the NEXT_PUBLIC_API_URL environment variable.
-        
+
         Reads the .env.example file and fails if the literal `NEXT_PUBLIC_API_URL` is not present.
         """
         # Check .env.example
@@ -627,7 +627,7 @@ class TestConfigurationSecurityNegative:
     def test_no_api_keys_in_example_env():
         """
         Ensure .env.example does not contain likely real API keys or secrets.
-        
+
         Skips the test if .env.example is not present. Scans the file for long
         alphanumeric sequences and known live key prefixes (e.g., "sk_live", "pk_live", "prod_")
         and fails if a match appears on a line that does not include obvious placeholder
@@ -704,7 +704,7 @@ class TestMalformedConfigurationHandling:
     def test_package_json_wellformed():
         """
         Validate that frontend/package.json contains valid JSON.
-        
+
         Skips the test if frontend/package.json does not exist. Fails if the file cannot be parsed as JSON or if the top-level JSON value is not a JSON object.
         """
         package_path = Path("frontend/package.json")
@@ -722,7 +722,7 @@ class TestMalformedConfigurationHandling:
     def test_tsconfig_allows_comments():
         """
         Check that frontend/tsconfig.json is either valid JSON or JSONC (contains comments); skip when file is absent or uses comments, and fail only if it's malformed without comments.
-        
+
         If frontend/tsconfig.json does not exist, the test is skipped. If the file parses as JSON the test passes implicitly; if parsing fails but the file contains comment markers (`//` or `/*`), the test is skipped to allow JSONC; otherwise the test fails.
         """
         tsconfig_path = Path("frontend/tsconfig.json")
@@ -829,7 +829,7 @@ class TestConfigurationRobustness:
     def test_requirements_no_conflicting_versions():
         """
         Ensure requirements.txt does not contain duplicate package entries.
-        
+
         Skips the test if requirements.txt is missing. Reads non-empty, non-comment lines, normalizes package names by stripping common version specifiers and case, and fails if any package appears more than once.
         """
         requirements_path = Path("requirements.txt")

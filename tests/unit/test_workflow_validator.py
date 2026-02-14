@@ -334,7 +334,7 @@ jobs:
     def test_workflow_with_yaml_anchors():
         """
         Validate that a workflow containing YAML anchors is considered valid by validate_workflow.
-        
+
         This test creates a temporary workflow YAML that uses anchors and asserts the validator returns a valid ValidationResult.
         """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -437,7 +437,7 @@ class TestIntegrationWithActualWorkflows:
     def test_validate_all_project_workflows():
         """
         Validate every GitHub Actions workflow file in the repository's .github/workflows directory.
-        
+
         Skips the test if the workflows directory or no workflow files are present. For each workflow file, runs validate_workflow, collects any failures, and fails the test if any workflows are invalid, reporting the failing filenames and their associated error lists.
         """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"

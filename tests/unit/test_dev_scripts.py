@@ -511,7 +511,7 @@ class TestShellScripts:
     def test_cleanup_branches_has_dry_run_mode(self):
         """
         Check that cleanup-branches.sh includes a dry-run or preview mechanism before deleting branches.
-        
+
         Asserts the script prints a preview (for example, echoes branch names or intended delete actions) so users can review pending deletions before they are applied.
         """
         with open("cleanup-branches.sh") as f:

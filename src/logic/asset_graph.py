@@ -16,10 +16,10 @@ class AssetRelationshipGraph:
     def __init__(self, database_url: str | None = None) -> None:
         """
         Initialize an AssetRelationshipGraph and its internal state.
-        
+
         Parameters:
             database_url (str | None): Optional database connection URL used for external persistence; stored but not connected to during initialization.
-        
+
         Attributes initialized:
             assets: Mapping of asset_id to Asset.
             relationships: Mapping of source asset_id to a list of relationship tuples.
@@ -37,7 +37,7 @@ class AssetRelationshipGraph:
     def add_regulatory_event(self, event: RegulatoryEvent) -> None:
         """
         Record a regulatory event in the graph's internal event list.
-        
+
         Parameters:
             event (RegulatoryEvent): The regulatory event to record; it will be retained for subsequent processing of event-driven impacts.
         """
@@ -85,9 +85,9 @@ class AssetRelationshipGraph:
     ) -> None:
         """
         Add a relationship from one asset to another and optionally add the reverse relationship.
-        
+
         Duplicates are ignored for the same (target_id, rel_type) pair so existing identical relationships are not added again.
-        
+
         Parameters:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
@@ -112,11 +112,11 @@ class AssetRelationshipGraph:
     def _saturating_norm(count: int, k: float) -> float:
         """
         Convert a non-negative count into a normalized value between 0 and 1 using a saturating curve.
-        
+
         Parameters:
             count (int): Non-negative integer count. If count <= 0, the function returns 0.0.
             k (float): Saturation constant that controls how quickly the value approaches 1.0.
-        
+
         Returns:
             float: A normalized value in [0.0, 1.0]. Computed as count / (count + k) (returns 0.0 when count <= 0).
         """
@@ -127,7 +127,7 @@ class AssetRelationshipGraph:
     def calculate_metrics(self) -> dict[str, Any]:
         """
         Compute network and quality metrics for the current asset graph.
-        
+
         Returns:
             metrics (dict[str, Any]): A dictionary containing:
                 - total_assets: number of participating assets (assets plus relationship targets).
@@ -194,9 +194,9 @@ class AssetRelationshipGraph:
     ) -> tuple[np.ndarray, list[str], list[str], list[str]]:
         """
         Produce 3D positions, identifiers, colors, and hover labels for visualization.
-        
+
         If no participating assets exist, returns a single origin position with a placeholder id, color, and label.
-        
+
         Returns:
             positions (np.ndarray): An N x 3 array of XYZ coordinates for each asset (N >= 1).
             asset_ids (list[str]): Ordered list of asset identifiers corresponding to rows in `positions`.
@@ -220,7 +220,7 @@ class AssetRelationshipGraph:
     def _should_link_same_sector(asset1: Asset, asset2: Asset) -> bool:
         """
         Determine whether two assets share the same sector other than "Unknown".
-        
+
         Returns:
             True if both assets have the same sector and that sector is not "Unknown", False otherwise.
         """
@@ -230,7 +230,7 @@ class AssetRelationshipGraph:
     def _issuer_link(asset1: Asset, asset2: Asset, id1: str, id2: str) -> tuple[str, str] | None:
         """
         Identify a bond-to-issuer relationship between two assets.
-        
+
         Returns:
             tuple[str, str] | None: `(bond_id, issuer_id)` if one asset is a `Bond` whose `issuer_id`
             equals the other's id, `None` otherwise.
@@ -244,7 +244,7 @@ class AssetRelationshipGraph:
     def _apply_event_impacts(self) -> None:
         """
         Add non-bidirectional "event_impact" relationships from each regulatory event's asset to its related assets.
-        
+
         For each RegulatoryEvent in self.regulatory_events, if the event's asset_id and a related asset_id both exist in self.assets, add a relationship of type "event_impact" from the event asset to the related asset with strength equal to the absolute value of event.impact_score.
         """
         for event in self.regulatory_events:
@@ -265,7 +265,7 @@ class AssetRelationshipGraph:
     def _append_relationship(self, source_id: str, target_id: str, rel_type: str, strength: float) -> None:
         """
         Add a relationship from source_id to target_id if a relationship with the same target and type does not already exist.
-        
+
         Parameters:
             source_id (str): ID of the source asset whose relationship list will be updated.
             target_id (str): ID of the target asset for the relationship.
@@ -280,7 +280,7 @@ class AssetRelationshipGraph:
     def _collect_participating_asset_ids(self) -> set[str]:
         """
         Collect all asset IDs present in the graph, including assets stored in the graph and any target IDs referenced by relationships.
-        
+
         Returns:
             set[str]: A set of asset IDs that appear either as keys in `self.assets` or as target IDs in `self.relationships`.
         """
@@ -293,7 +293,7 @@ class AssetRelationshipGraph:
     def _asset_class_distribution(self) -> dict[str, int]:
         """
         Compute the distribution of asset classes among stored assets.
-        
+
         Returns:
             dict[str, int]: Mapping from each `asset_class.value` to the count of assets with that class.
         """
@@ -307,7 +307,7 @@ class AssetRelationshipGraph:
     def _relationship_density(asset_count: int, rel_count: int) -> float:
         """
         Compute the relationship density as the percentage of existing relationships versus the maximum possible directed edges between assets.
-        
+
         Returns:
             float: Percentage of existing relationships relative to the maximum possible directed edges (0.0–100.0).
         """

@@ -39,11 +39,11 @@ pytestmark = pytest.mark.unit
 def _assert_model_registered(model: type[Base], expected_tablename: str) -> None:
     """
     Verify that a SQLAlchemy declarative model has the expected `__tablename__`.
-    
+
     Parameters:
         model (type[Base]): The declarative model class to check.
         expected_tablename (str): The expected table name for the model.
-    
+
     Raises:
         AssertionError: If the model's `__tablename__` does not match `expected_tablename`.
     """
@@ -59,11 +59,11 @@ def _assert_model_registered(model: type[Base], expected_tablename: str) -> None
 def isolated_base() -> Iterator[type[Base]]:
     """
     Provide an isolated SQLAlchemy declarative base for a single test.
-    
+
     Yields a declarative-base subclass that test code can use to define models without
     leaking table metadata into the global Base.metadata; any tables registered on the
     global metadata during the fixture are removed after the fixture completes.
-    
+
     Returns:
         isolated_base (type[Base]): A declarative-base subclass for test-local models whose
         tables will be cleaned from the global metadata when the fixture finishes.
@@ -91,7 +91,7 @@ def isolated_base() -> Iterator[type[Base]]:
 def engine() -> Iterator[Engine]:
     """
     Create an in-memory SQLite Engine configured for tests.
-    
+
     Returns:
         Engine: An Engine connected to an in-memory SQLite database. The engine is disposed when the fixture is torn down.
     """
@@ -245,7 +245,7 @@ class TestDatabaseInitialization:
     ) -> None:
         """
         Verify that running database initialization does not remove existing rows from already-created tables.
-        
+
         This test creates a temporary model and inserts a row, calls init_db again, and asserts the inserted row remains present.
         """
 
@@ -377,7 +377,7 @@ class TestDefaultDatabaseURL:
     def test_env_override_works(self) -> None:
         """
         Ensure `ASSET_GRAPH_DATABASE_URL` environment variable overrides the default database URL used by create_engine_from_url.
-        
+
         Verifies that when the environment variable is set to a PostgreSQL URL, the created engine's URL reflects that override.
         """
         custom_url = "postgresql://test:test@localhost/test"
@@ -430,7 +430,7 @@ class TestConnectionPooling:
     def test_multiple_connections_to_same_in_memory_db(self) -> None:
         """
         Verify that multiple connections to the same in-memory SQLite engine share data when using a StaticPool.
-        
+
         Creates a table, inserts a row in one session, and asserts the row is visible from a separate session.
         """
         in_memory_engine = create_engine_from_url("sqlite:///:memory:")
@@ -489,7 +489,7 @@ class TestConcurrentDatabaseAccess:
         def create_session() -> None:
             """
             Create a session using the enclosing factory and record the result for the caller.
-            
+
             Appends the created session to the shared `sessions` list and closes it; if an exception occurs, appends the exception to the shared `errors` list.
             """
             try:
@@ -532,7 +532,7 @@ class TestConcurrentDatabaseAccess:
         def read_data() -> None:
             """
             Worker used by concurrent threads to read from the database and record results.
-            
+
             Appends the number of rows in `TestModel` to the shared `results` list. If an exception occurs during the read, appends the exception to the shared `errors` list.
             """
             try:
@@ -570,10 +570,10 @@ class TestConcurrentDatabaseAccess:
         def write_data(thread_id: int) -> None:
             """
             Insert a TestModel row using thread_id and record any exception to the shared `errors` list.
-            
+
             Parameters:
                 thread_id (int): Value used as the TestModel `id` for the inserted row.
-            
+
             Notes:
                 On failure, the raised exception is appended to the shared `errors` list as a side effect.
             """

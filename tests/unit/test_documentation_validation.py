@@ -473,7 +473,7 @@ class TestSystemManifest:
     def test_system_manifest_markdown_formatting(self, system_manifest_lines):
         """
         Check that Markdown headings in the System Manifest have a space after the leading hashes.
-        
+
         Examines up to the first 500 lines and asserts any line beginning with '#' contains a space immediately following the leading hash sequence (e.g. '# Title', '## Section'). On failure, raises an AssertionError identifying the offending line number and its content.
         """
         for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines

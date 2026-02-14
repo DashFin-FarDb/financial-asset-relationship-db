@@ -27,7 +27,7 @@ class TestEnhancedTestSummary:
     def summary_path(self):
         """
         Provide the filesystem path to the enhanced test summary Markdown file.
-        
+
         Returns:
             Path: Path to "ENHANCED_TEST_SUMMARY.md".
         """
@@ -99,10 +99,10 @@ class TestEnhancedTestSummary:
     def test_summary_valid_markdown_headings(self, summary_content):
         """
         Validate that every Markdown heading in the given content has a space after the leading `#` characters.
-        
+
         Parameters:
             summary_content (str): Full text of the Markdown summary to check.
-        
+
         Raises:
             AssertionError: If any heading line does not match the pattern `^#+\s`; message includes the failing line number.
         """
@@ -117,7 +117,7 @@ class TestEnhancedTestSummary:
     def test_summary_no_broken_formatting(self, summary_content):
         """
         Check that the markdown summary contains no malformed heading markers (each '#' heading is followed by a space).
-        
+
         Parameters:
             summary_content (str): Full text of the summary markdown file to validate.
         """
@@ -242,7 +242,7 @@ class TestDocumentationSummary:
     def summary_path(self):
         """
         Return the path to the test documentation summary file.
-        
+
         Returns:
             Path: Path to 'TEST_DOCUMENTATION_SUMMARY.md'.
         """

@@ -27,9 +27,9 @@ pytest.importorskip("sqlalchemy")
 def db_session(tmp_path):
     """
     Provide a SQLAlchemy Session connected to a temporary SQLite database for tests and ensure it is cleaned up after use.
-    
+
     This fixture creates a temporary SQLite database file, initializes the schema, yields a session bound to that database for test use, and closes the session and disposes the engine when the test completes.
-    
+
     Returns:
         session (Session): A SQLAlchemy Session connected to the temporary SQLite database.
     """

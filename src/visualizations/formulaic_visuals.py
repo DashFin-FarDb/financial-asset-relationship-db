@@ -236,9 +236,9 @@ class FormulaicVisualizer:
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
         """
         Render a table of up to ten top formulas (by descending R-squared) into the provided figure.
-        
+
         The table shows columns "Formula", "Category", and "R-squared" for each selected formula.
-        
+
         Parameters:
             fig (go.Figure): Plotly Figure (with subplot grid) to which the table trace will be added; the table is placed at row 3, column 2.
             formulas (Any): Iterable of formula objects or mappings. If truthy, up to the top 10 formulas by `r_squared` are selected and displayed; falsy values cause no trace to be added.
@@ -334,7 +334,7 @@ class FormulaicVisualizer:
     def create_formula_detail_view(formula: Formula) -> go.Figure:
         """
         Present full details of a Formula inside a Plotly figure annotation.
-        
+
         Parameters:
             formula (Formula): Object with attributes
                 - name
@@ -345,7 +345,7 @@ class FormulaicVisualizer:
                 - r_squared
                 - variables (mapping of variable name to description)
                 - example_calculation
-        
+
         Returns:
             go.Figure: Plotly Figure containing a formatted annotation summarizing the formula.
         """
@@ -490,12 +490,12 @@ class FormulaicVisualizer:
     def _create_circular_positions(assets: list[str]) -> Dict[str, tuple[float, float]]:
         """
         Compute unit-circle coordinates evenly spaced around the circle for each asset.
-        
+
         Positions start at angle 0 (point (1.0, 0.0)) and proceed counterclockwise, with assets placed in the order provided.
-        
+
         Parameters:
             assets (list[str]): Ordered list of asset identifiers.
-        
+
         Returns:
             Dict[str, tuple[float, float]]: Mapping from each asset identifier to its (x, y) coordinate on the unit circle.
         """
@@ -625,11 +625,11 @@ class FormulaicVisualizer:
     ) -> go.Figure:
         """
         Create a bar chart comparing average R-squared across formula categories.
-        
+
         Parameters:
             analysis_results (Dict[str, Any]): Analysis output that may include a "formulas"
                 key containing a list of Formula objects (each with `category` and `r_squared`).
-        
+
         Returns:
             go.Figure: A Plotly Figure containing a bar chart of average R-squared per category;
                 an empty Figure if no formulas are provided.

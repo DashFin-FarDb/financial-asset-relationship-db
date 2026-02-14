@@ -24,10 +24,10 @@ pytestmark = pytest.mark.unit
 def repository(tmp_path):
     """
     Provide an AssetGraphRepository backed by a temporary SQLite database for tests.
-    
+
     Parameters:
         tmp_path (pathlib.Path): Temporary directory path provided by pytest; the repository's SQLite file is created at tmp_path / "test_repo_comprehensive.db".
-    
+
     Returns:
         AssetGraphRepository: Repository instance connected to the test database. The fixture yields the repository and ensures the database session is closed and the engine disposed after use.
     """
@@ -441,7 +441,7 @@ class TestStrengthBoundaryValues:
     def test_strength_just_above_one_fails(repository):
         """
         Checks that adding or updating a relationship with strength greater than 1 raises a ValueError.
-        
+
         The test upserts two assets and attempts to create a relationship with strength 1.0001, expecting validation to reject values above 1.
         """
         asset1 = Equity(

@@ -134,7 +134,7 @@ class TestWorkflowSchemaCompliance:
     def all_workflows() -> List[Dict[str, Any]]:
         """
         Collect and parse all YAML workflow files in .github/workflows.
-        
+
         Returns:
             List[Dict[str, Any]]: A list of mappings for each workflow file with keys:
                 - 'path' (Path): Path to the workflow file.
@@ -196,7 +196,7 @@ class TestDefaultValueHandling:
     def test_workflow_timeout_defaults():
         """
         Validate `timeout-minutes` values for jobs in workflow files under .github/workflows.
-        
+
         Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive). Assertion messages include the workflow file path and the job id for context.
         """
         workflow_dir = Path(".github/workflows")

@@ -143,9 +143,9 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
 def apply_mock_graph():
     """
     Provide a helper callable that copies key graph attributes from a real AssetRelationshipGraph onto a patched graph instance.
-    
+
     The returned callable has the signature (mock_graph_instance, graph) and mutates mock_graph_instance so its public attributes (assets, relationships, calculate_metrics, get_3d_visualization_data) mirror those of the provided graph.
-    
+
     Returns:
         callable: A function accepting (mock_graph_instance, graph) that updates the mock_graph_instance in-place to reflect the graph.
     """
@@ -819,7 +819,7 @@ class TestCacheCorruptionRegression:
         def load_from_cache():
             """
             Load a cached real-data graph and record success or failure.
-            
+
             On success appends the created AssetRelationshipGraph to the outer-scope `results` list. On failure appends the caught Exception to the outer-scope `errors` list.
             """
             try:

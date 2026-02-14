@@ -48,9 +48,9 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 def client() -> Iterator[TestClient]:
     """
     Provide a TestClient configured with a sample in-memory graph and ensure the graph is reset after the test.
-    
+
     This fixture sets a sample graph on the API, yields a TestClient connected to the application, and restores the previous graph state when the client is torn down.
-    
+
     Returns:
         TestClient: A TestClient instance whose backend is seeded with the sample in-memory graph.
     """
@@ -252,9 +252,9 @@ class TestAPIEndpoints:
     def client():
         """
         Provide a TestClient with a pre-populated in-memory sample graph for endpoint tests.
-        
+
         Sets the application's graph to a sample in-memory database before yielding and resets the graph on teardown.
-        
+
         Returns:
             TestClient: Test client instance bound to the application with the sample graph loaded.
         """
@@ -737,7 +737,7 @@ class TestGraphInitializationRaceConditions:
         def init_graph():
             """
             Initialize the application graph and record the outcome for a concurrent worker.
-            
+
             Attempts to obtain the singleton graph and appends it to the shared `results` list; if an exception occurs, appends the exception to the shared `errors` list. This function has no return value and relies on those outer-scope lists for communicating results between threads.
             """
             try:
@@ -921,10 +921,10 @@ class TestEndpointStressTests:
     def client():
         """
         Provide a TestClient preloaded with a sample in-memory graph for tests.
-        
+
         Yields:
             TestClient: A TestClient instance for the FastAPI app with a sample graph set on the application.
-            
+
         Notes:
             The graph is reset after the client is released.
         """
@@ -938,7 +938,7 @@ class TestEndpointStressTests:
     def test_rapid_successive_requests(self, client):
         """
         Stress-test the health endpoint by issuing many rapid successive requests.
-        
+
         Asserts that each response returns HTTP status code 200.
         """
         responses = []
@@ -975,9 +975,9 @@ class TestErrorMessageQuality:
     def client():
         """
         Provide a TestClient with an in-memory sample graph for tests.
-        
+
         This fixture sets a sample graph on the API before yielding a TestClient and resets the graph after use.
-        
+
         Returns:
             TestClient: A TestClient for the FastAPI app with a preloaded in-memory sample graph.
         """

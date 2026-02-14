@@ -138,7 +138,7 @@ class TestConftestHelpers:
     def test_pytest_load_initial_conftests_empty_args():
         """
         Ensure calling pytest_load_initial_conftests with an empty args list leaves it unchanged when the pytest-cov plugin is not present.
-        
+
         Verifies the function does not raise and that the provided list remains empty after invocation.
         """
         with patch("conftest.importlib.util.find_spec", return_value=None):

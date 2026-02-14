@@ -23,7 +23,7 @@ class TestSnykWorkflowStructure:
     def snyk_workflow_path(self):
         """
         Path to the Snyk Infrastructure workflow file.
-        
+
         Returns:
             path (Path): Path object for ".github/workflows/snyk-infrastructure.yml".
         """
@@ -33,13 +33,13 @@ class TestSnykWorkflowStructure:
     def snyk_workflow(self, snyk_workflow_path):
         """
         Load and parse the Snyk workflow YAML file into a Python object.
-        
+
         Parameters:
             snyk_workflow_path (Path): Path to the Snyk workflow YAML file.
-        
+
         Returns:
             dict: Parsed YAML content as a Python dictionary or other YAML-derived structure.
-        
+
         Raises:
             AssertionError: If the provided path does not exist.
         """
@@ -93,7 +93,7 @@ class TestSnykWorkflowTriggers:
     def snyk_workflow(self):
         """
         Load and parse the Snyk GitHub Actions workflow file.
-        
+
         Returns:
             dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a Python mapping.
         """
@@ -153,7 +153,7 @@ class TestSnykWorkflowPermissions:
     def snyk_workflow(self):
         """
         Load and parse the Snyk GitHub Actions workflow file.
-        
+
         Returns:
             dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a Python mapping.
         """
@@ -168,7 +168,7 @@ class TestSnykWorkflowPermissions:
     def test_workflow_permissions_minimal(self, snyk_workflow):
         """
         Assert top-level workflow permissions use least privilege for repository contents.
-        
+
         If a top-level `contents` permission is present, it must be set to `"read"` or `"none"`.
         """
         permissions = snyk_workflow["permissions"]
@@ -208,7 +208,7 @@ class TestSnykJobConfiguration:
     def snyk_job(self):
         """
         Return the configuration dictionary for the `snyk` job from the repository workflow.
-        
+
         Returns:
             dict: Parsed job configuration for the `snyk` job from .github/workflows/snyk-infrastructure.yml.
         """
@@ -339,7 +339,7 @@ class TestSnykWorkflowSecurity:
     def snyk_workflow(self):
         """
         Load and parse the Snyk GitHub Actions workflow file.
-        
+
         Returns:
             dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a Python mapping.
         """
@@ -390,7 +390,7 @@ class TestSnykWorkflowEdgeCases:
     def snyk_workflow_path(self):
         """
         Path to the Snyk Infrastructure workflow file.
-        
+
         Returns:
             path (Path): Path object for ".github/workflows/snyk-infrastructure.yml".
         """
@@ -435,7 +435,7 @@ class TestSnykWorkflowComments:
     def snyk_workflow_content(self):
         """
         Return the raw text content of the Snyk workflow file.
-        
+
         Returns:
             workflow_content (str): Contents of .github/workflows/snyk-infrastructure.yml as a string.
         """
