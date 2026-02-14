@@ -830,6 +830,7 @@ class FinancialAssetApp:
         outputs=all_refresh_outputs,
     )
 
+    return interface
 
-        return interface
+
 logger.error("%s: %s", AppConstants.APP_START_ERROR, exc)
