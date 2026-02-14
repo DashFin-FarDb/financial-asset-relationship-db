@@ -774,10 +774,10 @@ class FinancialAssetApp:
             )
 
             formula_selector.change(
-        self.show_formula_details,
-        inputs=[formula_selector, graph_state],
-        outputs=[formula_detail_view, error_message],
-    )
+                self.show_formula_details,
+                inputs=[formula_selector, graph_state],
+                outputs=[formula_detail_view, error_message],
+            )
 
     for checkbox in [
         show_same_sector,
@@ -833,5 +833,6 @@ class FinancialAssetApp:
         outputs=all_refresh_outputs,
     )
 
+
 return interface
-        logger.error("%s: %s", AppConstants.APP_START_ERROR, exc)
+logger.error("%s: %s", AppConstants.APP_START_ERROR, exc)
