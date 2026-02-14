@@ -225,8 +225,9 @@ class TestPackageJson:
 class TestTSConfig:
     """Test cases for TypeScript configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def tsconfig(self):
+    def tsconfig():
         """Load tsconfig.json."""
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
