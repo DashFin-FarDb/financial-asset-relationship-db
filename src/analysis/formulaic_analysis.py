@@ -133,7 +133,7 @@ class FormulaicAnalyzer:
         if self._has_equities(graph):
             pe_formula = Formula(
                 name="Price-to-Earnings Ratio",
-                formula="PE = P / EPS",
+                expression="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
                 description=(
                     "Valuation metric comparing stock price to earnings per share"
