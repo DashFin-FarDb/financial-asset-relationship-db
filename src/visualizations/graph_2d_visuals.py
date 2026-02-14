@@ -179,11 +179,7 @@ def _create_2d_relationship_traces(
                 continue
 
             # Apply filters if not showing all relationships
-            if (
-                not show_all_relationships
-                and rel_type in relationship_filters
-                and not relationship_filters[rel_type]
-            ):
+            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
                 continue
 
             # Group by relationship type
@@ -252,32 +248,25 @@ def visualize_2d_graph(
     show_all_relationships: bool = False,
 ) -> go.Figure:
     """
-    Render a 2D Plotly visualization of an asset relationship graph using a
-    chosen layout and relationship filters.
-
+    Render a 2D Plotly network of assets and their filtered relationships.
+    
+    Renders assets as positioned markers and relationship types as separate line traces. The layout is chosen by `layout_type`; for the default "spring" layout the function will attempt to obtain 3D layout data from the graph and project it to 2D, falling back to a circular layout if 3D data is unavailable.
+    
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
-        layout_type (str): Layout algorithm to use; one of "spring", "circular",
-            or "grid".
-        show_same_sector (bool): Include "same sector"
-            relationships when True.
+        layout_type (str): Layout to use: "spring", "circular", or "grid".
+        show_same_sector (bool): Include "same sector" relationships when True.
         show_market_cap (bool): Include "market cap" relationships when True.
-        show_correlation (bool): Include "correlation"
-            relationships when True.
-        show_corporate_bond (bool): Include "corporate bond"
-            relationships when True.
-        show_commodity_currency (bool): Include "commodity/currency"
-            relationships when True.
-        show_income_comparison (bool): Include "income comparison"
-            relationships when True.
+        show_correlation (bool): Include "correlation" relationships when True.
+        show_corporate_bond (bool): Include "corporate bond" relationships when True.
+        show_commodity_currency (bool): Include "commodity/currency" relationships when True.
+        show_income_comparison (bool): Include "income comparison" relationships when True.
         show_regulatory (bool): Include "regulatory" relationships when True.
-        show_all_relationships (bool): If True, override individual toggles
-            and include all relationship types.
-
+        show_all_relationships (bool): If True, include all relationship types regardless of the individual toggles.
+    
     Returns:
-        go.Figure: A Plotly Figure containing the 2D network visualization of
-            assets and filtered relationships.
-
+        go.Figure: A Plotly Figure showing asset nodes (colored and sized by class and connections) and relationship traces grouped and colored by relationship type.
+    
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
     """
@@ -312,10 +301,7 @@ def visualize_2d_graph(
                 _,
             ) = graph.get_3d_visualization_data_enhanced()
             # Convert array to dictionary
-            positions_3d = {
-                asset_ids_ordered[i]: tuple(positions_3d_array[i])
-                for i in range(len(asset_ids_ordered))
-            }
+            positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
             positions = _create_spring_layout_2d(positions_3d, asset_ids)
         else:
             # Fallback to circular if 3D data not available
@@ -350,11 +336,7 @@ def visualize_2d_graph(
     colors = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = (
-            asset.asset_class.value
-            if hasattr(asset.asset_class, "value")
-            else str(asset.asset_class)
-        )
+        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
 
         # Color mapping by asset class
         color_map = {
@@ -378,9 +360,7 @@ def visualize_2d_graph(
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
         hover_text = f"{asset_id}<br>Class: " + (
-            asset.asset_class.value
-            if hasattr(asset.asset_class, "value")
-            else str(asset.asset_class)
+            asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
         )
         hover_texts.append(hover_text)
 

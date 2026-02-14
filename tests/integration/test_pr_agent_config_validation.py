@@ -266,25 +266,23 @@ class TestPRAgentConfigYAMLValidity:
 
             def construct_mapping(self, node, deep=False):
                 """
-                Construct a Python dict from a YAML mapping node, failing the test if duplicate keys are encountered.
-
+                Construct a dict from a YAML mapping node, failing the test if a duplicate key is encountered.
+                
                 Parameters:
-                    node: The YAML mapping node to construct (expected to provide `.value` pairs and `.start_mark.line`).
-                    deep (bool): If True, construct nested objects recursively.
-
+                    node: YAML mapping node whose `.value` contains (key node, value node) pairs; `.start_mark.line` is used for error reporting.
+                    deep (bool): If True, construct nested Python objects recursively.
+                
                 Returns:
                     dict: Mapping of constructed keys to their constructed values.
-
+                
                 Raises:
-                    pytest.fail: Fails the current test with a message that includes the 1-based line number when a duplicate key is found.
+                    pytest.fail: If a duplicate key is found in the mapping; the failure message includes the 1-based line number of the mapping node.
                 """
                 mapping = {}
                 for entry_node, val_node in node.value:
                     entry = self.construct_object(entry_node, deep=deep)
                     if entry in mapping:
-                        pytest.fail(
-                            f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}"
-                        )
+                        pytest.fail(f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}")
                     value = self.construct_object(val_node, deep=deep)
                     mapping[entry] = value
                 return mapping
@@ -308,9 +306,7 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
+                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
@@ -346,8 +342,10 @@ class TestPRAgentConfigSecurity:
         pr_agent_config: dict[str, object],
     ) -> None:
         """
-        Scan the PR agent configuration for values that resemble hardcoded credentials and fail the test if any are detected.
-
+        Fail the test if the PR agent configuration contains values that resemble hardcoded credentials.
+        
+        Scans the provided parsed PR agent YAML mapping for values that match credential-like patterns and fails with a list of redacted examples when any are found.
+        
         Parameters:
             pr_agent_config (dict[str, object]): Parsed PR agent YAML configuration to inspect.
         """
@@ -356,23 +354,23 @@ class TestPRAgentConfigSecurity:
 
         def _redact(value: str) -> str:
             """
-            Return a redacted version of a string preserving the first and last four characters when possible.
-
+            Redacts a string while preserving up to the first and last four characters.
+            
+            If the input length is 8 characters or fewer the function returns '***'. For longer inputs it returns a string composed of the first four characters, an ellipsis, and the last four characters (e.g. 'abcd...wxyz').
+            
+            Parameters:
+                value (str): The string to redact.
+            
             Returns:
-                A redacted string: '***' if the input length is 8 characters or fewer, otherwise a string of the form
-                '<first4>...<last4>' where the middle is replaced by an ellipsis.
+                str: The redacted string.
             """
             if len(value) <= 8:
                 return "***"
             return f"{value[:4]}...{value[-4:]}"
 
         if suspected:
-            details = "\n".join(
-                f"{kind}: {_redact(value)}" for kind, value in suspected
-            )
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            details = "\n".join(f"{kind}: {_redact(value)}" for kind, value in suspected)
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
     # ------------------------------------------------------------------
 
@@ -409,16 +407,16 @@ class TestPRAgentConfigSecurity:
 
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
-            Recursively scan a nested configuration object for keys that indicate sensitive values and assert those values are allowed placeholders.
-
-            When a dictionary key contains any configured sensitive pattern, its value is validated with `is_allowed_placeholder(value)`; an AssertionError is raised with the node path if the value is not allowed.
-
+            Validate that values for keys indicating secrets are allowed placeholders.
+            
+            Recursively traverse mappings, sequences, and scalars; when a mapping key contains any of the configured sensitive keywords, assert that its value satisfies `is_allowed_placeholder(value)`. If an invalid hardcoded value is found, raise an AssertionError including the dot/bracket path to the offending node.
+            
             Parameters:
-                node (object): The current node to inspect; may be a mapping, sequence, or scalar.
-                path (str): Dot/bracket-notation path to `node` used in assertion messages (default "root").
-
+                node (object): Current node to inspect; may be a dict, list/tuple, or scalar.
+                path (str): Dot/bracket-notation path to `node` used in error messages (default "root").
+            
             Raises:
-                AssertionError: If a sensitive key contains a disallowed hardcoded value.
+                AssertionError: If a sensitive key contains a disallowed hardcoded value (message includes the node path).
             """
             if isinstance(node, dict):
                 for k, v in node.items():
@@ -426,9 +424,7 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(p in key_lower for p in sensitive_patterns):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
 
                     scan_for_secrets(v, new_path)
 

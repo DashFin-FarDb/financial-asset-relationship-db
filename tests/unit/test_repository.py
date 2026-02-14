@@ -31,7 +31,15 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def repository(tmp_path):
-    """Create a repository with a test database."""
+    """
+    Provide a temporary AssetGraphRepository backed by a SQLite database for use in tests.
+    
+    Parameters:
+    	tmp_path (pathlib.Path): Temporary directory provided by pytest for filesystem isolation.
+    
+    Returns:
+    	AssetGraphRepository: A repository instance connected to a test SQLite database created under `tmp_path`. The fixture yields the repository and ensures the underlying database session is closed and the engine disposed after the test.
+    """
     db_path = tmp_path / "test_repo.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
@@ -295,9 +303,7 @@ class TestRelationshipOperations:
         repository.session.commit()
 
         # Add relationship
-        repository.add_or_update_relationship(
-            "ASSET1", "ASSET2", "same_sector", 0.7, bidirectional=True
-        )
+        repository.add_or_update_relationship("ASSET1", "ASSET2", "same_sector", 0.7, bidirectional=True)
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -330,15 +336,11 @@ class TestRelationshipOperations:
         repository.session.commit()
 
         # Add relationship
-        repository.add_or_update_relationship(
-            "UPDATE1", "UPDATE2", "test_rel", 0.5, bidirectional=False
-        )
+        repository.add_or_update_relationship("UPDATE1", "UPDATE2", "test_rel", 0.5, bidirectional=False)
         repository.session.commit()
 
         # Update relationship
-        repository.add_or_update_relationship(
-            "UPDATE1", "UPDATE2", "test_rel", 0.9, bidirectional=True
-        )
+        repository.add_or_update_relationship("UPDATE1", "UPDATE2", "test_rel", 0.9, bidirectional=True)
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -363,12 +365,8 @@ class TestRelationshipOperations:
         repository.session.commit()
 
         # Add relationships
-        repository.add_or_update_relationship(
-            "ASSET0", "ASSET1", "rel1", 0.5, bidirectional=False
-        )
-        repository.add_or_update_relationship(
-            "ASSET1", "ASSET2", "rel2", 0.6, bidirectional=False
-        )
+        repository.add_or_update_relationship("ASSET0", "ASSET1", "rel1", 0.5, bidirectional=False)
+        repository.add_or_update_relationship("ASSET1", "ASSET2", "rel2", 0.6, bidirectional=False)
         repository.session.commit()
 
         relationships = repository.list_relationships()
@@ -397,9 +395,7 @@ class TestRelationshipOperations:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "GET1", "GET2", "specific_rel", 0.8, bidirectional=True
-        )
+        repository.add_or_update_relationship("GET1", "GET2", "specific_rel", 0.8, bidirectional=True)
         repository.session.commit()
 
         rel = repository.get_relationship("GET1", "GET2", "specific_rel")
@@ -436,9 +432,7 @@ class TestRelationshipOperations:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "DEL1", "DEL2", "to_delete", 0.5, bidirectional=False
-        )
+        repository.add_or_update_relationship("DEL1", "DEL2", "to_delete", 0.5, bidirectional=False)
         repository.session.commit()
 
         repository.delete_relationship("DEL1", "DEL2", "to_delete")
@@ -541,9 +535,7 @@ class TestRegulatoryEventOperations:
         repository.upsert_regulatory_event(event)
         repository.session.commit()
 
-        events = (
-            repository.session.query(RegulatoryEventORM).filter_by(id="EVENT002").all()
-        )
+        events = repository.session.query(RegulatoryEventORM).filter_by(id="EVENT002").all()
         assert len(events) == 1
         assert events[0].impact_score == 0.9
         assert events[0].description == "Updated filing"
@@ -596,11 +588,7 @@ class TestRegulatoryEventOperations:
         repository.session.commit()
 
         # Verify related assets were linked
-        event_orm = (
-            repository.session.query(RegulatoryEventORM)
-            .filter_by(id="EVENT003")
-            .first()
-        )
+        event_orm = repository.session.query(RegulatoryEventORM).filter_by(id="EVENT003").first()
         assert len(event_orm.related_assets) == 2
 
 
@@ -765,9 +753,7 @@ class TestEdgeCases:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "ZERO1", "ZERO2", "zero_strength", 0.0, bidirectional=False
-        )
+        repository.add_or_update_relationship("ZERO1", "ZERO2", "zero_strength", 0.0, bidirectional=False)
         repository.session.commit()
 
         rel = repository.get_relationship("ZERO1", "ZERO2", "zero_strength")
@@ -797,9 +783,7 @@ class TestEdgeCases:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "MAX1", "MAX2", "max_strength", 1.0, bidirectional=False
-        )
+        repository.add_or_update_relationship("MAX1", "MAX2", "max_strength", 1.0, bidirectional=False)
         repository.session.commit()
 
         rel = repository.get_relationship("MAX1", "MAX2", "max_strength")
@@ -869,12 +853,8 @@ class TestComplexScenarios:
         repository.session.commit()
 
         # Add relationships between assets
-        repository.add_or_update_relationship(
-            "TECH1", "BOND1", "inverse_correlation", 0.3, bidirectional=True
-        )
-        repository.add_or_update_relationship(
-            "GOLD1", "EUR1", "commodity_currency", 0.6, bidirectional=False
-        )
+        repository.add_or_update_relationship("TECH1", "BOND1", "inverse_correlation", 0.3, bidirectional=True)
+        repository.add_or_update_relationship("GOLD1", "EUR1", "commodity_currency", 0.6, bidirectional=False)
         repository.session.commit()
 
         # Verify all assets exist
@@ -963,9 +943,7 @@ class TestComplexScenarios:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "CASCADE1", "CASCADE2", "test_rel", 0.5, bidirectional=False
-        )
+        repository.add_or_update_relationship("CASCADE1", "CASCADE2", "test_rel", 0.5, bidirectional=False)
         repository.session.commit()
 
         # Delete asset
@@ -974,11 +952,7 @@ class TestComplexScenarios:
 
         # Relationships should be cleaned up
         relationships = repository.list_relationships()
-        remaining_rels = [
-            r
-            for r in relationships
-            if r.source_id == "CASCADE1" or r.target_id == "CASCADE1"
-        ]
+        remaining_rels = [r for r in relationships if r.source_id == "CASCADE1" or r.target_id == "CASCADE1"]
         assert len(remaining_rels) == 0
 
 
@@ -1250,16 +1224,12 @@ class TestBoundaryValues:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship(
-            "NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False
-        )
+        repository.add_or_update_relationship("NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False)
         repository.session.commit()
 
         rel = repository.get_relationship("NEG1", "NEG2", "negative_corr")
         assert rel.strength == -0.8
-        repository.add_or_update_relationship(
-            "NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False
-        )
+        repository.add_or_update_relationship("NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False)
 
 
 @pytest.mark.unit
@@ -1391,9 +1361,7 @@ class TestNullAndEmptyValues:
         repository.session.commit()
 
         # Empty relationship type
-        repository.add_or_update_relationship(
-            "EMPTY1", "EMPTY2", "", 0.5, bidirectional=False
-        )
+        repository.add_or_update_relationship("EMPTY1", "EMPTY2", "", 0.5, bidirectional=False)
         repository.session.commit()
 
         rel = repository.get_relationship("EMPTY1", "EMPTY2", "")
@@ -1492,12 +1460,8 @@ class TestComplexQueries:
         repository.session.commit()
 
         # Create relationships
-        repository.add_or_update_relationship(
-            "PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False
-        )
-        repository.add_or_update_relationship(
-            "PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False
-        )
+        repository.add_or_update_relationship("PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False)
+        repository.add_or_update_relationship("PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False)
         repository.session.commit()
 
         # Delete middle asset

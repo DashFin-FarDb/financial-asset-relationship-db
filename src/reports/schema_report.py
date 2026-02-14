@@ -6,7 +6,16 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 
 def _as_int(value: Any, default: int = 0) -> int:
-    """Best-effort conversion to int (for count-like metrics)."""
+    """
+    Convert a value to an integer using best-effort coercion for count-like metrics.
+    
+    Parameters:
+        value (Any): Value to convert; if `None` the `default` is returned.
+        default (int): Fallback integer returned when conversion is not possible.
+    
+    Returns:
+        int: The converted integer, or `default` if conversion fails.
+    """
     try:
         if value is None:
             return default
@@ -16,7 +25,18 @@ def _as_int(value: Any, default: int = 0) -> int:
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
-    """Best-effort conversion to float (for ratio/score-like metrics)."""
+    """
+    Coerce a value to a float, falling back to a default on failure.
+    
+    Attempts to convert `value` to a float; if `value` is None or cannot be converted (raises TypeError or ValueError), returns `default`.
+    
+    Parameters:
+        value: The input to convert to float; any type is accepted.
+        default (float): Value returned when conversion is not possible.
+    
+    Returns:
+        float: The converted float, or `default` if conversion fails.
+    """
     try:
         if value is None:
             return default
@@ -26,7 +46,17 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 
 
 def _as_str_int_map(value: Any) -> dict[str, int]:
-    """Return a dict[str, int] if possible, otherwise {}."""
+    """
+    Coerce a mapping-like value into a dictionary with string keys and integer values.
+    
+    If the input is not a Mapping, returns an empty dictionary. For each item in the mapping, string keys are retained and their values are converted to integers using a best-effort conversion that defaults to 0 on failure; non-string keys are ignored.
+    
+    Parameters:
+        value (Any): The value to coerce into a dict[str, int].
+    
+    Returns:
+        dict[str, int]: A dictionary of string keys to integer values, or an empty dict if the input is not a mapping or contains no string-keyed entries.
+    """
     if not isinstance(value, Mapping):
         return {}
     out: dict[str, int] = {}
@@ -38,8 +68,12 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
 
 def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
-    Coerce the top_relationships list into a stable typed structure:
-    list[(source, target, rel_type, strength)].
+    Normalize a value into a list of top relationships as (source, target, rel_type, strength) tuples.
+    
+    If the input is not a list, returns an empty list. Items that are 4-tuples whose first three elements are strings are converted: the fourth element is coerced to a float and used as `strength`. Invalid items are ignored.
+    
+    Returns:
+        list[tuple[str, str, str, float]]: A list of validated (source, target, relationship_type, strength) tuples.
     """
     if not isinstance(value, list):
         return []
@@ -59,23 +93,13 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown report describing the database schema and
-    relationship distributions, calculated metrics,
-    business / regulatory / valuation rules, and optimization recommendations
-    for an asset relationship graph.
-
-    Args:
-        graph: The asset relationship graph to analyze and summarize.
-
+    Produce a Markdown report that summarizes the schema, relationship distributions, calculated metrics, top relationships, business/regulatory/valuation rules, data quality score, recommendations, and implementation notes for an asset relationship graph.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to analyze and summarize.
+    
     Returns:
-        A Markdown - formatted string containing the schema overview,
-        relationship type distribution, network statistics, asset - class
-        distributions, top relationships, business / regulatory / valuation
-        rules, data quality score(from graph metrics), recommendations,
-        and implementation notes.
-
-    Raises:
-        Exception: Propagates errors from graph.calculate_metrics().
+        str: Markdown-formatted report containing the assembled schema overview, relationship type distribution, network statistics, asset-class distribution, top relationships, business and regulatory rules, data quality score, recommendations, and implementation notes.
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 
@@ -88,10 +112,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
         "3. **Commodity** - Physical assets with contracts and delivery dates",
-        (
-            "4. **Currency** - FX pairs or single-currency proxies with "
-            "exchange rates and policy links"
-        ),
+        ("4. **Currency** - FX pairs or single-currency proxies with " "exchange rates and policy links"),
         "5. **Regulatory Events** - Corporate actions and SEC filings",
         "",
         "### Relationship Types",

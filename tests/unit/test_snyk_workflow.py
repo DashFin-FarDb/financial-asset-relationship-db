@@ -21,12 +21,28 @@ class TestSnykWorkflowStructure:
 
     @pytest.fixture
     def snyk_workflow_path(self):
-        """Provide path to Snyk workflow file."""
+        """
+        Path to the Snyk Infrastructure workflow file.
+        
+        Returns:
+            path (Path): Path object for ".github/workflows/snyk-infrastructure.yml".
+        """
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     @pytest.fixture
     def snyk_workflow(self, snyk_workflow_path):
-        """Load and parse Snyk workflow YAML."""
+        """
+        Load and parse the Snyk workflow YAML file into a Python object.
+        
+        Parameters:
+            snyk_workflow_path (Path): Path to the Snyk workflow YAML file.
+        
+        Returns:
+            dict: Parsed YAML content as a Python dictionary or other YAML-derived structure.
+        
+        Raises:
+            AssertionError: If the provided path does not exist.
+        """
         assert snyk_workflow_path.exists(), "Snyk workflow file not found"
         with open(snyk_workflow_path) as f:
             return yaml.safe_load(f)
@@ -75,7 +91,12 @@ class TestSnykWorkflowTriggers:
 
     @pytest.fixture
     def snyk_workflow(self):
-        """Load Snyk workflow."""
+        """
+        Load and parse the Snyk GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a Python mapping.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             return yaml.safe_load(f)
@@ -130,7 +151,12 @@ class TestSnykWorkflowPermissions:
 
     @pytest.fixture
     def snyk_workflow(self):
-        """Load Snyk workflow."""
+        """
+        Load and parse the Snyk GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a Python mapping.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             return yaml.safe_load(f)
@@ -140,7 +166,11 @@ class TestSnykWorkflowPermissions:
         assert "permissions" in snyk_workflow
 
     def test_workflow_permissions_minimal(self, snyk_workflow):
-        """Test that top-level permissions follow principle of least privilege."""
+        """
+        Assert top-level workflow permissions use least privilege for repository contents.
+        
+        If a top-level `contents` permission is present, it must be set to `"read"` or `"none"`.
+        """
         permissions = snyk_workflow["permissions"]
         # Top-level should be minimal (e.g., contents: read)
         if "contents" in permissions:
@@ -176,7 +206,12 @@ class TestSnykJobConfiguration:
 
     @pytest.fixture
     def snyk_job(self):
-        """Load Snyk job configuration."""
+        """
+        Return the configuration dictionary for the `snyk` job from the repository workflow.
+        
+        Returns:
+            dict: Parsed job configuration for the `snyk` job from .github/workflows/snyk-infrastructure.yml.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             workflow = yaml.safe_load(f)
@@ -269,23 +304,17 @@ class TestSnykJobConfiguration:
         assert "file" in snyk_step["with"]
 
     def test_job_uploads_sarif(self, snyk_job):
-        """Test that job uploads SARIF results."""
+        """
+        Assert that the job includes a SARIF upload step using the `codeql-action/upload-sarif` action.
+        """
         steps = snyk_job["steps"]
-        sarif_steps = [
-            s
-            for s in steps
-            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
-        ]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         assert len(sarif_steps) > 0
 
     def test_sarif_upload_uses_v4(self, snyk_job):
         """Test that SARIF upload uses CodeQL action v4."""
         steps = snyk_job["steps"]
-        sarif_steps = [
-            s
-            for s in steps
-            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
-        ]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         sarif_action = sarif_steps[0]["uses"]
         assert "@v4" in sarif_action
 
@@ -294,11 +323,7 @@ class TestSnykJobConfiguration:
         Asserts the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
         """
         steps = snyk_job["steps"]
-        sarif_steps = [
-            s
-            for s in steps
-            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
-        ]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         sarif_step = sarif_steps[0]
 
         assert "with" in sarif_step
@@ -312,7 +337,12 @@ class TestSnykWorkflowSecurity:
 
     @pytest.fixture
     def snyk_workflow(self):
-        """Load Snyk workflow."""
+        """
+        Load and parse the Snyk GitHub Actions workflow file.
+        
+        Returns:
+            dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a Python mapping.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             return yaml.safe_load(f)
@@ -358,7 +388,12 @@ class TestSnykWorkflowEdgeCases:
 
     @pytest.fixture
     def snyk_workflow_path(self):
-        """Provide path to Snyk workflow file."""
+        """
+        Path to the Snyk Infrastructure workflow file.
+        
+        Returns:
+            path (Path): Path object for ".github/workflows/snyk-infrastructure.yml".
+        """
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     def test_workflow_file_not_empty(self, snyk_workflow_path):
@@ -375,11 +410,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(self, snyk_workflow_path):
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
-        lines = [
-            l
-            for l in content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
-        ]
+        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
@@ -402,7 +433,12 @@ class TestSnykWorkflowComments:
 
     @pytest.fixture
     def snyk_workflow_content(self):
-        """Load Snyk workflow file content."""
+        """
+        Return the raw text content of the Snyk workflow file.
+        
+        Returns:
+            workflow_content (str): Contents of .github/workflows/snyk-infrastructure.yml as a string.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         return workflow_path.read_text()
 
@@ -420,9 +456,7 @@ class TestSnykWorkflowComments:
     def test_workflow_provides_context(self, snyk_workflow_content):
         """Test that workflow provides context about its purpose."""
         comments = " ".join(
-            l.strip("# ").lower()
-            for l in snyk_workflow_content.split("\n")
-            if l.strip().startswith("#")
+            l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments
