@@ -433,15 +433,7 @@ class FinancialAssetApp:
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
-        summary_lines: list[str] = [
-            return (
-                empty_fig,
-                empty_fig,  # noqa: S5799 - intentional repetition for multiple outputs
-                empty_fig,
-                gr.update(choices=[], value=None),
-                error_msg,
-                gr.update(value=error_msg, visible=True),
-            )
+        summary_lines: list[str] = []
 
         categories = summary.get("formula_categories", {})
         if isinstance(categories, dict):
