@@ -435,8 +435,8 @@ class FinancialAssetApp:
         """Build a human-readable summary of formulaic analysis results for display."""
         empirical = analysis_results.get("empirical_relationships", {})
 
-                interactive=False,
-                elem_id="error_message",
+                interactive = False,
+                elem_id = "error_message",
             )
 
             with gr.Tabs(), gr.Tab("🌐 Network Visualization (2D/3D)"):
