@@ -181,11 +181,9 @@ class FinancialAssetApp:
 
     def ensure_graph(self) -> AssetRelationshipGraph:
         """Ensures the graph is initialized, re-creating sample data if it's None."""
-        if self.graph is None:
-            logger.warning("Graph is None, re-creating sample database.")
-            self._initialize_graph()
         # At this point it must be non-None
-        assert self.graph is not None
+        if self.graph is None:
+            raise RuntimeError("Graph initialisation failed")
         return self.graph
 
     @staticmethod
