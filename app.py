@@ -514,7 +514,7 @@ class FinancialAssetApp:
                         show_commodity_currency = gr.Checkbox(
                             label="Commodity ↔ Currency", value=True
                         )
-                        show_income_comparison = gr.Checkbox(
+                        gr.Checkbox(
                             label="Income Comparison (↔)", value=True
                         )
         with gr.Blocks(title=AppConstants.TITLE) as interface:
@@ -834,5 +834,5 @@ class FinancialAssetApp:
     )
 
 
-return interface
 logger.error("%s: %s", AppConstants.APP_START_ERROR, exc)
+
