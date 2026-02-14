@@ -434,9 +434,11 @@ class FinancialAssetApp:
     ) -> str:
         """Build a human-readable summary of formulaic analysis results for display."""
         empirical = analysis_results.get("empirical_relationships", {})
+        # TODO: Implement formatting of the empirical relationships into a summary string.
+         return json.dumps({"empirical_relationships": empirical}, indent=2)
 
-                interactive = False,
-                elem_id = "error_message",
+            # The following UI layout code is defined elsewhere in the class.
+                 elem_id="error_message",
             )
 
             with gr.Tabs(), gr.Tab("🌐 Network Visualization (2D/3D)"):
