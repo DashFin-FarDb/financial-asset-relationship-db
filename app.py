@@ -799,7 +799,7 @@ class FinancialAssetApp:
             layout_type.change(
                 self.refresh_visualization,
                 inputs=visualization_inputs,
-                outputs=visualization_output,
+                outputs=visualization_outputs,
             )
 
             reset_view_btn.click(
