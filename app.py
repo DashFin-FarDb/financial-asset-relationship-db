@@ -158,14 +158,10 @@ class FinancialAssetApp:
                 graph = fn()
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
-                raise TypeError(
-                    f"{name}() returned {type(graph)!r}, "
-                    f"expected AssetRelationshipGraph"
-                )
+                raise TypeError(f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph")
 
         raise AttributeError(
-            "No known database factory found in src.data.real_data_fetcher. "
-            f"Tried: {', '.join(candidates)}"
+            f"No known database factory found in src.data.real_data_fetcher. Tried: {', '.join(candidates)}"
         )
 
     def _initialize_graph(self) -> None:
@@ -438,17 +434,14 @@ class FinancialAssetApp:
         empirical = analysis_results.get("empirical_relationships", {})
 
         summary_lines: list[str] = [
-            "🔍 **Formulaic Analysis Summary**",
-            "",
-            f"📊 **Total Formulas Identified:** "
-            f"{len(formulas) if isinstance(formulas, list) else 0}",
-            f"📈 **Average Reliability (R²):** "
-            f"{float(summary.get('avg_r_squared', 0.0)):.3f}",
-            f"🔗 **Empirical Data Points:** "
-            f"{int(summary.get('empirical_data_points', 0))}",
-            "",
-            "📋 **Formula Categories:**",
-        ]
+            return (
+                empty_fig,
+                empty_fig,  # noqa: S5799 - intentional repetition for multiple outputs
+                empty_fig,
+                gr.update(choices=[], value=None),
+                error_msg,
+                gr.update(value=error_msg, visible=True),
+            )
 
         categories = summary.get("formula_categories", {})
         if isinstance(categories, dict):
@@ -747,17 +740,17 @@ class FinancialAssetApp:
                 show_correlation,
                 show_corporate_bond,
                 show_commodity_currency,
-                show_income_comparison,
-                show_regulatory,
-                show_all_relationships,
-                toggle_arrows,
-            ]
-            visualization_outputs = [visualization_3d, error_message]
-
-            refresh_btn.click(
-                self.refresh_visualization,
-                inputs=visualization_inputs,
-                outputs=visualization_outputs,
+                gr.Markdown(
+                        "## Mathematical Relationships & Formulas\n\n"
+                        + "This section extracts and visualizes\n"
+                        + "mathematical formulas and relationships\n"
+                        + "between financial variables.\n"
+                        + "It includes fundamental financial ratios,\n"
+                        + "correlation patterns,\n"
+                        + "valuation models,\n"
+                        + "and empirical relationships derived\n"
+                        + "from the asset database."
+                    )
             )
 
             view_mode.change(
