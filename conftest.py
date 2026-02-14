@@ -81,12 +81,6 @@ def db_session(
 
 
 @pytest.fixture()
-"""Module for pytest fixtures to set environment variables in tests.
-
-This module provides fixtures to simplify setting environment variables during testing.
-"""
-
-
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to set environment variables in tests.

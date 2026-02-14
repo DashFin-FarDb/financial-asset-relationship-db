@@ -793,13 +793,13 @@ class FinancialAssetApp:
                 checkbox.change(
                     self.refresh_visualization,
                     inputs=visualization_inputs,
-                    outputs=visualization_output,
+                    outputs=visualization_outputs,
                 )
 
             layout_type.change(
                 self.refresh_visualization,
                 inputs=visualization_inputs,
-                outputs=visualization_output,
+                outputs=visualization_outputs,
             )
 
             reset_view_btn.click(
@@ -818,7 +818,7 @@ class FinancialAssetApp:
                     True,
                 ),
                 inputs=[graph_state, view_mode, layout_type],
-                outputs=visualization_output,
+                outputs=visualization_outputs,
             )
 
             asset_selector.change(
