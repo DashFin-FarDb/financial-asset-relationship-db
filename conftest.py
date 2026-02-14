@@ -103,7 +103,6 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
 
 
 @pytest.fixture()
-
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to unset env vars in tests:
