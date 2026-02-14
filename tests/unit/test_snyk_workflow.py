@@ -19,18 +19,31 @@ import yaml
 class TestSnykWorkflowStructure:
     """Test cases for Snyk workflow structure validation."""
 
-    @pytest.fixture
-    def snyk_workflow_path(self):
-        """Provide path to Snyk workflow file."""
+    `@pytest.fixture`
+    def snyk_workflow_path(self) -> Path:
+        """Provide path to Snyk workflow file.
+
+        Returns:
+            Path: Path object pointing to the Snyk workflow file.
+        """
         return Path(".github/workflows/snyk-infrastructure.yml")
 
-    @pytest.fixture
-    def snyk_workflow(self, snyk_workflow_path):
-        """Load and parse Snyk workflow YAML."""
+    `@pytest.fixture`
+    def snyk_workflow(self, snyk_workflow_path: Path) -> dict:
+        """Load and parse Snyk workflow YAML.
+
+        Args:
+            snyk_workflow_path: Path to the Snyk workflow file.
+
+        Returns:
+            dict: Parsed YAML workflow configuration.
+
+        Raises:
+            AssertionError: If the Snyk workflow file does not exist.
+        """
         assert snyk_workflow_path.exists(), "Snyk workflow file not found"
         with open(snyk_workflow_path) as f:
             return yaml.safe_load(f)
-
     def test_workflow_file_exists(self, snyk_workflow_path):
         """Test that Snyk workflow file exists."""
         assert snyk_workflow_path.exists()
