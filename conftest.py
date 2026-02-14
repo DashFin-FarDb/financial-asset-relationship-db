@@ -16,12 +16,7 @@ import pytest
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.data.database import (
-    Base,
-    create_engine_from_url,
-    create_session_factory,
-    session_scope,
-)
+from src.data.database import Base, create_engine_from_url, create_session_factory, session_scope
 
 
 @pytest.fixture(autouse=True)
@@ -68,9 +63,7 @@ def session_factory(engine: Engine) -> sessionmaker[Session]:
 
 
 @pytest.fixture()
-def db_session(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
+def db_session(session_factory: Callable[[], Session]) -> Generator[Session, None, None]:
     """
     Provide a transaction-scoped SQLAlchemy Session.
 
@@ -90,10 +83,23 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
 
     def _setter(**kwargs: str) -> None:
-        """
-        Sets environment variables using the provided key-value pairs via monkeypatch.
-        """
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
 
     return _setter
+
+
+@pytest.fixture()
+def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
+    """
+    Utility fixture to unset env vars in tests:
+
+        def test_x(unset_env):
+            unset_env("ASSET_GRAPH_DATABASE_URL")
+    """
+
+    def _unsetter(*keys: str) -> None:
+        for key in keys:
+            monkeypatch.delenv(key, raising=False)
+
+    return _unsetter
