@@ -86,6 +86,7 @@ def db_session(
 This module provides fixtures to simplify setting environment variables during testing.
 """
 
+
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Utility fixture to set environment variables in tests.
@@ -113,6 +114,7 @@ Pytest fixtures for environment variable management.
 
 This module provides utilities to remove environment variables in tests using monkeypatch.
 """
+
 
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
