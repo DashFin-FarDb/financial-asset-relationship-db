@@ -517,7 +517,6 @@ class FinancialAssetApp:
                         gr.Checkbox(label="Income Comparison (↔)", value=True)
         with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
-
             error_message = gr.Textbox(
                 label=AppConstants.ERROR_LABEL,
                 visible=False,
@@ -832,4 +831,5 @@ class FinancialAssetApp:
     )
 
 
+        return interface
 logger.error("%s: %s", AppConstants.APP_START_ERROR, exc)
