@@ -435,45 +435,6 @@ class FinancialAssetApp:
         """Build a human-readable summary of formulaic analysis results for display."""
         empirical = analysis_results.get("empirical_relationships", {})
 
-        summary_lines: list[str] = []
-
-        categories = summary.get("formula_categories", {})
-        if isinstance(categories, dict):
-            for category, count in categories.items():
-                summary_lines.append(f"  • {category}: {count} formulas")
-
-        summary_lines.extend(["", "🎯 **Key Insights:**"])
-
-        insights = summary.get("key_insights", [])
-        if isinstance(insights, list):
-            for insight in insights:
-                summary_lines.append(f"  • {insight}")
-
-        correlations = empirical.get("strongest_correlations", [])
-        if isinstance(correlations, list) and correlations:
-            summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
-            for corr in correlations[:3]:
-                if isinstance(corr, dict):
-                    pair = corr.get("pair", "n/a")
-                    correlation = corr.get("correlation", 0.0)
-                    strength = corr.get("strength", "n/a")
-                    try:
-                        summary_lines.append(
-                            f"  • {pair}: {float(correlation):.3f} ({strength})"
-                        )
-                    except (TypeError, ValueError):
-                        summary_lines.append(f"  • {pair}: n/a ({strength})")
-
-        return "\n".join(summary_lines)
-
-    def create_interface(self) -> gr.Blocks:
-        """Create and configure the Gradio Blocks interface."""
-        with gr.Blocks(title=AppConstants.TITLE):
-            gr.Markdown(AppConstants.MARKDOWN_HEADER)
-
-            gr.Textbox(
-                label=AppConstants.ERROR_LABEL,
-                visible=False,
                 interactive=False,
                 elem_id="error_message",
             )
