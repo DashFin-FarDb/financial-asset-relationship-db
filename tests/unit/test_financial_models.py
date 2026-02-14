@@ -153,7 +153,7 @@ class TestBond:
     def test_bond_optional_fields():
         """
         Verify that optional Bond fields default to None when they are not provided.
-        
+
         Asserts that `yield_to_maturity`, `coupon_rate`, and `issuer_id` are `None`.
         """
         bond = Bond(

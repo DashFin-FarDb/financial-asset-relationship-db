@@ -330,7 +330,7 @@ class TestSampleDataConsistency:
     def test_relationship_targets_exist():
         """
         Verify that every relationship's source and target IDs exist among the graph's assets.
-        
+
         Asserts that each relationship key present in graph.relationships is a valid asset ID and that every relationship's target ID refers to an existing asset.
         """
         graph = create_sample_database()

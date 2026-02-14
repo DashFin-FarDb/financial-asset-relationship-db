@@ -16,10 +16,10 @@ class AssetRelationshipGraph:
     def __init__(self, database_url: str | None = None) -> None:
         """
         Initialize the AssetRelationshipGraph with empty internal stores and an optional database URL.
-        
+
         Parameters:
             database_url (str | None): Optional database connection URL to persist or load graph data; stored on the instance as `database_url`.
-        
+
         Attributes created:
             assets (dict[str, Asset]): Mapping of asset ID to Asset.
             relationships (dict[str, list[Relationship]]): Mapping of source asset ID to list of outgoing relationships.
@@ -33,7 +33,7 @@ class AssetRelationshipGraph:
     def add_asset(self, asset: Asset) -> None:
         """
         Add or update an asset in the graph.
-        
+
         Parameters:
             asset (Asset): Asset to store; placed in the graph keyed by its `id`. If an asset with the same `id` already exists it will be replaced.
         """
@@ -46,7 +46,7 @@ class AssetRelationshipGraph:
     def build_relationships(self) -> None:
         """
         Rebuild the internal relationships mapping based on sector membership, issuer links, and regulatory events.
-        
+
         This clears the existing relationships and repopulates them by:
         - Adding a bidirectional "same_sector" relationship (strength 0.7) between assets that share a meaningful sector.
         - Adding a unidirectional "corporate_link" (strength 0.9) from a bond to its issuer when an issuer relationship exists.
@@ -108,11 +108,11 @@ class AssetRelationshipGraph:
     def _saturating_norm(count: int, k: float) -> float:
         """
         Map a non-negative integer count to a saturating value between 0 and 1.
-        
+
         Parameters:
             count (int): Non-negative count; values <= 0 map to 0.0.
             k (float): Positive saturation constant that controls how quickly the value approaches 1.
-        
+
         Returns:
             float: `0.0` if `count <= 0`, otherwise `count / (count + k)` (a value strictly between 0 and 1).
         """
@@ -123,7 +123,7 @@ class AssetRelationshipGraph:
     def calculate_metrics(self) -> dict[str, Any]:
         """
         Compute network-level metrics, distributions, and a composite quality score for the current asset graph.
-        
+
         Returns:
             metrics (dict): A dictionary with the following keys:
                 - total_assets (int): Number of participating assets (present in assets or referenced by relationships).
@@ -193,9 +193,9 @@ class AssetRelationshipGraph:
     ) -> tuple[np.ndarray, list[str], list[str], list[str]]:
         """
         Generate node positions, identifiers, colors, and hover labels for 3D visualization.
-        
+
         Positions are arranged on a unit circle in the XY plane (z = 0). If there are no assets, returns a single placeholder point.
-        
+
         Returns:
             positions (np.ndarray): Array of shape (N, 3) with XYZ coordinates for each node.
             asset_ids (list[str]): Ordered list of asset identifiers corresponding to rows in `positions`.
@@ -221,7 +221,7 @@ class AssetRelationshipGraph:
     def _should_link_same_sector(asset1: Asset, asset2: Asset) -> bool:
         """
         Determine whether two assets belong to the same non-"Unknown" sector.
-        
+
         Returns:
             `true` if both assets have the same sector value and that sector is not "Unknown", `false` otherwise.
         """
@@ -233,13 +233,13 @@ class AssetRelationshipGraph:
     ) -> tuple[str, str] | None:
         """
         Identify a bond-to-issuer pair between two assets.
-        
+
         Parameters:
             asset1 (Asset): First asset to check.
             asset2 (Asset): Second asset to check.
             id1 (str): Identifier corresponding to `asset1`.
             id2 (str): Identifier corresponding to `asset2`.
-        
+
         Returns:
             tuple[str, str] | None: `(bond_id, issuer_id)` when one asset is a Bond whose `issuer_id` equals the other's id, `None` otherwise.
         """
@@ -271,7 +271,7 @@ class AssetRelationshipGraph:
     ) -> None:
         """
         Add a relationship to the internal relationships mapping for source_id if no existing relationship has the same target_id and rel_type.
-        
+
         Parameters:
             source_id (str): ID of the source asset whose relationship list will be updated.
             target_id (str): ID of the target asset for the relationship.
@@ -286,7 +286,7 @@ class AssetRelationshipGraph:
     def _collect_participating_asset_ids(self) -> set[str]:
         """
         Collect the set of asset IDs that participate in the graph.
-        
+
         Returns:
             set[str]: Unique asset IDs present as stored assets or referenced as relationship targets.
         """
@@ -299,7 +299,7 @@ class AssetRelationshipGraph:
     def _asset_class_distribution(self) -> dict[str, int]:
         """
         Builds a count distribution of asset_class.value among stored assets.
-        
+
         Returns:
             dist (dict[str, int]): Mapping from asset_class.value to the number of assets with that class.
         """
@@ -313,11 +313,11 @@ class AssetRelationshipGraph:
     def _relationship_density(asset_count: int, rel_count: int) -> float:
         """
         Compute relationship density as the percentage of possible directed edges among assets.
-        
+
         Parameters:
             asset_count (int): Number of assets in the graph.
             rel_count (int): Count of directed relationships present.
-        
+
         Returns:
             float: Percentage of possible directed edges that are present (0.0–100.0). Returns 0.0 when `asset_count` is less than or equal to 1.
         """

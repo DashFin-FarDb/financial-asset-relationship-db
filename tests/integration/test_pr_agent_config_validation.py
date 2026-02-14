@@ -267,14 +267,14 @@ class TestPRAgentConfigYAMLValidity:
             def construct_mapping(self, node, deep=False):
                 """
                 Construct a dict from a YAML mapping node and fail the test if duplicate keys are present.
-                
+
                 Parameters:
                     node: YAML mapping node whose `.value` contains (key_node, value_node) pairs and whose `.start_mark.line` gives the node's starting line.
                     deep (bool): If True, construct nested objects recursively.
-                
+
                 Returns:
                     dict: Mapping of constructed keys to their constructed values.
-                
+
                 Raises:
                     pytest.fail: Fails the current test with a message containing the 1-based line number when a duplicate key is detected.
                 """
@@ -297,7 +297,7 @@ class TestPRAgentConfigYAMLValidity:
     def test_consistent_indentation():
         """
         Ensure every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
-        
+
         Raises:
             AssertionError: if a line's leading spaces are not a multiple of two; the message includes the offending line number.
         """
@@ -358,7 +358,7 @@ class TestPRAgentConfigSecurity:
         def _redact(value: str) -> str:
             """
             Produce a redacted version of a string that preserves the first and last four characters when possible.
-            
+
             Returns:
                 str: '***' if the input length is 8 characters or fewer, otherwise '<first4>...<last4>'.
             """
@@ -410,13 +410,13 @@ class TestPRAgentConfigSecurity:
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
             Scan a nested configuration object for keys that indicate sensitive values and assert those values are allowed placeholders.
-            
+
             This function recursively traverses mappings, sequences, and scalars. For any mapping key whose lowercase form contains one of the configured sensitive_patterns, the corresponding value is validated with is_allowed_placeholder(value). If the value is not an allowed placeholder, an AssertionError is raised with the precise node path.
-            
+
             Parameters:
                 node (object): The node to inspect; may be a dict, list/tuple, or scalar.
                 path (str): Dot/bracket-notation path to `node` used in assertion messages (default "root").
-            
+
             Raises:
                 AssertionError: If a sensitive key is found whose value is not an allowed placeholder; the message includes the node path.
             """

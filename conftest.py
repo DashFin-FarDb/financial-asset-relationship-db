@@ -84,9 +84,9 @@ def db_session(
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Return a helper that sets environment variables for a test.
-    
+
     The returned callable accepts keyword arguments where each key is an environment variable name and each value is the value to set; invoking it sets those environment variables for the duration of the test.
-    
+
     Returns:
         setter (Callable[..., None]): Callable to set environment variables by passing keyword arguments (e.g., `set_env(KEY="value")`).
     """
@@ -94,7 +94,7 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     def _setter(**kwargs: str) -> None:
         """
         Set environment variables for a test using the captured pytest `monkeypatch`.
-        
+
         Each keyword argument maps an environment variable name to its string value and will be set with `monkeypatch.setenv`.
         Parameters:
             **kwargs (str): Environment variable names and their values to set.
@@ -109,9 +109,9 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Provide a fixture that returns a callable to remove environment variables from the test environment.
-    
+
     The returned callable accepts one or more environment variable names and ensures each is removed for the duration of the test.
-    
+
     Returns:
         unsetter (Callable[..., None]): Callable that deletes the specified environment variables.
     """
@@ -119,7 +119,7 @@ def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     def _unsetter(*keys: str) -> None:
         """
         Remove the given environment variables from the test environment.
-        
+
         Parameters:
             *keys (str): One or more environment variable names to remove.
         """

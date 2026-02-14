@@ -34,7 +34,7 @@ class RealDataFetcher:
     ) -> None:
         """
         Configure the RealDataFetcher with optional cache location, fallback factory, and network control.
-        
+
         Parameters:
             cache_path (Optional[str]): Path to a JSON cache file used to load or persist a previously built AssetRelationshipGraph. If None, no on-disk caching is performed.
             fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]): Callable that produces an AssetRelationshipGraph to use when network fetching is disabled or when fetching fails. If None, a built-in sample database will be used as fallback.
@@ -48,9 +48,9 @@ class RealDataFetcher:
     def create_real_database(self) -> AssetRelationshipGraph:
         """
         Builds an asset relationship graph using current market data or a fallback dataset when real data is unavailable.
-        
+
         Attempts to load a cached graph if a cache path exists; if network access is disabled, returns a fallback graph. When fetching succeeds and a cache path is configured, the populated graph is persisted to cache. On any fetch or build failure, falls back to the sample/fallback dataset.
-        
+
         Returns:
             AssetRelationshipGraph: Populated graph built from real financial data; a fallback/sample graph if loading or fetching fails or network is disabled.
         """
@@ -202,9 +202,9 @@ class RealDataFetcher:
     def _fetch_bond_data() -> List[Bond]:
         """
         Fetch bond and treasury ETF market data and return Bond instances used as fixed-income proxies.
-        
+
         Retrieves price and metadata for a small set of bond and treasury ETFs (used as proxies for individual bonds). If yield information is missing, `yield_to_maturity` defaults to 0.03 and `coupon_rate` defaults to 0.025; maturity dates and some fields are approximate for ETF-based proxies.
-        
+
         Returns:
             List[Bond]: Bond instances populated with id, symbol, name, asset_class, sector, price, yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.
         """
@@ -354,11 +354,11 @@ class RealDataFetcher:
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
         Create a small list of regulatory events associated with fetched assets.
-        
+
         Includes three sample events (an Apple earnings report, a Microsoft dividend announcement,
         and an Exxon Mobil SEC filing). Each event contains an id, asset_id, event_type, date,
         description, impact_score, and related_assets.
-        
+
         Returns:
             List[RegulatoryEvent]: List of RegulatoryEvent instances representing the sample events.
         """
@@ -464,14 +464,14 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
     Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
-    
+
     The resulting dictionary contains serialized assets and regulatory events, a mapping
     of outgoing relationships keyed by source asset id, and a computed mapping of incoming
     relationships keyed by target asset id.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The graph to serialize.
-    
+
     Returns:
         Dict[str, Any]: A dictionary with the following top-level keys:
             - "assets": list of serialized asset objects (each includes a "__type__" field).

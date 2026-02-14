@@ -17,12 +17,12 @@ class DummyGraph(AssetRelationshipGraph):
         # relationships: Dict[str, List[Tuple[str, str, float]]]
         """
         Initialize the DummyGraph with a mapping of asset relationships.
-        
+
         Parameters:
             relationships (dict): Mapping from source asset ID (str) to a list of relationships.
                 Each relationship is a tuple (target_id, relationship_type, weight) where
                 `target_id` and `relationship_type` are strings and `weight` is a float.
-        
+
         Notes:
             The provided mapping is stored on the instance as `self.relationships`.
         """

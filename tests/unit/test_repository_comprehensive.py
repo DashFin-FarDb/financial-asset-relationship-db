@@ -328,7 +328,7 @@ class TestRelationshipStrengthValidation:
     def test_strength_validation_accepts_int_in_range(repository):
         """
         Verifies that integer relationship strength values within the allowed range are accepted.
-        
+
         Creates two assets, adds a relationship with integer strength 1, commits, and asserts the stored relationship strength equals 1.
         """
         asset1 = Equity(
@@ -369,7 +369,7 @@ class TestStrengthBoundaryValues:
     def test_strength_just_above_zero(repository):
         """
         Verify that a relationship can be created with a very small positive strength.
-        
+
         Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the persisted relationship strength equals 0.0001.
         """
         asset1 = Equity(
@@ -404,7 +404,7 @@ class TestStrengthBoundaryValues:
     def test_strength_just_below_one(repository):
         """
         Verify that a relationship with strength 0.9999 is accepted and persisted.
-        
+
         Creates two equity assets, adds a relationship of type "almost_max" with strength 0.9999, commits, and asserts the retrieved relationship's strength equals 0.9999.
         """
         asset1 = Equity(
@@ -825,7 +825,7 @@ class TestAssetUpdateValidation:
     def test_multiple_sequential_updates(repository):
         """
         Verify that performing multiple sequential upserts on the same asset persists the latest values.
-        
+
         Creates an Equity, upserts it, performs five sequential price updates via upsert+commit, then retrieves the asset and asserts its price equals the last updated value (150.0).
         """
         equity = Equity(

@@ -502,7 +502,7 @@ class TestShellScripts:
     def test_cleanup_branches_git_safety(self):
         """
         Verify cleanup-branches.sh performs safe Git deletions.
-        
+
         Checks that any lines which pipe branch names into xargs use the safe deletion flag `-d` (not the force `-D`) when invoking `git branch`, ensuring deletions default to non-forced removal.
         """
         with open("cleanup-branches.sh") as f:
@@ -522,7 +522,7 @@ class TestShellScripts:
     def test_cleanup_branches_has_dry_run_mode(self):
         """
         Verify cleanup-branches.sh offers a dry-run or preview mode before performing deletions.
-        
+
         Asserts the script contains user-visible preview output (for example, echoing branch names or planned delete actions) so users can review changes before they are applied.
         """
         with open("cleanup-branches.sh") as f:

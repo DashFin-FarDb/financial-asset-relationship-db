@@ -48,9 +48,9 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 def client() -> Iterator[TestClient]:
     """
     Provide a TestClient configured with a populated in-memory graph for endpoint tests.
-    
+
     Yields a TestClient for the FastAPI app with a sample in-memory graph set on api_main, and ensures the global graph is reset when the fixture is torn down.
-    
+
     Returns:
         TestClient: A TestClient instance connected to the app with a populated in-memory sample graph.
     """
@@ -256,9 +256,9 @@ class TestAPIEndpoints:
     def client():
         """
         Provide a TestClient configured with a sample in-memory graph for endpoint tests.
-        
+
         Sets the application's graph to a sample in-memory database before yielding the client and resets the graph on teardown.
-        
+
         Returns:
             TestClient: A TestClient instance connected to the application populated with the sample graph.
         """
@@ -743,7 +743,7 @@ class TestGraphInitializationRaceConditions:
         def init_graph():
             """
             Worker function run by a thread to obtain the shared graph instance.
-            
+
             If successful, appends the retrieved graph to the surrounding `results` list; if an exception occurs, appends the exception to the surrounding `errors` list.
             """
             try:
@@ -927,9 +927,9 @@ class TestEndpointStressTests:
     def client():
         """
         Provide a TestClient configured with an in-memory sample graph for tests.
-        
+
         This fixture sets a sample graph on the application before yielding the client and resets the graph after the test completes.
-        
+
         Returns:
             TestClient: A TestClient instance for the FastAPI app with the sample graph loaded.
         """
@@ -976,9 +976,9 @@ class TestErrorMessageQuality:
     def client():
         """
         Provide a TestClient configured with an in-memory sample graph for tests.
-        
+
         Sets a sample graph on the application before yielding the TestClient and ensures the graph is reset after the fixture is torn down.
-        
+
         Returns:
             TestClient: a TestClient instance bound to the app with the sample graph loaded.
         """

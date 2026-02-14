@@ -105,7 +105,7 @@ class TestYAMLSyntaxAndStructure:
 def test_no_duplicate_keys_in_yaml():
     """
     Check that YAML files under .github parse without duplicate keys or other YAML parsing errors using ruamel.yaml.
-    
+
     Attempts to import ruamel.yaml and skips the test if unavailable. Collects all `.yml` and `.yaml` files under `.github` and records any YAML parsing errors, file system errors, or unexpected exceptions encountered while loading each file; the test fails if any such errors are found.
     """
     try:
@@ -142,7 +142,7 @@ class TestWorkflowSchemaCompliance:
     def all_workflows() -> List[Dict[str, Any]]:
         """
         Collects and parses all GitHub Actions workflow files from .github/workflows.
-        
+
         Returns:
             List[Dict[str, Any]]: A list of dictionaries for each workflow file with:
                 - 'path' (Path): Path to the workflow file.
@@ -158,9 +158,9 @@ class TestWorkflowSchemaCompliance:
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """
         Ensure each workflow defines required top-level keys and that checkout action versions are reasonably consistent.
-        
+
         Asserts that every workflow's parsed content contains the top-level keys "name" and "jobs". Collects observed checkout action versions across workflows and fails if more than two unique versions are present; the assertion failure includes the observed `checkout_versions`.
-        
+
         Parameters:
             all_workflows (List[Dict[str, Any]]): Iterable of workflow descriptors where each item contains:
                 - 'path' (Path | str): filesystem path to the workflow file
@@ -208,7 +208,7 @@ class TestDefaultValueHandling:
     def test_workflow_timeout_defaults():
         """
         Check that job `timeout-minutes` values in workflows under .github/workflows are valid.
-        
+
         For each job that defines `timeout-minutes`, assert the value is an `int` and is between 1 and 360 (inclusive). Assertion messages include the workflow file path and the job id.
         """
         workflow_dir = Path(".github/workflows")

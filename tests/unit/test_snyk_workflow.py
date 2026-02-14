@@ -23,7 +23,7 @@ class TestSnykWorkflowStructure:
     def snyk_workflow_path(self):
         """
         Return the path to the Snyk Infrastructure as Code GitHub Actions workflow file.
-        
+
         Returns:
             Path: Path object pointing to ".github/workflows/snyk-infrastructure.yml".
         """
@@ -33,13 +33,13 @@ class TestSnykWorkflowStructure:
     def snyk_workflow(self, snyk_workflow_path):
         """
         Load and parse the Snyk workflow YAML file.
-        
+
         Parameters:
             snyk_workflow_path (Path): Path to the Snyk workflow YAML file.
-        
+
         Returns:
             dict | list | None: Parsed YAML content (typically a dict for workflow files), or `None` if the file is empty.
-        
+
         Raises:
             AssertionError: If `snyk_workflow_path` does not exist.
             yaml.YAMLError: If the file contains invalid YAML.
@@ -56,7 +56,7 @@ class TestSnykWorkflowStructure:
     def test_workflow_valid_yaml(self, snyk_workflow_path):
         """
         Verify the workflow file is valid YAML and parses to a mapping.
-        
+
         Asserts that loading the workflow file produces a non-None mapping (dict), indicating syntactically valid YAML suitable for further structural checks.
         """
         with open(snyk_workflow_path) as f:
@@ -98,7 +98,7 @@ class TestSnykWorkflowTriggers:
     def snyk_workflow(self):
         """
         Return the parsed YAML mapping for the Snyk GitHub Actions workflow.
-        
+
         Returns:
             dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a mapping.
         """
@@ -126,7 +126,7 @@ class TestSnykWorkflowTriggers:
     def test_schedule_cron_format_valid(self, snyk_workflow):
         """
         Validate that the workflow schedule's `cron` expression has five space-separated fields.
-        
+
         Checks the first schedule entry in the workflow triggers and asserts the presence of a `cron` key whose expression splits into exactly five parts.
         """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
@@ -140,9 +140,9 @@ class TestSnykWorkflowTriggers:
     def test_push_triggers_on_main_branch(self, snyk_workflow):
         """
         Verify that the push trigger specifies the "main" branch (or "Default") when branches are provided.
-        
+
         If the workflow defines a push trigger with a "branches" list, this test asserts that the list includes "main" or "Default".
-        
+
         Parameters:
             snyk_workflow (dict): Parsed YAML content of the workflow file.
         """
@@ -169,7 +169,7 @@ class TestSnykWorkflowPermissions:
     def snyk_workflow(self):
         """
         Return the parsed YAML mapping for the Snyk GitHub Actions workflow.
-        
+
         Returns:
             dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a mapping.
         """
@@ -191,10 +191,10 @@ class TestSnykWorkflowPermissions:
     def test_job_has_specific_permissions(self, snyk_workflow):
         """
         Verify the 'snyk' job declares required GitHub Actions permissions.
-        
+
         Asserts that the workflow's `jobs.snyk.permissions` mapping exists and contains
         `contents` set to "read" and `security-events` set to "write".
-        
+
         Parameters:
             snyk_workflow (dict): Parsed YAML mapping of the workflow file.
         """
@@ -228,7 +228,7 @@ class TestSnykJobConfiguration:
     def snyk_job(self):
         """
         Return the configuration mapping for the "snyk" job from .github/workflows/snyk-infrastructure.yml.
-        
+
         Returns:
             dict: Parsed mapping representing the 'snyk' job configuration.
         """
@@ -240,7 +240,7 @@ class TestSnykJobConfiguration:
     def test_job_runs_on_ubuntu(self, snyk_job):
         """
         Asserts the Snyk job is configured to run on an Ubuntu runner.
-        
+
         Checks that the job contains a `runs-on` field and that its value includes "ubuntu" (case-insensitive).
         """
         assert "runs-on" in snyk_job
@@ -314,7 +314,7 @@ class TestSnykJobConfiguration:
     def test_snyk_token_uses_secret(self, snyk_job):
         """
         Verifies the Snyk job sets SNYK_TOKEN from the GitHub secrets store.
-        
+
         Locates the Snyk action step in the job's steps and asserts the step's `env.SNYK_TOKEN`
         contains the literal secret reference `${{ secrets.SNYK_TOKEN }}`.
         """
@@ -328,7 +328,7 @@ class TestSnykJobConfiguration:
     def test_snyk_step_has_file_input(self, snyk_job):
         """
         Asserts the Snyk action step includes a `with` input mapping that contains a `file` key.
-        
+
         This verifies the Snyk IaC step specifies which file to scan.
         """
         steps = snyk_job["steps"]
@@ -341,7 +341,11 @@ class TestSnykJobConfiguration:
     def test_job_uploads_sarif(self, snyk_job):
         """Test that job uploads SARIF results."""
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         assert len(sarif_steps) > 0
 
     def test_sarif_upload_uses_v4(self, snyk_job):
@@ -349,18 +353,26 @@ class TestSnykJobConfiguration:
         Ensure the SARIF upload step uses the CodeQL `upload-sarif` action with `@v4`.
         """
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         sarif_action = sarif_steps[0]["uses"]
         assert "@v4" in sarif_action
 
     def test_sarif_upload_has_file_input(self, snyk_job):
         """
         Verify the SARIF upload step for the snyk job defines a `sarif_file` input equal to "snyk.sarif".
-        
+
         Locates the step using the CodeQL SARIF uploader ("codeql-action/upload-sarif") and asserts that the step has a `with` mapping containing `sarif_file` set to "snyk.sarif".
         """
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         sarif_step = sarif_steps[0]
 
         assert "with" in sarif_step
@@ -376,7 +388,7 @@ class TestSnykWorkflowSecurity:
     def snyk_workflow(self):
         """
         Return the parsed YAML mapping for the Snyk GitHub Actions workflow.
-        
+
         Returns:
             dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a mapping.
         """
@@ -427,7 +439,7 @@ class TestSnykWorkflowEdgeCases:
     def snyk_workflow_path(self):
         """
         Return the path to the Snyk Infrastructure as Code GitHub Actions workflow file.
-        
+
         Returns:
             Path: Path object pointing to ".github/workflows/snyk-infrastructure.yml".
         """
@@ -447,7 +459,11 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(self, snyk_workflow_path):
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
-        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [
+            l
+            for l in content.split("\n")
+            if l.strip() and not l.strip().startswith("#")
+        ]
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
@@ -472,7 +488,7 @@ class TestSnykWorkflowComments:
     def snyk_workflow_content(self):
         """
         Read the raw text content of the Snyk Infrastructure as Code GitHub Actions workflow file.
-        
+
         Returns:
             content (str): Full text of ".github/workflows/snyk-infrastructure.yml".
         """
@@ -495,7 +511,9 @@ class TestSnykWorkflowComments:
     def test_workflow_provides_context(self, snyk_workflow_content):
         """Test that workflow provides context about its purpose."""
         comments = " ".join(
-            l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
+            l.strip("# ").lower()
+            for l in snyk_workflow_content.split("\n")
+            if l.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments
@@ -508,7 +526,9 @@ class TestSnykWorkflowComments:
 
         snyk_job = workflow["jobs"]["snyk"]
         steps = snyk_job["steps"]
-        snyk_steps = [s for s in steps if "uses" in s and "snyk/actions/iac@" in s["uses"]]
+        snyk_steps = [
+            s for s in steps if "uses" in s and "snyk/actions/iac@" in s["uses"]
+        ]
 
         assert len(snyk_steps) > 0, "Should have at least one Snyk IaC action step"
         snyk_action = snyk_steps[0]["uses"]
@@ -521,4 +541,6 @@ class TestSnykWorkflowComments:
         sha = parts[1]
         # SHA-1 is 40 hex characters
         assert len(sha) == 40, f"SHA should be 40 characters, got {len(sha)}"
-        assert all(c in "0123456789abcdef" for c in sha.lower()), "SHA should only contain hex characters"
+        assert all(c in "0123456789abcdef" for c in sha.lower()), (
+            "SHA should only contain hex characters"
+        )

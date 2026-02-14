@@ -92,12 +92,12 @@ class TestVercelConfig:
     def test_vercel_lambda_size_reasonable(vercel_config):
         """
         Ensure the Vercel Python backend's configured Lambda `maxLambdaSize` is within a reasonable range.
-        
+
         Checks the `builds` entries in `vercel_config` for a Python backend (an entry whose `src` contains "api/main.py") and, if that entry has a `config.maxLambdaSize`, parses its value (e.g., "50mb") and asserts the numeric size is between 1 and 250 MB.
-        
+
         Parameters:
             vercel_config (dict): Parsed contents of vercel.json.
-        
+
         """
         builds = vercel_config["builds"]
         python_build = next((b for b in builds if "api/main.py" in b["src"]), None)
@@ -153,10 +153,10 @@ class TestPackageJson:
     def package_json(self):
         """
         Load and parse the frontend package.json file.
-        
+
         Returns:
             dict: Parsed JSON content of frontend/package.json.
-        
+
         Raises:
             AssertionError: If frontend/package.json does not exist.
         """
@@ -218,7 +218,7 @@ class TestPackageJson:
     def test_package_json_has_typescript_deps(package_json):
         """
         Ensure standard TypeScript development dependencies are declared in package.json.
-        
+
         Verifies that the `devDependencies` object contains `typescript`, `@types/react`, and `@types/node`.
         """
         dev_deps = package_json.get("devDependencies", {})
@@ -230,7 +230,7 @@ class TestPackageJson:
     def test_package_json_version_format(self, package_json):
         """
         Ensure the package.json "version" value follows semantic versioning with an optional pre-release identifier.
-        
+
         Accepts formats like `1.2.3` and `1.2.3-beta`, `1.2.3-rc.1`, or `1.2.3-alpha.1`. The version must match the pattern `major.minor.patch` with an optional `-identifier` (identifiers may contain letters, digits, underscores, and dots).
         """
         version = package_json["version"]
@@ -249,10 +249,10 @@ class TestTSConfig:
     def tsconfig(self):
         """
         Load and parse the frontend tsconfig.json file.
-        
+
         This function asserts that frontend/tsconfig.json exists (raises AssertionError if missing)
         and returns its contents parsed as JSON.
-        
+
         Returns:
             dict: Parsed contents of tsconfig.json.
         """
@@ -348,10 +348,10 @@ class TestEnvExampleFixture:
     def env_example_content(self):
         """
         Return the contents of the repository's .env.example file.
-        
+
         Returns:
             str: Contents of `.env.example`.
-        
+
         Raises:
             AssertionError: If `.env.example` does not exist.
         """
@@ -368,10 +368,10 @@ class TestEnvExample:
     def env_example_content(self):
         """
         Read and return the contents of .env.example.
-        
+
         Returns:
             str: Contents of the .env.example file.
-        
+
         Raises:
             AssertionError: If .env.example does not exist.
         """
@@ -396,7 +396,7 @@ class TestEnvExample:
     def test_env_example_has_comments(self, env_example_content):
         """
         Asserts that the example environment file contains at least one comment line.
-        
+
         Checks for the presence of the `#` character in `env_example_content`, indicating at least one comment.
         """
         assert "#" in env_example_content
@@ -425,10 +425,10 @@ class TestGitignore:
     def gitignore_content():
         """
         Read and return the repository's .gitignore file contents.
-        
+
         Returns:
             str: The full text of .gitignore.
-        
+
         Raises:
             AssertionError: If the .gitignore file does not exist.
         """
@@ -484,9 +484,9 @@ class TestRequirementsTxt:
     def requirements():
         """
         Return non-empty, non-comment lines from requirements.txt.
-        
+
         Each returned string is stripped of surrounding whitespace; lines that are empty or begin with `#` are omitted.
-        
+
         Returns:
             list[str]: Requirement lines with whitespace removed (comments and blank lines omitted).
         """
@@ -524,9 +524,9 @@ class TestRequirementsTxt:
     def test_requirements_has_version_constraints(self, requirements):
         """
         Ensure each non-option requirement in requirements.txt includes a version constraint if version pinning is required.
-        
+
         If the test class flag `require_version_pinning` is False, the test is skipped.
-        
+
         Parameters:
             requirements (list[str]): Filtered non-empty, non-comment lines from requirements.txt to validate.
         """
@@ -641,7 +641,7 @@ class TestConfigurationSecurityNegative:
     def test_gitignore_prevents_env_file_leak():
         """
         Ensure the repository's .gitignore prevents committing environment files that could expose secrets.
-        
+
         Asserts that either ".env" or ".env.local" appears in the .gitignore file.
         """
         gitignore_path = Path(".gitignore")
@@ -714,7 +714,7 @@ class TestMalformedConfigurationHandling:
     def test_vercel_config_wellformed_json():
         """
         Check that vercel.json is valid JSON.
-        
+
         Skips the test if vercel.json is not present. Fails with the JSON parsing error message if vercel.json cannot be parsed.
         """
         vercel_path = Path("vercel.json")
@@ -731,7 +731,7 @@ class TestMalformedConfigurationHandling:
     def test_package_json_wellformed():
         """
         Validate that frontend/package.json contains well-formed JSON parsed as an object.
-        
+
         If the file is missing the test is skipped. If the file contains invalid JSON the test fails and reports the JSON parse error.
         """
         package_path = Path("frontend/package.json")
@@ -749,7 +749,7 @@ class TestMalformedConfigurationHandling:
     def test_tsconfig_allows_comments():
         """
         Validate that frontend/tsconfig.json is either valid JSON or intentionally uses JSONC comments.
-        
+
         Skips the test if the file is missing or if parsing fails solely because the file contains JavaScript-style comments (`//` or `/* */`), and fails the test if the file is malformed JSON for any other reason.
         """
         tsconfig_path = Path("frontend/tsconfig.json")
@@ -780,7 +780,7 @@ class TestConfigurationBoundaryValues:
     def test_vercel_lambda_size_not_excessive():
         """
         Validate that any `maxLambdaSize` entries in vercel.json are between 1 MB and 250 MB.
-        
+
         If vercel.json is missing, the test is skipped. For each build that defines `config.maxLambdaSize`,
         the numeric megabyte value is checked and the test fails if the value is less than 1 or greater than 250.
         """
@@ -806,7 +806,7 @@ class TestConfigurationBoundaryValues:
     def test_package_version_not_zero():
         """
         Ensure the frontend package.json version is not 0.0.0.
-        
+
         Skips the test if frontend/package.json is missing. Fails if the package's "version" field equals "0.0.0".
         """
         package_path = Path("frontend/package.json")
@@ -823,7 +823,7 @@ class TestConfigurationBoundaryValues:
     def test_no_excessively_long_script_names():
         """
         Verify that every script name in frontend/package.json is shorter than 50 characters.
-        
+
         If frontend/package.json is missing the test is skipped. Fails when any script name has length greater than or equal to 50, reporting the offending name.
         """
         package_path = Path("frontend/package.json")
@@ -865,7 +865,7 @@ class TestConfigurationRobustness:
     def test_requirements_no_conflicting_versions():
         """
         Ensure requirements.txt does not contain duplicate package entries.
-        
+
         The check treats each non-empty, non-comment line as a requirement, ignores option lines starting with '-', and compares package names case-insensitively after stripping common version specifiers (`==`, `>=`, `~=`, `<=`). If duplicates are found, the test fails listing the duplicated package names.
         """
         requirements_path = Path("requirements.txt")
@@ -902,7 +902,7 @@ class TestConfigurationRobustness:
     def test_env_example_documents_all_required_vars():
         """
         Checks that .env.example documents at least one required environment variable.
-        
+
         Asserts that the repository's .env.example file contains at least one of the key variables expected by the project: "API_URL" or a variable with the "NEXT_PUBLIC" prefix. If .env.example is absent the test is skipped.
         """
         env_example_path = Path(".env.example")

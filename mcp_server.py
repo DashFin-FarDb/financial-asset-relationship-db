@@ -76,9 +76,9 @@ def _build_mcp_app():
     ) -> str:
         """
         Validate the provided equity fields and add the resulting Equity to the graph if the graph supports mutation.
-        
+
         Constructs an Equity instance to perform validation. If the module-level graph exposes an `add_asset` callable the new Equity is added to the graph; otherwise the function only validates and does not mutate graph state.
-        
+
         Returns:
             A user-facing message string. On success when the asset was added: `"Successfully added: <name> (<symbol>)"`. On success when only validation occurred: `"Successfully validated (Graph mutation not supported): <name> (<symbol>)"`. On validation failure: `"Validation Error: <message>"`.
         """
@@ -128,13 +128,13 @@ def _build_mcp_app():
 def main(argv: list[str] | None = None) -> int:
     """
     Run the MCP server command-line entry point.
-    
+
     Parameters:
         argv (list[str] | None): Command-line arguments to parse. If None, uses sys.argv[1:].
-    
+
     Returns:
         int: Exit code (0 on success or after printing version information).
-    
+
     Raises:
         SystemExit: If a required optional dependency is missing (suggests installing the MCP package).
     """

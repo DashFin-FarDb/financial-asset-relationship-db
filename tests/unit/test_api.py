@@ -44,13 +44,13 @@ def client():
 def mock_graph():
     """
     Create an in-memory AssetRelationshipGraph populated with four sample assets and their relationships.
-    
+
     The graph contains sample assets used by tests:
     - Equity "TEST_AAPL" (Apple Inc.) with typical equity fields (price, market_cap, pe_ratio, etc.).
     - Bond "TEST_CORP" (corporate bond) with fixed-income fields and issuer_id referencing "TEST_AAPL".
     - Commodity "TEST_GC" (Gold) with contract and delivery fields.
     - Currency "TEST_EUR" (Euro) with exchange_rate and country.
-    
+
     Returns:
         AssetRelationshipGraph: An in-memory graph populated with the sample assets and their relationships.
     """
@@ -125,9 +125,9 @@ def _apply_mock_graph_configuration(
 ) -> None:
     """
     Copy core attributes from a concrete AssetRelationshipGraph onto a mocked graph used in tests.
-    
+
     This sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data attributes to mirror the provided graph, allowing tests to reuse a consistent mocked graph surface.
-    
+
     Parameters:
         mock_graph_instance (object): The mocked graph object (typically a unittest.mock.Mock) to configure.
         graph (AssetRelationshipGraph): The concrete AssetRelationshipGraph whose attributes will be copied.
@@ -143,9 +143,9 @@ def _apply_mock_graph_configuration(
 def apply_mock_graph():
     """
     Provide a helper callable that wires a patched/mock graph object to a concrete AssetRelationshipGraph instance.
-    
+
     The returned callable takes (mock_graph_instance, graph) and copies the concrete graph's public surface — including assets, relationships, and callable methods used by tests — onto the mocked graph so tests can use the concrete graph state through the mock.
-    
+
     Returns:
         callable: A function accepting (mock_graph_instance, graph) which applies the configuration.
     """
@@ -622,7 +622,7 @@ class TestConcurrency:
     ):
         """
         Verify the API correctly handles multiple concurrent requests to the assets endpoint.
-        
+
         Sends five GET requests to /api/assets and asserts each response has status code 200 and a JSON body containing four assets.
         """
         apply_mock_graph(mock_graph_instance, mock_graph)
@@ -875,7 +875,7 @@ class TestCacheCorruptionRegression:
         def load_from_cache():
             """
             Load a cached real-data AssetRelationshipGraph and record the outcome.
-            
+
             Instantiates RealDataFetcher with network disabled and attempts to create the cached graph.
             On success appends the resulting graph to the outer-scope list `results`; on failure appends
             the caught exception to the outer-scope list `errors`.

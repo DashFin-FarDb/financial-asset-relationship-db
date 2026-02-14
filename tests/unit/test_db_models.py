@@ -27,12 +27,12 @@ pytest.importorskip("sqlalchemy")
 def db_session(tmp_path):
     """
     Create and yield a SQLAlchemy Session connected to a temporary SQLite database.
-    
+
     Initializes the database schema at tmp_path / "test.db", yields an active Session for tests, and ensures the session is closed and the engine disposed after use.
-    
+
     Parameters:
         tmp_path (pathlib.Path): Temporary directory fixture; the SQLite database file will be created at `tmp_path / "test.db"`.
-    
+
     Returns:
         session (sqlalchemy.orm.Session): A Session bound to the temporary SQLite database.
     """

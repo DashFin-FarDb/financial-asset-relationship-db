@@ -39,11 +39,11 @@ pytestmark = pytest.mark.unit
 def _assert_model_registered(model: type[Base], expected_tablename: str) -> None:
     """
     Verify that a SQLAlchemy model's `__tablename__` equals the expected table name.
-    
+
     Parameters:
         model (type[Base]): Declarative model class to check.
         expected_tablename (str): Expected value of the model's `__tablename__`.
-    
+
     Raises:
         AssertionError: If the model's `__tablename__` does not match `expected_tablename`.
     """
@@ -59,9 +59,9 @@ def _assert_model_registered(model: type[Base], expected_tablename: str) -> None
 def isolated_base() -> Iterator[type[Base]]:
     """
     Provide an isolated declarative SQLAlchemy Base subclass for use within a single test.
-    
+
     This fixture yields a Base subclass with `__abstract__ = True`; any tables registered on the global Base.metadata during the test are removed after the fixture completes.
-    
+
     Returns:
         isolated_base (type[Base]): A declarative Base subclass whose test-created tables will be cleaned from the global metadata after the test.
     """
@@ -88,9 +88,9 @@ def isolated_base() -> Iterator[type[Base]]:
 def engine() -> Iterator[Engine]:
     """
     Create and yield an in-memory SQLite Engine for tests.
-    
+
     The engine uses StaticPool and disables SQLite's same-thread check so multiple sessions can share the in-memory database. The engine is disposed when the fixture teardown runs.
-    
+
     Returns:
         An in-memory SQLite `Engine` instance; it is disposed after use.
     """
@@ -316,7 +316,7 @@ class TestSessionScope:
     def test_propagates_integrity_error(self, engine: Engine, isolated_base) -> None:
         """
         Verify that an IntegrityError raised inside a session_scope is propagated to the caller after the transaction is rolled back.
-        
+
         This test creates a simple model, initializes the database, and performs operations that raise an IntegrityError; the error must not be swallowed by the session scope.
         """
 
@@ -372,7 +372,7 @@ class TestDefaultDatabaseURL:
     def test_default_points_to_file(self) -> None:
         """
         Verify the default database URL points to the file named 'asset_graph.db'.
-        
+
         Asserts that DEFAULT_DATABASE_URL contains the substring 'asset_graph.db'.
         """
         assert "asset_graph.db" in DEFAULT_DATABASE_URL  # nosec B101
@@ -525,7 +525,7 @@ class TestConcurrentDatabaseAccess:
         def read_data() -> None:
             """
             Worker executed by a thread to perform a read-only count query and record results.
-            
+
             Appends the number of rows in `TestModel` to the shared `results` list. If an exception occurs, appends the exception instance to the shared `errors` list. Obtains a session from the module-level session factory and does not return a value.
             """
             try:
@@ -563,10 +563,10 @@ class TestConcurrentDatabaseAccess:
         def write_data(thread_id: int) -> None:
             """
             Insert a TestModel row using thread_id as the primary key and record any exception.
-            
+
             Sleeps briefly based on thread_id, opens a transactional session, and adds TestModel(id=thread_id).
             If an exception occurs, it is appended to the shared `errors` list as a side effect.
-            
+
             Parameters:
                 thread_id (int): Integer used as the TestModel `id`.
             """
@@ -710,7 +710,7 @@ class TestResourceCleanup:
     def test_session_scope_with_nested_commits(self, engine: Engine) -> None:
         """
         Verifies that explicit commits performed inside a session_scope persist data across subsequent scopes.
-        
+
         This test creates a simple model, performs explicit commits within a session_scope (simulating a regression where nested commits might be discarded), and then opens a new session_scope to assert the committed row is visible.
         """
 

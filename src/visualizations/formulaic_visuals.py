@@ -130,9 +130,9 @@ class FormulaicVisualizer:
     ) -> None:
         """
         Add an empirical correlation heatmap to the provided subplot figure when a valid correlation matrix is available.
-        
+
         If `empirical_relationships` contains a `correlation_matrix` mapping of asset -> asset -> numeric correlation, this function adds a heatmap trace to row 2, column 1 showing correlations for the ordered asset list. If no valid correlation matrix is present, the function returns without modifying the figure.
-        
+
         Parameters:
             fig (go.Figure): The Plotly Figure (with subplots) to receive the heatmap trace.
             empirical_relationships (Mapping[str, Any]): Mapping expected to contain a
@@ -241,9 +241,9 @@ class FormulaicVisualizer:
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
         """
         Add a "Key Formula Examples" table to the figure showing the top 10 formulas ranked by R-squared.
-        
+
         The table is placed at row 3, column 2 and lists each formula's name, category, and formatted R-squared. If `formulas` is falsy, no trace is added.
-        
+
         Parameters:
             fig (go.Figure): Plotly Figure with a subplot grid to which the table trace will be added.
             formulas (Any): Iterable of formula objects or mappings; items should provide `name`, `category`, and `r_squared` (missing or invalid fields are handled).
@@ -439,11 +439,11 @@ class FormulaicVisualizer:
     ) -> go.Figure:
         """
         Builds a network graph visualizing the strongest asset correlations.
-        
+
         Parameters:
             strongest_correlations (Any): Iterable of correlation items (e.g., dicts or sequences) describing pairwise relationships to render as edges.
             correlation_matrix (Any): Optional full correlation matrix or mapping used as contextual data for the network.
-        
+
         Returns:
             A Plotly Figure containing edge traces and a node trace representing the correlation network, or a Figure titled "No valid asset correlations found" when no assets can be extracted.
         """
@@ -502,12 +502,12 @@ class FormulaicVisualizer:
     def _create_circular_positions(assets: list[str]) -> Dict[str, tuple[float, float]]:
         """
         Compute evenly spaced coordinates on the unit circle for each asset.
-        
+
         Positions start at angle 0 (point (1.0, 0.0)) and proceed counterclockwise, placing assets evenly by index.
-        
+
         Parameters:
             assets (list[str]): Ordered list of asset identifiers.
-        
+
         Returns:
             Dict[str, tuple[float, float]]: Mapping from asset identifier to its (x, y) coordinate on the unit circle.
         """
@@ -526,11 +526,11 @@ class FormulaicVisualizer:
     ) -> list[go.Scatter]:
         """
         Builds Plotly line traces for correlations connecting positioned assets.
-        
+
         Parameters:
             correlations (Any): Iterable of correlation items parsable by _parse_correlation_item (each should yield asset1, asset2, value).
             positions (Dict[str, tuple[float, float]]): Mapping from asset name to (x, y) coordinates for node placement.
-        
+
         Returns:
             list[go.Scatter]: Scatter line traces for each correlation where both assets have defined positions.
         """
@@ -555,17 +555,17 @@ class FormulaicVisualizer:
     ) -> go.Scatter:
         """
         Create a Plotly line trace representing a correlation edge between two assets.
-        
+
         The trace connects the (x, y) positions for asset1 and asset2, uses red for negative correlations
         and green for non-negative correlations, scales line width as max(1, abs(value) * 5), and sets
         hover text to "asset1 - asset2: value" with the value formatted to three decimals.
-        
+
         Parameters:
             asset1 (str): Identifier of the first asset.
             asset2 (str): Identifier of the second asset.
             value (float): Correlation value between the two assets; sign determines trace color.
             positions (Dict[str, tuple[float, float]]): Mapping of asset identifiers to (x, y) coordinates.
-        
+
         Returns:
             go.Scatter: A line trace connecting the two asset positions with color and width reflecting the correlation value.
         """

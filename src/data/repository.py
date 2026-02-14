@@ -73,9 +73,9 @@ class AssetGraphRepository:
     def upsert_asset(self, asset: Asset) -> None:
         """
         Create or update the database record for an asset.
-        
+
         Maps fields from the provided domain `Asset` to the ORM representation and stages the ORM instance on the repository session for persistence.
-        
+
         Parameters:
             asset (Asset): Domain asset to persist or update.
         """
@@ -102,7 +102,7 @@ class AssetGraphRepository:
     def get_assets_map(self) -> Dict[str, Asset]:
         """
         Return a mapping of asset id to the corresponding Asset domain object.
-        
+
         Returns:
             Dict[str, Asset]: Keys are asset ids and values are the corresponding Asset instances.
         """

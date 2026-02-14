@@ -120,7 +120,7 @@ class TestWorkflowSecretHandling:
     def test_secrets_not_in_artifact_uploads(all_workflows):
         """
         Ensure steps that use actions/upload-artifact do not reference repository secrets.
-        
+
         Scans each workflow's jobs and steps and, for any step that uses actions/upload-artifact, asserts the step does not contain a `secrets.<name>` reference. On failure the assertion message identifies the workflow path, job name, and step index.
         """
         for workflow in all_workflows:
@@ -143,7 +143,7 @@ class TestWorkflowPermissionsHardening:
     def test_workflows_define_explicit_permissions(all_workflows):
         """
         Ensure each workflow includes a top-level "permissions" key.
-        
+
         Parameters:
             all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item has a "content" mapping for the parsed YAML and a "path" string used in failure messages.
         """
@@ -156,10 +156,10 @@ class TestWorkflowPermissionsHardening:
     def test_default_permissions_are_restrictive(all_workflows):
         """
         Verify workflows' default permissions enforce least privilege.
-        
+
         If a workflow's top-level `permissions` is a string, it must be either "read-all" or "none".
         If `permissions` is a mapping, no permission may be set to "write" except for the allowed keys: "contents", "pull-requests", "issues", and "checks".
-        
+
         Parameters:
             all_workflows (iterable): Iterable of workflow mappings; each mapping must include "path" (str)
                 and "content" (dict) where "content" contains the parsed workflow YAML.
