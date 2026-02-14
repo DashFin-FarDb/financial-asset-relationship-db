@@ -691,13 +691,12 @@ class TestResourceCleanup:
         factory = create_session_factory(engine)
 
         # First transaction
-        # First transaction
         with session_scope(factory) as session:
             session.add(TestModelBase(id=1))
             session.commit()  # Explicit commit (regression scenario)
-            session.add(TestModelBase(id=1))
+            session.add(TestModelBase(id=2))
             session.commit()  # Explicit commit (regression scenario)
 
         # Second transaction should see first
         with session_scope(factory) as session:
-            assert session.query(TestModelBase).count() == 1
+            assert session.query(TestModelBase).count() == 2
