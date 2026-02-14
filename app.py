@@ -158,7 +158,8 @@ class FinancialAssetApp:
                 graph = fn()
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
-                raise TypeError(f"{name}() returned {type(graph)!r}, "
+                raise TypeError(
+                    f"{name}() returned {type(graph)!r}, "
         raise AttributeError(
             "No known database factory found in src.data.real_data_fetcher. Tried: "
             f"{', '.join(candidates)}"
@@ -491,9 +492,9 @@ class FinancialAssetApp:
             )
 
             with gr.Tabs():
-                with gr.Tab("🌐 Network Visualization (2D/3D)"):
-                    gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
-
+                with gr.Tab("🌐 Network Visualization (2D/3D)"):        
+            with gr.Blocks(title=AppConstants.TITLE) as interface:
+                gr.Markdown(AppConstants.MARKDOWN_HEADER)
                     with gr.Row():
                         gr.Markdown("### 🎛️ Visualization Controls")
                     with gr.Row():
@@ -678,13 +679,12 @@ class FinancialAssetApp:
                 lambda *args: (
                     gr.update(visible=args[1] == "2D"),
                     self.refresh_visualization(*args)[0],
-                    gr.update(visible=False),
-                ),
-                inputs=visualization_inputs,
-                outputs=[layout_type, visualization_3d, error_message],
-            )
-
-            formulaic_outputs=[
+    interface.load(
+        self.refresh_all_outputs,
+        inputs=[graph_state],
+        outputs=all_refresh_outputs,
+    )
+    return interface
                 formulaic_dashboard,
                 correlation_network,
                 metric_comparison,
