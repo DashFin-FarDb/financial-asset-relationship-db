@@ -94,7 +94,8 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         """
         Set environment variables using the provided monkeypatch fixture.
 
-        Iterates through each keyword argument and sets the corresponding environment variable.
+        Iterates through each keyword argument and sets the corresponding environment
+        variable.
         """
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
