@@ -131,15 +131,48 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     for asset_class, count in sorted(class_dist.items()):
         lines.append(f"- **{asset_class}**: {count} assets")
 
+    # -- Top Relationships ------------------------------------------------
+    top_rels = _as_top_relationships(metrics.get("top_relationships"))
+    lines.extend(["", "## Top Relationships", ""])
+    if top_rels:
+        for src, tgt, rtype, strength in top_rels:
+            lines.append(f"- **{src}** -> **{tgt}** ({rtype}, strength {strength:.2f})")
+    else:
+        lines.append("- No relationships recorded yet.")
+
+    # -- Business Rules & Constraints --------------------------------------
+    lines.extend(
+        [
+            "",
+            "## Business Rules & Constraints",
+            "",
+            "### Cross-Asset Rules",
+            "- **Sector Affinity**: Assets in the same sector are linked with strength 0.7 (bidirectional)",
+            "- **Corporate Bond Linkage**: A bond whose issuer_id matches another asset creates a directional link (strength 0.9)",
+            "- **Currency Exposure**: Currency assets reflect FX and central-bank policy links",
+            "",
+            "### Regulatory Rules",
+            "- **Event Propagation**: Regulatory / earnings events propagate impact to related assets",
+            "- Events create directional relationships from the event source to each related asset",
+            "",
+            "### Valuation Rules",
+            "- **Impact Scoring**: Event impact scores are normalized to -1 to +1 for comparability",
+            "- Relationship strengths are clamped to the 0-1 range",
+        ]
+    )
+
+    # -- Schema Optimization Metrics ---------------------------------------
     quality_score = _as_float(metrics.get("quality_score"), 0.0)
-
-    lines.append(f"Data Quality Score: {quality_score:.1%}")
-
-    quality_score = metrics.get("quality_score", 0.0)
-    lines.append(f"Data Quality Score: {quality_score:.1%}")
-
-    quality_score = metrics.get("quality_score", 0.0)
-    lines.append(f"Data Quality Score: {quality_score:.1%}")
+    lines.extend(
+        [
+            "",
+            "## Schema Optimization Metrics",
+            "",
+            f"### Data Quality Score: {quality_score:.1%}",
+            "",
+            "### Recommendation:",
+        ]
+    )
 
     if density > 30.0:
         lines.append("High connectivity - consider normalization")
@@ -148,6 +181,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     else:
         lines.append("Sparse connections - consider adding more relationships")
 
+    # -- Implementation Notes ----------------------------------------------
     lines.extend(
         [
             "",
@@ -161,3 +195,5 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             ),
         ]
     )
+
+    return "\n".join(lines)
