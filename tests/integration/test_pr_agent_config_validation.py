@@ -266,17 +266,17 @@ class TestPRAgentConfigYAMLValidity:
 
             def construct_mapping(self, node, deep=False):
                 """
-                Construct a Python dict from a YAML mapping node, failing the test if duplicate keys are encountered.
-
+                Construct a dict from a YAML mapping node and fail the test if duplicate keys are present.
+                
                 Parameters:
-                    node: The YAML mapping node to construct (expected to provide `.value` pairs and `.start_mark.line`).
+                    node: YAML mapping node whose `.value` contains (key_node, value_node) pairs and whose `.start_mark.line` gives the node's starting line.
                     deep (bool): If True, construct nested objects recursively.
-
+                
                 Returns:
                     dict: Mapping of constructed keys to their constructed values.
-
+                
                 Raises:
-                    pytest.fail: Fails the current test with a message that includes the 1-based line number when a duplicate key is found.
+                    pytest.fail: Fails the current test with a message containing the 1-based line number when a duplicate key is detected.
                 """
                 mapping = {}
                 for entry_node, val_node in node.value:
@@ -296,9 +296,10 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_consistent_indentation():
         """
-        Verify that every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
-
-        Raises an AssertionError indicating the line number when a line's leading spaces are not a multiple of two.
+        Ensure every non-empty, non-comment line in the PR agent YAML uses 2-space indentation increments.
+        
+        Raises:
+            AssertionError: if a line's leading spaces are not a multiple of two; the message includes the offending line number.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
@@ -356,11 +357,10 @@ class TestPRAgentConfigSecurity:
 
         def _redact(value: str) -> str:
             """
-            Return a redacted version of a string preserving the first and last four characters when possible.
-
+            Produce a redacted version of a string that preserves the first and last four characters when possible.
+            
             Returns:
-                A redacted string: '***' if the input length is 8 characters or fewer, otherwise a string of the form
-                '<first4>...<last4>' where the middle is replaced by an ellipsis.
+                str: '***' if the input length is 8 characters or fewer, otherwise '<first4>...<last4>'.
             """
             if len(value) <= 8:
                 return "***"
@@ -409,16 +409,16 @@ class TestPRAgentConfigSecurity:
 
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
-            Recursively scan a nested configuration object for keys that indicate sensitive values and assert those values are allowed placeholders.
-
-            When a dictionary key contains any configured sensitive pattern, its value is validated with `is_allowed_placeholder(value)`; an AssertionError is raised with the node path if the value is not allowed.
-
+            Scan a nested configuration object for keys that indicate sensitive values and assert those values are allowed placeholders.
+            
+            This function recursively traverses mappings, sequences, and scalars. For any mapping key whose lowercase form contains one of the configured sensitive_patterns, the corresponding value is validated with is_allowed_placeholder(value). If the value is not an allowed placeholder, an AssertionError is raised with the precise node path.
+            
             Parameters:
-                node (object): The current node to inspect; may be a mapping, sequence, or scalar.
+                node (object): The node to inspect; may be a dict, list/tuple, or scalar.
                 path (str): Dot/bracket-notation path to `node` used in assertion messages (default "root").
-
+            
             Raises:
-                AssertionError: If a sensitive key contains a disallowed hardcoded value.
+                AssertionError: If a sensitive key is found whose value is not an allowed placeholder; the message includes the node path.
             """
             if isinstance(node, dict):
                 for k, v in node.items():

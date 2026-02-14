@@ -47,9 +47,12 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
     """
-    Shared TestClient fixture with a sample in-memory graph.
-
-    This matches the default expectation for most endpoint tests: a populated graph.
+    Provide a TestClient configured with a populated in-memory graph for endpoint tests.
+    
+    Yields a TestClient for the FastAPI app with a sample in-memory graph set on api_main, and ensures the global graph is reset when the fixture is torn down.
+    
+    Returns:
+        TestClient: A TestClient instance connected to the app with a populated in-memory sample graph.
     """
     api_main.set_graph(create_sample_database())
     tc = TestClient(app)
@@ -252,14 +255,12 @@ class TestAPIEndpoints:
     @pytest.fixture
     def client():
         """
-        Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
-
-        Sets a sample in-memory graph on the application before yielding the client and resets the graph after the test completes.
-
-        Sets the application's graph to a sample database and yields a TestClient for use in tests. On fixture teardown the application's graph is reset.
-
+        Provide a TestClient configured with a sample in-memory graph for endpoint tests.
+        
+        Sets the application's graph to a sample in-memory database before yielding the client and resets the graph on teardown.
+        
         Returns:
-            TestClient: A test client instance connected to the application populated with the sample graph.
+            TestClient: A TestClient instance connected to the application populated with the sample graph.
         """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
@@ -740,7 +741,11 @@ class TestGraphInitializationRaceConditions:
         errors = []
 
         def init_graph():
-            """Thread worker for graph initialization."""
+            """
+            Worker function run by a thread to obtain the shared graph instance.
+            
+            If successful, appends the retrieved graph to the surrounding `results` list; if an exception occurs, appends the exception to the surrounding `errors` list.
+            """
             try:
                 graph = api_main.get_graph()
                 results.append(graph)
@@ -920,7 +925,14 @@ class TestEndpointStressTests:
     @staticmethod
     @pytest.fixture
     def client():
-        """Create test client with sample data."""
+        """
+        Provide a TestClient configured with an in-memory sample graph for tests.
+        
+        This fixture sets a sample graph on the application before yielding the client and resets the graph after the test completes.
+        
+        Returns:
+            TestClient: A TestClient instance for the FastAPI app with the sample graph loaded.
+        """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
         try:
@@ -962,7 +974,14 @@ class TestErrorMessageQuality:
     @staticmethod
     @pytest.fixture
     def client():
-        """Create test client."""
+        """
+        Provide a TestClient configured with an in-memory sample graph for tests.
+        
+        Sets a sample graph on the application before yielding the TestClient and ensures the graph is reset after the fixture is torn down.
+        
+        Returns:
+            TestClient: a TestClient instance bound to the app with the sample graph loaded.
+        """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
         try:

@@ -151,7 +151,11 @@ class TestBond:
 
     @staticmethod
     def test_bond_optional_fields():
-        """Test bond with optional fields as None."""
+        """
+        Verify that optional Bond fields default to None when they are not provided.
+        
+        Asserts that `yield_to_maturity`, `coupon_rate`, and `issuer_id` are `None`.
+        """
         bond = Bond(
             id="TEST_BOND_002",
             symbol="TEST_BOND",

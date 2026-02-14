@@ -43,16 +43,14 @@ def client():
 @pytest.fixture
 def mock_graph():
     """
-    Create an in-memory AssetRelationshipGraph populated with sample assets and relationships.
-
-    The graph contains:
-    - An Equity with id "TEST_AAPL" (Apple Inc.) including market fields such as price, market_cap, and pe_ratio.
-    - A Bond with id "TEST_CORP" whose issuer_id is "TEST_AAPL" and includes fixed-income fields.
-    - A Commodity with id "TEST_GC" (Gold) including contract and delivery fields.
-    - A Currency with id "TEST_EUR" (Euro) including exchange_rate and country.
-
-    Relationships between these assets are built before the graph is returned.
-
+    Create an in-memory AssetRelationshipGraph populated with four sample assets and their relationships.
+    
+    The graph contains sample assets used by tests:
+    - Equity "TEST_AAPL" (Apple Inc.) with typical equity fields (price, market_cap, pe_ratio, etc.).
+    - Bond "TEST_CORP" (corporate bond) with fixed-income fields and issuer_id referencing "TEST_AAPL".
+    - Commodity "TEST_GC" (Gold) with contract and delivery fields.
+    - Currency "TEST_EUR" (Euro) with exchange_rate and country.
+    
     Returns:
         AssetRelationshipGraph: An in-memory graph populated with the sample assets and their relationships.
     """
@@ -126,13 +124,13 @@ def _apply_mock_graph_configuration(
     mock_graph_instance: object, graph: AssetRelationshipGraph
 ) -> None:
     """
-    Configure a patched graph mock with attributes copied from a real AssetRelationshipGraph.
-
-    Sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data attributes to match the provided graph so tests can reuse a consistent mocked graph surface.
-
+    Copy core attributes from a concrete AssetRelationshipGraph onto a mocked graph used in tests.
+    
+    This sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data attributes to mirror the provided graph, allowing tests to reuse a consistent mocked graph surface.
+    
     Parameters:
-        mock_graph_instance (object): A unittest.mock.Mock instance that represents the patched api.main.graph.
-        graph (AssetRelationshipGraph): The concrete graph whose attributes should be mirrored on the mock.
+        mock_graph_instance (object): The mocked graph object (typically a unittest.mock.Mock) to configure.
+        graph (AssetRelationshipGraph): The concrete AssetRelationshipGraph whose attributes will be copied.
     """
     # The patched object is a Mock from unittest.mock; we set attributes dynamically.
     mock_graph_instance.assets = graph.assets
@@ -143,7 +141,14 @@ def _apply_mock_graph_configuration(
 
 @pytest.fixture
 def apply_mock_graph():
-    """Return a helper callable that wires the patched graph to a concrete graph."""
+    """
+    Provide a helper callable that wires a patched/mock graph object to a concrete AssetRelationshipGraph instance.
+    
+    The returned callable takes (mock_graph_instance, graph) and copies the concrete graph's public surface — including assets, relationships, and callable methods used by tests — onto the mocked graph so tests can use the concrete graph state through the mock.
+    
+    Returns:
+        callable: A function accepting (mock_graph_instance, graph) which applies the configuration.
+    """
     return _apply_mock_graph_configuration
 
 
@@ -615,7 +620,11 @@ class TestConcurrency:
     def test_multiple_concurrent_requests(
         self, mock_graph_instance, client, mock_graph, apply_mock_graph
     ):
-        """Test handling multiple concurrent requests."""
+        """
+        Verify the API correctly handles multiple concurrent requests to the assets endpoint.
+        
+        Sends five GET requests to /api/assets and asserts each response has status code 200 and a JSON body containing four assets.
+        """
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         # Simulate concurrent requests
@@ -865,9 +874,11 @@ class TestCacheCorruptionRegression:
 
         def load_from_cache():
             """
-            Load a cached real-data graph and record the outcome.
-
-            Attempts to instantiate RealDataFetcher with network disabled and create the cached graph. On success appends the resulting graph to the outer-scope `results` list; on failure appends the caught exception to the outer-scope `errors` list.
+            Load a cached real-data AssetRelationshipGraph and record the outcome.
+            
+            Instantiates RealDataFetcher with network disabled and attempts to create the cached graph.
+            On success appends the resulting graph to the outer-scope list `results`; on failure appends
+            the caught exception to the outer-scope list `errors`.
             """
             try:
                 from src.data.real_data_fetcher import RealDataFetcher
@@ -1033,7 +1044,9 @@ class TestNegativeScenarios:
 
     @staticmethod
     def test_validate_origin_with_unicode_domain():
-        """Negative: Test handling of internationalized domain names."""
+        """
+        Verify that validate_origin accepts an HTTPS internationalized domain name (IDN) such as "https://münchen.de".
+        """
         result = validate_origin("https://münchen.de")
         # IDN with HTTPS: validate_origin should accept valid HTTPS domains
         assert result is True

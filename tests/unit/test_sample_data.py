@@ -204,7 +204,9 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_relationships_have_valid_strength():
-        """Test that all relationships have valid strength values."""
+        """
+        Checks that every relationship in the sample graph has a strength value between 0 and 1 inclusive.
+        """
         graph = create_sample_database()
 
         for _source_id, rels in graph.relationships.items():
@@ -326,7 +328,11 @@ class TestSampleDataConsistency:
 
     @staticmethod
     def test_relationship_targets_exist():
-        """Test that all relationship targets reference existing assets."""
+        """
+        Verify that every relationship's source and target IDs exist among the graph's assets.
+        
+        Asserts that each relationship key present in graph.relationships is a valid asset ID and that every relationship's target ID refers to an existing asset.
+        """
         graph = create_sample_database()
 
         for source_id, rels in graph.relationships.items():

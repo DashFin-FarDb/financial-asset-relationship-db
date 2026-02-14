@@ -644,7 +644,11 @@ jobs:
                 Path(f.name).unlink()
 
     def test_workflow_path_with_spaces(self):
-        """Test workflow file with spaces in path"""
+        """
+        Verify that a workflow file whose filesystem path contains spaces is parsed and accepted.
+        
+        Creates a temporary file with spaces in its name, writes a minimal valid GitHub Actions workflow to it, runs validation, and asserts the result is valid.
+        """
         import os
 
         temp_dir = tempfile.mkdtemp()
@@ -1024,7 +1028,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_float_values():
-        """Test workflow with float values"""
+        """
+        Validate that a workflow containing float values in environment fields is considered valid.
+        
+        Creates a temporary YAML workflow with float values in `env` and asserts that `validate_workflow` returns a valid result.
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """

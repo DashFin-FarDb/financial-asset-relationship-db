@@ -37,7 +37,16 @@ pytestmark = pytest.mark.unit
 
 
 def _assert_model_registered(model: type[Base], expected_tablename: str) -> None:
-    """Assert the model is registered and has the expected __tablename__."""
+    """
+    Verify that a SQLAlchemy model's `__tablename__` equals the expected table name.
+    
+    Parameters:
+        model (type[Base]): Declarative model class to check.
+        expected_tablename (str): Expected value of the model's `__tablename__`.
+    
+    Raises:
+        AssertionError: If the model's `__tablename__` does not match `expected_tablename`.
+    """
     assert model.__tablename__ == expected_tablename
 
 
@@ -49,10 +58,12 @@ def _assert_model_registered(model: type[Base], expected_tablename: str) -> None
 @pytest.fixture()
 def isolated_base() -> Iterator[type[Base]]:
     """
-    Provide an isolated SQLAlchemy declarative base for each test.
-
-    This prevents table metadata leakage across test cases and avoids cross-test
-    interference when defining ad-hoc models.
+    Provide an isolated declarative SQLAlchemy Base subclass for use within a single test.
+    
+    This fixture yields a Base subclass with `__abstract__ = True`; any tables registered on the global Base.metadata during the test are removed after the fixture completes.
+    
+    Returns:
+        isolated_base (type[Base]): A declarative Base subclass whose test-created tables will be cleaned from the global metadata after the test.
     """
     existing_tables = set(Base.metadata.tables)
 
@@ -76,10 +87,12 @@ def isolated_base() -> Iterator[type[Base]]:
 @pytest.fixture()
 def engine() -> Iterator[Engine]:
     """
-    Provide an in-memory SQLite engine.
-
+    Create and yield an in-memory SQLite Engine for tests.
+    
+    The engine uses StaticPool and disables SQLite's same-thread check so multiple sessions can share the in-memory database. The engine is disposed when the fixture teardown runs.
+    
     Returns:
-        Iterator[Engine]: Yielded in-memory engine.
+        An in-memory SQLite `Engine` instance; it is disposed after use.
     """
     in_memory_engine = create_engine(
         "sqlite:///:memory:",
@@ -183,7 +196,9 @@ class TestDatabaseInitialization:
     """Tests for database initialization and schema creation."""
 
     def test_init_db_creates_tables(self, engine: Engine, isolated_base) -> None:
-        """init_db should create all registered tables."""
+        """
+        Verifies that init_db creates tables for models registered on the provided declarative base.
+        """
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Test model for verifying table creation functionality."""
@@ -299,7 +314,11 @@ class TestSessionScope:
             assert session.query(TestModel).count() == 0  # nosec B101
 
     def test_propagates_integrity_error(self, engine: Engine, isolated_base) -> None:
-        """Integrity errors should propagate after rollback."""
+        """
+        Verify that an IntegrityError raised inside a session_scope is propagated to the caller after the transaction is rolled back.
+        
+        This test creates a simple model, initializes the database, and performs operations that raise an IntegrityError; the error must not be swallowed by the session scope.
+        """
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model used in tests to trigger and verify integrity errors."""
@@ -351,7 +370,11 @@ class TestDefaultDatabaseURL:
         assert "sqlite" in DEFAULT_DATABASE_URL.lower()  # nosec B101
 
     def test_default_points_to_file(self) -> None:
-        """Default SQLite URL should point to a file."""
+        """
+        Verify the default database URL points to the file named 'asset_graph.db'.
+        
+        Asserts that DEFAULT_DATABASE_URL contains the substring 'asset_graph.db'.
+        """
         assert "asset_graph.db" in DEFAULT_DATABASE_URL  # nosec B101
 
     def test_env_override_works(self) -> None:
@@ -459,7 +482,9 @@ class TestConcurrentDatabaseAccess:
         errors: list[Exception] = []
 
         def create_session() -> None:
-            """Thread worker to create sessions."""
+            """
+            Create a session using the surrounding `factory`, append it to the surrounding `sessions` list, then close it; on exception, append the exception to the surrounding `errors` list.
+            """
             try:
                 session = factory()
                 sessions.append(session)
@@ -498,7 +523,11 @@ class TestConcurrentDatabaseAccess:
         errors: list[Exception] = []
 
         def read_data() -> None:
-            """Thread worker for concurrent reads."""
+            """
+            Worker executed by a thread to perform a read-only count query and record results.
+            
+            Appends the number of rows in `TestModel` to the shared `results` list. If an exception occurs, appends the exception instance to the shared `errors` list. Obtains a session from the module-level session factory and does not return a value.
+            """
             try:
                 with session_scope(factory) as session:
                     count = session.query(TestModel).count()
@@ -533,13 +562,13 @@ class TestConcurrentDatabaseAccess:
 
         def write_data(thread_id: int) -> None:
             """
-            Worker used by a thread to insert a TestModel row and record any exception.
-
+            Insert a TestModel row using thread_id as the primary key and record any exception.
+            
+            Sleeps briefly based on thread_id, opens a transactional session, and adds TestModel(id=thread_id).
+            If an exception occurs, it is appended to the shared `errors` list as a side effect.
+            
             Parameters:
-                thread_id (int): Value used as the TestModel `id` for the inserted row.
-
-            Notes:
-                On failure, the raised exception is appended to the shared `errors` list as a side effect.
+                thread_id (int): Integer used as the TestModel `id`.
             """
             try:
                 time.sleep(0.001 * thread_id)
@@ -679,7 +708,11 @@ class TestResourceCleanup:
             assert session.query(TestModel).count() == 10
 
     def test_session_scope_with_nested_commits(self, engine: Engine) -> None:
-        """Regression: explicit commits inside session_scope persist data."""
+        """
+        Verifies that explicit commits performed inside a session_scope persist data across subsequent scopes.
+        
+        This test creates a simple model, performs explicit commits within a session_scope (simulating a regression where nested commits might be discarded), and then opens a new session_scope to assert the committed row is visible.
+        """
 
         class TestModelBase(Base):  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
