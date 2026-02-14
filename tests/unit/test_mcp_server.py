@@ -274,8 +274,6 @@ class TestGet3DLayout:
 
         result = resource_func()
 
-        result = resource_func()
-
         # Should return valid JSON
         data = json.loads(result)
         assert "asset_ids" in data
