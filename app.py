@@ -450,18 +450,10 @@ class FinancialAssetApp:
                         choices=["3D", "2D"],
                         value="3D",
                     )
-                with gr.Row(), gr.Column(scale=1):
-                    layout_type = gr.Radio(
-                        label="2D Layout Type",
-                        choices=["spring", "circular", "grid"],
-                        value="spring",
-                        visible=False,
-                    )
 
                 with gr.Row():
                     gr.Markdown("### 🔗 Relationship Visibility Controls")
                 with gr.Row(), gr.Column(scale=1):
-                    show_same_sector = gr.Checkbox(label="Same Sector (↔)", value=True)
                     show_market_cap = gr.Checkbox(
                         label="Market Cap Similar (↔)", value=True
                     )
