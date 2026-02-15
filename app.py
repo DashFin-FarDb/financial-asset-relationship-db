@@ -485,15 +485,13 @@ class FinancialAssetApp:
         with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
             error_message=gr.Textbox(
-                label=AppConstants.ERROR_LABEL,
+                        gr.Checkbox(label="Income Comparison (↔)", value=True)
                 visible=False,
                 interactive=False,
                 elem_id="error_message",
             )
 
-            with gr.Tabs():
-                with gr.Tab("🌐 Network Visualization (2D/3D)"):
-            with gr.Blocks(title=AppConstants.TITLE) as interface:
+                        gr.Checkbox(label="Income Comparison (↔)", value=True)
                 gr.Markdown(AppConstants.MARKDOWN_HEADER)
                     with gr.Row():
                         gr.Markdown("### 🎛️ Visualization Controls")
@@ -637,11 +635,16 @@ class FinancialAssetApp:
                 events_timeline_chart,
                 metrics_text,
                 schema_report,
-                asset_selector,
-                error_message,
-            ]
-
-            refresh_buttons=[
+    for checkbox in [
+        show_same_sector,
+        show_market_cap,
+        show_correlation,
+        show_corporate_bond,
+        show_commodity_currency,
+        show_regulatory,
+        show_all_relationships,
+        toggle_arrows,
+    ]:
                 refresh_metrics_btn,
                 refresh_schema_btn,
                 refresh_explorer_btn,
@@ -664,10 +667,9 @@ class FinancialAssetApp:
                 show_commodity_currency,
                 gr.Markdown(
                     "## Mathematical Relationships & Formulas\n\n"
-                    + "This section extracts and visualizes\n"
-                    + "mathematical formulas and relationships\n"
-                    + "between financial variables.\n"
-                    + "It includes fundamental financial ratios,\n"
+            True,
+            True,
+            True,      
                     + "correlation patterns,\n"
                     + "valuation models,\n"
                     + "and empirical relationships derived\n"
