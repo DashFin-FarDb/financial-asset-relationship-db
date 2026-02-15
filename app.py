@@ -919,8 +919,8 @@ class FinancialAssetApp:
                 toggle_arrows,
             ]:
 
-
-checkbox.change(
+            # Wire up controls to refresh the visualization
+            checkbox.change(
                 self.refresh_visualization,
                 inputs=visualization_inputs,
                 outputs=[visualization_3d, error_message],
@@ -932,40 +932,26 @@ checkbox.change(
                 outputs=[visualization_output],
             )
 
-
-reset_view_btn.click(
-            lambda graph_state, view_mode, layout_type: self.refresh_visualization(
-                graph_state,
-                view_mode,
-                layout_type,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,
-                True,  # Add missing toggle_arrows argument
-            ),
+            # Reset view button: call refresh_visualization but override toggles to show everything
+            reset_view_btn.click(
                 lambda graph_state, view_mode, layout_type: self.refresh_visualization(
-                    graph_state,
-                    view_mode,
-                    layout_type,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
-                    True,
+                    graph_state=graph_state,
+                    view_mode=view_mode,
+                    layout_type=layout_type,
+                    show_same_sector=True,
+                    show_market_cap=True,
+                    show_correlation=True,
+                    show_corporate_bond=True,
+                    show_commodity_currency=True,
+                    show_income_comparison=True,
+                    show_regulatory=True,
+                    show_all_relationships=True,
+                    toggle_arrows=True,
                 ),
                 inputs=[graph_state, view_mode, layout_type],
                 outputs=[visualization_output],
             )
-
+            
             asset_selector.change(
                 self.update_asset_info,
                 inputs=[asset_selector, graph_state],
