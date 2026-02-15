@@ -124,8 +124,7 @@ class FormulaicAnalyzer:
     def _extract_fundamental_formulas(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
-        """
-        """
+        """ """
         formulas = []
 
         # Price-to-Earnings Ratio
@@ -620,7 +619,7 @@ class FormulaicAnalyzer:
             )
         return 0.5
 
-    @ staticmethod
+    @staticmethod
     def _has_equities(graph: AssetRelationshipGraph) -> bool:
         """
         Determine whether the asset graph contains any assets classified as equity.
@@ -635,7 +634,7 @@ class FormulaicAnalyzer:
             asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values()
         )
 
-    @ staticmethod
+    @staticmethod
     def _has_bonds(graph: AssetRelationshipGraph) -> bool:
         """
         Return whether the graph contains any fixed - income(bond) assets.
@@ -651,7 +650,7 @@ class FormulaicAnalyzer:
             for asset in graph.assets.values()
         )
 
-    @ staticmethod
+    @staticmethod
     def _has_commodities(graph: AssetRelationshipGraph) -> bool:
         """
         Determine whether the graph includes any commodity assets.
@@ -666,7 +665,7 @@ class FormulaicAnalyzer:
             asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values()
         )
 
-    @ staticmethod
+    @staticmethod
     def _has_currencies(graph: AssetRelationshipGraph) -> bool:
         """
         Return whether the graph contains any currency assets.
@@ -681,7 +680,7 @@ class FormulaicAnalyzer:
             asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values()
         )
 
-    @ staticmethod
+    @staticmethod
     def _has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
         """
         Check whether the graph contains any equity assets that report a dividend yield
@@ -701,7 +700,7 @@ class FormulaicAnalyzer:
             for asset in graph.assets.values()
         )
 
-    @ staticmethod
+    @staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P / E ratio calculations from graph data.
 
@@ -728,7 +727,7 @@ class FormulaicAnalyzer:
             "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
         )
 
-    @ staticmethod
+    @staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         """
         Create up to two concise examples showing dividend yield for equity assets
@@ -764,7 +763,7 @@ class FormulaicAnalyzer:
             else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
         )
 
-    @ staticmethod
+    @staticmethod
     def _calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
         """
         Create up to two example yield -to - maturity(YTM) strings from fixed - income
@@ -797,9 +796,9 @@ class FormulaicAnalyzer:
                     break
         return "; ".join(examples) if examples else "Example: YTM ≈ 3.0%"
 
-    @ staticmethod
+    @staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
-        '''
+        """
         Builds example market - capitalization strings for up to two equity
         assets found in the graph.
 
@@ -816,7 +815,7 @@ class FormulaicAnalyzer:
 
         Returns:
             str: Formatted example(s) or the default example message.
-        '''
+        """
         from src.models.financial_models import AssetClass
 
         examples = []
@@ -832,7 +831,7 @@ class FormulaicAnalyzer:
                     break
         return "; ".join(examples) if examples else "Example: Market Cap = $1.5T"
 
-    @ staticmethod
+    @staticmethod
     def _calculate_beta_examples(graph: AssetRelationshipGraph) -> str:
         """Generate a string representing beta calculations."""
         return "Beta calculated from historical returns vs market index"
