@@ -765,9 +765,7 @@ class FinancialAssetApp:
 
                 with gr.Row():
                     with gr.Column(scale=1):
-                        correlation_network = gr.Plot(
-                            label="Asset Correlation Network"
-                        )
+                        correlation_network = gr.Plot(label="Asset Correlation Network")
                     with gr.Column(scale=1):
                         metric_comparison = gr.Plot(label="Metric Comparison Chart")
 
