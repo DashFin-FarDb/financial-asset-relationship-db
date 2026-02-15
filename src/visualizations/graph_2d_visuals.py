@@ -278,11 +278,11 @@ def visualize_2d_graph(
         raise ValueError("Invalid graph data provided")
 
     # Get asset data
-    asset_ids=list(graph.assets.keys())
+    asset_ids = list(graph.assets.keys())
 
     if not asset_ids:
         # Return empty figure for empty graph
-        fig=go.Figure()
+        fig = go.Figure()
         fig.update_layout(
             title="2D Asset Relationship Network (No Assets)",
             plot_bgcolor="white",
@@ -292,9 +292,9 @@ def visualize_2d_graph(
 
     # Create layout based on type
     if layout_type == "circular":
-        positions=_create_circular_layout(asset_ids)
+        positions = _create_circular_layout(asset_ids)
     elif layout_type == "grid":
-        positions=_create_grid_layout(asset_ids)
+        positions = _create_grid_layout(asset_ids)
     else:  # Default to spring layout
         # Get 3D positions and convert to 2D
         if hasattr(graph, "get_3d_visualization_data_enhanced"):
@@ -303,22 +303,22 @@ def visualize_2d_graph(
                 asset_ids_ordered,
                 _,
                 _,
-            )=graph.get_3d_visualization_data_enhanced()
+            ) = graph.get_3d_visualization_data_enhanced()
             # Convert array to dictionary
-            positions_3d={
+            positions_3d = {
                 asset_ids_ordered[i]: tuple(positions_3d_array[i])
                 for i in range(len(asset_ids_ordered))
             }
-            positions=_create_spring_layout_2d(positions_3d, asset_ids)
+            positions = _create_spring_layout_2d(positions_3d, asset_ids)
         else:
             # Fallback to circular if 3D data not available
-            positions=_create_circular_layout(asset_ids)
+            positions = _create_circular_layout(asset_ids)
 
     # Create figure
-    fig=go.Figure()
+    fig = go.Figure()
 
     # Add relationship traces
-    relationship_traces=_create_2d_relationship_traces(
+    relationship_traces = _create_2d_relationship_traces(
         graph,
         positions,
         asset_ids,
@@ -336,21 +336,21 @@ def visualize_2d_graph(
         fig.add_trace(trace)
 
     # Add node trace
-    node_x=[positions[asset_id][0] for asset_id in asset_ids]
-    node_y=[positions[asset_id][1] for asset_id in asset_ids]
+    node_x = [positions[asset_id][0] for asset_id in asset_ids]
+    node_y = [positions[asset_id][1] for asset_id in asset_ids]
 
     # Get colors for nodes
-    colors=[]
+    colors = []
     for asset_id in asset_ids:
-        asset=graph.assets[asset_id]
-        asset_class=(
+        asset = graph.assets[asset_id]
+        asset_class = (
             asset.asset_class.value
             if hasattr(asset.asset_class, "value")
             else str(asset.asset_class)
         )
 
         # Color mapping by asset class
-        color_map={
+        color_map = {
             "equity": "#1f77b4",
             "fixed_income": "#2ca02c",
             "commodity": "#ff7f0e",
@@ -360,24 +360,24 @@ def visualize_2d_graph(
         colors.append(color_map.get(asset_class.lower(), "#7f7f7f"))
 
     # Calculate node sizes based on connections
-    node_sizes=[]
+    node_sizes = []
     for asset_id in asset_ids:
-        num_connections=len(graph.relationships.get(asset_id, []))
-        size=20 + min(num_connections * 5, 30)  # Size between 20 and 50
+        num_connections = len(graph.relationships.get(asset_id, []))
+        size = 20 + min(num_connections * 5, 30)  # Size between 20 and 50
         node_sizes.append(size)
 
     # Create hover texts
-    hover_texts=[]
+    hover_texts = []
     for asset_id in asset_ids:
-        asset=graph.assets[asset_id]
-        hover_text=f"{asset_id}<br>Class: " + (
+        asset = graph.assets[asset_id]
+        hover_text = f"{asset_id}<br>Class: " + (
             asset.asset_class.value
             if hasattr(asset.asset_class, "value")
             else str(asset.asset_class)
         )
         hover_texts.append(hover_text)
 
-    node_trace=go.Scatter(
+    node_trace = go.Scatter(
         x=node_x,
         y=node_y,
         mode="markers+text",
@@ -399,7 +399,7 @@ def visualize_2d_graph(
     fig.add_trace(node_trace)
 
     # Update layout
-    layout_name=layout_type.capitalize()
+    layout_name = layout_type.capitalize()
     fig.update_layout(
         title=f"2D Asset Relationship Network ({layout_name} Layout)",
         plot_bgcolor="white",
