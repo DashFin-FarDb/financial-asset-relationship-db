@@ -636,7 +636,7 @@ class FormulaicAnalyzer:
         )
         )
 
-    @staticmethod
+    @ staticmethod
     def _has_bonds(graph: AssetRelationshipGraph) -> bool:
         """
         Return whether the graph contains any fixed - income(bond) assets.
@@ -652,7 +652,7 @@ class FormulaicAnalyzer:
             for asset in graph.assets.values()
         )
 
-    @staticmethod
+    @ staticmethod
     def _has_commodities(graph: AssetRelationshipGraph) -> bool:
         """
         Determine whether the graph includes any commodity assets.
@@ -667,7 +667,7 @@ class FormulaicAnalyzer:
             asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values()
         )
 
-    @staticmethod
+    @ staticmethod
     def _has_currencies(graph: AssetRelationshipGraph) -> bool:
         """
         Return whether the graph contains any currency assets.
@@ -682,7 +682,7 @@ class FormulaicAnalyzer:
             asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values()
         )
 
-    @staticmethod
+    @ staticmethod
     def _has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
         """
         Check whether the graph contains any equity assets that report a dividend yield
@@ -702,7 +702,7 @@ class FormulaicAnalyzer:
             for asset in graph.assets.values()
         )
 
-    @staticmethod
+    @ staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P / E ratio calculations from graph data.
 
