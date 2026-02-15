@@ -304,10 +304,7 @@ class FormulaicAnalyzer:
             example_calculation=("EV calculation requires debt and cash data " "(not available in current dataset)"),
             category="Valuation",
             r_squared=0.95,
-        )
-        formulas.append(enterprise_value_formula)
-
-        return formulas
+                expression="EV = Market_Cap + Total_Debt - Cash",
 
     def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
