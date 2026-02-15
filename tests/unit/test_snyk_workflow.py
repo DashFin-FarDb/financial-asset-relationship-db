@@ -29,7 +29,7 @@ class TestSnykWorkflowStructure:
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     @pytest.fixture
-        """Args:
+    """Args:
             snyk_workflow_path: Path to the Snyk workflow file.
 
         Returns:
@@ -38,10 +38,10 @@ class TestSnykWorkflowStructure:
         Raises:
             AssertionError: If the Snyk workflow file does not exist.
         """
-        assert snyk_workflow_path.exists(), "Snyk workflow file not found"
+    assert snyk_workflow_path.exists(), "Snyk workflow file not found"
 
-        with open(snyk_workflow_path) as f:
-            return yaml.safe_load(f)
+    with open(snyk_workflow_path) as f:
+        return yaml.safe_load(f)
 
     def test_workflow_file_exists(self, snyk_workflow_path):
         """Test that Snyk workflow file exists."""
