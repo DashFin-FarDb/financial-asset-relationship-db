@@ -28,7 +28,8 @@ def _as_float(value: Any, default: float = 0.0) -> float:
     """
     Coerce a value to a float, falling back to a default on failure.
 
-    Attempts to convert `value` to a float; if `value` is None or cannot be converted (raises TypeError or ValueError), returns `default`.
+    Attempts to convert `value` to a float; if `value` is None or cannot be
+    converted (raises TypeError or ValueError), returns `default`.
 
     Parameters:
         value: The input to convert to float; any type is accepted.
@@ -47,15 +48,23 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 
 def _as_str_int_map(value: Any) -> dict[str, int]:
     """
-    Coerce a mapping-like value into a dictionary with string keys and integer values.
+    Coerce a mapping-like value into a dictionary
+    with string keys and integer values.
 
-    If the input is not a Mapping, returns an empty dictionary. For each item in the mapping, string keys are retained and their values are converted to integers using a best-effort conversion that defaults to 0 on failure; non-string keys are ignored.
+    If the input is not a Mapping, returns an empty
+    dictionary.
+
+    For each item in the mapping, string keys are retained
+    and their values are converted to integers using a
+    best-effort conversion that defaults to 0 on failure;
+    non-string keys are ignored.
 
     Parameters:
         value (Any): The value to coerce into a dict[str, int].
 
     Returns:
-        dict[str, int]: A dictionary of string keys to integer values, or an empty dict if the input is not a mapping or contains no string-keyed entries.
+        dict[str, int]: A dictionary of string keys to integer values, or an empty
+            dict if the input is not a mapping or contains no string-keyed entries.
     """
     if not isinstance(value, Mapping):
         return {}
@@ -68,12 +77,17 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
 
 def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
-    Normalize a value into a list of top relationships as (source, target, rel_type, strength) tuples.
+    Normalize a value into a list of top relationships as
+    (source, target, rel_type, strength) tuples.
 
-    If the input is not a list, returns an empty list. Items that are 4-tuples whose first three elements are strings are converted: the fourth element is coerced to a float and used as `strength`. Invalid items are ignored.
+    If the input is not a list, returns an empty list. Items that are
+    4-tuples whose first three elements are strings are converted:
+    the fourth element is coerced to a float and used as `strength`.
+    Invalid items are ignored.
 
     Returns:
-        list[tuple[str, str, str, float]]: A list of validated (source, target, relationship_type, strength) tuples.
+        list[tuple[str, str, str, float]]: A list of validated
+            (source, target, relationship_type, strength) tuples.
     """
     if not isinstance(value, list):
         return []
@@ -93,13 +107,22 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Produce a Markdown report that summarizes the schema, relationship distributions, calculated metrics, top relationships, business/regulatory/valuation rules, data quality score, recommendations, and implementation notes for an asset relationship graph.
+    Produce a Markdown report that summarizes the schema,
+    relationship distributions, calculated metrics, top relationships,
+    business/regulatory/valuation rules, data quality score,
+    recommendations, and implementation notes for an asset relationship
+    graph.
 
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to analyze and summarize.
+        graph (AssetRelationshipGraph): The asset relationship graph to
+            analyze and summarize.
 
     Returns:
-        str: Markdown-formatted report containing the assembled schema overview, relationship type distribution, network statistics, asset-class distribution, top relationships, business and regulatory rules, data quality score, recommendations, and implementation notes.
+        str: Markdown-formatted report containing the assembled schema
+            overview, relationship type distribution, network statistics,
+            asset-class distribution, top relationships, business and
+            regulatory rules, data quality score, recommendations, and
+            implementation notes.
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 
@@ -160,7 +183,10 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     lines.extend(["", "## Top Relationships", ""])
     if top_rels:
         for src, tgt, rtype, strength in top_rels:
-            lines.append(f"- **{src}** -> **{tgt}** ({rtype}, strength {strength:.2f})")
+            lines.append(
+                f"- **{src}** -> **{tgt}** ({rtype}, "
+                f"strength {strength:.2f})"
+            )
     else:
         lines.append("- No relationships recorded yet.")
 
@@ -171,16 +197,34 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            "- **Sector Affinity**: Assets in the same sector are linked with strength 0.7 (bidirectional)",
-            "- **Corporate Bond Linkage**: A bond whose issuer_id matches another asset creates a directional link (strength 0.9)",
-            "- **Currency Exposure**: Currency assets reflect FX and central-bank policy links",
+            (
+                "- **Sector Affinity**: Assets in the same sector are linked with "
+                "strength 0.7 (bidirectional)"
+            ),
+            (
+                "- **Corporate Bond Linkage**: A bond whose issuer_id matches another "
+                "asset creates a directional link (strength 0.9)"
+            ),
+            (
+                "- **Currency Exposure**: Currency assets reflect FX and "
+                "central-bank policy links"
+            ),
             "",
             "### Regulatory Rules",
-            "- **Event Propagation**: Regulatory / earnings events propagate impact to related assets",
-            "- Events create directional relationships from the event source to each related asset",
+            (
+                "- **Event Propagation**: Regulatory / earnings events propagate impact "
+                "to related assets"
+            ),
+            (
+                "- Events create directional relationships from the event source to "
+                "each related asset"
+            ),
             "",
             "### Valuation Rules",
-            "- **Impact Scoring**: Event impact scores are normalized to -1 to +1 for comparability",
+            (
+                "- **Impact Scoring**: Event impact scores are normalized to -1 to +1 "
+                "for comparability"
+            ),
             "- Relationship strengths are clamped to the 0-1 range",
         ]
     )

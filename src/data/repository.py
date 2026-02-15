@@ -74,7 +74,10 @@ class AssetGraphRepository:
         """
         Create or update a database record for the given domain Asset.
 
-        If a row with the asset's id exists, its fields are updated; otherwise a new ORM instance is created with that id. The ORM is populated from the provided domain Asset and added to the active session for persistence.
+        If a row with the asset's id exists, its fields are updated;
+        otherwise a new ORM instance is created with that id.
+        The ORM is populated from the provided domain Asset
+        and added to the active session for persistence.
         """
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:

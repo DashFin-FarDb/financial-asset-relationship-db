@@ -33,12 +33,21 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Configure a RealDataFetcher with optional cache, fallback behavior, and network control.
+        Configure a RealDataFetcher with optional cache, fallback behavior,
+        and network control.
 
         Parameters:
-            cache_path (Optional[str]): Filesystem path to a JSON cache file to load/save the serialized AssetRelationshipGraph; stored as a pathlib.Path when provided.
-            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]): Callable that returns an AssetRelationshipGraph used when network access is disabled or real-data fetching fails.
-            enable_network (bool): If False, disable network fetching and force use of fallback data.
+            cache_path (Optional[str]):
+                Filesystem path to a JSON cache file for loading and saving the
+                serialized AssetRelationshipGraph.
+                Converted to a pathlib.Path when provided.
+            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+                Callable that returns an AssetRelationshipGraph.
+                Used when network access is disabled or real-data fetching
+                fails.
+            enable_network (bool):
+                If False, disable network fetching and force use of
+                fallback data.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -47,12 +56,18 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """
-        Builds an AssetRelationshipGraph populated with current market data or a fallback dataset.
+        Builds an AssetRelationshipGraph populated with current market data or
+        a fallback dataset.
 
-        If a configured cache file exists, the graph is loaded from that cache. If network access is disabled or fetching real data fails, a fallback/sample graph is returned. When fetching succeeds and a cache path is configured, the populated graph is persisted to the cache.
+        If a configured cache file exists, the graph is loaded from that cache.
+        If network access is disabled or fetching real data fails, a
+        fallback/sample graph is returned.
+        When fetching succeeds and a cache path is configured,
+        the populated graph is persisted to the cache.
 
         Returns:
-            AssetRelationshipGraph: Graph built from cache, fetched real data, or fallback/sample data.
+            AssetRelationshipGraph: Graph built from cache, fetched real data,
+                or fallback/sample data.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -472,9 +487,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
     Serialize an AssetRelationshipGraph to a JSON-friendly dictionary.
 
-    The returned payload contains serialized assets, regulatory events, outgoing
-    relationships keyed by source asset id, and computed incoming relationships
-    keyed by target asset id.
+    The returned payload contains serialized assets, regulatory events,
+    outgoing relationships keyed by source asset id, and computed incoming
+    relationships keyed by target asset id.
 
     Parameters:
         graph (AssetRelationshipGraph): Graph to serialize.
@@ -483,9 +498,11 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
         payload (dict): Dictionary with keys:
                 - "assets": list of serialized asset objects.
                 - "regulatory_events": list of serialized regulatory event objects.
-                - "relationships": mapping from source id to a list of outgoing relationships;
+                - "relationships": mapping from source id to a list of outgoing
+                  relationships;
                   each item contains "target", "relationship_type", and "strength".
-                - "incoming_relationships": mapping from target id to a list of incoming relationships;
+                - "incoming_relationships": mapping from target id to a list of incoming
+                  relationships;
                   each item contains "source", "relationship_type", and "strength".
     """
     # Compute incoming_relationships from relationships

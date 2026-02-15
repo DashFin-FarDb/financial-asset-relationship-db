@@ -93,6 +93,12 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
 
     def _setter(**kwargs: str) -> None:
+        """
+        Set environment variables for tests.
+
+        Iterates through provided keyword arguments and uses monkeypatch.setenv
+        to temporarily set each environment variable for the duration of the test.
+        """
         for k, v in kwargs.items():
             monkeypatch.setenv(k, v)
 

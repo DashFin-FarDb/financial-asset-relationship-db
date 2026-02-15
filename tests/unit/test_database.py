@@ -238,7 +238,7 @@ class TestDatabaseInitialization:
 
     @staticmethod
     def test_init_db_preserves_existing_data(
-        self,
+        origin,
         engine: Engine,
         session_factory,
         isolated_base,

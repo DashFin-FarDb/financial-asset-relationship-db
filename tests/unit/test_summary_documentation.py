@@ -231,9 +231,7 @@ class TestFinalTestSummary:
             assert heading_levels[0] == 1, "Document should start with h1"
 
 
-`@pytest.mark.unit`
-
-
+@pytest.mark.unit
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
