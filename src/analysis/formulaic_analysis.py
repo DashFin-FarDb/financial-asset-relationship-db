@@ -118,7 +118,9 @@ class FormulaicAnalyzer:
             ),
         }
 
-    def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+    def _extract_fundamental_formulas(
+        self, graph: AssetRelationshipGraph
+    ) -> List[Formula]:
         """
         Build fundamental valuation and income formulas relevant to the assets in the graph.
 
@@ -170,7 +172,10 @@ class FormulaicAnalyzer:
                     formula="Price × Shares Outstanding",
                     latex=r"P \times \text{Shares}",
                     description="Estimated market capitalization computed from price and shares outstanding.",
-                    variables={"Price": "Price per share", "Shares Outstanding": "Number of shares outstanding"},
+                    variables={
+                        "Price": "Price per share",
+                        "Shares Outstanding": "Number of shares outstanding",
+                    },
                     example_calculation=self._calculate_market_cap_examples(graph),
                     category="Valuation",
                     r_squared=0.0,
