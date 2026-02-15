@@ -911,7 +911,7 @@ class FormulaicAnalyzer:
                 weights and volatilities when available.
 
         Returns:
-            str: Formatted example of portfolio variance(σ^2p) populated with
+            str: Formatted example of portfolio variance(σ ^ 2p) populated with
                 numeric terms.
         """
         return (
