@@ -121,10 +121,12 @@ class AssetRelationshipGraph:
 
         Parameters:
             count (int): Non-negative count; values <= 0 map to 0.0.
-            k (float): Positive saturation constant that controls how quickly the value approaches 1.
+            k (float): Positive saturation constant that controls how quickly
+                the value approaches 1.
 
         Returns:
-            float: `0.0` if `count <= 0`, otherwise `count / (count + k)` (a value strictly between 0 and 1).
+            float: `0.0` if `count <= 0`, otherwise `count / (count + k)`
+                (a value strictly between 0 and 1).
         """
         if count <= 0:
             return 0.0
@@ -132,20 +134,31 @@ class AssetRelationshipGraph:
 
     def calculate_metrics(self) -> dict[str, Any]:
         """
-        Compute network-level metrics, distributions, and a composite quality score for the current asset graph.
+        Compute network-level metrics, distributions, and a composite quality
+        score for the current asset graph.
 
         Returns:
             metrics (dict): A dictionary with the following keys:
-                - total_assets (int): Number of participating assets (present in assets or referenced by relationships).
+                - total_assets (int): Number of participating assets
+                    (present in assets or referenced by relationships).
                 - total_relationships (int): Total number of relationships stored.
-                - average_relationship_strength (float): Mean strength across all relationships.
-                - relationship_density (float): Relationship density as a percentage of the maximum possible directed links.
-                - relationship_distribution (dict[str, int]): Counts of relationships by relationship type.
-                - asset_class_distribution (dict[str, int]): Counts of assets by their asset class value.
-                - top_relationships (list[TopRelationship]): Up to 10 relationships sorted by strength as (source_id, target_id, rel_type, strength).
+                - average_relationship_strength (float): Mean strength across all
+                    relationships.
+                - relationship_density (float): Relationship density as a percentage
+                    of the maximum possible directed links.
+                - relationship_distribution (dict[str, int]): Counts of relationships
+                    by relationship type.
+                - asset_class_distribution (dict[str, int]): Counts of assets by their
+                    asset class value.
+                - top_relationships (list[TopRelationship]):
+                    Up to 10 relationships sorted by strength as
+                    (source_id, target_id, rel_type, strength).
                 - regulatory_event_count (int): Number of stored regulatory events.
-                - regulatory_event_norm (float): Normalized regulatory event count in (0,1] using a saturating mapping.
-                - quality_score (float): Composite score in [0,1] combining normalized average strength and normalized regulatory event influence.
+                - regulatory_event_norm (float): Normalized regulatory event count in
+                    (0,1] using a saturating mapping.
+                - quality_score (float): Composite score in [0,1] combining
+                    normalized average strength and normalized regulatory event
+                    influence.
         """
         all_ids = self._collect_participating_asset_ids()
         effective_assets_count = len(all_ids)
@@ -179,7 +192,9 @@ class AssetRelationshipGraph:
         w_events = 0.3
         avg_strength_n = self._clamp01(avg_strength)
         reg_events_norm = self._saturating_norm(reg_events, k)
-        quality_score = self._clamp01((w_strength * avg_strength_n) + (w_events * reg_events_norm))
+        quality_score = self._clamp01(
+            (w_strength * avg_strength_n) + (w_events * reg_events_norm)
+        )
 
         return {
             "total_assets": effective_assets_count,
@@ -196,7 +211,12 @@ class AssetRelationshipGraph:
 
     def get_3d_visualization_data_enhanced(
         self,
-    ) -> tuple[np.ndarray, list[str], list[str], list[str]]:
+    ) -> tuple[
+        np.ndarray,
+        list[str],
+        list[str],
+        list[str],
+    ]:
         """
         Generate node positions, identifiers, colors, and hover
         labels for 3D visualization.
@@ -237,7 +257,12 @@ class AssetRelationshipGraph:
         return asset1.sector == asset2.sector and asset1.sector != "Unknown"
 
     @staticmethod
-    def _issuer_link(asset1: Asset, asset2: Asset, id1: str, id2: str) -> tuple[str, str] | None:
+    def _issuer_link(
+        asset1: Asset,
+        asset2: Asset,
+        id1: str,
+        id2: str,
+    ) -> tuple[str, str] | None:
         """Return (bond_id, issuer_id) if a bond-to-issuer link exists."""
         if isinstance(asset1, Bond) and asset1.issuer_id == id2:
             return (id1, id2)
@@ -262,7 +287,13 @@ class AssetRelationshipGraph:
                     bidirectional=False,
                 )
 
-    def _append_relationship(self, source_id: str, target_id: str, rel_type: str, strength: float) -> None:
+    def _append_relationship(
+        self,
+        source_id: str,
+        target_id: str,
+        rel_type: str,
+        strength: float,
+    ) -> None:
         """Append a relationship to a source list if not already present."""
         rels = self.relationships.setdefault(source_id, [])
         if any(t == target_id and rt == rel_type for t, rt, _ in rels):

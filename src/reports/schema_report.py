@@ -81,56 +81,56 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
             Items that are not 4-tuples with string source, target, and
             relationship type are ignored.
 
-    Returns:
-        list[tuple[str, str, str, float]]: A list of validated tuples
-            where the first three elements are strings
-            and the fourth is a float strength
-            (defaults to 0.0 when not convertible).
-        Returns an empty list if the input is not a list or contains no
-        valid items.
-    """
-    if not isinstance(value, list):
-        return []
+     Returns:
+         list[tuple[str, str, str, float]]: A list of validated tuples
+             where the first three elements are strings
+             and the fourth is a float strength
+             (defaults to 0.0 when not convertible).
+         Returns an empty list if the input is not a list or contains no
+         valid items.
+     """
+     if not isinstance(value, list):
+         return []
 
-    out: list[tuple[str, str, str, float]] = []
-    for item in value:
-        if (
-            isinstance(item, tuple)
-            and len(item) == 4
-            and isinstance(item[0], str)
-            and isinstance(item[1], str)
-            and isinstance(item[2], str)
-        ):
-            out.append((item[0], item[1], item[2], _as_float(item[3], 0.0)))
-    return out
+     out: list[tuple[str, str, str, float]] = []
+     for item in value:
+         if (
+             isinstance(item, tuple)
+             and len(item) == 4
+             and isinstance(item[0], str)
+             and isinstance(item[1], str)
+             and isinstance(item[2], str)
+         ):
+             out.append((item[0], item[1], item[2], _as_float(item[3], 0.0)))
+     return out
 
 
  def generate_schema_report(graph: AssetRelationshipGraph) -> str:
-    """
-    Produce a Markdown report summarizing schema, relationship
-    distributions, calculated metrics, rules, and optimization
-    recommendations for an asset relationship graph.
+     """
+     Produce a Markdown report summarizing schema, relationship
+     distributions, calculated metrics, rules, and optimization
+     recommendations for an asset relationship graph.
 
-    Parameters:
-        graph (AssetRelationshipGraph): The graph to analyze.
+     Parameters:
+         graph (AssetRelationshipGraph): The graph to analyze.
 
-    Returns:
-        A Markdown-formatted string containing:
-        - Schema overview and entity/relationship types
-        - Relationship type distribution and network statistics
-        - Asset class distribution and top relationships
-        - Business, regulatory, and valuation rules
-        - Data quality score, density-based recommendations, and implementation notes
-    """
-    metrics: dict[str, Any] = graph.calculate_metrics()
+     Returns:
+         A Markdown-formatted string containing:
+         - Schema overview and entity/relationship types
+         - Relationship type distribution and network statistics
+         - Asset class distribution and top relationships
+         - Business, regulatory, and valuation rules
+         - Data quality score, density-based recommendations, and implementation notes
+     """
+     metrics: dict[str, Any] = graph.calculate_metrics()
 
-    lines: list[str] = [
-        "# Financial Asset Relationship Database Schema & Rules",
-        "",
-        "## Schema Overview",
-        "",
-        "### Entity Types",
-        "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
+     lines: list[str] = [
+         "# Financial Asset Relationship Database Schema & Rules",
+         "",
+         "## Schema Overview",
+         "",
+         "### Entity Types",
+         "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
         "3. **Commodity** - Physical assets with contracts and delivery dates",
         (

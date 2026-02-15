@@ -197,7 +197,13 @@ class RealDataFetcher:
                     symbol=symbol,
                     name=name,
                     asset_class=AssetClass.EQUITY,
-    @ staticmethod
+                )
+                equities.append(equity)
+            except Exception as e:
+                logger.error("Error fetching data for %s: %s", symbol, e)
+        return equities
+
+    @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """
         Fetch bond and treasury ETF market data and return Bond instances used
