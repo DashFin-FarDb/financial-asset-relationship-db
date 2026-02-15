@@ -277,18 +277,18 @@ class FinancialAssetApp:
         Return detailed information for a selected asset formatted for UI display.
 
         Parameters:
-                selected_asset (Optional[str]): Asset identifier to look up. If `None`
-                        or not present in `graph.assets`, the function returns empty
-                        structures.
-                graph (AssetRelationshipGraph): Asset relationship graph containing asset
-                        objects and relationships.
+                selected_asset (Optional[str]): Asset identifier to look up.
+                        If `None` or not present in `graph.assets`,
+                        the function returns empty structures.
+                graph (AssetRelationshipGraph): Asset relationship graph
+                        containing asset objects and relationships.
 
         Returns:
                 tuple[dict, dict]: The first element is `asset_dict`,
                         a dictionary representation of the asset with its
                         `asset_class` converted to the enum's value.
-                        The second element is a relationships dictionary with keys
-                        "outgoing" and "incoming".
+                        The second element is a relationships dictionary
+                        with keys "outgoing" and "incoming".
                         Each maps counterpart asset IDs to a dict containing
                         `relationship_type` and `strength`.
                         If the asset is not found, returns `{}` and

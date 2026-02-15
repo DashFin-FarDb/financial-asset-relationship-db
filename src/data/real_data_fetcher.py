@@ -509,32 +509,32 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     # Compute incoming_relationships from relationships
 
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
-       for source, rels in graph.relationships.items():
-            for target, rel_type, strength in rels:
-                if target not in incoming_relationships:
-                    incoming_relationships[target] = []
-                incoming_relationships[target].append((source, rel_type, strength))
+    for source, rels in graph.relationships.items():
+        for target, rel_type, strength in rels:
+            if target not in incoming_relationships:
+                incoming_relationships[target] = []
+            incoming_relationships[target].append((source, rel_type, strength))
 
-        return {
-            "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-            "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
-            "relationships": {
-                source: [
-                    {
-                        "target": target,
-                        "relationship_type": rel_type,
-                        "strength": strength,
-                    }
-                    for target, rel_type, strength in rels
-                ]
-                for source, rels in graph.relationships.items()
-            },
-            "incoming_relationships": {
-                target: [
-                   {
-                       "source": source,
-                       "relationship_type": rel_type,
-                       "strength": strength,
+    return {
+        "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
+        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "relationships": {
+            source: [
+                {
+                    "target": target,
+                    "relationship_type": rel_type,
+                    "strength": strength,
+                }
+                for target, rel_type, strength in rels
+            ]
+            for source, rels in graph.relationships.items()
+        },
+        "incoming_relationships": {
+            target: [
+               {
+                   "source": source,
+                   "relationship_type": rel_type,
+                   "strength": strength,
                    }
                    for source, rel_type, strength in rels
                ]

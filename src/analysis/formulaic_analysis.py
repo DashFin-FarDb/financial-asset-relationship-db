@@ -115,6 +115,14 @@ class FormulaicAnalyzer:
             "formulas": all_formulas,
             "empirical_relationships": empirical_relationships,
             "formula_count": len(all_formulas),
+            "categories": categories,
+            "summary": summary,
+        }
+
+        return {
+            "formulas": all_formulas,
+            "empirical_relationships": empirical_relationships,
+            "formula_count": len(all_formulas),
             "categories": self._categorize_formulas(all_formulas),
             "summary": self._generate_formula_summary(
                 all_formulas,
@@ -564,12 +572,13 @@ class FormulaicAnalyzer:
                 total_formulas (int): Number of formulas in `formulas`.
                 avg_r_squared (float): Mean of `r_squared` across `formulas`
                     (0 if `formulas` is empty).
-                formula_categories (dict): Mapping from category name to count of formulas in
-                    that category.
+                formula_categories (dict): Mapping from category name to count
+                    of formulas in that category.
                 empirical_data_points (int): Number of entries in
-                    `empirical_relationships["correlation_matrix"]` (0 if missing).
-                key_insights (list[str]): Short human-readable observations derived from the
-                    formulas and empirical data.
+                    `empirical_relationships["correlation_matrix"]`
+                    (0 if missing).
+                key_insights (list[str]): Short human-readable observations
+                    derived from the formulas and empirical data.
         """
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
             empirical_relationships
