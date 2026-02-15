@@ -919,7 +919,7 @@ class FinancialAssetApp:
                 toggle_arrows,
             ]:
 
-            # Wire up controls to refresh the visualization
+                # Wire up controls to refresh the visualization
             checkbox.change(
                 self.refresh_visualization,
                 inputs=visualization_inputs,
@@ -951,7 +951,7 @@ class FinancialAssetApp:
                 inputs=[graph_state, view_mode, layout_type],
                 outputs=[visualization_output],
             )
-            
+
             asset_selector.change(
                 self.update_asset_info,
                 inputs=[asset_selector, graph_state],
