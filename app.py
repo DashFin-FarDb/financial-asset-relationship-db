@@ -918,11 +918,12 @@ class FinancialAssetApp:
                 show_all_relationships,
                 toggle_arrows,
             ]:
-                checkbox.change(
-                    self.refresh_visualization,
-                    inputs=visualization_inputs,
-                    outputs=[visualization_output],
-                )
+
+checkbox.change(
+                self.refresh_visualization,
+                inputs=visualization_inputs,
+                outputs=[visualization_3d, error_message],
+            )    
 
             layout_type.change(
                 self.refresh_visualization,
