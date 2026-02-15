@@ -31,7 +31,17 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def repository(tmp_path):
-    """Create a repository with a test database."""
+    """
+    Provide an AssetGraphRepository backed by a temporary SQLite database for use in tests.
+
+    Creates a SQLite database file at `tmp_path / "test_repo.db"`, initializes the schema, opens a SQLAlchemy session and returns an AssetGraphRepository using that session. After the fixture is used, the session is closed and the engine is disposed.
+
+    Parameters:
+        tmp_path (pathlib.Path): Temporary directory provided by pytest in which the test database file is created.
+
+    Returns:
+        AssetGraphRepository: Repository instance connected to the test SQLite database; cleanup (session close and engine dispose) runs after the fixture is torn down.
+    """
     db_path = tmp_path / "test_repo.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
@@ -814,9 +824,9 @@ class TestComplexScenarios:
     @staticmethod
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
         """
-        Builds a diversified portfolio in the repository, adds inter-asset relationships, and verifies persistence.
+        Create a small diversified portfolio in the repository, persist the assets, add inter-asset relationships, and verify persistence.
 
-        Creates four assets (equity, bond, commodity, currency), upserts them into the repository, creates two relationships between them, commits the session, and asserts that the repository contains four assets and at least two relationships.
+        This test inserts four assets (equity, bond, commodity, currency), commits them, adds two relationships (one bidirectional, one unidirectional), commits again, and asserts that the repository contains four assets and at least two relationships.
         """
         # Add diverse assets
         assets = [

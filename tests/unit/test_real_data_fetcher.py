@@ -95,10 +95,10 @@ class TestRealDataFetcherInitialization:
 
         def custom_factory():
             """
-            Create a default AssetRelationshipGraph.
+            Create and return a new, empty AssetRelationshipGraph.
 
             Returns:
-                AssetRelationshipGraph: A new, empty asset relationship graph instance.
+                AssetRelationshipGraph: A fresh, empty asset relationship graph.
             """
             return AssetRelationshipGraph()
 

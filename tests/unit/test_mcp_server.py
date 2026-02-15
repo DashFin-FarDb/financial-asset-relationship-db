@@ -88,19 +88,20 @@ class TestThreadSafeGraph:
         original_release = lock.release
 
         def tracked_acquire(*args, **kwargs):
-            """Record a lock acquire event and delegate to the original acquire call."""
+            """
+            Record a lock acquire event by appending "acquired" to the tracking list, then forward the call to the original acquire method.
+
+            Returns:
+                The value returned by the original acquire call (e.g., boolean indicating success, or whatever the underlying lock returns).
+            """
             lock_acquired.append("acquired")
             return original_acquire(*args, **kwargs)
 
         def tracked_release(*args, **kwargs):
             """
-            Wrapper for a lock's release method that records each release event.
+            Record a lock release event and forward the call to the original release callable.
 
-            Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
-
-            Parameters:
-                *args: Positional arguments forwarded to the original release callable.
-                **kwargs: Keyword arguments forwarded to the original release callable.
+            Each invocation records a release event in the surrounding tracking list and then calls the original release callable with the provided arguments.
 
             Returns:
                 The value returned by the original release callable.
@@ -253,7 +254,13 @@ class TestGet3DLayout:
 
     @staticmethod
     def test_get_3d_layout_returns_valid_json():
-        """Test that get_3d_layout returns valid JSON."""
+        """
+        Verify the 3D layout resource returns JSON containing the expected keys and types.
+
+        Asserts that the registered "3d-layout" resource produces JSON with the keys
+        `asset_ids`, `positions`, `colors`, and `hover`, and that `asset_ids` and
+        `positions` are arrays.
+        """
         from mcp_server import _build_mcp_app, graph
 
         # Add a test asset

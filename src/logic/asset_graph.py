@@ -14,13 +14,35 @@ class AssetRelationshipGraph:
     """Graph of assets, relationships, and regulatory events for API and UI use."""
 
     def __init__(self, database_url: str | None = None) -> None:
+        """
+        Initialize the AssetRelationshipGraph with empty internal stores and an
+        optional database URL.
+
+        Parameters:
+            database_url (str | None): Optional database connection URL to
+                persist or load graph data; stored on the instance as
+                `database_url`.
+
+        Attributes created:
+            assets (dict[str, Asset]): Mapping of asset ID to Asset.
+            relationships (dict[str, list[Relationship]]): Mapping of source asset
+                ID to list of outgoing relationships.
+            regulatory_events (list[RegulatoryEvent]): List of regulatory events
+                associated with assets.
+        """
         self.assets: dict[str, Asset] = {}
         self.relationships: dict[str, list[Relationship]] = {}
         self.regulatory_events: list[RegulatoryEvent] = []
         self.database_url = database_url
 
     def add_asset(self, asset: Asset) -> None:
-        """Add or update an asset in the graph by id."""
+        """
+        Add or update an asset in the graph.
+
+        Parameters:
+            asset (Asset): Asset to store; placed in the graph keyed by its `id`.
+            If an asset with the same `id` already exists it will be replaced.
+        """
         self.assets[asset.id] = asset
 
     def add_regulatory_event(self, event: RegulatoryEvent) -> None:
@@ -28,7 +50,18 @@ class AssetRelationshipGraph:
         self.regulatory_events.append(event)
 
     def build_relationships(self) -> None:
-        """Build relationships using sector, issuer linkage, and event impacts."""
+        """
+        Rebuild the internal relationships mapping based on sector membership,
+        issuer links, and regulatory events.
+
+        This clears the existing relationships and repopulates them by:
+        - Adding a bidirectional "same_sector" relationship (strength 0.7) between
+          assets that share a meaningful sector.
+        - Adding a unidirectional "corporate_link" (strength 0.9) from a bond to
+          its issuer when an issuer relationship exists.
+        After pairwise processing, applies regulatory event impacts as
+        event-driven relationships.
+        """
         self.relationships = {}
 
         asset_ids = list(self.assets.keys())
@@ -83,13 +116,50 @@ class AssetRelationshipGraph:
 
     @staticmethod
     def _saturating_norm(count: int, k: float) -> float:
-        """Map a non-negative count to (0, 1) using a saturating curve."""
+        """
+        Map a non-negative integer count to a saturating value between 0 and 1.
+
+        Parameters:
+            count (int): Non-negative count; values <= 0 map to 0.0.
+            k (float): Positive saturation constant that controls how quickly
+                the value approaches 1.
+
+        Returns:
+            float: `0.0` if `count <= 0`, otherwise `count / (count + k)`
+                (a value strictly between 0 and 1).
+        """
         if count <= 0:
             return 0.0
         return count / (count + k)
 
     def calculate_metrics(self) -> dict[str, Any]:
-        """Compute network metrics, distributions, and a simple quality score."""
+        """
+        Compute network-level metrics, distributions, and a composite quality
+        score for the current asset graph.
+
+        Returns:
+            metrics (dict): A dictionary with the following keys:
+                - total_assets (int): Number of participating assets
+                    (present in assets or referenced by relationships).
+                - total_relationships (int): Total number of relationships stored.
+                - average_relationship_strength (float): Mean strength across all
+                    relationships.
+                - relationship_density (float): Relationship density as a percentage
+                    of the maximum possible directed links.
+                - relationship_distribution (dict[str, int]): Counts of relationships
+                    by relationship type.
+                - asset_class_distribution (dict[str, int]): Counts of assets by their
+                    asset class value.
+                - top_relationships (list[TopRelationship]):
+                    Up to 10 relationships sorted by strength as
+                    (source_id, target_id, rel_type, strength).
+                - regulatory_event_count (int): Number of stored regulatory events.
+                - regulatory_event_norm (float): Normalized regulatory event count in
+                    (0,1] using a saturating mapping.
+                - quality_score (float): Composite score in [0,1] combining
+                    normalized average strength and normalized regulatory event
+                    influence.
+        """
         all_ids = self._collect_participating_asset_ids()
         effective_assets_count = len(all_ids)
 
@@ -143,8 +213,27 @@ class AssetRelationshipGraph:
 
     def get_3d_visualization_data_enhanced(
         self,
-    ) -> tuple[np.ndarray, list[str], list[str], list[str]]:
-        """Return positions, ids, colours, and hover text for 3D visualisation."""
+    ) -> tuple[
+        np.ndarray,
+        list[str],
+        list[str],
+        list[str],
+    ]:
+        """
+        Generate node positions, identifiers, colors, and hover
+        labels for 3D visualization.
+
+        Positions are arranged on a unit circle in the XY plane (z = 0).
+        If there are no assets, returns a single placeholder point.
+
+        Returns:
+            positions (np.ndarray): Array of shape (N, 3) with XYZ
+                coordinates for each node.
+            asset_ids (list[str]): Ordered list of asset identifiers
+                corresponding to rows in `positions`.
+            colors (list[str]): Hex color strings for each node.
+            hover (list[str]): Hover text labels for each node.
+        """
         asset_ids = sorted(self._collect_participating_asset_ids())
         if not asset_ids:
             positions = np.zeros((1, 3))
@@ -162,12 +251,21 @@ class AssetRelationshipGraph:
 
     @staticmethod
     def _should_link_same_sector(asset1: Asset, asset2: Asset) -> bool:
-        """Return True when both assets share a meaningful sector."""
+        """
+        Determine whether two assets belong to the same non-"Unknown" sector.
+
+        Returns:
+            `true` if both assets have the same sector value
+            and that sector is not "Unknown", `false` otherwise.
+        """
         return asset1.sector == asset2.sector and asset1.sector != "Unknown"
 
     @staticmethod
     def _issuer_link(
-        asset1: Asset, asset2: Asset, id1: str, id2: str
+        asset1: Asset,
+        asset2: Asset,
+        id1: str,
+        id2: str,
     ) -> tuple[str, str] | None:
         """Return (bond_id, issuer_id) if a bond-to-issuer link exists."""
         if isinstance(asset1, Bond) and asset1.issuer_id == id2:
@@ -194,7 +292,11 @@ class AssetRelationshipGraph:
                 )
 
     def _append_relationship(
-        self, source_id: str, target_id: str, rel_type: str, strength: float
+        self,
+        source_id: str,
+        target_id: str,
+        rel_type: str,
+        strength: float,
     ) -> None:
         """Append a relationship to a source list if not already present."""
         rels = self.relationships.setdefault(source_id, [])
@@ -203,7 +305,13 @@ class AssetRelationshipGraph:
         rels.append((target_id, rel_type, strength))
 
     def _collect_participating_asset_ids(self) -> set[str]:
-        """Return ids from assets plus relationship targets."""
+        """
+        Collect the set of asset IDs that participate in the graph.
+
+        Returns:
+            set[str]: Unique asset IDs present as stored assets or referenced as
+                relationship targets.
+        """
         all_ids = set(self.assets.keys())
         all_ids.update(self.relationships.keys())
         for rels in self.relationships.values():
@@ -212,7 +320,13 @@ class AssetRelationshipGraph:
         return all_ids
 
     def _asset_class_distribution(self) -> dict[str, int]:
-        """Return a distribution of asset_class.value across stored assets."""
+        """
+        Builds a count distribution of asset_class.value among stored assets.
+
+        Returns:
+            dist (dict[str, int]): Mapping from asset_class.value to the number of
+                assets with that class.
+        """
         dist: dict[str, int] = {}
         for asset in self.assets.values():
             key = asset.asset_class.value
@@ -221,7 +335,19 @@ class AssetRelationshipGraph:
 
     @staticmethod
     def _relationship_density(asset_count: int, rel_count: int) -> float:
-        """Return relationship density as a percentage of max directed edges."""
+        """
+        Compute relationship density as the percentage of possible directed
+        edges among assets.
+
+        Parameters:
+            asset_count (int): Number of assets in the graph.
+            rel_count (int): Count of directed relationships present.
+
+        Returns:
+            float: Percentage of possible directed edges that are present
+                   (0.0–100.0). Returns 0.0 when `asset_count` is less than or
+                   equal to 1.
+        """
         if asset_count <= 1:
             return 0.0
         max_possible = asset_count * (asset_count - 1)

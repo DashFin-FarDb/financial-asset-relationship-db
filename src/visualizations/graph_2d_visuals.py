@@ -154,7 +154,6 @@ def _create_2d_relationship_traces(
 
     traces = []
     asset_id_set = set(asset_ids)
-
     # Construct relationship filters dictionary
     relationship_filters = {
         "same_sector": show_same_sector,

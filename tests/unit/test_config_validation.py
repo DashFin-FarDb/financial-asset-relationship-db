@@ -91,7 +91,15 @@ class TestVercelConfig:
 
     @staticmethod
     def test_vercel_lambda_size_reasonable(vercel_config):
-        """Test that Lambda size limit is reasonable."""
+        """
+        Ensure the Vercel Python backend's configured Lambda `maxLambdaSize` is within a reasonable range.
+
+        Checks the `builds` entries in `vercel_config` for a Python backend (an entry whose `src` contains "api/main.py") and, if that entry has a `config.maxLambdaSize`, parses its value (e.g., "50mb") and asserts the numeric size is between 1 and 250 MB.
+
+        Parameters:
+            vercel_config (dict): Parsed contents of vercel.json.
+
+        """
         builds = vercel_config["builds"]
         python_build = next((b for b in builds if "api/main.py" in b["src"]), None)
 
@@ -144,7 +152,15 @@ class TestPackageJson:
 
     @pytest.fixture
     def package_json(self):
-        """Load package.json configuration."""
+        """
+        Load and parse the frontend package.json file.
+
+        Returns:
+            dict: Parsed JSON content of frontend/package.json.
+
+        Raises:
+            AssertionError: If frontend/package.json does not exist.
+        """
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
 
@@ -201,7 +217,11 @@ class TestPackageJson:
 
     @staticmethod
     def test_package_json_has_typescript_deps(package_json):
-        """Test that TypeScript dependencies are present."""
+        """
+        Ensure standard TypeScript development dependencies are declared in package.json.
+
+        Verifies that the `devDependencies` object contains `typescript`, `@types/react`, and `@types/node`.
+        """
         dev_deps = package_json.get("devDependencies", {})
         ts_deps = ["typescript", "@types/react", "@types/node"]
 
@@ -210,9 +230,9 @@ class TestPackageJson:
 
     def test_package_json_version_format(self, package_json):
         """
-        Verify the package.json version follows semantic versioning, allowing optional pre-release identifiers.
+        Ensure the package.json "version" value follows semantic versioning with an optional pre-release identifier.
 
-        Accepts versions in the form major.minor.patch (e.g., 1.0.0) and with a pre-release suffix (e.g., 1.0.0-beta, 1.0.0-rc.1, 1.0.0-alpha.1).
+        Accepts formats like `1.2.3` and `1.2.3-beta`, `1.2.3-rc.1`, or `1.2.3-alpha.1`. The version must match the pattern `major.minor.patch` with an optional `-identifier` (identifiers may contain letters, digits, underscores, and dots).
         """
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
@@ -320,10 +340,10 @@ class TestEnvExampleFixture:
     @pytest.fixture
     def env_example_content(self):
         """
-        Load and return the contents of the .env.example file.
+        Return the contents of the repository's .env.example file.
 
         Returns:
-            str: The contents of `.env.example`.
+            str: Contents of `.env.example`.
 
         Raises:
             AssertionError: If `.env.example` does not exist.
@@ -339,7 +359,15 @@ class TestEnvExample:
 
     @pytest.fixture
     def env_example_content(self):
-        """Load .env.example content."""
+        """
+        Read and return the contents of .env.example.
+
+        Returns:
+            str: Contents of the .env.example file.
+
+        Raises:
+            AssertionError: If .env.example does not exist.
+        """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
         with open(config_path) as f:
@@ -359,7 +387,11 @@ class TestEnvExample:
         assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
     def test_env_example_has_comments(self, env_example_content):
-        """Test that .env.example has helpful comments."""
+        """
+        Asserts that the example environment file contains at least one comment line.
+
+        Checks for the presence of the `#` character in `env_example_content`, indicating at least one comment.
+        """
         assert "#" in env_example_content
 
     def test_env_example_no_real_secrets(self, env_example_content):
@@ -384,7 +416,15 @@ class TestGitignore:
     @staticmethod
     @pytest.fixture
     def gitignore_content():
-        """Load .gitignore content."""
+        """
+        Read and return the repository's .gitignore file contents.
+
+        Returns:
+            str: The full text of .gitignore.
+
+        Raises:
+            AssertionError: If the .gitignore file does not exist.
+        """
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
 
@@ -436,9 +476,9 @@ class TestRequirementsTxt:
     @pytest.fixture
     def requirements():
         """
-        Load and return non-empty, non-comment lines from requirements.txt.
+        Return non-empty, non-comment lines from requirements.txt.
 
-        Each returned item is a stripped string from the file; lines that are empty or start with `#` are excluded.
+        Each returned string is stripped of surrounding whitespace; lines that are empty or begin with `#` are omitted.
 
         Returns:
             list[str]: Requirement lines with whitespace removed (comments and blank lines omitted).
@@ -469,17 +509,19 @@ class TestRequirementsTxt:
 
     @staticmethod
     def test_requirements_has_pydantic(requirements):
-        """Test that Pydantic is in requirements."""
+        """
+        Verify that "pydantic" is present in the provided requirements (case-insensitive).
+        """
         assert any("pydantic" in req.lower() for req in requirements)
 
     def test_requirements_has_version_constraints(self, requirements):
         """
-        Ensure each non-option requirement includes a version constraint when version pinning is enabled.
+        Ensure each non-option requirement in requirements.txt includes a version constraint if version pinning is required.
 
-        If the test runner's `require_version_pinning` flag is False, this test will be skipped.
+        If the test class flag `require_version_pinning` is False, the test is skipped.
 
         Parameters:
-            requirements (list[str]): Filtered lines from requirements.txt (non-empty, non-comment).
+            requirements (list[str]): Filtered non-empty, non-comment lines from requirements.txt to validate.
         """
         # Skip this test if project doesn't require version pinning
         if not self.require_version_pinning:
@@ -590,7 +632,11 @@ class TestConfigurationSecurityNegative:
 
     @staticmethod
     def test_gitignore_prevents_env_file_leak():
-        """Negative: .env files should be gitignored to prevent secret leaks."""
+        """
+        Ensure the repository's .gitignore prevents committing environment files that could expose secrets.
+
+        Asserts that either ".env" or ".env.local" appears in the .gitignore file.
+        """
         gitignore_path = Path(".gitignore")
         with open(gitignore_path) as f:
             gitignore_content = f.read()
@@ -659,7 +705,11 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_vercel_config_wellformed_json():
-        """Malformed: Vercel config must be valid JSON."""
+        """
+        Check that vercel.json is valid JSON.
+
+        Skips the test if vercel.json is not present. Fails with the JSON parsing error message if vercel.json cannot be parsed.
+        """
         vercel_path = Path("vercel.json")
         if not vercel_path.exists():
             pytest.skip("vercel.json not found")
@@ -672,7 +722,11 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_package_json_wellformed():
-        """Malformed: package.json must be valid JSON."""
+        """
+        Validate that frontend/package.json contains well-formed JSON parsed as an object.
+
+        If the file is missing the test is skipped. If the file contains invalid JSON the test fails and reports the JSON parse error.
+        """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -686,7 +740,11 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_tsconfig_allows_comments():
-        """Edge: tsconfig.json may have comments (JSONC format)."""
+        """
+        Validate that frontend/tsconfig.json is either valid JSON or intentionally uses JSONC comments.
+
+        Skips the test if the file is missing or if parsing fails solely because the file contains JavaScript-style comments (`//` or `/* */`), and fails the test if the file is malformed JSON for any other reason.
+        """
         tsconfig_path = Path("frontend/tsconfig.json")
         if not tsconfig_path.exists():
             pytest.skip("frontend/tsconfig.json not found")
@@ -713,7 +771,12 @@ class TestConfigurationBoundaryValues:
 
     @staticmethod
     def test_vercel_lambda_size_not_excessive():
-        """Boundary: Lambda size should not be unreasonably large."""
+        """
+        Validate that any `maxLambdaSize` entries in vercel.json are between 1 MB and 250 MB.
+
+        If vercel.json is missing, the test is skipped. For each build that defines `config.maxLambdaSize`,
+        the numeric megabyte value is checked and the test fails if the value is less than 1 or greater than 250.
+        """
         vercel_path = Path("vercel.json")
         if not vercel_path.exists():
             pytest.skip("vercel.json not found")
@@ -734,7 +797,11 @@ class TestConfigurationBoundaryValues:
 
     @staticmethod
     def test_package_version_not_zero():
-        """Boundary: Package version should not be 0.0.0."""
+        """
+        Ensure the frontend package.json version is not 0.0.0.
+
+        Skips the test if frontend/package.json is missing. Fails if the package's "version" field equals "0.0.0".
+        """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -748,9 +815,9 @@ class TestConfigurationBoundaryValues:
     @staticmethod
     def test_no_excessively_long_script_names():
         """
-        Ensure package.json script names are shorter than 50 characters.
+        Verify that every script name in frontend/package.json is shorter than 50 characters.
 
-        Skips the test when frontend/package.json is missing. Fails the test if any script name has length greater than or equal to 50 characters.
+        If frontend/package.json is missing the test is skipped. Fails when any script name has length greater than or equal to 50, reporting the offending name.
         """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
@@ -789,7 +856,11 @@ class TestConfigurationRobustness:
 
     @staticmethod
     def test_requirements_no_conflicting_versions():
-        """Robustness: requirements.txt should not have duplicate packages."""
+        """
+        Ensure requirements.txt does not contain duplicate package entries.
+
+        The check treats each non-empty, non-comment line as a requirement, ignores option lines starting with '-', and compares package names case-insensitively after stripping common version specifiers (`==`, `>=`, `~=`, `<=`). If duplicates are found, the test fails listing the duplicated package names.
+        """
         requirements_path = Path("requirements.txt")
         if not requirements_path.exists():
             pytest.skip("requirements.txt not found")
@@ -822,7 +893,11 @@ class TestConfigurationRobustness:
 
     @staticmethod
     def test_env_example_documents_all_required_vars():
-        """Robustness: .env.example should document key variables."""
+        """
+        Checks that .env.example documents at least one required environment variable.
+
+        Asserts that the repository's .env.example file contains at least one of the key variables expected by the project: "API_URL" or a variable with the "NEXT_PUBLIC" prefix. If .env.example is absent the test is skipped.
+        """
         env_example_path = Path(".env.example")
         if not env_example_path.exists():
             pytest.skip(".env.example not found")

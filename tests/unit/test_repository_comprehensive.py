@@ -326,7 +326,11 @@ class TestRelationshipStrengthValidation:
 
     @staticmethod
     def test_strength_validation_accepts_int_in_range(repository):
-        """Test that integer strength values in range are accepted."""
+        """
+        Verifies that integer relationship strength values within the allowed range are accepted.
+
+        Creates two assets, adds a relationship with integer strength 1, commits, and asserts the stored relationship strength equals 1.
+        """
         asset1 = Equity(
             id="STR11",
             symbol="S11",
@@ -363,7 +367,11 @@ class TestStrengthBoundaryValues:
 
     @staticmethod
     def test_strength_just_above_zero(repository):
-        """Test strength just above zero."""
+        """
+        Verify that a relationship can be created with a very small positive strength.
+
+        Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the persisted relationship strength equals 0.0001.
+        """
         asset1 = Equity(
             id="BOUND1",
             symbol="B1",
@@ -394,7 +402,11 @@ class TestStrengthBoundaryValues:
 
     @staticmethod
     def test_strength_just_below_one(repository):
-        """Test strength just below one."""
+        """
+        Verify that a relationship with strength 0.9999 is accepted and persisted.
+
+        Creates two equity assets, adds a relationship of type "almost_max" with strength 0.9999, commits, and asserts the retrieved relationship's strength equals 0.9999.
+        """
         asset1 = Equity(
             id="BOUND3",
             symbol="B3",
@@ -811,7 +823,11 @@ class TestAssetUpdateValidation:
 
     @staticmethod
     def test_multiple_sequential_updates(repository):
-        """Test multiple sequential updates to same asset."""
+        """
+        Verify that performing multiple sequential upserts on the same asset persists the latest values.
+
+        Creates an Equity, upserts it, performs five sequential price updates via upsert+commit, then retrieves the asset and asserts its price equals the last updated value (150.0).
+        """
         equity = Equity(
             id="MULTI_UPDATE",
             symbol="MU",
