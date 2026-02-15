@@ -930,6 +930,7 @@ class FinancialAssetApp:
                 outputs=[visualization_output],
             )
 
+
 reset_view_btn.click(
             lambda graph_state, view_mode, layout_type: self.refresh_visualization(
                 graph_state,
