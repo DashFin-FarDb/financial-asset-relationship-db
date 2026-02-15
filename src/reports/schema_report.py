@@ -106,41 +106,41 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 
 
  def generate_schema_report(graph: AssetRelationshipGraph) -> str:
-     """
-     Produce a Markdown report summarizing schema, relationship
-     distributions, calculated metrics, rules, and optimization
-     recommendations for an asset relationship graph.
+    """
+    Produce a Markdown report summarizing schema, relationship
+    distributions, calculated metrics, rules, and optimization
+    recommendations for an asset relationship graph.
 
-     Parameters:
-         graph (AssetRelationshipGraph): The graph to analyze.
+    Parameters:
+        graph (AssetRelationshipGraph): The graph to analyze.
 
-     Returns:
-         A Markdown-formatted string containing:
-         - Schema overview and entity/relationship types
-         - Relationship type distribution and network statistics
-         - Asset class distribution and top relationships
-         - Business, regulatory, and valuation rules
-         - Data quality score, density-based recommendations, and implementation notes
-     """
-     metrics: dict[str, Any] = graph.calculate_metrics()
+    Returns:
+        A Markdown-formatted string containing:
+        - Schema overview and entity/relationship types
+        - Relationship type distribution and network statistics
+        - Asset class distribution and top relationships
+        - Business, regulatory, and valuation rules
+        - Data quality score, density-based recommendations, and implementation notes
+    """
+    metrics: dict[str, Any] = graph.calculate_metrics()
 
-     lines: list[str] = [
-         "# Financial Asset Relationship Database Schema & Rules",
-         "",
-         "## Schema Overview",
-         "",
-         "### Entity Types",
-         "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
-         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
-         "3. **Commodity** - Physical assets with contracts and delivery dates",
-         (
-             "4. **Currency** - FX pairs or single-currency proxies with "
-             "exchange rates and policy links"
-         ),
-         "5. **Regulatory Events** - Corporate actions and SEC filings",
-         "",
-         "### Relationship Types",
-     ]
+    lines: list[str] = [
+        "# Financial Asset Relationship Database Schema & Rules",
+        "",
+        "## Schema Overview",
+        "",
+        "### Entity Types",
+        "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
+        "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
+        "3. **Commodity** - Physical assets with contracts and delivery dates",
+        (
+            "4. **Currency** - FX pairs or single-currency proxies with "
+            "exchange rates and policy links"
+        ),
+        "5. **Regulatory Events** - Corporate actions and SEC filings",
+        "",
+        "### Relationship Types",
+    ]
 
     relationship_dist = _as_str_int_map(metrics.get("relationship_distribution"))
     for rel_type, count in sorted(
