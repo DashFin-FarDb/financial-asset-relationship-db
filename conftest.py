@@ -91,9 +91,11 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     e.g. set_env(FOO="bar", BAZ="qux"). It uses pytest's monkeypatch.setenv so
     values are restored after the test.
     """
+
     def _setter(**kwargs: str) -> None:
         for k, v in kwargs.items():
             monkeypatch.setenv(k, v)
+
     return _setter
 
 
