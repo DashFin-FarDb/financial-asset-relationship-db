@@ -528,7 +528,15 @@ class TestConcurrentDatabaseAccess:
         errors: list[Exception] = []
 
         def write_data(thread_id: int) -> None:
-            """Thread worker for concurrent writes."""
+            """
+            Worker used by a thread to insert a TestModel row and record any exception.
+
+            Parameters:
+                thread_id (int): Value used as the TestModel `id` for the inserted row.
+
+            Notes:
+                On failure, the raised exception is appended to the shared `errors` list as a side effect.
+            """
             try:
                 time.sleep(0.001 * thread_id)
                 with session_scope(factory) as session:
@@ -641,7 +649,6 @@ class TestResourceCleanup:
     def test_session_scope_closes_on_exception(self, engine: Engine) -> None:
         """Session should be closed even when exception occurs."""
         factory = create_session_factory(engine)
-
         with pytest.raises(RuntimeError), session_scope(factory) as session:
             assert session.is_active
             raise RuntimeError("Test error")
@@ -666,3 +673,27 @@ class TestResourceCleanup:
 
         with session_scope(factory) as session:
             assert session.query(TestModel).count() == 10
+
+    def test_session_scope_with_nested_commits(self, engine: Engine) -> None:
+        """Regression: explicit commits inside session_scope persist data."""
+
+        class TestModelBase(Base):  # pylint: disable=redefined-outer-name
+            """Test model for nested commit validation."""
+
+            __tablename__ = "test_nested_commits"
+            id = Column(Integer, primary_key=True)
+
+        init_db(engine)
+        factory = create_session_factory(engine)
+
+        # First transaction
+        # First transaction
+        with session_scope(factory) as session:
+            session.add(TestModelBase(id=1))
+            session.commit()  # Explicit commit (regression scenario)
+            session.add(TestModelBase(id=1))
+            session.commit()  # Explicit commit (regression scenario)
+
+        # Second transaction should see first
+        with session_scope(factory) as session:
+            assert session.query(TestModelBase).count() == 1

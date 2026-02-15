@@ -7,11 +7,8 @@ lazy graph initialization with thread-safe double-check locking, and response mo
 import os
 from unittest.mock import Mock, patch
 
-import pytest
-from fastapi import status
-from fastapi.testclient import TestClient
-
 import api.main as api_main
+import pytest
 from api.main import (
     AssetResponse,
     MetricsResponse,
@@ -20,6 +17,9 @@ from api.main import (
     app,
     validate_origin,
 )
+from fastapi import status
+from fastapi.testclient import TestClient
+
 from src.data.real_data_fetcher import _save_to_cache
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph

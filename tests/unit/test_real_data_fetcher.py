@@ -94,7 +94,12 @@ class TestRealDataFetcherInitialization:
         cache_path = str(tmp_path / "cache.json")
 
         def custom_factory():
-            """Factory function that creates and returns a new AssetRelationshipGraph instance."""
+            """
+            Create a default AssetRelationshipGraph.
+
+            Returns:
+                AssetRelationshipGraph: A new, empty asset relationship graph instance.
+            """
             return AssetRelationshipGraph()
 
         fetcher = RealDataFetcher(
@@ -831,11 +836,15 @@ class TestAllAssetTypes:
 
     @patch("yfinance.Ticker")
     def test_fetch_all_commodity_symbols(self, mock_ticker_class):
-        """Test that all commodity symbols are attempted."""
+        """
+        Verifies the commodity data fetcher attempts to fetch data for every expected commodity symbol.
+
+        Asserts the ticker constructor is called once for each expected symbol (GC=F, CL=F, SI=F).
+        """
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
-        mock_close.pct_change.return_value.std.return_value = 0.02
+        mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         mock_hist.__getitem__ = (
             lambda self, key: mock_close if key == "Close" else Mock()
         )

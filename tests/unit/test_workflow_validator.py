@@ -403,7 +403,11 @@ class TestErrorHandling:
 
     @staticmethod
     def test_workflow_with_duplicate_keys():
-        """Test workflow with duplicate keys"""
+        """
+        Verify that a workflow YAML containing duplicate mapping keys parses successfully and that the parser retains the last occurrence of a duplicated key.
+
+        This test writes a temporary YAML file where "name" appears twice and asserts validation is successful and workflow_data["name"] equals "Second".
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
@@ -470,7 +474,11 @@ class TestIntegrationWithActualWorkflows:
 
     @staticmethod
     def test_validate_all_project_workflows():
-        """Test validation of all workflows in the project"""
+        """
+        Validate every GitHub Actions workflow file in the repository's .github/workflows directory.
+
+        Skips the test if the workflows directory or any workflow files are missing. Collects validation failures for each workflow and fails the test if any workflows are invalid, reporting their filenames and error lists.
+        """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
         if not workflows_dir.exists():
@@ -990,7 +998,9 @@ jobs:
 
     @staticmethod
     def test_workflow_with_scientific_notation():
-        """Test workflow with scientific notation numbers"""
+        """
+        Validate that a workflow using numeric values in scientific notation (for example `1e2`) is considered valid.
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """

@@ -49,7 +49,6 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
         """Create or update an asset record."""
-
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -57,16 +56,27 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_assets(self) -> List[Asset]:
-        """Return all assets as dataclass instances ordered by id."""
+        """
+        Retrieve all assets ordered by id.
 
+        Returns:
+            List[Asset]: A list of domain Asset instances
+                representing all assets in the database,
+                ordered by asset id.
+        """
         result = (
             self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
-        """Return mapping of asset id to asset dataclass."""
+        """
+        Builds a mapping from asset id to Asset domain objects.
 
+        Returns:
+            Dict[str, Asset]: Mapping where each key is an asset id and
+                each value is the corresponding Asset instance.
+        """
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
