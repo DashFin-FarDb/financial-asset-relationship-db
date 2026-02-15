@@ -442,7 +442,7 @@ class FormulaicAnalyzer:
 
         When currency assets exist, includes an exchange - rate
         (triangular arbitrage) formula. When both commodity and
-        currency assets exist, includes a commodity–currency inverse
+        currency assets exist, includes a commodity-currency inverse
         relationship formula.
 
         Returns:
