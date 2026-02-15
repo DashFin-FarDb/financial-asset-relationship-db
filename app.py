@@ -117,6 +117,7 @@ class AppConstants:
     - **Deterministic Layout**: Consistent 3D positioning across
       sessions
 
+
     ### Asset Classes
     - Equities, Bonds, Commodities, Currencies, Derivatives
     - Relationship types: sector affinity, corporate links,
@@ -141,7 +142,10 @@ Top Relationships:
 
 
 class FinancialAssetApp:
-    """Main application class for managing and interacting with the financial asset relationship graph."""
+    """
+    Main application class for managing and interacting with the financial
+    asset relationship graph.
+    """
 
     def __init__(self) -> None:
         """
@@ -158,8 +162,8 @@ class FinancialAssetApp:
     @staticmethod
     def _create_database() -> AssetRelationshipGraph:
         """
-        Create an AssetRelationshipGraph by locating and invoking a factory function in
-        src.data.real_data_fetcher.
+        Create an AssetRelationshipGraph by locating and invoking a
+        factory function in src.data.real_data_fetcher.
 
         The function probes a set of known factory names and calls the first callable
         it finds to obtain the graph.
@@ -273,18 +277,20 @@ class FinancialAssetApp:
         Return detailed information for a selected asset formatted for UI display.
 
         Parameters:
-                selected_asset (Optional[str]): Asset identifier to look up; if `None` or not present in
-                        `graph.assets` the function returns empty structures.
+                selected_asset (Optional[str]): Asset identifier to look up. If `None`
+                        or not present in `graph.assets`, the function returns empty
+                        structures.
                 graph (AssetRelationshipGraph): Asset relationship graph containing asset
                         objects and relationships.
 
         Returns:
-                tuple[dict, dict]: A pair where the first element is `asset_dict` — a dictionary
-                representation of the asset with its `asset_class` converted to the enum's
-                value — and the second element is a relationships dictionary with keys
-                `"outgoing"` and `"incoming"`. Each of those maps counterpart asset IDs to a
-                dict containing `relationship_type` and `strength`. If the asset is not found,
-                returns `{}` and `{"outgoing": {}, "incoming": {}}`.
+                tuple[dict, dict]: A pair where the first element is `asset_dict` — a
+                        dictionary representation of the asset with its `asset_class`
+                        converted to the enum's value.
+                        The second element is a relationships dictionary with keys
+                        "outgoing" and "incoming". Each of those maps counterpart asset
+                        IDs to a dict containing `relationship_type` and `strength`.
+                        If the asset is not found, returns `{}` and {"outgoing": {}, "incoming": {}}.
         """
         if not selected_asset or selected_asset not in graph.assets:
             return {}, {"outgoing": {}, "incoming": {}}
@@ -353,9 +359,9 @@ class FinancialAssetApp:
                 - schema report (string or markdown)
                 - Gradio update for the asset selector (choices list, value reset)
                 - Gradio update for the error message (hidden on success)
-            On error, returns a tuple of Gradio update objects where visual outputs are empty
-            updates, the asset selector is updated with an empty choices list, and the final
-            update contains a visible error message describing the failure.
+        On error, returns a tuple of Gradio update objects where visual outputs are
+        empty updates, the asset selector is updated with an empty choices list,
+        and the final update contains a visible error message describing the failure.
         """
         try:
             graph = self.ensure_graph()
@@ -575,13 +581,15 @@ class FinancialAssetApp:
 
         Parameters:
             formula_name (str): Name of the formula to display details for.
-            graph_state (AssetRelationshipGraph): Current asset relationship graph state used to derive formula details.
+            graph_state (AssetRelationshipGraph): Current asset relationship graph state used to
+                derive formula details.
 
         Returns:
             tuple[go.Figure, gr.Update]: A Plotly Figure containing the formula detail
-            visualization and a Gradio Update controlling the detail panel (e.g.,
-            value and visibility). If an error occurs, the returned Update contains
-            an error message and makes the panel visible.
+                visualization and a Gradio Update controlling the detail panel (e.g.,
+                value and visibility).
+                If an error occurs, the returned Update contains an error message and
+                makes the panel visible.
         """
         try:
             # Placeholder implementation
@@ -601,14 +609,14 @@ class FinancialAssetApp:
             summary (dict[str, Any]): Summary metadata, typically including
                 - "formula_categories": mapping of category name to count
                 - "key_insights": list of short insight strings
-            analysis_results (dict[str, Any]): Full analysis results, expected to contain
-                an "empirical_relationships" mapping which may include
+            analysis_results (dict[str, Any]): Full analysis results, expected to
+                contain an "empirical_relationships" mapping which may include
                 "strongest_correlations" as a list of correlation records
 
         Returns:
             str: A formatted multiline summary containing category counts, a
-            "Key Insights" section, and up to three strongest asset correlations
-            when available.
+                "Key Insights" section, and up to three strongest asset
+                correlations when available.
         """
         empirical = analysis_results.get("empirical_relationships", {})
 

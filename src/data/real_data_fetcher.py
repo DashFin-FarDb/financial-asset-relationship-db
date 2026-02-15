@@ -389,37 +389,38 @@ class RealDataFetcher:
             id="AAPL_Q4_2024_REAL",
             asset_id="AAPL",
             event_type=RegulatoryActivity.EARNINGS_REPORT,
-           date="2024-11-01",
-           description="Q4 2024 Earnings Report - Record iPhone sales",
-           impact_score=0.12,
-           related_assets=["TLT", "MSFT"],  # Related tech and bonds
-       )
-       events.append(apple_earnings)
+            date="2024-11-01",
+            description="Q4 2024 Earnings Report - Record iPhone sales",
+            impact_score=0.12,
+            related_assets=["TLT", "MSFT"],  # Related tech and bonds
+        )
+        events.append(apple_earnings)
 
-       # Microsoft dividend announcement
-       msft_dividend=RegulatoryEvent(
-           id="MSFT_DIV_2024_REAL",
-           asset_id="MSFT",
-           event_type=RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
-           date="2024-09-15",
-           description="Quarterly dividend increase - Cloud growth continues",
-           impact_score=0.08,
-           related_assets=["AAPL", "LQD"],
-       )
-       events.append(msft_dividend)
+        # Microsoft dividend announcement
+        msft_dividend = RegulatoryEvent(
+            id="MSFT_DIV_2024_REAL",
+            asset_id="MSFT",
+            event_type=RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
+            date="2024-09-15",
+            description="Quarterly dividend increase - Cloud growth continues",
+            impact_score=0.08,
+            related_assets=["AAPL", "LQD"],
+        )
+        events.append(msft_dividend)
 
-       # Energy sector regulatory event
-       xom_filing=RegulatoryEvent(
-           id="XOM_SEC_2024_REAL",
-           asset_id="XOM",
-           event_type=RegulatoryActivity.SEC_FILING,
-           date="2024-10-01",
-           description=(
-               "10-K Filing - Increased oil reserves and sustainability "
-               "initiatives"
-           ),
-           impact_score=0.05,
-           related_assets=["CL_FUTURE"],  # Related to oil futures
+        # Energy sector regulatory event
+        xom_filing = RegulatoryEvent(
+            id="XOM_SEC_2024_REAL",
+            asset_id="XOM",
+            event_type=RegulatoryActivity.SEC_FILING,
+            date="2024-10-01",
+            description=(
+                "10-K Filing - Increased oil reserves and sustainability "
+                "initiatives"
+            ),
+            impact_score=0.05,
+            related_assets=["CL_FUTURE"],  # Related to oil futures
+        )
        )
        events.append(xom_filing)
 

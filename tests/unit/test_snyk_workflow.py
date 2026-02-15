@@ -4,7 +4,6 @@ This module tests the Snyk workflow configuration (.github/workflows/snyk-infras
 - Valid YAML syntax
 - Required workflow structure
 - Job configuration
-"""
 - Security best practices
 - Trigger configuration
 - Permission settings

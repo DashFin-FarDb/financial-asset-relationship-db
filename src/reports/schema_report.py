@@ -88,21 +88,21 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
              (defaults to 0.0 when not convertible).
          Returns an empty list if the input is not a list or contains no
          valid items.
-     """
-     if not isinstance(value, list):
-         return []
+    """
+    if not isinstance(value, list):
+        return []
 
-     out: list[tuple[str, str, str, float]] = []
-     for item in value:
-         if (
-             isinstance(item, tuple)
-             and len(item) == 4
-             and isinstance(item[0], str)
-             and isinstance(item[1], str)
-             and isinstance(item[2], str)
-         ):
-             out.append((item[0], item[1], item[2], _as_float(item[3], 0.0)))
-     return out
+    out: list[tuple[str, str, str, float]] = []
+    for item in value:
+        if (
+            isinstance(item, tuple)
+            and len(item) == 4
+            and isinstance(item[0], str)
+            and isinstance(item[1], str)
+            and isinstance(item[2], str)
+        ):
+            out.append((item[0], item[1], item[2], _as_float(item[3], 0.0)))
+    return out
 
 
  def generate_schema_report(graph: AssetRelationshipGraph) -> str:

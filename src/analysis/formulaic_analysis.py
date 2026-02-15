@@ -223,12 +223,14 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Assembles formulas that describe correlation and systematic risk measures between assets.
+        Assembles formulas that describe correlation and systematic risk
+        measures between assets.
 
         Returns:
-            formulas (List[Formula]): List of Formula objects representing measures such as Beta
-                (systematic risk) and the correlation coefficient, with example
-                calculations and estimated r-squared values where available.
+            formulas (List[Formula]): List of Formula objects representing
+                measures such as Beta (systematic risk) and the correlation
+                coefficient, with example calculations and estimated r-squared
+                values where available.
         """
         formulas = []
 
@@ -259,35 +261,27 @@ class FormulaicAnalyzer:
             description="Measure of linear relationship between two variables",
             variables={
                 "ρ": "Correlation coefficient (-1 to 1)",
-                "Cov(X,Y)": "Covariance between X and Y",
-                "σ_X": "Standard deviation of X",
-                "σ_Y": "Standard deviation of Y",
-            },
-            example_calculation=self._calculate_correlation_examples(graph),
-            category="Statistical Analysis",
-            r_squared=self._calculate_avg_correlation_strength(graph),
-        )
-        formulas.append(correlation_formula)
-
-        return formulas
-
     def _extract_valuation_relationships(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Generate valuation formulas applicable to the provided asset relationship graph.
+        Generate valuation formulas applicable to the provided
+        asset relationship graph.
 
         Includes common valuation metrics such as Price-to-Book
         (added when equities are present) and Enterprise Value.
 
-        Example calculation strings are populated from available asset attributes or
-        fallback messages when data is missing.
+        Example calculation strings are populated from available asset
+        attributes or fallback messages when data is missing.
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph of assets and their relationships used to determine which valuation formulas apply.
+            graph (AssetRelationshipGraph): Graph of assets and their
+                relationships used to determine which valuation formulas
+                apply.
 
         Returns:
-            List[Formula]: A list of Formula objects representing valuation-related formulas relevant to the graph.
+            List[Formula]: A list of Formula objects representing
+                valuation-related formulas relevant to the graph.
         """
         formulas = []
 
@@ -542,25 +536,21 @@ class FormulaicAnalyzer:
         """Categorize formulas by type."""
         categories = {}
         for formula in formulas:
-            category = formula.category
-            categories[category] = categories.get(category, 0) + 1
-        return categories
-
     def _generate_formula_summary(
         self,
         formulas: List[Formula],
         empirical_relationships: Dict,
     ) -> Dict[str, Any]:
         """
-        Create a concise summary of the provided formulas together with related
-        empirical relationship data.
+        Create a concise summary of the provided formulas.
+        Include related empirical relationship data.
 
         Parameters:
             formulas (List[Formula]): Formula objects to include in the summary.
-            empirical_relationships (dict): Empirical data produced during analysis. May
-                include a
-                "correlation_matrix" mapping whose entries are counted as empirical
-                data points.
+            empirical_relationships (dict):
+                Empirical data produced during analysis.
+                May include a "correlation_matrix" mapping whose entries
+                are counted as empirical data points.
 
         Returns:
             summary (dict): Dictionary with the following keys:
