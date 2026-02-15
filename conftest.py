@@ -74,63 +74,27 @@ def db_session(
     """
     Provide a transaction-scoped SQLAlchemy Session for a test.
 
-    The yielded session is managed by the project's transaction scope: it will be committed if the test completes successfully and rolled back on failure, and it will be closed afterwards.
-
-    Parameters:
-        session_factory (Callable[[], Session]): Factory callable that returns a new SQLAlchemy Session bound to the test engine.
-
-    Returns:
-        session (Session): A SQLAlchemy Session managed for the duration of the test.
+    The yielded session is managed by the project's transaction scope: it will be
+    committed if the test completes successfully, rolled back on failure, and
+    closed afterwards.
     """
     with session_scope(session_factory) as session:
         yield session
 
 
 @pytest.fixture()
-def database_url(tmp_path: Path) -> str:
-    """
-    Default test DB URL.
-
-@pytest.fixture()
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
+    Provide a helper to set environment variables for tests.
 
-
-@pytest.fixture()
-def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
+    The returned setter accepts keyword arguments of environment variables to set,
+    e.g. set_env(FOO="bar", BAZ="qux"). It uses pytest's monkeypatch.setenv so
+    values are restored after the test.
     """
-    Utility fixture to set environment variables in tests.
-
-    Example:
-        def test_x(set_env):
-            set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
-    """
-
-    Example:
-        """
-    Provide a default test SQLite database URL that points to a temporary on-disk file.
-
-    Creates a SQLite database file under the supplied `tmp_path` and returns a connection URL to that file. For faster, ephemeral tests use `"sqlite:///:memory:"` instead of this URL.
-
-    Parameters:
-        tmp_path (Path): pytest-provided temporary directory for the test.
-
-    Returns:
-        db_url (str): SQLite connection URL pointing to a file inside `tmp_path`.
-    """
-    def test_x(set_env):
-            set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
-    """
-    Provide a transaction-scoped SQLAlchemy Session.
 
     def _setter(**kwargs: str) -> None:
-        """
-        Set environment variables using the provided monkeypatch fixture.
-
-        Iterates through each keyword argument and sets the corresponding environment variable.
-        """
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
+        for k, v in kwargs.items():
+            monkeypatch.setenv(k, v)
 
     return _setter
 
