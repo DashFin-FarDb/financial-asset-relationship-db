@@ -603,7 +603,7 @@ class FinancialAssetApp:
         """
         with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
-    
+
             error_message = gr.Textbox(
                 label=AppConstants.ERROR_LABEL,
                 visible=False,
@@ -614,7 +614,7 @@ class FinancialAssetApp:
             with gr.Tabs():
                 with gr.Tab("🌐 Network Visualization (2D/3D)"):
                     gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
-    
+
                     with gr.Row():
                         gr.Markdown("### 🎛️ Visualization Controls")
                     with gr.Row():
@@ -668,7 +668,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         visualization_3d = gr.Plot()
-    
+
                     with gr.Row():
                         with gr.Column(scale=1):
                             refresh_viz_btn = gr.Button(
@@ -684,7 +684,7 @@ class FinancialAssetApp:
                             gr.Markdown(
                                 "**Legend:** ↔ = Bidirectional, → = Unidirectional"
                             )
-    
+
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
                     with gr.Row():
@@ -703,7 +703,7 @@ class FinancialAssetApp:
                             AppConstants.REFRESH_BUTTON_LABEL,
                             variant="primary",
                         )
-    
+
                 with gr.Tab(AppConstants.TAB_SCHEMA_RULES):
                     gr.Markdown(AppConstants.SCHEMA_RULES_GUIDE_MD)
                     with gr.Row():
@@ -717,7 +717,7 @@ class FinancialAssetApp:
                             AppConstants.GENERATE_SCHEMA_BUTTON_LABEL,
                             variant="primary",
                         )
-    
+
                 with gr.Tab(AppConstants.TAB_ASSET_EXPLORER):
                     gr.Markdown(AppConstants.DETAILED_ASSET_INFO_MD)
                     with gr.Row():
@@ -740,10 +740,10 @@ class FinancialAssetApp:
                             AppConstants.REFRESH_BUTTON_LABEL,
                             variant="primary",
                         )
-    
+
                 with gr.Tab(AppConstants.TAB_DOCUMENTATION):
                     gr.Markdown(AppConstants.DOC_MARKDOWN)
-    
+
                 with gr.Tab("📊 Formulaic Analysis"):
                     gr.Markdown(
                         "## Mathematical Relationships & Formulas\n\n"
@@ -753,7 +753,7 @@ class FinancialAssetApp:
                         "models, and empirical relationships derived from the asset "
                         "database."
                     )
-    
+
                     with gr.Row():
                         with gr.Column(scale=2):
                             formulaic_dashboard = gr.Plot(
@@ -767,16 +767,14 @@ class FinancialAssetApp:
                                 interactive=True,
                             )
                             formula_detail_view = gr.Plot(label="Formula Details")
-    
+
                     with gr.Row():
                         with gr.Column(scale=1):
                             correlation_network = gr.Plot(
                                 label="Asset Correlation Network"
                             )
                         with gr.Column(scale=1):
-                            metric_comparison = gr.Plot(
-                                label="Metric Comparison Chart"
-                            )
+                            metric_comparison = gr.Plot(label="Metric Comparison Chart")
 
                     with gr.Row():
                         with gr.Column(scale=1):
@@ -790,5 +788,5 @@ class FinancialAssetApp:
                                 lines=5,
                                 interactive=False,
                             )
-    
+
         return interface
