@@ -781,7 +781,7 @@ class FormulaicAnalyzer:
             str: Semicolon - separated examples(up to two) like
                 "TBOND: YTM ≈ 3.45%".
                 Or "Example: YTM ≈ 3.0%" when no examples are available.
-        """
+        '''
         from src.models.financial_models import AssetClass
 
         examples = []
@@ -799,7 +799,7 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
-        """
+        '''
         Builds example market - capitalization strings for up to two equity
         assets found in the graph.
 
@@ -816,7 +816,7 @@ class FormulaicAnalyzer:
 
         Returns:
             str: Formatted example(s) or the default example message.
-        """
+        '''
         from src.models.financial_models import AssetClass
 
         examples = []
