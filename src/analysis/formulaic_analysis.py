@@ -168,9 +168,7 @@ class FormulaicAnalyzer:
             ytm_formula = Formula(
                 name=("Bond Yield-to-Maturity (Approximation)"),
                 expression=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
-                latex=(
-                    r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"
-                ),
+                latex=(r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"),
                 description="Approximate yield-to-maturity for bonds",
                 variables={
                     "YTM": "Yield-to-Maturity (%)",
@@ -402,10 +400,7 @@ class FormulaicAnalyzer:
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
             expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            latex=(
-                r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + "
-                r"2w_1w_2\sigma_1\sigma_2\rho_{12}"
-            ),
+            latex=(r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + " r"2w_1w_2\sigma_1\sigma_2\rho_{12}"),
             description="Portfolio risk considering correlation between assets",
             variables={
                 "σ²_p": "Portfolio variance",
@@ -459,9 +454,7 @@ class FormulaicAnalyzer:
         if self._has_commodities(graph) and self._has_currencies(graph):
             commodity_currency_formula = Formula(
                 name="Commodity-Currency Relationship",
-                expression=(
-                    "Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"
-                ),
+                expression=("Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"),
                 latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
                 description=("Inverse relationship between commodity prices and currency values"),
                 variables={
