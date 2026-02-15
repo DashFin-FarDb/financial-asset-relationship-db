@@ -137,65 +137,65 @@ class FormulaicAnalyzer:
                     "P": "Current Stock Price ($)",
                     "EPS": "Earnings Per Share ($)",
                 },
-                example_calculation=self._calculate_pe_examples(graph),
-                category="Valuation",
-                r_squared=0.95,
+                example_calculation = self._calculate_pe_examples(graph),
+                category = "Valuation",
+                r_squared = 0.95,
             )
             formulas.append(pe_formula)
 
         # Dividend Yield
         if self._has_dividend_stocks(graph):
             div_yield_formula = Formula(
-                name="Dividend Yield",
-                formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
-                latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
-                description=("Percentage return from dividends relative to stock price"),
-                variables={
+                name = "Dividend Yield",
+                formula = ("Div_Yield = (Annual_Dividends / Price) × 100%"),
+                latex = (r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
+                description = ("Percentage return from dividends relative to stock price"),
+                variables = {
                     "Div_Yield": "Dividend Yield (%)",
                     "D_annual": "Annual Dividends per Share ($)",
                     "P": "Current Stock Price ($)",
                 },
-                example_calculation=self._calculate_dividend_examples(graph),
-                category="Income",
-                r_squared=1.0,
+                example_calculation = self._calculate_dividend_examples(graph),
+                category = "Income",
+                r_squared = 1.0,
             )
             formulas.append(div_yield_formula)
 
         # Bond Yield-to-Maturity Approximation
         if self._has_bonds(graph):
             ytm_formula = Formula(
-                name=("Bond Yield-to-Maturity (Approximation)"),
-                formula=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
-                latex=(r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"),
-                description="Approximate yield-to-maturity for bonds",
-                variables={
+                name = ("Bond Yield-to-Maturity (Approximation)"),
+                formula = ("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
+                latex = (r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"),
+                description = "Approximate yield-to-maturity for bonds",
+                variables = {
                     "YTM": "Yield-to-Maturity (%)",
                     "C": "Annual Coupon Payment ($)",
                     "FV": "Face Value ($)",
                     "P": "Current Bond Price ($)",
                     "n": "Years to Maturity",
                 },
-                example_calculation=self._calculate_ytm_examples(graph),
-                category="Fixed Income",
-                r_squared=0.92,
+                example_calculation = self._calculate_ytm_examples(graph),
+                category = "Fixed Income",
+                r_squared = 0.92,
             )
             formulas.append(ytm_formula)
 
         # Market Cap
         if self._has_equities(graph):
             market_cap_formula = Formula(
-                name="Market Capitalization",
-                formula="Market_Cap = Price × Shares_Outstanding",
-                latex=r"MarketCap = P \times N_{shares}",
-                description="Total market value of a company's shares",
-                variables={
+                name = "Market Capitalization",
+                formula = "Market_Cap = Price × Shares_Outstanding",
+                latex = r"MarketCap = P \times N_{shares}",
+                description = "Total market value of a company's shares",
+                variables = {
                     "Market_Cap": "Market Capitalization ($)",
                     "P": "Current Stock Price ($)",
                     "N_shares": "Number of Shares Outstanding",
                 },
-                example_calculation=self._calculate_market_cap_examples(graph),
-                category="Valuation",
-                r_squared=1.0,
+                example_calculation = self._calculate_market_cap_examples(graph),
+                category = "Valuation",
+                r_squared = 1.0,
             )
             formulas.append(market_cap_formula)
 
@@ -215,38 +215,38 @@ class FormulaicAnalyzer:
 
         # Beta relationship (systematic risk)
         beta_formula = Formula(
-            name="Beta (Systematic Risk)",
-            formula="β = Cov(R_asset, R_market) / Var(R_market)",
-            latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
-            description=("Measure of an asset's sensitivity to market movements"),
-            variables={
+            name = "Beta (Systematic Risk)",
+            formula = "β = Cov(R_asset, R_market) / Var(R_market)",
+            latex = r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
+            description = ("Measure of an asset's sensitivity to market movements"),
+            variables = {
                 "β": "Beta coefficient",
                 "R_i": "Asset return",
                 "R_m": "Market return",
                 "Cov": "Covariance",
                 "Var": "Variance",
             },
-            example_calculation=self._calculate_beta_examples(graph),
-            category="Risk Management",
-            r_squared=0.75,
+            example_calculation = self._calculate_beta_examples(graph),
+            category = "Risk Management",
+            r_squared = 0.75,
         )
         formulas.append(beta_formula)
 
         # Correlation coefficient
         correlation_formula = Formula(
-            name="Correlation Coefficient",
-            formula="ρ = Cov(X, Y) / (σ_X × σ_Y)",
-            latex=(r"\rho = \frac{Cov(X, Y)}{\sigma_X \times \sigma_Y}"),
-            description="Measure of linear relationship between two variables",
-            variables={
+            name = "Correlation Coefficient",
+            formula = "ρ = Cov(X, Y) / (σ_X × σ_Y)",
+            latex = (r"\rho = \frac{Cov(X, Y)}{\sigma_X \times \sigma_Y}"),
+            description = "Measure of linear relationship between two variables",
+            variables = {
                 "ρ": "Correlation coefficient (-1 to 1)",
                 "Cov(X,Y)": "Covariance between X and Y",
                 "σ_X": "Standard deviation of X",
                 "σ_Y": "Standard deviation of Y",
             },
-            example_calculation=self._calculate_correlation_examples(graph),
-            category="Statistical Analysis",
-            r_squared=self._calculate_avg_correlation_strength(graph),
+            example_calculation = self._calculate_correlation_examples(graph),
+            category = "Statistical Analysis",
+            r_squared = self._calculate_avg_correlation_strength(graph),
         )
         formulas.append(correlation_formula)
 
@@ -274,18 +274,18 @@ class FormulaicAnalyzer:
         # Price-to-Book Ratio
         if self._has_equities(graph):
             pb_formula = Formula(
-                name="Price-to-Book Ratio",
-                formula="P/B = Market_Price / Book_Value_per_Share",
-                latex=r"P/B = \frac{P}{BV_{per\_share}}",
-                description=("Valuation metric comparing market price to book value"),
-                variables={
+                name = "Price-to-Book Ratio",
+                formula = "P/B = Market_Price / Book_Value_per_Share",
+                latex = r"P/B = \frac{P}{BV_{per\_share}}",
+                description = ("Valuation metric comparing market price to book value"),
+                variables = {
                     "P/B": "Price-to-Book Ratio",
                     "P": "Market Price per Share ($)",
                     "BV_per_share": ("Book Value per Share ($)"),
                 },
-                example_calculation=self._calculate_pb_examples(graph),
-                category="Valuation",
-                r_squared=0.88,
+                example_calculation = self._calculate_pb_examples(graph),
+                category = "Valuation",
+                r_squared = 0.88,
             )
             formulas.append(pb_formula)
 
