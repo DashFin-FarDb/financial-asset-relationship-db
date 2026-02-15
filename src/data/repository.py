@@ -74,7 +74,8 @@ class AssetGraphRepository:
         """
         Create or update the database record for an asset.
 
-        Maps fields from the provided domain `Asset` to the ORM representation and stages the ORM instance on the repository session for persistence.
+        Maps fields from the provided domain `Asset` to the ORM representation and
+        stages the ORM instance on the repository session for persistence.
 
         Parameters:
             asset (Asset): Domain asset to persist or update.
@@ -94,7 +95,9 @@ class AssetGraphRepository:
                 representing all assets in the database,
                 ordered by asset id.
         """
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = self.session.execute(
+            select(AssetORM).order_by(AssetORM.id)
+        ).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -102,7 +105,8 @@ class AssetGraphRepository:
         Return a mapping of asset id to the corresponding Asset domain object.
 
         Returns:
-            Dict[str, Asset]: Keys are asset ids and values are the corresponding Asset instances.
+            Dict[str, Asset]: Keys are asset ids and values are the
+                corresponding Asset instances.
         """
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
@@ -288,7 +292,11 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap)
+            if asset.market_cap is not None
+            else None
+        )
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)

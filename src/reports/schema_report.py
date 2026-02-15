@@ -7,9 +7,11 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 def _as_int(value: Any, default: int = 0) -> int:
     """
-    Convert a value to an integer, returning a fallback when conversion is not possible.
+    Convert a value to an integer, returning a fallback when conversion is
+    not possible.
 
-    Attempts to convert `value` to `int`. If `value` is `None` or cannot be converted, returns `default`.
+    Attempts to convert `value` to `int`. If `value` is `None` or cannot be
+    converted, returns `default`.
 
     Parameters:
         value (Any): The input to convert to an integer.
@@ -28,11 +30,14 @@ def _as_int(value: Any, default: int = 0) -> int:
 
 def _as_float(value: Any, default: float = 0.0) -> float:
     """
-    Coerce a value to a float, falling back to a default when conversion is not possible.
+    Coerce a value to a float, falling back to a default when conversion is not
+    possible.
 
     Parameters:
-        value (Any): Input to convert; if `None` or not convertible to float, the `default` is used.
-        default (float): Value to return when `value` is `None` or cannot be converted.
+        value (Any): Input to convert; if `None` or not convertible to float,
+            the `default` is used.
+        default (float): Value to return when `value` is `None` or cannot be
+            converted.
 
     Returns:
         float: The converted float, or `default` if conversion fails.
@@ -53,7 +58,9 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
         value (Any): Input to coerce into a string-keyed mapping.
 
     Returns:
-        dict[str, int]: A dictionary containing only items whose keys are strings; values are converted to integers (fallback to 0 for unconvertible values). Returns an empty dict if `value` is not a mapping.
+        dict[str, int]: A dictionary containing only items whose keys are strings;
+            values are converted to integers (fallback to 0 for unconvertible values).
+            Returns an empty dict if `value` is not a mapping.
     """
     if not isinstance(value, Mapping):
         return {}
@@ -66,13 +73,21 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
 
 def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
-    Normalize an input into a list of top relationship tuples (source, target, relationship type, strength).
+    Normalize an input into a list of top relationship tuples
+    (source, target, relationship type, strength).
 
     Parameters:
-        value (Any): Input expected to be a list of 4-element tuples. Items that are not 4-tuples with string source, target, and relationship type are ignored.
+        value (Any): Input expected to be a list of 4-element tuples.
+            Items that are not 4-tuples with string source, target, and
+            relationship type are ignored.
 
     Returns:
-        list[tuple[str, str, str, float]]: A list of validated tuples where the first three elements are strings and the fourth is a float strength (defaults to 0.0 when not convertible). Returns an empty list if the input is not a list or contains no valid items.
+        list[tuple[str, str, str, float]]: A list of validated tuples
+            where the first three elements are strings
+            and the fourth is a float strength
+            (defaults to 0.0 when not convertible).
+        Returns an empty list if the input is not a list or contains no
+        valid items.
     """
     if not isinstance(value, list):
         return []
@@ -90,9 +105,11 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     return out
 
 
-def generate_schema_report(graph: AssetRelationshipGraph) -> str:
+ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Produce a Markdown report summarizing schema, relationship distributions, calculated metrics, rules, and optimization recommendations for an asset relationship graph.
+    Produce a Markdown report summarizing schema, relationship
+    distributions, calculated metrics, rules, and optimization
+    recommendations for an asset relationship graph.
 
     Parameters:
         graph (AssetRelationshipGraph): The graph to analyze.
