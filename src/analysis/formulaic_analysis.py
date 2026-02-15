@@ -418,10 +418,7 @@ class FormulaicAnalyzer:
 
     def _analyze_cross_asset_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
-        Identify and assemble formulas that describe relationships
-        between different asset classes present in the graph.
-
-        When currencies are present, includes currency exchange
+        expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
         (triangular arbitrage) relationships; when both commodities and
         currencies are present, includes commodity–currency (inverse)
         relationships.
