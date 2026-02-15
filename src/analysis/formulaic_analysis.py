@@ -125,6 +125,7 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
+        """
         formulas = []
 
         # Price-to-Earnings Ratio
@@ -937,7 +938,6 @@ class FormulaicAnalyzer:
             asset
             for asset in graph.assets.values()
             if asset.asset_class == AssetClass.CURRENCY
-        ]
         ]
         if len(currencies) >= 2:
             c1, c2 = currencies[0], currencies[1]
