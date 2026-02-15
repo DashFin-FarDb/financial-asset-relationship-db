@@ -118,108 +118,66 @@ class FormulaicAnalyzer:
             ),
         }
 
-    def _extract_fundamental_formulas(
-        def _extract_fundamental_formulas(
-            self, graph: AssetRelationshipGraph
-        ) -> List[Formula]:
+    def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
-        Builds fundamental valuation and income formulas relevant to the assets present in the provided graph.
+        Build fundamental valuation and income formulas relevant to the assets in the graph.
 
         Parameters:
             graph (AssetRelationshipGraph): The asset relationship graph to analyze.
 
         Returns:
-            List[Formula]: Formula objects for applicable metrics (e.g., price-to-earnings, dividend yield, bond YTM approximation, market capitalization).
+            List[Formula]: Formula objects for commonly-used metrics such as
+            price-to-earnings, dividend yield, bond yield-to-maturity approximation,
+            and market capitalization, where applicable to assets in the provided graph.
         """
-    ) -> List[Formula]:
-        """
-        Builds fundamental valuation and income formulas relevant to the assets present in the provided graph.
+        formulas: list[Formula] = []
 
-        Returns:
-            List[Formula]: Formula objects for applicable metrics (e.g., price-to-earnings, dividend yield, bond YTM approximation, market capitalization).
-        """
-        formulas = []
-
-        # Price-to-Earnings Ratio
+        # Example: Price-to-earnings (P/E)
         if self._has_equities(graph):
-            pe_formula = Formula(
-                name="Price-to-Earnings Ratio",
-                formula="PE = P / EPS",
-                latex=r"PE = \frac{P}{EPS}",
-                description=(
-                    "Valuation metric comparing stock price to earnings per share"
-                ),
-                variables={
-                    "PE": "Price-to-Earnings Ratio",
-                    "P": "Current Stock Price ($)",
-                    "EPS": "Earnings Per Share ($)",
-                },
-                example_calculation=self._calculate_pe_examples(graph),
-                category="Valuation",
-                r_squared=0.95,
+            formulas.append(
+                Formula(
+                    name="Price-to-Earnings",
+                    formula="P / E",
+                    latex=r"\frac{P}{E}",
+                    description="Market price per share divided by earnings per share.",
+                    variables={"P": "Price per share", "E": "Earnings per share (EPS)"},
+                    example_calculation=self._calculate_pe_examples(graph),
+                    category="Valuation",
+                    r_squared=0.0,
+                )
             )
-            formulas.append(pe_formula)
 
-        # Dividend Yield
+        # Example: Dividend yield
         if self._has_dividend_stocks(graph):
-            div_yield_formula = Formula(
-                name="Dividend Yield",
-                formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
-                latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
-                description=(
-                    "Percentage return from dividends relative to stock price"
-                ),
-                variables={
-                    "Div_Yield": "Dividend Yield (%)",
-                    "D_annual": "Annual Dividends per Share ($)",
-                    "P": "Current Stock Price ($)",
-                },
-                example_calculation=self._calculate_dividend_examples(graph),
-                category="Income",
-                r_squared=1.0,
+            formulas.append(
+                Formula(
+                    name="Dividend Yield",
+                    formula="D / P",
+                    latex=r"\frac{D}{P}",
+                    description="Dividend per share divided by price per share.",
+                    variables={"D": "Dividend per share", "P": "Price per share"},
+                    example_calculation=self._calculate_dividend_examples(graph),
+                    category="Income",
+                    r_squared=0.0,
+                )
             )
-            formulas.append(div_yield_formula)
 
-        # Bond Yield-to-Maturity Approximation
-        if self._has_bonds(graph):
-            ytm_formula = Formula(
-                name=("Bond Yield-to-Maturity (Approximation)"),
-                formula=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
-                latex=(
-                    r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"
-                ),
-                description="Approximate yield-to-maturity for bonds",
-                variables={
-                    "YTM": "Yield-to-Maturity (%)",
-                    "C": "Annual Coupon Payment ($)",
-                    "FV": "Face Value ($)",
-                    "P": "Current Bond Price ($)",
-                    "n": "Years to Maturity",
-                },
-                example_calculation=self._calculate_ytm_examples(graph),
-                category="Fixed Income",
-                r_squared=0.92,
-            )
-            formulas.append(ytm_formula)
-
-        # Market Cap
+        # Example: Market capitalization
         if self._has_equities(graph):
-            market_cap_formula = Formula(
-                name="Market Capitalization",
-                formula="Market_Cap = Price × Shares_Outstanding",
-                latex=r"MarketCap = P \times N_{shares}",
-                description="Total market value of a company's shares",
-                variables={
-                    "Market_Cap": "Market Capitalization ($)",
-                    "P": "Current Stock Price ($)",
-                    "N_shares": "Number of Shares Outstanding",
-                },
-                example_calculation=self._calculate_market_cap_examples(graph),
-                category="Valuation",
-                r_squared=1.0,
+            formulas.append(
+                Formula(
+                    name="Market Capitalization",
+                    formula="Price × Shares Outstanding",
+                    latex=r"P \times \text{Shares}",
+                    description="Estimated market capitalization computed from price and shares outstanding.",
+                    variables={"Price": "Price per share", "Shares Outstanding": "Number of shares outstanding"},
+                    example_calculation=self._calculate_market_cap_examples(graph),
+                    category="Valuation",
+                    r_squared=0.0,
+                )
             )
-            formulas.append(market_cap_formula)
 
+        # TODO: Add bond YTM approximation when bonds exist
         return formulas
 
     def _analyze_correlation_patterns(
