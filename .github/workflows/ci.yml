@@ -27,6 +27,44 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # ------------------------------------------------------------
+      # Caching Layers (Batch 11)
+      # ------------------------------------------------------------
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'requirements-dev.txt') }}
+          restore-keys: |
+            pip-${{ runner.os }}-${{ matrix.python-version }}-
+            pip-${{ runner.os }}-
+
+      - name: Cache ruff
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ruff
+          key: ruff-${{ runner.os }}
+
+      - name: Cache mypy
+        uses: actions/cache@v4
+        with:
+          path: .mypy_cache
+          key: mypy-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/*.py') }}
+
+      - name: Cache pytest cache
+        uses: actions/cache@v4
+        with:
+          path: .pytest_cache
+          key: pytest-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/*.py') }}
+
+      # ------------------------------------------------------------
+      # Install + Lint + Type Check + Tests
+      # ------------------------------------------------------------
       - name: Run CI common for Python ${{ matrix.python-version }}
         uses: ./.github/actions/ci-common
         with:
@@ -39,16 +77,15 @@ jobs:
             python -m pip install --upgrade pip
             pip install -r requirements.txt
             pip install -r requirements-dev.txt
-
           test: |
             echo "===== Lint: Ruff ====="
             ruff check .
             ruff format --check .
 
-            echo "===== Lint: Flake8 (E9/F7/F82 only) ====="
+            echo "===== Lint: Flake8 (critical) ====="
             flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
 
-            echo "===== Lint: Flake8 (general statistics) ====="
+            echo "===== Lint: Flake8 (general) ====="
             flake8 . --count --statistics
 
             echo "===== Formatting: Black ====="
@@ -60,7 +97,7 @@ jobs:
             echo "===== Type Checking: mypy ====="
             mypy src --pretty --show-error-codes
 
-            echo "===== Lint: Pylint (threshold: 7.0) ====="
+            echo "===== Lint: Pylint ====="
             pylint src/ --fail-under=7.0
 
             echo "===== Tests + Coverage ====="
