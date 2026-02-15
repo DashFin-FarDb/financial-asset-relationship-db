@@ -938,6 +938,7 @@ class FormulaicAnalyzer:
             for asset in graph.assets.values()
             if asset.asset_class == AssetClass.CURRENCY
         ]
+        ]
         if len(currencies) >= 2:
             c1, c2 = currencies[0], currencies[1]
             return f"{c1.symbol}/USD × USD/{c2.symbol} = {c1.symbol}/{c2.symbol}"
