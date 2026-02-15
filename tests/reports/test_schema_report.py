@@ -5,10 +5,10 @@ from typing import Any, Dict
 import pytest
 
 from src.reports.schema_report import generate_schema_report
-
 # ---------------------------------------------------------------------------
 # Mock graph object
 # ---------------------------------------------------------------------------
+
 
 
 class MockGraph:
@@ -42,6 +42,7 @@ class MockGraph:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 
 def test_schema_report_contains_sections() -> None:
