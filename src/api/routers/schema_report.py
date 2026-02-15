@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import PlainTextResponse, HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
-    generate_markdown_report,
-    generate_html_report,
     export_report,
+    generate_html_report,
+    generate_markdown_report,
 )
-
 
 router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 
@@ -29,6 +28,7 @@ def get_graph() -> AssetRelationshipGraph:
 # ----------------------------------------------------------------------
 # Routes
 # ----------------------------------------------------------------------
+
 
 @router.get("/", summary="Get schema report", response_class=PlainTextResponse)
 def schema_report(format: str = Query("md", regex="^(md|html)$")):
