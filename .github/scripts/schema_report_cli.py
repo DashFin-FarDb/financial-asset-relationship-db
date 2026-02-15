@@ -27,7 +27,6 @@ def load_graph() -> AssetRelationshipGraph:
     Replace this with the actual graph-loading logic used in your system.
     """
     graph = AssetRelationshipGraph()
-    graph.initialize_assets_from_source()
     return graph
 
 
