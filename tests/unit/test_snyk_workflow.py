@@ -29,7 +29,7 @@ class TestSnykWorkflowStructure:
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     @pytest.fixture
-        Args:
+        """Args:
             snyk_workflow_path: Path to the Snyk workflow file.
 
         Returns:
