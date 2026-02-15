@@ -176,17 +176,14 @@ class RealDataFetcher:
         }
 
         equities = []
-        for symbol, (name, sector) in equity_symbols.items():
+        for symbol, (name, _) in equity_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
-                info = ticker.info
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
-
-                current_price = float(hist["Close"].iloc[-1])
 
                 equity = Equity(
                     id=symbol,
@@ -368,12 +365,14 @@ class RealDataFetcher:
         """
         Create a small list of regulatory events associated with fetched assets.
 
-        Includes three sample events (an Apple earnings report, a Microsoft dividend
-        announcement, and an Exxon Mobil SEC filing). Each event contains an id,
-        asset_id, event_type, date, description, impact_score, and related_assets.
+        Includes three sample events (an Apple earnings report, a
+        Microsoft dividend announcement, and an Exxon Mobil SEC filing).
+        Each event contains an id, asset_id, event_type, date,
+        description, impact_score, and related_assets.
 
         Returns:
-            List[RegulatoryEvent]: List of RegulatoryEvent instances representing the sample events.
+            List[RegulatoryEvent]: List of RegulatoryEvent instances
+                representing the sample events.
         """
         # Create some realistic recent events
         events = []
@@ -430,6 +429,7 @@ def create_real_database() -> AssetRelationshipGraph:
     - fetch real market data when network access is enabled,
     - otherwise fall back to a provided or built sample dataset.
 
+
     Returns:
         AssetRelationshipGraph: The constructed graph populated with assets,
         regulatory events and relationship mappings; the content may come from
@@ -439,22 +439,21 @@ def create_real_database() -> AssetRelationshipGraph:
     return fetcher.create_real_database()
 
 
-def _enum_to_value(value: Any) -> Any:
+def _enum_to_value(_value: Any) -> Any:
     """
     Convert an Enum instance to its underlying value.
     Return the input unchanged otherwise.
 
     Parameters:
-        value (Any): The value to normalise.
-            If `value` is an `Enum` member, its `.value` is returned.
+        _value (Any): The value to normalise.
+            If `_value` is an `Enum` member, its `.value` is returned.
 
     Returns:
     Any: The underlying value of the `Enum` member if applicable,
     otherwise the original value.
     """
 
-
-return value.value if isinstance(value, Enum) else value
+    return _value.value if isinstance(_value, Enum) else _value
 
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
@@ -478,7 +477,7 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
-    Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
+    Serialize an AssetRelationshipGraph into a JSON-serializable dictionary
 
     The resulting dictionary contains serialized assets and regulatory events,
     a mapping of outgoing relationships keyed by source asset id, and a computed
@@ -492,12 +491,12 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
             - "assets": list of serialized asset objects
               (each includes a "__type__" field).
             - "regulatory_events": list of serialized regulatory event objects.
-            - "relationships": mapping from source asset id to a list of outgoing
-              relationships; each relationship is a dict
-              with keys "target", "relationship_type", and "strength".
-            - "incoming_relationships": mapping from target asset id to a list of incoming
-              relationships; each relationship is a dict
-              with keys "source", "relationship_type", and "strength".
+            - "relationships": mapping from source asset id to a list of
+              outgoing relationships; each relationship is a dict with keys
+              "target", "relationship_type", and "strength".
+            - "incoming_relationships": mapping from target asset id to a list of
+              incoming relationships; each relationship is a dict with keys
+              "source", "relationship_type", and "strength".
     """
     # Compute incoming_relationships from relationships
 

@@ -296,9 +296,7 @@ class TestSnykJobConfiguration:
         assert snyk_step["continue-on-error"] is True
 
     def test_snyk_step_has_env_token(self, snyk_job):
-        """
-        Ensure the Snyk action step defines the SNYK_TOKEN environment variable.
-        """
+        """Ensure the Snyk action step defines the SNYK_TOKEN environment variable."""
         steps = snyk_job["steps"]
         snyk_steps = [s for s in steps if "uses" in s and "snyk" in s["uses"].lower()]
         snyk_step = snyk_steps[0]
@@ -491,9 +489,7 @@ class TestSnykWorkflowComments:
         return workflow_path.read_text()
 
     def test_workflow_has_comments(self, snyk_workflow_content):
-        """
-        Ensure the workflow file contains at least one comment character(`  # `).
-        """
+        """Ensure the workflow file contains at least one comment character(`  # `)."""
         assert "#" in snyk_workflow_content
 
     def test_workflow_documents_third_party_actions(self, snyk_workflow_content):

@@ -98,7 +98,6 @@ class FormulaicAnalyzer:
 
         # Currency and commodity relationships
         cross_asset_formulas = self._analyze_cross_asset_relationships(graph)
-
         all_formulas = (
             fundamental_formulas
             + correlation_formulas
@@ -115,14 +114,6 @@ class FormulaicAnalyzer:
             "formulas": all_formulas,
             "empirical_relationships": empirical_relationships,
             "formula_count": len(all_formulas),
-            "categories": categories,
-            "summary": summary,
-        }
-
-        return {
-            "formulas": all_formulas,
-            "empirical_relationships": empirical_relationships,
-            "formula_count": len(all_formulas),
             "categories": self._categorize_formulas(all_formulas),
             "summary": self._generate_formula_summary(
                 all_formulas,
@@ -133,15 +124,6 @@ class FormulaicAnalyzer:
     def _extract_fundamental_formulas(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
-        """
-        Builds a list of fundamental valuation and income formulas applicable to
-        assets in the given relationship graph.
-
-        Returns:
-            List[Formula]: Formula objects for valuation and income metrics
-                present in the graph (for example: price-to-earnings,
-                dividend yield, bond yield-to-maturity approximation, and
-                market capitalization).
         """
         formulas = []
 
