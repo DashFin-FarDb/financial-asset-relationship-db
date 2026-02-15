@@ -119,9 +119,9 @@ class FormulaicAnalyzer:
         }
 
     def _extract_fundamental_formulas(
-def _extract_fundamental_formulas(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
+        def _extract_fundamental_formulas(
+            self, graph: AssetRelationshipGraph
+        ) -> List[Formula]:
         """
         Builds fundamental valuation and income formulas relevant to the assets present in the provided graph.
 
