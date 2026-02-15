@@ -620,7 +620,7 @@ class FormulaicAnalyzer:
             )
         return 0.5
 
-    @staticmethod
+    @ staticmethod
     def _has_equities(graph: AssetRelationshipGraph) -> bool:
         """
         Determine whether the asset graph contains any assets classified as equity.
@@ -729,7 +729,7 @@ class FormulaicAnalyzer:
             "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
         )
 
-    @staticmethod
+    @ staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         """
         Create up to two concise examples showing dividend yield for equity assets
@@ -765,7 +765,7 @@ class FormulaicAnalyzer:
             else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
         )
 
-    @staticmethod
+    @ staticmethod
     def _calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
         """
         Create up to two example yield -to - maturity(YTM) strings from fixed - income
@@ -798,7 +798,7 @@ class FormulaicAnalyzer:
                     break
         return "; ".join(examples) if examples else "Example: YTM ≈ 3.0%"
 
-    @staticmethod
+    @ staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
         '''
         Builds example market - capitalization strings for up to two equity
@@ -833,7 +833,7 @@ class FormulaicAnalyzer:
                     break
         return "; ".join(examples) if examples else "Example: Market Cap = $1.5T"
 
-    @staticmethod
+    @ staticmethod
     def _calculate_beta_examples(graph: AssetRelationshipGraph) -> str:
         """Generate a string representing beta calculations."""
         return "Beta calculated from historical returns vs market index"
