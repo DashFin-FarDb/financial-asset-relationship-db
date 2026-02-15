@@ -459,6 +459,8 @@ def _enum_to_value(value: Any) -> Any:
     Any: The underlying value of the `Enum` member if applicable,
     otherwise the original value.
 """
+
+
 return value.value if isinstance(value, Enum) else value
 
 
@@ -507,38 +509,39 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     # Compute incoming_relationships from relationships
 
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
-     for source, rels in graph.relationships.items():
-         for target, rel_type, strength in rels:
-             if target not in incoming_relationships:
-                 incoming_relationships[target]=[]
-             incoming_relationships[target].append((source, rel_type, strength))
+       for source, rels in graph.relationships.items():
+            for target, rel_type, strength in rels:
+                if target not in incoming_relationships:
+                    incoming_relationships[target] = []
+                incoming_relationships[target].append((source, rel_type, strength))
 
-     return {
-         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-         "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
-         "relationships": {
-             source: [
-                 {
-                     "target": target,
-                     "relationship_type": rel_type,
-                     "strength": strength,
-                 }
-                 for target, rel_type, strength in rels
-             ]
-             for source, rels in graph.relationships.items()
-         },
-         "incoming_relationships": {
-            target: [
-                {
-                    "source": source,
-                    "relationship_type": rel_type,
-                    "strength": strength,
-                }
-                for source, rel_type, strength in rels
-            ]
-            for target, rels in incoming_relationships.items()
-        },
-    }
+        return {
+            "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
+            "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+            "relationships": {
+                source: [
+                    {
+                        "target": target,
+                        "relationship_type": rel_type,
+                        "strength": strength,
+                    }
+                    for target, rel_type, strength in rels
+                ]
+                for source, rels in graph.relationships.items()
+            },
+            "incoming_relationships": {
+                target: [
+                   {
+                       "source": source,
+                       "relationship_type": rel_type,
+                       "strength": strength,
+                   }
+                   for source, rel_type, strength in rels
+               ]
+               for target, rels in incoming_relationships.items()
+                },
+            }
+
 
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     """
@@ -552,12 +555,12 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
         Asset: An Asset instance (or subclass like Equity, Bond, etc.)
             constructed from the provided data.
     """
-    data=dict(data)  # Make a copy to avoid modifying the original
-    type_name=data.pop("__type__", "Asset")
+    data = dict(data)  # Make a copy to avoid modifying the original
+    type_name = data.pop("__type__", "Asset")
     if asset_class_value := data.get("asset_class"):
-        data["asset_class"]=AssetClass(asset_class_value)
+        data["asset_class"] = AssetClass(asset_class_value)
 
-    cls_map={
+    cls_map ={
         "Asset": Asset,
         "Equity": Equity,
         "Bond": Bond,
@@ -565,7 +568,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
         "Currency": Currency,
     }
 
-    cls=cls_map.get(type_name, Asset)
+    cls = cls_map.get(type_name, Asset)
     return cls(**data)
 
 
@@ -584,8 +587,8 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     Returns:
         RegulatoryEvent: The deserialized RegulatoryEvent instance.
     """
-    data=dict(data)
-    data["event_type"]=RegulatoryActivity(data["event_type"])
+    data = dict(data)
+    data["event_type"] = RegulatoryActivity(data["event_type"])
     return RegulatoryEvent(**data)
 
 
@@ -600,15 +603,15 @@ def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
     Returns:
         AssetRelationshipGraph: Graph reconstructed from the payload.
     """
-    graph=AssetRelationshipGraph()
+    graph = AssetRelationshipGraph()
     for asset_data in payload.get("assets", []):
-        asset=_deserialize_asset(dict(asset_data))
+        asset = _deserialize_asset(dict(asset_data))
         graph.add_asset(asset)
 
     for event_data in payload.get("regulatory_events", []):
         graph.add_regulatory_event(_deserialize_event(event_data))
 
-    relationships_payload=payload.get("relationships", {})
+    relationships_payload = payload.get("relationships", {})
     for source, rels in relationships_payload.items():
         for item in rels:
             graph.add_relationship(
@@ -633,7 +636,7 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
         AssetRelationshipGraph: The graph reconstructed from the JSON payload.
     """
     with path.open("r", encoding="utf-8") as fp:
-        payload=json.load(fp)
+        payload = json.load(fp)
     return _deserialize_graph(payload)
 
 
@@ -650,7 +653,7 @@ def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
         graph(AssetRelationshipGraph): The graph to persist.
         path(Path): Filesystem path where the JSON representation will be written.
     """
-    payload=_serialize_graph(graph)
+    payload = _serialize_graph(graph)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as fp:
         json.dump(payload, fp, indent=2)
