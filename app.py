@@ -590,26 +590,26 @@ class FinancialAssetApp:
         return "\n".join(summary_lines)
 
     def create_interface(self) -> gr.Blocks:
-    """
-    Build and return the Gradio Blocks UI for the FinancialAssetApp.
+        """
+        Build and return the Gradio Blocks UI for the FinancialAssetApp.
 
-    The UI is organized into multiple tabs (network visualization, metrics and
-    analytics, schema and rules, asset explorer, documentation, and formulaic
-    analysis). It wires UI events to refresh/update handlers and initializes a
-    non-null graph state to avoid Optional-related pitfalls.
+        The UI is organized into multiple tabs (network visualization, metrics and
+        analytics, schema and rules, asset explorer, documentation, and formulaic
+        analysis). It wires UI events to refresh/update handlers and initializes a
+        non-null graph state to avoid Optional-related pitfalls.
 
-    Returns:
-        gr.Blocks: Configured Gradio Blocks instance for the application UI.
-    """
-    with gr.Blocks(title=AppConstants.TITLE) as interface:
-        gr.Markdown(AppConstants.MARKDOWN_HEADER)
+        Returns:
+            gr.Blocks: Configured Gradio Blocks instance for the application UI.
+        """
+        with gr.Blocks(title=AppConstants.TITLE) as interface:
+            gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
-        error_message = gr.Textbox(
-            label=AppConstants.ERROR_LABEL,
-            visible=False,
-            interactive=False,
-            elem_id="error_message",
-        )
+            error_message = gr.Textbox(
+                label=AppConstants.ERROR_LABEL,
+                visible=False,
+                interactive=False,
+                elem_id="error_message",
+            )
 
         with gr.Tabs():
             with gr.Tab("🌐 Network Visualization (2D/3D)"):
