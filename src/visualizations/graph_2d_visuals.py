@@ -231,17 +231,18 @@ def _create_2d_relationship_traces(
             line=dict(color=color, width=2),
         )
 
+
 def visualize_2d_graph(
     graph: AssetRelationshipGraph,
-    layout_type: str="spring",
-    show_same_sector: bool=True,
-    show_market_cap: bool=True,
-    show_correlation: bool=True,
-    show_corporate_bond: bool=True,
-    show_commodity_currency: bool=True,
-    show_income_comparison: bool=True,
-    show_regulatory: bool=True,
-    show_all_relationships: bool=False,
+    layout_type: str = "spring",
+    show_same_sector: bool = True,
+    show_market_cap: bool = True,
+    show_correlation: bool = True,
+    show_corporate_bond: bool = True,
+    show_commodity_currency: bool = True,
+    show_income_comparison: bool = True,
+    show_regulatory: bool = True,
+    show_all_relationships: bool = False,
 ) -> go.Figure:
     """
     Render a 2D Plotly network of assets and their filtered relationships.
@@ -255,19 +256,19 @@ def visualize_2d_graph(
     """
 
     Parameters:
-        graph (AssetRelationshipGraph): Asset relationship graph to visualize.
-        layout_type (str): Layout to use: "spring", "circular", or "grid".
-        show_same_sector (bool): Include "same sector" relationships when True.
-        show_market_cap (bool): Include "market cap" relationships when True.
-        show_correlation (bool): Include "correlation" relationships when True.
-        show_corporate_bond (bool): Include "corporate bond" relationships when True.
-        show_commodity_currency (bool): Include "commodity/currency" relationships when True.
-        show_income_comparison (bool): Include "income comparison" relationships when True.
-        show_regulatory (bool): Include "regulatory" relationships when True.
-        show_all_relationships (bool): If True, include all relationship types regardless of the individual toggles.
+        graph(AssetRelationshipGraph): Asset relationship graph to visualize.
+        layout_type(str): Layout to use: "spring", "circular", or "grid".
+        show_same_sector(bool): Include "same sector" relationships when True.
+        show_market_cap(bool): Include "market cap" relationships when True.
+        show_correlation(bool): Include "correlation" relationships when True.
+        show_corporate_bond(bool): Include "corporate bond" relationships when True.
+        show_commodity_currency(bool): Include "commodity/currency" relationships when True.
+        show_income_comparison(bool): Include "income comparison" relationships when True.
+        show_regulatory(bool): Include "regulatory" relationships when True.
+        show_all_relationships(bool): If True, include all relationship types regardless of the individual toggles.
 
     Returns:
-        go.Figure: A Plotly Figure showing asset nodes (colored and sized by
+        go.Figure: A Plotly Figure showing asset nodes(colored and sized by
             class and connections) and relationship traces grouped and colored
             by relationship type.
 
