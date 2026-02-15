@@ -492,7 +492,7 @@ class FinancialAssetApp:
             )
 
             with gr.Tabs():
-                with gr.Tab("🌐 Network Visualization (2D/3D)"):        
+                with gr.Tab("🌐 Network Visualization (2D/3D)"):
             with gr.Blocks(title=AppConstants.TITLE) as interface:
                 gr.Markdown(AppConstants.MARKDOWN_HEADER)
                     with gr.Row():
