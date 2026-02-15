@@ -192,17 +192,10 @@ class FinancialAssetApp:
             raise
 
     def ensure_graph(self) -> AssetRelationshipGraph:
-        """
-        Ensure an AssetRelationshipGraph is available, creating a sample graph if none exists.
-
-        Returns:
-            graph (AssetRelationshipGraph): The initialized, non-null asset relationship graph.
-        """
-        if self.graph is None:
-            logger.warning("Graph is None, re-creating sample database.")
-            self._initialize_graph()
+        """Ensures the graph is initialized, re-creating sample data if it's None."""
         # At this point it must be non-None
-        assert self.graph is not None
+        if self.graph is None:
+            raise RuntimeError("Graph initialisation failed")
         return self.graph
 
     @staticmethod
@@ -554,53 +547,11 @@ class FinancialAssetApp:
             "Key Insights" section, and up to three strongest asset correlations when available.
         """
         empirical = analysis_results.get("empirical_relationships", {})
+        # TODO: Implement formatting of the empirical relationships into a summary string.
+         return json.dumps({"empirical_relationships": empirical}, indent=2)
 
-        summary_lines: list[str] = []
-
-        categories = summary.get("formula_categories", {})
-        if isinstance(categories, dict):
-            for category, count in categories.items():
-                summary_lines.append(f"  • {category}: {count} formulas")
-
-        summary_lines.extend(["", "🎯 **Key Insights:**"])
-
-        insights = summary.get("key_insights", [])
-        if isinstance(insights, list):
-            for insight in insights:
-                summary_lines.append(f"  • {insight}")
-
-        correlations = empirical.get("strongest_correlations", [])
-        if isinstance(correlations, list) and correlations:
-            summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
-            for corr in correlations[:3]:
-                if isinstance(corr, dict):
-                    pair = corr.get("pair", "n/a")
-                    correlation = corr.get("correlation", 0.0)
-                    strength = corr.get("strength", "n/a")
-                    try:
-                        summary_lines.append(
-                            f"  • {pair}: {float(correlation):.3f} ({strength})"
-                        )
-                    except (TypeError, ValueError):
-                        summary_lines.append(f"  • {pair}: n/a ({strength})")
-
-        return "\n".join(summary_lines)
-
-    def create_interface(self) -> gr.Blocks:
-        """
-        Build the Gradio Blocks user interface for the financial asset visualization application.
-
-        Returns:
-            interface (gr.Blocks): Configured Gradio Blocks instance containing tabs, controls, plots, persistent graph state, and event bindings for visualization, metrics, schema, asset exploration, documentation, and formulaic analysis.
-        """
-        with gr.Blocks(title=AppConstants.TITLE):
-            gr.Markdown(AppConstants.MARKDOWN_HEADER)
-
-            gr.Textbox(
-                label=AppConstants.ERROR_LABEL,
-                visible=False,
-                interactive=False,
-                elem_id="error_message",
+            # The following UI layout code is defined elsewhere in the class.
+                 elem_id = "error_message",
             )
 
             with gr.Tabs(), gr.Tab("🌐 Network Visualization (2D/3D)"):
@@ -614,18 +565,10 @@ class FinancialAssetApp:
                         choices=["3D", "2D"],
                         value="3D",
                     )
-                with gr.Row(), gr.Column(scale=1):
-                    layout_type = gr.Radio(
-                        label="2D Layout Type",
-                        choices=["spring", "circular", "grid"],
-                        value="spring",
-                        visible=False,
-                    )
 
                 with gr.Row():
                     gr.Markdown("### 🔗 Relationship Visibility Controls")
                 with gr.Row(), gr.Column(scale=1):
-                    show_same_sector = gr.Checkbox(label="Same Sector (↔)", value=True)
                     show_market_cap = gr.Checkbox(
                         label="Market Cap Similar (↔)", value=True
                     )

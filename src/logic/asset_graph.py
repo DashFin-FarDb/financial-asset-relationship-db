@@ -156,9 +156,7 @@ class AssetRelationshipGraph:
                 strength_count += 1
 
         avg_strength = (strength_sum / strength_count) if strength_count else 0.0
-        density = self._relationship_density(
-            effective_assets_count, total_relationships
-        )
+        density = self._relationship_density(effective_assets_count, total_relationships)
 
         all_rels.sort(key=lambda x: x[3], reverse=True)
         top_relationships = all_rels[:10]
@@ -171,9 +169,7 @@ class AssetRelationshipGraph:
         w_events = 0.3
         avg_strength_n = self._clamp01(avg_strength)
         reg_events_norm = self._saturating_norm(reg_events, k)
-        quality_score = self._clamp01(
-            (w_strength * avg_strength_n) + (w_events * reg_events_norm)
-        )
+        quality_score = self._clamp01((w_strength * avg_strength_n) + (w_events * reg_events_norm))
 
         return {
             "total_assets": effective_assets_count,
@@ -209,9 +205,7 @@ class AssetRelationshipGraph:
 
         n = len(asset_ids)
         theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
-        positions = np.stack(
-            (np.cos(theta), np.sin(theta), np.zeros_like(theta)), axis=1
-        )
+        positions = np.stack((np.cos(theta), np.sin(theta), np.zeros_like(theta)), axis=1)
 
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]
@@ -228,21 +222,8 @@ class AssetRelationshipGraph:
         return asset1.sector == asset2.sector and asset1.sector != "Unknown"
 
     @staticmethod
-    def _issuer_link(
-        asset1: Asset, asset2: Asset, id1: str, id2: str
-    ) -> tuple[str, str] | None:
-        """
-        Identify a bond-to-issuer pair between two assets.
-
-        Parameters:
-            asset1 (Asset): First asset to check.
-            asset2 (Asset): Second asset to check.
-            id1 (str): Identifier corresponding to `asset1`.
-            id2 (str): Identifier corresponding to `asset2`.
-
-        Returns:
-            tuple[str, str] | None: `(bond_id, issuer_id)` when one asset is a Bond whose `issuer_id` equals the other's id, `None` otherwise.
-        """
+    def _issuer_link(asset1: Asset, asset2: Asset, id1: str, id2: str) -> tuple[str, str] | None:
+        """Return (bond_id, issuer_id) if a bond-to-issuer link exists."""
         if isinstance(asset1, Bond) and asset1.issuer_id == id2:
             return (id1, id2)
         if isinstance(asset2, Bond) and asset2.issuer_id == id1:
@@ -266,18 +247,8 @@ class AssetRelationshipGraph:
                     bidirectional=False,
                 )
 
-    def _append_relationship(
-        self, source_id: str, target_id: str, rel_type: str, strength: float
-    ) -> None:
-        """
-        Add a relationship to the internal relationships mapping for source_id if no existing relationship has the same target_id and rel_type.
-
-        Parameters:
-            source_id (str): ID of the source asset whose relationship list will be updated.
-            target_id (str): ID of the target asset for the relationship.
-            rel_type (str): Relationship type label.
-            strength (float): Relationship strength value to store.
-        """
+    def _append_relationship(self, source_id: str, target_id: str, rel_type: str, strength: float) -> None:
+        """Append a relationship to a source list if not already present."""
         rels = self.relationships.setdefault(source_id, [])
         if any(t == target_id and rt == rel_type for t, rt, _ in rels):
             return
@@ -291,6 +262,7 @@ class AssetRelationshipGraph:
             set[str]: Unique asset IDs present as stored assets or referenced as relationship targets.
         """
         all_ids = set(self.assets.keys())
+        all_ids.update(self.relationships.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
                 all_ids.add(target_id)
