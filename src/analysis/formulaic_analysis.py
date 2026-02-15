@@ -781,7 +781,7 @@ class FormulaicAnalyzer:
             str: Semicolon - separated examples(up to two) like
                 "TBOND: YTM ≈ 3.45%".
                 Or "Example: YTM ≈ 3.0%" when no examples are available.
-        '''
+        """
         from src.models.financial_models import AssetClass
 
         examples = []
