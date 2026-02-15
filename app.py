@@ -603,7 +603,7 @@ class FinancialAssetApp:
         """
         with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
-
+    
             error_message = gr.Textbox(
                 label=AppConstants.ERROR_LABEL,
                 visible=False,
@@ -611,332 +611,184 @@ class FinancialAssetApp:
                 elem_id="error_message",
             )
 
-        with gr.Tabs():
-            with gr.Tab("🌐 Network Visualization (2D/3D)"):
-                gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
+            with gr.Tabs():
+                with gr.Tab("🌐 Network Visualization (2D/3D)"):
+                    gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
+    
+                    with gr.Row():
+                        gr.Markdown("### 🎛️ Visualization Controls")
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            view_mode = gr.Radio(
+                                label="Visualization Mode",
+                                choices=["3D", "2D"],
+                                value="3D",
+                            )
+                        with gr.Column(scale=1):
+                            layout_type = gr.Radio(
+                                label="2D Layout Type",
+                                choices=["spring", "circular", "grid"],
+                                value="spring",
+                                visible=False,
+                            )
 
-                with gr.Row():
-                    gr.Markdown("### 🎛️ Visualization Controls")
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        view_mode = gr.Radio(
-                            label="Visualization Mode",
-                            choices=["3D", "2D"],
-                            value="3D",
-                        )
-                    with gr.Column(scale=1):
-                        layout_type = gr.Radio(
-                            label="2D Layout Type",
-                            choices=["spring", "circular", "grid"],
-                            value="spring",
-                            visible=False,
-                        )
+                    with gr.Row():
+                        gr.Markdown("### 🔗 Relationship Visibility Controls")
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            show_same_sector = gr.Checkbox(
+                                label="Same Sector (↔)", value=True
+                            )
+                            show_market_cap = gr.Checkbox(
+                                label="Market Cap Similar (↔)", value=True
+                            )
+                            show_correlation = gr.Checkbox(
+                                label="Correlation (↔)", value=True
+                            )
+                        with gr.Column(scale=1):
+                            show_corporate_bond = gr.Checkbox(
+                                label="Corporate Bond → Equity (→)", value=True
+                            )
+                            show_commodity_currency = gr.Checkbox(
+                                label="Commodity ↔ Currency", value=True
+                            )
+                            show_income_comparison = gr.Checkbox(
+                                label="Income Comparison (↔)", value=True
+                            )
+                        with gr.Column(scale=1):
+                            show_regulatory = gr.Checkbox(
+                                label="Regulatory Impact (→)", value=True
+                            )
+                            show_all_relationships = gr.Checkbox(
+                                label="Show All Relationships", value=True
+                            )
+                            toggle_arrows = gr.Checkbox(
+                                label="Show Direction Arrows", value=True
+                            )
 
-                with gr.Row():
-                    gr.Markdown("### 🔗 Relationship Visibility Controls")
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        show_same_sector = gr.Checkbox(
-                            label="Same Sector (↔)", value=True
+                    with gr.Row():
+                        visualization_3d = gr.Plot()
+    
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            refresh_viz_btn = gr.Button(
+                                AppConstants.REFRESH_BUTTON_LABEL,
+                                variant="primary",
+                            )
+                        with gr.Column(scale=1):
+                            reset_view_btn = gr.Button(
+                                "Reset View & Show All",
+                                variant="secondary",
+                            )
+                        with gr.Column(scale=2):
+                            gr.Markdown(
+                                "**Legend:** ↔ = Bidirectional, → = Unidirectional"
+                            )
+    
+                with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
+                    gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
+                    with gr.Row():
+                        asset_dist_chart = gr.Plot()
+                        rel_types_chart = gr.Plot()
+                    with gr.Row():
+                        events_timeline_chart = gr.Plot()
+                    with gr.Row():
+                        metrics_text = gr.Textbox(
+                            label=AppConstants.NETWORK_STATISTICS_LABEL,
+                            lines=10,
+                            interactive=False,
                         )
-                        show_market_cap = gr.Checkbox(
-                            label="Market Cap Similar (↔)", value=True
-                        )
-                        show_correlation = gr.Checkbox(
-                            label="Correlation (↔)", value=True
-                        )
-                    with gr.Column(scale=1):
-                        show_corporate_bond = gr.Checkbox(
-                            label="Corporate Bond → Equity (→)", value=True
-                        )
-                        show_commodity_currency = gr.Checkbox(
-                            label="Commodity ↔ Currency", value=True
-                        )
-                        show_income_comparison = gr.Checkbox(
-                            label="Income Comparison (↔)", value=True
-                        )
-                    with gr.Column(scale=1):
-                        show_regulatory = gr.Checkbox(
-                            label="Regulatory Impact (→)", value=True
-                        )
-                        show_all_relationships = gr.Checkbox(
-                            label="Show All Relationships", value=True
-                        )
-                        toggle_arrows = gr.Checkbox(
-                            label="Show Direction Arrows", value=True
-                        )
-
-                with gr.Row():
-                    visualization_3d = gr.Plot()
-
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        refresh_viz_btn = gr.Button(
+                    with gr.Row():
+                        refresh_metrics_btn = gr.Button(
                             AppConstants.REFRESH_BUTTON_LABEL,
                             variant="primary",
                         )
-                    with gr.Column(scale=1):
-                        reset_view_btn = gr.Button(
-                            "Reset View & Show All",
-                            variant="secondary",
-                        )
-                    with gr.Column(scale=2):
-                        gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
-
-            with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
-                gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
-                with gr.Row():
-                    asset_dist_chart = gr.Plot()
-                    rel_types_chart = gr.Plot()
-                with gr.Row():
-                    events_timeline_chart = gr.Plot()
-                with gr.Row():
-                    metrics_text = gr.Textbox(
-                        label=AppConstants.NETWORK_STATISTICS_LABEL,
-                        lines=10,
-                        interactive=False,
-                    )
-                with gr.Row():
-                    refresh_metrics_btn = gr.Button(
-                        AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
-                    )
-
-            with gr.Tab(AppConstants.TAB_SCHEMA_RULES):
-                gr.Markdown(AppConstants.SCHEMA_RULES_GUIDE_MD)
-                with gr.Row():
-                    schema_report = gr.Textbox(
-                        label=AppConstants.SCHEMA_REPORT_LABEL,
-                        lines=25,
-                        interactive=False,
-                    )
-                with gr.Row():
-                    refresh_schema_btn = gr.Button(
-                        AppConstants.GENERATE_SCHEMA_BUTTON_LABEL, variant="primary"
-                    )
-
-            with gr.Tab(AppConstants.TAB_ASSET_EXPLORER):
-                gr.Markdown(AppConstants.DETAILED_ASSET_INFO_MD)
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        asset_selector = gr.Dropdown(
-                            label=AppConstants.SELECT_ASSET_LABEL,
-                            choices=[],
-                            interactive=True,
-                        )
-                    with gr.Column(scale=3):
-                        gr.Markdown("")
-                with gr.Row():
-                    asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
-                with gr.Row():
-                    asset_relationships = gr.JSON(
-                        label=AppConstants.RELATED_ASSETS_LABEL
-                    )
-                with gr.Row():
-                    refresh_explorer_btn = gr.Button(
-                        AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
-                    )
-
-            with gr.Tab(AppConstants.TAB_DOCUMENTATION):
-                gr.Markdown(AppConstants.DOC_MARKDOWN)
-
-            with gr.Tab("📊 Formulaic Analysis"):
-                gr.Markdown(
-                    "## Mathematical Relationships & Formulas\n\n"
-                    "This section extracts and visualizes mathematical formulas and "
-                    "relationships between financial variables. It includes "
-                    "fundamental financial ratios, correlation patterns, valuation "
-                    "models, and empirical relationships derived from the asset "
-                    "database."
-                )
-
-                with gr.Row():
-                    with gr.Column(scale=2):
-                        formulaic_dashboard = gr.Plot(
-                            label="Formulaic Analysis Dashboard"
-                        )
-                    with gr.Column(scale=1):
-                        formula_selector = gr.Dropdown(
-                            label="Select Formula for Details",
-                            choices=[],
-                            value=None,
-                            interactive=True,
-                        )
-                        formula_detail_view = gr.Plot(label="Formula Details")
-
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        correlation_network = gr.Plot(label="Asset Correlation Network")
-                    with gr.Column(scale=1):
-                        metric_comparison = gr.Plot(label="Metric Comparison Chart")
-
-                with gr.Row():
-                    with gr.Column(scale=1):
-                        refresh_formulas_btn = gr.Button(
-                            "🔄 Refresh Formulaic Analysis", variant="primary"
-                        )
-                    with gr.Column(scale=2):
-                        formula_summary = gr.Textbox(
-                            label="Formula Analysis Summary",
-                            lines=5,
+    
+                with gr.Tab(AppConstants.TAB_SCHEMA_RULES):
+                    gr.Markdown(AppConstants.SCHEMA_RULES_GUIDE_MD)
+                    with gr.Row():
+                        schema_report = gr.Textbox(
+                            label=AppConstants.SCHEMA_REPORT_LABEL,
+                            lines=25,
                             interactive=False,
                         )
+                    with gr.Row():
+                        refresh_schema_btn = gr.Button(
+                            AppConstants.GENERATE_SCHEMA_BUTTON_LABEL,
+                            variant="primary",
+                        )
+    
+                with gr.Tab(AppConstants.TAB_ASSET_EXPLORER):
+                    gr.Markdown(AppConstants.DETAILED_ASSET_INFO_MD)
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            asset_selector = gr.Dropdown(
+                                label=AppConstants.SELECT_ASSET_LABEL,
+                                choices=[],
+                                interactive=True,
+                            )
+                        with gr.Column(scale=3):
+                            gr.Markdown("")
+                    with gr.Row():
+                        asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
+                    with gr.Row():
+                        asset_relationships = gr.JSON(
+                            label=AppConstants.RELATED_ASSETS_LABEL
+                        )
+                    with gr.Row():
+                        refresh_explorer_btn = gr.Button(
+                            AppConstants.REFRESH_BUTTON_LABEL,
+                            variant="primary",
+                        )
+    
+                with gr.Tab(AppConstants.TAB_DOCUMENTATION):
+                    gr.Markdown(AppConstants.DOC_MARKDOWN)
+    
+                with gr.Tab("📊 Formulaic Analysis"):
+                    gr.Markdown(
+                        "## Mathematical Relationships & Formulas\n\n"
+                        "This section extracts and visualizes mathematical formulas and "
+                        "relationships between financial variables. It includes "
+                        "fundamental financial ratios, correlation patterns, valuation "
+                        "models, and empirical relationships derived from the asset "
+                        "database."
+                    )
+    
+                    with gr.Row():
+                        with gr.Column(scale=2):
+                            formulaic_dashboard = gr.Plot(
+                                label="Formulaic Analysis Dashboard"
+                            )
+                        with gr.Column(scale=1):
+                            formula_selector = gr.Dropdown(
+                                label="Select Formula for Details",
+                                choices=[],
+                                value=None,
+                                interactive=True,
+                            )
+                            formula_detail_view = gr.Plot(label="Formula Details")
+    
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            correlation_network = gr.Plot(
+                                label="Asset Correlation Network"
+                            )
+                        with gr.Column(scale=1):
+                            metric_comparison = gr.Plot(
+                                label="Metric Comparison Chart"
+                            )
 
-        # Keep a non-null graph in state to avoid Optional pitfalls.
-        graph_state = gr.State(value=self.ensure_graph())
-
-        all_refresh_outputs = [
-            visualization_3d,
-            asset_dist_chart,
-            rel_types_chart,
-            events_timeline_chart,
-            metrics_text,
-            schema_report,
-            asset_selector,
-            error_message,
-        ]
-
-        def _refresh_visualization_handler(
-            graph_state_value,
-            view_mode_value: str,
-            layout_type_value: str,
-            show_same_sector_value: bool,
-            show_market_cap_value: bool,
-            show_correlation_value: bool,
-            show_corporate_bond_value: bool,
-            show_commodity_currency_value: bool,
-            show_income_comparison_value: bool,
-            show_regulatory_value: bool,
-            show_all_relationships_value: bool,
-            toggle_arrows_value: bool,
-        ):
-            # Ensure layout selector visibility follows view mode.
-            layout_update = gr.update(visible=view_mode_value == "2D")
-            plot, err = self.refresh_visualization(
-                graph_state=graph_state_value,
-                view_mode=view_mode_value,
-                layout_type=layout_type_value,
-                show_same_sector=show_same_sector_value,
-                show_market_cap=show_market_cap_value,
-                show_correlation=show_correlation_value,
-                show_corporate_bond=show_corporate_bond_value,
-                show_commodity_currency=show_commodity_currency_value,
-                show_income_comparison=show_income_comparison_value,
-                show_regulatory=show_regulatory_value,
-                show_all_relationships=show_all_relationships_value,
-                toggle_arrows=toggle_arrows_value,
-            )
-            return layout_update, plot, err
-
-        visualization_inputs = [
-            graph_state,
-            view_mode,
-            layout_type,
-            show_same_sector,
-            show_market_cap,
-            show_correlation,
-            show_corporate_bond,
-            show_commodity_currency,
-            show_income_comparison,
-            show_regulatory,
-            show_all_relationships,
-            toggle_arrows,
-        ]
-
-        # Core refresh wiring for non-visualization tabs.
-        for btn in (refresh_metrics_btn, refresh_schema_btn, refresh_explorer_btn):
-            btn.click(
-                self.refresh_all_outputs,
-                inputs=[graph_state],
-                outputs=all_refresh_outputs,
-            )
-
-        # Visualization refresh wiring.
-        refresh_viz_btn.click(
-            self.refresh_visualization,
-            inputs=visualization_inputs,
-            outputs=[visualization_3d, error_message],
-        )
-
-        view_mode.change(
-            _refresh_visualization_handler,
-            inputs=visualization_inputs,
-            outputs=[layout_type, visualization_3d, error_message],
-        )
-        layout_type.change(
-            self.refresh_visualization,
-            inputs=visualization_inputs,
-            outputs=[visualization_3d, error_message],
-        )
-        for checkbox in (
-            show_same_sector,
-            show_market_cap,
-            show_correlation,
-            show_corporate_bond,
-            show_commodity_currency,
-            show_income_comparison,
-            show_regulatory,
-            show_all_relationships,
-            toggle_arrows,
-        ):
-            checkbox.change(
-                self.refresh_visualization,
-                inputs=visualization_inputs,
-                outputs=[visualization_3d, error_message],
-            )
-
-        reset_view_btn.click(
-            lambda graph_state_value, view_mode_value, layout_type_value: (
-                self.refresh_visualization(
-                    graph_state=graph_state_value,
-                    view_mode=view_mode_value,
-                    layout_type=layout_type_value,
-                    show_same_sector=True,
-                    show_market_cap=True,
-                    show_correlation=True,
-                    show_corporate_bond=True,
-                    show_commodity_currency=True,
-                    show_income_comparison=True,
-                    show_regulatory=True,
-                    show_all_relationships=True,
-                    toggle_arrows=True,
-                )[0]
-            ),
-            inputs=[graph_state, view_mode, layout_type],
-            outputs=[visualization_3d],
-        )
-
-        # Asset explorer.
-        asset_selector.change(
-            self.update_asset_info,
-            inputs=[asset_selector, graph_state],
-            outputs=[asset_info, asset_relationships],
-        )
-
-        # Formulaic analysis.
-        formulaic_outputs = [
-            formulaic_dashboard,
-            correlation_network,
-            metric_comparison,
-            formula_selector,
-            formula_summary,
-            error_message,
-        ]
-        refresh_formulas_btn.click(
-            self.generate_formulaic_analysis,
-            inputs=[graph_state],
-            outputs=formulaic_outputs,
-        )
-        formula_selector.change(
-            self.show_formula_details,
-            inputs=[formula_selector, graph_state],
-            outputs=[formula_detail_view, error_message],
-        )
-
-        # Initial load.
-        interface.load(
-            self.refresh_all_outputs,
-            inputs=[graph_state],
-            outputs=all_refresh_outputs,
-        )
-
-    return interface
+                    with gr.Row():
+                        with gr.Column(scale=1):
+                            refresh_formulas_btn = gr.Button(
+                                "🔄 Refresh Formulaic Analysis",
+                                variant="primary",
+                            )
+                        with gr.Column(scale=2):
+                            formula_summary = gr.Textbox(
+                                label="Formula Analysis Summary",
+                                lines=5,
+                                interactive=False,
+                            )
+    
+        return interface
