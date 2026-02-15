@@ -85,15 +85,11 @@ class RealDataFetcher:
 
         if not self.enable_network:
             logger.info(
-                "Network fetching disabled. Using fallback dataset "
-                "if available."
+                "Network fetching disabled. Using fallback dataset if available."
             )
             return self._fallback()
 
-        logger.info(
-            "Creating database with real financial data "
-            "from Yahoo Finance"
-        )
+        logger.info("Creating database with real financial data from Yahoo Finance")
         graph = AssetRelationshipGraph()
 
         try:
@@ -254,9 +250,7 @@ class RealDataFetcher:
                     yield_to_maturity=info.get(
                         "yield", 0.03
                     ),  # Default 3% if not available
-                    coupon_rate=info.get(
-                        "yield", 0.025
-                    ),  # Approximate
+                    coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
                     issuer_id=issuer_id,
@@ -415,8 +409,7 @@ class RealDataFetcher:
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
             description=(
-                "10-K Filing - Increased oil reserves and sustainability "
-                "initiatives"
+                "10-K Filing - Increased oil reserves and sustainability initiatives"
             ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
@@ -458,7 +451,7 @@ def _enum_to_value(value: Any) -> Any:
     Returns:
     Any: The underlying value of the `Enum` member if applicable,
     otherwise the original value.
-"""
+    """
 
 
 return value.value if isinstance(value, Enum) else value
@@ -517,7 +510,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "regulatory_events": [
+            _serialize_dataclass(event) for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
                 {
@@ -531,16 +526,16 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
         },
         "incoming_relationships": {
             target: [
-               {
-                   "source": source,
-                   "relationship_type": rel_type,
-                   "strength": strength,
-                   }
-                   for source, rel_type, strength in rels
-               ]
-               for target, rels in incoming_relationships.items()
-                },
-            }
+                {
+                    "source": source,
+                    "relationship_type": rel_type,
+                    "strength": strength,
+                }
+                for source, rel_type, strength in rels
+            ]
+            for target, rels in incoming_relationships.items()
+        },
+    }
 
 
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
@@ -560,7 +555,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     if asset_class_value := data.get("asset_class"):
         data["asset_class"] = AssetClass(asset_class_value)
 
-    cls_map ={
+    cls_map = {
         "Asset": Asset,
         "Equity": Equity,
         "Bond": Bond,
