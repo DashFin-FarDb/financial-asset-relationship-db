@@ -253,7 +253,6 @@ def visualize_2d_graph(
     For the default "spring" layout, the function will attempt to obtain
     3D layout data from the graph and project it to 2D.
     If 3D data is unavailable, it falls back to a circular layout.
-    """
 
     Parameters:
         graph(AssetRelationshipGraph): Asset relationship graph to visualize.

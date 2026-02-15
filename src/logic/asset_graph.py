@@ -46,7 +46,7 @@ class AssetRelationshipGraph:
             for subsequent processing of event-driven impacts.
         """
         self.regulatory_events.append(event)
-        """Build relationships using sector, issuer linkage, and event impacts."""
+        # Build relationships using sector, issuer linkage, and event impacts.
         self.relationships = {}
 
         asset_ids = list(self.assets.keys())
@@ -100,9 +100,9 @@ class AssetRelationshipGraph:
             bidirectional (bool): If True, also add the same relationship from
                 `target_id` back to `source_id`.
         """
-        self._append_relationship(source_id, target_id, strength, rel_type)
+        self._append_relationship(source_id, target_id, rel_type, strength)
         if bidirectional:
-            self._append_relationship(target_id, source_id, strength, rel_type)
+            self._append_relationship(target_id, source_id, rel_type, strength)
 
     @staticmethod
     def _clamp01(value: float) -> float:
@@ -111,6 +111,7 @@ class AssetRelationshipGraph:
             return 0.0
         if value > 1.0:
             return 1.0
+        return None
 
     @staticmethod
     def _saturating_norm(count: int, k: float) -> float:
@@ -323,8 +324,8 @@ class AssetRelationshipGraph:
         graph and any target IDs referenced by relationships.
 
         Returns:
-            set[str]: A set of asset IDs that appear either as keys in `self.assets` or as
-                target IDs in `self.relationships`.
+            set[str]: A set of asset IDs that appear either as keys in `self.assets`
+                or as target IDs in `self.relationships`.
         """
         all_ids = set(self.assets.keys())
         for rels in self.relationships.values():

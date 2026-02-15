@@ -671,9 +671,9 @@ class FormulaicVisualizer:
         formula categories.
 
         Parameters:
-            analysis_results (Dict[str, Any]): Analysis output that may include a "formulas"
-                key containing a list of Formula objects (each with
-                `category` and `r_squared`).
+            analysis_results (Dict[str, Any]): Analysis output that may
+                include a "formulas" key containing a list of Formula objects,
+                each with `category` and `r_squared`.
 
         Returns:
             go.Figure: A Plotly Figure containing a bar chart of

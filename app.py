@@ -299,9 +299,11 @@ class FinancialAssetApp:
 
         Returns:
             tuple[dict, dict]:
-                - First element: a dictionary of the asset's attributes (fields from the Asset
-                    dataclass), with `asset_class` provided as its string value.
-                - Second element: a dictionary with two keys, `outgoing` and `incoming`.
+                - First element: a dictionary of the asset's attributes
+                    (fields from the Asset dataclass),
+                    with `asset_class` provided as its string value.
+                - Second element: a dictionary with two keys,
+                    `outgoing` and `incoming`.
                     Each maps related asset IDs to a dict containing:
                     - `relationship_type`: the relationship type value
                     - `strength`: the relationship strength value

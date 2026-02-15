@@ -189,8 +189,11 @@ class FormulaicAnalyzer:
                 )
             )
 
-        # TODO: Implement bond yield-to-maturity (YTM) approximation when bonds exist in the graph.
-        # The approximation should use bond price, coupon rate, and time to maturity to add a corresponding Formula entry.
+        # NOTE: Bond yield-to-maturity (YTM) approximation is not yet implemented.
+        # When bond instruments are present in the graph, detect bond nodes and
+        # compute approximate YTM using bond price, coupon rate, and time to maturity
+        # (e.g., via iterative solution of price = present value of cash flows).
+        # Add a Formula entry for YTM to the formulas list.
         return formulas
 
     def _analyze_correlation_patterns(
@@ -199,15 +202,16 @@ class FormulaicAnalyzer:
         """
         Builds Formula objects that describe asset correlation and systematic risk.
 
-        Creates formula entries for Beta (asset sensitivity to
-        market movements) and the Pearson correlation coefficient,
-        each populated with variable descriptions, example calculations,
-        drawn from the graph, and an r_squared estimate.
+        Creates formula entries for Beta (asset sensitivity to market movements) and
+        the Pearson correlation coefficient, each populated with variable
+        descriptions, example calculations, drawn from the graph, and an
+        r_squared estimate.
 
         Returns:
-            List[Formula]: A list of Formula objects for Beta
-            and the correlation coefficient, populated with descriptions,
-            variables, example calculations, categories, and r_squared values.
+            List[Formula]: A list of Formula objects for Beta and the
+                correlation coefficient, populated with descriptions,
+                variables, example calculations, categories, and r_squared
+                values.
         """
         formulas = []
 
@@ -515,9 +519,9 @@ class FormulaicAnalyzer:
 
         Parameters:
             formulas (List[Formula]): List of Formula objects produced by the analysis.
-            empirical_relationships (dict): Empirical data from the analysis; may contain
-                a "correlation_matrix" mapping whose length is used to count empirical data
-                    points.
+            empirical_relationships (dict): Empirical data from the analysis; may contain a
+                "correlation_matrix" mapping whose length is used to count
+                    empirical data points.
 
         Returns:
             dict: Summary with keys:
@@ -527,8 +531,8 @@ class FormulaicAnalyzer:
                 formula_categories (dict): Mapping of category name to count of formulas.
                 empirical_data_points (int): Number of entries in
                     `empirical_relationships["correlation_matrix"]` (0 if missing).
-                key_insights (list[str]): Short human-readable insight strings derived
-                    from the formulas and empirical data.
+                key_insights (list[str]): Short human-readable insight strings
+                    derived from the formulas and empirical data.
         """
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(
             empirical_relationships
@@ -694,11 +698,13 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         """
-        Create up to two short examples showing dividend yield for equity assets present in the graph.
+        Create up to two short examples showing dividend yield for equity
+        assets present in the graph.
 
         Returns:
             A string containing up to two formatted examples like
-            "SYMBOL: Yield = X.XX% at price $Y.YY" joined by "; ".
+            "SYMBOL: Yield = X.XX% at price $Y.YY"
+            joined by "; ".
             If no equity with a dividend yield is found, returns a default
             illustrative example string.
         """
