@@ -183,10 +183,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     lines.extend(["", "## Top Relationships", ""])
     if top_rels:
         for src, tgt, rtype, strength in top_rels:
-            lines.append(
-                f"- **{src}** -> **{tgt}** ({rtype}, "
-                f"strength {strength:.2f})"
-            )
+            lines.append(f"- **{src}** -> **{tgt}** ({rtype}, strength {strength:.2f})")
     else:
         lines.append("- No relationships recorded yet.")
 

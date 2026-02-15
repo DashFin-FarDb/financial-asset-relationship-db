@@ -36,6 +36,7 @@ class AppConstants:
     Defines titles, tab names, labels, and default messages for the Financial Asset Relationship
     Database visualization application.
     """
+
     TITLE = "Financial Asset Relationship Database Visualization"
     MARKDOWN_HEADER = """
     # 🏦 Financial Asset Relationship Network
@@ -145,6 +146,7 @@ class FinancialAssetApp:
     Initializes and maintains the AssetRelationshipGraph and offers functionality
     for analyzing and reporting on asset relationships.
     """
+
     def __init__(self) -> None:
         """
         Initialize the FinancialAssetApp
@@ -621,6 +623,7 @@ class FinancialAssetApp:
                 if isinstance(corr, dict):
                     pair = corr.get("pair", "n/a")
                     correlation = corr.get("correlation", 0.0)
+
     def create_interface(self) -> gr.Blocks:
         """
         Build and return the Gradio Blocks UI for the FinancialAssetApp.
@@ -668,35 +671,17 @@ class FinancialAssetApp:
                         gr.Markdown("### 🔗 Relationship Visibility Controls")
                     with gr.Row():
                         with gr.Column(scale=1):
-                            gr.Checkbox(
-                                label="Same Sector (↔)", value=True
-                            )
-                            gr.Checkbox(
-                                label="Market Cap Similar (↔)", value=True
-                            )
-                            gr.Checkbox(
-                                label="Correlation (↔)", value=True
-                            )
+                            gr.Checkbox(label="Same Sector (↔)", value=True)
+                            gr.Checkbox(label="Market Cap Similar (↔)", value=True)
+                            gr.Checkbox(label="Correlation (↔)", value=True)
                         with gr.Column(scale=1):
-                            gr.Checkbox(
-                                label="Corporate Bond → Equity (→)", value=True
-                            )
-                            gr.Checkbox(
-                                label="Commodity ↔ Currency", value=True
-                            )
-                            gr.Checkbox(
-                                label="Income Comparison (↔)", value=True
-                            )
+                            gr.Checkbox(label="Corporate Bond → Equity (→)", value=True)
+                            gr.Checkbox(label="Commodity ↔ Currency", value=True)
+                            gr.Checkbox(label="Income Comparison (↔)", value=True)
                         with gr.Column(scale=1):
-                            gr.Checkbox(
-                                label="Regulatory Impact (→)", value=True
-                            )
-                            gr.Checkbox(
-                                label="Show All Relationships", value=True
-                            )
-                            gr.Checkbox(
-                                label="Show Direction Arrows", value=True
-                            )
+                            gr.Checkbox(label="Regulatory Impact (→)", value=True)
+                            gr.Checkbox(label="Show All Relationships", value=True)
+                            gr.Checkbox(label="Show Direction Arrows", value=True)
 
                     with gr.Row():
                         gr.Plot()
@@ -764,9 +749,7 @@ class FinancialAssetApp:
                     with gr.Row():
                         gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
                     with gr.Row():
-                        gr.JSON(
-                            label=AppConstants.RELATED_ASSETS_LABEL
-                        )
+                        gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
                     with gr.Row():
                         gr.Button(
                             AppConstants.REFRESH_BUTTON_LABEL,
@@ -790,9 +773,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=2):
-                            gr.Plot(
-                                label="Formulaic Analysis Dashboard"
-                            )
+                            gr.Plot(label="Formulaic Analysis Dashboard")
                         with gr.Column(scale=1):
                             gr.Dropdown(
                                 label="Select Formula for Details",
@@ -804,9 +785,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            gr.Plot(
-                                label="Asset Correlation Network"
-                            )
+                            gr.Plot(label="Asset Correlation Network")
                         with gr.Column(scale=1):
                             gr.Plot(label="Metric Comparison Chart")
 
