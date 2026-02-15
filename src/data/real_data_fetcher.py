@@ -568,6 +568,7 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
         RegulatoryEvent: The deserialized RegulatoryEvent instance.
     """
     data = dict(data)
+    data.pop("__type__", None)
     data["event_type"] = RegulatoryActivity(data["event_type"])
     return RegulatoryEvent(**data)
 

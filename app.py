@@ -158,10 +158,12 @@ class FinancialAssetApp:
                 graph = fn()
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
-                raise TypeError(
-                    f"{name}() returned {type(graph)!r}, "
-                    "expected AssetRelationshipGraph"
+                logger.warning(
+                    "%s() returned %r, expected AssetRelationshipGraph",
+                    name,
+                    type(graph),
                 )
+                continue
 
         raise AttributeError(
             "No known database factory found in "
@@ -434,42 +436,40 @@ class FinancialAssetApp:
     ) -> str:
         """Build a human-readable summary of formulaic analysis results for display."""
         empirical = analysis_results.get("empirical_relationships", {})
-        # TODO: Implement formatting of the empirical relationships into a summary string.
-         return json.dumps({"empirical_relationships": empirical}, indent=2)
 
-            # The following UI layout code is defined elsewhere in the class.
-                 elem_id = "error_message",
-            )
+        summary_lines: list[str] = []
 
-            with gr.Tabs(), gr.Tab("🌐 Network Visualization (2D/3D)"):
-                gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
+        categories = summary.get("formula_categories", {})
+        if isinstance(categories, dict):
+            for category, count in categories.items():
+                summary_lines.append(f"  • {category}: {count} formulas")
 
-                with gr.Row():
-                    gr.Markdown("### 🎛️ Visualization Controls")
-                with gr.Row(), gr.Column(scale=1):
-                    view_mode = gr.Radio(
-                        label="Visualization Mode",
-                        choices=["3D", "2D"],
-                        value="3D",
-                    )
+        summary_lines.extend(["", "🎯 **Key Insights:**"])
 
-                with gr.Row():
-                    gr.Markdown("### 🔗 Relationship Visibility Controls")
-                with gr.Row(), gr.Column(scale=1):
-                    show_market_cap = gr.Checkbox(
-                        label="Market Cap Similar (↔)", value=True
-                    )
-                    show_correlation = gr.Checkbox(label="Correlation (↔)", value=True)
-                    with gr.Column(scale=1):
-                        show_corporate_bond = gr.Checkbox(
-                            label="Corporate Bond → Equity (→)", value=True
+        insights = summary.get("key_insights", [])
+        if isinstance(insights, list):
+            for insight in insights:
+                summary_lines.append(f"  • {insight}")
+
+        correlations = empirical.get("strongest_correlations", [])
+        if isinstance(correlations, list) and correlations:
+            summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
+            for corr in correlations[:3]:
+                if isinstance(corr, dict):
+                    pair = corr.get("pair", "n/a")
+                    correlation = corr.get("correlation", 0.0)
+                    strength = corr.get("strength", "n/a")
+                    try:
+                        summary_lines.append(
+                            f"  • {pair}: {float(correlation):.3f} ({strength})"
                         )
-                        show_commodity_currency = gr.Checkbox(
-                            label="Commodity ↔ Currency", value=True
-                        )
-                        show_income_comparison = gr.Checkbox(
-                            label="Income Comparison (↔)", value=True
-                        )
+                    except (TypeError, ValueError):
+                        summary_lines.append(f"  • {pair}: n/a ({strength})")
+
+        return "\n".join(summary_lines)
+
+    def create_interface(self) -> gr.Blocks:
+        """Create and configure the Gradio Blocks interface."""
         with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
@@ -539,7 +539,7 @@ class FinancialAssetApp:
                         visualization_3d = gr.Plot()
                     with gr.Row():
                         with gr.Column(scale=1):
-                            gr.Button(
+                            refresh_viz_btn = gr.Button(
                                 AppConstants.REFRESH_BUTTON_LABEL, variant="primary"
                             )
                         with gr.Column(scale=1):
@@ -689,18 +689,17 @@ class FinancialAssetApp:
                 show_correlation,
                 show_corporate_bond,
                 show_commodity_currency,
-                gr.Markdown(
-                    "## Mathematical Relationships & Formulas\n\n"
-                    + "This section extracts and visualizes\n"
-                    + "mathematical formulas and relationships\n"
-                    + "between financial variables.\n"
-                    + "It includes fundamental financial ratios,\n"
-                    + "correlation patterns,\n"
-                    + "valuation models,\n"
-                    + "and empirical relationships derived\n"
-                    + "from the asset database."
-                ),
+                show_income_comparison,
+                show_regulatory,
+                show_all_relationships,
+                toggle_arrows,
             ]
+
+            refresh_viz_btn.click(
+                self.refresh_visualization,
+                inputs=visualization_inputs,
+                outputs=[visualization_3d, error_message],
+            )
 
             view_mode.change(
                 lambda *args: (

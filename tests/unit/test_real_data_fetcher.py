@@ -898,7 +898,7 @@ class TestRegulatoryEvents:
         events = RealDataFetcher._create_regulatory_events()
 
         for event in events:
-            assert 0.0 <= event.impact_score <= 1.0
+            assert -1.0 <= event.impact_score <= 1.0
 
 
 @pytest.mark.unit

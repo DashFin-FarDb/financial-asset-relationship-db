@@ -33,10 +33,6 @@ class TestDependencyMatrix:
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
         """
-    @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
-        """
         Load the dependency matrix markdown content from disk.
 
         Returns:
@@ -50,8 +46,7 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -270,9 +265,8 @@ class TestSystemManifest:
         with open(system_manifest_path, encoding="utf-8") as f:
             return f.read()
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(system_manifest_content):
+    def system_manifest_lines(self, system_manifest_content):
         """
         Split system manifest content into lines.
 
@@ -342,17 +336,16 @@ class TestSystemManifest:
 
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Test that systemManifest.md has Current Phase section."""
-        assert "## Current Phase" in system_manifest_content
-
-
+        """
         Assert that the System Manifest declares a current project phase.
 
-        Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
+        Checks both the section header and a specific "- Current Phase:" line.
 
         Parameters:
             system_manifest_content(str): Full text of the systemManifest.md file to inspect.
         """
+        assert "## Current Phase" in system_manifest_content
+
         pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
 
