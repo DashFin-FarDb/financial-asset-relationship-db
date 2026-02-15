@@ -669,7 +669,7 @@ class FinancialAssetApp:
                     "## Mathematical Relationships & Formulas\n\n"
             True,
             True,
-            True,      
+            True,
                     + "correlation patterns,\n"
                     + "valuation models,\n"
                     + "and empirical relationships derived\n"
