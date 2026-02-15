@@ -442,8 +442,9 @@ def create_real_database() -> AssetRelationshipGraph:
         regulatory events and relationship mappings; the content may come from
         the cache, a real-data fetch, or the sample fallback.
     """
-    fetcher=RealDataFetcher()
+    fetcher = RealDataFetcher()
     return fetcher.create_real_database()
+
 
 def _enum_to_value(value: Any) -> Any:
     """
@@ -461,7 +462,6 @@ def _enum_to_value(value: Any) -> Any:
     return value.value if isinstance(value, Enum) else value
 
 
-
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
     Serialize a dataclass instance into a JSON- friendly dictionary
@@ -475,9 +475,9 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
         Enum members are replaced by their `.value`, and an additional
         "__type__" key containing the dataclass's class name.
     """
-    data=asdict(obj)
-    serialized={key: _enum_to_value(val) for key, val in data.items()}
-    serialized["__type__"]=obj.__class__.__name__
+    data = asdict(obj)
+    serialized = {key: _enum_to_value(val) for key, val in data.items()}
+    serialized["__type__"] = obj.__class__.__name__
     return serialized
 
 

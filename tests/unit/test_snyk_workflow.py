@@ -96,7 +96,7 @@ class TestSnykWorkflowTriggers:
 
         """
         Returns:
-            Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a mapping.
+            Parsed YAML content of .github / workflows / snyk - infrastructure.yml as a mapping.
         """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
@@ -121,7 +121,7 @@ class TestSnykWorkflowTriggers:
 
     def test_schedule_cron_format_valid(self, snyk_workflow):
         """
-        Validate that the workflow schedule's `cron` expression has five space-separated fields.
+        Validate that the workflow schedule's `cron` expression has five space - separated fields.
 
         Checks the first schedule entry in the workflow triggers and asserts the presence of a `cron` key whose expression splits into exactly five parts.
         """
