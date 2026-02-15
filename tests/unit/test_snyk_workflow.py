@@ -52,7 +52,7 @@ class TestSnykWorkflowStructure:
         """
         Verify the workflow file is valid YAML and parses to a mapping.
 
-        Asserts that loading the workflow file produces a non-None mapping (dict), indicating syntactically valid YAML suitable for further structural checks.
+        Asserts that loading the workflow file produces a non - None mapping(dict), indicating syntactically valid YAML suitable for further structural checks.
         """
         with open(snyk_workflow_path) as f:
             data = yaml.safe_load(f)
@@ -95,7 +95,7 @@ class TestSnykWorkflowTriggers:
         Return the parsed YAML mapping for the Snyk GitHub Actions workflow.
 
         Returns:
-            dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a mapping.
+            dict: Parsed YAML content of .github / workflows / snyk - infrastructure.yml as a mapping.
         """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
@@ -120,7 +120,7 @@ class TestSnykWorkflowTriggers:
 
     def test_schedule_cron_format_valid(self, snyk_workflow):
         """
-        Validate that the workflow schedule's `cron` expression has five space-separated fields.
+        Validate that the workflow schedule's `cron` expression has five space - separated fields.
 
         Checks the first schedule entry in the workflow triggers and asserts the presence of a `cron` key whose expression splits into exactly five parts.
         """
@@ -139,7 +139,7 @@ class TestSnykWorkflowTriggers:
         If the workflow defines a push trigger with a "branches" list, this test asserts that the list includes "main" or "Default".
 
         Parameters:
-            snyk_workflow (dict): Parsed YAML content of the workflow file.
+            snyk_workflow(dict): Parsed YAML content of the workflow file.
         """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         push_config = triggers["push"]
@@ -166,7 +166,7 @@ class TestSnykWorkflowPermissions:
         Return the parsed YAML mapping for the Snyk GitHub Actions workflow.
 
         Returns:
-            dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a mapping.
+            dict: Parsed YAML content of .github / workflows / snyk - infrastructure.yml as a mapping.
         """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
@@ -188,10 +188,10 @@ class TestSnykWorkflowPermissions:
         Verify the 'snyk' job declares required GitHub Actions permissions.
 
         Asserts that the workflow's `jobs.snyk.permissions` mapping exists and contains
-        `contents` set to "read" and `security-events` set to "write".
+        `contents` set to "read" and `security - events` set to "write".
 
         Parameters:
-            snyk_workflow (dict): Parsed YAML mapping of the workflow file.
+            snyk_workflow(dict): Parsed YAML mapping of the workflow file.
         """
         snyk_job = snyk_workflow["jobs"]["snyk"]
         assert "permissions" in snyk_job
@@ -222,7 +222,7 @@ class TestSnykJobConfiguration:
     @pytest.fixture
     def snyk_job(self):
         """
-        Return the configuration mapping for the "snyk" job from .github/workflows/snyk-infrastructure.yml.
+        Return the configuration mapping for the "snyk" job from .github / workflows / snyk - infrastructure.yml.
 
         Returns:
             dict: Parsed mapping representing the 'snyk' job configuration.
@@ -236,7 +236,7 @@ class TestSnykJobConfiguration:
         """
         Asserts the Snyk job is configured to run on an Ubuntu runner.
 
-        Checks that the job contains a `runs-on` field and that its value includes "ubuntu" (case-insensitive).
+        Checks that the job contains a `runs - on` field and that its value includes "ubuntu" (case-insensitive).
         """
         assert "runs-on" in snyk_job
         runs_on = snyk_job["runs-on"]
@@ -311,7 +311,7 @@ class TestSnykJobConfiguration:
         Verifies the Snyk job sets SNYK_TOKEN from the GitHub secrets store.
 
         Locates the Snyk action step in the job's steps and asserts the step's `env.SNYK_TOKEN`
-        contains the literal secret reference `${{ secrets.SNYK_TOKEN }}`.
+        contains the literal secret reference `${{secrets.SNYK_TOKEN}}`.
         """
         steps = snyk_job["steps"]
         snyk_steps = [s for s in steps if "uses" in s and "snyk" in s["uses"].lower()]
@@ -322,7 +322,7 @@ class TestSnykJobConfiguration:
 
     def test_snyk_step_has_file_input(self, snyk_job):
         """
-        Asserts the Snyk action step includes a `with` input mapping that contains a `file` key.
+        Asserts the Snyk action step includes a `with ` input mapping that contains a `file` key.
 
         This verifies the Snyk IaC step specifies which file to scan.
         """
@@ -341,7 +341,7 @@ class TestSnykJobConfiguration:
 
     def test_sarif_upload_uses_v4(self, snyk_job):
         """
-        Ensure the SARIF upload step uses the CodeQL `upload-sarif` action with `@v4`.
+        Ensure the SARIF upload step uses the CodeQL `upload - sarif` action with `@ v4`.
         """
         steps = snyk_job["steps"]
         sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
@@ -352,7 +352,7 @@ class TestSnykJobConfiguration:
         """
         Verify the SARIF upload step for the snyk job defines a `sarif_file` input equal to "snyk.sarif".
 
-        Locates the step using the CodeQL SARIF uploader ("codeql-action/upload-sarif") and asserts that the step has a `with` mapping containing `sarif_file` set to "snyk.sarif".
+        Locates the step using the CodeQL SARIF uploader("codeql-action/upload-sarif") and asserts that the step has a `with ` mapping containing `sarif_file` set to "snyk.sarif".
         """
         steps = snyk_job["steps"]
         sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
@@ -373,7 +373,7 @@ class TestSnykWorkflowSecurity:
         Return the parsed YAML mapping for the Snyk GitHub Actions workflow.
 
         Returns:
-            dict: Parsed YAML content of .github/workflows/snyk-infrastructure.yml as a mapping.
+            dict: Parsed YAML content of .github / workflows / snyk - infrastructure.yml as a mapping.
         """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
@@ -469,14 +469,14 @@ class TestSnykWorkflowComments:
         Read the raw text content of the Snyk Infrastructure as Code GitHub Actions workflow file.
 
         Returns:
-            content (str): Full text of ".github/workflows/snyk-infrastructure.yml".
+            content(str): Full text of ".github/workflows/snyk-infrastructure.yml".
         """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         return workflow_path.read_text()
 
     def test_workflow_has_comments(self, snyk_workflow_content):
         """
-        Ensure the workflow file contains at least one comment character (`#`).
+        Ensure the workflow file contains at least one comment character(`  # `).
         """
         assert "#" in snyk_workflow_content
 
