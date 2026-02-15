@@ -160,10 +160,7 @@ class FormulaicVisualizer:
         if isinstance(correlation_matrix, dict):
             assets = sorted(correlation_matrix.keys())
             z = [
-                [
-                    correlation_matrix.get(a1, {}).get(a2, 0.0)
-                    for a2 in assets
-                ]
+                [correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets]
                 for a1 in assets
             ]
         else:
@@ -250,9 +247,7 @@ class FormulaicVisualizer:
     # Table rendering
     # ------------------------------------------------------------------
 
-    def _plot_key_formula_examples(
-        self, fig: go.Figure, formulas: Any
-    ) -> None:
+    def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
         """
         Add a "Key Formula Examples" table to the figure showing the
         top 10 formulas ranked by R-squared.
@@ -274,7 +269,9 @@ class FormulaicVisualizer:
         sorted_formulas = self._get_sorted_formulas(formulas)
         top_formulas = sorted_formulas[:10]
 
-        names, categories, r_squared_values = self._extract_formula_table_data(top_formulas)
+        names, categories, r_squared_values = self._extract_formula_table_data(
+            top_formulas
+        )
 
         fig.add_trace(
             go.Table(
@@ -347,8 +344,7 @@ class FormulaicVisualizer:
                             strings (four decimals) or "N/A" if not numeric.
         """
         names = [
-            FormulaicVisualizer._format_name(getattr(f, "name", None))
-            for f in formulas
+            FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
         categories = [getattr(f, "category", "N/A") for f in formulas]
         r_squared_values = [
@@ -397,8 +393,7 @@ class FormulaicVisualizer:
                 "<b>Variables:</b><br>"
                 + (
                     "<br>".join(
-                        f"• {var}: {desc}"
-                        for var, desc in formula.variables.items()
+                        f"• {var}: {desc}" for var, desc in formula.variables.items()
                     )
                 )
                 + "<br><br><b>Example Calculation:</b><br>"
@@ -437,18 +432,14 @@ class FormulaicVisualizer:
         strongest_correlations = empirical_relationships.get(
             "strongest_correlations", []
         )
-        correlation_matrix = empirical_relationships.get(
-            "correlation_matrix", {}
-        )
+        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
             return FormulaicVisualizer._create_empty_correlation_figure()
 
-        return (
-            FormulaicVisualizer._build_and_render_correlation_network(
-                strongest_correlations,
-                correlation_matrix,
-            )
+        return FormulaicVisualizer._build_and_render_correlation_network(
+            strongest_correlations,
+            correlation_matrix,
         )
 
     @staticmethod

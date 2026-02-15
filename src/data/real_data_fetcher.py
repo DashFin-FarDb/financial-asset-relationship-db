@@ -222,7 +222,7 @@ class RealDataFetcher:
         """
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
-        bond_symbols={
+        bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
                 "iShares iBoxx $ Investment Grade Corporate Bond ETF",
@@ -232,19 +232,19 @@ class RealDataFetcher:
             ),
         }
 
-        bonds=[]
+        bonds = []
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             try:
-                ticker=yf.Ticker(symbol)
-                info=ticker.info
-                hist=ticker.history(period="1d")
+                ticker = yf.Ticker(symbol)
+                info = ticker.info
+                hist = ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-                current_price=float(hist["Close"].iloc[-1])
-                bond=Bond(
+                current_price = float(hist["Close"].iloc[-1])
+                bond = Bond(
                     id=symbol,
                     symbol=symbol,
                     name=name,
@@ -274,18 +274,18 @@ class RealDataFetcher:
 
         return bonds
 
-    @ staticmethod
+    @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity futures data."""
         # Define key commodity futures and their characteristics.
-        commodity_symbols: Dict[str, Tuple[str, str, float, float]]={
+        commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
             # Example entries (adjust or extend as needed elsewhere in the file):
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
         }
 
-        commodities: List[Commodity]=[]
+        commodities: List[Commodity] = []
         for symbol, (
             name,
             sector,
@@ -293,16 +293,16 @@ class RealDataFetcher:
             volatility,
         ) in commodity_symbols.items():
             try:
-                ticker=yf.Ticker(symbol)
-                hist=ticker.history(period="1d")
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-                current_price=float(hist["Close"].iloc[-1])
+                current_price = float(hist["Close"].iloc[-1])
 
-                commodity=Commodity(
+                commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
                     symbol=symbol,
                     name=name,
@@ -327,28 +327,28 @@ class RealDataFetcher:
 
         return commodities
 
-    @ staticmethod
+    @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
-        currency_symbols={
+        currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
             "JPYUSD=X": ("Japanese Yen", "Japan", "JPY"),
         }
 
-        currencies=[]
+        currencies = []
         for symbol, (name, country, currency_code) in currency_symbols.items():
             try:
-                ticker=yf.Ticker(symbol)
-                hist=ticker.history(period="1d")
+                ticker = yf.Ticker(symbol)
+                hist = ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-                current_rate=float(hist["Close"].iloc[-1])
+                current_rate = float(hist["Close"].iloc[-1])
 
-                currency=Currency(
+                currency = Currency(
                     id=symbol.replace("=X", ""),
                     symbol=currency_code,
                     name=name,
@@ -369,7 +369,7 @@ class RealDataFetcher:
 
         return currencies
 
-    @ staticmethod
+    @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
         Create a small list of regulatory events associated with fetched assets.
@@ -382,10 +382,10 @@ class RealDataFetcher:
             List[RegulatoryEvent]: List of RegulatoryEvent instances representing the sample events.
         """
         # Create some realistic recent events
-        events=[]
+        events = []
 
         # Apple earnings event
-        apple_earnings=RegulatoryEvent(
+        apple_earnings = RegulatoryEvent(
             id="AAPL_Q4_2024_REAL",
             asset_id="AAPL",
             event_type=RegulatoryActivity.EARNINGS_REPORT,

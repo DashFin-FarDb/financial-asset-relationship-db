@@ -36,6 +36,7 @@ class AppConstants:
     tab names, and error messages used in the Financial Asset Relationship
     Database Visualization application.
     """
+
     TITLE = "Financial Asset Relationship Database Visualization"
     MARKDOWN_HEADER = """
     # 🏦 Financial Asset Relationship Network
@@ -141,6 +142,7 @@ Top Relationships:
 
 class FinancialAssetApp:
     """Main application class for managing and interacting with the financial asset relationship graph."""
+
     def __init__(self) -> None:
         """
         Create a FinancialAssetApp instance and ensure its internal asset
@@ -264,7 +266,9 @@ class FinancialAssetApp:
         return text
 
     @staticmethod
-    def update_asset_info(selected_asset: Optional[str], graph: AssetRelationshipGraph) -> tuple[dict, dict]:
+    def update_asset_info(
+        selected_asset: Optional[str], graph: AssetRelationshipGraph
+    ) -> tuple[dict, dict]:
         """
         Return detailed information for a selected asset formatted for UI display.
 
@@ -331,6 +335,7 @@ class FinancialAssetApp:
         fig1, fig2, fig3 = visualize_metrics(graph)
         metrics_text = self._update_metrics_text(graph)
         return fig1, fig2, fig3, metrics_text
+
     def refresh_all_outputs(
         self, graph_state: AssetRelationshipGraph
     ) -> tuple[Any, ...]:
@@ -475,7 +480,9 @@ class FinancialAssetApp:
             error_msg = f"Error refreshing visualization: {exc}"
             return empty_fig, gr.update(value=error_msg, visible=True)
 
-    def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
+    def generate_formulaic_analysis(
+        self, graph_state: AssetRelationshipGraph
+    ) -> tuple[Any, ...]:
         """
         Run formulaic analysis on the current asset graph and prepare
         visualization and UI updates.
@@ -559,7 +566,9 @@ class FinancialAssetApp:
             )
 
     @staticmethod
-    def show_formula_details(formula_name: str, graph_state: AssetRelationshipGraph) -> tuple[go.Figure, gr.Update]:
+    def show_formula_details(
+        formula_name: str, graph_state: AssetRelationshipGraph
+    ) -> tuple[go.Figure, gr.Update]:
         """
         Display a detailed visualization for the selected formula and the UI
         update for the detail panel.
@@ -582,7 +591,9 @@ class FinancialAssetApp:
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
     @staticmethod
-    def _format_formula_summary(summary: dict[str, Any], analysis_results: dict[str, Any]) -> str:
+    def _format_formula_summary(
+        summary: dict[str, Any], analysis_results: dict[str, Any]
+    ) -> str:
         """
         Assemble a human-readable multiline summary of formulaic analysis for display.
 
