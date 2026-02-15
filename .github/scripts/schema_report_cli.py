@@ -9,9 +9,9 @@ import typer
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
-    generate_markdown_report,
-    generate_html_report,
     export_report,
+    generate_html_report,
+    generate_markdown_report,
 )
 
 app = typer.Typer(add_completion=False)
