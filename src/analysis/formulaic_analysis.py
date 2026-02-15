@@ -634,7 +634,6 @@ class FormulaicAnalyzer:
         return any(
             asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values()
         )
-        )
 
     @ staticmethod
     def _has_bonds(graph: AssetRelationshipGraph) -> bool:
