@@ -324,7 +324,7 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Assemble a set of formulas describing common risk–return metrics.
+        Assemble a set of formulas describing common risk-return metrics.
 
         Parameters:
             graph(AssetRelationshipGraph):
@@ -333,7 +333,7 @@ class FormulaicAnalyzer:
 
         Returns:
             List[Formula]:
-                A list of Formula objects for risk–return metrics(e.g.,
+                A list of Formula objects for risk-return metrics(e.g.,
                 Sharpe Ratio, volatility) with fields populated such as
                 expression, LaTeX, variables, example_calculation,
                 category, and r_squared.

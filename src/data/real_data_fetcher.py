@@ -452,7 +452,6 @@ def _enum_to_value(_value: Any) -> Any:
     Any: The underlying value of the `Enum` member if applicable,
     otherwise the original value.
     """
-
     return _value.value if isinstance(_value, Enum) else _value
 
 
