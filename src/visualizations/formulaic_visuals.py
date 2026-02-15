@@ -533,8 +533,8 @@ class FormulaicVisualizer:
             assets (list[str]): Ordered list of asset identifiers.
 
         Returns:
-            Dict[str, tuple[float, float]]: Mapping from each asset identifier to its (x, y)
-                coordinate on the unit circle.
+            Dict[str, tuple[float, float]]: Mapping from each asset
+                identifier to its (x, y) coordinate on the unit circle.
         """
         import math
 
@@ -667,7 +667,8 @@ class FormulaicVisualizer:
         analysis_results: Dict[str, Any],
     ) -> go.Figure:
         """
-        Create a bar chart comparing average R-squared across formula categories.
+        Create a bar chart comparing average R-squared across
+        formula categories.
 
         Parameters:
             analysis_results (Dict[str, Any]): Analysis output that may include a "formulas"
@@ -675,8 +676,9 @@ class FormulaicVisualizer:
                 `category` and `r_squared`).
 
         Returns:
-            go.Figure: A Plotly Figure containing a bar chart of average R-squared per
-                category. An empty Figure is returned if no formulas are provided.
+            go.Figure: A Plotly Figure containing a bar chart of
+                average R-squared per category.
+                An empty Figure is returned if no formulas are provided.
         """
         formulas = analysis_results.get("formulas", [])
         fig = go.Figure()

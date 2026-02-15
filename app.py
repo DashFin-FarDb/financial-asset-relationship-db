@@ -33,8 +33,8 @@ logger = logging.getLogger(__name__)
 class AppConstants:
     """Holds constants for app configuration.
 
-    Defines titles, tab names, labels, and default messages for the Financial Asset Relationship
-    Database visualization application.
+    Defines titles, tab names, labels, and default messages for the Financial Asset
+    Relationship Database visualization application.
     """
 
     TITLE = "Financial Asset Relationship Database Visualization"
@@ -288,17 +288,21 @@ class FinancialAssetApp:
         selected_asset: Optional[str], graph: AssetRelationshipGraph
     ) -> tuple[dict, dict]:
         """
-        Return the selected asset's properties and its incoming and outgoing relationships.
+        Return the selected asset's properties and its incoming and
+        outgoing relationships.
 
-        If `selected_asset` is None or not present in `graph.assets`, returns empty structures.
+        If `selected_asset` is None or not present in `graph.assets`, returns
+        empty structures.
 
         Parameters:
             selected_asset (Optional[str]): Asset identifier to look up; may be None.
 
         Returns:
             tuple[dict, dict]:
-                - First element: a dictionary of the asset's attributes (fields from the Asset dataclass), with `asset_class` provided as its string value.
-                - Second element: a dictionary with two keys, `outgoing` and `incoming`. Each maps related asset IDs to a dict containing:
+                - First element: a dictionary of the asset's attributes (fields from the Asset
+                    dataclass), with `asset_class` provided as its string value.
+                - Second element: a dictionary with two keys, `outgoing` and `incoming`.
+                    Each maps related asset IDs to a dict containing:
                     - `relationship_type`: the relationship type value
                     - `strength`: the relationship strength value
         """
@@ -350,7 +354,9 @@ class FinancialAssetApp:
         self, graph_state: AssetRelationshipGraph
     ) -> tuple[Any, ...]:
         """
-        Refreshes every UI output panel: 3D visualization, three metric figures, metrics text, schema report, asset selector choices, and the refresh status indicator.
+        Refreshes every UI output panel: 3D visualization, three metric figures,
+        metrics text, schema report, asset selector choices, and the refresh status
+        indicator.
 
         Returns:
             tuple[Any, ...]: Ordered outputs matching the Gradio interface bindings:
@@ -361,9 +367,11 @@ class FinancialAssetApp:
                 - formatted metrics text (str)
                 - schema report text (str)
                 - Gradio update for the asset selector (choices list, value)
-                - Gradio update for the refresh/error status textbox (value, visible)
+                - Gradio update for the refresh/error status textbox
+                    (value, visible)
 
-        On error, returns a tuple of Gradio updates with empty figures/texts, an empty choices list, and a visible error message describing the failure.
+        On error, returns a tuple of Gradio updates with empty figures/texts, an
+        empty choices list, and a visible error message describing the failure.
         """
         try:
             graph = self.ensure_graph()
@@ -484,19 +492,29 @@ class FinancialAssetApp:
         Generate visualizations and UI updates from formulaic analysis of the
         asset graph.
 
-        Executes formulaic analysis on the current graph and builds three visualization
-        figures (dashboard, correlation network, metric comparison).
-        Prepares dropdown choices for discovered formulas, and formats a human-readable
-        summary for display.
+        Executes formulaic analysis on the current graph and builds three
+        visualization figures (dashboard, correlation network,
+        metric comparison).
+        Prepares dropdown choices for discovered formulas, and formats a
+        human-readable summary for display.
 
         Returns:
             tuple: A 6-element tuple with:
-                - dashboard_fig (plotly.graph_objects.Figure): Overview dashboard of formulaic metrics.
-                - correlation_network_fig (plotly.graph_objects.Figure): Network visualization of empirical correlations.
-                - metric_comparison_fig (plotly.graph_objects.Figure): Comparative chart of metrics used by formulas.
-                - dropdown_update (gr.Update): Gradio update for the formula selector with `choices` and preselected `value`.
-                - summary_text (str): Formatted summary of the formulaic analysis and key insights.
-                - error_visibility_update (gr.Update): Gradio update controlling visibility of error messages (hidden on success).
+                - dashboard_fig (plotly.graph_objects.Figure):
+                    Overview dashboard of formulaic metrics.
+                - correlation_network_fig (plotly.graph_objects.Figure):
+                    Network visualization of empirical correlations.
+                - metric_comparison_fig (plotly.graph_objects.Figure):
+                    Comparative chart of metrics used by formulas.
+                - dropdown_update (gr.Update):
+                    Gradio update for the formula selector with
+                    `choices` and preselected `value`.
+                - summary_text (str):
+                    Formatted summary of the formulaic analysis
+                    and key insights.
+                - error_visibility_update (gr.Update):
+                    Gradio update controlling visibility of error messages
+                    (hidden on success).
         """
         try:
             logger.info("Generating formulaic analysis")
@@ -567,9 +585,9 @@ class FinancialAssetApp:
                 generate formula detail visualizations.
 
         Returns:
-            tuple[go.Figure, gr.Update]: A Plotly Figure containing the formula detail view
-                and a Gradio Update controlling the detail view state (e.g.,
-                visibility and selection value).
+            tuple[go.Figure, gr.Update]: A Plotly Figure containing the formula
+                detail view and a Gradio Update controlling the detail view state
+                (e.g., visibility and selection value).
         """
         try:
             # Placeholder implementation
@@ -587,7 +605,8 @@ class FinancialAssetApp:
         empirical relationships.
 
         Parameters:
-            summary (dict[str, Any]): High-level formula summary containing optional keys like
+            summary (dict[str, Any]): High-level formula summary
+                containing optional keys like
                 `formula_categories` (mapping of category -> count) and
                 `key_insights` (list of insight strings).
             analysis_results (dict[str, Any]): Detailed analysis output
@@ -621,8 +640,8 @@ class FinancialAssetApp:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
                 if isinstance(corr, dict):
-                    pair = corr.get("pair", "n/a")
-                    correlation = corr.get("correlation", 0.0)
+                    _ = corr.get("pair", "n/a")
+                    _ = corr.get("correlation", 0.0)
 
     def create_interface(self) -> gr.Blocks:
         """

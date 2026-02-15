@@ -96,7 +96,7 @@ class AssetRelationshipGraph:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
             rel_type (str): Relationship type label.
-            strength (float): Relationship strength (expected on a 0.01 scale).
+            strength (float): Relationship strength (expected on a 0.0–1 scale).
             bidirectional (bool): If True, also add the same relationship from
                 `target_id` back to `source_id`.
         """
@@ -110,6 +110,7 @@ class AssetRelationshipGraph:
         if value < 0.0:
             return 0.0
         if value > 1.0:
+            return 1.0
 
     @staticmethod
     def _saturating_norm(count: int, k: float) -> float:

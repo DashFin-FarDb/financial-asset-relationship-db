@@ -195,8 +195,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
             "### Cross-Asset Rules",
             (
-                "- **Sector Affinity**: Assets in the same sector are linked with "
-                "strength 0.7 (bidirectional)"
+                "- **Sector Affinity**: Assets in the same sector "
+                "are linked with strength 0.7 (bidirectional)"
             ),
             (
                 "- **Corporate Bond Linkage**: A bond whose issuer_id matches another "
@@ -209,8 +209,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
             "### Regulatory Rules",
             (
-                "- **Event Propagation**: Regulatory / earnings events propagate impact "
-                "to related assets"
+                "- **Event Propagation**: Regulatory / earnings events "
+                "propagate impact to related assets"
             ),
             (
                 "- Events create directional relationships from the event source to "
@@ -219,8 +219,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
             "### Valuation Rules",
             (
-                "- **Impact Scoring**: Event impact scores are normalized to -1 to +1 "
-                "for comparability"
+                "- **Impact Scoring**: Event impact scores are normalized "
+                "to -1 to +1 for comparability"
             ),
             "- Relationship strengths are clamped to the 0-1 range",
         ]

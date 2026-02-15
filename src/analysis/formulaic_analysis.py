@@ -401,7 +401,6 @@ class FormulaicAnalyzer:
         formulas.append(portfolio_return_formula)
 
         # Portfolio Variance (2-asset case)
-        portfolio_variance_formula = Formula(
         return formulas
 
     def _analyze_cross_asset_relationships(
