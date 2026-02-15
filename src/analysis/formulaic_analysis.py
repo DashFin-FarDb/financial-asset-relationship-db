@@ -395,7 +395,7 @@ class FormulaicAnalyzer:
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
             formula="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            latex=(r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + " r"2w_1w_2\sigma_1\sigma_2\rho_{12}"),
+                expression="E(R_p) = Σ(w_i × E(R_i))",
             description="Portfolio risk considering correlation between assets",
             variables={
                 "σ²_p": "Portfolio variance",
