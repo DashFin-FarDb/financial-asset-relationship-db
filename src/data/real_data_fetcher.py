@@ -456,10 +456,10 @@ def _enum_to_value(value: Any) -> Any:
             If `value` is an `Enum` member, its `.value` is returned.
 
     Returns:
-        Any: The underlying value of the `Enum` member if applicable,
-        otherwise the original value.
-    """
-    return value.value if isinstance(value, Enum) else value
+    Any: The underlying value of the `Enum` member if applicable,
+    otherwise the original value.
+"""
+return value.value if isinstance(value, Enum) else value
 
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
@@ -481,32 +481,32 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     return serialized
 
 
- def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-     """
-     Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
+def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
+    """
+    Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
 
-     The resulting dictionary contains serialized assets and regulatory events,
-     a mapping of outgoing relationships keyed by source asset id, and a computed
-     mapping of incoming relationships keyed by target asset id.
+    The resulting dictionary contains serialized assets and regulatory events,
+    a mapping of outgoing relationships keyed by source asset id, and a computed
+    mapping of incoming relationships keyed by target asset id.
 
-     Parameters:
-         graph (AssetRelationshipGraph): The graph to serialize.
+    Parameters:
+        graph (AssetRelationshipGraph): The graph to serialize.
 
-     Returns:
-         Dict[str, Any]: A dictionary with the following top-level keys:
-             - "assets": list of serialized asset objects
-               (each includes a "__type__" field).
-             - "regulatory_events": list of serialized regulatory event objects.
-             - "relationships": mapping from source asset id to a list of outgoing
-               relationships; each relationship is a dict
-               with keys "target", "relationship_type", and "strength".
-             - "incoming_relationships": mapping from target asset id to a list of incoming
-               relationships; each relationship is a dict
-               with keys "source", "relationship_type", and "strength".
-     """
-     # Compute incoming_relationships from relationships
+    Returns:
+        Dict[str, Any]: A dictionary with the following top-level keys:
+            - "assets": list of serialized asset objects
+              (each includes a "__type__" field).
+            - "regulatory_events": list of serialized regulatory event objects.
+            - "relationships": mapping from source asset id to a list of outgoing
+              relationships; each relationship is a dict
+              with keys "target", "relationship_type", and "strength".
+            - "incoming_relationships": mapping from target asset id to a list of incoming
+              relationships; each relationship is a dict
+              with keys "source", "relationship_type", and "strength".
+    """
+    # Compute incoming_relationships from relationships
 
-     incoming_relationships: Dict[str, List[Tuple[str, str, float]]]={}
+    incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
      for source, rels in graph.relationships.items():
          for target, rel_type, strength in rels:
              if target not in incoming_relationships:

@@ -540,6 +540,8 @@ class FormulaicAnalyzer:
         """Categorize formulas by type."""
         categories = {}
         for formula in formulas:
+            categories[formula.type] = categories.get(formula.type, 0) + 1
+        return categories
 
     def _generate_formula_summary(
         self,

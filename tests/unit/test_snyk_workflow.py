@@ -96,6 +96,7 @@ class TestSnykWorkflowTriggers:
 
         """
         Returns:
+        """
             Parsed YAML content of .github / workflows / snyk - infrastructure.yml as a mapping.
         """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
