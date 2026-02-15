@@ -7,10 +7,10 @@ import markdown
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.schema_report_generator import SchemaReportGenerator
 
-
 # ---------------------------------------------------------------------------
 # Markdown → HTML transformation
 # ---------------------------------------------------------------------------
+
 
 def markdown_to_html(md: str) -> str:
     """
@@ -28,6 +28,7 @@ def markdown_to_html(md: str) -> str:
 # ---------------------------------------------------------------------------
 # Core generation interface
 # ---------------------------------------------------------------------------
+
 
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
@@ -48,6 +49,7 @@ def generate_html_report(graph: AssetRelationshipGraph) -> str:
 # ---------------------------------------------------------------------------
 # Optional Gradio integration
 # ---------------------------------------------------------------------------
+
 
 def make_gradio_report_fn(
     graph_provider: Callable[[], AssetRelationshipGraph],
@@ -102,6 +104,7 @@ def attach_to_gradio_interface(
 # Plotly integration helpers
 # ---------------------------------------------------------------------------
 
+
 def embed_report_in_plotly_figure(
     fig: Any,
     graph: AssetRelationshipGraph,
@@ -121,6 +124,7 @@ def embed_report_in_plotly_figure(
 # ---------------------------------------------------------------------------
 # Export utilities
 # ---------------------------------------------------------------------------
+
 
 def export_report(
     graph: AssetRelationshipGraph,
