@@ -261,6 +261,10 @@ class FormulaicAnalyzer:
             description="Measure of linear relationship between two variables",
             variables={
                 "ρ": "Correlation coefficient (-1 to 1)",
+            },
+        )
+        formulas.append(correlation_formula)
+
     def _extract_valuation_relationships(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
@@ -281,7 +285,7 @@ class FormulaicAnalyzer:
 
         Returns:
             List[Formula]: A list of Formula objects representing
-                valuation-related formulas relevant to the graph.
+            valuation-related formulas relevant to the graph.
         """
         formulas= []
 

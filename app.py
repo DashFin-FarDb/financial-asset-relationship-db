@@ -165,15 +165,15 @@ class FinancialAssetApp:
         Create an AssetRelationshipGraph by locating and invoking a
         factory function in src.data.real_data_fetcher.
 
-        The function probes a set of known factory names and calls the first callable
-        it finds to obtain the graph.
+        The function probes a set of known factory names and calls the first
+        callable it finds to obtain the graph.
 
         Returns:
             AssetRelationshipGraph: The constructed asset relationship graph.
 
         Raises:
-            TypeError: If a discovered factory is callable but returns a value that is not
-                an AssetRelationshipGraph.
+            TypeError: If a discovered factory is callable but returns
+                a value that is not an AssetRelationshipGraph.
             AttributeError: If no recognized factory function is present in
                 src.data.real_data_fetcher.
         """
@@ -284,13 +284,15 @@ class FinancialAssetApp:
                         objects and relationships.
 
         Returns:
-                tuple[dict, dict]: A pair where the first element is `asset_dict` — a
-                        dictionary representation of the asset with its `asset_class`
-                        converted to the enum's value.
+                tuple[dict, dict]: The first element is `asset_dict`,
+                        a dictionary representation of the asset with its
+                        `asset_class` converted to the enum's value.
                         The second element is a relationships dictionary with keys
-                        "outgoing" and "incoming". Each of those maps counterpart asset
-                        IDs to a dict containing `relationship_type` and `strength`.
-                        If the asset is not found, returns `{}` and {"outgoing": {}, "incoming": {}}.
+                        "outgoing" and "incoming".
+                        Each maps counterpart asset IDs to a dict containing
+                        `relationship_type` and `strength`.
+                        If the asset is not found, returns `{}` and
+                        {"outgoing": {}, "incoming": {}}.
         """
         if not selected_asset or selected_asset not in graph.assets:
             return {}, {"outgoing": {}, "incoming": {}}
@@ -581,15 +583,15 @@ class FinancialAssetApp:
 
         Parameters:
             formula_name (str): Name of the formula to display details for.
-            graph_state (AssetRelationshipGraph): Current asset relationship graph state used to
-                derive formula details.
+            graph_state (AssetRelationshipGraph): Current asset relationship graph
+                state used to derive formula details.
 
         Returns:
-            tuple[go.Figure, gr.Update]: A Plotly Figure containing the formula detail
-                visualization and a Gradio Update controlling the detail panel (e.g.,
-                value and visibility).
-                If an error occurs, the returned Update contains an error message and
-                makes the panel visible.
+            tuple[go.Figure, gr.Update]: A Plotly Figure
+                containing the formula detail visualization and a Gradio Update
+                controlling the detail panel (e.g., value and visibility).
+                If an error occurs, the returned Update contains an error
+                message and makes the panel visible.
         """
         try:
             # Placeholder implementation

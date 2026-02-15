@@ -421,10 +421,9 @@ class RealDataFetcher:
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
-       )
-       events.append(xom_filing)
+        events.append(xom_filing)
 
-       return events
+        return events
 
 
 def create_real_database() -> AssetRelationshipGraph:
@@ -445,7 +444,6 @@ def create_real_database() -> AssetRelationshipGraph:
     """
     fetcher=RealDataFetcher()
     return fetcher.create_real_database()
-
 
 def _enum_to_value(value: Any) -> Any:
     """

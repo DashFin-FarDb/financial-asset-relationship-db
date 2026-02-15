@@ -131,16 +131,16 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
          "",
          "### Entity Types",
          "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
-        "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
-        "3. **Commodity** - Physical assets with contracts and delivery dates",
-        (
-            "4. **Currency** - FX pairs or single-currency proxies with "
-            "exchange rates and policy links"
-        ),
-        "5. **Regulatory Events** - Corporate actions and SEC filings",
-        "",
-        "### Relationship Types",
-    ]
+         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
+         "3. **Commodity** - Physical assets with contracts and delivery dates",
+         (
+             "4. **Currency** - FX pairs or single-currency proxies with "
+             "exchange rates and policy links"
+         ),
+         "5. **Regulatory Events** - Corporate actions and SEC filings",
+         "",
+         "### Relationship Types",
+     ]
 
     relationship_dist = _as_str_int_map(metrics.get("relationship_distribution"))
     for rel_type, count in sorted(
