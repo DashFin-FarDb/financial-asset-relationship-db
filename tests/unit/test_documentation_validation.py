@@ -402,9 +402,7 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """
-        Verify that systemManifest.md contains the "## Dependencies" section.
-        """
+        """Verify that systemManifest.md contains the "## Dependencies" section."""
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
