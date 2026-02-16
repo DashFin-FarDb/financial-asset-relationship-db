@@ -364,7 +364,7 @@ class FormulaicAnalyzer:
 
         return formulas
 
-    def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+        expression="σ = √(Σ(R_i - μ)² / (n-1))",
         """
         Builds Modern Portfolio Theory formulas from the asset relationship graph.
 
