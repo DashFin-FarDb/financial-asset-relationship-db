@@ -214,8 +214,8 @@ class FormulaicAnalyzer:
         """
         formulas = []
 
-                            measures such as Beta (systematic risk) and the correlation
-                            coefficient, with example calculations and estimated r-squared
+                            measures such as Beta(systematic risk) and the correlation
+                            coefficient, with example calculations and estimated r - squared
                             values where available.
                     """
                     formulas = []
