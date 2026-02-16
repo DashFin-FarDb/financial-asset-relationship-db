@@ -101,7 +101,7 @@ class AssetRelationshipGraph:
         """
         self._append_relationship(source_id, target_id, rel_type, strength)
         if bidirectional:
-            self._append_relationship(target_id, source_id, strength, rel_type)
+            self._append_relationship(target_id, source_id, rel_type, strength)
 
     @staticmethod
     def _clamp01(value: float) -> float:
