@@ -168,6 +168,9 @@ def _create_2d_relationship_traces(
     # Group relationships by type
     relationship_groups = {}
 
+    positions = {}
+    relationship_groups = {}
+
     for source_id in asset_ids:
         if source_id not in graph.relationships:
             continue
@@ -182,8 +185,6 @@ def _create_2d_relationship_traces(
             positions = {}
             relationship_groups = {}
             positions = {}
-            relationship_groups = {}
-
             positions = {}
             relationship_groups = {}
 
@@ -192,8 +193,10 @@ def _create_2d_relationship_traces(
             relationship_groups = {}
 
             relationship_groups = {}
+
             relationship_groups = {}
-            if target_id not in pos or target_id not in asset_id_set:
+            relationship_groups = {}
+            if target_id not in positions or target_id not in asset_id_set:
                 continue
 
             # Apply filters if not showing all relationships
@@ -227,8 +230,8 @@ for rel_type, relationships in relationship_groups.items():
     hover_texts = []
 
     for rel in relationships:
-        source_pos = pos[rel["source_id"]]
-        target_pos = pos[rel["target_id"]]
+        source_pos = positions[rel["source_id"]]
+        target_pos = positions[rel["target_id"]]
 
         edges_x.extend([source_pos[0], target_pos[0], None])
         edges_y.extend([source_pos[1], target_pos[1], None])
