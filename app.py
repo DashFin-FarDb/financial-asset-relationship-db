@@ -593,6 +593,7 @@ class FinancialAssetApp:
             logger.error("Error showing formula details: %s", exc)
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
+
 class FinancialAssetApp:
     # ... existing methods (including generate_formulaic_analysis, etc.)
 
