@@ -594,7 +594,7 @@ class FinancialAssetApp:
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
     class FinancialAssetApp:
-    # ... existing methods (including generate_formulaic_analysis, etc.)
+        # ... existing methods (including generate_formulaic_analysis, etc.)
 
     @staticmethod
     def _format_pair(pair: Any) -> str:
@@ -662,7 +662,7 @@ class FinancialAssetApp:
                     summary_lines.append(line)
 
         return "\n".join(summary_lines)
-    
+
     def create_interface(self) -> gr.Blocks:
         """
         Build and return the Gradio Blocks UI for the FinancialAssetApp.
