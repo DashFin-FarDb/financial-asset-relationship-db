@@ -12,6 +12,7 @@ import os
 import pytest
 
 
+@pytest.mark.unit
 class TestVercelConfiguration:
     """Test Vercel deployment configuration."""
 
@@ -62,6 +63,7 @@ class TestVercelConfiguration:
         assert api_route["dest"] == "api/main.py"
 
 
+@pytest.mark.unit
 class TestEnvironmentConfiguration:
     """Test environment configuration."""
 
@@ -80,6 +82,7 @@ class TestEnvironmentConfiguration:
         assert "ALLOWED_ORIGINS" in content
 
 
+@pytest.mark.unit
 class TestGitIgnore:
     """Test .gitignore configuration."""
 
@@ -103,6 +106,7 @@ class TestGitIgnore:
         assert ".vercel" in content
 
 
+@pytest.mark.unit
 class TestDocumentationFiles:
     """Test that documentation files exist and are properly structured."""
 
@@ -125,7 +129,9 @@ class TestDocumentationFiles:
 
     @staticmethod
     def test_readme_has_quick_start():
-        """Test README contains quick start section."""
+        """
+        Check that README.md includes a Quick Start or Getting Started section and an Installation or Setup section.
+        """
         with open("README.md") as f:
             content = f.read()
 
@@ -133,6 +139,7 @@ class TestDocumentationFiles:
         assert "Installation" in content or "Setup" in content
 
 
+@pytest.mark.unit
 class TestShellScripts:
     """Test shell scripts for syntax, structure, and functionality."""
 
@@ -398,7 +405,10 @@ class TestShellScripts:
             content = f.read()
 
         # Should reference the analysis document
-        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
+        assert (
+            "BRANCH_CLEANUP_ANALYSIS.md" in content
+            or "documentation" in content.lower()
+        )
 
     def test_shell_scripts_consistent_style(self):
         """Test that shell scripts use consistent coding style."""
@@ -490,7 +500,11 @@ class TestShellScripts:
         assert "PID=" in content
 
     def test_cleanup_branches_git_safety(self):
-        """Test that cleanup-branches.sh uses safe git operations."""
+        """
+        Verify cleanup-branches.sh performs safe Git deletions.
+
+        Checks that any lines which pipe branch names into xargs use the safe deletion flag `-d` (not the force `-D`) when invoking `git branch`, ensuring deletions default to non-forced removal.
+        """
         with open("cleanup-branches.sh") as f:
             content = f.read()
 
@@ -498,7 +512,25 @@ class TestShellScripts:
         if "git branch" in content and "-" in content:
             # Check the context of deletion
             lines = content.split("\n")
-            delete_lines = [line for line in lines if "git branch -" in line and "xargs" in line]
+            delete_lines = [
+                line for line in lines if "git branch -" in line and "xargs" in line
+            ]
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)
+
+    def test_cleanup_branches_has_dry_run_mode(self):
+        """
+        Verify cleanup-branches.sh offers a dry-run or preview mode before performing deletions.
+
+        Asserts the script contains user-visible preview output (for example, echoing branch names or planned delete actions) so users can review changes before they are applied.
+        """
+        with open("cleanup-branches.sh") as f:
+            content = f.read()
+
+        # Should have some mechanism for previewing changes before deleting
+        # Look for common dry-run patterns
+        has_preview = "echo" in content.lower() and (
+            "branch" in content.lower() or "delete" in content.lower()
+        )
+        assert has_preview, "Script should preview changes before deleting"

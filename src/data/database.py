@@ -9,11 +9,13 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
 
+Base = declarative_base()
+
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
-from .repository import session_scope  # noqa: F401
-
-Base = declarative_base()
+# NOTE: This import must come AFTER Base is defined to avoid a circular
+# import (database -> repository -> db_models -> database.Base).
+from .repository import session_scope  # noqa: F401, E402
 
 DEFAULT_DATABASE_URL = os.getenv(
     "ASSET_GRAPH_DATABASE_URL",
