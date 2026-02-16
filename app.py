@@ -633,9 +633,23 @@ class FinancialAssetApp:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
                 if isinstance(corr, dict):
-                    _ = corr.get("pair", "n/a")
-                    _ = corr.get("correlation", 0.0)
+                    pair = corr.get("pair", "n/a")
+                    correlation_value = corr.get("correlation", 0.0)
 
+                    if isinstance(pair, (list, tuple)) and len(pair) == 2:
+                        asset_a, asset_b = pair
+                        pair_str = f"{asset_a} ↔ {asset_b}"
+                    else:
+                        pair_str = str(pair)
+
+                    try:
+                        corr_str = f"{float(correlation_value):.3f}"
+                    except (TypeError, ValueError):
+                        corr_str = str(correlation_value)
+
+                    summary_lines.append(f"  • {pair_str}: {corr_str}")
+
+        return "\n".join(summary_lines)
     def create_interface(self) -> gr.Blocks:
         """
         Build and return the Gradio Blocks UI for the FinancialAssetApp.
