@@ -174,7 +174,9 @@ class TestWorkflowSchemaCompliance:
 
         unique_versions = set(checkout_versions.values())
         # Allow v3 and v4, but should be mostly consistent
-        assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
+        assert len(unique_versions) <= 2, (
+            f"Too many different checkout versions: {checkout_versions}"
+        )
 
 
 class TestDefaultValueHandling:
