@@ -585,7 +585,9 @@ class TestConcurrentDatabaseAccess:
                 errors.append(exc)
 
         num_threads = 20
-        threads = [threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)]
+        threads = [
+            threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)
+        ]
         for thread in threads:
             thread.start()
         for thread in threads:
@@ -593,7 +595,9 @@ class TestConcurrentDatabaseAccess:
 
         with session_scope(factory) as session:
             count = session.query(TestModel).count()
-            assert count >= num_threads - 1, f"Expected at least {num_threads - 1} writes but found {count}"
+            assert count >= num_threads - 1, (
+                f"Expected at least {num_threads - 1} writes but found {count}"
+            )
 
         assert len(errors) <= 1, f"Too many errors: {len(errors)}"
 
@@ -607,7 +611,9 @@ class TestConcurrentDatabaseAccess:
 class TestDatabaseErrorRecovery:
     """Tests for database error recovery scenarios."""
 
-    def test_session_scope_recovers_from_nested_error(self, engine: Engine, isolated_base) -> None:
+    def test_session_scope_recovers_from_nested_error(
+        self, engine: Engine, isolated_base
+    ) -> None:
         """Session scope should recover after error in nested operation."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
@@ -633,7 +639,9 @@ class TestDatabaseErrorRecovery:
             assert result.id == 2
             assert result.value == "success"
 
-    def test_session_scope_handles_commit_failure(self, engine: Engine, isolated_base) -> None:
+    def test_session_scope_handles_commit_failure(
+        self, engine: Engine, isolated_base
+    ) -> None:
         """Session scope should handle commit failures gracefully."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
@@ -685,7 +693,9 @@ class TestResourceCleanup:
             assert session.is_active
             raise RuntimeError("Test error")
 
-    def test_multiple_session_scopes_cleanup_properly(self, engine: Engine, isolated_base) -> None:
+    def test_multiple_session_scopes_cleanup_properly(
+        self, engine: Engine, isolated_base
+    ) -> None:
         """Multiple session scopes should clean up properly."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
