@@ -111,7 +111,7 @@ class AssetRelationshipGraph:
             return 0.0
         if value > 1.0:
             return 1.0
-        return None
+        return value
 
     @staticmethod
     def _saturating_norm(count: int, k: float) -> float:
