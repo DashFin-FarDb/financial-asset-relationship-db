@@ -170,7 +170,6 @@ def _create_2d_relationship_traces(
 
     # Keep caller-provided positions
 
-
     for source_id in asset_ids:
         if source_id not in graph.relationships:
             continue
