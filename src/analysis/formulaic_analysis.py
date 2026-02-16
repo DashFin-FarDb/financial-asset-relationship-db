@@ -529,9 +529,10 @@ class FormulaicAnalyzer:
                     `empirical_relationships["correlation_matrix"]`
                     (0 if missing).
                 key_insights(list[str]): Short human - readable observations
-                    derived from the formulas and empirical data.
-        """
-        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
+                        categories: Dict[str, int] = {}
+                        for formula in formulas:
+                            category = formula.category
+                            categories[category] = categories.get(category, 0) + 1
         return {
             "total_formulas": len(formulas),
             "avg_r_squared": (sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0),
