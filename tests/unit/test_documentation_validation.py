@@ -31,8 +31,7 @@ class TestDependencyMatrix:
         return Path(".elastic-copilot/memory/dependencyMatrix.md")
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
+    def dependency_matrix_content(self, dependency_matrix_path):
         """
         Load the dependency matrix markdown content from disk.
 
@@ -47,8 +46,7 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -287,9 +285,8 @@ class TestSystemManifest:
         with open(system_manifest_path, encoding="utf-8") as f:
             return f.read()
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(system_manifest_content):
+    def system_manifest_lines(self, system_manifest_content):
         """
         Split system manifest content into lines.
 
