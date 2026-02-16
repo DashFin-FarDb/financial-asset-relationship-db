@@ -31,7 +31,6 @@ class TestDependencyMatrix:
         return Path(".elastic-copilot/memory/dependencyMatrix.md")
 
     @pytest.fixture
-    @pytest.fixture
     @staticmethod
     def dependency_matrix_content(dependency_matrix_path):
         """
