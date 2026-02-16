@@ -41,9 +41,8 @@ class AssetRelationshipGraph:
         Record a regulatory event in the graph's internal event list.
 
         Parameters:
-            event (RegulatoryEvent): The regulatory event to record.
-            it will be retained
-            for subsequent processing of event-driven impacts.
+            event (RegulatoryEvent): The regulatory event to record; it will be
+                retained for subsequent processing of event-driven impacts.
         """
         self.regulatory_events.append(event)
         # Build relationships using sector, issuer linkage, and event impacts.
