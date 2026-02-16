@@ -236,7 +236,9 @@ for rel_type, relationships in relationship_groups.items():
         edges_y.extend([source_pos[1], target_pos[1], None])
 
         hover_text = (
-            f"{rel['source_id']} → {rel['target_id']}<br>" f"Type: {rel_type}<br>" f"Strength: {rel['strength']:.2f}"
+            f"{rel['source_id']} → {rel['target_id']}<br>"
+            f"Type: {rel_type}<br>"
+            f"Strength: {rel['strength']:.2f}"
         )
         hover_texts.extend([hover_text, hover_text, None])
 
@@ -320,7 +322,10 @@ def visualize_2d_graph(
                 _,
             ) = graph.get_3d_visualization_data_enhanced()
             # Convert array to dictionary
-            positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
+            positions_3d = {
+                asset_ids_ordered[i]: tuple(positions_3d_array[i])
+                for i in range(len(asset_ids_ordered))
+            }
             positions = _create_spring_layout_2d(positions_3d, asset_ids)
         else:
             # Fallback to circular if 3D data not available
@@ -355,7 +360,11 @@ def visualize_2d_graph(
     colors = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
+        asset_class = (
+            asset.asset_class.value
+            if hasattr(asset.asset_class, "value")
+            else str(asset.asset_class)
+        )
 
         # Color mapping by asset class
         color_map = {
@@ -379,7 +388,9 @@ def visualize_2d_graph(
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
         node_hover_text = f"{asset_id}<br>Class: " + (
-            asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
+            asset.asset_class.value
+            if hasattr(asset.asset_class, "value")
+            else str(asset.asset_class)
         )
         node_hover_texts.append(node_hover_text)
 
