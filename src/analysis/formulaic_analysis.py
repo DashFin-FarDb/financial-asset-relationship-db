@@ -530,7 +530,8 @@ class FormulaicAnalyzer:
                 total_formulas (int): Number of formulas in `formulas`.
                 avg_r_squared (float): Average `r_squared` across `formulas`
                     (0 if `formulas` is empty).
-                formula_categories (dict): Mapping of category name to count of formulas.
+                formula_categories (dict): Mapping of category name
+                    to count of formulas.
                 empirical_data_points (int): Number of entries in
                     `empirical_relationships["correlation_matrix"]` (0 if missing).
                 key_insights (list[str]): Short human-readable insight strings

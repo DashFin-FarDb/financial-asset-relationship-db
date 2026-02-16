@@ -172,7 +172,10 @@ def _create_2d_relationship_traces(
         if source_id not in graph.relationships:
             continue
 
-        for target_id, rel_type, strength in graph.relationships[source_id]:
+        for target_id, relationship_type, strength in graph.relationships[source_id]:
+            positions = {}
+            relationship_groups = {}
+
             # Skip if target not in positions
             if target_id not in positions or target_id not in asset_id_set:
                 continue
@@ -180,23 +183,22 @@ def _create_2d_relationship_traces(
             # Apply filters if not showing all relationships
             if (
                 not show_all_relationships
-                and rel_type in relationship_filters
-                and not relationship_filters[rel_type]
+                and relationship_type in relationship_filters
+                and not relationship_filters[relationship_type]
             ):
                 continue
 
             # Group by relationship type
-            if rel_type not in relationship_groups:
-                relationship_groups[rel_type] = []
+            if relationship_type not in relationship_groups:
+                relationship_groups[relationship_type] = []
 
-            relationship_groups[rel_type].append(
+            relationship_groups[relationship_type].append(
                 {
                     "source_id": source_id,
                     "target_id": target_id,
                     "strength": strength,
                 }
             )
-
 
 # Create traces for each relationship type
 for rel_type, relationships in relationship_groups.items():
@@ -363,15 +365,15 @@ def visualize_2d_graph(
         node_sizes.append(size)
 
     # Create hover texts
-    hover_texts = []
+    node_hover_texts = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        hover_text = f"{asset_id}<br>Class: " + (
+        node_hover_text = f"{asset_id}<br>Class: " + (
             asset.asset_class.value
             if hasattr(asset.asset_class, "value")
             else str(asset.asset_class)
         )
-        hover_texts.append(hover_text)
+        node_hover_texts.append(node_hover_text)
 
     node_trace = go.Scatter(
         x=node_x,
@@ -384,7 +386,7 @@ def visualize_2d_graph(
             line=dict(color="rgba(0,0,0,0.8)", width=2),
         ),
         text=asset_ids,
-        hovertext=hover_texts,
+        hovertext=node_hover_texts,
         hoverinfo="text",
         textposition="top center",
         textfont=dict(size=10, color="black"),

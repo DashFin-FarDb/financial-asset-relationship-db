@@ -15,10 +15,7 @@ from src.models.financial_models import Asset
 from src.reports.schema_report import generate_schema_report
 from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
-from src.visualizations.graph_visuals import (
-    visualize_3d_graph,
-    visualize_3d_graph_with_filters,
-)
+from src.visualizations.graph_visuals import visualize_3d_graph
 from src.visualizations.metric_visuals import visualize_metrics
 
 # Configure logging
@@ -471,7 +468,7 @@ class FinancialAssetApp:
                     show_income_comparison=show_income_comparison,
                     show_regulatory=show_regulatory,
                     show_all_relationships=show_all_relationships,
-                    toggle_arrows=toggle_arrows,
+                    show_arrows=toggle_arrows,
                 )
 
             return graph_viz, gr.update(visible=False)
