@@ -254,7 +254,11 @@ def visualize_2d_graph(
     """
     Render a 2D Plotly network of assets and their filtered relationships.
 
-    Renders assets as positioned markers and relationship types as separate line traces. The layout is chosen by `layout_type`; for the default "spring" layout the function will attempt to obtain 3D layout data from the graph and project it to 2D, falling back to a circular layout if 3D data is unavailable.
+    Renders assets as positioned markers and relationship types as separate line
+    traces. The layout is chosen by `layout_type`; for the default "spring" layout
+    the function will attempt to obtain 3D layout data from the graph
+    and project it to 2D, falling back to a circular layout
+    if 3D data is unavailable.
 
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
@@ -269,7 +273,9 @@ def visualize_2d_graph(
         show_all_relationships (bool): If True, include all relationship types regardless of the individual toggles.
 
     Returns:
-        go.Figure: A Plotly Figure showing asset nodes (colored and sized by class and connections) and relationship traces grouped and colored by relationship type.
+        go.Figure: A Plotly Figure showing asset nodes
+            (colored and sized by class and connections) and
+            relationship traces grouped and colored by relationship type.
 
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
