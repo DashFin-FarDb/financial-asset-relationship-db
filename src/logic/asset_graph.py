@@ -100,7 +100,7 @@ class AssetRelationshipGraph:
             bidirectional (bool): If True, also add the same relationship from
                 `target_id` back to `source_id`.
         """
-        self._append_relationship(source_id, target_id, strength, rel_type)
+        self._append_relationship(source_id, target_id, rel_type, strength)
         if bidirectional:
             self._append_relationship(target_id, source_id, strength, rel_type)
 
