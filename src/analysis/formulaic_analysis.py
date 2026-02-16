@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List, Final
+from typing import Any, Dict, Final, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
