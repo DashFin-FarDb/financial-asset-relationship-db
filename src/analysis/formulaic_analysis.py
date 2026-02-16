@@ -518,8 +518,10 @@ class FormulaicAnalyzer:
         empirical relationships.
 
         Parameters:
-            formulas (List[Formula]): List of Formula objects produced by the analysis.
-            empirical_relationships (dict): Empirical data from the analysis; may contain a
+            formulas (List[Formula]):
+                List of Formula objects produced by the analysis.
+            empirical_relationships (dict):
+                Empirical data from the analysis; may contain a
                 "correlation_matrix" mapping whose length is used to count
                     empirical data points.
 

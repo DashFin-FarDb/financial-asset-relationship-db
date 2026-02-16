@@ -431,42 +431,37 @@ class FinancialAssetApp:
         relationship filters.
 
         Parameters:
-            graph_state (AssetRelationshipGraph): Current asset relationship graph used for rendering.
+            graph_state (AssetRelationshipGraph): Current asset relationship graph
+                used for rendering.
             view_mode (str): Either "2D" or other value indicating 3D rendering mode.
             layout_type (str): Layout style to use when rendering the 2D view.
-            show_same_sector (bool): Include relationships between assets in the same sector.
-            show_market_cap (bool): Include relationships based on similar market capitalization.
+            show_same_sector (bool): Include relationships between assets in the same
+                sector.
+            show_market_cap (bool): Include relationships based on similar market
+                capitalization.
             show_correlation (bool): Include correlation-based relationships.
             show_corporate_bond (bool): Include corporate bond → equity relationships.
-            show_commodity_currency (bool): Include commodity ↔ currency relationships.
+            show_commodity_currency (bool): Include commodity ↔ currency
+                relationships.
             show_income_comparison (bool): Include income-comparison relationships.
-            show_regulatory (bool): Include relationships driven by regulatory events.
-            show_all_relationships (bool): Ignore individual filters and show all relationships when True.
-            toggle_arrows (bool): For 3D mode, toggle directional arrows on relationship edges.
+            show_regulatory (bool): Include relationships driven by regulatory
+                events.
+            show_all_relationships (bool): Ignore individual filters and show all
+                relationships when True.
+            toggle_arrows (bool): For 3D mode, toggle directional arrows on
+                relationship edges.
 
         Returns:
-            tuple[go.Figure, gr.Update]: A Plotly Figure for the requested visualization and a
-                Gradio Update controlling the error/message display (hidden on success, visible with
-                an error message on failure).
+            tuple[go.Figure, gr.Update]: A Plotly Figure for the requested
+                visualization and a Gradio Update controlling the error/message
+                display (hidden on success,
+                visible with an error message on failure).
         """
         try:
             graph = self.ensure_graph()
 
             if view_mode == "2D":
                 graph_viz = visualize_2d_graph(
-                    graph,
-                    show_same_sector=show_same_sector,
-                    show_market_cap=show_market_cap,
-                    show_correlation=show_correlation,
-                    show_corporate_bond=show_corporate_bond,
-                    show_commodity_currency=show_commodity_currency,
-                    show_income_comparison=show_income_comparison,
-                    show_regulatory=show_regulatory,
-                    show_all_relationships=show_all_relationships,
-                    layout_type=layout_type,
-                )
-            else:
-                graph_viz = visualize_3d_graph_with_filters(
                     graph,
                     show_same_sector=show_same_sector,
                     show_market_cap=show_market_cap,

@@ -104,7 +104,7 @@ class TestEnhancedTestSummary:
             summary_content (str): Full text of the Markdown summary to check.
 
         Raises:
-            AssertionError: If any heading line does not match the pattern `^#+\s`; message includes the failing line number.
+            AssertionError: If any heading line does not match the pattern `^#+\\s`; message includes the failing line number.
         """
         lines = summary_content.split("\n")
         for i, line in enumerate(lines, 1):
