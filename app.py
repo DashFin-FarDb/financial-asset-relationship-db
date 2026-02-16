@@ -650,7 +650,6 @@ class FinancialAssetApp:
                     except (TypeError, ValueError):
                         corr_str = str(correlation_value)
 
-
                     summary_lines.append(f"  • {pair_str}: {corr_str}")
 
         return "\n".join(summary_lines)
