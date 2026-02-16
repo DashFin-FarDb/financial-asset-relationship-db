@@ -236,9 +236,8 @@ class TestDatabaseInitialization:
         inspector = inspect(engine)
         assert "test_idempotent" in inspector.get_table_names()  # nosec B101
 
-    @staticmethod
     def test_init_db_preserves_existing_data(
-        origin,
+        self,
         engine: Engine,
         session_factory,
         isolated_base,
