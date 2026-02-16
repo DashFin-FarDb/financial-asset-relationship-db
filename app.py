@@ -650,6 +650,7 @@ class FinancialAssetApp:
                     summary_lines.append(f"  • {pair_str}: {corr_str}")
 
         return "\n".join(summary_lines)
+
     def create_interface(self) -> gr.Blocks:
         """
         Build and return the Gradio Blocks UI for the FinancialAssetApp.
