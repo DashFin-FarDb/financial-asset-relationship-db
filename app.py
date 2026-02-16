@@ -469,6 +469,9 @@ class FinancialAssetApp:
                     show_regulatory=show_regulatory,
                     show_all_relationships=show_all_relationships,
                 )
+            else:
+                # Default to 3D visualization for any non-"2D" view mode
+                graph_viz = visualize_3d_graph(graph)
 
             return graph_viz, gr.update(visible=False)
 
