@@ -593,10 +593,6 @@ class FinancialAssetApp:
             logger.error("Error showing formula details: %s", exc)
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
-
-class FinancialAssetApp:
-    # ... existing methods (including generate_formulaic_analysis, etc.)
-
     @staticmethod
     def _format_pair(pair: Any) -> str:
         """Format an asset pair into a human-readable string."""
