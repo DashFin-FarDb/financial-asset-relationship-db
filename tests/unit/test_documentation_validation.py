@@ -343,12 +343,6 @@ class TestSystemManifest:
         assert "## Current Phase" in system_manifest_content
 
         # Assert that the System Manifest declares a current project phase.
-
-        Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
-
-        Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md file to inspect.
-        """
         pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
 

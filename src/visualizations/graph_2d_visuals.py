@@ -177,6 +177,8 @@ def _create_2d_relationship_traces(
             relationship_groups = {}
 
             # Skip if target not in positions
+            positions = {}
+            relationship_groups = {}
             if target_id not in positions or target_id not in asset_id_set:
                 continue
 
