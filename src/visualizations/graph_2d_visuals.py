@@ -197,6 +197,7 @@ def _create_2d_relationship_traces(
                 }
             )
 
+
 # Create traces for each relationship type
 for rel_type, relationships in relationship_groups.items():
     if not relationships:
@@ -221,6 +222,7 @@ for rel_type, relationships in relationship_groups.items():
         hover_texts.extend([hover_text, hover_text, None])
 
     color = REL_TYPE_COLORS.get(rel_type, "#888888")
+
 
 def visualize_2d_graph(
     graph: AssetRelationshipGraph,
