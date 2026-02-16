@@ -460,6 +460,7 @@ class FinancialAssetApp:
             if view_mode == "2D":
                 graph_viz = visualize_2d_graph(
                     graph,
+                    layout_type=layout_type,
                     show_same_sector=show_same_sector,
                     show_market_cap=show_market_cap,
                     show_correlation=show_correlation,
