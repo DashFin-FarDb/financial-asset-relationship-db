@@ -159,12 +159,10 @@ class TestWorkflowSchemaCompliance:
                 - 'content' (dict | None): parsed YAML content of the workflow
         """
         required_keys = ["name", "jobs"]
-        checkout_versions = {}
+        checkout_versions: Dict[str, str] = {}
         for workflow in all_workflows:
             for key in required_keys:
                 assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
-            unique_versions = set(checkout_versions.values())
-            # Allow v3 and v4, but should be mostly consistent
             for job_name, job in workflow["content"].get("jobs", {}).items():
                 for step in job.get("steps", []):
                     uses = step.get("uses", "")
@@ -172,6 +170,9 @@ class TestWorkflowSchemaCompliance:
                         version = uses.split("@")[-1]
                         checkout_versions[str(workflow["path"])] = version
 
+        unique_versions = set(checkout_versions.values())
+        # Allow v3 and v4, but should be mostly consistent
+        assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
         unique_versions = set(checkout_versions.values())
         # Allow v3 and v4, but should be mostly consistent
         assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
