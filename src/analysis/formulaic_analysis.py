@@ -1,10 +1,12 @@
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Final
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
 logger = logging.getLogger(__name__)
+
+PRICE_PER_SHARE_LABEL: Final = "Price per share"
 
 
 @dataclass
@@ -146,7 +148,10 @@ class FormulaicAnalyzer:
                     formula="P / E",
                     latex=r"\frac{P}{E}",
                     description="Market price per share divided by earnings per share.",
-                    variables={"P": "Price per share", "E": "Earnings per share (EPS)"},
+                    variables={
+                        "P": PRICE_PER_SHARE_LABEL,
+                        "E": "Earnings per share (EPS)",
+                    },
                     example_calculation=self._calculate_pe_examples(graph),
                     category="Valuation",
                     r_squared=0.0,
@@ -161,7 +166,10 @@ class FormulaicAnalyzer:
                     formula="D / P",
                     latex=r"\frac{D}{P}",
                     description="Dividend per share divided by price per share.",
-                    variables={"D": "Dividend per share", "P": "Price per share"},
+                    variables={
+                        "D": "Dividend per share",
+                        "P": PRICE_PER_SHARE_LABEL,
+                    },
                     example_calculation=self._calculate_dividend_examples(graph),
                     category="Income",
                     r_squared=0.0,
@@ -180,7 +188,7 @@ class FormulaicAnalyzer:
                         "shares outstanding."
                     ),
                     variables={
-                        "Price": "Price per share",
+                        "Price": PRICE_PER_SHARE_LABEL,
                         "Shares Outstanding": "Number of shares outstanding",
                     },
                     example_calculation=self._calculate_market_cap_examples(graph),
