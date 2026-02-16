@@ -468,7 +468,6 @@ class FinancialAssetApp:
                     show_income_comparison=show_income_comparison,
                     show_regulatory=show_regulatory,
                     show_all_relationships=show_all_relationships,
-                    toggle_arrows=toggle_arrows,
                 )
 
             return graph_viz, gr.update(visible=False)
