@@ -214,46 +214,50 @@ class FormulaicAnalyzer:
         """
         formulas = []
 
-        # Beta relationship (systematic risk)
-        beta_formula = Formula(
-            name="Beta (Systematic Risk)",
-            expression="β = Cov(R_asset, R_market) / Var(R_market)",
-            latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
-            description=("Measure of an asset's sensitivity to market movements"),
-            variables={
-                "β": "Beta coefficient",
-                "R_i": "Asset return",
-                "R_m": "Market return",
-                "Cov": "Covariance",
-                "Var": "Variance",
-            },
-            example_calculation=self._calculate_beta_examples(graph),
-            category="Risk Management",
-            r_squared=0.75,
-        )
-        formulas.append(beta_formula)
+                            measures such as Beta (systematic risk) and the correlation
+                            coefficient, with example calculations and estimated r-squared
+                            values where available.
+                    """
+                    formulas = []
 
-        # Correlation coefficient
-        correlation_formula = Formula(
-            name="Correlation Coefficient",
-            expression="ρ = Cov(X, Y) / (σ_X × σ_Y)",
-            latex=(r"\rho = \frac{Cov(X, Y)}{\sigma_X \times \sigma_Y}"),
-            description="Measure of linear relationship between two variables",
-            variables={
-                "ρ": "Correlation coefficient (-1 to 1)",
-            },
-        )
-        formulas.append(correlation_formula)
+                    # Beta relationship (systematic risk)
+                    beta_formula = Formula(
+                        name="Beta (Systematic Risk)",
+                        expression="β = Cov(R_asset, R_market) / Var(R_market)",
+                        latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
+                        description=("Measure of an asset's sensitivity to market movements"),
+                        variables={
+                            "β": "Beta coefficient",
+                            "R_i": "Asset return",
+                            "R_m": "Market return",
+                            "Cov": "Covariance",
+                            "Var": "Variance",
+                        },
+                        example_calculation=self._calculate_beta_examples(graph),
+                        category="Risk Management",
+                        r_squared=0.75,
+                    )
+                    formulas.append(beta_formula)
 
-    def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """
-        Generate valuation formulas applicable to the provided
-        asset relationship graph.
+                    # Correlation coefficient
+                    correlation_formula = Formula(
+                        name="Correlation Coefficient",
+                        expression="ρ = Cov(X, Y) / (σ_X × σ_Y)",
+                        latex=(r"\rho = \frac{Cov(X, Y)}{\sigma_X \times \sigma_Y}"),
+                        description="Measure of linear relationship between two variables",
+                        variables={
+                            "ρ": "Correlation coefficient (-1 to 1)",
+                            "Cov(X,Y)": "Covariance between X and Y",
+                            "σ_X": "Standard deviation of X",
+                            "σ_Y": "Standard deviation of Y",
+                        },
+                        example_calculation=self._calculate_correlation_examples(graph),
+                        category="Statistical Analysis",
+                        r_squared=self._calculate_avg_correlation_strength(graph),
+                    )
+                    formulas.append(correlation_formula)
 
-        Includes common valuation metrics such as Price - to - Book
-        (added when equities are present) and Enterprise Value.
-
-        Example calculation strings are populated from available asset
+                    return formulas
         attributes or fallback messages when data is missing.
 
         Parameters:
