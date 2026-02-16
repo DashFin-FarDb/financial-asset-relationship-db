@@ -168,7 +168,8 @@ def _create_2d_relationship_traces(
     # Group relationships by type
     relationship_groups = {}
 
-    positions = {}
+    # Keep caller-provided positions
+
     relationship_groups = {}
 
     for source_id in asset_ids:
