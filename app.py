@@ -593,68 +593,76 @@ class FinancialAssetApp:
             logger.error("Error showing formula details: %s", exc)
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
+    class FinancialAssetApp:
+    # ... existing methods (including generate_formulaic_analysis, etc.)
+
     @staticmethod
+    def _format_pair(pair: Any) -> str:
+        """Format an asset pair into a human-readable string."""
+        if isinstance(pair, (list, tuple)) and len(pair) == 2:
+            asset_a, asset_b = pair
+            return f"{asset_a} ↔ {asset_b}"
+        return str(pair)
+
+    @staticmethod
+    def _format_correlation_value(value: Any) -> str:
+        """Format the correlation value as a string."""
+        try:
+            return f"{float(value):.3f}"
+        except (TypeError, ValueError):
+            return str(value)
+
+    @classmethod
+    def _format_correlation_line(cls, corr: Any) -> str | None:
+        """Return a single formatted correlation line or None."""
+        if not isinstance(corr, dict):
+            return None
+
+        pair = corr.get("pair", "n/a")
+        correlation_value = corr.get("correlation", 0.0)
+
+        pair_str = cls._format_pair(pair)
+        corr_str = cls._format_correlation_value(correlation_value)
+
+        return f"  • {pair_str}: {corr_str}"
+
+    @classmethod
     def _format_formula_summary(
-        summary: dict[str, Any], analysis_results: dict[str, Any]
+        cls,
+        summary: dict[str, Any],
+        analysis_results: dict[str, Any],
     ) -> str:
         """
         Create a concise, human-readable summary of formulaic analysis and
         empirical relationships.
-
-        Parameters:
-            summary (dict[str, Any]): High-level formula summary
-                containing optional keys like
-                `formula_categories` (mapping of category -> count) and
-                `key_insights` (list of insight strings).
-            analysis_results (dict[str, Any]): Detailed analysis output
-                which may include `empirical_relationships` with
-                `strongest_correlations` as a list of correlation records.
-
-        Returns:
-            str: A formatted multi-line string suitable for display.
-                 that includes formula category counts, key insights, and
-                 up to the top three strongest asset correlations
-                 when available.
         """
-        empirical = analysis_results.get("empirical_relationships", {})
-
+        empirical = analysis_results.get("empirical_relationships") or {}
         summary_lines: list[str] = []
 
-        categories = summary.get("formula_categories", {})
+        # Formula categories
+        categories = summary.get("formula_categories")
         if isinstance(categories, dict):
             for category, count in categories.items():
                 summary_lines.append(f"  • {category}: {count} formulas")
 
+        # Key insights
         summary_lines.extend(["", "🎯 **Key Insights:**"])
-
-        insights = summary.get("key_insights", [])
+        insights = summary.get("key_insights")
         if isinstance(insights, list):
             for insight in insights:
                 summary_lines.append(f"  • {insight}")
 
-        correlations = empirical.get("strongest_correlations", [])
+        # Strongest correlations
+        correlations = empirical.get("strongest_correlations")
         if isinstance(correlations, list) and correlations:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
-                if isinstance(corr, dict):
-                    pair = corr.get("pair", "n/a")
-                    correlation_value = corr.get("correlation", 0.0)
-
-                    if isinstance(pair, (list, tuple)) and len(pair) == 2:
-                        asset_a, asset_b = pair
-                        pair_str = f"{asset_a} ↔ {asset_b}"
-                    else:
-                        pair_str = str(pair)
-
-                    try:
-                        corr_str = f"{float(correlation_value):.3f}"
-                    except (TypeError, ValueError):
-                        corr_str = str(correlation_value)
-
-                    summary_lines.append(f"  • {pair_str}: {corr_str}")
+                line = cls._format_correlation_line(corr)
+                if line:
+                    summary_lines.append(line)
 
         return "\n".join(summary_lines)
-
+    
     def create_interface(self) -> gr.Blocks:
         """
         Build and return the Gradio Blocks UI for the FinancialAssetApp.
