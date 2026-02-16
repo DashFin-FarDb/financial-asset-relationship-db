@@ -96,7 +96,7 @@ class AssetRelationshipGraph:
             source_id (str): ID of the source asset.
             target_id (str): ID of the target asset.
             rel_type (str): Relationship type label.
-            strength (float): Relationship strength (expected on a 0.01 scale).
+            strength (float): Relationship strength (expected on a 0.0–1 scale).
             bidirectional (bool): If True, also add the same relationship from
                 `target_id` back to `source_id`.
         """
