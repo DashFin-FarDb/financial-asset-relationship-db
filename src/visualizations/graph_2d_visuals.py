@@ -200,6 +200,7 @@ def _create_2d_relationship_traces(
                 }
             )
 
+
 # Create traces for each relationship type
 for rel_type, relationships in relationship_groups.items():
     if not relationships:

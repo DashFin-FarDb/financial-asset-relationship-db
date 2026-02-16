@@ -470,7 +470,7 @@ class TestSystemManifest:
         """
         Check that Markdown headings in the System Manifest have a space after the leading hashes.
 
-        Examines up to the first 500 lines and asserts any line beginning with '#' contains a space immediately following the leading hash sequence (e.g. '# Title', '## Section'). On failure, raises an AssertionError identifying the offending line number and its content.
+        Examines up to the first 500 lines and asserts any line beginning with '#' contains a space immediately following the leading hash sequence(e.g. '# Title', '## Section'). On failure, raises an AssertionError identifying the offending line number and its content.
         """
         for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines
             # Check heading formatting
