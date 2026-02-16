@@ -188,7 +188,9 @@ def _create_2d_relationship_traces(
             relationship_groups = {}
 
             relationship_groups = {}
+            relationship_groups = {}
             if target_id not in pos or target_id not in asset_id_set:
+                 continue
                 continue
 
             # Apply filters if not showing all relationships
