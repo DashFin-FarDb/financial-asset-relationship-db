@@ -66,7 +66,7 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
         dict[str, int]: A dictionary of string keys to integer values, or an empty
             dict if the input is not a mapping or contains no string-keyed entries.
     """
-    if not isinstance(value, Mapping):
+    if not hasattr(value, "items"):
         return {}
     out: dict[str, int] = {}
     for k, v in value.items():
