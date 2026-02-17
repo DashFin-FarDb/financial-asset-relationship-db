@@ -452,10 +452,10 @@ class FormulaicAnalyzer:
                 variables={
                     "FX_commodity": "Currency value of commodity exporter",
                     "P_commodity": "Commodity price",
-                        expression= "USD/EUR × EUR/GBP = USD/GBP",
-                example_calculation= (self._calculate_commodity_currency_examples(graph)),
-                category= "Cross-Asset",
-                r_squared= 0.65,
+                },
+                example_calculation=(self._calculate_commodity_currency_examples(graph)),
+                category="Cross-Asset",
+                r_squared=0.65,
             )
             formulas.append(commodity_currency_formula)
 
