@@ -60,7 +60,9 @@ def test_supabase_connection_smoke() -> None:
     - Response contains a 'data' attribute (list-like)
     """
     if os.getenv("RUN_SUPABASE_TESTS") != "1":
-        pytest.skip("Set RUN_SUPABASE_TESTS=1 to enable live Supabase connectivity test")
+        pytest.skip(
+            "Set RUN_SUPABASE_TESTS=1 to enable live Supabase connectivity test"
+        )
 
     # If you *really* want local .env loading, do it only when explicitly enabled.
     if os.getenv("LOAD_DOTENV") == "1":
@@ -85,7 +87,9 @@ def test_supabase_connection_smoke() -> None:
     try:
         supabase: Client = create_client(supabase_url, supabase_key)
     except Exception as exc:  # noqa: BLE001
-        pytest.fail(f"Failed to initialize Supabase client (url={_redact(supabase_url)}): {exc}")
+        pytest.fail(
+            f"Failed to initialize Supabase client (url={_redact(supabase_url)}): {exc}"
+        )
 
     # Execute a safe, low-cost query.
     # Assumes 'assets' table exists as per your domain; if not, adjust to a known table.
