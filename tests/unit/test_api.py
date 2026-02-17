@@ -536,7 +536,7 @@ class TestEdgeCases:
     """Test edge cases and error conditions."""
 
     @patch("api.main.graph")
-    def test_empty_graph(self, mock_graph_instance, client, apply_mock_graph):
+    def test_empty_graph(self, mock_graph_instance, client):
         """Test handling of empty graph."""
         empty_graph = AssetRelationshipGraph()
         # Ensure the patched graph has an empty assets mapping as well as relationships.
