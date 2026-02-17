@@ -153,7 +153,6 @@ class FinancialAssetApp:
         initializer. May raise an exception if graph creation or initialization fails.
         """
 
-
     @staticmethod
     def _create_database() -> AssetRelationshipGraph:
         """
