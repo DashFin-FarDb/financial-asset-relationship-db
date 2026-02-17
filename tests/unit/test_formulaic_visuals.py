@@ -516,4 +516,4 @@ class TestFormulaicVisualizer:
 
         # Should still create a valid figure
         assert isinstance(fig, go.Figure)
-        assert fig.layout.title.text == "Financial Formula Analysis Dashboard"
+        assert fig.layout.title.text == "📊 Financial Formulaic Analysis Dashboard"
