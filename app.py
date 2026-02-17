@@ -247,8 +247,8 @@ class FinancialAssetApp:
                 Relationship strengths are rendered as percentages when numeric,
                 otherwise shown as "n/a".
         """
-        metrics = graph.calculate_metrics()
-        text = AppConstants.NETWORK_STATISTICS_TEXT.format(
+        metrics=graph.calculate_metrics()
+        text=AppConstants.NETWORK_STATISTICS_TEXT.format(
             total_assets=metrics.get("total_assets", 0),
             total_relationships=metrics.get("total_relationships", 0),
             average_relationship_strength=metrics.get("average_relationship_strength", 0.0),
@@ -277,7 +277,7 @@ class FinancialAssetApp:
                         text += f"{idx}. {s} → {t} ({rel}): n/a\n"
         return text
 
-    @staticmethod
+    @ staticmethod
     def update_asset_info(
         selected_asset: Optional[str], graph: AssetRelationshipGraph
     ) -> tuple[dict, dict]:
@@ -338,8 +338,8 @@ class FinancialAssetApp:
             metrics_text (str): Human-readable network statistics summary
                 suitable for display.
         """
-        fig1, fig2, fig3 = visualize_metrics(graph)
-        metrics_text = self._update_metrics_text(graph)
+        fig1, fig2, fig3=visualize_metrics(graph)
+        metrics_text=self._update_metrics_text(graph)
         return fig1, fig2, fig3, metrics_text
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
@@ -461,7 +461,7 @@ class FinancialAssetApp:
                 )
             else:
                 # Default to 3D visualization for any non-"2D" view mode
-                graph_viz = visualize_3d_graph(graph)
+                graph_viz=visualize_3d_graph(graph)
 
             return graph_viz, gr.update(visible=False)
 
@@ -549,7 +549,7 @@ class FinancialAssetApp:
                 gr.update(value=error_msg, visible=True),
             )
 
-    @staticmethod
+    @ staticmethod
     def show_formula_details(
         formula_name: str, graph_state: AssetRelationshipGraph
     ) -> tuple[go.Figure, gr.Update]:
@@ -574,7 +574,7 @@ class FinancialAssetApp:
             logger.error("Error showing formula details: %s", exc)
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
-    @staticmethod
+    @ staticmethod
     def _format_formula_summary(
         summary: dict[str, Any], analysis_results: dict[str, Any]
     ) -> str:
@@ -597,7 +597,7 @@ class FinancialAssetApp:
                  up to the top three strongest asset correlations
                  when available.
         """
-        empirical = analysis_results.get("empirical_relationships", {})
+        empirical=analysis_results.get("empirical_relationships", {})
 
         summary_lines: list[str]=[]
 
@@ -618,19 +618,19 @@ class FinancialAssetApp:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
                 if isinstance(corr, dict):
-                    pair = corr.get("pair", "n/a")
-                    correlation_value = corr.get("correlation", 0.0)
+                    pair=corr.get("pair", "n/a")
+                    correlation_value=corr.get("correlation", 0.0)
 
                     if isinstance(pair, (list, tuple)) and len(pair) == 2:
-                        asset_a, asset_b = pair
-                        pair_str = f"{asset_a} ↔ {asset_b}"
+                        asset_a, asset_b=pair
+                        pair_str=f"{asset_a} ↔ {asset_b}"
                     else:
-                        pair_str = str(pair)
+                        pair_str=str(pair)
 
                     try:
-                        corr_str = f"{float(correlation_value):.3f}"
+                        corr_str=f"{float(correlation_value):.3f}"
                     except (TypeError, ValueError):
-                        corr_str = str(correlation_value)
+                        corr_str=str(correlation_value)
 
                     summary_lines.append(f"  • {pair_str}: {corr_str}")
 
@@ -693,16 +693,16 @@ class FinancialAssetApp:
                             toggle_arrows=gr.Checkbox(label="Show Direction Arrows", value=True)
 
                     with gr.Row():
-                        visualization_3d = gr.Plot()
+                        visualization_3d=gr.Plot()
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            refresh_viz_btn = gr.Button(
+                            refresh_viz_btn=gr.Button(
                                 AppConstants.REFRESH_BUTTON_LABEL,
                                 variant="primary",
                             )
                         with gr.Column(scale=1):
-                            reset_view_btn = gr.Button(
+                            reset_view_btn=gr.Button(
                                 "Reset View & Show All",
                                 variant="secondary",
                             )
@@ -723,7 +723,7 @@ class FinancialAssetApp:
                             interactive=False,
                         )
                     with gr.Row():
-                        refresh_metrics_btn = gr.Button(
+                        refresh_metrics_btn=gr.Button(
                             AppConstants.REFRESH_BUTTON_LABEL,
                             variant="primary",
                         )
@@ -737,7 +737,7 @@ class FinancialAssetApp:
                             interactive=False,
                         )
                     with gr.Row():
-                        refresh_schema_btn = gr.Button(
+                        refresh_schema_btn=gr.Button(
                             AppConstants.GENERATE_SCHEMA_BUTTON_LABEL,
                             variant="primary",
                         )
@@ -758,7 +758,7 @@ class FinancialAssetApp:
                     with gr.Row():
                         asset_relationships=gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
                     with gr.Row():
-                        refresh_explorer_btn = gr.Button(
+                        refresh_explorer_btn=gr.Button(
                             AppConstants.REFRESH_BUTTON_LABEL,
                             variant="primary",
                         )
@@ -798,7 +798,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            refresh_formulas_btn = gr.Button(
+                            refresh_formulas_btn=gr.Button(
                                 "🔄 Refresh Formulaic Analysis",
                                 variant="primary",
                             )
