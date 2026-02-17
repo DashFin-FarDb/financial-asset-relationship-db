@@ -136,10 +136,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
         "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
         "3. **Commodity** - Physical assets with contracts and delivery dates",
-        (
-            "4. **Currency** - FX pairs or single-currency proxies with "
-            "exchange rates and policy links"
-        ),
+        ("4. **Currency** - FX pairs or single-currency proxies with " "exchange rates and policy links"),
         "5. **Regulatory Events** - Corporate actions and SEC filings",
         "",
         "### Relationship Types",
@@ -195,34 +192,19 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            (
-                "- **Sector Affinity**: Assets in the same sector "
-                "are linked with strength 0.7 (bidirectional)"
-            ),
+            ("- **Sector Affinity**: Assets in the same sector " "are linked with strength 0.7 (bidirectional)"),
             (
                 "- **Corporate Bond Linkage**: A bond whose issuer_id matches another "
                 "asset creates a directional link (strength 0.9)"
             ),
-            (
-                "- **Currency Exposure**: Currency assets reflect FX and "
-                "central-bank policy links"
-            ),
+            ("- **Currency Exposure**: Currency assets reflect FX and " "central-bank policy links"),
             "",
             "### Regulatory Rules",
-            (
-                "- **Event Propagation**: Regulatory / earnings events "
-                "propagate impact to related assets"
-            ),
-            (
-                "- Events create directional relationships from the event source to "
-                "each related asset"
-            ),
+            ("- **Event Propagation**: Regulatory / earnings events " "propagate impact to related assets"),
+            ("- Events create directional relationships from the event source to " "each related asset"),
             "",
             "### Valuation Rules",
-            (
-                "- **Impact Scoring**: Event impact scores are normalized "
-                "to -1 to +1 for comparability"
-            ),
+            ("- **Impact Scoring**: Event impact scores are normalized " "to -1 to +1 for comparability"),
             "- Relationship strengths are clamped to the 0-1 range",
         ]
     )
