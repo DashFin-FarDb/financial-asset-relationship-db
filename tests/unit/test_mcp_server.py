@@ -178,7 +178,8 @@ class TestAddEquityNode:
             if tool.name == "add_equity_node":
                 tool_func = tool.fn
                 break
-
+ 
+        assert tool_func is not None, "add_equity_node tool not found"
         result = tool_func(
             asset_id="TEST",
             symbol="TST",
