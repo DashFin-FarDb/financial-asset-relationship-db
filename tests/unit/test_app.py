@@ -414,7 +414,10 @@ class TestUpdateAssetInfo:
 
 @pytest.mark.unit
 class TestRefreshVisualization:
-    """Test cases for visualization refresh logic."""
+        _, relationships = FinancialAssetApp.update_asset_info(
+            "TEST_001", mock_graph
+        )
+        assert "TEST_003" in relationships["incoming"]
 
     @staticmethod
     @patch("app.visualize_2d_graph")
