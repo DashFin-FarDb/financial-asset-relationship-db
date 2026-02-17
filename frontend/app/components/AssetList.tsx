@@ -356,34 +356,18 @@ export default function AssetList() {
   const AssetListStatus = ({
     loading,
     error,
-    querySummary = "",
-  }: AssetListStatusProps) => {
+  }: {
+    loading: boolean;
+    error: string | null;
+  }) => {
     if (!loading && !error) {
       return null;
     }
     return (
       <div
-const AssetListStatus = ({
-  loading,
-  error,
-  querySummary = "assets",
-}: AssetListStatusProps) => {
-  if (!loading && !error) {
-    return null;
-  }
-  return (
-    <div
-      className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
-    >
-      {loading
-        ? `Loading results for ${querySummary}...`
-        : `Error: ${error}`
-      }
-    </div>
-  );
-};
+        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
       >
-        {loading ? `Loading results for ${querySummary}...` : `Error: ${error}`}
+        {loading ? "Loading..." : `Error: ${error}`}
       </div>
     );
   };
@@ -417,11 +401,7 @@ const AssetListStatus = ({
 
       {/* Asset List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <AssetListStatus
-          loading={loading}
-          error={error}
-          querySummary={querySummary}
-        />
+        <AssetListStatus loading={loading} error={error} />
 
         <AssetTable>
           <table className="min-w-full divide-y divide-gray-200">
