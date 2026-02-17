@@ -1239,6 +1239,9 @@ class TestIntegrationScenarios:
         # Run analyzer to ensure it still works with the graph
         result = analyzer.analyze_graph(graph)
         assert "summary" in result
+        quality_score = result["summary"].get("quality_score")
+        assert quality_score is not None
+        assert 0.0 <= quality_score <= 1.0
         assert isinstance(result["formula_count"], int)
         assert result["formula_count"] > 0
         # Explicitly verify the graph's quality score metric is present and bounded
