@@ -139,13 +139,14 @@ class TestSnykWorkflowTriggers:
         If the workflow defines a push trigger with a "branches" list, this test asserts that the list includes "main" or "Default".
 
         Parameters:
-            snyk_workflow(dict): Parsed YAML content of the workflow file.
-        """
+    def test_push_triggers_on_main_branch(self, snyk_workflow):
+        """Test that push trigger includes main branch."""
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         push_config = triggers["push"]
-        if isinstance(push_config, dict) and "branches" in push_config:
-            branches = push_config["branches"]
-            assert "main" in branches or "Default" in branches
+        assert isinstance(push_config, dict), "Expected push trigger to be a mapping"
+        assert "branches" in push_config, "Expected 'branches' key in push config"
+        branches = push_config["branches"]
+        assert "main" in branches or "Default" in branches
 
     def test_pull_request_triggers_on_main_branch(self, snyk_workflow):
         """Test that PR trigger targets main branch."""
