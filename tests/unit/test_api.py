@@ -11,6 +11,7 @@ This module tests all API endpoints including:
 """
 
 from unittest.mock import PropertyMock, patch
+from typing import Callable
 
 import pytest
 from fastapi.testclient import TestClient
@@ -140,7 +141,7 @@ def _apply_mock_graph_configuration(
 
 
 @pytest.fixture
-def apply_mock_graph():
+def apply_mock_graph() -> Callable[[object, AssetRelationshipGraph], None]:
     """
     Provide a helper callable that wires a patched/mock graph object to a concrete AssetRelationshipGraph instance.
 
