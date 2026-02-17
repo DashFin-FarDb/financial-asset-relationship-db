@@ -351,7 +351,7 @@ class TestUpdateAssetInfo:
         assert (
             relationships["outgoing"]["TEST_002"]["relationship_type"] == "SAME_SECTOR"
         )
-        assert relationships["outgoing"]["TEST_002"]["strength"] == 0.8
+        assert relationships["outgoing"]["TEST_002"]["strength"] == pytest.approx(0.8)
 
     @staticmethod
     def test_update_asset_info_with_nonexistent_asset():
@@ -402,10 +402,9 @@ class TestUpdateAssetInfo:
             ]
         }
 
-        asset_dict, relationships = FinancialAssetApp.update_asset_info(
+        _, relationships = FinancialAssetApp.update_asset_info(
             "TEST_001", mock_graph
         )
-
         assert "TEST_003" in relationships["incoming"]
         assert (
             relationships["incoming"]["TEST_003"]["relationship_type"] == "CORRELATION"
@@ -431,7 +430,7 @@ class TestRefreshVisualization:
         mock_viz_2d.return_value = mock_fig
 
         app = FinancialAssetApp()
-        result_fig, error_update = app.refresh_visualization(
+        result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="2D",
             layout_type="spring",
@@ -464,7 +463,7 @@ class TestRefreshVisualization:
         mock_viz_3d.return_value = mock_fig
 
         app = FinancialAssetApp()
-        result_fig, error_update = app.refresh_visualization(
+        result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="3D",
             layout_type="spring",
@@ -494,7 +493,7 @@ class TestRefreshVisualization:
         mock_viz_2d.side_effect = Exception("Visualization error")
 
         app = FinancialAssetApp()
-        result_fig, error_update = app.refresh_visualization(
+        result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="2D",
             layout_type="spring",
