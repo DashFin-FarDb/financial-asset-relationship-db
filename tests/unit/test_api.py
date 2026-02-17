@@ -575,7 +575,8 @@ class TestEdgeCases:
     def test_empty_graph(self, mock_graph_instance, client, apply_mock_graph):
         """Test handling of empty graph."""
         empty_graph = AssetRelationshipGraph()
-        mock_graph_instance.relationships = empty_graph.relationships
+        # Ensure the patched graph has an empty assets mapping as well as relationships.
+        mock_graph_instance.assets = empty_graph.assets
         mock_graph_instance.get_3d_visualization_data_enhanced = (
             empty_graph.get_3d_visualization_data_enhanced
         )
