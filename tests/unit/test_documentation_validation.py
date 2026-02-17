@@ -685,6 +685,7 @@ class TestDocumentationRealisticContent:
         with open(matrix_path, encoding="utf-8") as f:
             content = f.read()
 
+
         # Extract dependencies
         deps = []
         for match in re.finditer(r"^- (.+)$", content, re.MULTILINE):
