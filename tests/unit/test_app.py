@@ -120,8 +120,8 @@ class TestAppConstants:
         template = AppConstants.NETWORK_STATISTICS_TEXT
         assert "{total_assets}" in template
         assert "{total_relationships}" in template
-        assert "{average_relationship_strength" in template
-        assert "{relationship_density" in template
+        assert "{average_relationship_strength}" in template
+        assert "{relationship_density}" in template
         assert "{regulatory_event_count}" in template
         assert "{asset_class_distribution}" in template
 
