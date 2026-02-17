@@ -448,8 +448,8 @@ class TestRefreshVisualization:
 
     @staticmethod
     @patch("app.visualize_3d_graph_with_filters")
-    @patch("app.visualize_3d_graph")
-    def test_refresh_visualization_3d_mode(mock_fetcher, mock_viz_3d):
+    @patch("app.real_data_fetcher")
+    def test_refresh_visualization_3d_mode(mock_fetcher, mock_viz_3d_filtered):
         """Test refresh visualization in 3D mode."""
         import plotly.graph_objects as go
 
@@ -458,10 +458,10 @@ class TestRefreshVisualization:
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
         mock_fig = go.Figure()
-        mock_viz_3d.return_value = mock_fig
+        mock_viz_3d_filtered.return_value = mock_fig
 
         app = FinancialAssetApp()
-        result_fig, _ = app.refresh_visualization(
+        result_fig, error_update = app.refresh_visualization(
             mock_graph,
             view_mode="3D",
             layout_type="spring",
@@ -477,7 +477,7 @@ class TestRefreshVisualization:
         )
 
         assert result_fig == mock_fig
-        mock_viz_3d.assert_called_once()
+        mock_viz_3d_filtered.assert_called_once()
 
     @staticmethod
     @patch("app.visualize_2d_graph")
