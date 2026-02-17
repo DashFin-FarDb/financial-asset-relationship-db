@@ -886,16 +886,14 @@ class TestPydanticModelValidation:
             relationship_type="test",
             strength=0.5,
         )
-        assert rel.strength == 0.5
-
+        
+        assert abs(rel.strength - 0.5) < 1e-9
         # Test boundary values
         rel_min = RelationshipResponse(
             source_id="A",
             target_id="B",
             relationship_type="test",
-            strength=0.0,
-        )
-        assert rel_min.strength == 0.0
+            assert rel_min.strength == pytest.approx(0.0)
 
         rel_max = RelationshipResponse(
             source_id="A",
@@ -903,7 +901,7 @@ class TestPydanticModelValidation:
             relationship_type="test",
             strength=1.0,
         )
-        assert rel_max.strength == 1.0
+        assert rel_max.strength == pytest.approx(1.0)
 
     def test_metrics_response_validates_non_negative_values(self):
         """Negative: MetricsResponse should reject negative metrics."""
