@@ -68,6 +68,7 @@ def test_supabase_connection_smoke() -> None:
             from dotenv import load_dotenv
 
             load_dotenv()
+
         except ImportError:
             pass  # dotenv not installed; proceed without it
 
