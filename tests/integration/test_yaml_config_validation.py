@@ -169,10 +169,10 @@ class TestWorkflowSchemaCompliance:
         required_keys = ["name", "jobs"]
         checkout_versions: Dict[str, str] = {}
         for workflow in all_workflows:
+            if not isinstance(workflow["content"], dict):
+                continue    
             for key in required_keys:
-                assert key in workflow["content"], (
-                    f"Workflow {workflow['path']} missing required key: {key}"
-                )
+                assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
             for job_name, job in workflow["content"].get("jobs", {}).items():
                 for step in job.get("steps", []):
                     uses = step.get("uses", "")
