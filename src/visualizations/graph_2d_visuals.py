@@ -173,7 +173,13 @@ def _create_2d_relationship_traces(
             if rel_type not in relationship_groups:
                 relationship_groups[rel_type] = []
 
-            relationship_groups[rel_type].append({"source_id": source_id, "target_id": target_id, "strength": strength})
+            relationship_groups[rel_type].append(
+                {
+                    "source_id": source_id,
+                    "target_id": target_id,
+                    "strength": strength,
+                }
+            )
 
     # Create traces for each relationship type
     for rel_type, relationships in relationship_groups.items():
