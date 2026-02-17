@@ -884,7 +884,6 @@ class TestRelationshipTypeVariations:
         # Should be treated as different types
         rel1 = repository.get_relationship("CASE1", "CASE2", "SameType")
         rel2 = repository.get_relationship("CASE1", "CASE2", "sametype")
-
         assert rel1 is not None
         assert rel2 is not None
         assert abs(rel1.strength - 0.5) < 1e-9
