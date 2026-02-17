@@ -189,8 +189,7 @@ class FinancialAssetApp:
                     f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
                 )
         raise AttributeError(
-            "No known database factory found in "
-            "src.data.real_data_fetcher. Tried: "
+            "No known database factory found in src.data.real_data_fetcher. Tried: "
             f"{', '.join(candidates)}"
         )
 
