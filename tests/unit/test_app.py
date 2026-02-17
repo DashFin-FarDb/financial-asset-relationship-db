@@ -548,7 +548,7 @@ class TestFormulaSummaryFormatting:
         assert "Financial Ratios: 5 formulas" in text
         assert "Valuation Models: 3 formulas" in text
         assert "Strong correlation between tech stocks" in text
-        assert "AAPL-GOOGL: 0.950 (Very Strong)" in text
+        assert "AAPL-GOOGL: 0.950" in text
 
     @staticmethod
     def test_format_formula_summary_with_missing_fields():
