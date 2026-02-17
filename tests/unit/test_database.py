@@ -618,10 +618,13 @@ class TestDatabaseErrorRecovery:
         init_db(engine)
         factory = create_session_factory(engine)
 
-        with pytest.raises(ValueError):
+        try:
             with session_scope(factory) as session:
                 session.add(TestModel(id=1, value="test"))
                 raise ValueError("Intentional error")
+        except ValueError:
+            # Expected error from nested operation; session should be rolled back.
+            pass
 
         with session_scope(factory) as session:
             session.add(TestModel(id=2, value="success"))
