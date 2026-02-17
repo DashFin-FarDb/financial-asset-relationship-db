@@ -340,17 +340,13 @@ class TestUpdateAssetInfo:
             ]
         }
 
-        asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            "TEST_001", mock_graph
-        )
+        asset_dict, relationships = FinancialAssetApp.update_asset_info("TEST_001", mock_graph)
 
         assert asset_dict["id"] == "TEST_001"
         assert asset_dict["symbol"] == "TEST"
         assert asset_dict["asset_class"] == "EQUITY"
         assert "TEST_002" in relationships["outgoing"]
-        assert (
-            relationships["outgoing"]["TEST_002"]["relationship_type"] == "SAME_SECTOR"
-        )
+        assert relationships["outgoing"]["TEST_002"]["relationship_type"] == "SAME_SECTOR"
         assert relationships["outgoing"]["TEST_002"]["strength"] == 0.8
 
     @staticmethod
@@ -359,9 +355,7 @@ class TestUpdateAssetInfo:
         mock_graph = MagicMock()
         mock_graph.assets = {}
 
-        asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            "NONEXISTENT", mock_graph
-        )
+        asset_dict, relationships = FinancialAssetApp.update_asset_info("NONEXISTENT", mock_graph)
 
         assert asset_dict == {}
         assert relationships == {"outgoing": {}, "incoming": {}}
@@ -372,9 +366,7 @@ class TestUpdateAssetInfo:
         mock_graph = MagicMock()
         mock_graph.assets = {"TEST_001": MagicMock()}
 
-        asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            None, mock_graph
-        )
+        asset_dict, relationships = FinancialAssetApp.update_asset_info(None, mock_graph)
 
         assert asset_dict == {}
         assert relationships == {"outgoing": {}, "incoming": {}}
@@ -402,14 +394,10 @@ class TestUpdateAssetInfo:
             ]
         }
 
-        asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            "TEST_001", mock_graph
-        )
+        asset_dict, relationships = FinancialAssetApp.update_asset_info("TEST_001", mock_graph)
 
         assert "TEST_003" in relationships["incoming"]
-        assert (
-            relationships["incoming"]["TEST_003"]["relationship_type"] == "CORRELATION"
-        )
+        assert relationships["incoming"]["TEST_003"]["relationship_type"] == "CORRELATION"
 
 
 @pytest.mark.unit
@@ -588,17 +576,12 @@ class TestEdgeCases:
     @patch("app.real_data_fetcher")
     def test_initialization_logs_error_on_failure(mock_fetcher, caplog):
         """Test that initialization failure is logged."""
-        mock_fetcher.create_real_database = Mock(
-            side_effect=Exception("Database error")
-        )
+        mock_fetcher.create_real_database = Mock(side_effect=Exception("Database error"))
 
         with pytest.raises(Exception, match="Database error"):
             FinancialAssetApp()
 
-        assert (
-            "Failed to create sample database" in caplog.text
-            or "Database error" in caplog.text
-        )
+        assert "Failed to create sample database" in caplog.text or "Database error" in caplog.text
 
     @staticmethod
     @patch("app.real_data_fetcher")
