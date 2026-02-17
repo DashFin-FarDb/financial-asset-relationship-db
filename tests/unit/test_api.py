@@ -11,8 +11,8 @@ This module tests all API endpoints including:
 """
 
 from typing import Callable
-from unittest.mock import PropertyMock, patch
 
+from unittest.mock import PropertyMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
