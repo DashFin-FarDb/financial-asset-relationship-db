@@ -681,10 +681,8 @@ class TestDocumentationConsistency:
             # If one has it, both should (or neither)
             if dm_has or sm_has:
                 assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: "
-                    f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
+                    f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
                 )
-
 
 @pytest.mark.unit
 class TestDocumentationRealisticContent:
