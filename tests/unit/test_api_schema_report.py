@@ -229,13 +229,8 @@ class TestSchemaReportEdgeCases:
 
             # FastAPI will raise unhandled exception, so we expect it to be raised
             # The endpoint doesn't explicitly catch this, so it will be a 500
-            try:
-                response = client.get("/schema-report/")
-                # If we get here, it returned a response (500 error)
-                assert response.status_code == 500
-            except RuntimeError:
-                # Expected - the error bubbles up in test mode
-                pass
+            with pytest.raises(RuntimeError, match="Database connection failed"):
+                client.get("/schema-report/")
 
     @staticmethod
     def test_raw_endpoint_with_mixed_case_format(client: TestClient) -> None:
