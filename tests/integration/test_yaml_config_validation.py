@@ -48,9 +48,7 @@ class TestYAMLSyntaxAndStructure:
 
         Scans all .yml and .yaml files under .github and reports any non-empty, non-comment lines whose leading indentation is not a multiple of two spaces. Lines inside block scalars (introduced with `|` or `>`, including optional chomping or indent indicators) are excluded from indentation checks. The test fails with a consolidated list of file paths and line numbers for each indentation violation.
         """
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(
-            Path(".github").rglob("*.yaml")
-        )
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
         indentation_errors = []
 
         for yaml_file in yaml_files:
@@ -87,18 +85,18 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not (
-                    stripped.startswith("- |") or stripped.startswith("- >")
-                ) and leading_spaces % 2 != 0:
+                if (
+                    line[0] == " "
+                    and not (stripped.startswith("- |") or stripped.startswith("- >"))
+                    and leading_spaces % 2 != 0
+                ):
                     indentation_errors.append(
                         f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
                     )
 
             # Reset flags per file (handled by reinitialization each loop)
 
-        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
-            indentation_errors
-        )
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
 
 
 def test_no_duplicate_keys_in_yaml():
@@ -112,9 +110,7 @@ def test_no_duplicate_keys_in_yaml():
     except ImportError:
         pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
 
-    yaml_files = list(Path(".github").rglob("*.yml")) + list(
-        Path(".github").rglob("*.yaml")
-    )
+    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
     parser = YAML(typ="safe")
     parse_errors = []
 
@@ -171,9 +167,7 @@ class TestWorkflowSchemaCompliance:
             if not isinstance(workflow["content"], dict):
                 continue
             for key in required_keys:
-                assert key in workflow["content"], (
-                    f"Workflow {workflow['path']} missing required key: {key}"
-                )
+                assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
             for job_name, job in workflow["content"].get("jobs", {}).items():
                 for step in job.get("steps", []):
                     uses = step.get("uses", "")
@@ -183,14 +177,10 @@ class TestWorkflowSchemaCompliance:
 
         unique_versions = set(checkout_versions.values())
         # Allow v3 and v4, but should be mostly consistent
-        assert len(unique_versions) <= 2, (
-            f"Too many different checkout versions: {checkout_versions}"
-        )
+        assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
         unique_versions = set(checkout_versions.values())
         # Allow v3 and v4, but should be mostly consistent
-        assert len(unique_versions) <= 2, (
-            f"Too many different checkout versions: {checkout_versions}"
-        )
+        assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
 
 
 class TestDefaultValueHandling:
@@ -234,12 +224,8 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(timeout, int), (
-                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    )
-                    assert 1 <= timeout <= 360, (
-                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
-                    )
+                    assert isinstance(timeout, int), f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    assert 1 <= timeout <= 360, f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
 
 
 if __name__ == "__main__":
