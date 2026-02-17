@@ -808,7 +808,7 @@ class TestAssetUpdateValidation:
             repository.session.commit()
 
         retrieved = repository.get_asset_by_id("MULTI_UPDATE")
-        assert retrieved.price == 150.0  # Final value
+        assert abs(retrieved.price - 150.0) < 1e-9  # Final value
 
 
 @pytest.mark.unit
