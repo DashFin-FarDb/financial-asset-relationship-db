@@ -154,6 +154,7 @@ class FinancialAssetApp:
         """
         self.graph: AssetRelationshipGraph | None = None
         self._initialize_graph()
+
     @staticmethod
     def _create_database() -> AssetRelationshipGraph:
         """
