@@ -152,24 +152,22 @@ class FinancialAssetApp:
         Attempts to populate the instance attribute `graph` by calling the internal
         initializer. May raise an exception if graph creation or initialization fails.
         """
-        self.graph: Optional[AssetRelationshipGraph] = None
-        self._initialize_graph()
-
     @staticmethod
     def _create_database() -> AssetRelationshipGraph:
         """
-        Create an AssetRelationshipGraph using the first available factory
-        function found in src.data.real_data_fetcher.
+        Create an AssetRelationshipGraph by locating and invoking a
+        factory function in src.data.real_data_fetcher.
 
-        Looks for common factory names and invokes the first callable found.
+        The function probes a set of known factory names and calls the first
+        callable it finds to obtain the graph.
 
         Returns:
-            AssetRelationshipGraph: Graph instance produced by the discovered factory.
+            AssetRelationshipGraph: The constructed asset relationship graph.
 
         Raises:
-            TypeError: If a discovered factory is callable but returns a value
-                that is not an AssetRelationshipGraph.
-            AttributeError: If no known factory function is present in
+            TypeError: If a discovered factory is callable but returns
+                a value that is not an AssetRelationshipGraph.
+            AttributeError: If no recognized factory function is present in
                 src.data.real_data_fetcher.
         """
         candidates = (
@@ -185,10 +183,8 @@ class FinancialAssetApp:
                 if isinstance(graph, AssetRelationshipGraph):
                     return graph
                 raise TypeError(
-                    f"{name}() returned {type(graph)!r}, "
-                    "expected AssetRelationshipGraph"
+                    f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
                 )
-
         raise AttributeError(
             "No known database factory found in "
             "src.data.real_data_fetcher. Tried: "
