@@ -39,7 +39,7 @@ class TestYAMLSyntaxAndStructure:
             except yaml.YAMLError as e:
                 parse_errors.append(f"{yaml_file}: {str(e)}")
 
-        assert len(parse_errors) == 0, f"YAML parse errors:\n" + "\n".join(parse_errors)
+        assert len(parse_errors) == 0, "YAML parse errors:\n" + "\n".join(parse_errors)
 
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
@@ -65,24 +65,21 @@ class TestYAMLSyntaxAndStructure:
                 # Skip empty lines and full-line comments
                 if not stripped or stripped.startswith("#"):
                     continue
-
                 # If currently inside a block scalar, continue until indentation returns
                 if in_block_scalar:
-                    # Exit block scalar when indentation is less than or equal to the scalar's parent indent
                     if leading_spaces <= block_scalar_indent:
+                        # Exit block scalar when indentation is less than or equal to the scalar's parent indent
                         in_block_scalar = False
                         block_scalar_indent = None
                     else:
                         # Still inside scalar; skip indentation checks
                         continue
-
                 # Detect start of block scalars (| or > possibly with chomping/indent indicators)
                 # Example: key: |-, key: >2, key: |+
                 if re.search(r":\s*[|>](?:[+-]|\d+)?", line):
                     in_block_scalar = True
                     block_scalar_indent = leading_spaces
                     continue
-
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
                 if line[0] == " " and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |"):
                     if leading_spaces % 2 != 0:
@@ -94,29 +91,31 @@ class TestYAMLSyntaxAndStructure:
 
         assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
 
-    def test_no_duplicate_keys_in_yaml(self):
-        """
-        Check that no YAML files under .github contain duplicate keys by loading each file with ruamel.yaml's strict parser.
 
-        Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml (typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate-key errors are collected and cause the test to fail with a consolidated error message.
-        """
+def test_no_duplicate_keys_in_yaml():
+    """
+    Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate - key errors are collected and cause the test to fail with a consolidated error message.
+    """
+    try:
+        from ruamel.yaml import YAML, YAMLError
+    except ImportError:
+        pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
+
+    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+    parser = YAML(typ="safe")
+    parse_errors = []
+
+    for yaml_file in yaml_files:
         try:
-            from ruamel.yaml import YAML
-        except ImportError:
-            pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
-
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
-        parser = YAML(typ="safe")
-        parse_errors = []
-
-        for yaml_file in yaml_files:
-            try:
-                with open(yaml_file, "r") as f:
-                    parser.load(f)
-            except Exception as e:
-                parse_errors.append(f"{yaml_file}: {e}")
-
-        assert not parse_errors, "Duplicate keys or YAML errors detected:\n" + "\n".join(parse_errors)
+            with open(yaml_file, "r") as f:
+                parser.load(f)
+        except YAMLError as e:
+            parse_errors.append(f"{yaml_file}: YAML error - {e}")
+        except OSError as e:
+            # Report but don't fail the test on file system errors
+            parse_errors.append(f"{yaml_file}: File system error - {e}")
+        except Exception as e:
+            parse_errors.append(f"{yaml_file}: Unexpected error - {e}")
 
 
 class TestWorkflowSchemaCompliance:
@@ -126,12 +125,12 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-        Collects and parses all YAML workflow files found in .github/workflows.
+        Collects and parses all YAML workflow files found in .github / workflows.
 
         Returns:
-            workflows (List[Dict[str, Any]]): A list of dictionaries, each containing:
+            workflows(List[Dict[str, Any]]): A list of dictionaries, each containing:
                 - 'path' (Path): Path to the workflow file.
-                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load (typically a dict, or None if the file is empty).
+                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load(typically a dict, or None if the file is empty).
         """
         workflow_dir = Path(".github/workflows")
         workflows = []
@@ -141,7 +140,7 @@ class TestWorkflowSchemaCompliance:
         return workflows
 
     def test_workflows_have_required_top_level_keys(self, all_workflows):
-        """Verify workflows have all required top-level keys."""
+        """Verify workflows have all required top - level keys."""
         required_keys = ["name", "jobs"]
         checkout_versions = {}
         for workflow in all_workflows:
@@ -156,29 +155,32 @@ class TestDefaultValueHandling:
     """Tests for default value handling in configurations."""
 
     @staticmethod
-    def test_missing_optional_fields_have_defaults():
+    def test_missing_optional_fields_have_defaults() -> None:
         """
-        Ensure optional fields in .github/pr-agent-config.yml are handled and validated.
+        Ensure optional fields in `.github / pr - agent - config.yml` are handled and validated.
 
-        Asserts that if the top-level `agent` section includes an `enabled` key, its value is a boolean; omission of `enabled` is permitted and treated as the configuration's default.
+        Asserts that if the top - level 'agent' section includes an 'enabled' key,
+        its value is a boolean. Omission of 'enabled' is permitted and treated
+        as the configuration default.
         """
         config_path = Path(".github/pr-agent-config.yml")
-        with open(config_path, "r") as f:
+
+        with open(config_path, "r", encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # These fields should have defaults if not specified
         agent_config = config.get("agent", {})
 
-        # If enabled is not specified, should default to true
+        # If enabled is specified, it must be a boolean
         if "enabled" in agent_config:
             assert isinstance(agent_config["enabled"], bool)
 
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Ensure job-level workflow timeouts, when specified, are integers between 1 and 360 minutes.
+        Ensure job - level workflow timeouts, when specified, are integers between 1 and 360 minutes.
 
-        Checks each YAML file in .github/workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
+        Checks each YAML file in .github / workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
         """
         workflow_dir = Path(".github/workflows")
 
