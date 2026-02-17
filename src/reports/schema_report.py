@@ -105,7 +105,7 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     return out
 
 
- def generate_schema_report(graph: AssetRelationshipGraph) -> str:
+def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
     Produce a Markdown report summarizing schema, relationship
     distributions, calculated metrics, rules, and optimization
