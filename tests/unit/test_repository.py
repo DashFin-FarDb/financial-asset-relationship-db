@@ -1547,8 +1547,8 @@ class TestAssetUpdateScenarios:
         repository.session.commit()
 
         retrieved = repository.list_assets()[0]
-        assert retrieved.price == 150.0
-        assert pytest.approx(retrieved.pe_ratio) == 20.0  # Should remain unchanged
+        assert retrieved.price == pytest.approx(150.0)
+        assert retrieved.pe_ratio == pytest.approx(20.0)  # Should remain unchanged
 
     @staticmethod
     def test_update_add_optional_field(repository):
