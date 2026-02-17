@@ -884,6 +884,8 @@ class TestPydanticModelValidation:
         assert abs(rel.strength - 0.5) < 1e-9
         # Test boundary values
         rel_min = RelationshipResponse(
+        # Test boundary values
+        rel_min = RelationshipResponse(
             source_id="A",
             target_id="B",
             relationship_type="test",
