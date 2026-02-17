@@ -351,7 +351,7 @@ class TestUpdateAssetInfo:
         assert (
             relationships["outgoing"]["TEST_002"]["relationship_type"] == "SAME_SECTOR"
         )
-        assert relationships["outgoing"]["TEST_002"]["strength"] == 0.8
+        assert abs(relationships["outgoing"]["TEST_002"]["strength"] - 0.8) < 1e-9
 
     @staticmethod
     def test_update_asset_info_with_nonexistent_asset():
