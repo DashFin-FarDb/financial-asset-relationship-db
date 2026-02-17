@@ -886,7 +886,7 @@ class TestPydanticModelValidation:
             relationship_type="test",
             strength=0.5,
         )
-        
+
         assert abs(rel.strength - 0.5) < 1e-9
         # Test boundary values
         rel_min = RelationshipResponse(
@@ -895,7 +895,7 @@ class TestPydanticModelValidation:
             relationship_type="test",
             assert rel_min.strength == pytest.approx(0.0)
 
-        rel_max = RelationshipResponse(
+        rel_max=RelationshipResponse(
             source_id="A",
             target_id="B",
             relationship_type="test",
@@ -905,7 +905,7 @@ class TestPydanticModelValidation:
 
     def test_metrics_response_validates_non_negative_values(self):
         """Negative: MetricsResponse should reject negative metrics."""
-        metrics = MetricsResponse(
+        metrics=MetricsResponse(
             total_assets=-1,  # Currently allowed as no validation is implemented
             total_relationships=0,
             asset_classes={},
@@ -916,12 +916,12 @@ class TestPydanticModelValidation:
         assert isinstance(metrics, MetricsResponse)
 
 
-@pytest.mark.unit
+@ pytest.mark.unit
 class TestEndpointStressTests:
     """Stress tests for API endpoints under load."""
 
-    @staticmethod
-    @pytest.fixture
+    @ staticmethod
+    @ pytest.fixture
     def client():
         """
         Provide a TestClient configured with an in-memory sample graph for tests.
@@ -932,7 +932,7 @@ class TestEndpointStressTests:
             TestClient: A TestClient instance for the FastAPI app with the sample graph loaded.
         """
         api_main.set_graph(create_sample_database())
-        client = TestClient(app)
+        client=TestClient(app)
         try:
             yield client
         finally:
@@ -940,9 +940,9 @@ class TestEndpointStressTests:
 
     def test_rapid_successive_requests(self, client):
         """Stress: Handle many rapid successive requests."""
-        responses = []
+        responses=[]
         for _ in range(100):
-            response = client.get("/api/health")
+            response=client.get("/api/health")
             responses.append(response)
 
         # All should succeed
@@ -951,7 +951,7 @@ class TestEndpointStressTests:
 
     def test_mixed_endpoint_requests(self, client):
         """Stress: Handle mixed requests to different endpoints."""
-        endpoints = [
+        endpoints=[
             "/api/health",
             "/api/assets",
             "/api/metrics",
@@ -961,16 +961,16 @@ class TestEndpointStressTests:
 
         for _ in range(20):
             for endpoint in endpoints:
-                response = client.get(endpoint)
+                response=client.get(endpoint)
                 assert response.status_code == 200
 
 
-@pytest.mark.unit
+@ pytest.mark.unit
 class TestErrorMessageQuality:
     """Test quality and informativeness of error messages."""
 
-    @staticmethod
-    @pytest.fixture
+    @ staticmethod
+    @ pytest.fixture
     def client():
         """
         Provide a TestClient configured with an in-memory sample graph for tests.
@@ -981,7 +981,7 @@ class TestErrorMessageQuality:
             TestClient: a TestClient instance bound to the app with the sample graph loaded.
         """
         api_main.set_graph(create_sample_database())
-        client = TestClient(app)
+        client=TestClient(app)
         try:
             yield client
         finally:
@@ -989,9 +989,9 @@ class TestErrorMessageQuality:
 
     def test_404_error_message_is_informative(self, client):
         """Error messages should be informative for developers."""
-        response = client.get("/api/assets/NONEXISTENT_ASSET")
+        response=client.get("/api/assets/NONEXISTENT_ASSET")
         assert response.status_code == 404
-        error_data = response.json()
+        error_data=response.json()
 
         # Should have detail key
         assert "detail" in error_data
@@ -1000,9 +1000,9 @@ class TestErrorMessageQuality:
 
     def test_invalid_endpoint_error_message(self, client):
         """Invalid endpoints should return clear error."""
-        response = client.get("/api/invalid_endpoint_that_does_not_exist")
+        response=client.get("/api/invalid_endpoint_that_does_not_exist")
         assert response.status_code == 404
-        error_data = response.json()
+        error_data=response.json()
         assert "detail" in error_data
 
 
