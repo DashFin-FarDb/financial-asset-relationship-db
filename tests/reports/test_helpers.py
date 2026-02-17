@@ -121,6 +121,7 @@ def test_as_float_with_scientific_notation() -> None:
     assert _as_float("1e3") == pytest.approx(1000.0)
     assert _as_float("2.5e-2") == pytest.approx(0.025)
 
+
 def test_as_float_with_negative_values() -> None:
     """Test _as_float with negative values."""
     assert _as_float(-10.5) == -10.5
