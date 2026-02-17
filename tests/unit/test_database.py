@@ -618,9 +618,10 @@ class TestDatabaseErrorRecovery:
         init_db(engine)
         factory = create_session_factory(engine)
 
-        with pytest.raises(ValueError), session_scope(factory) as session:
-            session.add(TestModel(id=1, value="test"))
-            raise ValueError("Intentional error")
+        with pytest.raises(ValueError):
+            with session_scope(factory) as session:
+                session.add(TestModel(id=1, value="test"))
+                raise ValueError("Intentional error")
 
         with session_scope(factory) as session:
             session.add(TestModel(id=2, value="success"))
