@@ -613,7 +613,6 @@ class FinancialAssetApp:
         empirical = analysis_results.get("empirical_relationships") or {}
         summary_lines: list[str] = []
 
-
         # Formula categories
         categories = summary.get("formula_categories")
         if isinstance(categories, dict):
