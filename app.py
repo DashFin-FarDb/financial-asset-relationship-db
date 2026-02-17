@@ -152,7 +152,8 @@ class FinancialAssetApp:
         Attempts to populate the instance attribute `graph` by calling the internal
         initializer. May raise an exception if graph creation or initialization fails.
         """
-
+        self.graph: AssetRelationshipGraph | None = None
+        self._initialize_graph()
     @staticmethod
     def _create_database() -> AssetRelationshipGraph:
         """
