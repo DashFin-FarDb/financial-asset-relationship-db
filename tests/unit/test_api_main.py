@@ -137,9 +137,7 @@ class TestGraphInitialization:
         graph2 = api_main.get_graph()
         assert graph1 is graph2
 
-    def test_graph_uses_cache_when_configured(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
@@ -156,9 +154,7 @@ class TestGraphInitialization:
         api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
-    def test_graph_fallback_on_corrupted_cache(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_fallback_on_corrupted_cache(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should fallback when cache is corrupted or invalid."""
         cache_path = tmp_path / "graph_snapshot.json"
         cache_path.write_text("not valid json", encoding="utf-8")
@@ -382,9 +378,7 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(
-        self, client: TestClient
-    ) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
         """Metrics endpoint handles multi-node graphs with no relationships."""
         graph = AssetRelationshipGraph()
         graph.add_asset(
@@ -907,7 +901,7 @@ class TestPydanticModelValidation:
 
     def test_metrics_response_validates_non_negative_values(self):
         """Negative: MetricsResponse should reject negative metrics."""
-        metrics=MetricsResponse(
+        metrics = MetricsResponse(
             total_assets=-1,  # Currently allowed as no validation is implemented
             total_relationships=0,
             asset_classes={},
@@ -918,12 +912,12 @@ class TestPydanticModelValidation:
         assert isinstance(metrics, MetricsResponse)
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 class TestEndpointStressTests:
     """Stress tests for API endpoints under load."""
 
-    @ staticmethod
-    @ pytest.fixture
+    @staticmethod
+    @pytest.fixture
     def client():
         """
         Provide a TestClient configured with an in-memory sample graph for tests.
@@ -934,7 +928,7 @@ class TestEndpointStressTests:
             TestClient: A TestClient instance for the FastAPI app with the sample graph loaded.
         """
         api_main.set_graph(create_sample_database())
-        client=TestClient(app)
+        client = TestClient(app)
         try:
             yield client
         finally:
@@ -942,9 +936,9 @@ class TestEndpointStressTests:
 
     def test_rapid_successive_requests(self, client):
         """Stress: Handle many rapid successive requests."""
-        responses=[]
+        responses = []
         for _ in range(100):
-            response=client.get("/api/health")
+            response = client.get("/api/health")
             responses.append(response)
 
         # All should succeed
@@ -953,7 +947,7 @@ class TestEndpointStressTests:
 
     def test_mixed_endpoint_requests(self, client):
         """Stress: Handle mixed requests to different endpoints."""
-        endpoints=[
+        endpoints = [
             "/api/health",
             "/api/assets",
             "/api/metrics",
@@ -963,16 +957,16 @@ class TestEndpointStressTests:
 
         for _ in range(20):
             for endpoint in endpoints:
-                response=client.get(endpoint)
+                response = client.get(endpoint)
                 assert response.status_code == 200
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 class TestErrorMessageQuality:
     """Test quality and informativeness of error messages."""
 
-    @ staticmethod
-    @ pytest.fixture
+    @staticmethod
+    @pytest.fixture
     def client():
         """
         Provide a TestClient configured with an in-memory sample graph for tests.
@@ -983,7 +977,7 @@ class TestErrorMessageQuality:
             TestClient: a TestClient instance bound to the app with the sample graph loaded.
         """
         api_main.set_graph(create_sample_database())
-        client=TestClient(app)
+        client = TestClient(app)
         try:
             yield client
         finally:
@@ -991,9 +985,9 @@ class TestErrorMessageQuality:
 
     def test_404_error_message_is_informative(self, client):
         """Error messages should be informative for developers."""
-        response=client.get("/api/assets/NONEXISTENT_ASSET")
+        response = client.get("/api/assets/NONEXISTENT_ASSET")
         assert response.status_code == 404
-        error_data=response.json()
+        error_data = response.json()
 
         # Should have detail key
         assert "detail" in error_data
@@ -1002,9 +996,9 @@ class TestErrorMessageQuality:
 
     def test_invalid_endpoint_error_message(self, client):
         """Invalid endpoints should return clear error."""
-        response=client.get("/api/invalid_endpoint_that_does_not_exist")
+        response = client.get("/api/invalid_endpoint_that_does_not_exist")
         assert response.status_code == 404
-        error_data=response.json()
+        error_data = response.json()
         assert "detail" in error_data
 
 
