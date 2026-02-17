@@ -45,8 +45,8 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     db_path = tmp_path / "repository.db"
     _apply_migration(db_path)
 
-    engine: Engine = create_engine(f"sqlite:///{db_path}", future=True)
-    SessionLocal = sessionmaker(bind=engine, autoflush=False, future=True)
+    engine: Engine = create_engine(f"sqlite:///{db_path}")
+    SessionLocal = sessionmaker(bind=engine, autoflush=False)
 
     session: Session = SessionLocal()
     try:
