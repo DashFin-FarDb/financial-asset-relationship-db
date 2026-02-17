@@ -460,8 +460,19 @@ class FinancialAssetApp:
                     show_all_relationships=show_all_relationships,
                 )
             else:
-                # Default to 3D visualization for any non-"2D" view mode
-                graph_viz=visualize_3d_graph(graph)
+                # Use filtered 3D visualization for any non-"2D" view mode, honoring filters and arrow toggle
+                graph_viz = visualize_3d_graph_with_filters(
+                    graph,
+                    show_same_sector=show_same_sector,
+                    show_market_cap=show_market_cap,
+                    show_correlation=show_correlation,
+                    show_corporate_bond=show_corporate_bond,
+                    show_commodity_currency=show_commodity_currency,
+                    show_income_comparison=show_income_comparison,
+                    show_regulatory=show_regulatory,
+                    show_all_relationships=show_all_relationships,
+                    toggle_arrows=toggle_arrows,
+                )
 
             return graph_viz, gr.update(visible=False)
 
