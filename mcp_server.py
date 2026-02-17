@@ -18,6 +18,11 @@ class _ThreadSafeGraph:
         self._lock = lock
 
     def __getattr__(self, name: str):
+        """
+        Dynamically resolves attribute access under a lock to avoid race conditions.
+        If the attribute is callable, returns a wrapper that locks around calls;
+        otherwise, returns a defensive deep copy of the attribute.
+        """
         # Resolve the attribute under lock to avoid races.
         with self._lock:
             attr = getattr(self._graph, name)
@@ -25,6 +30,10 @@ class _ThreadSafeGraph:
             if callable(attr):
 
                 def _wrapped(*args, **kwargs):
+                    """
+                    Thread-safe wrapper for callable attributes that acquires the lock
+                    before invocation.
+                    """
                     with self._lock:
                         return attr(*args, **kwargs)
 
@@ -54,7 +63,13 @@ def _build_mcp_app():
     mcp = FastMCP("DashFin-Relationship-Manager")
 
     @mcp.tool()
-    def add_equity_node(asset_id: str, symbol: str, name: str, sector: str, price: float) -> str:
+    def add_equity_node(
+        asset_id: str,
+        symbol: str,
+        name: str,
+        sector: str,
+        price: float,
+    ) -> str:
         """
         Validate an Equity asset and add it to the graph.
 
@@ -76,7 +91,8 @@ def _build_mcp_app():
                 price=price,
             )
 
-            # Prefer using the graph's public add_asset API (per AssetRelationshipGraph).
+            # Prefer using the graph's public add_asset API
+            # (per AssetRelationshipGraph).
             add_asset = getattr(graph, "add_asset", None)
             if callable(add_asset):
                 add_asset(new_equity)
@@ -105,6 +121,7 @@ def _build_mcp_app():
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Entry point for the MCP server CLI."""
     parser = argparse.ArgumentParser(
         prog="mcp_server.py",
         description="DashFin MCP server",
@@ -126,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
         # Provide a clear message for missing optional dependency
         # when invoked via the CLI.
         missing = getattr(e, "name", None) or str(e)
-        raise SystemExit(f"Missing dependency '{missing}'. " + "Install the MCP package to run the server.") from e
+        raise SystemExit(f"Missing dependency '{missing}'. " "Install the MCP package to run the server.") from e
 
     mcp.run()
     return 0
