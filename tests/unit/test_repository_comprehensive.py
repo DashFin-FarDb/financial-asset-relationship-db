@@ -931,5 +931,6 @@ class TestRelationshipTypeVariations:
 
         assert rel1 is not None
         assert rel2 is not None
-        assert rel1.strength == 0.5
-        assert rel2.strength == 0.6
+        assert abs(rel1.strength - 0.5) < 1e-9
+        assert abs(rel2.strength - 0.6) < 1e-9
+
