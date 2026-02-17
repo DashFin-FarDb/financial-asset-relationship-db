@@ -346,7 +346,7 @@ class TestUpdateAssetInfo:
 
         assert asset_dict["id"] == "TEST_001"
         assert asset_dict["symbol"] == "TEST"
-        assert asset_dict["asset_class"] == "EQUITY"
+        assert asset_dict["asset_class"] == AssetClass.EQUITY.value
         assert "TEST_002" in relationships["outgoing"]
         assert (
             relationships["outgoing"]["TEST_002"]["relationship_type"] == "SAME_SECTOR"
