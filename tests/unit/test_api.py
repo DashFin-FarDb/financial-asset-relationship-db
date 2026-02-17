@@ -323,7 +323,7 @@ class TestAssetsEndpoint:
 
 @pytest.mark.unit
 class TestAssetDetailEndpoint:
-    assert abs(data["price"] - 150.00) < 1e-6
+        assert abs(data["price"] - 150.00) < 1e-6
 
     @patch("api.main.graph")
     def test_get_asset_detail_success(
