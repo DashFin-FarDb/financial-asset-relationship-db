@@ -62,6 +62,15 @@ def client() -> Iterator[TestClient]:
         api_main.reset_graph()
 
 
+@pytest.fixture()
+def bare_client() -> TestClient:
+    """
+    Provide a raw TestClient without mutating the global graph.
+
+    This client is intended for tests that patch graph access functions directly (for example, get_graph) or only exercise middleware such as CORS.
+    """
+    return TestClient(app)
+
 @pytest.mark.unit
 class TestValidateOrigin:
     """Test the validate_origin function for CORS configuration."""
