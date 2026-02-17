@@ -83,6 +83,9 @@ def test_supabase_connection_smoke() -> None:
     if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
         pytest.skip("SUPABASE_KEY appears to be a placeholder")
 
+    if any(tok in supabase_url for tok in PLACEHOLDER_TOKENS):
+        pytest.skip("SUPABASE_URL appears to be a placeholder")
+
     # Build client
     try:
         supabase: Client = create_client(supabase_url, supabase_key)
