@@ -378,7 +378,7 @@ class TestSnykWorkflowSecurity:
     """Test security best practices in Snyk workflow."""
 
     @pytest.fixture
-    def snyk_workflow(self):
+    def snyk_workflow_path(self) -> Path:
         """
         Return the parsed YAML mapping for the Snyk GitHub Actions workflow.
 
