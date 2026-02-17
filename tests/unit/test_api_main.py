@@ -893,9 +893,11 @@ class TestPydanticModelValidation:
             source_id="A",
             target_id="B",
             relationship_type="test",
-            assert rel_min.strength == pytest.approx(0.0)
+            strength=0.0,
+        )
+        assert rel_min.strength == pytest.approx(0.0)
 
-        rel_max=RelationshipResponse(
+        rel_max = RelationshipResponse(
             source_id="A",
             target_id="B",
             relationship_type="test",
