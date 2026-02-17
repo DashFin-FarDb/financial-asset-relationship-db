@@ -489,3 +489,4 @@ class TestMultipleGenerations:
         # Report should reference date/time concepts
         assert isinstance(report, str)
         assert len(report) > 0
+        assert "ISO 8601" in report
