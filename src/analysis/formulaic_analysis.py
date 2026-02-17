@@ -143,7 +143,7 @@ class FormulaicAnalyzer:
             formulas.append(
                 Formula(
                     name="Price-to-Earnings",
-                    formula="P / E",
+                    expression="P / E",
                     latex=r"\frac{P}{E}",
                     description="Market price per share divided by earnings per share.",
                     variables={
