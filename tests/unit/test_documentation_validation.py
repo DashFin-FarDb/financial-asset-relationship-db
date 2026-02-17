@@ -455,7 +455,7 @@ class TestSystemManifest:
             system_manifest_content(str): Full markdown text of the system manifest to inspect.
         """
         # Look for file dependency entries like: ### \path\to\file.py
-        file_pattern = r"###\s+\\[\w\\\/._-]+\.\w+"
+        file_pattern = r"###\s+\\[\w\/._-]+\.\w+"
         matches = re.findall(file_pattern, system_manifest_content)
 
         # If there are file entries, they should be properly formatted
