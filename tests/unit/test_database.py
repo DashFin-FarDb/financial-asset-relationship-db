@@ -64,9 +64,9 @@ def isolated_base() -> Iterator[type[Base]]:
     leaking table metadata into the global Base.metadata; any tables registered on the
     global metadata during the fixture are removed after the fixture completes.
 
-    Returns:
-        isolated_base (type[Base]): A declarative-base subclass for test-local models whose
-        tables will be cleaned from the global metadata when the fixture finishes.
+    Yields:
+        type[Base]: A declarative-base subclass for test-local models whose
+            tables will be cleaned from the global metadata when the fixture finishes.
     """
     existing_tables = set(Base.metadata.tables)
 
