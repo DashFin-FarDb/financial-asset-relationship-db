@@ -326,10 +326,10 @@ class FormulaicAnalyzer:
             expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
             latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
             description="Risk-adjusted return metric",
-        formulas = []
+        formulas=[]
 
         # Sharpe Ratio
-        sharpe_formula = Formula(
+        sharpe_formula=Formula(
             name="Sharpe Ratio",
             expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
             latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
@@ -347,7 +347,7 @@ class FormulaicAnalyzer:
         formulas.append(sharpe_formula)
 
         # Volatility (Standard Deviation)
-        volatility_formula = Formula(
+        volatility_formula=Formula(
             name="Volatility (Standard Deviation)",
             expression="σ = √(Σ(R_i - μ)² / (n-1))",
             latex=r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}{n-1}}",

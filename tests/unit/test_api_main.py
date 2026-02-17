@@ -72,6 +72,7 @@ def bare_client() -> TestClient:
     return TestClient(app)
 
 
+
 @pytest.mark.unit
 class TestValidateOrigin:
     """Test the validate_origin function for CORS configuration."""

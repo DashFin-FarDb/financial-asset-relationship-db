@@ -461,7 +461,7 @@ class FinancialAssetApp:
                 )
             else:
                 # Use filtered 3D visualization for any non-"2D" view mode, honoring filters and arrow toggle
-                graph_viz = visualize_3d_graph_with_filters(
+                graph_viz=visualize_3d_graph_with_filters(
                     graph,
                     show_same_sector=show_same_sector,
                     show_market_cap=show_market_cap,
