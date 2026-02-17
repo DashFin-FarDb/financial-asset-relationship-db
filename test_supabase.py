@@ -30,6 +30,10 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
     "<KEY>",
     "YOUR_KEY",
     "SUPABASE_KEY_HERE",
+    "your-project",
+    "<URL>",
+    "YOUR_URL",
+    "SUPABASE_URL_HERE",
 )
 
 
