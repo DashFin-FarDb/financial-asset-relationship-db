@@ -166,5 +166,5 @@ class TestConftestFixtures:
     def test_dividend_stock_fixture(dividend_stock):
         """Test dividend_stock fixture returns an Equity with dividend_yield."""
         assert isinstance(dividend_stock, Equity)
-        assert dividend_stock.dividend_yield == 0.04
+        assert dividend_stock.dividend_yield == pytest.approx(0.04)
         assert dividend_stock.sector == "Utilities"
