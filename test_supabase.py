@@ -66,8 +66,11 @@ def test_supabase_connection_smoke() -> None:
 
     # If you *really* want local .env loading, do it only when explicitly enabled.
     if os.getenv("LOAD_DOTENV") == "1":
-        dotenv = pytest.importorskip("dotenv")
-        dotenv.load_dotenv()
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+        except ImportError:
+            pass  # dotenv not installed; proceed without it
 
     supabase_url = _get_env("SUPABASE_URL")
     supabase_key = _get_env("SUPABASE_KEY")
