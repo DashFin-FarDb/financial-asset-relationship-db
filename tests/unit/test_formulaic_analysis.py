@@ -1224,9 +1224,13 @@ class TestIntegrationScenarios:
         graph.add_asset(equity)
         graph.build_relationships()
 
-        result = analyzer.analyze_graph(graph)
-
-        # Quality score should be in [0, 1]
-        assert "summary" in result
-        assert isinstance(result["formula_count"], int)
-        assert result["formula_count"] > 0
+                # Run analyzer to ensure it still works with the graph
+                result = analyzer.analyze_graph(graph)
+                assert "summary" in result
+                assert isinstance(result["formula_count"], int)
+                assert result["formula_count"] > 0
+                # Explicitly verify the graph's quality score metric is present and bounded
+                metrics = graph.calculate_metrics()
+                assert "quality_score" in metrics
+                assert isinstance(metrics["quality_score"], float)
+                assert 0.0 <= metrics["quality_score"] <= 1.0
