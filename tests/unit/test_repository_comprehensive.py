@@ -847,7 +847,9 @@ class TestRelationshipTypeVariations:
         )
         repository.session.commit()
 
-        rel = repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
+        repository.get_relationship(
+            "REL_TYPE1", "REL_TYPE2", "same_sector_correlation"
+        )
         assert rel1 is not None
         assert rel2 is not None
         assert abs(rel1.strength - 0.5) < 1e-9
