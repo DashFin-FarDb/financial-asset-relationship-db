@@ -13,9 +13,9 @@ This module tests all API endpoints including:
 from unittest.mock import PropertyMock, patch
 
 import pytest
+from api.main import app, validate_origin
 from fastapi.testclient import TestClient
 
-from api.main import app, validate_origin
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 

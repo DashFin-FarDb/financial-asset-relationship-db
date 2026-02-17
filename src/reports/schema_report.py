@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Mapping
+from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
