@@ -480,12 +480,10 @@ class TestMultipleGenerations:
 
     @staticmethod
     def test_report_includes_timestamp():
-        """Test that report includes timestamp information."""
+        """Test that report includes a generation timestamp."""
         from src.logic.asset_graph import AssetRelationshipGraph
 
         graph = AssetRelationshipGraph()
         report = generate_schema_report(graph)
 
-        # Report should reference date/time concepts
-        assert isinstance(report, str)
-        assert len(report) > 0
+        assert "Generated:" in report or "Timestamp:" in report
