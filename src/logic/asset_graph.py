@@ -45,7 +45,19 @@ class AssetRelationshipGraph:
                 retained for subsequent processing of event-driven impacts.
         """
         self.regulatory_events.append(event)
-        # Build relationships using sector, issuer linkage, and event impacts.
+
+    def build_relationships(self) -> None:
+        """
+        Build or rebuild the relationship graph based on current assets and
+        recorded regulatory events.
+
+        This method:
+            * Clears existing relationships.
+            * Links assets that share sectors.
+            * Links bonds to issuers where applicable.
+            * Applies the impact of any recorded regulatory events.
+        """
+        # Reset existing relationships before rebuilding.
         self.relationships = {}
 
         asset_ids = list(self.assets.keys())
