@@ -89,10 +89,11 @@ def isolated_base() -> Iterator[type[Base]]:
 
 @pytest.fixture()
 def engine() -> Iterator[Engine]:
+    def engine() -> Iterator[Engine]:
     """
     Create an in-memory SQLite Engine configured for tests.
 
-    Returns:
+    Yields:
         Engine: An Engine connected to an in-memory SQLite database. The engine is disposed when the fixture is torn down.
     """
     in_memory_engine = create_engine(
