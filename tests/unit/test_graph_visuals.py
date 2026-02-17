@@ -19,12 +19,9 @@ class DummyGraph(AssetRelationshipGraph):
         Initialize the DummyGraph with a mapping of asset relationships.
 
         Parameters:
-            relationships (dict): Mapping from source asset ID (str) to a list of relationships.
-                Each relationship is a tuple (target_id, relationship_type, weight) where
-                `target_id` and `relationship_type` are strings and `weight` is a float.
-
-        Notes:
-            The provided mapping is stored on the instance as `self.relationships`.
+            relationships (dict): Mapping from source asset ID (str) to a list of relationship tuples. Each tuple is
+                (target_id: str, relation_type: str, weight: float), representing an outgoing relationship from the
+                source asset to the target asset with the given type and weight.
         """
         super().__init__()
         self.relationships = relationships

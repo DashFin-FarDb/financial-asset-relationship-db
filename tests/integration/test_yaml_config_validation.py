@@ -87,8 +87,8 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not (
-                    stripped.startswith("- |") or stripped.startswith("- >")
+                if line[0] == " " and not line.startswith(
+                    "  " * (leading_spaces // 2 + 1) + "- |"
                 ):
                     if leading_spaces % 2 != 0:
                         indentation_errors.append(
@@ -104,9 +104,9 @@ class TestYAMLSyntaxAndStructure:
 
 def test_no_duplicate_keys_in_yaml():
     """
-    Check that YAML files under .github parse without duplicate keys or other YAML parsing errors using ruamel.yaml.
+    Validate that all .github/*.yml and .github/*.yaml files parse without duplicate keys or other YAML errors when checked with ruamel.yaml.
 
-    Attempts to import ruamel.yaml and skips the test if unavailable. Collects all `.yml` and `.yaml` files under `.github` and records any YAML parsing errors, file system errors, or unexpected exceptions encountered while loading each file; the test fails if any such errors are found.
+    If ruamel.yaml is not available, the test is skipped. Each YAML file is loaded with ruamel.yaml.YAML(typ="safe"); parsing errors (YAMLError), file system errors (OSError), and unexpected exceptions are recorded with file context and reported so the test fails when any such errors are found.
     """
     try:
         from ruamel.yaml import YAML, YAMLError
@@ -141,12 +141,12 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-        Collects and parses all GitHub Actions workflow files from .github/workflows.
+        Collect and parse all YAML workflow files in .github/workflows.
 
         Returns:
-            List[Dict[str, Any]]: A list of dictionaries for each workflow file with:
+            List[Dict[str, Any]]: A list of mappings for each workflow file with keys:
                 - 'path' (Path): Path to the workflow file.
-                - 'content' (Any): Parsed YAML content (typically a dict, or `None` if the file is empty).
+                - 'content' (Any): Parsed YAML content from yaml.safe_load (typically a dict, or `None` if the file is empty).
         """
         workflow_dir = Path(".github/workflows")
         workflows = []
@@ -157,35 +157,27 @@ class TestWorkflowSchemaCompliance:
 
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """
-        Ensure each workflow defines required top-level keys and that checkout action versions are reasonably consistent.
+        Validate each workflow has required top-level keys and that checkout action versions are reasonably consistent.
 
-        Asserts that every workflow's parsed content contains the top-level keys "name" and "jobs". Collects observed checkout action versions across workflows and fails if more than two unique versions are present; the assertion failure includes the observed `checkout_versions`.
+        Checks that every workflow mapping in `all_workflows` contains the top-level keys "name" and "jobs". Also verifies that the set of observed checkout action versions across workflows does not exceed two unique values; if it does, an assertion failure includes the collected `checkout_versions`.
 
         Parameters:
-            all_workflows (List[Dict[str, Any]]): Iterable of workflow descriptors where each item contains:
-                - 'path' (Path | str): filesystem path to the workflow file
-                - 'content' (dict | None): parsed YAML content of the workflow
+            all_workflows (list): Iterable of workflow descriptors where each item is a dict with at least:
+                - 'path' (str): filesystem path to the workflow file
+                - 'content' (dict): parsed YAML content of the workflow
         """
         required_keys = ["name", "jobs"]
-        checkout_versions: Dict[str, str] = {}
+        checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
                 assert key in workflow["content"], (
                     f"Workflow {workflow['path']} missing required key: {key}"
                 )
-            for job_name, job in workflow["content"].get("jobs", {}).items():
-                for step in job.get("steps", []):
-                    uses = step.get("uses", "")
-                    if "actions/checkout@" in uses:
-                        version = uses.split("@")[-1]
-                        checkout_versions[str(workflow["path"])] = version
-
-        unique_versions = set(checkout_versions.values())
-        # Allow v3 and v4, but should be mostly consistent
-        assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
-        unique_versions = set(checkout_versions.values())
-        # Allow v3 and v4, but should be mostly consistent
-        assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
+            unique_versions = set(checkout_versions.values())
+            # Allow v3 and v4, but should be mostly consistent
+            assert len(unique_versions) <= 2, (
+                f"Too many different checkout versions: {checkout_versions}"
+            )
 
 
 class TestDefaultValueHandling:
@@ -215,9 +207,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Check that job `timeout-minutes` values in workflows under .github/workflows are valid.
+        Validate `timeout-minutes` values for jobs in workflow files under .github/workflows.
 
-        For each job that defines `timeout-minutes`, assert the value is an `int` and is between 1 and 360 (inclusive). Assertion messages include the workflow file path and the job id.
+        Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive). Assertion messages include the workflow file path and the job id for context.
         """
         workflow_dir = Path(".github/workflows")
 

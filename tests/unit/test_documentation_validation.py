@@ -333,7 +333,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
+        Verify the system manifest contains a - Description: ... entry documenting the project description.
         """
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
@@ -355,16 +355,10 @@ class TestSystemManifest:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """
-        Assert that the System Manifest declares a current project phase.
-
-        Checks both the section header and a specific "- Current Phase:" line.
-
-        Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md file to inspect.
-        """
+        """Test that systemManifest.md has Current Phase section."""
         assert "## Current Phase" in system_manifest_content
 
+        # Assert that the System Manifest declares a current project phase.
         pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
 
@@ -404,9 +398,7 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """
-        Verify that systemManifest.md contains the "## Dependencies" section.
-        """
+        """Verify that systemManifest.md contains the "## Dependencies" section."""
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
@@ -510,9 +502,9 @@ class TestSystemManifest:
 
     def test_system_manifest_markdown_formatting(self, system_manifest_lines):
         """
-        Verify markdown heading formatting in the System Manifest.
+        Check that Markdown headings in the System Manifest have a space after the leading hashes.
 
-        Asserts that, within the first 500 lines, any Markdown heading that begins with one or more `  # ` characters has a space immediately following the leading hash sequence (e.g. `# Title`, `## Section`). The test raises an assertion identifying the line number and content when a heading is missing the required space.
+        Examines up to the first 500 lines and asserts any line beginning with '#' contains a space immediately following the leading hash sequence(e.g. '# Title', '## Section'). On failure, raises an AssertionError identifying the offending line number and its content.
         """
         for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines
             # Check heading formatting

@@ -72,9 +72,11 @@ def db_session(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
     """
-    Provide a transaction-scoped SQLAlchemy Session.
+    Provide a transaction-scoped SQLAlchemy Session for a test.
 
-    Uses the project's session_scope helper to ensure commit/rollback/close semantics.
+    The yielded session is managed by the project's transaction scope: it will be
+    committed if the test completes successfully, rolled back on failure, and
+    closed afterwards.
     """
     with session_scope(session_factory) as session:
         yield session
@@ -83,29 +85,22 @@ def db_session(
 @pytest.fixture()
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
-    Return a helper that sets environment variables for a test.
+    Provide a helper to set environment variables for tests.
 
-    The returned callable accepts keyword arguments where each key is an
-    environment variable name and each value is the value to set;
-    invoking it sets those environment variables for the duration of the
-    test.
-
-    Returns:
-        setter (Callable[..., None]): Callable to set environment variables
-            by passing keyword arguments (e.g., `set_env(KEY="value")`).
+    The returned setter accepts keyword arguments of environment variables to set,
+    e.g. set_env(FOO="bar", BAZ="qux"). It uses pytest's monkeypatch.setenv so
+    values are restored after the test.
     """
 
     def _setter(**kwargs: str) -> None:
         """
-        Set environment variables for a test using the captured pytest `monkeypatch`.
+        Set environment variables for tests.
 
-        Each keyword argument maps an environment variable name to its string
-        value and will be set with `monkeypatch.setenv`.
-        Parameters:
-            **kwargs (str): Environment variable names and their values to set.
+        Iterates through provided keyword arguments and uses monkeypatch.setenv
+        to temporarily set each environment variable for the duration of the test.
         """
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
+        for k, v in kwargs.items():
+            monkeypatch.setenv(k, v)
 
     return _setter
 
@@ -113,23 +108,18 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
 @pytest.fixture()
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
-    Provide a fixture that returns a callable to remove environment
-    variables from the test environment.
+    Utility fixture to unset env vars in tests:
 
-    The returned callable accepts one or more environment variable names
-    and ensures each is removed for the duration of the test.
-
-    Returns:
-        unsetter (Callable[..., None]): Callable that deletes
-            the specified environment variables.
+        def test_x(unset_env):
+            unset_env("ASSET_GRAPH_DATABASE_URL")
     """
 
     def _unsetter(*keys: str) -> None:
         """
-        Remove the given environment variables from the test environment.
+        Unset the specified environment variables in the test environment.
 
-        Parameters:
-            *keys (str): One or more environment variable names to remove.
+        Args:
+            *keys: Names of environment variables to remove.
         """
         for key in keys:
             monkeypatch.delenv(key, raising=False)

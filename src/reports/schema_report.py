@@ -7,18 +7,14 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 def _as_int(value: Any, default: int = 0) -> int:
     """
-    Convert a value to an integer, returning a fallback when conversion is
-    not possible.
-
-    Attempts to convert `value` to `int`. If `value` is `None` or cannot be
-    converted, returns `default`.
+    Convert a value to an integer using best-effort coercion for count-like metrics.
 
     Parameters:
-        value (Any): The input to convert to an integer.
-        default (int): The value to return if conversion fails.
+        value (Any): Value to convert; if `None` the `default` is returned.
+        default (int): Fallback integer returned when conversion is not possible.
 
     Returns:
-        int: The converted integer, or `default` if conversion is not possible.
+        int: The converted integer, or `default` if conversion fails.
     """
     try:
         if value is None:
@@ -30,14 +26,14 @@ def _as_int(value: Any, default: int = 0) -> int:
 
 def _as_float(value: Any, default: float = 0.0) -> float:
     """
-    Coerce a value to a float, falling back to a default when conversion is not
-    possible.
+    Coerce a value to a float, falling back to a default on failure.
+
+    Attempts to convert `value` to a float; if `value` is None or cannot be
+    converted (raises TypeError or ValueError), returns `default`.
 
     Parameters:
-        value (Any): Input to convert; if `None` or not convertible to float,
-            the `default` is used.
-        default (float): Value to return when `value` is `None` or cannot be
-            converted.
+        value: The input to convert to float; any type is accepted.
+        default (float): Value returned when conversion is not possible.
 
     Returns:
         float: The converted float, or `default` if conversion fails.
@@ -52,15 +48,23 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 
 def _as_str_int_map(value: Any) -> dict[str, int]:
     """
-    Convert a mapping-like value into a dict[str, int], keeping only string keys.
+    Coerce a mapping-like value into a dictionary
+    with string keys and integer values.
+
+    If the input is not a Mapping, returns an empty
+    dictionary.
+
+    For each item in the mapping, string keys are retained
+    and their values are converted to integers using a
+    best-effort conversion that defaults to 0 on failure;
+    non-string keys are ignored.
 
     Parameters:
-        value (Any): Input to coerce into a string-keyed mapping.
+        value (Any): The value to coerce into a dict[str, int].
 
     Returns:
-        dict[str, int]: A dictionary containing only items whose keys are strings;
-            values are converted to integers (fallback to 0 for unconvertible values).
-            Returns an empty dict if `value` is not a mapping.
+        dict[str, int]: A dictionary of string keys to integer values, or an empty
+            dict if the input is not a mapping or contains no string-keyed entries.
     """
     if not isinstance(value, Mapping):
         return {}
@@ -73,21 +77,17 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
 
 def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
-    Normalize an input into a list of top relationship tuples
-    (source, target, relationship type, strength).
+    Normalize a value into a list of top relationships as
+    (source, target, rel_type, strength) tuples.
 
-    Parameters:
-        value (Any): Input expected to be a list of 4-element tuples.
-            Items that are not 4-tuples with string source, target, and
-            relationship type are ignored.
+    If the input is not a list, returns an empty list. Items that are
+    4-tuples whose first three elements are strings are converted:
+    the fourth element is coerced to a float and used as `strength`.
+    Invalid items are ignored.
 
-     Returns:
-         list[tuple[str, str, str, float]]: A list of validated tuples
-             where the first three elements are strings
-             and the fourth is a float strength
-             (defaults to 0.0 when not convertible).
-         Returns an empty list if the input is not a list or contains no
-         valid items.
+    Returns:
+        list[tuple[str, str, str, float]]: A list of validated
+            (source, target, relationship_type, strength) tuples.
     """
     if not isinstance(value, list):
         return []
@@ -105,22 +105,24 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     return out
 
 
- def generate_schema_report(graph: AssetRelationshipGraph) -> str:
+def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Produce a Markdown report summarizing schema, relationship
-    distributions, calculated metrics, rules, and optimization
-    recommendations for an asset relationship graph.
+    Produce a Markdown report that summarizes the schema,
+    relationship distributions, calculated metrics, top relationships,
+    business/regulatory/valuation rules, data quality score,
+    recommendations, and implementation notes for an asset relationship
+    graph.
 
     Parameters:
-        graph (AssetRelationshipGraph): The graph to analyze.
+        graph (AssetRelationshipGraph): The asset relationship graph to
+            analyze and summarize.
 
     Returns:
-        A Markdown-formatted string containing:
-        - Schema overview and entity/relationship types
-        - Relationship type distribution and network statistics
-        - Asset class distribution and top relationships
-        - Business, regulatory, and valuation rules
-        - Data quality score, density-based recommendations, and implementation notes
+        str: Markdown-formatted report containing the assembled schema
+            overview, relationship type distribution, network statistics,
+            asset-class distribution, top relationships, business and
+            regulatory rules, data quality score, recommendations, and
+            implementation notes.
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 
@@ -192,16 +194,34 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            "- **Sector Affinity**: Assets in the same sector are linked with strength 0.7 (bidirectional)",
-            "- **Corporate Bond Linkage**: A bond whose issuer_id matches another asset creates a directional link (strength 0.9)",
-            "- **Currency Exposure**: Currency assets reflect FX and central-bank policy links",
+            (
+                "- **Sector Affinity**: Assets in the same sector "
+                "are linked with strength 0.7 (bidirectional)"
+            ),
+            (
+                "- **Corporate Bond Linkage**: A bond whose issuer_id matches another "
+                "asset creates a directional link (strength 0.9)"
+            ),
+            (
+                "- **Currency Exposure**: Currency assets reflect FX and "
+                "central-bank policy links"
+            ),
             "",
             "### Regulatory Rules",
-            "- **Event Propagation**: Regulatory / earnings events propagate impact to related assets",
-            "- Events create directional relationships from the event source to each related asset",
+            (
+                "- **Event Propagation**: Regulatory / earnings events "
+                "propagate impact to related assets"
+            ),
+            (
+                "- Events create directional relationships from the event source to "
+                "each related asset"
+            ),
             "",
             "### Valuation Rules",
-            "- **Impact Scoring**: Event impact scores are normalized to -1 to +1 for comparability",
+            (
+                "- **Impact Scoring**: Event impact scores are normalized "
+                "to -1 to +1 for comparability"
+            ),
             "- Relationship strengths are clamped to the 0-1 range",
         ]
     )

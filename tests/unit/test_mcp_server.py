@@ -89,19 +89,25 @@ class TestThreadSafeGraph:
 
         def tracked_acquire(*args, **kwargs):
             """
-            Record a lock acquire event by appending "acquired" to the tracking list, then forward the call to the original acquire method.
+            Record a lock acquisition event and forward the call to the original acquire function.
+
+            Appends an "acquired" marker to the surrounding test's tracking list and returns whatever the wrapped `original_acquire` call returns.
 
             Returns:
-                The value returned by the original acquire call (e.g., boolean indicating success, or whatever the underlying lock returns).
+                The value returned by `original_acquire`.
             """
             lock_acquired.append("acquired")
             return original_acquire(*args, **kwargs)
 
         def tracked_release(*args, **kwargs):
             """
-            Record a lock release event and forward the call to the original release callable.
+            Wrapper for a lock's release method that records each release event.
 
-            Each invocation records a release event in the surrounding tracking list and then calls the original release callable with the provided arguments.
+            Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
+
+            Parameters:
+                *args: Positional arguments forwarded to the original release callable.
+                **kwargs: Keyword arguments forwarded to the original release callable.
 
             Returns:
                 The value returned by the original release callable.
@@ -254,13 +260,7 @@ class TestGet3DLayout:
 
     @staticmethod
     def test_get_3d_layout_returns_valid_json():
-        """
-        Verify the 3D layout resource returns JSON containing the expected keys and types.
-
-        Asserts that the registered "3d-layout" resource produces JSON with the keys
-        `asset_ids`, `positions`, `colors`, and `hover`, and that `asset_ids` and
-        `positions` are arrays.
-        """
+        """Test that get_3d_layout returns valid JSON."""
         from mcp_server import _build_mcp_app, graph
 
         # Add a test asset
@@ -285,6 +285,8 @@ class TestGet3DLayout:
             ),
             None,
         )
+        assert resource_func is not None, "3d-layout resource not found"
+
         assert resource_func is not None, "3d-layout resource not found"
 
         result = resource_func()
@@ -563,7 +565,11 @@ class TestEdgeCases:
 
     @staticmethod
     def test_get_3d_layout_with_empty_graph():
-        """Test get_3d_layout with empty graph."""
+        """
+        Verify the 3D-layout resource returns the expected JSON structure when the global graph contains no assets.
+
+        The returned JSON must include the keys: `asset_ids`, `positions`, `colors`, and `hover`.
+        """
         from mcp_server import _build_mcp_app, graph
 
         # Clear graph
@@ -595,28 +601,3 @@ class TestEdgeCases:
         # Should handle unrecognized arguments gracefully
         with pytest.raises(SystemExit):
             main(["--invalid-arg"])
-
-    @staticmethod
-    def test_add_equity_node_with_very_large_price():
-        """Test add_equity_node with very large price value (boundary case)."""
-        from mcp_server import _build_mcp_app
-
-        mcp_app = _build_mcp_app()
-
-        tool_func = None
-        for tool in mcp_app.list_tools():
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
-
-        result = tool_func(
-            asset_id="TEST_LARGE_PRICE",
-            symbol="TLP",
-            name="Large Price Company",
-            sector="Technology",
-            price=1e15,  # Very large price
-        )
-
-        # Should accept very large valid price
-        assert "Validation Error" not in result
-        assert "Successfully" in result

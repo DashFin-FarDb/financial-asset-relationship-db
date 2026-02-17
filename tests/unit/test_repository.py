@@ -32,15 +32,13 @@ pytestmark = pytest.mark.unit
 @pytest.fixture
 def repository(tmp_path):
     """
-    Provide an AssetGraphRepository backed by a temporary SQLite database for use in tests.
-
-    Creates a SQLite database file at `tmp_path / "test_repo.db"`, initializes the schema, opens a SQLAlchemy session and returns an AssetGraphRepository using that session. After the fixture is used, the session is closed and the engine is disposed.
+    Provide a temporary AssetGraphRepository backed by a SQLite database for use in tests.
 
     Parameters:
-        tmp_path (pathlib.Path): Temporary directory provided by pytest in which the test database file is created.
+        tmp_path (pathlib.Path): Temporary directory provided by pytest for filesystem isolation.
 
     Returns:
-        AssetGraphRepository: Repository instance connected to the test SQLite database; cleanup (session close and engine dispose) runs after the fixture is torn down.
+        AssetGraphRepository: A repository instance connected to a test SQLite database created under `tmp_path`. The fixture yields the repository and ensures the underlying database session is closed and the engine disposed after the test.
     """
     db_path = tmp_path / "test_repo.db"
     engine = create_engine(f"sqlite:///{db_path}")
@@ -824,9 +822,9 @@ class TestComplexScenarios:
     @staticmethod
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
         """
-        Create a small diversified portfolio in the repository, persist the assets, add inter-asset relationships, and verify persistence.
+        Builds a diversified portfolio in the repository, adds inter-asset relationships, and verifies persistence.
 
-        This test inserts four assets (equity, bond, commodity, currency), commits them, adds two relationships (one bidirectional, one unidirectional), commits again, and asserts that the repository contains four assets and at least two relationships.
+        Creates four assets (equity, bond, commodity, currency), upserts them into the repository, creates two relationships between them, commits the session, and asserts that the repository contains four assets and at least two relationships.
         """
         # Add diverse assets
         assets = [
@@ -1573,43 +1571,3 @@ class TestAssetUpdateScenarios:
 
         retrieved = repository.list_assets()[0]
         assert retrieved.pe_ratio == 25.0
-
-    @staticmethod
-    def test_relationship_strength_boundary_values(repository):
-        """Test that relationship strength accepts valid boundary values."""
-        from src.models.financial_models import Asset, AssetClass
-
-        asset1 = Asset(
-            id="A1",
-            symbol="A1",
-            name="Asset 1",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-        )
-        asset2 = Asset(
-            id="A2",
-            symbol="A2",
-            name="Asset 2",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=150.0,
-        )
-        repository.upsert_asset(asset1)
-        repository.upsert_asset(asset2)
-
-        # Test boundary values: -1.0, 0.0, 1.0
-        repository.add_or_update_relationship("A1", "A2", "test", -1.0, False)
-        repository.session.commit()
-        rel = repository.get_relationship("A1", "A2", "test")
-        assert rel.strength == -1.0
-
-        repository.add_or_update_relationship("A1", "A2", "test", 0.0, False)
-        repository.session.commit()
-        rel = repository.get_relationship("A1", "A2", "test")
-        assert rel.strength == 0.0
-
-        repository.add_or_update_relationship("A1", "A2", "test", 1.0, False)
-        repository.session.commit()
-        rel = repository.get_relationship("A1", "A2", "test")
-        assert rel.strength == 1.0

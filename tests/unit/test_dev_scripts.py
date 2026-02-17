@@ -129,9 +129,7 @@ class TestDocumentationFiles:
 
     @staticmethod
     def test_readme_has_quick_start():
-        """
-        Check that README.md includes a Quick Start or Getting Started section and an Installation or Setup section.
-        """
+        """Test README contains quick start section."""
         with open("README.md") as f:
             content = f.read()
 
@@ -500,11 +498,7 @@ class TestShellScripts:
         assert "PID=" in content
 
     def test_cleanup_branches_git_safety(self):
-        """
-        Verify cleanup-branches.sh performs safe Git deletions.
-
-        Checks that any lines which pipe branch names into xargs use the safe deletion flag `-d` (not the force `-D`) when invoking `git branch`, ensuring deletions default to non-forced removal.
-        """
+        """Test that cleanup-branches.sh uses safe git operations."""
         with open("cleanup-branches.sh") as f:
             content = f.read()
 
@@ -521,9 +515,9 @@ class TestShellScripts:
 
     def test_cleanup_branches_has_dry_run_mode(self):
         """
-        Verify cleanup-branches.sh offers a dry-run or preview mode before performing deletions.
+        Check that cleanup-branches.sh includes a dry-run or preview mechanism before deleting branches.
 
-        Asserts the script contains user-visible preview output (for example, echoing branch names or planned delete actions) so users can review changes before they are applied.
+        Asserts the script prints a preview (for example, echoes branch names or intended delete actions) so users can review pending deletions before they are applied.
         """
         with open("cleanup-branches.sh") as f:
             content = f.read()

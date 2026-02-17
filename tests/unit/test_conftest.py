@@ -1,10 +1,11 @@
 # ruff: noqa: S101
-"""Unit tests for tests/conftest.py pytest configuration helpers.
+"""Unit tests for conftest.py pytest configuration helpers.
 
 This module contains comprehensive unit tests for the conftest module including:
-- Testing pytest_addoption function behavior
-- Testing _register_dummy_cov_options when pytest-cov is unavailable
-- Testing that fixtures produce correct types
+- Testing pytest_load_initial_conftests function behavior
+- Testing coverage argument filtering with pytest-cov available
+- Testing coverage argument filtering without pytest-cov
+- Testing various coverage option formats (--cov, --cov=, --cov-report, etc.)
 - Testing edge cases and argument preservation
 
 Note: This test file uses assert statements which is the standard and recommended
@@ -12,159 +13,311 @@ approach for pytest. The S101 rule is suppressed because tests are not run with
 Python optimization flags that would remove assert statements.
 """
 
-import importlib.util
-from pathlib import Path
+from typing import List
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
-    AssetClass,
-    Bond,
-    Commodity,
-    Currency,
-    Equity,
-    RegulatoryEvent,
-)
-
-
-def _load_tests_conftest():
-    """Load the tests/conftest.py module explicitly (not the root conftest)."""
-    conftest_path = Path(__file__).resolve().parent.parent / "conftest.py"
-    spec = importlib.util.spec_from_file_location("tests_conftest", conftest_path)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
 
 @pytest.mark.unit
 class TestConftestHelpers:
-    """Test cases for tests/conftest.py pytest configuration helpers."""
+    """Test cases for conftest.py pytest configuration helpers."""
 
     @staticmethod
-    def test_pytest_addoption_exists():
-        """Test that tests/conftest.py exports pytest_addoption."""
-        mod = _load_tests_conftest()
-        assert hasattr(mod, "pytest_addoption")
-        assert callable(mod.pytest_addoption)
+    def test_pytest_load_initial_conftests_with_cov_plugin_available():
+        """Test that coverage args are preserved when pytest-cov is available."""
+        # Import after mocking to ensure the mock is in place
+        with patch("conftest.importlib.util.find_spec") as mock_find_spec:
+            mock_find_spec.return_value = MagicMock()  # Simulate plugin found
+
+            # Import the function under test
+            from conftest import pytest_load_initial_conftests
+
+            args = ["tests/", "--cov=src", "--cov-report=html"]
+            original_args = args.copy()
+
+            pytest_load_initial_conftests(args)
+
+            # Args should be unchanged when plugin is available
+            assert args == original_args
 
     @staticmethod
-    def test_register_dummy_cov_options():
-        """Test _register_dummy_cov_options registers both dummy options."""
-        mod = _load_tests_conftest()
+    def test_pytest_load_initial_conftests_without_cov_plugin():
+        """Test that coverage args are removed when pytest-cov is not available."""
+        with patch("conftest.importlib.util.find_spec") as mock_find_spec:
+            mock_find_spec.return_value = None  # Simulate plugin not found
 
-        mock_parser = MagicMock()
-        mock_group = MagicMock()
-        mock_parser.getgroup.return_value = mock_group
+            from conftest import pytest_load_initial_conftests
 
-        mod._register_dummy_cov_options(mock_parser)
+            args = ["tests/", "--cov=src", "--cov-report=html", "-v"]
+            pytest_load_initial_conftests(args)
 
-        mock_parser.getgroup.assert_called_once_with("cov")
-        assert mock_group.addoption.call_count == 2
-
-    @staticmethod
-    def test_register_dummy_cov_options_uses_append_action():
-        """Test that dummy options use append action."""
-        mod = _load_tests_conftest()
-
-        mock_parser = MagicMock()
-        mock_group = MagicMock()
-        mock_parser.getgroup.return_value = mock_group
-
-        mod._register_dummy_cov_options(mock_parser)
-
-        for call in mock_group.addoption.call_args_list:
-            assert call[1].get("action") == "append"
-            assert call[1].get("default") == []
+            # Coverage args should be removed, other args preserved
+            assert "--cov=src" not in args and "--cov-report=html" not in args
+            assert "--cov-report=html" not in args
+            assert "tests/" in args
+            assert "-v" in args
 
     @staticmethod
-    def test_register_dummy_cov_option_names():
-        """Test that --cov and --cov-report are the registered option names."""
-        mod = _load_tests_conftest()
+    def test_pytest_load_initial_conftests_removes_standalone_cov_arg():
+        """Test removal of standalone --cov argument with separate value."""
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
 
-        mock_parser = MagicMock()
-        mock_group = MagicMock()
-        mock_parser.getgroup.return_value = mock_group
+            args = ["tests/", "--cov", "src", "--verbose"]
+            pytest_load_initial_conftests(args)
 
-        mod._register_dummy_cov_options(mock_parser)
+            # Both --cov and its value should be removed
+            assert "--cov" not in args
+            assert "src" not in args  # The value following --cov
+            assert "tests/" in args
+            assert "--verbose" in args
 
-        call_args = [call[0][0] for call in mock_group.addoption.call_args_list]
-        assert "--cov" in call_args
-        assert "--cov-report" in call_args
+    @staticmethod
+    def test_pytest_load_initial_conftests_removes_standalone_cov_report():
+        """Test removal of standalone --cov-report argument with separate value."""
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = ["--cov-report", "term-missing", "tests/"]
+            pytest_load_initial_conftests(args)
+
+            # Both --cov-report and its value should be removed
+            assert "--cov-report" not in args
+            assert "term-missing" not in args
+            assert "tests/" in args
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_handles_inline_cov_args():
+        """Test handling of inline --cov= and --cov-report= arguments."""
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = [
+                "--cov=src",
+                "--cov-report=html",
+                "--cov-report=term",
+                "tests/",
+            ]
+            pytest_load_initial_conftests(args)
+
+            # All inline coverage args should be removed
+            assert not any(arg.startswith("--cov") for arg in args)
+            assert "tests/" in args
+
+    @staticmethod
+    @pytest.mark.parametrize("args, expected", [([...], [...]), ([...], [...])])
+    def test_pytest_load_initial_conftests_preserves_non_cov_args(args, expected):
+        """Test that non-coverage arguments are preserved."""
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = [
+                "tests/",
+                "-v",
+                "--tb=short",
+                "--cov=src",
+                "-s",
+                "--cov-report=html",
+                "--maxfail=5",
+            ]
+            pytest_load_initial_conftests(args)
+
+            # Non-coverage args should be preserved
+            assert "tests/" in args
+            assert "-v" in args
+            assert "--tb=short" in args
+            assert "-s" in args
+            assert "--maxfail=5" in args
+
+            # Coverage args should be removed
+            assert "--cov=src" not in args
+            assert "--cov-report=html" not in args
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_empty_args():
+        """
+        Ensure calling pytest_load_initial_conftests with an empty args list leaves it unchanged when the pytest-cov plugin is not present.
+
+        Verifies the function does not raise and that the provided list remains empty after invocation.
+        """
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args: List[str] = []
+            pytest_load_initial_conftests(args)
+
+            # Should not raise error and list should remain empty
+            assert args == []
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_only_cov_args():
+        """Test handling when only coverage arguments are present."""
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = ["--cov=src", "--cov-report=html"]
+            pytest_load_initial_conftests(args)
+
+            # All args should be removed
+            assert args == []
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_modifies_in_place():
+        """
+        Verify pytest_load_initial_conftests modifies the provided args list object in place by removing coverage-related arguments while preserving other entries.
+        """
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            original_list = ["--cov=src", "tests/"]
+            args = original_list
+
+            pytest_load_initial_conftests(args)
+
+            # The same list object should be modified
+            assert args is original_list
+            assert args == ["tests/"]
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_consecutive_skip_args():
+        """Ensure consecutive coverage-related args and their values are removed.
+
+        When pytest-cov is unavailable, verifies `args` is modified in place to strip
+        `--cov`, `--cov-report`, and their following values, while preserving
+        non-coverage arguments.
+        """
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = [
+                "--cov",
+                "src",
+                "--cov-report",
+                "html",
+                "tests/",
+            ]
+            pytest_load_initial_conftests(args)
+
+            # All coverage args and their values should be removed
+            assert args == ["tests/"]
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_mixed_formats():
+        """Test handling of mixed inline and standalone coverage arguments."""
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = [
+                "--cov",
+                "src",
+                "--cov-report=html",
+                "tests/",
+                "--cov=api",
+            ]
+            pytest_load_initial_conftests(args)
+
+            # All coverage args should be removed regardless of format
+            assert args == ["tests/"]
+
+    @staticmethod
+    def test_cov_plugin_available_helper():
+        """Test the _cov_plugin_available helper function."""
+        with patch("conftest.importlib.util.find_spec") as mock_find_spec:
+            from conftest import _cov_plugin_available
+
+            # Test when plugin is available
+            mock_find_spec.return_value = MagicMock()
+            assert _cov_plugin_available() is True
+
+            # Test when plugin is not available
+            mock_find_spec.return_value = None
+            assert _cov_plugin_available() is False
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_args_with_equals_in_value():
+        """Remove pytest-cov args whose values contain '=' while preserving others.
+
+        Verifies an inline `--cov-report=...` argument with a value containing '=' is
+        removed from the provided args list and unrelated args remain unchanged.
+        """
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = [
+                "tests/",
+                "--cov-report=html:dir=coverage_html",
+                "-v",
+            ]
+            pytest_load_initial_conftests(args)
+
+            # Coverage arg with complex value should be removed
+            assert not any("--cov-report" in arg for arg in args)
+            assert "tests/" in args
+            assert "-v" in args
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_similar_arg_names():
+        """Test that only coverage args are removed, not similar named args."""
+        with patch("conftest.importlib.util.find_spec", return_value=None):
+            from conftest import pytest_load_initial_conftests
+
+            args = [
+                "tests/",
+                "--coverage-data",  # Not a pytest-cov arg
+                "--cov=src",
+                "--discover",  # Contains 'cov' but not a coverage arg
+            ]
+            pytest_load_initial_conftests(args)
+
+            # Only actual coverage args should be removed
+            assert "--cov=src" not in args
+            assert "--coverage-data" in args  # Should be preserved
+            assert "--discover" in args  # Should be preserved
+            assert "tests/" in args
+
+    @staticmethod
+    def test_pytest_load_initial_conftests_no_modification_when_plugin_present():
+        """Test that no modification occurs when pytest-cov plugin is present."""
+        with patch("conftest.importlib.util.find_spec") as mock_find_spec:
+            mock_find_spec.return_value = MagicMock()
+
+            from conftest import pytest_load_initial_conftests
+
+            original_args = [
+                "tests/",
+                "--cov=src",
+                "--cov-report=html",
+                "--cov",
+                "api",
+            ]
+            args = original_args.copy()
+
+            pytest_load_initial_conftests(args)
+
+            # Args should remain completely unchanged
+            assert args == original_args
 
     @staticmethod
     def test_conftest_module_docstring_exists():
-        """Test that tests/conftest module has proper documentation."""
-        mod = _load_tests_conftest()
-        assert mod.__doc__ is not None
-        assert "pytest" in mod.__doc__.lower()
+        """Test that conftest module has proper documentation."""
+        import conftest
+
+        assert conftest.__doc__ is not None
+        assert "pytest configuration helpers" in conftest.__doc__.lower()
 
     @staticmethod
-    def test_pytest_addoption_function_signature():
-        """Verify pytest_addoption is callable with one parser param."""
+    def test_pytest_load_initial_conftests_function_signature():
+        """Verify `pytest_load_initial_conftests` is callable with one `args` param."""
+        from conftest import pytest_load_initial_conftests
+
+        # Check function exists and is callable
+        assert callable(pytest_load_initial_conftests)
+
+        # Check function accepts a list argument
         import inspect
 
-        mod = _load_tests_conftest()
-        sig = inspect.signature(mod.pytest_addoption)
+        sig = inspect.signature(pytest_load_initial_conftests)
         assert len(sig.parameters) == 1
         param = list(sig.parameters.values())[0]
-        assert param.name == "parser"
-
-
-@pytest.mark.unit
-class TestConftestFixtures:
-    """Test that conftest fixtures produce correct types."""
-
-    @staticmethod
-    def test_empty_graph_fixture(empty_graph):
-        """Test empty_graph fixture returns an AssetRelationshipGraph."""
-        assert isinstance(empty_graph, AssetRelationshipGraph)
-        assert len(empty_graph.assets) == 0
-
-    @staticmethod
-    def test_sample_equity_fixture(sample_equity):
-        """Test sample_equity fixture returns an Equity."""
-        assert isinstance(sample_equity, Equity)
-        assert sample_equity.asset_class == AssetClass.EQUITY
-        assert sample_equity.id == "AAPL"
-
-    @staticmethod
-    def test_sample_bond_fixture(sample_bond):
-        """Test sample_bond fixture returns a Bond."""
-        assert isinstance(sample_bond, Bond)
-        assert sample_bond.asset_class == AssetClass.FIXED_INCOME
-
-    @staticmethod
-    def test_sample_commodity_fixture(sample_commodity):
-        """Test sample_commodity fixture returns a Commodity."""
-        assert isinstance(sample_commodity, Commodity)
-        assert sample_commodity.asset_class == AssetClass.COMMODITY
-
-    @staticmethod
-    def test_sample_currency_fixture(sample_currency):
-        """Test sample_currency fixture returns a Currency."""
-        assert isinstance(sample_currency, Currency)
-        assert sample_currency.asset_class == AssetClass.CURRENCY
-
-    @staticmethod
-    def test_sample_regulatory_event_fixture(sample_regulatory_event):
-        """Test sample_regulatory_event fixture returns a RegulatoryEvent."""
-        assert isinstance(sample_regulatory_event, RegulatoryEvent)
-        assert sample_regulatory_event.asset_id == "AAPL"
-
-    @staticmethod
-    def test_populated_graph_fixture(populated_graph):
-        """Test populated_graph fixture has 4 assets and relationships."""
-        assert isinstance(populated_graph, AssetRelationshipGraph)
-        assert len(populated_graph.assets) == 4
-        # Should have built relationships
-        total_rels = sum(len(r) for r in populated_graph.relationships.values())
-        assert total_rels >= 0
-
-    @staticmethod
-    def test_dividend_stock_fixture(dividend_stock):
-        """Test dividend_stock fixture returns an Equity with dividend_yield."""
-        assert isinstance(dividend_stock, Equity)
-        assert dividend_stock.dividend_yield == 0.04
-        assert dividend_stock.sector == "Utilities"
+        assert param.name == "args"

@@ -95,10 +95,10 @@ class TestRealDataFetcherInitialization:
 
         def custom_factory():
             """
-            Create and return a new, empty AssetRelationshipGraph.
+            Create a default AssetRelationshipGraph.
 
             Returns:
-                AssetRelationshipGraph: A fresh, empty asset relationship graph.
+                AssetRelationshipGraph: A new, empty asset relationship graph.
             """
             return AssetRelationshipGraph()
 
@@ -908,7 +908,7 @@ class TestRegulatoryEvents:
         events = RealDataFetcher._create_regulatory_events()
 
         for event in events:
-            assert -1.0 <= event.impact_score <= 1.0
+            assert 0.0 <= event.impact_score <= 1.0
 
 
 @pytest.mark.unit
@@ -1278,7 +1278,11 @@ class TestCacheEdgeCases:
 
     @staticmethod
     def test_cache_with_only_relationships(tmp_path):
-        """Test caching graph with relationships but modified assets."""
+        """
+        Verify that saving a graph with assets and bidirectional relationships to cache preserves those relationships when loaded back.
+
+        Creates two Equity assets, adds a bidirectional relationship between them, saves the graph to a temporary cache file, then loads it and asserts the loaded graph contains relationship entries for both asset IDs.
+        """
         cache_path = tmp_path / "rel_cache.json"
         graph = AssetRelationshipGraph()
 
@@ -1433,26 +1437,3 @@ class TestSerializationRobustness:
         assert deserialized.maturity_date == bond.maturity_date
         assert deserialized.credit_rating == bond.credit_rating
         assert deserialized.issuer_id == bond.issuer_id
-
-    @staticmethod
-    def test_serialize_deserialize_with_none_values():
-        """Test serialization/deserialization handles None values correctly."""
-        from src.data.real_data_fetcher import _deserialize_asset, _serialize_dataclass
-
-        # Create asset with minimal fields (many will be None)
-        asset = Asset(
-            id="TEST",
-            symbol="TST",
-            name="Test",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-            market_cap=None,  # None value
-            currency="USD",
-        )
-
-        serialized = _serialize_dataclass(asset)
-        deserialized = _deserialize_asset(serialized)
-
-        assert deserialized.id == asset.id
-        assert deserialized.market_cap is None

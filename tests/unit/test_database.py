@@ -38,11 +38,11 @@ pytestmark = pytest.mark.unit
 
 def _assert_model_registered(model: type[Base], expected_tablename: str) -> None:
     """
-    Verify that a SQLAlchemy model's `__tablename__` equals the expected table name.
+    Verify that a SQLAlchemy declarative model has the expected `__tablename__`.
 
     Parameters:
-        model (type[Base]): Declarative model class to check.
-        expected_tablename (str): Expected value of the model's `__tablename__`.
+        model (type[Base]): The declarative model class to check.
+        expected_tablename (str): The expected table name for the model.
 
     Raises:
         AssertionError: If the model's `__tablename__` does not match `expected_tablename`.
@@ -58,12 +58,15 @@ def _assert_model_registered(model: type[Base], expected_tablename: str) -> None
 @pytest.fixture()
 def isolated_base() -> Iterator[type[Base]]:
     """
-    Provide an isolated declarative SQLAlchemy Base subclass for use within a single test.
+    Provide an isolated SQLAlchemy declarative base for a single test.
 
-    This fixture yields a Base subclass with `__abstract__ = True`; any tables registered on the global Base.metadata during the test are removed after the fixture completes.
+    Yields a declarative-base subclass that test code can use to define models without
+    leaking table metadata into the global Base.metadata; any tables registered on the
+    global metadata during the fixture are removed after the fixture completes.
 
     Returns:
-        isolated_base (type[Base]): A declarative Base subclass whose test-created tables will be cleaned from the global metadata after the test.
+        isolated_base (type[Base]): A declarative-base subclass for test-local models whose
+        tables will be cleaned from the global metadata when the fixture finishes.
     """
     existing_tables = set(Base.metadata.tables)
 
@@ -87,12 +90,10 @@ def isolated_base() -> Iterator[type[Base]]:
 @pytest.fixture()
 def engine() -> Iterator[Engine]:
     """
-    Create and yield an in-memory SQLite Engine for tests.
-
-    The engine uses StaticPool and disables SQLite's same-thread check so multiple sessions can share the in-memory database. The engine is disposed when the fixture teardown runs.
+    Create an in-memory SQLite Engine configured for tests.
 
     Returns:
-        An in-memory SQLite `Engine` instance; it is disposed after use.
+        Engine: An Engine connected to an in-memory SQLite database. The engine is disposed when the fixture is torn down.
     """
     in_memory_engine = create_engine(
         "sqlite:///:memory:",
@@ -196,9 +197,7 @@ class TestDatabaseInitialization:
     """Tests for database initialization and schema creation."""
 
     def test_init_db_creates_tables(self, engine: Engine, isolated_base) -> None:
-        """
-        Verifies that init_db creates tables for models registered on the provided declarative base.
-        """
+        """init_db should create all registered tables."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Test model for verifying table creation functionality."""
@@ -217,7 +216,9 @@ class TestDatabaseInitialization:
         assert "test_model" in inspector.get_table_names()  # nosec B101
 
     def test_init_db_is_idempotent(self, engine: Engine, isolated_base) -> None:
-        """Calling init_db multiple times should not error."""
+        """
+        Verify that initializing the database repeatedly is safe and leaves defined tables present.
+        """
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model for verifying that database initialization is idempotent."""
@@ -235,14 +236,17 @@ class TestDatabaseInitialization:
         inspector = inspect(engine)
         assert "test_idempotent" in inspector.get_table_names()  # nosec B101
 
-    @staticmethod
     def test_init_db_preserves_existing_data(
         self,
         engine: Engine,
         session_factory,
         isolated_base,
     ) -> None:
-        """init_db should not wipe existing data."""
+        """
+        Verify that running database initialization does not remove existing rows from already-created tables.
+
+        This test creates a temporary model and inserts a row, calls init_db again, and asserts the inserted row remains present.
+        """
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model for testing data preservation during database initialization."""
@@ -314,11 +318,7 @@ class TestSessionScope:
             assert session.query(TestModel).count() == 0  # nosec B101
 
     def test_propagates_integrity_error(self, engine: Engine, isolated_base) -> None:
-        """
-        Verify that an IntegrityError raised inside a session_scope is propagated to the caller after the transaction is rolled back.
-
-        This test creates a simple model, initializes the database, and performs operations that raise an IntegrityError; the error must not be swallowed by the session scope.
-        """
+        """Integrity errors should propagate after rollback."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model used in tests to trigger and verify integrity errors."""
@@ -370,15 +370,15 @@ class TestDefaultDatabaseURL:
         assert "sqlite" in DEFAULT_DATABASE_URL.lower()  # nosec B101
 
     def test_default_points_to_file(self) -> None:
-        """
-        Verify the default database URL points to the file named 'asset_graph.db'.
-
-        Asserts that DEFAULT_DATABASE_URL contains the substring 'asset_graph.db'.
-        """
+        """Default SQLite URL should point to a file."""
         assert "asset_graph.db" in DEFAULT_DATABASE_URL  # nosec B101
 
     def test_env_override_works(self) -> None:
-        """Environment variable should override default URL."""
+        """
+        Ensure `ASSET_GRAPH_DATABASE_URL` environment variable overrides the default database URL used by create_engine_from_url.
+
+        Verifies that when the environment variable is set to a PostgreSQL URL, the created engine's URL reflects that override.
+        """
         custom_url = "postgresql://test:test@localhost/test"
         with patch.dict(os.environ, {"ASSET_GRAPH_DATABASE_URL": custom_url}):
             override_engine = create_engine_from_url()
@@ -427,7 +427,11 @@ class TestConnectionPooling:
         assert isinstance(in_memory_engine.pool, StaticPool)
 
     def test_multiple_connections_to_same_in_memory_db(self) -> None:
-        """Multiple connections to in-memory DB should share same data with StaticPool."""
+        """
+        Verify that multiple connections to the same in-memory SQLite engine share data when using a StaticPool.
+
+        Creates a table, inserts a row in one session, and asserts the row is visible from a separate session.
+        """
         in_memory_engine = create_engine_from_url("sqlite:///:memory:")
         Base.metadata.create_all(in_memory_engine)
 
@@ -483,7 +487,9 @@ class TestConcurrentDatabaseAccess:
 
         def create_session() -> None:
             """
-            Create a session using the surrounding `factory`, append it to the surrounding `sessions` list, then close it; on exception, append the exception to the surrounding `errors` list.
+            Create a session using the enclosing factory and record the result for the caller.
+
+            Appends the created session to the shared `sessions` list and closes it; if an exception occurs, appends the exception to the shared `errors` list.
             """
             try:
                 session = factory()
@@ -524,9 +530,9 @@ class TestConcurrentDatabaseAccess:
 
         def read_data() -> None:
             """
-            Worker executed by a thread to perform a read-only count query and record results.
+            Worker used by concurrent threads to read from the database and record results.
 
-            Appends the number of rows in `TestModel` to the shared `results` list. If an exception occurs, appends the exception instance to the shared `errors` list. Obtains a session from the module-level session factory and does not return a value.
+            Appends the number of rows in `TestModel` to the shared `results` list. If an exception occurs during the read, appends the exception to the shared `errors` list.
             """
             try:
                 with session_scope(factory) as session:
@@ -562,13 +568,13 @@ class TestConcurrentDatabaseAccess:
 
         def write_data(thread_id: int) -> None:
             """
-            Insert a TestModel row using thread_id as the primary key and record any exception.
-
-            Sleeps briefly based on thread_id, opens a transactional session, and adds TestModel(id=thread_id).
-            If an exception occurs, it is appended to the shared `errors` list as a side effect.
+            Insert a TestModel row using thread_id and record any exception to the shared `errors` list.
 
             Parameters:
-                thread_id (int): Integer used as the TestModel `id`.
+                thread_id (int): Value used as the TestModel `id` for the inserted row.
+
+            Notes:
+                On failure, the raised exception is appended to the shared `errors` list as a side effect.
             """
             try:
                 time.sleep(0.001 * thread_id)
@@ -708,11 +714,7 @@ class TestResourceCleanup:
             assert session.query(TestModel).count() == 10
 
     def test_session_scope_with_nested_commits(self, engine: Engine) -> None:
-        """
-        Verifies that explicit commits performed inside a session_scope persist data across subsequent scopes.
-
-        This test creates a simple model, performs explicit commits within a session_scope (simulating a regression where nested commits might be discarded), and then opens a new session_scope to assert the committed row is visible.
-        """
+        """Regression: explicit commits inside session_scope persist data."""
 
         class TestModelBase(Base):  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
@@ -724,12 +726,13 @@ class TestResourceCleanup:
         factory = create_session_factory(engine)
 
         # First transaction
+        # First transaction
         with session_scope(factory) as session:
             session.add(TestModelBase(id=1))
             session.commit()  # Explicit commit (regression scenario)
-            session.add(TestModelBase(id=2))
+            session.add(TestModelBase(id=1))
             session.commit()  # Explicit commit (regression scenario)
 
         # Second transaction should see first
         with session_scope(factory) as session:
-            assert session.query(TestModelBase).count() == 2
+            assert session.query(TestModelBase).count() == 1

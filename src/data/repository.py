@@ -72,13 +72,12 @@ class AssetGraphRepository:
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
         """
-        Create or update the database record for an asset.
+        Create or update a database record for the given domain Asset.
 
-        Maps fields from the provided domain `Asset` to the ORM representation and
-        stages the ORM instance on the repository session for persistence.
-
-        Parameters:
-            asset (Asset): Domain asset to persist or update.
+        If a row with the asset's id exists, its fields are updated;
+        otherwise a new ORM instance is created with that id.
+        The ORM is populated from the provided domain Asset
+        and added to the active session for persistence.
         """
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
@@ -102,11 +101,11 @@ class AssetGraphRepository:
 
     def get_assets_map(self) -> Dict[str, Asset]:
         """
-        Return a mapping of asset id to the corresponding Asset domain object.
+        Builds a mapping from asset id to Asset domain objects.
 
         Returns:
-            Dict[str, Asset]: Keys are asset ids and values are the
-                corresponding Asset instances.
+            Dict[str, Asset]: Mapping where each key is an asset id and
+                each value is the corresponding Asset instance.
         """
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
@@ -284,9 +283,8 @@ class AssetGraphRepository:
         """
         Populate an existing AssetORM row from an Asset (or subclass) instance.
 
-        Clears and repopulates optional, asset-class-specific columns so
-        missing attributes become NULL and stale values cannot persist
-        across updates.
+        Clears and repopulates optional, asset-class-specific columns so missing
+        attributes become NULL and stale values cannot persist across updates.
         """
         orm.symbol = asset.symbol
         orm.name = asset.name
