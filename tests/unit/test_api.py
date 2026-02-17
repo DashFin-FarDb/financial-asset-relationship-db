@@ -323,7 +323,7 @@ class TestAssetDetailEndpoint:
         assert data["symbol"] == "AAPL"
         assert data["name"] == "Apple Inc."
         assert data["asset_class"] == "Equity"
-        assert data["price"] == 150.00
+        assert abs(data["price"] - 150.00) < 1e-9
 
     @patch("api.main.graph")
     def test_get_asset_detail_not_found(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
