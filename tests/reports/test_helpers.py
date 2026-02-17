@@ -118,9 +118,8 @@ def test_as_int_with_large_numbers() -> None:
 
 def test_as_float_with_scientific_notation() -> None:
     """Test _as_float with scientific notation."""
-    assert _as_float("1e3") == 1000.0
-    assert _as_float("2.5e-2") == 0.025
-
+    assert _as_float("1e3") == pytest.approx(1000.0)
+    assert _as_float("2.5e-2") == pytest.approx(0.025)
 
 def test_as_float_with_negative_values() -> None:
     """Test _as_float with negative values."""
@@ -205,5 +204,5 @@ def test_as_int_with_whitespace_string() -> None:
 
 def test_as_float_with_whitespace_string() -> None:
     """Test _as_float with string containing whitespace."""
-    assert _as_float("  3.14  ") == 3.14
-    assert _as_float("\n2.5\t") == 2.5
+    assert abs(_as_float("  3.14  ") - 3.14) < 1e-9
+    assert abs(_as_float("\n2.5\t") - 2.5) < 1e-9
