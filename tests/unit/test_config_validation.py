@@ -237,9 +237,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(semver_pattern, version), (
-            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
-        )
+        assert re.match(
+            semver_pattern, version
+        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
 
 
 @pytest.mark.unit
@@ -404,9 +404,7 @@ class TestEnvExample:
         ]
 
         for pattern in suspicious_patterns:
-            assert pattern not in env_example_content.lower(), (
-                f"Potential real secret found: {pattern}"
-            )
+            assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
 
 
 @pytest.mark.unit
@@ -487,9 +485,7 @@ class TestRequirementsTxt:
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
-            return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
     @staticmethod
     def test_requirements_exists():
@@ -529,9 +525,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(op in req for op in [">=", "==", "~=", "<="]), (
-                    f"Package should have version constraint: {req}"
-                )
+                assert any(
+                    op in req for op in [">=", "==", "~=", "<="]
+                ), f"Package should have version constraint: {req}"
 
 
 @pytest.mark.unit
@@ -618,12 +614,8 @@ class TestConfigurationConsistency:
 
         # Next.js standard scripts
         assert "next dev" in scripts.get("dev", "") or "next" in scripts.get("dev", "")
-        assert "next build" in scripts.get("build", "") or "next" in scripts.get(
-            "build", ""
-        )
-        assert "next start" in scripts.get("start", "") or "next" in scripts.get(
-            "start", ""
-        )
+        assert "next build" in scripts.get("build", "") or "next" in scripts.get("build", "")
+        assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
 
 
 @pytest.mark.unit
@@ -694,9 +686,7 @@ class TestConfigurationSecurityNegative:
             # Should not have rm -rf / or similar dangerous commands
             dangerous_patterns = ["rm -rf /", "rm -rf /*", "sudo rm"]
             for pattern in dangerous_patterns:
-                assert pattern not in script_cmd, (
-                    f"Dangerous pattern '{pattern}' found in script '{script_name}'"
-                )
+                assert pattern not in script_cmd, f"Dangerous pattern '{pattern}' found in script '{script_name}'"
 
 
 @pytest.mark.unit
@@ -828,9 +818,7 @@ class TestConfigurationBoundaryValues:
 
         scripts = package.get("scripts", {})
         for script_name in scripts.keys():
-            assert len(script_name) < 50, (
-                f"Script name '{script_name}' is excessively long"
-            )
+            assert len(script_name) < 50, f"Script name '{script_name}' is excessively long"
 
 
 @pytest.mark.unit
@@ -866,22 +854,14 @@ class TestConfigurationRobustness:
             pytest.skip("requirements.txt not found")
 
         with open(requirements_path) as f:
-            lines = [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+            lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
         # Extract package names (before ==, >=, etc.)
         packages = []
         for line in lines:
             if not line.startswith("-"):
                 # Extract package name
-                package_name = (
-                    line.split("==")[0]
-                    .split(">=")[0]
-                    .split("~=")[0]
-                    .split("<=")[0]
-                    .strip()
-                )
+                package_name = line.split("==")[0].split(">=")[0].split("~=")[0].split("<=")[0].strip()
                 packages.append(package_name.lower())
 
         # Check for duplicates
