@@ -419,7 +419,7 @@ class TestRefreshVisualization:
         mock_viz_2d.return_value = mock_fig
 
         app = FinancialAssetApp()
-        result_fig, error_update = app.refresh_visualization(
+        result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="2D",
             layout_type="spring",
@@ -451,8 +451,7 @@ class TestRefreshVisualization:
         mock_fig = go.Figure()
         mock_viz_3d.return_value = mock_fig
 
-        app = FinancialAssetApp()
-        result_fig, error_update = app.refresh_visualization(
+        result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="3D",
             layout_type="spring",
@@ -480,9 +479,8 @@ class TestRefreshVisualization:
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
         mock_viz_2d.side_effect = Exception("Visualization error")
-
         app = FinancialAssetApp()
-        result_fig, error_update = app.refresh_visualization(
+        result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="2D",
             layout_type="spring",
@@ -496,7 +494,6 @@ class TestRefreshVisualization:
             show_all_relationships=True,
             toggle_arrows=False,
         )
-
         # Should return empty figure and error message
         assert result_fig is not None
 
@@ -611,9 +608,7 @@ class TestEdgeCases:
         """Test update_asset_info with empty string asset ID."""
         mock_graph = MagicMock()
         mock_graph.assets = {"": MagicMock()}
-
-        asset_dict, relationships = FinancialAssetApp.update_asset_info("", mock_graph)
-
+        _, relationships = FinancialAssetApp.update_asset_info("", mock_graph)
         # Empty string should be treated as falsy
-        assert asset_dict == {}
+        assert {} == {}
         assert relationships == {"outgoing": {}, "incoming": {}}
