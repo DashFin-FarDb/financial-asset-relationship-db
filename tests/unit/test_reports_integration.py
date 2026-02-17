@@ -112,11 +112,12 @@ class TestGenerateReports:
         """Test HTML report generation."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch(
-            "src.reports.integration.SchemaReportGenerator"
-        ) as mock_generator_class, patch(
-            "src.reports.integration.markdown_to_html"
-        ) as mock_md_to_html:
+        with (
+            patch(
+                "src.reports.integration.SchemaReportGenerator"
+            ) as mock_generator_class,
+            patch("src.reports.integration.markdown_to_html") as mock_md_to_html,
+        ):
             mock_generator = MagicMock()
             mock_generator.generate.return_value = "# Test Report"
             mock_generator_class.return_value = mock_generator
@@ -154,11 +155,11 @@ class TestGradioIntegration:
     def test_make_gradio_report_fn_markdown() -> None:
         """Test Gradio report function creation for markdown."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        graph_provider = lambda: mock_graph
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        def graph_provider():
+            return mock_graph
+
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Gradio Report"
 
             fn = make_gradio_report_fn(graph_provider, html=False)
@@ -171,11 +172,11 @@ class TestGradioIntegration:
     def test_make_gradio_report_fn_html() -> None:
         """Test Gradio report function creation for HTML."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        graph_provider = lambda: mock_graph
 
-        with patch(
-            "src.reports.integration.generate_html_report"
-        ) as mock_gen_html:
+        def graph_provider():
+            return mock_graph
+
+        with patch("src.reports.integration.generate_html_report") as mock_gen_html:
             mock_gen_html.return_value = "<h1>Gradio Report</h1>"
 
             fn = make_gradio_report_fn(graph_provider, html=True)
@@ -188,11 +189,14 @@ class TestGradioIntegration:
     def test_attach_to_gradio_interface_markdown() -> None:
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        graph_provider = lambda: mock_graph
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md, patch("gradio.Markdown") as mock_markdown:
+        def graph_provider():
+            return mock_graph
+
+        with (
+            patch("src.reports.integration.generate_markdown_report") as mock_gen_md,
+            patch("gradio.Markdown") as mock_markdown,
+        ):
             mock_gen_md.return_value = "# Report"
             mock_markdown.return_value = MagicMock()
 
@@ -205,11 +209,14 @@ class TestGradioIntegration:
     def test_attach_to_gradio_interface_html() -> None:
         """Test attaching HTML report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        graph_provider = lambda: mock_graph
 
-        with patch(
-            "src.reports.integration.generate_html_report"
-        ) as mock_gen_html, patch("gradio.HTML") as mock_html:
+        def graph_provider():
+            return mock_graph
+
+        with (
+            patch("src.reports.integration.generate_html_report") as mock_gen_html,
+            patch("gradio.HTML") as mock_html,
+        ):
             mock_gen_html.return_value = "<h1>Report</h1>"
             mock_html.return_value = MagicMock()
 
@@ -222,7 +229,9 @@ class TestGradioIntegration:
     def test_attach_to_gradio_interface_missing_gradio() -> None:
         """Test that missing Gradio raises RuntimeError."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        graph_provider = lambda: mock_graph
+
+        def graph_provider():
+            return mock_graph
 
         with patch("builtins.__import__", side_effect=ImportError("No module gradio")):
             with pytest.raises(RuntimeError, match="Gradio is not installed"):
@@ -239,9 +248,7 @@ class TestPlotlyIntegration:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
         fig = {"data": [], "layout": {}}
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Plotly Report"
 
             result = embed_report_in_plotly_figure(fig, mock_graph)
@@ -255,9 +262,7 @@ class TestPlotlyIntegration:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
         fig = {"data": [], "layout": {}, "metadata": {"existing": "value"}}
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Report"
 
             result = embed_report_in_plotly_figure(fig, mock_graph)
@@ -271,9 +276,7 @@ class TestPlotlyIntegration:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
         fig = {}
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Empty Fig Report"
 
             result = embed_report_in_plotly_figure(fig, mock_graph)
@@ -291,9 +294,7 @@ class TestExportReport:
         """Test exporting report in markdown format."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Export MD"
 
             result = export_report(mock_graph, fmt="md")
@@ -306,9 +307,7 @@ class TestExportReport:
         """Test exporting report in HTML format."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch(
-            "src.reports.integration.generate_html_report"
-        ) as mock_gen_html:
+        with patch("src.reports.integration.generate_html_report") as mock_gen_html:
             mock_gen_html.return_value = "<h1>Export HTML</h1>"
 
             result = export_report(mock_graph, fmt="html")
@@ -329,9 +328,7 @@ class TestExportReport:
         """Test that format parameter is normalized."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Report"
 
             # Test with uppercase
@@ -390,9 +387,7 @@ class TestIntegrationEdgeCases:
         """Test export with special characters in report content."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Report\n\n&<>\"'`\n\nSpecial: €$¥£"
 
             result = export_report(mock_graph, fmt="md")
@@ -410,9 +405,7 @@ class TestIntegrationEdgeCases:
             call_count += 1
             return MagicMock(spec=AssetRelationshipGraph)
 
-        with patch(
-            "src.reports.integration.generate_markdown_report"
-        ) as mock_gen_md:
+        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
             mock_gen_md.return_value = "# Report"
 
             fn = make_gradio_report_fn(graph_provider, html=False)

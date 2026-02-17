@@ -8,18 +8,16 @@ This module tests the schema report CLI commands including:
 - Error handling and validation
 """
 
+# Import the CLI app
+import sys
 from pathlib import Path
+from pathlib import Path as P
 from unittest.mock import MagicMock, patch
 
 import pytest
 from typer.testing import CliRunner
 
 from src.logic.asset_graph import AssetRelationshipGraph
-
-
-# Import the CLI app
-import sys
-from pathlib import Path as P
 
 # Add .github/scripts to path for import
 sys.path.insert(0, str(P(__file__).parent.parent.parent / ".github" / "scripts"))
@@ -58,9 +56,10 @@ class TestMarkdownCommand:
     @staticmethod
     def test_md_command_prints_markdown_to_stdout(runner: CliRunner) -> None:
         """Test that md command prints markdown report to stdout."""
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.generate_markdown_report"
-        ) as mock_gen:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.generate_markdown_report") as mock_gen,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_gen.return_value = "# Test Markdown Report"
@@ -75,9 +74,10 @@ class TestMarkdownCommand:
     @staticmethod
     def test_md_command_handles_empty_report(runner: CliRunner) -> None:
         """Test md command with empty report."""
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.generate_markdown_report"
-        ) as mock_gen:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.generate_markdown_report") as mock_gen,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_gen.return_value = ""
@@ -112,9 +112,10 @@ class TestHtmlCommand:
     @staticmethod
     def test_html_command_prints_html_to_stdout(runner: CliRunner) -> None:
         """Test that html command prints HTML report to stdout."""
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.generate_html_report"
-        ) as mock_gen:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.generate_html_report") as mock_gen,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_gen.return_value = "<h1>Test HTML Report</h1>"
@@ -129,9 +130,10 @@ class TestHtmlCommand:
     @staticmethod
     def test_html_command_with_complex_html(runner: CliRunner) -> None:
         """Test html command with complex HTML content."""
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.generate_html_report"
-        ) as mock_gen:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.generate_html_report") as mock_gen,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             complex_html = """
@@ -153,9 +155,10 @@ class TestHtmlCommand:
     @staticmethod
     def test_html_command_handles_generation_error(runner: CliRunner) -> None:
         """Test html command handles errors during report generation."""
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.generate_html_report"
-        ) as mock_gen:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.generate_html_report") as mock_gen,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_gen.side_effect = ValueError("Invalid HTML generation")
@@ -183,9 +186,10 @@ class TestSaveCommand:
         """Test save command with default markdown format."""
         output_file = tmp_path / "report.md"
 
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.export_report"
-        ) as mock_export:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.return_value = "# Saved Report"
@@ -199,15 +203,14 @@ class TestSaveCommand:
             assert output_file.read_text(encoding="utf-8") == "# Saved Report"
 
     @staticmethod
-    def test_save_command_with_html_format(
-        runner: CliRunner, tmp_path: Path
-    ) -> None:
+    def test_save_command_with_html_format(runner: CliRunner, tmp_path: Path) -> None:
         """Test save command with HTML format."""
         output_file = tmp_path / "report.html"
 
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.export_report"
-        ) as mock_export:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.return_value = "<html><body>Report</body></html>"
@@ -228,9 +231,10 @@ class TestSaveCommand:
         """Test that save command works with nested paths."""
         output_file = tmp_path / "reports" / "schema" / "report.md"
 
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.export_report"
-        ) as mock_export:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.return_value = "# Report"
@@ -251,9 +255,10 @@ class TestSaveCommand:
         output_file = tmp_path / "report.md"
         output_file.write_text("Old content", encoding="utf-8")
 
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.export_report"
-        ) as mock_export:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.return_value = "# New Report"
@@ -270,9 +275,10 @@ class TestSaveCommand:
         """Test save command handles export errors."""
         output_file = tmp_path / "report.md"
 
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.export_report"
-        ) as mock_export:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.side_effect = ValueError("Export failed")
@@ -299,9 +305,7 @@ class TestMainFunction:
     @staticmethod
     def test_main_function_handles_exceptions() -> None:
         """Test that main function handles exceptions and exits with error code."""
-        with patch("schema_report_cli.app") as mock_app, patch(
-            "sys.exit"
-        ) as mock_exit:
+        with patch("schema_report_cli.app") as mock_app, patch("sys.exit") as mock_exit:
             mock_app.side_effect = RuntimeError("CLI error")
             from schema_report_cli import main
 
@@ -324,9 +328,10 @@ class TestCLIEdgeCases:
         """Test save command with empty report content."""
         output_file = tmp_path / "empty.md"
 
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.export_report"
-        ) as mock_export:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.return_value = ""
@@ -340,9 +345,10 @@ class TestCLIEdgeCases:
     @staticmethod
     def test_commands_with_unicode_content(runner: CliRunner) -> None:
         """Test that commands handle Unicode content correctly."""
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.generate_markdown_report"
-        ) as mock_gen:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.generate_markdown_report") as mock_gen,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_gen.return_value = "# Report 📊\n\n价格: ¥100"
@@ -358,9 +364,10 @@ class TestCLIEdgeCases:
         long_path = tmp_path / ("x" * 50) / ("y" * 50) / "report.md"
         long_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with patch("schema_report_cli.load_graph") as mock_load, patch(
-            "schema_report_cli.export_report"
-        ) as mock_export:
+        with (
+            patch("schema_report_cli.load_graph") as mock_load,
+            patch("schema_report_cli.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.return_value = "# Report"

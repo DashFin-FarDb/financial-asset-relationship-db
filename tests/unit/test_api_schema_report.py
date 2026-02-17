@@ -26,7 +26,9 @@ class TestSchemaReportRouter:
     def test_get_graph_returns_asset_relationship_graph() -> None:
         """Test that get_graph returns an AssetRelationshipGraph instance."""
         # Mock the initialize method by adding it temporarily
-        with patch.object(AssetRelationshipGraph, "initialize_assets_from_source", create=True):
+        with patch.object(
+            AssetRelationshipGraph, "initialize_assets_from_source", create=True
+        ):
             graph = get_graph()
             assert isinstance(graph, AssetRelationshipGraph)
 
@@ -58,11 +60,12 @@ class TestSchemaReportEndpoint:
     @staticmethod
     def test_schema_report_default_format_returns_markdown(client: TestClient) -> None:
         """Test that the schema report endpoint returns markdown by default."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.generate_markdown_report"
-        ) as mock_gen_md:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch(
+                "src.api.routers.schema_report.generate_markdown_report"
+            ) as mock_gen_md,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_gen_md.return_value = "# Test Report"
@@ -76,11 +79,12 @@ class TestSchemaReportEndpoint:
     @staticmethod
     def test_schema_report_with_md_format(client: TestClient) -> None:
         """Test schema report endpoint with explicit md format."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.generate_markdown_report"
-        ) as mock_gen_md:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch(
+                "src.api.routers.schema_report.generate_markdown_report"
+            ) as mock_gen_md,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_gen_md.return_value = "## Markdown Content"
@@ -94,11 +98,12 @@ class TestSchemaReportEndpoint:
     @staticmethod
     def test_schema_report_with_html_format(client: TestClient) -> None:
         """Test schema report endpoint with html format."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.generate_html_report"
-        ) as mock_gen_html:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch(
+                "src.api.routers.schema_report.generate_html_report"
+            ) as mock_gen_html,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_gen_html.return_value = "<h1>HTML Report</h1>"
@@ -134,11 +139,10 @@ class TestSchemaReportRawEndpoint:
     @staticmethod
     def test_raw_endpoint_default_format(client: TestClient) -> None:
         """Test raw endpoint with default format returns markdown."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.export_report"
-        ) as mock_export:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch("src.api.routers.schema_report.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_export.return_value = "# Raw Report"
@@ -154,11 +158,10 @@ class TestSchemaReportRawEndpoint:
     @staticmethod
     def test_raw_endpoint_with_html_format(client: TestClient) -> None:
         """Test raw endpoint with html format."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.export_report"
-        ) as mock_export:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch("src.api.routers.schema_report.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_export.return_value = "<html>Report</html>"
@@ -174,11 +177,10 @@ class TestSchemaReportRawEndpoint:
     @staticmethod
     def test_raw_endpoint_handles_export_error(client: TestClient) -> None:
         """Test that raw endpoint handles ValueError from export_report."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.export_report"
-        ) as mock_export:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch("src.api.routers.schema_report.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_export.side_effect = ValueError("Invalid format")
@@ -214,11 +216,12 @@ class TestSchemaReportEdgeCases:
     @staticmethod
     def test_schema_report_with_empty_graph(client: TestClient) -> None:
         """Test schema report generation with an empty graph."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.generate_markdown_report"
-        ) as mock_gen_md:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch(
+                "src.api.routers.schema_report.generate_markdown_report"
+            ) as mock_gen_md,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_gen_md.return_value = "# Empty Report\n\nNo assets found."
@@ -233,9 +236,7 @@ class TestSchemaReportEdgeCases:
         client: TestClient,
     ) -> None:
         """Test that endpoint handles errors during graph initialization."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph:
+        with patch("src.api.routers.schema_report.get_graph") as mock_get_graph:
             mock_get_graph.side_effect = RuntimeError("Database connection failed")
 
             # FastAPI will raise unhandled exception, so we expect it to be raised
@@ -251,11 +252,10 @@ class TestSchemaReportEdgeCases:
     @staticmethod
     def test_raw_endpoint_with_mixed_case_format(client: TestClient) -> None:
         """Test that raw endpoint handles mixed case format parameters."""
-        with patch(
-            "src.api.routers.schema_report.get_graph"
-        ) as mock_get_graph, patch(
-            "src.api.routers.schema_report.export_report"
-        ) as mock_export:
+        with (
+            patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+            patch("src.api.routers.schema_report.export_report") as mock_export,
+        ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_export.return_value = "# Report"
