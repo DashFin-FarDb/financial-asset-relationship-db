@@ -586,7 +586,13 @@ class FinancialAssetApp:
         """
         try:
             # Placeholder implementation
-            return go.Figure(), gr.update(value=None, visible=False)
+            return (
+                go.Figure(),
+                gr.update(
+                    value="Formula details are not available yet.",
+                    visible=True,
+                ),
+            )
         except Exception as exc:
             logger.error("Error showing formula details: %s", exc)
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
