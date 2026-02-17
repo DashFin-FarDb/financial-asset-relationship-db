@@ -586,7 +586,6 @@ class FinancialAssetApp:
         except (TypeError, ValueError):
             return str(value)
 
-
     @classmethod
     def _format_correlation_line(cls, corr: Any) -> str | None:
         """Return a single formatted correlation line or None."""
