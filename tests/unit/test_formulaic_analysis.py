@@ -1230,3 +1230,6 @@ class TestIntegrationScenarios:
         assert "summary" in result
         assert isinstance(result["formula_count"], int)
         assert result["formula_count"] > 0
+ 
+        metrics = graph.calculate_metrics()
+        assert 0.0 <= metrics["quality_score"] <= 1.0
