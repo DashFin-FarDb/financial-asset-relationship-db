@@ -234,12 +234,8 @@ class TestFinalTestSummary:
 
 
 `@pytest.mark.unit`
-
-
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
-    """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
-
     @pytest.fixture
     def summary_path(self):
         """
