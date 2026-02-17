@@ -378,7 +378,7 @@ class TestSnykWorkflowSecurity:
             return yaml.safe_load(f)
 
     @pytest.fixture
-    def snyk_workflow_content(self) -> str:
+    def snyk_workflow(self):
         """Raw text of the Snyk workflow file."""
         return Path(".github/workflows/snyk-infrastructure.yml").read_text()
 
