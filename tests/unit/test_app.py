@@ -451,7 +451,7 @@ class TestRefreshVisualization:
 
     @staticmethod
     @patch("app.visualize_3d_graph_with_filters")
-    @patch("app.real_data_fetcher")
+    @patch("app.visualize_3d_graph")
     def test_refresh_visualization_3d_mode(mock_fetcher, mock_viz_3d):
         """Test refresh visualization in 3D mode."""
         import plotly.graph_objects as go
