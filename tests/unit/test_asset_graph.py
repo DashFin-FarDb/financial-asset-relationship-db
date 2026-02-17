@@ -43,9 +43,7 @@ class TestGet3DVisualizationDataEnhanced:
         """Test that empty graph returns a single placeholder node."""
         graph = AssetRelationshipGraph()
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert positions.shape == (1, 3)
         assert np.allclose(positions, np.zeros((1, 3)))
@@ -59,9 +57,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert positions.shape == (2, 3)
         assert len(asset_ids) == 2
@@ -184,9 +180,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert isinstance(positions, np.ndarray)
         assert isinstance(asset_ids, list)
@@ -203,9 +197,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
         graph.relationships["asset2"] = [("asset3", "correlation", 0.7)]
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         n = len(asset_ids)
         assert positions.shape[0] == n
@@ -220,9 +212,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
         graph.relationships["mango"] = [("banana", "correlation", 0.7)]
 
-        _positions, asset_ids, _colors, _hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        _positions, asset_ids, _colors, _hover_texts = graph.get_3d_visualization_data_enhanced()
 
         # Verify they are sorted
         assert asset_ids == sorted(asset_ids)
