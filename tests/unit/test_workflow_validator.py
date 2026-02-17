@@ -357,11 +357,7 @@ jobs:
 
     @staticmethod
     def test_workflow_with_yaml_anchors():
-        """
-        Validate that a workflow containing YAML anchors is considered valid by validate_workflow.
-
-        This test creates a temporary workflow YAML that uses anchors and asserts the validator returns a valid ValidationResult.
-        """
+        """Test that a minimal valid workflow with 'Anchors' as its name passes validation."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
