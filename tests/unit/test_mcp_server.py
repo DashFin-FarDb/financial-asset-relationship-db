@@ -78,7 +78,6 @@ class TestThreadSafeGraph:
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-        lock = threading.Lock()
 
         # Track lock acquisition
         lock_acquired = []
