@@ -79,38 +79,30 @@ class TestThreadSafeGraph:
 
         graph = AssetRelationshipGraph()
         lock = threading.Lock()
-        safe_graph = _ThreadSafeGraph(graph, lock)
 
         # Track lock acquisition
         lock_acquired = []
 
-        original_acquire = lock.acquire
-        original_release = lock.release
+        class DummyLock:
+            """Simple lock-like object that records acquire/release events."""
 
-        def tracked_acquire(*args, **kwargs):
-            """
-            Record a lock acquire event by appending "acquired" to the tracking list, then forward the call to the original acquire method.
+            def acquire(self, *args, **kwargs):
+                lock_acquired.append("acquired")
+                return True
 
-            Returns:
-                The value returned by the original acquire call (e.g., boolean indicating success, or whatever the underlying lock returns).
-            """
-            lock_acquired.append("acquired")
-            return original_acquire(*args, **kwargs)
+            def release(self, *args, **kwargs):
+                lock_acquired.append("released")
+                return True
 
-        def tracked_release(*args, **kwargs):
-            """
-            Record a lock release event and forward the call to the original release callable.
+            def __enter__(self):
+                self.acquire()
+                return self
 
-            Each invocation records a release event in the surrounding tracking list and then calls the original release callable with the provided arguments.
+            def __exit__(self, exc_type, exc_val, exc_tb):
+                self.release()
 
-            Returns:
-                The value returned by the original release callable.
-            """
-            lock_acquired.append("released")
-            return original_release(*args, **kwargs)
-
-        lock.acquire = tracked_acquire
-        lock.release = tracked_release
+        lock = DummyLock()
+        safe_graph = _ThreadSafeGraph(graph, lock)
 
         # Call a method
         equity = Equity(
