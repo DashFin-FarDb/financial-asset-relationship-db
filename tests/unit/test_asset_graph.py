@@ -214,5 +214,6 @@ class TestGet3DVisualizationDataEnhanced:
 
         _positions, asset_ids, _colors, _hover_texts = graph.get_3d_visualization_data_enhanced()
 
-        # Verify they are sorted
-        assert asset_ids == sorted(asset_ids)
+        # Verify they are returned as a sorted list of all unique assets
+        expected_asset_ids = ["apple", "banana", "mango", "zebra"]
+        assert asset_ids == expected_asset_ids
