@@ -105,7 +105,11 @@ def sarif_upload_steps(snyk_job_steps):
     Returns:
         list: Steps using codeql-action/upload-sarif.
     """
-    return [s for s in snyk_job_steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+    return [
+        s
+        for s in snyk_job_steps
+        if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+    ]
 
 
 @pytest.mark.unit
@@ -265,13 +269,17 @@ class TestSnykJobConfiguration:
     @staticmethod
     def test_job_checks_out_code(snyk_job_steps):
         """Test that job checks out repository code."""
-        checkout_steps = [s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]]
+        checkout_steps = [
+            s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]
+        ]
         assert len(checkout_steps) > 0
 
     @staticmethod
     def test_checkout_uses_v4(snyk_job_steps):
         """Test that checkout action uses v4."""
-        checkout_steps = [s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]]
+        checkout_steps = [
+            s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]
+        ]
         assert len(checkout_steps) > 0
         assert "@v4" in checkout_steps[0]["uses"]
 
@@ -397,7 +405,9 @@ class TestSnykWorkflowEdgeCases:
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
         lines = [
-            line for line in content.split("\n") if line.strip() and not line.strip().startswith("#")
+            line
+            for line in content.split("\n")
+            if line.strip() and not line.strip().startswith("#")
         ]
         assert len(lines) > 0
 
