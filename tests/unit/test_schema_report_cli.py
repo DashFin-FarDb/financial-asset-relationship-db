@@ -313,7 +313,6 @@ class TestCLIEdgeCases:
 
     @staticmethod
     def test_save_with_empty_content(runner: CliRunner, tmp_path: Path) -> None:
-        """Test save command with empty report content."""
         output_file = tmp_path / "empty.md"
 
         with (
