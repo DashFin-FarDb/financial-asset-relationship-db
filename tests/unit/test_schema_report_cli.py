@@ -326,7 +326,6 @@ class TestCLIEdgeCases:
         tmp_path: Path,
     ) -> None:
         """Test that saving with empty content creates an empty file."""
-
         output_file = tmp_path / "empty.md"
 
         with (

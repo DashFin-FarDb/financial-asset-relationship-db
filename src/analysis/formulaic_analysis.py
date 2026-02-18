@@ -847,6 +847,8 @@ class FormulaicAnalyzer:
                 examples.append(f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B")
                 if len(examples) >= 2:
                     break
+        return "; ".join(examples) if examples else "Example: Market Cap = $1.5B"
+                    break
         return "; ".join(examples) if examples else "Example: Market Cap = $1.0B"
 
     @staticmethod

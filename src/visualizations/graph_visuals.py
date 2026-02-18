@@ -130,39 +130,41 @@ def _build_relationship_index(
                 rel.bidirectional,
             )
     return index
-    graph.relationships
-    - The lock is reentrant, allowing the same thread to acquire it multiple
-    times safely
-    - Creates a snapshot of relationships within the lock to minimize lock hold
-    time
 
-    Thread safety guarantees(with conditions):
-    ✓ SAFE: Multiple threads calling visualization functions in this module
-    concurrently
-    ✓ SAFE: Concurrent calls to this function with the same graph object
-    ⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe
-    if:
-        - All code that modifies graph.relationships uses the same
-        _graph_access_lock, OR
-        - The graph object is treated as immutable after creation(recommended
-                                                                  approach)
+    # graph.relationships
+    # - The lock is reentrant, allowing the same thread to acquire it multiple
+    #   times safely
+    # - Creates a snapshot of relationships within the lock to minimize lock hold
+    #   time
 
-    Recommended usage patterns for thread safety:
-    1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
-    completely before passing it to visualization functions. This eliminates the
-    need for locking.
-    2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure all
-    modification code acquires _graph_access_lock before accessing
-    graph.relationships. This requires coordination across your entire codebase.
+    # Thread safety guarantees (with conditions):
+    # SAFE: Multiple threads calling visualization functions in this module
+    #       concurrently
+    # SAFE: Concurrent calls to this function with the same graph object
+    # CONDITIONAL: Concurrent modifications to graph.relationships are only safe
+    #              if:
+    #     - All code that modifies graph.relationships uses the same
+    #       _graph_access_lock, OR
+    #     - The graph object is treated as immutable after creation (recommended
+    #       approach)
 
-    Note: The AssetRelationshipGraph class itself does not implement any locking
-    mechanisms. Thread safety for modifications must be managed by the calling
-    code. If other parts of your application modify graph.relationships without
-    using _graph_access_lock, race conditions may occur.
+    # Recommended usage patterns for thread safety:
+    # 1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
+    #    completely before passing it to visualization functions. This eliminates the
+    #    need for locking.
+    # 2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure
+    #    all modification code acquires _graph_access_lock before accessing
+    #    graph.relationships. This requires coordination across your entire
+    #    codebase.
 
-    Error Handling(addresses review feedback):
-    == == == == == == == == == == == == == == == == == == == == == =
-    This function implements comprehensive error handling to ensure robustness:
+    # Note: The AssetRelationshipGraph class itself does not implement any locking
+    # mechanisms. Thread safety for modifications must be managed by the calling
+    # code. If other parts of your application modify graph.relationships without
+    # using _graph_access_lock, race conditions may occur.
+
+    # Error Handling (addresses review feedback):
+    # == == == == == == == == == == == == == == == == == == == == =
+    # This function implements comprehensive error handling to ensure robustness:
     - Validates that graph is an AssetRelationshipGraph instance
     - Validates that graph.relationships exists and is a properly formatted
     dictionary
