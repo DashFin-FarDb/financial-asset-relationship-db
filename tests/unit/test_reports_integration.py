@@ -188,7 +188,6 @@ class TestGradioIntegration:
             mock_gen_html.assert_called_once_with(mock_graph)
 
     @staticmethod
-    """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
     def test_attach_to_gradio_interface_markdown() -> None:
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
@@ -401,10 +400,6 @@ class TestIntegrationEdgeCases:
             assert "€$¥£" in result
 
     @staticmethod
-    """
-    Unit tests for the reports integration module, focusing on the Gradio report function behavior.
-    """
-
     def test_make_gradio_report_fn_calls_provider_each_time() -> None:
         """Test that Gradio report function calls provider each time."""
         call_count = 0
