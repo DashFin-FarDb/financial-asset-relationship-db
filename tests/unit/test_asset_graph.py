@@ -259,7 +259,7 @@ class TestAddRelationshipRegression:
         target, rel_type, strength = rels[0]
         assert target == "target"
         assert rel_type == "correlation"
-        assert pytest.approx(strength, rel=1e-9) == 0.75
+        assert strength == pytest.approx(0.75, rel=1e-9)
 
     @staticmethod
     def test_bidirectional_relationship_parameters():
