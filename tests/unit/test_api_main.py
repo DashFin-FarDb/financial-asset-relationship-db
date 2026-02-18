@@ -868,8 +868,8 @@ class TestGraphCachingEdgeCases:
 class TestPydanticModelValidation:
     """Validation tests for Pydantic response models."""
 
-    def test_asset_response_rejects_negative_price(self):
-        """Negative: AssetResponse should validate price constraints."""
+    def test_asset_response_no_price_validation_currently(self):
+        """Document that AssetResponse currently accepts negative prices (validation not yet implemented)."""
         asset = AssetResponse(
             id="TEST",
             symbol="TST",
@@ -880,8 +880,8 @@ class TestPydanticModelValidation:
         )
         assert isinstance(asset, AssetResponse)
 
-    def test_relationship_response_validates_strength_range(self):
-        """Negative: RelationshipResponse should validate strength is 0-1."""
+    def test_metrics_response_no_negative_validation_currently(self):
+        """Document that MetricsResponse currently accepts negative metric values (validation not yet implemented)."""
         # Valid strength
         rel = RelationshipResponse(
             source_id="A",
