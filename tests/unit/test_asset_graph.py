@@ -124,10 +124,7 @@ class TestGet3DVisualizationDataEnhanced:
 
         _, asset_ids, _, hover_texts = graph.get_3d_visualization_data_enhanced()
 
-        assert all(
-            hover_text == f"Asset: {asset_id}"
-            for asset_id, hover_text in zip(asset_ids, hover_texts)
-        )
+        assert all(hover_text == f"Asset: {asset_id}" for asset_id, hover_text in zip(asset_ids, hover_texts))
 
     @staticmethod
     def test_asset_ids_are_sorted():
@@ -225,9 +222,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
         graph.relationships["mango"] = [("banana", "correlation", 0.7)]
 
-        _positions, asset_ids, _colors, _hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        _positions, asset_ids, _colors, _hover_texts = graph.get_3d_visualization_data_enhanced()
 
         # Verify they are returned as a sorted list of all unique assets
         expected_asset_ids = ["apple", "banana", "mango", "zebra"]
