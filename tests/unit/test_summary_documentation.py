@@ -188,7 +188,7 @@ class TestFinalTestSummary:
 
     def test_summary_has_test_statistics(self, summary_content):
         """Test that summary includes test statistics."""
-        assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
+        assert "statistics" in summary_content.lower()
         # Should mention line count
         assert "lines" in summary_content.lower()
 
