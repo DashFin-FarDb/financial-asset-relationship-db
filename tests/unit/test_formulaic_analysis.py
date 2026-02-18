@@ -1220,6 +1220,8 @@ class TestIntegrationScenarios:
 
     @staticmethod
     def test_graph_quality_score_bounds() -> None:
+
+
 +        """Test that calculate_metrics returns a quality_score within [0, 1].
 
         Returns:
@@ -1228,20 +1230,19 @@ class TestIntegrationScenarios:
         Raises:
             AssertionError: If the quality score is out of bounds.
         """
-        graph = AssetRelationshipGraph()
+graph = AssetRelationshipGraph()
 
-        equity = Equity(
-            id="AAPL",
-            symbol="AAPL",
-            name="Apple",
-            asset_class=AssetClass.EQUITY,
-            sector="Technology",
-            price=150.0,
-            pe_ratio=25.5,
-        )
-        graph.add_asset(equity)
-        graph.build_relationships()
+equity = Equity(
+    id="AAPL",
+    symbol="AAPL",
+    name="Apple",
+    asset_class=AssetClass.EQUITY,
+    sector="Technology",
+    price=150.0,
+    pe_ratio=25.5,
+)
+graph.add_asset(equity)
+graph.build_relationships()
 
-
-        metrics = graph.calculate_metrics()
-        assert 0.0 <= metrics["quality_score"] <= 1.0
+metrics = graph.calculate_metrics()
+assert 0.0 <= metrics["quality_score"] <= 1.0
