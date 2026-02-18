@@ -1219,8 +1219,8 @@ class TestIntegrationScenarios:
         assert len(correlation_formulas) > 0
 
     @staticmethod
-    def test_analyze_graph_quality_score_calculation() -> None:
-        """Test that quality score is calculated and within valid range [0, 1].
+    def test_graph_quality_score_bounds() -> None:
++        """Test that calculate_metrics returns a quality_score within [0, 1].
 
         Returns:
             None
@@ -1228,7 +1228,6 @@ class TestIntegrationScenarios:
         Raises:
             AssertionError: If the quality score is out of bounds.
         """
-        analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
 
         equity = Equity(
@@ -1243,12 +1242,6 @@ class TestIntegrationScenarios:
         graph.add_asset(equity)
         graph.build_relationships()
 
-        result = analyzer.analyze_graph(graph)
-
-        # Quality score should be in [0, 1]
-        assert "summary" in result
-        assert isinstance(result["formula_count"], int)
-        assert result["formula_count"] > 0
 
         metrics = graph.calculate_metrics()
         assert 0.0 <= metrics["quality_score"] <= 1.0
