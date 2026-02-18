@@ -353,15 +353,6 @@ class FormulaicAnalyzer:
             expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
             latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
             description="Risk-adjusted return metric",
-        )
-        formulas.append(sharpe_formula)
-
-        # Sharpe Ratio
-        sharpe_formula = Formula(
-            name="Sharpe Ratio",
-            expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
-            latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
-            description="Risk-adjusted return metric",
             variables={
                 "Sharpe": "Sharpe Ratio",
                 "R_p": "Portfolio Return (%)",
