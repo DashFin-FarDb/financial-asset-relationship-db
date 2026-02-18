@@ -7,6 +7,19 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 
 def _as_int(value: Any, default: int = 0) -> int:
+    """
+    Coerce a value to an int, returning default if value is None.
+
+    Parameters:
+        value (Any): The input to convert; any type accepted.
+        default (int): Value returned when value is None.
+
+    Returns:
+        int: The converted integer, or ``default`` if value is None.
+    """
+    if value is None:
+        return default
+    return int(value)  # Propagate TypeError/ValueError per project error-handling policy.
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
