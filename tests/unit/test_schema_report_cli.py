@@ -77,6 +77,8 @@ class TestMarkdownCommand:
             patch("schema_report_cli.load_graph") as mock_load,
             patch("schema_report_cli.generate_markdown_report") as mock_gen,
         ):
+
+
 @pytest.mark.unit
 class TestHtmlCommand:
     """Test cases for the 'html' command."""
@@ -284,6 +286,8 @@ class TestMainFunction:
         """Test that main function invokes the Typer app."""
         with patch("schema_report_cli.app") as mock_app:
             from schema_report_cli import main
+
+
 """Unit tests for schema_report_cli module."""
 
             main()

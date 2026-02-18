@@ -1244,9 +1244,9 @@ class TestIntegrationScenarios:
     ]
     assert len(correlation_formulas) > 0
 
+
 @staticmethod
 def test_graph_quality_score_bounds() -> None:
-
     """Test that calculate_metrics returns a quality_score within [0, 1].
 
     Returns:

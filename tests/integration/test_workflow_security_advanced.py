@@ -111,7 +111,9 @@ class TestWorkflowSecretHandling:
                             r"(echo|print|printf)\s+.*" + re.escape(secret_ref),
                             line,
                             re.IGNORECASE,
-                        ), f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
+                        ), (
+                            f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
+                        )
 
     @staticmethod
     def test_secrets_not_in_artifact_uploads(all_workflows):
@@ -147,7 +149,9 @@ class TestWorkflowPermissionsHardening:
             AssertionError: If any workflow is missing the top-level `permissions` key; the assertion message includes the workflow `path`.
         """
         for workflow in all_workflows:
-            assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
+            assert "permissions" in workflow["content"], (
+                f"Workflow {workflow['path']} should define permissions"
+            )
 
     @staticmethod
     @pytest.mark.integration
@@ -169,14 +173,20 @@ class TestWorkflowPermissionsHardening:
                 assert permissions in [
                     "read-all",
                     "none",
-                ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
+                ], (
+                    f"Workflow {workflow['path']} has overly permissive default: {permissions}"
+                )
             elif isinstance(permissions, dict):
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
             if isinstance(permissions, dict):
-                unexpected_write = {k for k, v in permissions.items() if v == "write"} - allowed_write_perms
-                assert not unexpected_write, f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+                unexpected_write = {
+                    k for k, v in permissions.items() if v == "write"
+                } - allowed_write_perms
+                assert not unexpected_write, (
+                    f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+                )
 
-    @ staticmethod
+    @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
         """
         Ensure no workflow sets the top-level permissions string to "write-all".
@@ -193,13 +203,15 @@ class TestWorkflowPermissionsHardening:
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
             if isinstance(permissions, str):
-                assert permissions != "write-all", f"Workflow {workflow['path']} uses dangerous 'write-all'"
+                assert permissions != "write-all", (
+                    f"Workflow {workflow['path']} uses dangerous 'write-all'"
+                )
 
 
 class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
 
-    @ staticmethod
+    @staticmethod
     def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """Verify third-party actions are pinned to a full commit SHA."""
         for workflow in all_workflows:
@@ -234,6 +246,6 @@ class TestWorkflowSupplyChainSecurity:
                 raw_content,
                 re.IGNORECASE,
             )
-            assert (
-                len(insecure_downloads) == 0
-            ), f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
+            assert len(insecure_downloads) == 0, (
+                f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
+            )

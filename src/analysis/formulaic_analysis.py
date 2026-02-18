@@ -630,7 +630,7 @@ class FormulaicAnalyzer:
                 correlation coefficients.
 
         Returns:
-            float: The average correlation(0.0-1.0), or 0.5 if no valid
+            float: The average correlation(0.0 - 1.0), or 0.5 if no valid
                 correlation values are found.
         """
         correlations = empirical_relationships.get("correlation_matrix", {})
