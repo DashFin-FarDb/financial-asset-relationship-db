@@ -171,7 +171,7 @@ class TestSessionFactory:
         factory = create_session_factory(engine)
         session = factory()
         try:
-            assert session.bind == engine  # nosec B101
+            assert session.get_bind() == engine  # nosec B101
         finally:
             session.close()
 
