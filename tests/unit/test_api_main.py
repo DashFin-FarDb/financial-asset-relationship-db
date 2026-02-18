@@ -353,8 +353,8 @@ class TestAPIEndpoints:
         assert data["max_degree"] >= data["avg_degree"]
         assert 0.0 <= data["relationship_density"] <= 1.0
 
-        # If the API includes relationship_density separately, validate its bounds too.
-        if "relationship_density" in data:
+        # If the API includes network_density separately, validate its bounds too.
+        if "network_density" in data:
             assert 0.0 <= data["network_density"] <= 1.0
 
     def test_get_metrics_no_assets(self, client: TestClient) -> None:
