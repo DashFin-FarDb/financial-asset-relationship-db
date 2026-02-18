@@ -101,7 +101,6 @@ class TestMarkdownCommand:
 class TestHtmlCommand:
     """Test cases for the 'html' command."""
 
-    @staticmethod
     @pytest.fixture
     def runner() -> CliRunner:
         """Create a CLI test runner."""
