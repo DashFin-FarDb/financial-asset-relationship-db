@@ -238,7 +238,10 @@ class TestGradioIntegration:
             """Provide a mock AssetRelationshipGraph instance for testing when Gradio is missing."""
             return mock_graph
 
-        with patch("builtins.__import__", side_effect=ImportError("No module gradio")), pytest.raises(RuntimeError, match="Gradio is not installed"):
+        with (
+            patch("builtins.__import__", side_effect=ImportError("No module gradio")),
+            pytest.raises(RuntimeError, match="Gradio is not installed"),
+        ):
             attach_to_gradio_interface(graph_provider)
 
 
