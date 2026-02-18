@@ -309,14 +309,14 @@ class TestMainFunction:
             mock_app.assert_called_once()
 
     @staticmethod
-    def test_main_function_propagates_exceptions() -> None:
-        """Test that main function lets exceptions propagate."""
-        with patch("schema_report_cli.app") as mock_app:
+    def test_main_function_handles_exceptions() -> None:
+        """Test that main function handles exceptions and exits with error code."""
+        with patch("schema_report_cli.app") as mock_app, patch("sys.exit") as mock_exit:
             mock_app.side_effect = RuntimeError("CLI error")
             from schema_report_cli import main
 
-            with pytest.raises(RuntimeError, match="CLI error"):
-                main()
+            main()
+            mock_exit.assert_called_once_with(1)
 
 
 @pytest.mark.unit
