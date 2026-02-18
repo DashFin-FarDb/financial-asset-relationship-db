@@ -46,6 +46,7 @@ class TestLoadGraph:
 class TestMarkdownCommand:
     """Test cases for the 'md' command."""
 
+    @staticmethod
     @pytest.fixture
     def runner() -> CliRunner:
         """Create a CLI test runner."""
@@ -92,8 +93,7 @@ class TestMarkdownCommand:
 
             result = runner.invoke(app, ["md"])
 
-            # Typer runner will catch the exception
-            # Check that the command failed
+            # Typer runner will catch the exception; command should fail
             assert result.exit_code != 0
 
 
@@ -101,6 +101,7 @@ class TestMarkdownCommand:
 class TestHtmlCommand:
     """Test cases for the 'html' command."""
 
+    @staticmethod
     @pytest.fixture
     def runner() -> CliRunner:
         """Create a CLI test runner."""
@@ -162,7 +163,7 @@ class TestHtmlCommand:
 
             result = runner.invoke(app, ["html"])
 
-            # Check that the command failed
+            # Command should fail when generation raises
             assert result.exit_code != 0
 
 
@@ -170,6 +171,7 @@ class TestHtmlCommand:
 class TestSaveCommand:
     """Test cases for the 'save' command."""
 
+    @staticmethod
     @pytest.fixture
     def runner() -> CliRunner:
         """Create a CLI test runner."""
@@ -177,7 +179,8 @@ class TestSaveCommand:
 
     @staticmethod
     def test_save_command_default_markdown_format(
-        runner: CliRunner, tmp_path: Path
+        runner: CliRunner,
+        tmp_path: Path,
     ) -> None:
         """Test save command with default markdown format."""
         output_file = tmp_path / "report.md"
@@ -199,7 +202,10 @@ class TestSaveCommand:
             assert output_file.read_text(encoding="utf-8") == "# Saved Report"
 
     @staticmethod
-    def test_save_command_with_html_format(runner: CliRunner, tmp_path: Path) -> None:
+    def test_save_command_with_html_format(
+        runner: CliRunner,
+        tmp_path: Path,
+    ) -> None:
         """Test save command with HTML format."""
         output_file = tmp_path / "report.html"
 
@@ -211,7 +217,10 @@ class TestSaveCommand:
             mock_load.return_value = mock_graph
             mock_export.return_value = "<html><body>Report</body></html>"
 
-            result = runner.invoke(app, ["save", str(output_file), "--fmt", "html"])
+            result = runner.invoke(
+                app,
+                ["save", str(output_file), "--fmt", "html"],
+            )
 
             assert result.exit_code == 0
             assert f"Report written to {output_file}" in result.output
@@ -222,7 +231,8 @@ class TestSaveCommand:
 
     @staticmethod
     def test_save_command_creates_parent_directories(
-        runner: CliRunner, tmp_path: Path
+        runner: CliRunner,
+        tmp_path: Path,
     ) -> None:
         """Test that save command works with nested paths."""
         output_file = tmp_path / "reports" / "schema" / "report.md"
@@ -245,7 +255,8 @@ class TestSaveCommand:
 
     @staticmethod
     def test_save_command_overwrites_existing_file(
-        runner: CliRunner, tmp_path: Path
+        runner: CliRunner,
+        tmp_path: Path,
     ) -> None:
         """Test that save command overwrites existing files."""
         output_file = tmp_path / "report.md"
@@ -266,7 +277,8 @@ class TestSaveCommand:
 
     @staticmethod
     def test_save_command_handles_export_error(
-        runner: CliRunner, tmp_path: Path
+        runner: CliRunner,
+        tmp_path: Path,
     ) -> None:
         """Test save command handles export errors."""
         output_file = tmp_path / "report.md"
@@ -281,7 +293,7 @@ class TestSaveCommand:
 
             result = runner.invoke(app, ["save", str(output_file)])
 
-            # Check that the command failed
+            # Command should fail when export raises
             assert result.exit_code != 0
 
 
@@ -291,7 +303,7 @@ class TestMainFunction:
 
     @staticmethod
     def test_main_function_runs_app() -> None:
-        """Test that main function invokes the typer app."""
+        """Test that main function invokes the Typer app."""
         with patch("schema_report_cli.app") as mock_app:
             from schema_report_cli import main
 
@@ -299,14 +311,14 @@ class TestMainFunction:
             mock_app.assert_called_once()
 
     @staticmethod
-    def test_main_function_handles_exceptions() -> None:
-        """Test that main function handles exceptions and exits with error code."""
-        with patch("schema_report_cli.app") as mock_app, patch("sys.exit") as mock_exit:
+    def test_main_function_propagates_exceptions() -> None:
+        """Test that main function lets exceptions propagate."""
+        with patch("schema_report_cli.app") as mock_app:
             mock_app.side_effect = RuntimeError("CLI error")
             from schema_report_cli import main
 
-            main()
-            mock_exit.assert_called_once_with(1)
+            with pytest.raises(RuntimeError, match="CLI error"):
+                main()
 
 
 @pytest.mark.unit
@@ -320,7 +332,10 @@ class TestCLIEdgeCases:
         return CliRunner()
 
     @staticmethod
-    def test_save_with_empty_content(runner: CliRunner, tmp_path: Path) -> None:
+    def test_save_with_empty_content(
+        runner: CliRunner,
+        tmp_path: Path,
+    ) -> None:
         output_file = tmp_path / "empty.md"
 
         with (
@@ -354,7 +369,10 @@ class TestCLIEdgeCases:
             assert "Report 📊" in result.output
 
     @staticmethod
-    def test_save_with_long_path(runner: CliRunner, tmp_path: Path) -> None:
+    def test_save_with_long_path(
+        runner: CliRunner,
+        tmp_path: Path,
+    ) -> None:
         """Test save command with a long file path."""
         long_path = tmp_path / ("x" * 50) / ("y" * 50) / "report.md"
         long_path.parent.mkdir(parents=True, exist_ok=True)
