@@ -178,9 +178,7 @@ class TestSaveCommand:
         return CliRunner()
 
     @staticmethod
-    def test_save_command_default_markdown_format(
-        runner: CliRunner, tmp_path: Path
-    ) -> None:
+    def test_save_command_default_markdown_format(runner: CliRunner, tmp_path: Path) -> None:
         """Test save command with default markdown format."""
         output_file = tmp_path / "report.md"
 
@@ -223,9 +221,7 @@ class TestSaveCommand:
             assert "<html><body>Report</body></html>" in content
 
     @staticmethod
-    def test_save_command_creates_parent_directories(
-        runner: CliRunner, tmp_path: Path
-    ) -> None:
+    def test_save_command_creates_parent_directories(runner: CliRunner, tmp_path: Path) -> None:
         """Test that save command works with nested paths."""
         output_file = tmp_path / "reports" / "schema" / "report.md"
 
@@ -246,9 +242,7 @@ class TestSaveCommand:
             assert output_file.exists()
 
     @staticmethod
-    def test_save_command_overwrites_existing_file(
-        runner: CliRunner, tmp_path: Path
-    ) -> None:
+    def test_save_command_overwrites_existing_file(runner: CliRunner, tmp_path: Path) -> None:
         """Test that save command overwrites existing files."""
         output_file = tmp_path / "report.md"
         output_file.write_text("Old content", encoding="utf-8")
@@ -267,9 +261,7 @@ class TestSaveCommand:
             assert output_file.read_text(encoding="utf-8") == "# New Report"
 
     @staticmethod
-    def test_save_command_handles_export_error(
-        runner: CliRunner, tmp_path: Path
-    ) -> None:
+    def test_save_command_handles_export_error(runner: CliRunner, tmp_path: Path) -> None:
         """Test save command handles export errors."""
         output_file = tmp_path / "report.md"
 
