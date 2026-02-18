@@ -183,8 +183,10 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_relationships_have_valid_strength():
-        """
-        Checks that every relationship in the sample graph has a strength value between 0 and 1 inclusive.
+        """Check every relationship strength is within [0.0, 1.0].
+
+        Returns:
+            None
         """
         graph = create_sample_database()
 
@@ -211,10 +213,10 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_corporate_bond_relationships_exist():
-        """
-        Verify corporate_bond relationships are present when bond assets exist.
+        """Verify every relationship's source and target IDs exist in graph.assets.
 
-        If the generated sample database contains any Bond assets, this test asserts that at least one relationship with type "corporate_bond" appears in graph.relationships. The test does not fail when no Bond assets are present.
+        Returns:
+            None
         """
         graph = create_sample_database()
 
@@ -298,18 +300,18 @@ class TestSampleDataConsistency:
             assert len(asset.name) > 0
 
     @staticmethod
-    def test_relationship_targets_exist():
-        """
-        Verify that every relationship's source and target IDs exist among the graph's assets.
-
-        Asserts that each relationship key present in graph.relationships is a valid asset ID and that every relationship's target ID refers to an existing asset.
-        """
+    def test_relationship_targets_exist() -> None:
+        """Ensure all relationship source/target IDs exist in graph.assets."""
         graph = create_sample_database()
 
         for source_id, rels in graph.relationships.items():
-            assert source_id in graph.assets, f"Source {source_id} should exist in assets"
+            assert source_id in graph.assets, (
+                f"Source {source_id} should exist in assets"
+            )
             for target_id, _rel_type, _strength in rels:
-                assert target_id in graph.assets, f"Target {target_id} in relationship should exist in assets"
+                assert target_id in graph.assets, (
+                    f"Target {target_id} in relationship should exist in assets"
+                )
 
     @staticmethod
     def test_bond_issuer_references_valid_asset():
