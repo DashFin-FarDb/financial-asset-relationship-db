@@ -729,6 +729,8 @@ class FormulaicVisualizer:
             for values in categories.values()
         ]
 
+        category_counts = [len(values) for values in categories.values()]
+        
         fig.add_trace(
             go.Bar(
                 name="Average R-squared",
@@ -736,12 +738,20 @@ class FormulaicVisualizer:
                 y=r_squared_by_category,
             )
         )
+        fig.add_trace(
+            go.Bar(
+                name="Formula Count",
+                x=category_names,
+                y=category_counts,
+            )
+        )
 
         fig.update_layout(
-            title="Formula Reliability Distribution by Category",
+            title="Formula Categories: Reliability vs Count",
             xaxis_title="Formula Category",
             yaxis_title="R-Squared Score",
-            showlegend=False,
+            barmode="group",
+            showlegend=True,
             template="plotly_white",
         )
 
