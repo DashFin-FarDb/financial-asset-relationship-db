@@ -108,9 +108,7 @@ def test_asset_crud_flow(db_session: Session) -> None:
     assert "EQ1" not in assets  # nosec B101
 
 
-`@pytest.mark.integration`
-
-
+@pytest.mark.integration
 def test_relationship_and_event_crud_flow(db_session: Session) -> None:
     """CRUD operations for relationships and regulatory events."""
     repo = AssetGraphRepository(db_session)
