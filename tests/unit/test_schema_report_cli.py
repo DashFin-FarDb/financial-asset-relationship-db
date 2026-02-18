@@ -46,7 +46,6 @@ class TestLoadGraph:
 class TestMarkdownCommand:
     """Test cases for the 'md' command."""
 
-    @staticmethod
     @pytest.fixture
     def runner() -> CliRunner:
         """Create a CLI test runner."""
