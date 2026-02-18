@@ -13,8 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from src.api.routers.schema_report import get_graph, router
-from src.logic.asset_graph import AssetRelationshipGraph
+markdown
 
 
 @pytest.mark.unit
