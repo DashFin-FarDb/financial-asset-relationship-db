@@ -65,12 +65,14 @@ def test_schema_report_contains_sections() -> None:
         assert section in md
 
 
+
 def test_schema_report_relationship_distribution() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
 
     assert "- **correlation**: 4 instances" in md
     assert "- **hedge**: 2 instances" in md
+
 
 
 def test_schema_report_top_relationships() -> None:
@@ -82,7 +84,9 @@ def test_schema_report_top_relationships() -> None:
     assert "**X** -> **Y** (hedge, strength 0.70)" in md
 
 
+
 def test_schema_report_quality_score() -> None:
+    """Test that the schema report displays the correct data quality score."""
     graph = MockGraph()
     md = generate_schema_report(graph)
 
@@ -90,6 +94,7 @@ def test_schema_report_quality_score() -> None:
 
 
 def test_schema_report_recommendation_logic() -> None:
+    """Test that the schema report provides the correct recommendation logic based on density metrics."""
     graph = MockGraph()
     md = generate_schema_report(graph)
 
