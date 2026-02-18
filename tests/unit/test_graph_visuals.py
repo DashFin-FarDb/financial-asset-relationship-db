@@ -13,9 +13,7 @@ from src.visualizations.graph_visuals import (
 
 
 class DummyGraph(AssetRelationshipGraph):
-    def __init__(
-        self, relationships: dict[str, list[tuple[str, str, float]]]
-    ) -> None:
+    def __init__(self, relationships: dict[str, list[tuple[str, str, float]]]) -> None:
         # relationships: Dict[str, List[Tuple[str, str, float]]]
         """
         Initialize the DummyGraph with a mapping of asset relationships.
