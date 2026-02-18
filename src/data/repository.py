@@ -38,6 +38,18 @@ def session_scope(
 
     Tech spec alignment: session_scope is defined in repository.py to provide a
     standard transaction boundary for repository interactions.
+
+    Args:
+        session_factory: Zero-argument callable that returns a new ``Session``.
+
+    Yields:
+        Session: An open, uncommitted database session.  The caller may use it
+            freely; the context manager commits on clean exit and rolls back on
+            any exception.
+
+    Raises:
+        Exception: Any exception raised within the ``with`` block is re-raised
+            after the session has been rolled back and closed.
     """
     session = session_factory()
     try:
