@@ -207,8 +207,9 @@ class TestGet3DVisualizationDataEnhanced:
         n = len(asset_ids)
         assert positions.shape[0] == n
         assert len(colors) == n
-    `@staticmethod`
+        assert len(hover_texts) == n
 
+    @staticmethod
     def test_asset_ids_sorted_with_relationships():
         """Test that asset IDs are returned in sorted order."""
         graph = AssetRelationshipGraph()
