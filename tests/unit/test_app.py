@@ -22,43 +22,41 @@ import pytest
 from app import AppConstants, FinancialAssetApp
 
 
+EXPECTED_TABS = (
+    "TAB_3D_VISUALIZATION",
+    "TAB_METRICS_ANALYTICS",
+    "TAB_SCHEMA_RULES",
+    "TAB_ASSET_EXPLORER",
+    "TAB_DOCUMENTATION",
+)
+
+
 @pytest.mark.unit
 class TestAppConstants:
     """Test cases for AppConstants class."""
 
     @staticmethod
-    def test_title_constant():
+    def test_title_constant() -> None:
         """Test that TITLE constant is defined and non-empty."""
         assert hasattr(AppConstants, "TITLE"), "TITLE constant is not defined"
         assert isinstance(AppConstants.TITLE, str)
         assert len(AppConstants.TITLE) > 0
 
     @staticmethod
-    def test_markdown_header_constant():
+    def test_markdown_header_constant() -> None:
         """Test that MARKDOWN_HEADER contains expected content."""
         assert hasattr(AppConstants, "MARKDOWN_HEADER")
         assert isinstance(AppConstants.MARKDOWN_HEADER, str)
         assert "Financial" in AppConstants.MARKDOWN_HEADER
         assert "Asset" in AppConstants.MARKDOWN_HEADER
 
-    @staticmethod
-    def test_tab_constants_defined():
-        """Test that all tab label constants are defined."""
-        @pytest.mark.parametrize("tab", [
-            "TAB_3D_VISUALIZATION",
-            "TAB_METRICS_ANALYTICS",
-            "TAB_SCHEMA_RULES",
-            "TAB_ASSET_EXPLORER",
-            "TAB_DOCUMENTATION",
-        ])
-    def test_tab_constants_defined(tab):
+    @pytest.mark.parametrize("tab", EXPECTED_TABS)
+    def test_tab_constants_defined(self, tab: str) -> None:
+        """Each expected tab constant exists and is a non-empty string."""
         assert hasattr(AppConstants, tab)
-        assert isinstance(getattr(AppConstants, tab), str)
-        assert len(getattr(AppConstants, tab)) > 0
-        for tab in expected_tabs:
-            assert hasattr(AppConstants, tab)
-            assert isinstance(getattr(AppConstants, tab), str)
-            assert len(getattr(AppConstants, tab)) > 0
+        value = getattr(AppConstants, tab)
+        assert isinstance(value, str)
+        assert len(value) > 0
 
     @staticmethod
     def test_label_constants_defined():
