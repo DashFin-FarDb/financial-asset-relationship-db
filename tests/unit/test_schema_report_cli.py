@@ -77,7 +77,16 @@ class TestMarkdownCommand:
             patch("schema_report_cli.load_graph") as mock_load,
             patch("schema_report_cli.generate_markdown_report") as mock_gen,
         ):
+            mock_graph = MagicMock(spec=AssetRelationshipGraph)
+            mock_load.return_value = mock_graph
+            mock_gen.return_value = ""
 
+            result = runner.invoke(app, ["md"])
+
+            assert result.exit_code == 0
+            assert result.output == ""
+            mock_load.assert_called_once()
+            mock_gen.assert_called_once_with(mock_graph)
 
 @pytest.mark.unit
 class TestHtmlCommand:

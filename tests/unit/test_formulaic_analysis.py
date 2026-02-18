@@ -1223,15 +1223,15 @@ class TestIntegrationScenarios:
         for i, (symbol, name) in enumerate(
             [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
         ):
-        equity = Equity(
-            id=symbol,
-            symbol=symbol,
-            name=name,
-            asset_class=AssetClass.EQUITY,
-            sector="Technology",
-            price=100.0 + i * 50,
-        )
-        graph.add_asset(equity)
+            equity = Equity(
+                id=symbol,
+                symbol=symbol,
+                name=name,
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=100.0 + i * 50,
+            )
+            graph.add_asset(equity)
 
     graph.build_relationships()
 

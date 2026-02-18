@@ -594,7 +594,7 @@ def _validate_visualization_data(
     asset_ids: List[str],
     colors: List[str],
     hover_texts: List[str],
-) -> None:
+    ) -> None:
     """Validate visualization data integrity to prevent runtime errors."""
     _validate_positions_array(positions)
     _validate_asset_ids_list(asset_ids)
@@ -612,12 +612,12 @@ def _validate_visualization_data(
 
 
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
-     """Create enhanced 3D visualization of asset relationship graph
-     with improved relationship visibility"""
-     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-         graph, "get_3d_visualization_data_enhanced"
-     ):
-         raise ValueError("Invalid graph data provided")
+    """Create enhanced 3D visualization of asset relationship graph
+    with improved relationship visibility"""
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
+        graph, "get_3d_visualization_data_enhanced"
+    ):
+        raise ValueError("Invalid graph data provided")
     positions, asset_ids, colors, hover_texts = (
         graph.get_3d_visualization_data_enhanced()
     )
