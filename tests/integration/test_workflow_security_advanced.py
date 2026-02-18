@@ -74,11 +74,13 @@ class TestWorkflowInjectionPrevention:
                                     f"{workflow['path']} job '{job_name}' step {step_idx}"
                                 )
 
+import pytest
 
 class TestWorkflowSecretHandling:
     """Tests for proper secret handling in workflows."""
 
     @staticmethod
+    @pytest.mark.integration
     def test_secrets_not_echoed_in_logs(all_workflows):
         """
         Ensure workflow secrets are not written to logs using shell or print commands.
@@ -130,6 +132,7 @@ class TestWorkflowPermissionsHardening:
     """Tests for workflow permissions and least privilege."""
 
     @staticmethod
+    @pytest.mark.integration
     def test_workflows_define_explicit_permissions(all_workflows):
         """
         Ensure each workflow defines a top-level `permissions` key.
@@ -146,6 +149,7 @@ class TestWorkflowPermissionsHardening:
             assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
 
     @staticmethod
+    @pytest.mark.integration
     def test_default_permissions_are_restrictive(all_workflows):
         """
         Enforces least-privilege default permissions for each workflow.
@@ -166,12 +170,11 @@ class TestWorkflowPermissionsHardening:
                     "none",
                 ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
-                default_write_perms = [k for k, v in permissions.items() if v == "write"]
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
-                unexpected_write = set(default_write_perms) - allowed_write_perms
-                assert (
-                    len(unexpected_write) == 0
-                ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+            unexpected_write = {k for k, v in permissions.items() if v == "write"} - allowed_write_perms
+            assert not unexpected_write, (
+                f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+            )
 
     @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
