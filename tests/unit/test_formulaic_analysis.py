@@ -1207,8 +1207,15 @@ class TestIntegrationScenarios:
         assert len(correlation_formulas) > 0
 
     @staticmethod
-    def test_analyze_graph_quality_score_calculation():
-        """Test that quality score is calculated and within valid range [0, 1]."""
+    def test_analyze_graph_quality_score_calculation() -> None:
+        """Test that quality score is calculated and within valid range [0, 1].
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: If the quality score is out of bounds.
+        """
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
 
