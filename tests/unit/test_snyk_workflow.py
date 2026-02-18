@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-_WORKFLOW_PATH = Path(".github/workflows/snyk-infrastructure.yml")
+WORKFLOW_PATH = Path(".github/workflows/snyk-infrastructure.yml")
 
 
 @pytest.fixture
