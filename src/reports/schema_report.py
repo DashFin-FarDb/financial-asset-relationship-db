@@ -1,108 +1,14 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
 from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
-
-
-def _as_int(value: Any, default: int = 0) -> int:
-    """
-    Coerce a value to an int, returning default if value is None.
-
-    Parameters:
-        value (Any): The input to convert; any type accepted.
-        default (int): Value returned when value is None.
-
-    Returns:
-        int: The converted integer, or ``default`` if value is None.
-    """
-    if value is None:
-        return default
-    return int(
-        value
-    )  # Propagate TypeError/ValueError per project error-handling policy.
-
-
-def _as_float(value: Any, default: float = 0.0) -> float:
-    """
-    Coerce a value to a float, falling back to a default on failure.
-
-    Attempts to convert `value` to a float; if `value` is None or cannot be
-    converted (raises TypeError or ValueError), returns `default`.
-
-    Parameters:
-        value: The input to convert to float; any type is accepted.
-        default (float): Value returned when conversion is not possible.
-
-    Returns:
-        float: The converted float, or `default` if conversion fails.
-    """
-    try:
-        if value is None:
-            return default
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _as_str_int_map(value: Any) -> dict[str, int]:
-    """
-    Coerce a mapping-like value into a dictionary
-    with string keys and integer values.
-
-    If the input is not a Mapping, returns an empty
-    dictionary.
-
-    For each item in the mapping, string keys are retained
-    and their values are converted to integers using a
-    best-effort conversion that defaults to 0 on failure;
-    non-string keys are ignored.
-
-    Parameters:
-        value (Any): The value to coerce into a dict[str, int].
-
-    Returns:
-        dict[str, int]: A dictionary of string keys to integer values, or an empty
-            dict if the input is not a mapping or contains no string-keyed entries.
-    """
-    if not isinstance(value, Mapping):
-        return {}
-    out: dict[str, int] = {}
-    for k, v in value.items():
-        if isinstance(k, str):
-            out[k] = _as_int(v, 0)
-    return out
-
-
-def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
-    """
-    Normalize a value into a list of top relationships as
-    (source, target, rel_type, strength) tuples.
-
-    If the input is not a list, returns an empty list. Items that are
-    4-tuples whose first three elements are strings are converted:
-    the fourth element is coerced to a float and used as `strength`.
-    Invalid items are ignored.
-
-    Returns:
-        list[tuple[str, str, str, float]]: A list of validated
-            (source, target, relationship_type, strength) tuples.
-    """
-    if not isinstance(value, list):
-        return []
-
-    out: list[tuple[str, str, str, float]] = []
-    for item in value:
-        if (
-            isinstance(item, tuple)
-            and len(item) == 4
-            and isinstance(item[0], str)
-            and isinstance(item[1], str)
-            and isinstance(item[2], str)
-        ):
-            out.append((item[0], item[1], item[2], _as_float(item[3], 0.0)))
-    return out
+from src.reports.helpers import (
+    _as_float,
+    _as_int,
+    _as_str_int_map,
+    _as_top_relationships,
+)
 
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
