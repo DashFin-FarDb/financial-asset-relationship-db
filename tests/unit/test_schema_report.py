@@ -237,7 +237,9 @@ class TestDataQualityScore:
         assert re.search(pattern, report)
 
     @staticmethod
-    def test_quality_score_calculation_with_events(populated_graph, sample_regulatory_event):
+    def test_quality_score_calculation_with_events(
+        populated_graph, sample_regulatory_event
+    ):
         """Test quality score calculation with regulatory events."""
         populated_graph.add_regulatory_event(sample_regulatory_event)
         report = generate_schema_report(populated_graph)
@@ -260,9 +262,9 @@ class TestRecommendations:
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
 
-        assert (
-            metrics["relationship_density"] > 30
-        ), f"Expected density > 30 for fully connected graph, got {metrics['relationship_density']}"
+        assert metrics["relationship_density"] > 30, (
+            f"Expected density > 30 for fully connected graph, got {metrics['relationship_density']}"
+        )
         assert "High connectivity" in report or "normalization" in report
 
     @staticmethod
@@ -286,9 +288,9 @@ class TestRecommendations:
         report = generate_schema_report(empty_graph)
 
         metrics = empty_graph.calculate_metrics()
-        assert (
-            metrics["relationship_density"] <= 10
-        ), f"Expected density <= 10 for single-asset graph, got {metrics['relationship_density']}"
+        assert metrics["relationship_density"] <= 10, (
+            f"Expected density <= 10 for single-asset graph, got {metrics['relationship_density']}"
+        )
         assert "Sparse" in report or "adding more relationships" in report
 
 
