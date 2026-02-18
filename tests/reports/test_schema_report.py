@@ -65,14 +65,12 @@ def test_schema_report_contains_sections() -> None:
         assert section in md
 
 
-
 def test_schema_report_relationship_distribution() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
 
     assert "- **correlation**: 4 instances" in md
     assert "- **hedge**: 2 instances" in md
-
 
 
 def test_schema_report_top_relationships() -> None:
@@ -82,7 +80,6 @@ def test_schema_report_top_relationships() -> None:
     # Use simple arrow instead of Unicode arrow
     assert "**A** -> **B** (correlation, strength 0.90)" in md
     assert "**X** -> **Y** (hedge, strength 0.70)" in md
-
 
 
 def test_schema_report_quality_score() -> None:
