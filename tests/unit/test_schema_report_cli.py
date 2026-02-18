@@ -287,7 +287,7 @@ class TestSaveCommand:
             assert result.exit_code != 0
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 class TestMainFunction:
     """Test cases for the main entry point."""
 
