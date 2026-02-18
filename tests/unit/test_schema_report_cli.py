@@ -170,7 +170,6 @@ class TestHtmlCommand:
 class TestSaveCommand:
     """Test cases for the 'save' command."""
 
-    @staticmethod
     @pytest.fixture
     def runner() -> CliRunner:
         """Create a CLI test runner."""
