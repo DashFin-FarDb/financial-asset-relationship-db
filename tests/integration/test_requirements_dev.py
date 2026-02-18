@@ -297,10 +297,8 @@ def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> N
     spec = pyyaml_specs[0]
     assert spec.startswith(">="), "PyYAML should use a minimum version constraint"
     # Extract the lower bound version and compare semantically
-    lower_bound = spec.split(",")[0][len(">="):].strip()
-    assert Version(lower_bound) >= Version("6.0"), (
-        f"Expected PyYAML >=6.0, got {spec}"
-    )
+    lower_bound = spec.split(",")[0][len(">=") :].strip()
+    assert Version(lower_bound) >= Version("6.0"), f"Expected PyYAML >=6.0, got {spec}"
 
 
 def test_type_stubs_have_base_packages(
