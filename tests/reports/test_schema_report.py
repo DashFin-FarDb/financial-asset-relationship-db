@@ -141,6 +141,7 @@ Module defining test graphs for schema report tests.
 This module provides HighDensityGraph to simulate a graph with high relationship density used in schema report testing.
 """
 
+
 class HighDensityGraph:
     """Mock graph with high relationship density."""
 
@@ -178,6 +179,7 @@ def test_schema_report_high_density_recommendation() -> None:
 This module provides the SparseDensityGraph class used in tests to mock a graph
 with sparse relationship density and compute various metrics for reporting.
 """
+
 
 class SparseDensityGraph:
     """Mock graph with sparse relationship density."""
