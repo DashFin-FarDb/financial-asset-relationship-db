@@ -191,10 +191,10 @@ class TestGradioIntegration:
 def test_attach_to_gradio_interface_markdown() -> None:
     """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
     mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        """Test attaching markdown report to Gradio interface."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+     """Test attaching markdown report to Gradio interface."""
+      mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
+       def graph_provider():
             """Provide a mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
