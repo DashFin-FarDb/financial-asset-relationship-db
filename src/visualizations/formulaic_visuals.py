@@ -53,6 +53,14 @@ class FormulaicVisualizer:
         self._plot_sector_analysis(fig, formulas)
         self._plot_key_formula_examples(fig, formulas)
 
+        fig.update_layout(
+            title="📊 Financial Formulaic Analysis Dashboard",
+            height=1000,
+            showlegend=False,
+            plot_bgcolor="white",
+            paper_bgcolor="#F8F9FA",
+        )
+
         return fig
 
     # ------------------------------------------------------------------
@@ -74,7 +82,7 @@ class FormulaicVisualizer:
             go.Pie(
                 labels=list(categories.keys()),
                 values=list(categories.values()),
-                hole=0.3,
+                hole=0.4,  # was 0.3; tests expect 0.4
             ),
             row=1,
             col=1,
@@ -126,24 +134,17 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _plot_empirical_correlation(
-        fig: go.Figure, empirical_relationships: Mapping[str, Any]
+        fig: go.Figure,
+        empirical_relationships: Mapping[str, Any],
     ) -> None:
         """
         Add an empirical correlation heatmap to the provided subplot figure.
 
         Extracts the "correlation_matrix" entry from `empirical_relationships`.
         If the entry is a dict, builds a square matrix of correlation values ordered by
-        asset name and adds a Heatmap trace to row 2, column 1 with the "RdBu"
-        colorscale centered at 0.
-        If the correlation matrix is missing or not a dict,
-        no trace is added.
-
-        Parameters:
-            fig (go.Figure): The Plotly Figure (with subplots)
-                to receive the heatmap trace.
-            empirical_relationships (Mapping[str, Any]): Mapping expected to contain a
-                "correlation_matrix" key whose value is a dict mapping asset to asset to
-                correlation value.
+        asset name and adds a Heatmap trace to row 2, column 1 with the "RdYlBu_r"
+        colorscale centered at 0 and symmetric bounds [-1, 1]. If the correlation
+        matrix is missing or not a dict, no trace is added.
         """
         correlation_matrix = (
             empirical_relationships.get("correlation_matrix")
@@ -157,7 +158,8 @@ class FormulaicVisualizer:
         if isinstance(correlation_matrix, dict):
             # Support flat "A-B": value mappings by normalising to nested dicts
             if correlation_matrix and not isinstance(
-                next(iter(correlation_matrix.values())), dict
+                next(iter(correlation_matrix.values())),
+                dict,
             ):
                 nested: dict[str, dict[str, float]] = {}
                 for key, value in correlation_matrix.items():
@@ -168,7 +170,10 @@ class FormulaicVisualizer:
                 correlation_matrix = nested
             assets = sorted(correlation_matrix.keys())
             z = [
-                [correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets]
+                [
+                    correlation_matrix.get(a1, {}).get(a2, 0.0)
+                    for a2 in assets
+                ]
                 for a1 in assets
             ]
         else:
@@ -180,7 +185,9 @@ class FormulaicVisualizer:
                 z=z,
                 x=assets,
                 y=assets,
-                colorscale="RdBu",
+                colorscale="RdYlBu_r",  # tests expect this colorscale
+                zmin=-1,
+                zmax=1,
                 zmid=0,
             ),
             row=2,
@@ -401,12 +408,19 @@ class FormulaicVisualizer:
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
                 + "<br>".join(
-                    f"• {var}: {desc}" for var, desc in formula.variables.items()
+                    f"• {var}: {desc}"
+                    for var, desc in formula.variables.items()
                 )
                 + "<br><br><b>Example Calculation:</b><br>"
                 f"{formula.example_calculation}"
             ),
             showarrow=False,
+        )
+
+        fig.update_layout(
+            title=f"Formula Details: {formula.name}",
+            height=600,
+            plot_bgcolor="white",
         )
 
         return fig
@@ -453,7 +467,19 @@ class FormulaicVisualizer:
     def _create_empty_correlation_figure() -> go.Figure:
         """Return an empty placeholder correlation figure."""
         fig = go.Figure()
-        fig.update_layout(title="No correlation data available")
+        fig.update_layout(
+            annotations=[
+                dict(
+                    text="No correlation data available",
+                    x=0.5,
+                    y=0.5,
+                    xref="paper",
+                    yref="paper",
+                    showarrow=False,
+                    align="center",
+                )
+            ]
+        )
         return fig
 
     @staticmethod
