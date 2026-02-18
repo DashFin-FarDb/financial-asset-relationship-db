@@ -796,7 +796,7 @@ class FormulaicAnalyzer:
 
         Returns:
             str: A semicolon - separated string with up to two examples like
-                'SYMBOL: YTM ≈ 3.45%', or 'Example: YTM ≈ 3.0%'
+                'SYMBOL: YTM 27; 3.45%', or 'Example: YTM 27; 3.0%'
                 when no valid YTMs are available.
         """
         from src.models.financial_models import AssetClass
@@ -809,10 +809,10 @@ class FormulaicAnalyzer:
                 and asset.yield_to_maturity is not None
             ):
                 ytm_pct = asset.yield_to_maturity * 100
-                examples.append(f"{asset.symbol}: YTM ≈ {ytm_pct:.2f}%")
+                examples.append(f"{asset.symbol}: YTM 27; {ytm_pct:.2f}%")
                 if len(examples) >= 2:
                     break
-        return "; ".join(examples) if examples else "Example: YTM ≈ 3.0%"
+        return "; ".join(examples) if examples else "Example: YTM 27; 3.0%"
 
     @staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
@@ -820,7 +820,7 @@ class FormulaicAnalyzer:
         Builds example market - capitalization strings for up to two equity assets
         found in the graph.
 
-        Scans the graph's assets for items classified as EQUITY that have a non - null
+        Scans the graph assets for items classified as EQUITY that have a non - null
         market_cap, formats up to two examples in billions
         (e.g., 'SYM: Market Cap = $1.5B'),
         and returns a semicolon - separated string.
