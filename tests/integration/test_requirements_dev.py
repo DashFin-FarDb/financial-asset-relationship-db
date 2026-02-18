@@ -122,28 +122,33 @@ def package_names(parsed_requirements: list[tuple[str, str]]) -> list[str]:
 # -----------------------
 # File existence / format
 # -----------------------
+@pytest.mark.integration
 def test_file_exists() -> None:
     """Ensure the development requirements file path exists."""
     assert REQUIREMENTS_FILE.exists()
 
 
+@pytest.mark.integration
 def test_file_is_file() -> None:
     """Ensure the requirements path points to a regular file (not a directory)."""
     assert REQUIREMENTS_FILE.is_file()
 
 
+@pytest.mark.integration
 def test_file_is_readable_and_nonempty() -> None:
     """Ensure the file can be read as UTF-8 and is not empty."""
     content = REQUIREMENTS_FILE.read_text(encoding="utf-8")
     assert len(content) > 0
 
 
+@pytest.mark.integration
 def test_file_ends_with_newline() -> None:
     """Ensure the file ends with a trailing newline (POSIX-friendly formatting)."""
     content = REQUIREMENTS_FILE.read_text(encoding="utf-8")
     assert content.endswith("\n")
 
 
+@pytest.mark.integration
 def test_no_trailing_whitespace() -> None:
     """Ensure no line contains trailing whitespace (excluding the newline)."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines(True)
@@ -155,6 +160,7 @@ def test_no_trailing_whitespace() -> None:
     assert lines_with_trailing == []
 
 
+@pytest.mark.integration
 def test_reasonable_file_size() -> None:
     """Ensure the requirements file is not unexpectedly large for dev tooling."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines()
@@ -164,6 +170,7 @@ def test_reasonable_file_size() -> None:
 # -----------------------
 # Parseability / validity
 # -----------------------
+@pytest.mark.integration
 def test_all_non_comment_lines_parse_with_packaging() -> None:
     """Ensure every non-empty, non-comment requirement line parses via packaging.Requirement."""
     for raw in REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines():
@@ -178,6 +185,7 @@ def test_all_non_comment_lines_parse_with_packaging() -> None:
         Requirement(line)  # should not raise
 
 
+@pytest.mark.integration
 def test_no_duplicate_packages_case_insensitive(package_names: list[str]) -> None:
     """Ensure no duplicate packages exist after normalizing case and hyphen/underscore."""
     seen: set[str] = set()
@@ -190,6 +198,7 @@ def test_no_duplicate_packages_case_insensitive(package_names: list[str]) -> Non
     assert duplicates == []
 
 
+@pytest.mark.integration
 def test_package_names_valid_characters(package_names: list[str]) -> None:
     """Ensure extracted package tokens contain only allowed characters."""
     valid_name_pattern = re.compile(r"^[a-zA-Z0-9_.-]+$")
@@ -200,6 +209,7 @@ def test_package_names_valid_characters(package_names: list[str]) -> None:
 # -----------------------
 # Required tooling
 # -----------------------
+@pytest.mark.integration
 def test_required_dev_tools_present(package_names: list[str]) -> None:
     """Ensure the dev requirements include core tooling (test, lint, type, formatting, hooks)."""
     lowered = {_normalize_name_for_dupe_check(p) for p in package_names}
