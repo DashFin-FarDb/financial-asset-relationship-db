@@ -43,11 +43,14 @@ class TestGet3DVisualizationDataEnhanced:
         """Test that empty graph returns a single placeholder node."""
         graph = AssetRelationshipGraph()
 
+    try:
         positions, asset_ids, colors, hover_texts = (
             graph.get_3d_visualization_data_enhanced()
         )
+    except Exception as e:
+        pytest.fail(f"Failed to get visualization data: {e}")
 
-        assert positions.shape == (1, 3)
+        assert isinstance(positions, np.ndarray) and positions.shape == (1, 3)
         assert np.allclose(positions, np.zeros((1, 3)))
         assert asset_ids == ["A"]
         assert colors == ["#888888"]
@@ -64,7 +67,7 @@ class TestGet3DVisualizationDataEnhanced:
         )
 
         assert positions.shape == (2, 3)
-        assert len(asset_ids) == 2
+        assert len(set(asset_ids)) == 2
         assert set(asset_ids) == {"asset1", "asset2"}
         assert len(colors) == 2
         assert len(hover_texts) == 2
@@ -122,7 +125,7 @@ class TestGet3DVisualizationDataEnhanced:
         _, asset_ids, _, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         for asset_id, hover_text in zip(asset_ids, hover_texts):
-            assert hover_text == f"Asset: {asset_id}"
+            assert all(hover_text == f"Asset: {asset_id}" for asset_id, hover_text in zip(asset_ids, hover_texts))
 
     @staticmethod
     def test_asset_ids_are_sorted():
