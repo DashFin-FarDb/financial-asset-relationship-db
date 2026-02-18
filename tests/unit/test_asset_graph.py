@@ -259,7 +259,7 @@ class TestAddRelationshipRegression:
         target, rel_type, strength = rels[0]
         assert target == "target"
         assert rel_type == "correlation"
-        assert strength == 0.75
+        assert pytest.approx(strength, rel=1e-9) == 0.75
 
     @staticmethod
     def test_bidirectional_relationship_parameters():
@@ -276,8 +276,8 @@ class TestAddRelationshipRegression:
         target, rel_type, strength = forward_rels[0]
         assert target == "B"
         assert rel_type == "same_sector"
-        assert strength == 0.7
-
+        assert np.isclose(strength, 0.7)
+        
         # Check reverse relationship
         assert "B" in graph.relationships
         reverse_rels = graph.relationships["B"]
@@ -285,7 +285,7 @@ class TestAddRelationshipRegression:
         target, rel_type, strength = reverse_rels[0]
         assert target == "A"
         assert rel_type == "same_sector"
-        assert strength == 0.7
+        assert abs(strength - 0.7) < 1e-9
 
     @staticmethod
     def test_relationship_type_is_string_not_float():
@@ -303,7 +303,7 @@ class TestAddRelationshipRegression:
         assert isinstance(rel_type, str), "rel_type should be string"
         assert isinstance(strength, (int, float)), "strength should be numeric"
         assert rel_type == "hedge"
-        assert strength == 0.5
+        assert strength == pytest.approx(0.5)
 
 
 @pytest.mark.unit
@@ -378,7 +378,7 @@ class TestAddAssetMethod:
 
         assert len(graph.assets) == 1
         assert graph.assets["TEST1"].name == "Second Asset"
-        assert graph.assets["TEST1"].price == 200.0
+        assert graph.assets["TEST1"].price == pytest.approx(200.0)
 
 
 @pytest.mark.unit
