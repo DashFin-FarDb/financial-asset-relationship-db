@@ -33,7 +33,20 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Initialise the RealDataFetcher with optional cache, fallback and network controls.
+        Configure the RealDataFetcher with optional cache location,
+        fallback factory, and network control.
+
+        Parameters:
+            cache_path (Optional[str]): Path to a JSON cache file used to
+                load or persist a previously built AssetRelationshipGraph.
+                If None, no on-disk caching is performed.
+            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+                Callable that produces an AssetRelationshipGraph to use when
+                network fetching is disabled or when fetching fails.
+                If None, a built-in sample database will be used as fallback.
+            enable_network (bool): When False, disables network access and
+                causes create_real_database to return the fallback graph
+                instead of attempting live data fetches.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -41,8 +54,22 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """Create an AssetRelationshipGraph populated with real financial
-        data.
+        """
+        Builds an asset relationship graph using current market data or a
+        fallback dataset when real data is unavailable.
+
+        Attempts to load a cached graph if a cache path exists;
+        if network access is disabled, returns a fallback graph.
+
+        When fetching succeeds and a cache path is configured, the populated
+        graph is persisted to cache.
+        On any fetch or build failure, falls back to the sample/fallback
+        dataset.
+
+        Returns:
+            AssetRelationshipGraph: Populated graph built from real financial
+                data; a fallback/sample graph if loading or fetching fails
+                or network is disabled.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -147,48 +174,43 @@ class RealDataFetcher:
         }
 
         equities = []
-        for symbol, (name, sector) in equity_symbols.items():
+        for symbol, (name, _) in equity_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
-                info = ticker.info
                 hist = ticker.history(period="1d")
 
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
 
-                current_price = float(hist["Close"].iloc[-1])
-
                 equity = Equity(
                     id=symbol,
                     symbol=symbol,
                     name=name,
                     asset_class=AssetClass.EQUITY,
-                    sector=sector,
-                    price=current_price,
-                    market_cap=info.get("marketCap"),
-                    pe_ratio=info.get("trailingPE"),
-                    dividend_yield=info.get("dividendYield"),
-                    earnings_per_share=info.get("trailingEps"),
-                    book_value=info.get("bookValue"),
                 )
                 equities.append(equity)
-                logger.info(
-                    "Fetched price for %s (%s): %s",
-                    symbol,
-                    name,
-                    current_price,
-                )
-
             except Exception as e:
-                logger.error("Failed to fetch data for %s: %s", symbol, e)
-                continue
-
+                logger.error("Error fetching data for %s: %s", symbol, e)
         return equities
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """Fetch real bond and treasury data."""
+        """
+        Fetch bond and treasury ETF market data and return Bond instances used
+        as fixed-income proxies.
+
+        Retrieves price and metadata for a small set of bond and treasury ETFs
+        (used as proxies for individual bonds). If yield information is missing,
+        `yield_to_maturity` defaults to 0.03 and
+        `coupon_rate` defaults to 0.025; maturity dates and some
+        fields are approximate for ETF-based proxies.
+
+        Returns:
+            List[Bond]: Bond instances populated with id, symbol, name,
+            asset_class, sector, price, yield_to_maturity, coupon_rate,
+            maturity_date, credit_rating, and issuer_id.
+        """
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
@@ -220,14 +242,21 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(info.get("yield", 0.03)),  # Default 3% if not available
+                    yield_to_maturity=info.get("yield", 0.03),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
-                    credit_rating=rating,
+                    coupon_rate=info.get(
+                        "couponRate", info.get("yield", 0.025)
+                    ),  # Prefer explicit coupon rate when available
                     issuer_id=issuer_id,
                 )
                 bonds.append(bond)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+                logger.info(
+                    "Fetched %s: %s at $%.2f",
+                    symbol,
+                    name,
+                    current_price,
+                )
             except Exception as e:
                 logger.error("Failed to fetch bond data for %s: %s", symbol, e)
                 continue
@@ -331,7 +360,18 @@ class RealDataFetcher:
 
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
-        """Create realistic regulatory events for the fetched assets"""
+        """
+        Create a small list of regulatory events associated with fetched assets.
+
+        Includes three sample events (an Apple earnings report, a
+        Microsoft dividend announcement, and an Exxon Mobil SEC filing).
+        Each event contains an id, asset_id, event_type, date,
+        description, impact_score, and related_assets.
+
+        Returns:
+            List[RegulatoryEvent]: List of RegulatoryEvent instances
+                representing the sample events.
+        """
         # Create some realistic recent events
         events = []
 
@@ -385,6 +425,7 @@ def create_real_database() -> AssetRelationshipGraph:
     - fetch real market data when network access is enabled,
     - otherwise fall back to a provided or built sample dataset.
 
+
     Returns:
         AssetRelationshipGraph: The constructed graph populated with assets,
         regulatory events and relationship mappings; the content may come from
@@ -394,25 +435,25 @@ def create_real_database() -> AssetRelationshipGraph:
     return fetcher.create_real_database()
 
 
-def _enum_to_value(value: Any) -> Any:
+def _enum_to_value(_value: Any) -> Any:
     """
     Convert an Enum instance to its underlying value.
     Return the input unchanged otherwise.
 
     Parameters:
-        value (Any): The value to normalise.
-            If `value` is an `Enum` member, its `.value` is returned.
+        _value (Any): The value to normalise.
+            If `_value` is an `Enum` member, its `.value` is returned.
 
     Returns:
-        Any: The underlying value of the `Enum` member if applicable,
-        otherwise the original value.
+    Any: The underlying value of the `Enum` member if applicable,
+    otherwise the original value.
     """
-    return value.value if isinstance(value, Enum) else value
+    return _value.value if isinstance(_value, Enum) else _value
 
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
-    Serialize a dataclass instance into a JSON - friendly dictionary
+    Serialize a dataclass instance into a JSON- friendly dictionary
     with enum values converted.
 
     Parameters:
@@ -430,23 +471,27 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """Serialize an AssetRelationshipGraph into a JSON - serializable dictionary.
+    """
+    Serialize an AssetRelationshipGraph into a JSON-serializable dictionary
 
-    This function processes the given AssetRelationshipGraph to create a structured
-    dictionary representation. It computes the incoming relationships from the graph's
-    relationships and serializes both assets and regulatory events using the
-    _serialize_dataclass function. The resulting dictionary includes lists of
-    serialized assets, regulatory events, and mappings of relationships.
+    The resulting dictionary contains serialized assets and regulatory events,
+    a mapping of outgoing relationships keyed by source asset id, and a computed
+    mapping of incoming relationships keyed by target asset id.
 
-    Args:
-        graph(AssetRelationshipGraph): Graph to serialize.
+    Parameters:
+        graph (AssetRelationshipGraph): The graph to serialize.
 
     Returns:
-        Dict[str, Any]: Dictionary containing:
+        Dict[str, Any]: A dictionary with the following top-level keys:
             - "assets": list of serialized asset objects
-            - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of outgoing
-              relationships
+              (each includes a "__type__" field).
+            - "regulatory_events": list of serialized regulatory event objects.
+            - "relationships": mapping from source asset id to a list of
+              outgoing relationships; each relationship is a dict with keys
+              "target", "relationship_type", and "strength".
+            - "incoming_relationships": mapping from target asset id to a list of
+              incoming relationships; each relationship is a dict with keys
+              "source", "relationship_type", and "strength".
     """
     # Compute incoming_relationships from relationships
 

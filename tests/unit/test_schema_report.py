@@ -8,9 +8,12 @@ This module contains comprehensive unit tests for schema report generation inclu
 - Edge cases and empty graphs
 """
 
+import pytest
+
 from src.reports.schema_report import generate_schema_report
 
 
+@pytest.mark.unit
 class TestSchemaReportGeneration:
     """Test cases for schema report generation."""
 
@@ -117,6 +120,7 @@ class TestSchemaReportGeneration:
         assert "## Implementation Notes" in report
 
 
+@pytest.mark.unit
 class TestReportMetrics:
     """Test cases for metrics included in report."""
 
@@ -174,6 +178,7 @@ class TestReportMetrics:
         assert "## Top Relationships" in report
 
 
+@pytest.mark.unit
 class TestReportFormatting:
     """Test cases for report formatting."""
 
@@ -211,6 +216,7 @@ class TestReportFormatting:
         assert "%" in report
 
 
+@pytest.mark.unit
 class TestDataQualityScore:
     """Test cases for data quality score calculation."""
 
@@ -231,20 +237,23 @@ class TestDataQualityScore:
         assert re.search(pattern, report)
 
     @staticmethod
-    def test_quality_score_calculation_with_events(populated_graph, sample_regulatory_event):
+    def test_quality_score_calculation_with_events(
+        populated_graph, sample_regulatory_event
+    ):
         """Test quality score calculation with regulatory events."""
         populated_graph.add_regulatory_event(sample_regulatory_event)
         report = generate_schema_report(populated_graph)
         assert "Data Quality Score:" in report
 
 
+@pytest.mark.unit
 class TestRecommendations:
     """Test cases for recommendations in report."""
 
     @staticmethod
     def test_high_density_recommendation(populated_graph):
         """Test recommendation for high connectivity graphs."""
-        # Create high density graph
+        # Create high density graph by connecting all pairs
         assets = list(populated_graph.assets.keys())
         for i, source in enumerate(assets):
             for target in assets[i + 1 :]:
@@ -253,20 +262,24 @@ class TestRecommendations:
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
 
-        if metrics["relationship_density"] > 30:
-            assert "High connectivity" in report or "normalization" in report
+        assert metrics["relationship_density"] > 30, (
+            f"Expected density > 30 for fully connected graph, got {metrics['relationship_density']}"
+        )
+        assert "High connectivity" in report or "normalization" in report
 
     @staticmethod
     def test_balanced_recommendation(populated_graph):
         """Test recommendation for well-balanced graphs."""
-        # Add moderate relationships
-        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "rel1", 0.5)
-
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
+        density = metrics["relationship_density"]
 
-        if 10 < metrics["relationship_density"] <= 30:
+        if density > 30:
+            assert "High connectivity" in report or "normalization" in report
+        elif density > 10:
             assert "Well-balanced" in report or "optimal" in report
+        else:
+            assert "Sparse" in report or "adding more relationships" in report
 
     @staticmethod
     def test_sparse_recommendation(empty_graph, sample_equity):
@@ -275,10 +288,13 @@ class TestRecommendations:
         report = generate_schema_report(empty_graph)
 
         metrics = empty_graph.calculate_metrics()
-        if metrics["relationship_density"] <= 10:
-            assert "Sparse" in report or "adding more relationships" in report
+        assert metrics["relationship_density"] <= 10, (
+            f"Expected density <= 10 for single-asset graph, got {metrics['relationship_density']}"
+        )
+        assert "Sparse" in report or "adding more relationships" in report
 
 
+@pytest.mark.unit
 class TestBusinessRules:
     """Test cases for business rules documentation."""
 
@@ -313,6 +329,7 @@ class TestBusinessRules:
         assert "Impact Scoring" in report or "impact score" in report.lower()
 
 
+@pytest.mark.unit
 class TestImplementationNotes:
     """Test cases for implementation notes."""
 
@@ -341,6 +358,7 @@ class TestImplementationNotes:
         assert "bidirectional" in report.lower()
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases in report generation."""
 
@@ -394,6 +412,7 @@ class TestEdgeCases:
         assert "Relationship Density" in report
 
 
+@pytest.mark.unit
 class TestReportConsistency:
     """Test cases for report consistency."""
 
@@ -434,6 +453,7 @@ class TestReportConsistency:
             assert 0 <= score <= 100
 
 
+@pytest.mark.unit
 class TestMultipleGenerations:
     """Test cases for multiple report generations."""
 
@@ -457,3 +477,13 @@ class TestMultipleGenerations:
 
         # Reports should be different
         assert report1 != report2
+
+    @staticmethod
+    def test_report_includes_timestamp():
+        """Test that report includes a generation timestamp."""
+        from src.logic.asset_graph import AssetRelationshipGraph
+
+        graph = AssetRelationshipGraph()
+        report = generate_schema_report(graph)
+
+        assert "Generated:" in report or "Timestamp:" in report

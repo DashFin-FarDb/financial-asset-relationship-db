@@ -34,6 +34,7 @@ def repository(tmp_path):
     engine.dispose()
 
 
+@pytest.mark.unit
 class TestGetAssetById:
     """Test the get_asset_by_id method."""
 
@@ -107,6 +108,7 @@ class TestGetAssetById:
         assert retrieved.price == 200.0
 
 
+@pytest.mark.unit
 class TestRelationshipStrengthValidation:
     """Test validation of relationship strength values."""
 
@@ -134,7 +136,9 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         with pytest.raises(ValueError, match="strength must be between -1.0 and 1.0"):
-            repository.add_or_update_relationship("STR1", "STR2", "invalid", -1.1, bidirectional=False)
+            repository.add_or_update_relationship(
+                "STR1", "STR2", "invalid", -1.1, bidirectional=False
+            )
 
     @staticmethod
     def test_strength_validation_rejects_above_one(repository):
@@ -160,7 +164,9 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         with pytest.raises(ValueError, match="strength must be between -1.0 and 1.0"):
-            repository.add_or_update_relationship("STR3", "STR4", "invalid", 1.1, bidirectional=False)
+            repository.add_or_update_relationship(
+                "STR3", "STR4", "invalid", 1.1, bidirectional=False
+            )
 
     @staticmethod
     def test_strength_validation_accepts_zero(repository):
@@ -186,7 +192,9 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         # Should not raise
-        repository.add_or_update_relationship("STR5", "STR6", "zero_strength", 0.0, bidirectional=False)
+        repository.add_or_update_relationship(
+            "STR5", "STR6", "zero_strength", 0.0, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("STR5", "STR6", "zero_strength")
@@ -216,7 +224,9 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         # Should not raise
-        repository.add_or_update_relationship("STR7", "STR8", "max_strength", 1.0, bidirectional=False)
+        repository.add_or_update_relationship(
+            "STR7", "STR8", "max_strength", 1.0, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("STR7", "STR8", "max_strength")
@@ -246,7 +256,9 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         # Should not raise
-        repository.add_or_update_relationship("STR7A", "STR8A", "min_strength", -1.0, bidirectional=False)
+        repository.add_or_update_relationship(
+            "STR7A", "STR8A", "min_strength", -1.0, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("STR7A", "STR8A", "min_strength")
@@ -276,7 +288,9 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         # Should not raise
-        repository.add_or_update_relationship("STR7B", "STR8B", "negative_corr", -0.5, bidirectional=False)
+        repository.add_or_update_relationship(
+            "STR7B", "STR8B", "negative_corr", -0.5, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("STR7B", "STR8B", "negative_corr")
@@ -306,11 +320,17 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         with pytest.raises(ValueError, match="strength must be a numeric value"):
-            repository.add_or_update_relationship("STR9", "STR10", "invalid", "0.5", bidirectional=False)
+            repository.add_or_update_relationship(
+                "STR9", "STR10", "invalid", "0.5", bidirectional=False
+            )
 
     @staticmethod
     def test_strength_validation_accepts_int_in_range(repository):
-        """Test that integer strength values in range are accepted."""
+        """
+        Verifies that integer relationship strength values within the allowed range are accepted.
+
+        Creates two assets, adds a relationship with integer strength 1, commits, and asserts the stored relationship strength equals 1.
+        """
         asset1 = Equity(
             id="STR11",
             symbol="S11",
@@ -332,19 +352,26 @@ class TestRelationshipStrengthValidation:
         repository.session.commit()
 
         # Integer 1 should be accepted as 1.0
-        repository.add_or_update_relationship("STR11", "STR12", "int_strength", 1, bidirectional=False)
+        repository.add_or_update_relationship(
+            "STR11", "STR12", "int_strength", 1, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("STR11", "STR12", "int_strength")
         assert rel.strength == 1
 
 
+@pytest.mark.unit
 class TestStrengthBoundaryValues:
     """Test boundary values for relationship strength."""
 
     @staticmethod
     def test_strength_just_above_zero(repository):
-        """Test strength just above zero."""
+        """
+        Verify that a relationship can be created with a very small positive strength.
+
+        Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the persisted relationship strength equals 0.0001.
+        """
         asset1 = Equity(
             id="BOUND1",
             symbol="B1",
@@ -365,7 +392,9 @@ class TestStrengthBoundaryValues:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship("BOUND1", "BOUND2", "tiny", 0.0001, bidirectional=False)
+        repository.add_or_update_relationship(
+            "BOUND1", "BOUND2", "tiny", 0.0001, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("BOUND1", "BOUND2", "tiny")
@@ -373,7 +402,11 @@ class TestStrengthBoundaryValues:
 
     @staticmethod
     def test_strength_just_below_one(repository):
-        """Test strength just below one."""
+        """
+        Verify that a relationship with strength 0.9999 is accepted and persisted.
+
+        Creates two equity assets, adds a relationship of type "almost_max" with strength 0.9999, commits, and asserts the retrieved relationship's strength equals 0.9999.
+        """
         asset1 = Equity(
             id="BOUND3",
             symbol="B3",
@@ -394,7 +427,9 @@ class TestStrengthBoundaryValues:
         repository.upsert_asset(asset2)
         repository.session.commit()
 
-        repository.add_or_update_relationship("BOUND3", "BOUND4", "almost_max", 0.9999, bidirectional=False)
+        repository.add_or_update_relationship(
+            "BOUND3", "BOUND4", "almost_max", 0.9999, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("BOUND3", "BOUND4", "almost_max")
@@ -424,7 +459,9 @@ class TestStrengthBoundaryValues:
         repository.session.commit()
 
         with pytest.raises(ValueError):
-            repository.add_or_update_relationship("BOUND5", "BOUND6", "too_negative", -1.0001, bidirectional=False)
+            repository.add_or_update_relationship(
+                "BOUND5", "BOUND6", "too_negative", -1.0001, bidirectional=False
+            )
 
     @staticmethod
     def test_strength_just_above_one_fails(repository):
@@ -450,9 +487,12 @@ class TestStrengthBoundaryValues:
         repository.session.commit()
 
         with pytest.raises(ValueError):
-            repository.add_or_update_relationship("BOUND7", "BOUND8", "over_max", 1.0001, bidirectional=False)
+            repository.add_or_update_relationship(
+                "BOUND7", "BOUND8", "over_max", 1.0001, bidirectional=False
+            )
 
 
+@pytest.mark.unit
 class TestStrengthTypeValidation:
     """Test type validation for relationship strength."""
 
@@ -480,11 +520,17 @@ class TestStrengthTypeValidation:
         repository.session.commit()
 
         with pytest.raises(ValueError, match="strength must be a numeric value"):
-            repository.add_or_update_relationship("TYPE1", "TYPE2", "none_strength", None, bidirectional=False)
+            repository.add_or_update_relationship(
+                "TYPE1", "TYPE2", "none_strength", None, bidirectional=False
+            )
 
     @staticmethod
     def test_strength_rejects_list(repository):
-        """Test that list strength raises ValueError."""
+        """
+        Ensure providing a list as the relationship strength raises a ValueError stating the strength must be numeric.
+
+        Creates two Equity assets, upserts them, and verifies that calling add_or_update_relationship with a list for the strength parameter raises ValueError with the message "strength must be a numeric value".
+        """
         asset1 = Equity(
             id="TYPE3",
             symbol="T3",
@@ -506,7 +552,9 @@ class TestStrengthTypeValidation:
         repository.session.commit()
 
         with pytest.raises(ValueError, match="strength must be a numeric value"):
-            repository.add_or_update_relationship("TYPE3", "TYPE4", "list_strength", [0.5], bidirectional=False)
+            repository.add_or_update_relationship(
+                "TYPE3", "TYPE4", "list_strength", [0.5], bidirectional=False
+            )
 
     @staticmethod
     def test_strength_rejects_dict(repository):
@@ -537,6 +585,7 @@ class TestStrengthTypeValidation:
             )
 
 
+@pytest.mark.unit
 class TestNegativeTestCases:
     """Test negative scenarios and error conditions."""
 
@@ -580,10 +629,13 @@ class TestNegativeTestCases:
         repository.session.commit()
 
         # This should not raise at the repository level (database constraints may differ)
-        repository.add_or_update_relationship("NONEXIST", "EXIST", "test_rel", 0.5, bidirectional=False)
+        repository.add_or_update_relationship(
+            "NONEXIST", "EXIST", "test_rel", 0.5, bidirectional=False
+        )
         # The relationship is created, but referential integrity depends on DB constraints
 
 
+@pytest.mark.unit
 class TestStressAndPerformance:
     """Test repository under stress conditions."""
 
@@ -633,13 +685,16 @@ class TestStressAndPerformance:
         # Test many valid values
         valid_strengths = [0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 0.99, 1.0]
         for i, strength in enumerate(valid_strengths):
-            repository.add_or_update_relationship("MANY1", "MANY2", f"rel_{i}", strength, bidirectional=False)
+            repository.add_or_update_relationship(
+                "MANY1", "MANY2", f"rel_{i}", strength, bidirectional=False
+            )
             repository.session.commit()
 
             rel = repository.get_relationship("MANY1", "MANY2", f"rel_{i}")
             assert rel.strength == strength
 
 
+@pytest.mark.unit
 class TestEdgeCasesAndRegression:
     """Test additional edge cases and regression scenarios."""
 
@@ -667,12 +722,16 @@ class TestEdgeCasesAndRegression:
         repository.session.commit()
 
         # Create valid relationship
-        repository.add_or_update_relationship("UPVAL1", "UPVAL2", "update_test", 0.5, bidirectional=False)
+        repository.add_or_update_relationship(
+            "UPVAL1", "UPVAL2", "update_test", 0.5, bidirectional=False
+        )
         repository.session.commit()
 
         # Try to update with invalid strength
         with pytest.raises(ValueError):
-            repository.add_or_update_relationship("UPVAL1", "UPVAL2", "update_test", 1.5, bidirectional=False)
+            repository.add_or_update_relationship(
+                "UPVAL1", "UPVAL2", "update_test", 1.5, bidirectional=False
+            )
 
     @staticmethod
     def test_get_asset_returns_fresh_data(repository):
@@ -726,9 +785,148 @@ class TestEdgeCasesAndRegression:
 
         # Test with very precise float
         precise_strength = 0.123456789012345
-        repository.add_or_update_relationship("PREC1", "PREC2", "precise", precise_strength, bidirectional=False)
+        repository.add_or_update_relationship(
+            "PREC1", "PREC2", "precise", precise_strength, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("PREC1", "PREC2", "precise")
         # Should preserve reasonable precision
         assert abs(rel.strength - precise_strength) < 1e-10
+
+
+@pytest.mark.unit
+class TestAssetUpdateValidation:
+    """Test validation during asset updates."""
+
+    @staticmethod
+    def test_update_preserves_asset_class(repository):
+        """Test that updating an asset preserves its asset class."""
+        equity = Equity(
+            id="UPDATE_CLASS",
+            symbol="UC",
+            name="Update Class",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Update with same ID
+        equity.price = 150.0
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        retrieved = repository.get_asset_by_id("UPDATE_CLASS")
+        assert retrieved.asset_class == AssetClass.EQUITY
+
+    @staticmethod
+    def test_multiple_sequential_updates(repository):
+        """
+        Verify that performing multiple sequential upserts on the same asset persists the latest values.
+
+        Creates an Equity, upserts it, performs five sequential price updates via upsert+commit, then retrieves the asset and asserts its price equals the last updated value (150.0).
+        """
+        equity = Equity(
+            id="MULTI_UPDATE",
+            symbol="MU",
+            name="Multi Update",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Perform multiple updates
+        for i in range(5):
+            equity.price = 100.0 + (i + 1) * 10
+            repository.upsert_asset(equity)
+            repository.session.commit()
+
+        retrieved = repository.get_asset_by_id("MULTI_UPDATE")
+        assert abs(retrieved.price - 150.0) < 1e-9  # Final value
+
+
+@pytest.mark.unit
+class TestRelationshipTypeVariations:
+    """Test various relationship type scenarios."""
+
+    @staticmethod
+    def test_relationship_type_with_underscores(repository):
+        """Test relationship types with underscores."""
+        asset1 = Equity(
+            id="REL_TYPE1",
+            symbol="RT1",
+            name="Rel Type 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="REL_TYPE2",
+            symbol="RT2",
+            name="Rel Type 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
+        repository.upsert_asset(asset1)
+        repository.upsert_asset(asset2)
+        repository.session.commit()
+
+        repository.add_or_update_relationship(
+            "REL_TYPE1",
+            "REL_TYPE2",
+            "same_sector_correlation",
+            0.7,
+            bidirectional=False,
+        )
+        repository.session.commit()
+
+        repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
+        assert rel1 is not None
+        assert rel2 is not None
+        assert abs(rel1.strength - 0.5) < 1e-9
+        assert abs(rel2.strength - 0.6) < 1e-9
+
+    @staticmethod
+    def test_relationship_type_case_sensitivity(repository):
+        """Test that relationship types are case-sensitive."""
+        asset1 = Equity(
+            id="CASE1",
+            symbol="C1",
+            name="Case 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="CASE2",
+            symbol="C2",
+            name="Case 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
+        repository.upsert_asset(asset1)
+        repository.upsert_asset(asset2)
+        repository.session.commit()
+
+        # Add relationships with different cases
+        repository.add_or_update_relationship(
+            "CASE1", "CASE2", "SameType", 0.5, bidirectional=False
+        )
+        repository.add_or_update_relationship(
+            "CASE1", "CASE2", "sametype", 0.6, bidirectional=False
+        )
+        repository.session.commit()
+
+        # Should be treated as different types
+        rel1 = repository.get_relationship("CASE1", "CASE2", "SameType")
+        rel2 = repository.get_relationship("CASE1", "CASE2", "sametype")
+        assert rel1 is not None
+        assert rel2 is not None
+        assert abs(rel1.strength - 0.5) < 1e-9
+        assert abs(rel2.strength - 0.6) < 1e-9
