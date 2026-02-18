@@ -149,7 +149,9 @@ class FormulaicVisualizer:
 
         if isinstance(correlation_matrix, dict):
             # Support flat "A-B": value mappings by normalising to nested dicts
-            if correlation_matrix and not isinstance(next(iter(correlation_matrix.values())), dict):
+            if correlation_matrix and not isinstance(
+                next(iter(correlation_matrix.values())), dict
+            ):
                 nested: dict[str, dict[str, float]] = {}
                 for key, value in correlation_matrix.items():
                     if isinstance(key, str) and "-" in key:
