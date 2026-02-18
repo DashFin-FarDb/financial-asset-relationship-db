@@ -207,7 +207,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     )
 
     # -- Schema Optimization Metrics ---------------------------------------
-    quality_score = _as_float(metrics.get("quality_score"), 0.0)
+    quality_score=_as_float(metrics.get("quality_score"), 0.0)
     lines.extend(
         [
             "",
