@@ -274,22 +274,22 @@ class TestSaveCommand:
         output_file = tmp_path / "report.md"
 
         with patch("schema_report_cli.load_graph") as mock_load,
-            patch("schema_report_cli.export_report") as mock_export:
-            mock_graph=MagicMock(spec=AssetRelationshipGraph)
-            mock_load.return_value=mock_graph
-            mock_export.side_effect=ValueError("Export failed")
+        patch("schema_report_cli.export_report") as mock_export:
+            mock_graph = MagicMock(spec=AssetRelationshipGraph)
+            mock_load.return_value = mock_graph
+            mock_export.side_effect = ValueError("Export failed")
 
-            result=runner.invoke(app, ["save", str(output_file)])
+            result = runner.invoke(app, ["save", str(output_file)])
 
             # Command should fail when export raises
             assert result.exit_code != 0
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 class TestMainFunction:
     """Test cases for the main entry point."""
 
-    @ staticmethod
+    @staticmethod
     def test_main_function_runs_app() -> None:
         """Test that main function invokes the Typer app."""
         with patch("schema_report_cli.app") as mock_app:
@@ -297,83 +297,83 @@ class TestMainFunction:
             main()
             mock_app.assert_called_once()
 
-    @ staticmethod
+    @staticmethod
     def test_main_function_handles_exceptions() -> None:
         """Test that main function handles exceptions and exits with error code."""
         with patch("schema_report_cli.app") as mock_app, patch("sys.exit") as mock_exit:
-            mock_app.side_effect=RuntimeError("CLI error")
+            mock_app.side_effect = RuntimeError("CLI error")
             from schema_report_cli import main
 
             main()
             mock_exit.assert_called_once_with(1)
 
 
-@ pytest.mark.unit
+@pytest.mark.unit
 class TestCLIEdgeCases:
     """Test edge cases and boundary conditions for CLI commands."""
 
-    @ pytest.fixture
+    @pytest.fixture
     def runner(self) -> CliRunner:
         """Create a CLI test runner."""
         return CliRunner()
 
-    @ staticmethod
+    @staticmethod
     def test_save_with_empty_content(
         runner: CliRunner,
         tmp_path: Path,
     ) -> None:
         """Test that saving with empty content creates an empty file."""
 
-        output_file=tmp_path / "empty.md"
+        output_file = tmp_path / "empty.md"
 
         with (
             patch("schema_report_cli.load_graph") as mock_load,
             patch("schema_report_cli.export_report") as mock_export,
         ):
-            mock_graph=MagicMock(spec=AssetRelationshipGraph)
-            mock_load.return_value=mock_graph
-            mock_export.return_value=""
+            mock_graph = MagicMock(spec=AssetRelationshipGraph)
+            mock_load.return_value = mock_graph
+            mock_export.return_value = ""
 
-            result=runner.invoke(app, ["save", str(output_file)])
+            result = runner.invoke(app, ["save", str(output_file)])
 
             assert result.exit_code == 0
             assert output_file.exists()
             assert output_file.read_text(encoding="utf-8") == ""
 
-    @ staticmethod
+    @staticmethod
     def test_commands_with_unicode_content(runner: CliRunner) -> None:
         """Test that commands handle Unicode content correctly."""
         with (
             patch("schema_report_cli.load_graph") as mock_load,
             patch("schema_report_cli.generate_markdown_report") as mock_gen,
         ):
-            mock_graph=MagicMock(spec=AssetRelationshipGraph)
-            mock_load.return_value=mock_graph
-            mock_gen.return_value="# Report 📊\n\n价格: ¥100"
+            mock_graph = MagicMock(spec=AssetRelationshipGraph)
+            mock_load.return_value = mock_graph
+            mock_gen.return_value = "# Report 📊\n\n价格: ¥100"
 
-            result=runner.invoke(app, ["md"])
+            result = runner.invoke(app, ["md"])
 
             assert result.exit_code == 0
             assert "Report 📊" in result.output
 
-    @ staticmethod
+    @staticmethod
     def test_save_with_long_path(
         runner: CliRunner,
         tmp_path: Path,
     ) -> None:
         """Test save command with a long file path."""
-        long_path=tmp_path / ("x" * 50) / ("y" * 50) / "report.md"
+        long_path = tmp_path / ("x" * 50) / ("y" * 50) / "report.md"
         long_path.parent.mkdir(parents=True, exist_ok=True)
 
         with (
             patch("schema_report_cli.load_graph") as mock_load,
             patch("schema_report_cli.export_report") as mock_export,
         ):
-            mock_graph=MagicMock(spec=AssetRelationshipGraph)
-            mock_load.return_value=mock_graph
-            mock_export.return_value="# Report"
+            mock_graph = MagicMock(spec=AssetRelationshipGraph)
+            mock_load.return_value = mock_graph
+            mock_export.return_value = "# Report"
 
-            result=runner.invoke(app, ["save", str(long_path)])
+            result = runner.invoke(app, ["save", str(long_path)])
 
             assert result.exit_code == 0
             assert long_path.exists()
