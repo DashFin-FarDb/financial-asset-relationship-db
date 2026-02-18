@@ -120,8 +120,10 @@ class TestGet3DVisualizationDataEnhanced:
 
         _, asset_ids, _, hover_texts = graph.get_3d_visualization_data_enhanced()
 
-        for asset_id, hover_text in zip(asset_ids, hover_texts):
-            assert all(hover_text == f"Asset: {asset_id}" for asset_id, hover_text in zip(asset_ids, hover_texts))
+        assert all(
+            hover_text == f"Asset: {asset_id}"
+            for asset_id, hover_text in zip(asset_ids, hover_texts)
+        )
 
     @staticmethod
     def test_asset_ids_are_sorted():
