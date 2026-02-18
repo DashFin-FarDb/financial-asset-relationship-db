@@ -768,9 +768,7 @@ class TestHelperMethods:
             AssertionError: If the default neutral value is not returned.
         """
         # 0.5 is the documented neutral/unknown default; see formulaic_analysis.py
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
-            {}
-        )
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical({})
         assert result == 0.5
 
     @staticmethod
@@ -784,15 +782,11 @@ class TestHelperMethods:
             AssertionError: If the result is outside [0, 1].
         """
         empirical = {"correlation_matrix": {"pair1": 0.8, "pair2": 0.6}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
-            empirical
-        )
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
         assert 0 <= result <= 1
 
     @staticmethod
-    def test_calculate_avg_correlation_strength_from_empirical_filters_perfect() -> (
-        None
-    ):
+    def test_calculate_avg_correlation_strength_from_empirical_filters_perfect() -> None:
         """Test that perfect correlations (1.0) are filtered before averaging.
 
         Returns:
@@ -802,16 +796,12 @@ class TestHelperMethods:
             AssertionError: If the result is outside [0, 1].
         """
         empirical = {"correlation_matrix": {"pair1": 1.0, "pair2": 0.8}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
-            empirical
-        )
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
         assert 0 <= result <= 1
 
         # With perfect correlation (should filter out)
         empirical = {"correlation_matrix": {"pair1": 1.0, "pair2": 0.8}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
-            empirical
-        )
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
         assert 0 <= result <= 1
 
 
@@ -1006,9 +996,7 @@ class TestRegressionCases:
         result = analyzer.analyze_graph(graph)
 
         for formula in result["formulas"]:
-            assert 0 <= formula.r_squared <= 1, (
-                f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
-            )
+            assert 0 <= formula.r_squared <= 1, f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
 
     @staticmethod
     def test_summary_consistency():
@@ -1229,9 +1217,7 @@ def test_sector_correlation_analysis():
     graph = AssetRelationshipGraph()
 
     # Add multiple tech stocks
-    for i, (symbol, name) in enumerate(
-        [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
-    ):
+    for i, (symbol, name) in enumerate([("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]):
         equity = Equity(
             id=symbol,
             symbol=symbol,
@@ -1249,9 +1235,7 @@ def test_sector_correlation_analysis():
 
     # Should identify correlations
     formulas = result["formulas"]
-    correlation_formulas = [
-        f for f in formulas if "Correlation" in f.name or "Beta" in f.name
-    ]
+    correlation_formulas = [f for f in formulas if "Correlation" in f.name or "Beta" in f.name]
     assert len(correlation_formulas) > 0
 
 
