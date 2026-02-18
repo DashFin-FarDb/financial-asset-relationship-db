@@ -604,9 +604,16 @@ class FormulaicAnalyzer:
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
                 ("Portfolio theory formulas available for multi-asset analysis"),
-                (
-                    "Cross-asset relationships identified between "
-                    "commodities and currencies"
+                *(
+                    [
+                        "Cross-asset relationships identified between "
+                        "commodities and currencies"
+                    ]
+                    if any(
+                        f.category in ("Currency Markets", "Cross-Asset")
+                        for f in formulas
+                    )
+                    else []
                 ),
             ],
         }
@@ -720,7 +727,8 @@ class FormulaicAnalyzer:
 
     @staticmethod
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
-        """Generate example P / E ratio calculations from graph data.
+        """
+        Generate example P / E ratio calculations from graph data.
 
         This static method iterates through the assets in the provided
         AssetRelationshipGraph to generate example price - to - earnings(P / E)
