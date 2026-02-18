@@ -305,13 +305,9 @@ class TestSampleDataConsistency:
         graph = create_sample_database()
 
         for source_id, rels in graph.relationships.items():
-            assert source_id in graph.assets, (
-                f"Source {source_id} should exist in assets"
-            )
+            assert source_id in graph.assets, f"Source {source_id} should exist in assets"
             for target_id, _rel_type, _strength in rels:
-                assert target_id in graph.assets, (
-                    f"Target {target_id} in relationship should exist in assets"
-                )
+                assert target_id in graph.assets, f"Target {target_id} in relationship should exist in assets"
 
     @staticmethod
     def test_bond_issuer_references_valid_asset():
