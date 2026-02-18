@@ -192,7 +192,7 @@ class TestGradioIntegration:
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
+       def graph_provider():
             """Provide a mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
