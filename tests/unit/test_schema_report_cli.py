@@ -323,7 +323,6 @@ class TestMainFunction:
 class TestCLIEdgeCases:
     """Test edge cases and boundary conditions for CLI commands."""
 
-    @staticmethod
     @pytest.fixture
     def runner() -> CliRunner:
         """Create a CLI test runner."""
