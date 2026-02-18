@@ -29,6 +29,11 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             asset-class distribution, top relationships, business and
             regulatory rules, data quality score, recommendations, and
             implementation notes.
+    Raises:
+        AttributeError: If ``graph`` is ``None`` or does not expose
+            ``calculate_metrics``.
+        Exception: Any exception raised by
+            ``graph.calculate_metrics()`` propagates to the caller.
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 
@@ -97,18 +102,12 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            (
-                "- **Sector Affinity**: Assets in the same sector are "
-                "linked with strength 0.7 (bidirectional)"
-            ),
+            ("- **Sector Affinity**: Assets in the same sector are " "linked with strength 0.7 (bidirectional)"),
             (
                 "- **Corporate Bond Linkage**: A bond whose issuer_id matches another "
                 "asset creates a directional link (strength 0.9)"
             ),
-            (
-                "- **Currency Exposure**: Currency assets reflect FX and "
-                "central-bank policy links"
-            ),
+            ("- **Currency Exposure**: Currency assets reflect FX and " "central-bank policy links"),
         ]
     )
 
