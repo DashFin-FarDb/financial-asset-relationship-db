@@ -77,8 +77,6 @@ class TestWorkflowInjectionPrevention:
                                 )
 
 
-
-
 class TestWorkflowSecretHandling:
     """Tests for proper secret handling in workflows."""
 
@@ -183,9 +181,9 @@ class TestWorkflowPermissionsHardening:
             unexpected_write = {
                 k for k, v in permissions.items() if v == "write"
             } - allowed_write_perms
-            assert (
-                not unexpected_write
-            ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+            assert not unexpected_write, (
+                f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
+            )
 
     @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
