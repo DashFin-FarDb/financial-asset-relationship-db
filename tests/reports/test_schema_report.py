@@ -135,13 +135,10 @@ def test_schema_report_with_empty_graph() -> None:
     assert "No relationships recorded yet" in md
 
 
-"""
-Module defining test graphs for schema report tests.
-
-This module provides HighDensityGraph to simulate a graph with high relationship density used in schema report testing.
-"""
-
-
+# Module defining test graphs for schema report tests.
+#
+# This module provides HighDensityGraph to simulate a graph with high
+# relationship density used in schema report testing.
 class HighDensityGraph:
     """Mock graph with high relationship density."""
 
