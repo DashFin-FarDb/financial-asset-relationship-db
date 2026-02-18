@@ -356,7 +356,7 @@ jobs:
                 Path(f.name).unlink()
 
     @staticmethod
-    def test_workflow_with_anchors_in_name(self):
+    def test_workflow_with_anchors_in_name():
         """Test that a workflow whose name field contains the word 'Anchors' passes validation."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
