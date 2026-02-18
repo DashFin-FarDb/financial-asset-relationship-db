@@ -188,8 +188,9 @@ class TestGradioIntegration:
             mock_gen_html.assert_called_once_with(mock_graph)
 
     @staticmethod
+def test_attach_to_gradio_interface_markdown() -> None:
     """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
-    def test_attach_to_gradio_interface_markdown() -> None:
+    mock_graph = MagicMock(spec=AssetRelationshipGraph)
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
