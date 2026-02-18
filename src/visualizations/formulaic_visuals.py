@@ -170,10 +170,7 @@ class FormulaicVisualizer:
                 correlation_matrix = nested
             assets = sorted(correlation_matrix.keys())
             z = [
-                [
-                    correlation_matrix.get(a1, {}).get(a2, 0.0)
-                    for a2 in assets
-                ]
+                [correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets]
                 for a1 in assets
             ]
         else:
@@ -408,8 +405,7 @@ class FormulaicVisualizer:
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
                 + "<br>".join(
-                    f"• {var}: {desc}"
-                    for var, desc in formula.variables.items()
+                    f"• {var}: {desc}" for var, desc in formula.variables.items()
                 )
                 + "<br><br><b>Example Calculation:</b><br>"
                 f"{formula.example_calculation}"
