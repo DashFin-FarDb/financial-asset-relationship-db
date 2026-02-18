@@ -9,6 +9,8 @@ from src.reports.helpers import (
     _as_top_relationships,
 )
 
+pytestmark = pytest.mark.unit
+
 # ---------------------------------------------------------------------------
 # _as_int tests
 # ---------------------------------------------------------------------------
