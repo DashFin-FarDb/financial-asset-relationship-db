@@ -59,7 +59,8 @@ class RealDataFetcher:
         Builds an AssetRelationshipGraph populated with current market data or
         a fallback dataset.
 
-        If a configured cache file exists, the graph is loaded from that cache.
+        If a configured cache file exists, an attempt is made to load the graph
+        from cache; on failure the network fetch proceeds as normal.
         If network access is disabled or fetching real data fails, a
         fallback/sample graph is returned.
         When fetching succeeds and a cache path is configured,
