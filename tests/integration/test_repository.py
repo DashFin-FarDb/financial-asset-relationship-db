@@ -8,7 +8,9 @@ from typing import Generator
 
 import pytest
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session
+
+from src.data.database import create_session_factory
 
 from src.data.repository import AssetGraphRepository
 from src.models.financial_models import (
@@ -28,9 +30,7 @@ def _apply_migration(database_path: Path) -> None:
 
     The migration script is static/trusted (repository-owned), not user-controlled.
     """
-    migrations_path = (
-        Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
-    )
+    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
     sql = migrations_path.read_text(encoding="utf-8")
 
     # executescript() is required for multi-statement DDL migrations.
@@ -47,10 +47,7 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     db_path = tmp_path / "repository.db"
     _apply_migration(db_path)
 
-    engine: Engine = create_engine(f"sqlite:///{db_path}")
-    SessionLocal = sessionmaker(bind=engine, autoflush=False)
-
-    session: Session = SessionLocal()
+    session: Session = create_session_factory(engine)()
     try:
         yield session
     finally:
