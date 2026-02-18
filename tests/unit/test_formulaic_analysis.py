@@ -1215,11 +1215,13 @@ class TestIntegrationScenarios:
         result = analyzer.analyze_graph(graph)
 
         # Should have formulas from all categories
+
     assert result["formula_count"] > 10
     categories = result["categories"]
     assert "Valuation" in categories
     assert "Risk Management" in categories
     assert "Portfolio Theory" in categories
+
 
 @staticmethod
 def test_sector_correlation_analysis():
