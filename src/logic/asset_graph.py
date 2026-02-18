@@ -111,9 +111,10 @@ class AssetRelationshipGraph:
             bidirectional (bool): If True, also add the same relationship from
                 `target_id` back to `source_id`.
         """
-        self._append_relationship(source_id, target_id, rel_type, strength)
+        clamped = self._clamp01(strength)
+        self._append_relationship(source_id, target_id, rel_type, clamped)
         if bidirectional:
-            self._append_relationship(target_id, source_id, rel_type, strength)
+            self._append_relationship(target_id, source_id, rel_type, clamped)
 
     @staticmethod
     def _clamp01(value: float) -> float:
@@ -190,7 +191,9 @@ class AssetRelationshipGraph:
                 strength_count += 1
 
         avg_strength = (strength_sum / strength_count) if strength_count else 0.0
-        density = self._relationship_density(effective_assets_count, total_relationships)
+        density = self._relationship_density(
+            effective_assets_count, total_relationships
+        )
 
         all_rels.sort(key=lambda x: x[3], reverse=True)
         top_relationships = all_rels[:10]
@@ -203,7 +206,9 @@ class AssetRelationshipGraph:
         w_events = 0.3
         avg_strength_n = self._clamp01(avg_strength)
         reg_events_norm = self._saturating_norm(reg_events, k)
-        quality_score = self._clamp01((w_strength * avg_strength_n) + (w_events * reg_events_norm))
+        quality_score = self._clamp01(
+            (w_strength * avg_strength_n) + (w_events * reg_events_norm)
+        )
 
         return {
             "total_assets": effective_assets_count,
@@ -243,7 +248,9 @@ class AssetRelationshipGraph:
 
         n = len(asset_ids)
         theta = np.linspace(0, 2 * np.pi, n, endpoint=False)
-        positions = np.stack((np.cos(theta), np.sin(theta), np.zeros_like(theta)), axis=1)
+        positions = np.stack(
+            (np.cos(theta), np.sin(theta), np.zeros_like(theta)), axis=1
+        )
 
         colors = ["#4ECDC4"] * n
         hover = [f"Asset: {aid}" for aid in asset_ids]
@@ -261,7 +268,9 @@ class AssetRelationshipGraph:
         return asset1.sector == asset2.sector and asset1.sector != "Unknown"
 
     @staticmethod
-    def _issuer_link(asset1: Asset, asset2: Asset, id1: str, id2: str) -> tuple[str, str] | None:
+    def _issuer_link(
+        asset1: Asset, asset2: Asset, id1: str, id2: str
+    ) -> tuple[str, str] | None:
         """
         Identify a bond-to-issuer relationship between two assets.
 
@@ -302,7 +311,9 @@ class AssetRelationshipGraph:
                     bidirectional=False,
                 )
 
-    def _append_relationship(self, source_id: str, target_id: str, rel_type: str, strength: float) -> None:
+    def _append_relationship(
+        self, source_id: str, target_id: str, rel_type: str, strength: float
+    ) -> None:
         """
         Add a relationship from source_id to target_id if a relationship with the same
             target and type does not already exist.
