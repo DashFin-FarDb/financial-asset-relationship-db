@@ -192,7 +192,7 @@ class TestGradioIntegration:
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-       def graph_provider():
+        def graph_provider():
             """Provide a mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
@@ -238,9 +238,15 @@ class TestGradioIntegration:
             """Provide a mock AssetRelationshipGraph instance for testing when Gradio is missing."""
             return mock_graph
 
-        with patch("builtins.__import__", side_effect=ImportError("No module gradio")):
+        def import_mock(name, *args, **kwargs):
+            """Mock __import__ to raise ImportError only for gradio."""
+            if name == "gradio":
+                raise ImportError("No module named 'gradio'")
+            return __import__(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=import_mock):
             with pytest.raises(RuntimeError, match="Gradio is not installed"):
-            attach_to_gradio_interface(graph_provider)
+                attach_to_gradio_interface(graph_provider)
 
 
 @pytest.mark.unit
