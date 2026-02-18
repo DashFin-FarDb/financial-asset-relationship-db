@@ -83,6 +83,7 @@ def test_schema_report_top_relationships() -> None:
 
 
 def test_schema_report_quality_score() -> None:
+    """Test that the schema report displays the correct data quality score."""
     graph = MockGraph()
     md = generate_schema_report(graph)
 
@@ -90,6 +91,7 @@ def test_schema_report_quality_score() -> None:
 
 
 def test_schema_report_recommendation_logic() -> None:
+    """Test that the schema report provides the correct recommendation logic based on density metrics."""
     graph = MockGraph()
     md = generate_schema_report(graph)
 
@@ -171,11 +173,10 @@ def test_schema_report_high_density_recommendation() -> None:
     assert "High connectivity - consider normalization" in md
 
 
-"""Module for defining graph schemas and calculating their metrics.
-
-This module provides the SparseDensityGraph class used in tests to mock a graph
-with sparse relationship density and compute various metrics for reporting.
-"""
+# Test helper for defining graph schemas and calculating their metrics.
+#
+# The SparseDensityGraph class is used in tests to mock a graph with sparse
+# relationship density and compute various metrics for reporting.
 
 
 class SparseDensityGraph:
