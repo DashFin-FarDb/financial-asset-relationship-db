@@ -37,7 +37,7 @@ def repository(tmp_path):
     Parameters:
         tmp_path (pathlib.Path): Temporary directory provided by pytest for filesystem isolation.
 
-    Returns:
+    Yields:
         AssetGraphRepository: A repository instance connected to a test SQLite database created under `tmp_path`. The fixture yields the repository and ensures the underlying database session is closed and the engine disposed after the test.
     """
     db_path = tmp_path / "test_repo.db"
