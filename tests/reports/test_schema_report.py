@@ -106,6 +106,11 @@ class EmptyGraph:
     """Mock graph with no assets or relationships."""
 
     def calculate_metrics(self):
+        """Calculate and return default metrics for an empty graph.
+
+        Returns:
+            dict: Dictionary with zero or empty default values for all metrics.
+        """
         return {
             "relationship_distribution": {},
             "total_assets": 0,
@@ -130,10 +135,23 @@ def test_schema_report_with_empty_graph() -> None:
     assert "No relationships recorded yet" in md
 
 
+"""
+Module defining test graphs for schema report tests.
+
+This module provides HighDensityGraph to simulate a graph with high relationship density used in schema report testing.
+"""
+
 class HighDensityGraph:
     """Mock graph with high relationship density."""
 
     def calculate_metrics(self):
+        """Calculate and return various metrics for the high density graph.
+
+        Returns:
+            dict: A dictionary containing relationship distribution, total assets, total relationships,
+                  average relationship strength, relationship density, regulatory event count,
+                  asset class distribution, top relationships, and quality score.
+        """
         return {
             "relationship_distribution": {"correlation": 50},
             "total_assets": 10,
@@ -155,10 +173,23 @@ def test_schema_report_high_density_recommendation() -> None:
     assert "High connectivity - consider normalization" in md
 
 
+"""Module for defining graph schemas and calculating their metrics.
+
+This module provides the SparseDensityGraph class used in tests to mock a graph
+with sparse relationship density and compute various metrics for reporting.
+"""
+
 class SparseDensityGraph:
     """Mock graph with sparse relationship density."""
 
     def calculate_metrics(self):
+        """Calculate and return metrics of the sparse density graph.
+
+        Returns:
+            dict: A dictionary containing relationship distribution, asset counts,
+            relationship statistics, density, event counts, distribution, top relationships,
+            and quality score.
+        """
         return {
             "relationship_distribution": {"correlation": 2},
             "total_assets": 20,

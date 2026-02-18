@@ -152,21 +152,23 @@ class TestGradioIntegration:
     """Test cases for Gradio integration helpers."""
 
     @staticmethod
-    def test_make_gradio_report_fn_markdown() -> None:
-        """Test Gradio report function creation for markdown."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+    """Unit tests for reports integration functionality."""
+        def test_make_gradio_report_fn_markdown() -> None:
+            """Test Gradio report function creation for markdown."""
+            mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
-            return mock_graph
+            def graph_provider():
+                """Provides a mock AssetRelationshipGraph for testing."""
+                return mock_graph
 
-        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Gradio Report"
+            with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
+                mock_gen_md.return_value = "# Gradio Report"
 
-            fn = make_gradio_report_fn(graph_provider, html=False)
-            result = fn()
+                fn = make_gradio_report_fn(graph_provider, html=False)
+                result = fn()
 
-            assert result == "# Gradio Report"
-            mock_gen_md.assert_called_once_with(mock_graph)
+                assert result == "# Gradio Report"
+                mock_gen_md.assert_called_once_with(mock_graph)
 
     @staticmethod
     def test_make_gradio_report_fn_html() -> None:
@@ -174,6 +176,7 @@ class TestGradioIntegration:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         def graph_provider():
+            """Provide the mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
         with patch("src.reports.integration.generate_html_report") as mock_gen_html:
@@ -186,11 +189,13 @@ class TestGradioIntegration:
             mock_gen_html.assert_called_once_with(mock_graph)
 
     @staticmethod
+    """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
     def test_attach_to_gradio_interface_markdown() -> None:
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         def graph_provider():
+            """Provide a mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
         with (
@@ -211,6 +216,7 @@ class TestGradioIntegration:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         def graph_provider():
+            """Provide the graph for testing by returning a mock graph."""
             return mock_graph
 
         with (
@@ -231,11 +237,11 @@ class TestGradioIntegration:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         def graph_provider():
+            """Provide a mock AssetRelationshipGraph instance for testing when Gradio is missing."""
             return mock_graph
 
-        with patch("builtins.__import__", side_effect=ImportError("No module gradio")):
-            with pytest.raises(RuntimeError, match="Gradio is not installed"):
-                attach_to_gradio_interface(graph_provider)
+        with patch("builtins.__import__", side_effect=ImportError("No module gradio")), pytest.raises(RuntimeError, match="Gradio is not installed"):
+            attach_to_gradio_interface(graph_provider)
 
 
 @pytest.mark.unit
@@ -396,11 +402,16 @@ class TestIntegrationEdgeCases:
             assert "€$¥£" in result
 
     @staticmethod
+    """
+    Unit tests for the reports integration module, focusing on the Gradio report function behavior.
+    """
+
     def test_make_gradio_report_fn_calls_provider_each_time() -> None:
         """Test that Gradio report function calls provider each time."""
         call_count = 0
 
         def graph_provider():
+            """Provides a mock AssetRelationshipGraph and increments the call count."""
             nonlocal call_count
             call_count += 1
             return MagicMock(spec=AssetRelationshipGraph)

@@ -11,7 +11,6 @@ This module tests the schema report CLI commands including:
 # Import the CLI app
 import sys
 from pathlib import Path
-from pathlib import Path as P
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -20,7 +19,7 @@ from typer.testing import CliRunner
 from src.logic.asset_graph import AssetRelationshipGraph
 
 # Add .github/scripts to path for import
-sys.path.insert(0, str(P(__file__).parent.parent.parent / ".github" / "scripts"))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "scripts"))
 
 from schema_report_cli import app, load_graph  # noqa: E402
 

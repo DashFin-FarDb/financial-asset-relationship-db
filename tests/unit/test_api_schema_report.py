@@ -11,7 +11,6 @@ This module tests the schema report API endpoints including:
 from unittest.mock import MagicMock, patch
 
 import pytest
-from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 from src.api.routers.schema_report import get_graph, router

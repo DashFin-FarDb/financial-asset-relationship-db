@@ -863,57 +863,60 @@ class FinancialAssetApp:
                 show_income_comparison,
                 show_regulatory,
                 show_all_relationships,
-                toggle_arrows,
-            ]
+        toggle_arrows,
+    ]
 
-            refresh_viz_btn.click(
-                self.refresh_visualization,
-                inputs=visualization_inputs,
-                outputs=[visualization_3d, error_message],
-            )
+    refresh_viz_btn.click(
+        self.refresh_visualization,
+        inputs=visualization_inputs,
+        outputs=[visualization_3d, error_message],
+    )
 
-            view_mode.change(
-                lambda *args: (
-                    gr.update(visible=args[1] == "2D"),
-                    self.refresh_visualization(*args)[0],
+    view_mode.change(
+        lambda *args: (
+            gr.update(visible=args[1] == "2D"),
+            self.refresh_visualization(*args)[0],
+        )
+    )
+
     interface.load(
         self.refresh_all_outputs,
         inputs=[graph_state],
         outputs=all_refresh_outputs,
     )
     return interface
-                formulaic_dashboard,
-                correlation_network,
-                metric_comparison,
-                formula_selector,
-                formula_summary,
-                error_message,
-            ]
+        formulaic_dashboard,
+        correlation_network,
+        metric_comparison,
+        formula_selector,
+        formula_summary,
+        error_message,
+    ]
 
-            refresh_formulas_btn.click(
-                self.generate_formulaic_analysis,
-                inputs=[graph_state],
-                outputs=formulaic_outputs,
-            )
+    refresh_formulas_btn.click(
+        self.generate_formulaic_analysis,
+        inputs=[graph_state],
+        outputs=formulaic_outputs,
+    )
 
-            formula_selector.change(
-                self.show_formula_details,
-                inputs=[formula_selector, graph_state],
-                outputs=[formula_detail_view, error_message],
-            )
+    formula_selector.change(
+        self.show_formula_details,
+        inputs=[formula_selector, graph_state],
+        outputs=[formula_detail_view, error_message],
+    )
 
-            for checkbox in [
-                show_same_sector,
-                show_market_cap,
-                show_correlation,
-                show_corporate_bond,
-                show_commodity_currency,
-                show_income_comparison,
-                show_regulatory,
-                show_all_relationships,
-                toggle_arrows,
-            ]:
-                checkbox.change(
+    for checkbox in [
+        show_same_sector,
+        show_market_cap,
+        show_correlation,
+        show_corporate_bond,
+        show_commodity_currency,
+        show_income_comparison,
+        show_regulatory,
+        show_all_relationships,
+        toggle_arrows,
+    ]:
+        checkbox.change(
                     self.refresh_visualization,
                     inputs=visualization_inputs,
                     outputs=[visualization_3d, error_message],

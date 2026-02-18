@@ -302,7 +302,8 @@ class FormulaicAnalyzer:
             example_calculation=("EV calculation requires debt and cash data " "(not available in current dataset)"),
             category="Valuation",
             r_squared=0.95,
-                expression="EV = Market_Cap + Total_Debt - Cash",
+        )
+        formulas.append(enterprise_value_formula)
 
     def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
@@ -321,12 +322,13 @@ class FormulaicAnalyzer:
         formulas=[]
 
         # Sharpe Ratio
-        sharpe_formula=Formula(
+        sharpe_formula = Formula(
             name="Sharpe Ratio",
             expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
             latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
             description="Risk-adjusted return metric",
-        formulas=[]
+        )
+        formulas.append(sharpe_formula)
 
         # Sharpe Ratio
         sharpe_formula=Formula(
