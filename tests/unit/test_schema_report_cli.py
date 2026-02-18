@@ -88,6 +88,7 @@ class TestMarkdownCommand:
             mock_load.assert_called_once()
             mock_gen.assert_called_once_with(mock_graph)
 
+
 @pytest.mark.unit
 class TestHtmlCommand:
     """Test cases for the 'html' command."""

@@ -768,7 +768,9 @@ class TestHelperMethods:
             AssertionError: If the default neutral value is not returned.
         """
         # 0.5 is the documented neutral/unknown default; see formulaic_analysis.py
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical({})
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            {}
+        )
         assert result == 0.5
 
     @staticmethod
@@ -782,11 +784,15 @@ class TestHelperMethods:
             AssertionError: If the result is outside [0, 1].
         """
         empirical = {"correlation_matrix": {"pair1": 0.8, "pair2": 0.6}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            empirical
+        )
         assert 0 <= result <= 1
 
     @staticmethod
-    def test_calculate_avg_correlation_strength_from_empirical_filters_perfect() -> None:
+    def test_calculate_avg_correlation_strength_from_empirical_filters_perfect() -> (
+        None
+    ):
         """Test that perfect correlations (1.0) are filtered before averaging.
 
         Returns:
@@ -796,7 +802,9 @@ class TestHelperMethods:
             AssertionError: If the result is outside [0, 1].
         """
         empirical = {"correlation_matrix": {"pair1": 1.0, "pair2": 0.8}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            empirical
+        )
         assert 0 <= result <= 1
 
         # With perfect correlation (should filter out)

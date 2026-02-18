@@ -594,7 +594,7 @@ def _validate_visualization_data(
     asset_ids: List[str],
     colors: List[str],
     hover_texts: List[str],
-    ) -> None:
+) -> None:
     """Validate visualization data integrity to prevent runtime errors."""
     _validate_positions_array(positions)
     _validate_asset_ids_list(asset_ids)
