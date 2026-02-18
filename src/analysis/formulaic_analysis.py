@@ -394,7 +394,6 @@ class FormulaicAnalyzer:
 
         return formulas
 
-        expression = ("σ = √(Σ(R_i - μ)² / (n-1))",)
         """
         Builds Modern Portfolio Theory formulas derived from the asset relationship
         graph.
