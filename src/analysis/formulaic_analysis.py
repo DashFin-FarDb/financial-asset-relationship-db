@@ -328,7 +328,7 @@ class FormulaicAnalyzer:
             r_squared=0.95,
         formulas.append(enterprise_value_formula)
         return formulas
- 
+
      def _analyze_risk_return_relationships(
     def _analyze_risk_return_relationships(
         self, graph: AssetRelationshipGraph
@@ -346,10 +346,10 @@ class FormulaicAnalyzer:
                 such as expression, LaTeX, variables, example_calculation,
                 category, and r_squared.
         """
-        formulas = []
+        formulas=[]
 
         # Sharpe Ratio
-        sharpe_formula = Formula(
+        sharpe_formula=Formula(
             name="Sharpe Ratio",
             expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
             latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
@@ -367,7 +367,7 @@ class FormulaicAnalyzer:
         formulas.append(sharpe_formula)
 
         # Volatility (Standard Deviation)
-        volatility_formula = Formula(
+        volatility_formula=Formula(
             name="Volatility (Standard Deviation)",
             expression="σ = √(Σ(R_i - μ)² / (n-1))",
             latex=r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}{n-1}}",
@@ -395,10 +395,10 @@ class FormulaicAnalyzer:
                 relationships, including portfolio expected return and portfolio
                 variance for a two-asset case.
         """
-        formulas = []
+        formulas=[]
 
         # Portfolio Expected Return
-        portfolio_return_formula = Formula(
+        portfolio_return_formula=Formula(
             name="Portfolio Expected Return",
             expression="E(R_p) = Σ(w_i × E(R_i))",
             latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
@@ -426,10 +426,10 @@ class FormulaicAnalyzer:
                         relationships, including portfolio expected return and portfolio
                         variance for a two-asset case.
                 """
-                formulas: List[Formula] = []
+                formulas: List[Formula]=[]
 
                 # Portfolio Expected Return
-                portfolio_return_formula = Formula(
+                portfolio_return_formula=Formula(
                     name="Portfolio Expected Return",
                     expression="E(R_p) = Σ(w_i × E(R_i))",
                     latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
@@ -447,7 +447,7 @@ class FormulaicAnalyzer:
                 formulas.append(portfolio_return_formula)
 
                 # Portfolio Variance (2-asset case)
-                portfolio_variance_formula = Formula(
+                portfolio_variance_formula=Formula(
                     name="Portfolio Variance (2-Asset)",
                     expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
                     latex=r"\sigma^2_p = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
