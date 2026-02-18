@@ -20,7 +20,6 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from app import AppConstants, FinancialAssetApp
-
 EXPECTED_TABS = (
     "TAB_3D_VISUALIZATION",
     "TAB_METRICS_ANALYTICS",
@@ -203,7 +202,9 @@ class TestFinancialAssetAppInitialization:
             if hasattr(mock_fetcher, attr):
                 delattr(mock_fetcher, attr)
 
-        with pytest.raises(AttributeError, match="No known database factory found") as excinfo:
+        with pytest.raises(
+            AttributeError, match="No known database factory found"
+        ) as excinfo:
             FinancialAssetApp._create_database()
         assert str(excinfo.value) == "No known database factory found"
 
