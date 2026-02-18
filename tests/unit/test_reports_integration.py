@@ -188,13 +188,11 @@ class TestGradioIntegration:
             mock_gen_html.assert_called_once_with(mock_graph)
 
     @staticmethod
-def test_attach_to_gradio_interface_markdown() -> None:
-    """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
-    mock_graph = MagicMock(spec=AssetRelationshipGraph)
-     """Test attaching markdown report to Gradio interface."""
-      mock_graph = MagicMock(spec=AssetRelationshipGraph)
+    def test_attach_to_gradio_interface_markdown() -> None:
+        """Test attaching markdown report to Gradio interface."""
+        mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-       def graph_provider():
+        def graph_provider():
             """Provide a mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
@@ -240,7 +238,16 @@ def test_attach_to_gradio_interface_markdown() -> None:
             """Provide a mock AssetRelationshipGraph instance for testing when Gradio is missing."""
             return mock_graph
 
-        with patch("builtins.__import__", side_effect=ImportError("No module gradio")), pytest.raises(RuntimeError, match="Gradio is not installed"):
+        def import_mock(name, *args, **kwargs):
+            """Mock __import__ to raise ImportError only for gradio."""
+            if name == "gradio":
+                raise ImportError("No module named 'gradio'")
+            return __import__(name, *args, **kwargs)
+
+        with (
+            patch("builtins.__import__", side_effect=import_mock),
+            pytest.raises(RuntimeError, match="Gradio is not installed"),
+        ):
             attach_to_gradio_interface(graph_provider)
 
 
@@ -402,10 +409,6 @@ class TestIntegrationEdgeCases:
             assert "€$¥£" in result
 
     @staticmethod
-    """
-    Unit tests for the reports integration module, focusing on the Gradio report function behavior.
-    """
-
     def test_make_gradio_report_fn_calls_provider_each_time() -> None:
         """Test that Gradio report function calls provider each time."""
         call_count = 0
