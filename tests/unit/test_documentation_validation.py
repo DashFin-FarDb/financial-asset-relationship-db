@@ -452,7 +452,7 @@ class TestSystemManifest:
         """Test that there are no duplicate major sections."""
         major_sections = [
             "## Project Overview",
-            "## Current Status",
+            "## Current Phase",
             "## Project Structure",
             "## Dependencies",
         ]
