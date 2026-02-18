@@ -613,7 +613,8 @@ def _validate_visualization_data(
 
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     """Create enhanced 3D visualization of asset relationship graph
-    with improved relationship visibility"""
+    with improved relationship visibility
+    """
     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
         graph, "get_3d_visualization_data_enhanced"
     ):
@@ -894,6 +895,28 @@ def _create_relationship_traces(
     return traces
 
 
+def _validate_directional_arrows_inputs(
+    graph: AssetRelationshipGraph,
+    positions: np.ndarray,
+    asset_ids: List[str],
+) -> None:
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
+    if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
+        raise ValueError(
+            "Invalid input data: graph must have a relationships dictionary"
+        )
+    try:
+        if positions is None or asset_ids is None:
+            raise ValueError("positions and asset_ids must not be None")
+        if len(positions) != len(asset_ids):
+            raise ValueError("positions and asset_ids must have the same length")
+    except TypeError as exc:
+        raise ValueError(
+            "Invalid input data: positions and asset_ids must support len()"
+        ) from exc
+
+
 def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
@@ -904,22 +927,9 @@ def _create_directional_arrows(
 
     Returns a list of traces for batch addition to figure.
     """
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
-    if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
-        raise ValueError(
-            "Invalid input data: graph must have a relationships dictionary"
-        )
+    _validate_directional_arrows_inputs(graph, positions, asset_ids)
 
-    try:
-        if positions is None or asset_ids is None:
-            raise ValueError("positions and asset_ids must not be None")
-        if len(positions) != len(asset_ids):
-            raise ValueError("positions and asset_ids must have the same length")
-    except TypeError as exc:
-        raise ValueError(
-            "Invalid input data: positions and asset_ids must support len()"
-        ) from exc
+    # rest of the original logic follows unchanged
 
     if not isinstance(positions, np.ndarray):
         positions = np.asarray(positions)

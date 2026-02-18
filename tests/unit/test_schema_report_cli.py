@@ -275,8 +275,8 @@ class TestSaveCommand:
 
         with (
             patch("schema_report_cli.load_graph") as mock_load,
-            patch("schema_report_cli.export_report") as mock_export,
-        ):
+        with patch("schema_report_cli.load_graph") as mock_load, \
+             patch("schema_report_cli.export_report") as mock_export:
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_load.return_value = mock_graph
             mock_export.side_effect = ValueError("Export failed")
@@ -296,10 +296,6 @@ class TestMainFunction:
         """Test that main function invokes the Typer app."""
         with patch("schema_report_cli.app") as mock_app:
             from schema_report_cli import main
-
-
-"""Unit tests for schema_report_cli module."""
-
             main()
             mock_app.assert_called_once()
 
