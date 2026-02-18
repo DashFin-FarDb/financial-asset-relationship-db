@@ -193,7 +193,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "",
             "### Cross-Asset Rules",
             (
-                "- **Sector Affinity**: Assets in the same sector are " 
+                "- **Sector Affinity**: Assets in the same sector are "
                 "linked with strength 0.7 (bidirectional)"
             ),
             (
