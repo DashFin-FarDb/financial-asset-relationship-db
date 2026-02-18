@@ -158,7 +158,7 @@ class TestHtmlCommand:
             assert result.exit_code != 0
 
 
-@pytest.mark.unit
+@ pytest.mark.unit
 class TestSaveCommand:
     """Test cases for the 'save' command."""
 
