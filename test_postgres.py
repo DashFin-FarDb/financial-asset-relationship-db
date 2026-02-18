@@ -50,7 +50,8 @@ def _redact_dsn(dsn: str) -> str:
     # Common URL form: postgresql://user:pass@host:port/db
     if "://" in dsn and "@" in dsn:
         scheme, rest = dsn.split("://", 1)
-        creds_and_host = rest.split("@", 1)
+        # Use rsplit to handle '@' characters within the password
+        creds_and_host = rest.rsplit("@", 1)
         if len(creds_and_host) == 2:
             return f"{scheme}://***:***@{creds_and_host[1]}"
     # psycopg2 keyword DSN: "dbname=... user=... password=... host=..."
