@@ -71,7 +71,8 @@ def hello():
     @staticmethod
     def test_markdown_to_html_empty_string() -> None:
         """Test markdown to HTML with empty string."""
-        html = markdown_to_html(md) if md else ""
+        md = ""
+        html = markdown_to_html(md)
         assert html == ""
 
     @staticmethod
