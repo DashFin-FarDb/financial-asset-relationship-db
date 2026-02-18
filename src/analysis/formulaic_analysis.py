@@ -184,11 +184,26 @@ class FormulaicAnalyzer:
                 )
             )
 
-        # NOTE: Bond yield-to-maturity (YTM) approximation is not yet implemented.
-        # When bond instruments are present in the graph, detect bond nodes and
-        # compute approximate YTM using bond price, coupon rate, and time to maturity
-        # (e.g., via iterative solution of price = present value of cash flows).
-        # Add a Formula entry for YTM to the formulas list.
+        # Bond yield-to-maturity (YTM) approximation
+        if self._has_bonds(graph):
+            formulas.append(
+                Formula(
+                    name="Yield-to-Maturity (Approximation)",
+                    expression="YTM ≈ (C + (F - P) / N) / ((F + P) / 2)",
+                    latex=r"\text{YTM} \approx \frac{C + \frac{F - P}{N}}{\frac{F + P}{2}}",
+                    description="Approximation of bond yield to maturity using coupon payment, face value, current price, and years to maturity.",
+                    variables={
+                        "C": "Annual coupon payment",
+                        "F": "Face value of the bond",
+                        "P": "Current market price of the bond",
+                        "N": "Years to maturity",
+                    },
+                    example_calculation=self._calculate_ytm_examples(graph),
+                    category="Fixed Income",
+                    r_squared=0.0,
+                )
+            )
+
         return formulas
 
     def _analyze_correlation_patterns(self, graph: AssetRelationshipGraph) -> List[Formula]:
@@ -399,7 +414,7 @@ class FormulaicAnalyzer:
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
             expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            expression="E(R_p) = Σ(w_i × E(R_i))",
+            latex=r"\sigma^2_p = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
             description="Portfolio risk considering correlation between assets",
             variables={
                 "σ²_p": "Portfolio variance",
