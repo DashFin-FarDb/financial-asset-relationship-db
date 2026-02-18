@@ -574,8 +574,7 @@ class TestErrorHandling:
             assert response.status_code == 500
             assert "calculation error" in response.json()["detail"].lower()
 
-    @staticmethod
-    def test_invalid_http_methods(bare_client: TestClient) -> None:
+    def test_invalid_http_methods(self, bare_client: TestClient) -> None:
         """Unsupported HTTP methods return 405 for these endpoints."""
         response = bare_client.post("/api/assets")
         assert response.status_code == 405
