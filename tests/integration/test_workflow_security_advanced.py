@@ -177,7 +177,7 @@ class TestWorkflowPermissionsHardening:
                 assert not unexpected_write, f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
             ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
 
-    @staticmethod
+    @ staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
         """
         Ensure no workflow sets the top-level permissions string to "write-all".
@@ -200,7 +200,7 @@ class TestWorkflowPermissionsHardening:
 class TestWorkflowSupplyChainSecurity:
     """Tests for supply chain security in workflows."""
 
-    @staticmethod
+    @ staticmethod
     def test_third_party_actions_pinned_to_commit_sha(all_workflows):
         """Verify third-party actions are pinned to a full commit SHA."""
         for workflow in all_workflows:
