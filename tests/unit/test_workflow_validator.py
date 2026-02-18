@@ -770,8 +770,8 @@ class TestWorkflowValidatorSecurityScenarios:
                 result = validate_workflow(f.name)
                 # Should handle deep nesting gracefully
                 # Only verify the validator completes without raising;
-            # deep nesting is not a structural error per the current implementation.
-            assert result is not None
+                # deep nesting is not a structural error per the current implementation.
+                assert result is not None
             finally:
                 Path(f.name).unlink()
 

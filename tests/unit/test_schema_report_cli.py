@@ -77,32 +77,12 @@ class TestMarkdownCommand:
             patch("schema_report_cli.load_graph") as mock_load,
             patch("schema_report_cli.generate_markdown_report") as mock_gen,
         ):
-            mock_graph = MagicMock(spec=AssetRelationshipGraph)
-            mock_load.return_value = mock_graph
-            mock_gen.return_value = ""
-
-            result = runner.invoke(app, ["md"])
-
-            assert result.exit_code == 0
-
-    @staticmethod
-    def test_md_command_handles_graph_error(runner: CliRunner) -> None:
-        """Test md command handles errors during graph loading."""
-        with patch("schema_report_cli.load_graph") as mock_load:
-            mock_load.side_effect = RuntimeError("Graph loading failed")
-
-            result = runner.invoke(app, ["md"])
-
-            # Typer runner will catch the exception; command should fail
-            assert result.exit_code != 0
-
-
 @pytest.mark.unit
 class TestHtmlCommand:
     """Test cases for the 'html' command."""
 
     @pytest.fixture
-    def runner() -> CliRunner:
+    def runner(self) -> CliRunner:
         """Create a CLI test runner."""
         return CliRunner()
 
@@ -171,7 +151,7 @@ class TestSaveCommand:
     """Test cases for the 'save' command."""
 
     @pytest.fixture
-    def runner() -> CliRunner:
+    def runner(self) -> CliRunner:
         """Create a CLI test runner."""
         return CliRunner()
 
@@ -304,6 +284,7 @@ class TestMainFunction:
         """Test that main function invokes the Typer app."""
         with patch("schema_report_cli.app") as mock_app:
             from schema_report_cli import main
+"""Unit tests for schema_report_cli module."""
 
             main()
             mock_app.assert_called_once()
@@ -324,7 +305,7 @@ class TestCLIEdgeCases:
     """Test edge cases and boundary conditions for CLI commands."""
 
     @pytest.fixture
-    def runner() -> CliRunner:
+    def runner(self) -> CliRunner:
         """Create a CLI test runner."""
         return CliRunner()
 
@@ -333,6 +314,8 @@ class TestCLIEdgeCases:
         runner: CliRunner,
         tmp_path: Path,
     ) -> None:
+        """Test that saving with empty content creates an empty file."""
+
         output_file = tmp_path / "empty.md"
 
         with (

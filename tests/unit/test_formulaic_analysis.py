@@ -1223,52 +1223,51 @@ class TestIntegrationScenarios:
         for i, (symbol, name) in enumerate(
             [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
         ):
-            equity = Equity(
-                id=symbol,
-                symbol=symbol,
-                name=name,
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=100.0 + i * 50,
-            )
-            graph.add_asset(equity)
+        equity = Equity(
+            id=symbol,
+            symbol=symbol,
+            name=name,
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=100.0 + i * 50,
+        )
+        graph.add_asset(equity)
 
-        graph.build_relationships()
+    graph.build_relationships()
 
-        result = analyzer.analyze_graph(graph)
+    result = analyzer.analyze_graph(graph)
 
-        # Should identify correlations
-        formulas = result["formulas"]
-        correlation_formulas = [
-            f for f in formulas if "Correlation" in f.name or "Beta" in f.name
-        ]
-        assert len(correlation_formulas) > 0
+    # Should identify correlations
+    formulas = result["formulas"]
+    correlation_formulas = [
+        f for f in formulas if "Correlation" in f.name or "Beta" in f.name
+    ]
+    assert len(correlation_formulas) > 0
 
-    @staticmethod
-    def test_graph_quality_score_bounds() -> None:
+@staticmethod
+def test_graph_quality_score_bounds() -> None:
 
+    """Test that calculate_metrics returns a quality_score within [0, 1].
 
-+        """Test that calculate_metrics returns a quality_score within [0, 1].
+    Returns:
+        None
 
-        Returns:
-            None
+    Raises:
+        AssertionError: If the quality score is out of bounds.
+    """
+    graph = AssetRelationshipGraph()
 
-        Raises:
-            AssertionError: If the quality score is out of bounds.
-        """
-graph = AssetRelationshipGraph()
+    equity = Equity(
+        id="AAPL",
+        symbol="AAPL",
+        name="Apple",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=150.0,
+        pe_ratio=25.5,
+    )
+    graph.add_asset(equity)
+    graph.build_relationships()
 
-equity = Equity(
-    id="AAPL",
-    symbol="AAPL",
-    name="Apple",
-    asset_class=AssetClass.EQUITY,
-    sector="Technology",
-    price=150.0,
-    pe_ratio=25.5,
-)
-graph.add_asset(equity)
-graph.build_relationships()
-
-metrics = graph.calculate_metrics()
-assert 0.0 <= metrics["quality_score"] <= 1.0
+    metrics = graph.calculate_metrics()
+    assert 0.0 <= metrics["quality_score"] <= 1.0

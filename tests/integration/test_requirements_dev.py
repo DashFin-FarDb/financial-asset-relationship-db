@@ -94,7 +94,6 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
 
 def _normalize_name_for_dupe_check(name: str) -> str:
     """PEP 503 normalization: collapses runs of [-_.] to a single separator."""
-
     return re.sub(r"[-_.]+", "_", name.strip().lower())
 
 
