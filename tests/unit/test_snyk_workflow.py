@@ -123,7 +123,7 @@ class TestSnykWorkflowStructure:
         assert snyk_workflow_path.is_file()
 
     @staticmethod
-    def test_workflow_valid_yaml(snyk_workflow: dict) -> None:
+    def test_workflow_valid_yaml(snyk_workflow):
         """Test that workflow is valid YAML."""
         assert snyk_workflow is not None
         assert isinstance(snyk_workflow, dict)
@@ -394,10 +394,9 @@ class TestSnykWorkflowEdgeCases:
         assert len(content.strip()) > 0
 
     @staticmethod
-    def test_workflow_has_no_syntax_errors(snyk_workflow_path):
+    def test_workflow_has_no_syntax_errors(snyk_workflow):
         """Test that YAML has no syntax errors."""
-        data = yaml.safe_load(snyk_workflow_path.read_text())
-        assert data is not None
+        assert snyk_workflow is not None
 
     @staticmethod
     def test_workflow_not_disabled(snyk_workflow_path):
