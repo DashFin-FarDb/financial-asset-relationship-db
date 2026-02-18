@@ -110,7 +110,9 @@ class TestEnhancedTestSummary:
         for i, line in enumerate(lines, 1):
             if line.startswith("#"):
                 # Headings should have space after #
-                assert re.match(r"^#+\s", line), f"Line {i}: Heading missing space after #"
+                assert re.match(r"^#+\s", line), (
+                    f"Line {i}: Heading missing space after #"
+                )
 
     def test_summary_no_broken_formatting(self, summary_content):
         """
@@ -121,9 +123,9 @@ class TestEnhancedTestSummary:
         """
         # Check for common markdown issues
         # Ensure no heading markers (e.g., ###) appear without a trailing space
-        assert not re.search(
-            r"^#{2,}[^ #\n]", summary_content, re.MULTILINE
-        ), "Found heading markers without proper spacing"
+        assert not re.search(r"^#{2,}[^ #\n]", summary_content, re.MULTILINE), (
+            "Found heading markers without proper spacing"
+        )
 
 
 @pytest.mark.unit
