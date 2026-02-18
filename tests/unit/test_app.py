@@ -29,7 +29,7 @@ class TestAppConstants:
     @staticmethod
     def test_title_constant():
         """Test that TITLE constant is defined and non-empty."""
-        assert hasattr(AppConstants, "TITLE")
+        assert hasattr(AppConstants, "TITLE"), "TITLE constant is not defined"
         assert isinstance(AppConstants.TITLE, str)
         assert len(AppConstants.TITLE) > 0
 
@@ -44,13 +44,17 @@ class TestAppConstants:
     @staticmethod
     def test_tab_constants_defined():
         """Test that all tab label constants are defined."""
-        expected_tabs = [
+        @pytest.mark.parametrize("tab", [
             "TAB_3D_VISUALIZATION",
             "TAB_METRICS_ANALYTICS",
             "TAB_SCHEMA_RULES",
             "TAB_ASSET_EXPLORER",
             "TAB_DOCUMENTATION",
-        ]
+        ])
+    def test_tab_constants_defined(tab):
+        assert hasattr(AppConstants, tab)
+        assert isinstance(getattr(AppConstants, tab), str)
+        assert len(getattr(AppConstants, tab)) > 0
         for tab in expected_tabs:
             assert hasattr(AppConstants, tab)
             assert isinstance(getattr(AppConstants, tab), str)
@@ -202,8 +206,9 @@ class TestFinancialAssetAppInitialization:
             if hasattr(mock_fetcher, attr):
                 delattr(mock_fetcher, attr)
 
-        with pytest.raises(AttributeError, match="No known database factory found"):
+        with pytest.raises(AttributeError, match="No known database factory found") as excinfo:
             FinancialAssetApp._create_database()
+        assert str(excinfo.value) == "No known database factory found"
 
     @staticmethod
     @patch("app.real_data_fetcher")
@@ -220,6 +225,7 @@ class TestFinancialAssetAppInitialization:
         """Test that ensure_graph returns existing graph without recreation."""
         mock_graph = MagicMock()
         mock_graph.assets = {}
+        mock_fetcher.reset_mock()
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
         app = FinancialAssetApp()
