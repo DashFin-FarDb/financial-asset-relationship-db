@@ -9,7 +9,6 @@ from src.logic.asset_graph import AssetRelationshipGraph
 def _as_int(value: Any, default: int = 0) -> int:
 
 
-
 def _as_float(value: Any, default: float = 0.0) -> float:
     """
     Coerce a value to a float, falling back to a default on failure.
