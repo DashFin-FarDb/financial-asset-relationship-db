@@ -171,11 +171,10 @@ def test_schema_report_high_density_recommendation() -> None:
     assert "High connectivity - consider normalization" in md
 
 
-"""Module for defining graph schemas and calculating their metrics.
-
-This module provides the SparseDensityGraph class used in tests to mock a graph
-with sparse relationship density and compute various metrics for reporting.
-"""
+# Module for defining graph schemas and calculating their metrics.
+#
+# This module provides the SparseDensityGraph class used in tests to mock a graph
+# with sparse relationship density and compute various metrics for reporting.
 
 
 class SparseDensityGraph:
