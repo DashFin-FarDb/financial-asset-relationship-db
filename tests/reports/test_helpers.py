@@ -207,5 +207,5 @@ def test_as_int_with_whitespace_string() -> None:
 
 def test_as_float_with_whitespace_string() -> None:
     """Test _as_float with string containing whitespace."""
-    assert abs(_as_float("  3.14  ") - 3.14) < 1e-9
-    assert abs(_as_float("\n2.5\t") - 2.5) < 1e-9
+    assert _as_float("  3.14  ") == pytest.approx(3.14)
+    assert _as_float("\n2.5\t") == pytest.approx(2.5)
