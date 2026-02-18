@@ -1,4 +1,5 @@
 gradio>=4.9.0,<5.0.0
+Markdown>=3.4,<4.0
 curl-cffi>=0.5.0
 requests>=2.32.2
 websockets>=12.0
@@ -11,7 +12,6 @@ fastapi==0.127.0  # pinned for API compatibility and stability
 uvicorn[standard]>=0.24.0
 pydantic==2.12.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
-Markdown>=3.4,<4.0
 
 # Serverless/Database dependencies
 mangum>=0.17.0
