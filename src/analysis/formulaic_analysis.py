@@ -424,34 +424,49 @@ class FormulaicAnalyzer:
         formulas.append(portfolio_return_formula)
 
         # Portfolio Variance (2-asset case)
-        portfolio_variance_formula = Formula(
-            name="Portfolio Variance (2-Asset)",
-            expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-            latex=r"\sigma^2_p = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
-            description="Portfolio risk considering correlation between assets",
-            variables={
-                "σ²_p": "Portfolio variance",
-                "w_1, w_2": "Weights of assets 1 and 2",
-                "σ_1, σ_2": "Standard deviations of assets 1 and 2",
-                "ρ_12": "Correlation between assets 1 and 2",
-            },
-            example_calculation=(self._calculate_portfolio_variance_examples(graph)),
-            category="Portfolio Theory",
-            r_squared=0.87,
-        )
-        formulas.append(portfolio_variance_formula)
+            def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
+                """
+                Builds Modern Portfolio Theory formulas derived from the asset relationship
+                graph.
 
-        return formulas
+                Returns:
+                    formulas (List[Formula]): Formula objects representing portfolio theory
+                        relationships, including portfolio expected return and portfolio
+                        variance for a two-asset case.
+                """
+                formulas: List[Formula] = []
 
-    def _analyze_cross_asset_relationships(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
-        """
-        Assemble formulas describing detected relationships between different asset
-        classes in the graph.
+                # Portfolio Expected Return
+                portfolio_return_formula = Formula(
+                    name="Portfolio Expected Return",
+                    expression="E(R_p) = Σ(w_i × E(R_i))",
+                    latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
+                    description="Weighted average of individual asset expected returns",
+                    variables={
+                        "E(R_p)": "Expected portfolio return",
+                        "w_i": "Weight of asset i in portfolio",
+                        "E(R_i)": "Expected return of asset i",
+                        "n": "Number of assets",
+                    },
+                    example_calculation=self._calculate_portfolio_return_examples(graph),
+                    category="Portfolio Theory",
+                    r_squared=1.0,
+                )
+                formulas.append(portfolio_return_formula)
 
-        Includes currency triangular-arbitrage/exchange-rate relationships when
-        currencies are present, and commodity–currency inverse
+                # Portfolio Variance (2-asset case)
+                portfolio_variance_formula = Formula(
+                    name="Portfolio Variance (2-Asset)",
+                    expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
+                    latex=r"\sigma^2_p = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
+                    description="Portfolio risk considering correlation between assets",
+                    variables={
+                        "σ²_p": "Portfolio variance",
+                        "w_1, w_2": "Weights of assets 1 and 2",
+                        "σ_1, σ_2": "Standard deviations of assets 1 and 2",
+                        "ρ_12": "Correlation between assets 1 and 2",
+                    },
+                    example_calculation=self._calculate_portfolio_variance_examples(graph),
         relationships when both commodities and currencies are present.
 
         Returns:
