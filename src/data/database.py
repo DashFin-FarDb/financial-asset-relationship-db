@@ -25,7 +25,7 @@ DEFAULT_DATABASE_URL = os.getenv(
 
 def create_engine_from_url(url: str | None = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
-    resolved_url = url or DEFAULT_DATABASE_URL
+    resolved_url = url or os.getenv("ASSET_GRAPH_DATABASE_URL", DEFAULT_DATABASE_URL)
 
     if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
         return create_engine(

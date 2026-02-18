@@ -204,6 +204,7 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
                 "- **Currency Exposure**: Currency assets reflect FX and "
                 "central-bank policy links"
             ),
+        ]
     )
 
     # -- Schema Optimization Metrics ---------------------------------------

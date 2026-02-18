@@ -111,9 +111,9 @@ class AssetRelationshipGraph:
             bidirectional (bool): If True, also add the same relationship from
                 `target_id` back to `source_id`.
         """
-        self._append_relationship(source_id, target_id, strength, rel_type)
+        self._append_relationship(source_id, target_id, rel_type, strength)
         if bidirectional:
-            self._append_relationship(target_id, source_id, strength, rel_type)
+            self._append_relationship(target_id, source_id, rel_type, strength)
 
     @staticmethod
     def _clamp01(value: float) -> float:
@@ -332,13 +332,16 @@ class AssetRelationshipGraph:
     def _collect_participating_asset_ids(self) -> set[str]:
         """
         Collect all asset IDs present in the graph, including assets stored in the
-        graph and any target IDs referenced by relationships.
+        graph, source IDs in relationships, and target IDs referenced by relationships.
 
         Returns:
-            set[str]: A set of asset IDs that appear either as keys in `self.assets`
-                or as target IDs in `self.relationships`.
+            set[str]: A set of asset IDs that appear in `self.assets`,
+                as source IDs in `self.relationships`, or as target IDs.
         """
         all_ids = set(self.assets.keys())
+        # Add source IDs from relationships
+        all_ids.update(self.relationships.keys())
+        # Add target IDs from relationships
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
                 all_ids.add(target_id)

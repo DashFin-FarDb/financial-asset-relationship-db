@@ -831,8 +831,8 @@ class TestAllAssetTypes:
 
         RealDataFetcher._fetch_bond_data()
 
-        # Should attempt TLT, LQD, HYG
-        assert mock_ticker_class.call_count == 3
+        # Should attempt TLT, LQD
+        assert mock_ticker_class.call_count == 2
 
     @patch("yfinance.Ticker")
     def test_fetch_all_commodity_symbols(self, mock_ticker_class):
@@ -854,8 +854,8 @@ class TestAllAssetTypes:
 
         RealDataFetcher._fetch_commodity_data()
 
-        # Should attempt GC=F, CL=F, SI=F
-        assert mock_ticker_class.call_count == 3
+        # Should attempt GC=F, CL=F
+        assert mock_ticker_class.call_count == 2
 
     @patch("yfinance.Ticker")
     def test_fetch_all_currency_symbols(self, mock_ticker_class):

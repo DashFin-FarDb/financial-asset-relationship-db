@@ -611,7 +611,7 @@ def _validate_visualization_data(
     _validate_asset_ids_uniqueness(asset_ids)
 
 
- def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
+def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
      """Create enhanced 3D visualization of asset relationship graph
      with improved relationship visibility"""
      if not isinstance(graph, AssetRelationshipGraph) or not hasattr(

@@ -227,3 +227,206 @@ class TestGet3DVisualizationDataEnhanced:
         # Verify they are returned as a sorted list of all unique assets
         expected_asset_ids = ["apple", "banana", "mango", "zebra"]
         assert asset_ids == expected_asset_ids
+
+
+@pytest.mark.unit
+class TestAddRelationshipRegression:
+    """Regression tests for add_relationship parameter ordering bug."""
+
+    @staticmethod
+    def test_relationship_parameters_correct_order():
+        """Regression: Verify relationship parameters are stored in correct order.
+
+        This test verifies the fix for a bug where add_relationship was calling
+        _append_relationship with parameters in wrong order (strength, rel_type)
+        instead of (rel_type, strength).
+        """
+        graph = AssetRelationshipGraph()
+
+        # Add a relationship with specific type and strength
+        graph.add_relationship("source", "target", "correlation", 0.75)
+
+        # Verify the relationship is stored correctly
+        assert "source" in graph.relationships
+        rels = graph.relationships["source"]
+        assert len(rels) == 1
+
+        # Relationship tuple should be (target, rel_type, strength)
+        target, rel_type, strength = rels[0]
+        assert target == "target"
+        assert rel_type == "correlation"
+        assert strength == 0.75
+
+    @staticmethod
+    def test_bidirectional_relationship_parameters():
+        """Regression: Verify bidirectional relationships store parameters correctly."""
+        graph = AssetRelationshipGraph()
+
+        # Add bidirectional relationship
+        graph.add_relationship("A", "B", "same_sector", 0.7, bidirectional=True)
+
+        # Check forward relationship
+        assert "A" in graph.relationships
+        forward_rels = graph.relationships["A"]
+        assert len(forward_rels) == 1
+        target, rel_type, strength = forward_rels[0]
+        assert target == "B"
+        assert rel_type == "same_sector"
+        assert strength == 0.7
+
+        # Check reverse relationship
+        assert "B" in graph.relationships
+        reverse_rels = graph.relationships["B"]
+        assert len(reverse_rels) == 1
+        target, rel_type, strength = reverse_rels[0]
+        assert target == "A"
+        assert rel_type == "same_sector"
+        assert strength == 0.7
+
+    @staticmethod
+    def test_relationship_type_is_string_not_float():
+        """Regression: Ensure relationship type is stored as string, not float."""
+        graph = AssetRelationshipGraph()
+
+        # Add relationship with both string rel_type and float strength
+        graph.add_relationship("X", "Y", "hedge", 0.5)
+
+        # Verify types are correct
+        rels = graph.relationships["X"]
+        _target, rel_type, strength = rels[0]
+
+        # The bug would have swapped these, making rel_type a float
+        assert isinstance(rel_type, str), "rel_type should be string"
+        assert isinstance(strength, (int, float)), "strength should be numeric"
+        assert rel_type == "hedge"
+        assert strength == 0.5
+
+
+@pytest.mark.unit
+class TestDatabaseUrlHandling:
+    """Test cases for database URL configuration."""
+
+    @staticmethod
+    def test_graph_init_with_database_url():
+        """Test that database URL is stored during initialization."""
+        test_url = "postgresql://localhost/testdb"
+        graph = AssetRelationshipGraph(database_url=test_url)
+
+        assert graph.database_url == test_url
+
+    @staticmethod
+    def test_graph_init_without_database_url():
+        """Test that database URL defaults to None."""
+        graph = AssetRelationshipGraph()
+
+        assert graph.database_url is None
+
+
+@pytest.mark.unit
+class TestAddAssetMethod:
+    """Test cases for add_asset method."""
+
+    @staticmethod
+    def test_add_asset_stores_by_id():
+        """Test that assets are stored by their ID."""
+        from src.models.financial_models import Asset, AssetClass
+
+        graph = AssetRelationshipGraph()
+        asset = Asset(
+            id="TEST1",
+            symbol="TST",
+            name="Test Asset",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=100.0,
+        )
+
+        graph.add_asset(asset)
+
+        assert "TEST1" in graph.assets
+        assert graph.assets["TEST1"] == asset
+
+    @staticmethod
+    def test_add_asset_overwrites_existing():
+        """Test that adding asset with same ID overwrites previous."""
+        from src.models.financial_models import Asset, AssetClass
+
+        graph = AssetRelationshipGraph()
+        asset1 = Asset(
+            id="TEST1",
+            symbol="TST",
+            name="First Asset",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=100.0,
+        )
+        asset2 = Asset(
+            id="TEST1",
+            symbol="TST2",
+            name="Second Asset",
+            asset_class=AssetClass.EQUITY,
+            sector="Finance",
+            price=200.0,
+        )
+
+        graph.add_asset(asset1)
+        graph.add_asset(asset2)
+
+        assert len(graph.assets) == 1
+        assert graph.assets["TEST1"].name == "Second Asset"
+        assert graph.assets["TEST1"].price == 200.0
+
+
+@pytest.mark.unit
+class TestRegulatoryEventHandling:
+    """Test cases for regulatory event management."""
+
+    @staticmethod
+    def test_add_regulatory_event():
+        """Test that regulatory events can be added to the graph."""
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
+
+        graph = AssetRelationshipGraph()
+        event = RegulatoryEvent(
+            id="EVENT1",
+            asset_id="AAPL",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-01-15",
+            description="Q4 earnings release",
+            impact_score=0.8,
+        )
+
+        graph.add_regulatory_event(event)
+
+        assert len(graph.regulatory_events) == 1
+        assert graph.regulatory_events[0] == event
+
+    @staticmethod
+    def test_multiple_regulatory_events():
+        """Test that multiple regulatory events are stored in order."""
+        from src.models.financial_models import RegulatoryActivity, RegulatoryEvent
+
+        graph = AssetRelationshipGraph()
+        event1 = RegulatoryEvent(
+            id="EVENT1",
+            asset_id="AAPL",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-01-15",
+            description="Q4 earnings",
+            impact_score=0.8,
+        )
+        event2 = RegulatoryEvent(
+            id="EVENT2",
+            asset_id="MSFT",
+            event_type=RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
+            date="2024-01-20",
+            description="Dividend increase",
+            impact_score=0.6,
+        )
+
+        graph.add_regulatory_event(event1)
+        graph.add_regulatory_event(event2)
+
+        assert len(graph.regulatory_events) == 2
+        assert graph.regulatory_events[0].id == "EVENT1"
+        assert graph.regulatory_events[1].id == "EVENT2"
