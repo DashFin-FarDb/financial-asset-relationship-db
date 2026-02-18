@@ -94,9 +94,7 @@ class TestGenerateReports:
         """Test markdown report generation."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch(
-            "src.reports.integration.SchemaReportGenerator"
-        ) as mock_generator_class:
+        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
             mock_generator = MagicMock()
             mock_generator.generate.return_value = "# Test Report"
             mock_generator_class.return_value = mock_generator
@@ -113,9 +111,7 @@ class TestGenerateReports:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         with (
-            patch(
-                "src.reports.integration.SchemaReportGenerator"
-            ) as mock_generator_class,
+            patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class,
             patch("src.reports.integration.markdown_to_html") as mock_md_to_html,
         ):
             mock_generator = MagicMock()
@@ -135,9 +131,7 @@ class TestGenerateReports:
         mock_graph.assets = {}
         mock_graph.relationships = {}
 
-        with patch(
-            "src.reports.integration.SchemaReportGenerator"
-        ) as mock_generator_class:
+        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
             mock_generator = MagicMock()
             mock_generator.generate.return_value = "# Empty Report"
             mock_generator_class.return_value = mock_generator
@@ -188,7 +182,6 @@ class TestGradioIntegration:
             mock_gen_html.assert_called_once_with(mock_graph)
 
     @staticmethod
-    """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
     def test_attach_to_gradio_interface_markdown() -> None:
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
@@ -239,7 +232,16 @@ class TestGradioIntegration:
             """Provide a mock AssetRelationshipGraph instance for testing when Gradio is missing."""
             return mock_graph
 
-        with patch("builtins.__import__", side_effect=ImportError("No module gradio")), pytest.raises(RuntimeError, match="Gradio is not installed"):
+        def import_mock(name, *args, **kwargs):
+            """Mock __import__ to raise ImportError only for gradio."""
+            if name == "gradio":
+                raise ImportError("No module named 'gradio'")
+            return __import__(name, *args, **kwargs)
+
+        with (
+            patch("builtins.__import__", side_effect=import_mock),
+            pytest.raises(RuntimeError, match="Gradio is not installed"),
+        ):
             attach_to_gradio_interface(graph_provider)
 
 
@@ -373,13 +375,9 @@ class TestIntegrationEdgeCases:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
         mock_graph.assets = {f"asset_{i}": MagicMock() for i in range(1000)}
 
-        with patch(
-            "src.reports.integration.SchemaReportGenerator"
-        ) as mock_generator_class:
+        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
             mock_generator = MagicMock()
-            mock_generator.generate.return_value = "# Large Report\n\n" + (
-                "Content\n" * 1000
-            )
+            mock_generator.generate.return_value = "# Large Report\n\n" + ("Content\n" * 1000)
             mock_generator_class.return_value = mock_generator
 
             result = generate_markdown_report(mock_graph)
@@ -401,10 +399,6 @@ class TestIntegrationEdgeCases:
             assert "€$¥£" in result
 
     @staticmethod
-    """
-    Unit tests for the reports integration module, focusing on the Gradio report function behavior.
-    """
-
     def test_make_gradio_report_fn_calls_provider_each_time() -> None:
         """Test that Gradio report function calls provider each time."""
         call_count = 0
