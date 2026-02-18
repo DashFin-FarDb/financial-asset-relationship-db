@@ -528,7 +528,7 @@ class TestFormulaSummaryFormatting:
 
     @staticmethod
     def test_format_formula_summary_with_complete_data():
-        """Test formatting formula summary with all fields present."""
+        """Test formatting formula summary with all fields present (string pairs)."""
         summary = {
             "formula_categories": {
                 "Financial Ratios": 5,
@@ -564,7 +564,45 @@ class TestFormulaSummaryFormatting:
         assert "Financial Ratios: 5 formulas" in text
         assert "Valuation Models: 3 formulas" in text
         assert "Strong correlation between tech stocks" in text
+        # Fallback path: pair is a plain string
         assert "AAPL-GOOGL: 0.950" in text
+
+    @staticmethod
+    def test_format_formula_summary_with_tuple_pairs():
+        """Test formatting summary when correlation pairs are tuples."""
+        summary = {
+            "formula_categories": {
+                "Financial Ratios": 5,
+            },
+            "key_insights": [
+                "Strong correlation between tech stocks",
+            ],
+        }
+        analysis_results = {
+            "empirical_relationships": {
+                "strongest_correlations": [
+                    {
+                        "pair": ("AAPL", "GOOGL"),
+                        "correlation": 0.95,
+                        "strength": "Very Strong",
+                    },
+                    {
+                        "pair": ("MSFT", "AMZN"),
+                        "correlation": 0.88,
+                        "strength": "Strong",
+                    },
+                ]
+            }
+        }
+
+        text = FinancialAssetApp._format_formula_summary(
+            summary,
+            analysis_results,
+        )
+
+        # This asserts the tuple-branch behaviour (e.g. using the ↔ separator)
+        assert "AAPL ↔ GOOGL: 0.950" in text
+        assert "MSFT ↔ AMZN: 0.880" in text
 
     @staticmethod
     def test_format_formula_summary_with_missing_fields():
