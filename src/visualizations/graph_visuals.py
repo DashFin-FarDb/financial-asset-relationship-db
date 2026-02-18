@@ -130,63 +130,63 @@ def _build_relationship_index(
                 rel.bidirectional,
             )
     return index
-      graph.relationships
+    graph.relationships
     - The lock is reentrant, allowing the same thread to acquire it multiple
-      times safely
+    times safely
     - Creates a snapshot of relationships within the lock to minimize lock hold
-      time
+    time
 
-    Thread safety guarantees (with conditions):
+    Thread safety guarantees(with conditions):
     ✓ SAFE: Multiple threads calling visualization functions in this module
-      concurrently
+    concurrently
     ✓ SAFE: Concurrent calls to this function with the same graph object
     ⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe
-      if:
-      - All code that modifies graph.relationships uses the same
+    if:
+        - All code that modifies graph.relationships uses the same
         _graph_access_lock, OR
-      - The graph object is treated as immutable after creation (recommended
-        approach)
+        - The graph object is treated as immutable after creation(recommended
+                                                                  approach)
 
     Recommended usage patterns for thread safety:
     1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
-       completely before passing it to visualization functions. This eliminates the
-       need for locking.
+    completely before passing it to visualization functions. This eliminates the
+    need for locking.
     2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure all
-       modification code acquires _graph_access_lock before accessing
-       graph.relationships. This requires coordination across your entire codebase.
+    modification code acquires _graph_access_lock before accessing
+    graph.relationships. This requires coordination across your entire codebase.
 
     Note: The AssetRelationshipGraph class itself does not implement any locking
     mechanisms. Thread safety for modifications must be managed by the calling
     code. If other parts of your application modify graph.relationships without
     using _graph_access_lock, race conditions may occur.
 
-    Error Handling (addresses review feedback):
-    ===========================================
+    Error Handling(addresses review feedback):
+    == == == == == == == == == == == == == == == == == == == == == =
     This function implements comprehensive error handling to ensure robustness:
     - Validates that graph is an AssetRelationshipGraph instance
     - Validates that graph.relationships exists and is a properly formatted
-      dictionary
+    dictionary
     - Validates that asset_ids is iterable and contains only strings
-    - Validates each relationship tuple has the correct structure (3 elements)
-    - Validates data types for target_id (string), rel_type (string), and
-      strength (numeric)
+    - Validates each relationship tuple has the correct structure(3 elements)
+    - Validates data types for target_id(string), rel_type(string), and
+    strength(numeric)
     - Provides detailed error messages indicating the exact location and nature
-      of any issues
+    of any issues
 
     Args:
         graph: The asset relationship graph
-        asset_ids: Iterable of asset IDs to include (will be converted to a set
-            for O(1) membership tests)
+        asset_ids: Iterable of asset IDs to include(will be converted to a set
+                                                    for O(1) membership tests)
 
     Returns:
-        Dictionary mapping (source_id, target_id, rel_type) to strength for all
+        Dictionary mapping(source_id, target_id, rel_type) to strength for all
         relationships
 
     Raises:
         TypeError: If graph is not an AssetRelationshipGraph instance, or if data
-            types are invalid
+        types are invalid
         ValueError: If graph.relationships has invalid structure or malformed
-            data
+        data
     """
     # Validate graph input
     if not isinstance(graph, AssetRelationshipGraph):
@@ -305,20 +305,20 @@ def _create_node_trace(
     """Create node trace for 3D visualization with comprehensive input validation.
 
     Validates all inputs to ensure:
-    - positions is a non-empty 2D numpy array with
-      shape(n, 3) containing finite numeric values
-    - asset_ids is a non-empty list or tuple of
-      non-empty strings with length matching positions
-    - colors is a non-empty list or tuple of valid color strings with
-      length matching positions
-    - hover_texts is a non-empty list or tuple of strings with
-      length matching positions
+    - positions is a non - empty 2D numpy array with
+    shape(n, 3) containing finite numeric values
+    - asset_ids is a non - empty list or tuple of
+    non - empty strings with length matching positions
+    - colors is a non - empty list or tuple of valid color strings with
+    length matching positions
+    - hover_texts is a non - empty list or tuple of strings with
+    length matching positions
 
     Args:
         positions: NumPy array of node positions with shape(n, 3)
-            containing finite numeric values
-        asset_ids: List of asset ID strings (must be non-empty strings,
-            length must match positions)
+        containing finite numeric values
+        asset_ids: List of asset ID strings(must be non - empty strings,
+                                            length must match positions)
         colors: List of node colors(length must match positions)
         hover_texts: List of hover texts(length must match positions)
 
@@ -327,7 +327,7 @@ def _create_node_trace(
 
     Raises:
         ValueError: If input parameters are invalid,
-            have mismatched dimensions, or contain invalid data
+        have mismatched dimensions, or contain invalid data
     """
     # Input validation: Perform basic type checks before delegating to comprehensive validator
     # This provides early failure with clear error messages for common mistakes
@@ -454,13 +454,13 @@ def _prepare_layout_config(
     Args:
         num_assets: Number of assets in the visualization
         relationship_traces: List of relationship traces to count visible
-            relationships
-        base_title: Base title text (default: "Financial Asset Network")
+        relationships
+        base_title: Base title text(default: "Financial Asset Network")
         layout_options: Optional layout customization options
 
     Returns:
-        Tuple of (dynamic_title, layout_options) ready for use with
-            _configure_3d_layout
+        Tuple of(dynamic_title, layout_options) ready for use with
+        _configure_3d_layout
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
     dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
@@ -745,7 +745,7 @@ def _collect_and_group_relationships(
     asset_ids: Iterable[str],
     relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> Dict[Tuple[str, bool], List[dict]]:
-    """Collect and group relationships with directionality info in a single pass."""
+    """Collect and group relationships with directionality info in a single pass ."""
     relationship_index = _build_relationship_index(graph, asset_ids)
 
     processed_pairs: Set[Tuple[str, str, str]] = set()
@@ -817,7 +817,7 @@ def _build_edge_coordinates_optimized(
 def _build_hover_texts(
     relationships: List[dict], rel_type: str, is_bidirectional: bool
 ) -> List[Optional[str]]:
-    """Build hover text list for relationships with pre-allocation for performance."""
+    """Build hover text list for relationships with pre - allocation for performance."""
     direction_text = "↔" if is_bidirectional else "→"
 
     num_rels = len(relationships)
@@ -1055,21 +1055,21 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 
     Args:
         filter_params: Dictionary mapping filter parameter names to
-            their boolean values.
-            Expected keys:
-                show_same_sector,
-                show_market_cap,
-                show_correlation,
-                show_corporate_bond,
-                show_commodity_currency,
-                show_income_comparison,
-                show_regulatory,
-                show_all_relationships,
-                toggle_arrows
+        their boolean values.
+        Expected keys:
+            show_same_sector,
+            show_market_cap,
+            show_correlation,
+            show_corporate_bond,
+            show_commodity_currency,
+            show_income_comparison,
+            show_regulatory,
+            show_all_relationships,
+            toggle_arrows
 
     Raises:
         TypeError: If any parameter is not a boolean or if filter_params is not
-            a dictionary
+        a dictionary
     """
     if not isinstance(filter_params, dict):
         raise TypeError(
@@ -1095,12 +1095,12 @@ def _validate_relationship_filters(
 
     Args:
         relationship_filters: Optional dictionary mapping
-            relationship types to boolean visibility flags
+        relationship types to boolean visibility flags
 
     Raises:
         TypeError: If relationship_filters is not None and not a dictionary
-        ValueError: If relationship_filters contains invalid keys or non-boolean
-            values
+        ValueError: If relationship_filters contains invalid keys or non - boolean
+        values
     """
     if relationship_filters is None:
         return
@@ -1132,15 +1132,15 @@ def visualize_3d_graph_with_filters(
 
     Args:
         graph: Asset relationship graph to visualize
-        show_same_sector: Show same sector relationships (default: True)
-        show_market_cap: Show market cap relationships (default: True)
-        show_correlation: Show correlation relationships (default: True)
-        show_corporate_bond: Show corporate bond relationships (default: True)
-        show_commodity_currency: Show commodity currency relationships (default: True)
-        show_income_comparison: Show income comparison relationships (default: True)
-        show_regulatory: Show regulatory relationships (default: True)
-        show_all_relationships: Override and show all relationships (default: True)
-        toggle_arrows: Toggle directional arrows on edges (default: True)
+        show_same_sector: Show same sector relationships(default: True)
+        show_market_cap: Show market cap relationships(default: True)
+        show_correlation: Show correlation relationships(default: True)
+        show_corporate_bond: Show corporate bond relationships(default: True)
+        show_commodity_currency: Show commodity currency relationships(default: True)
+        show_income_comparison: Show income comparison relationships(default: True)
+        show_regulatory: Show regulatory relationships(default: True)
+        show_all_relationships: Override and show all relationships(default: True)
+        toggle_arrows: Toggle directional arrows on edges(default: True)
     """
     # Aggregate the filter settings
     relationship_filters = {
