@@ -7,22 +7,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 
 def _as_int(value: Any, default: int = 0) -> int:
-    """
-    Convert a value to an integer using best-effort coercion for count-like metrics.
-
-    Parameters:
-        value (Any): Value to convert; if `None` the `default` is returned.
-        default (int): Fallback integer returned when conversion is not possible.
-
-    Returns:
-        int: The converted integer, or `default` if conversion fails.
-    """
-    try:
-        if value is None:
-            return default
-        return int(value)
-    except (TypeError, ValueError):
-        return default
+    
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
