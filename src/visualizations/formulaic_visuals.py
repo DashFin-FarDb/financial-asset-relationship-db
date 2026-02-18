@@ -155,6 +155,15 @@ class FormulaicVisualizer:
             return
 
         if isinstance(correlation_matrix, dict):
+            # Support flat "A-B": value mappings by normalising to nested dicts
+            if correlation_matrix and not isinstance(next(iter(correlation_matrix.values())), dict):
+                nested: dict[str, dict[str, float]] = {}
+                for key, value in correlation_matrix.items():
+                    if isinstance(key, str) and "-" in key:
+                        a1, a2 = key.split("-", 1)
+                        nested.setdefault(a1, {})[a2] = float(value)
+                        nested.setdefault(a2, {})[a1] = float(value)
+                correlation_matrix = nested
             assets = sorted(correlation_matrix.keys())
             z = [
                 [correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets]
