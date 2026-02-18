@@ -355,9 +355,7 @@ class TestUpdateAssetInfo:
         assert asset_dict["symbol"] == "TEST"
         assert asset_dict["asset_class"] == AssetClass.EQUITY.value
         assert "TEST_002" in relationships["outgoing"]
-        assert (
-            relationships["outgoing"]["TEST_002"]["relationship_type"] == "SAME_SECTOR"
-        )
+        assert relationships["outgoing"]["TEST_002"]["relationship_type"] == "SAME_SECTOR"
         assert relationships["outgoing"]["TEST_002"]["strength"] == pytest.approx(0.8)
 
     @staticmethod
@@ -416,9 +414,7 @@ class TestUpdateAssetInfo:
             mock_graph,
         )
         assert "TEST_003" in relationships["incoming"]
-        assert (
-            relationships["incoming"]["TEST_003"]["relationship_type"] == "CORRELATION"
-        )
+        assert relationships["incoming"]["TEST_003"]["relationship_type"] == "CORRELATION"
 
 
 @pytest.mark.unit
@@ -657,10 +653,7 @@ class TestEdgeCases:
         with pytest.raises(Exception, match="Database error"):
             FinancialAssetApp()
 
-        assert (
-            "Failed to create sample database" in caplog.text
-            or "Database error" in caplog.text
-        )
+        assert "Failed to create sample database" in caplog.text or "Database error" in caplog.text
 
     @staticmethod
     @patch("app.real_data_fetcher")

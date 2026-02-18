@@ -44,9 +44,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph = AssetRelationshipGraph()
 
     try:
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
     except Exception as e:
         pytest.fail(f"Failed to get visualization data: {e}")
 
@@ -62,9 +60,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert positions.shape == (2, 3)
         assert len(set(asset_ids)) == 2
@@ -124,10 +120,7 @@ class TestGet3DVisualizationDataEnhanced:
 
         _, asset_ids, _, hover_texts = graph.get_3d_visualization_data_enhanced()
 
-        assert all(
-            hover_text == f"Asset: {asset_id}"
-            for asset_id, hover_text in zip(asset_ids, hover_texts)
-        )
+        assert all(hover_text == f"Asset: {asset_id}" for asset_id, hover_text in zip(asset_ids, hover_texts))
 
     @staticmethod
     def test_asset_ids_are_sorted():
@@ -189,9 +182,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert isinstance(positions, np.ndarray)
         assert isinstance(asset_ids, list)
@@ -208,9 +199,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
         graph.relationships["asset2"] = [("asset3", "correlation", 0.7)]
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         n = len(asset_ids)
         assert positions.shape[0] == n
@@ -225,9 +214,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
         graph.relationships["mango"] = [("banana", "correlation", 0.7)]
 
-        _positions, asset_ids, _colors, _hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        _positions, asset_ids, _colors, _hover_texts = graph.get_3d_visualization_data_enhanced()
 
         # Verify they are returned as a sorted list of all unique assets
         expected_asset_ids = ["apple", "banana", "mango", "zebra"]
