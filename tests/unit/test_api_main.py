@@ -147,9 +147,7 @@ class TestGraphInitialization:
         graph2 = api_main.get_graph()
         assert graph1 is graph2
 
-    def test_graph_uses_cache_when_configured(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
@@ -166,9 +164,7 @@ class TestGraphInitialization:
         api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
-    def test_graph_fallback_on_corrupted_cache(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_fallback_on_corrupted_cache(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should fallback when cache is corrupted or invalid."""
         cache_path = tmp_path / "graph_snapshot.json"
         cache_path.write_text("not valid json", encoding="utf-8")
@@ -351,11 +347,11 @@ class TestAPIEndpoints:
         assert data["total_relationships"] > 0
         assert data["avg_degree"] > 0
         assert data["max_degree"] >= data["avg_degree"]
-        assert 0 <= data["network_density"] <= 100
+        assert 0.0 <= data["relationship_density"] <= 1.0
 
         # If the API includes relationship_density separately, validate its bounds too.
         if "relationship_density" in data:
-            assert 0 <= data["relationship_density"] <= 100
+            assert 0.0 <= data["network_density"] <= 1.0
 
     def test_get_metrics_no_assets(self, client: TestClient) -> None:
         """Metrics endpoint returns zeros for an empty graph."""
@@ -392,9 +388,7 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(
-        self, client: TestClient
-    ) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
         """Metrics endpoint handles multi-node graphs with no relationships."""
         graph = AssetRelationshipGraph()
         graph.add_asset(
