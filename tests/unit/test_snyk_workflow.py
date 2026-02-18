@@ -26,7 +26,7 @@ def snyk_workflow_path():
     Returns:
         Path: Path object for ".github/workflows/snyk-infrastructure.yml".
     """
-    return _WORKFLOW_PATH
+    return WORKFLOW_PATH
 
 
 @pytest.fixture
