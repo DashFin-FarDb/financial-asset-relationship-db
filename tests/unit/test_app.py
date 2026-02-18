@@ -461,7 +461,7 @@ class TestRefreshVisualization:
         mock_viz_3d_filtered.return_value = mock_fig
 
         app = FinancialAssetApp()
-        result_fig, error_update = app.refresh_visualization(
+        result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="3D",
             layout_type="spring",
