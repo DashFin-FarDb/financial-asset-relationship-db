@@ -24,7 +24,9 @@ class TestSchemaReportRouter:
     def test_get_graph_returns_asset_relationship_graph() -> None:
         """Test that get_graph returns an AssetRelationshipGraph instance."""
         # Mock the initialize method by adding it temporarily
-        with patch.object(AssetRelationshipGraph, "initialize_assets_from_source", create=True):
+        with patch.object(
+            AssetRelationshipGraph, "initialize_assets_from_source", create=True
+        ):
             graph = get_graph()
             assert isinstance(graph, AssetRelationshipGraph)
 
@@ -32,7 +34,9 @@ class TestSchemaReportRouter:
     def test_get_graph_calls_initialize() -> None:
         """Test that get_graph calls initialize_assets_from_source."""
         # Mock the initialize method by adding it temporarily
-        with patch.object(AssetRelationshipGraph, "initialize_assets_from_source", create=True) as mock_init:
+        with patch.object(
+            AssetRelationshipGraph, "initialize_assets_from_source", create=True
+        ) as mock_init:
             get_graph()
             mock_init.assert_called_once()
 
@@ -56,7 +60,9 @@ class TestSchemaReportEndpoint:
         """Test that the schema report endpoint returns markdown by default."""
         with (
             patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
-            patch("src.api.routers.schema_report.generate_markdown_report") as mock_gen_md,
+            patch(
+                "src.api.routers.schema_report.generate_markdown_report"
+            ) as mock_gen_md,
         ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
@@ -73,7 +79,9 @@ class TestSchemaReportEndpoint:
         """Test schema report endpoint with explicit md format."""
         with (
             patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
-            patch("src.api.routers.schema_report.generate_markdown_report") as mock_gen_md,
+            patch(
+                "src.api.routers.schema_report.generate_markdown_report"
+            ) as mock_gen_md,
         ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
@@ -90,7 +98,9 @@ class TestSchemaReportEndpoint:
         """Test schema report endpoint with html format."""
         with (
             patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
-            patch("src.api.routers.schema_report.generate_html_report") as mock_gen_html,
+            patch(
+                "src.api.routers.schema_report.generate_html_report"
+            ) as mock_gen_html,
         ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
@@ -206,7 +216,9 @@ class TestSchemaReportEdgeCases:
         """Test schema report generation with an empty graph."""
         with (
             patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
-            patch("src.api.routers.schema_report.generate_markdown_report") as mock_gen_md,
+            patch(
+                "src.api.routers.schema_report.generate_markdown_report"
+            ) as mock_gen_md,
         ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
