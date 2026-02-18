@@ -19,7 +19,9 @@ def _as_int(value: Any, default: int = 0) -> int:
     """
     if value is None:
         return default
-    return int(value)  # Propagate TypeError/ValueError per project error-handling policy.
+    return int(
+        value
+    )  # Propagate TypeError/ValueError per project error-handling policy.
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
@@ -189,12 +191,18 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            ("- **Sector Affinity**: Assets in the same sector are " "linked with strength 0.7 (bidirectional)"),
+            (
+                "- **Sector Affinity**: Assets in the same sector are "
+                "linked with strength 0.7 (bidirectional)"
+            ),
             (
                 "- **Corporate Bond Linkage**: A bond whose issuer_id matches another "
                 "asset creates a directional link (strength 0.9)"
             ),
-            ("- **Currency Exposure**: Currency assets reflect FX and " "central-bank policy links"),
+            (
+                "- **Currency Exposure**: Currency assets reflect FX and "
+                "central-bank policy links"
+            ),
         ]
     )
 
