@@ -172,9 +172,9 @@ class TestWorkflowPermissionsHardening:
                 ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
-            unexpected_write = {k for k, v in permissions.items() if v == "write"} - allowed_write_perms
-            assert (
-                not unexpected_write
+            if isinstance(permissions, dict):
+                unexpected_write = {k for k, v in permissions.items() if v == "write"} - allowed_write_perms
+                assert not unexpected_write, f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
             ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
 
     @staticmethod
