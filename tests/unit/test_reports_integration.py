@@ -188,7 +188,6 @@ class TestGradioIntegration:
             mock_gen_html.assert_called_once_with(mock_graph)
 
     @staticmethod
-    """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
     def test_attach_to_gradio_interface_markdown() -> None:
         """Test attaching markdown report to Gradio interface."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
@@ -239,7 +238,16 @@ class TestGradioIntegration:
             """Provide a mock AssetRelationshipGraph instance for testing when Gradio is missing."""
             return mock_graph
 
-        with patch("builtins.__import__", side_effect=ImportError("No module gradio")), pytest.raises(RuntimeError, match="Gradio is not installed"):
+        def import_mock(name, *args, **kwargs):
+            """Mock __import__ to raise ImportError only for gradio."""
+            if name == "gradio":
+                raise ImportError("No module named 'gradio'")
+            return __import__(name, *args, **kwargs)
+
+        with (
+            patch("builtins.__import__", side_effect=import_mock),
+            pytest.raises(RuntimeError, match="Gradio is not installed"),
+        ):
             attach_to_gradio_interface(graph_provider)
 
 
@@ -401,10 +409,6 @@ class TestIntegrationEdgeCases:
             assert "€$¥£" in result
 
     @staticmethod
-    """
-    Unit tests for the reports integration module, focusing on the Gradio report function behavior.
-    """
-
     def test_make_gradio_report_fn_calls_provider_each_time() -> None:
         """Test that Gradio report function calls provider each time."""
         call_count = 0
