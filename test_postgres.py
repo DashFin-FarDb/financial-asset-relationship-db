@@ -99,13 +99,21 @@ def test_postgres_connection_smoke() -> None:
         pytest.skip("Database URL is SQLite; Postgres connectivity test not applicable")
 
     try:
-        with connect(database_url) as conn, conn.cursor() as cur:
-            cur.execute("SELECT current_database(), current_user, version();")
-            row = cur.fetchone()
+        conn = connect(database_url)
     except Exception as exc:  # noqa: BLE001
         pytest.fail(
             f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}"
         )
+
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute("SELECT current_database(), current_user, version();")
+            row = cur.fetchone()
+    except Exception as exc:  # noqa: BLE001
+        conn.close()
+        pytest.fail(f"Query failed after connecting to Postgres: {exc}")
+    else:
+        conn.close()
 
     assert row is not None  # nosec B101
     assert len(row) == 3  # nosec B101
