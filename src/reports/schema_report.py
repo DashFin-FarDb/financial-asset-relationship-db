@@ -19,7 +19,9 @@ def _as_int(value: Any, default: int = 0) -> int:
     """
     if value is None:
         return default
-    return int(value)  # Propagate TypeError/ValueError per project error-handling policy.
+    return int(
+        value
+    )  # Propagate TypeError/ValueError per project error-handling policy.
 
 
 def _as_float(value: Any, default: float = 0.0) -> float:
