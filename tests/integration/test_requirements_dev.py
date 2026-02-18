@@ -308,7 +308,7 @@ def test_type_stubs_have_base_packages(
     for pkg, _ in parsed_requirements:
         norm = _normalize_name_for_dupe_check(pkg)
         if norm.startswith("types_"):
-            base = norm.removeprefix("types_")
+            base = norm[len("types_") :]
             assert base in lowered, (
                 f"Type stub package '{pkg}' has no corresponding base package"
             )
