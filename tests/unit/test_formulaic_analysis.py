@@ -1224,25 +1224,25 @@ class TestIntegrationScenarios:
 
 
 @staticmethod
-def test_sector_correlation_analysis():
-    """Test correlation analysis for same-sector assets."""
-    graph = AssetRelationshipGraph()
+ def test_sector_correlation_analysis():
+     """Test correlation analysis for same-sector assets."""
+     graph = AssetRelationshipGraph()
 
-    # Add multiple tech stocks
-    for i, (symbol, name) in enumerate(
-        [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
-    ):
-        equity = Equity(
-            id=symbol,
-            symbol=symbol,
-            name=name,
-            asset_class=AssetClass.EQUITY,
-            sector="Technology",
-            price=100.0 + i * 50,
-        )
-        graph.add_asset(equity)
+     # Add multiple tech stocks
+     for i, (symbol, name) in enumerate(
+         [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
+     ):
+         equity = Equity(
+             id=symbol,
+             symbol=symbol,
+             name=name,
+             asset_class=AssetClass.EQUITY,
+             sector="Technology",
+             price=100.0 + i * 50,
+         )
+         graph.add_asset(equity)
 
-    graph.build_relationships()
+     graph.build_relationships()
 
     analyzer = FormulaicAnalyzer()
     result = analyzer.analyze_graph(graph)

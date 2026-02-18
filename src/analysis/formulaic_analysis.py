@@ -796,7 +796,7 @@ class FormulaicAnalyzer:
 
         Returns:
             str: A semicolon - separated string with up to two examples like
-                "SYMBOL: YTM ≈ 3.45%", or "Example: YTM ≈ 3.0%"
+                'SYMBOL: YTM ≈ 3.45%', or 'Example: YTM ≈ 3.0%'
                 when no valid YTMs are available.
         """
         from src.models.financial_models import AssetClass
@@ -822,7 +822,7 @@ class FormulaicAnalyzer:
 
         Scans the graph's assets for items classified as EQUITY that have a non - null
         market_cap, formats up to two examples in billions
-        (e.g., "SYM: Market Cap = $1.5B"),
+        (e.g., 'SYM: Market Cap = $1.5B'),
         and returns a semicolon - separated string.
         If no valid equity market - cap values are found, returns the
         default example string.

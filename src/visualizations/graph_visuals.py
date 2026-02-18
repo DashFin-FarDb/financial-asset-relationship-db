@@ -65,6 +65,25 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
 
 
+def _compute_relationship_weight(rel_type, weight):
+    type_multipliers = {
+        "transfer": 0.5,
+        "inherit": 1.0,
+        "dependency": 2.0,
+    }
+    multiplier = type_multipliers.get(rel_type)
+    if multiplier is None:
+        return None
+    return weight * multiplier
+
+
+def _add_relationship(index, src, dst, rel_type, weight, bidirectional):
+    key = (src, dst, rel_type)
+    index[key] = weight
+    if bidirectional:
+        index[(dst, src, rel_type)] = weight
+
+
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
@@ -91,6 +110,26 @@ def _build_relationship_index(
 
     Implementation:
     - Uses threading.RLock (_graph_access_lock) to synchronize access to
+    graph.relationships
+    """
+    index: Dict[Tuple[str, str, str], float] = {}
+    valid_ids = set(asset_ids)
+    with _graph_access_lock:
+        for rel in graph.relationships:
+            if rel.source_id not in valid_ids or rel.target_id not in valid_ids:
+                continue
+            weight = _compute_relationship_weight(rel.type, rel.weight)
+            if weight is None:
+                continue
+            _add_relationship(
+                index,
+                rel.source_id,
+                rel.target_id,
+                rel.type,
+                weight,
+                rel.bidirectional,
+            )
+    return index
       graph.relationships
     - The lock is reentrant, allowing the same thread to acquire it multiple
       times safely
@@ -870,6 +909,8 @@ def _create_relationship_traces(
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
         raise ValueError(
             "Invalid input data: graph must have a relationships dictionary"
+"""Module for creating and validating directional arrows in asset relationship graphs."""
+
         )
     if not isinstance(positions, np.ndarray):
         raise ValueError("Invalid input data: positions must be a numpy array")
@@ -900,6 +941,10 @@ def _validate_directional_arrows_inputs(
     positions: np.ndarray,
     asset_ids: List[str],
 ) -> None:
+    """
+    Validates that the provided graph, positions, and asset_ids inputs are of the correct type
+    and have matching lengths. Raises TypeError or ValueError for invalid inputs.
+    """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
@@ -1066,31 +1111,6 @@ def _validate_relationship_filters(
             f"relationship_filters must be a dictionary or None, "
             f"got {type(relationship_filters).__name__}"
         )
-
-    # Validate all values are boolean
-    invalid_values = [
-        key
-        for key, value in relationship_filters.items()
-        if not isinstance(value, bool)
-    ]
-    if invalid_values:
-        raise ValueError(
-            f"Invalid filter configuration: "
-            f"relationship_filters must contain only boolean "
-            f"values. Invalid keys: {', '.join(invalid_values)}"
-        )
-
-    # Validate keys are strings
-    invalid_keys = [
-        key for key in relationship_filters.keys() if not isinstance(key, str)
-    ]
-    if invalid_keys:
-        raise ValueError(
-            f"Invalid filter configuration: relationship_filters keys must be strings. "
-            f"Invalid keys: {invalid_keys}"
-        )
-
-
 def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
     show_same_sector: bool = True,
@@ -1116,7 +1136,66 @@ def visualize_3d_graph_with_filters(
         show_market_cap: Show market cap relationships (default: True)
         show_correlation: Show correlation relationships (default: True)
         show_corporate_bond: Show corporate bond relationships (default: True)
-        show_commodity_currency: Show commodity currency relationships
+        show_commodity_currency: Show commodity currency relationships (default: True)
+        show_income_comparison: Show income comparison relationships (default: True)
+        show_regulatory: Show regulatory relationships (default: True)
+        show_all_relationships: Override and show all relationships (default: True)
+        toggle_arrows: Toggle directional arrows on edges (default: True)
+    """
+    # Aggregate the filter settings
+    relationship_filters = {
+        'same_sector': show_same_sector,
+        'market_cap': show_market_cap,
+        'correlation': show_correlation,
+        'corporate_bond': show_corporate_bond,
+        'commodity_currency': show_commodity_currency,
+        'income_comparison': show_income_comparison,
+        'regulatory': show_regulatory,
+    }
+
+    # If show_all_relationships is enabled, turn on all filters
+    if show_all_relationships:
+        for key in relationship_filters:
+            relationship_filters[key] = True
+
+    # Validate filter keys and values
+    invalid_values = [
+        key for key, value in relationship_filters.items() if not isinstance(value, bool)
+    ]
+    if invalid_values:
+        raise ValueError(
+            f"Invalid filter configuration: "
+            f"relationship_filters must contain only boolean "
+            f"values. Invalid keys: {', '.join(invalid_values)}"
+        )
+
+    invalid_keys = [key for key in relationship_filters.keys() if not isinstance(key, str)]
+    if invalid_keys:
+        raise ValueError(
+            f"Invalid filter configuration: relationship_filters keys must be strings. "
+            f"Invalid keys: {invalid_keys}"
+        )
+
+    # Initialize the figure
+    fig = go.Figure()
+
+    # Mapping of filter names to their corresponding trace builder methods
+    trace_builders = {
+        'same_sector': graph.get_same_sector_edge_trace,
+        'market_cap': graph.get_market_cap_edge_trace,
+        'correlation': graph.get_correlation_edge_trace,
+        'corporate_bond': graph.get_corporate_bond_edge_trace,
+        'commodity_currency': graph.get_commodity_currency_edge_trace,
+        'income_comparison': graph.get_income_comparison_edge_trace,
+        'regulatory': graph.get_regulatory_edge_trace,
+    }
+
+    # Add traces for each enabled relationship type
+    for name, builder in trace_builders.items():
+        if relationship_filters.get(name):
+            fig.add_trace(builder(toggle_arrows=toggle_arrows))
+
+    return fig
             (default: True)
         show_income_comparison: Show income comparison relationships
             (default: True)
