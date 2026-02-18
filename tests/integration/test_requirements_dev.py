@@ -100,17 +100,6 @@ def _normalize_name_for_dupe_check(name: str) -> str:
 
 
 @pytest.fixture()
-def parsed_requirements() -> list[tuple[str, str]]:
-    """Parse requirements-dev.txt and return (package_token, normalized_specifier) pairs.
-
-    This fixture centralizes file parsing so multiple tests can share a single,
-    consistent interpretation of the requirements file (including comment stripping
-    and specifier normalization).
-    """
-    return parse_requirements(REQUIREMENTS_FILE)
-
-
-@pytest.fixture()
 def package_names(parsed_requirements: list[tuple[str, str]]) -> list[str]:
     """Return just the package tokens extracted from the parsed requirements.
 
