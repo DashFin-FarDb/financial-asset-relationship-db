@@ -235,20 +235,20 @@ class TestSampleRelationships:
         bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
         if len(bonds) > 0:
             # Look for corporate_link relationships (as produced by the graph)
-        bond_rel_found = False
-        for _source_id, rels in graph.relationships.items():
-            for _target_id, rel_type, _strength in rels:
-                if rel_type == "corporate_link":
-                    bond_rel_found = True
+            bond_rel_found = False
+            for _source_id, rels in graph.relationships.items():
+                for _target_id, rel_type, _strength in rels:
+                    if rel_type == "corporate_link":
+                        bond_rel_found = True
+                        break
+                if bond_rel_found:
                     break
-            if bond_rel_found:
-                break
 
-        # Bonds may not always be in sample data, so this is optional
-        # Just verify the structure is there if bonds exist
-        bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
-        if len(bonds) > 0:
-            assert bond_rel_found, "If bonds exist, corporate_link relationships should be present"
+            # Bonds may not always be in sample data, so this is optional
+            # Just verify the structure is there if bonds exist
+            bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
+            if len(bonds) > 0:
+                assert bond_rel_found, "If bonds exist, corporate_link relationships should be present"
 
 
 @pytest.mark.unit

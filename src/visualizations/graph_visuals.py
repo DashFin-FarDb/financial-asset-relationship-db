@@ -35,6 +35,11 @@ def _is_valid_color_format(color: str) -> bool:
     Args:
         color: Color string to validate
 
+"""
+This module provides utility functions to build and manage asset relationship graphs,
+compute relationship weights, and build efficient lookup indices for visualizations.
+"""
+
     Returns:
         True if color format is valid, False otherwise
     """
@@ -61,6 +66,17 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
 
 
 def _compute_relationship_weight(rel_type, weight):
+    """
+    Compute the weighted strength of an asset relationship.
+
+    Args:
+        rel_type (str): The type of relationship (e.g., 'transfer', 'inherit', 'dependency').
+        weight (float): The base weight of the relationship.
+
+    Returns:
+        float: The computed relationship weight after applying the type multiplier,
+               or None if rel_type is not recognized.
+    """
     type_multipliers = {
         "transfer": 0.5,
         "inherit": 1.0,
@@ -72,11 +88,41 @@ def _compute_relationship_weight(rel_type, weight):
     return weight * multiplier
 
 
+
 def _add_relationship(index, src, dst, rel_type, weight, bidirectional):
+    """
+    Add a relationship to the index mapping, optionally bidirectional.
+
+    Args:
+        index (dict): The index mapping relationship keys to weights.
+        src (str): Source asset ID.
+        dst (str): Target asset ID.
+        rel_type (str): Type of the relationship.
+        weight (float): Weight or strength of the relationship.
+        bidirectional (bool): If True, add the reverse relationship as well.
+
+    Returns:
+        None
+    """
     key = (src, dst, rel_type)
     index[key] = weight
     if bidirectional:
         index[(dst, src, rel_type)] = weight
+
+
+def _validate_graph_input(graph):
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError(
+            f"Invalid input: graph must be an AssetRelationshipGraph instance, "
+            f"got {type(graph).__name__}"
+        )
+    if not hasattr(graph, "relationships"):
+        raise ValueError("Invalid graph: missing 'relationships' attribute")
+    if not isinstance(graph.relationships, dict):
+        raise TypeError(
+            "Invalid graph data: graph.relationships must be a dictionary, "
+            f"got {type(graph.relationships).__name__}"
+        )
 
 
 def _build_relationship_index(
@@ -93,18 +139,7 @@ def _build_relationship_index(
           graph.relationships, then builds the index outside the lock.
     """
     # Validate graph input
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(
-            f"Invalid input: graph must be an AssetRelationshipGraph instance, "
-            f"got {type(graph).__name__}"
-        )
-
-    if not hasattr(graph, "relationships"):
-        raise ValueError("Invalid graph: missing 'relationships' attribute")
-
-    if not isinstance(graph.relationships, dict):
-        raise TypeError(
-            "Invalid graph data: graph.relationships must be a dictionary, "
+    _validate_graph_input(graph)
             f"got {type(graph.relationships).__name__}"
         )
 
