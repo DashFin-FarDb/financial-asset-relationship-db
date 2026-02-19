@@ -848,7 +848,6 @@ class FormulaicAnalyzer:
                 if len(examples) >= 2:
                     break
         return "; ".join(examples) if examples else "Example: Market Cap = $1.5B"
-
     @staticmethod
     def _calculate_beta_examples(graph: AssetRelationshipGraph) -> str:
         """Generate a string representing beta calculations."""
