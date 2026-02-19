@@ -48,32 +48,32 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
 
 
+
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
-    """Build optimized relationship index for O(1) lookups with pre - filtering and
+    """Build optimized relationship index for O(1) lookups with pre-filtering and
     thread safety.
 
     This function consolidates relationship data into a single index structure that
     can be efficiently queried for:
-    - Checking if a relationship exists(O(1) lookup)
-    - Getting relationship strength(O(1) lookup)
-    - Detecting bidirectional relationships(O(1) reverse lookup)
+    - Checking if a relationship exists (O(1) lookup)
+    - Getting relationship strength (O(1) lookup)
+    - Detecting bidirectional relationships (O(1) reverse lookup)
 
     Performance optimizations:
-    - Pre - filters graph.relationships to only include relevant source_ids
-    - Uses set - based membership tests for O(1) lookups
+    - Pre-filters graph.relationships to only include relevant source_ids
+    - Uses set-based membership tests for O(1) lookups
     - Avoids unnecessary iterations over irrelevant relationships
     - Reduces continue statements by filtering upfront
 
     Thread Safety:
     == == == == == == ==
-    This function uses a reentrant lock(RLock) to protect concurrent access to
+    This function uses a reentrant lock (RLock) to protect concurrent access to
     graph.relationships within this module. However, true thread safety requires
-"""
-    # Function implementation continues...
     coordination across the entire codebase.
     """
+    # Function implementation continues...
     with _graph_access_lock:
         asset_ids_set = set(asset_ids)
         index: Dict[Tuple[str, str, str], float] = {}
