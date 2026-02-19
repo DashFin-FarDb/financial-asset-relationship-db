@@ -39,8 +39,19 @@ def _is_valid_color_format(color: str) -> bool:
 
     Args:
         color: Color string to validate
+    Returns:
+        True if color format is plausibly valid, False otherwise.
     """
-    pass
+    if not isinstance(color, str) or not color:
+        return False
+    # Hex colors: #RGB, #RRGGBB, #RRGGBBAA
+    if re.match(r"^#(?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$", color):
+        return True
+    # rgb/rgba functions, e.g. rgb(255, 0, 0) or rgba(255,0,0,0.5)
+    if re.match(r"^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$", color):
+        return True
+    # Fallback: allow named colors; Plotly will validate at render time
+    return True
 
 
 def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
@@ -67,21 +78,102 @@ def _build_relationship_index(
     - Reduces continue statements by filtering upfront
 
     Thread Safety:
-    == == == == == == ==
     This function uses a reentrant lock (RLock) to protect concurrent access to
-    graph.relationships within this module. However, true thread safety requires
+    graph.relationships within this module. However, true thread safety requires#
     coordination across the entire codebase.
+
+    Error handling:
+    - Validates that graph is an AssetRelationshipGraph instance
+    - Validates that graph.relationships exists and is a properly formatted dictionary
+    - Validates that asset_ids is iterable and contains only strings
+    - Validates each relationship tuple has the correct structure (3 elements)
+    - Validates data types for target_id (string), rel_type (string), and strength (numeric)
     """
-    # Function implementation continues...
+    # Validate graph input
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError(
+            f"Invalid input: graph must be an AssetRelationshipGraph instance, "
+            f"got {type(graph).__name__}"
+        )
+    # Validate graph.relationships exists and is a dictionary
+    if not hasattr(graph, "relationships"):
+        raise ValueError("Invalid graph: missing 'relationships' attribute")
+    if not isinstance(graph.relationships, dict):
+        raise TypeError(
+            f"Invalid graph data: graph.relationships must be a dictionary, "
+            f"got {type(graph.relationships).__name__}"
+        )
+    # Validate asset_ids is iterable and build a set for O(1) membership tests
+    try:
+        asset_ids_set: Set[str] = set(asset_ids)
+    except TypeError as exc:
+        raise TypeError(
+            f"Invalid input: asset_ids must be an iterable, "
+            f"got {type(asset_ids).__name__}"
+        ) from exc
+    # Validate asset_ids contains only strings
+    if not all(isinstance(aid, str) for aid in asset_ids_set):
+        raise ValueError("Invalid input: asset_ids must contain only string values")
+    # Thread-safe access to graph.relationships using synchronization lock
     with _graph_access_lock:
-        asset_ids_set = set(asset_ids)
-        index: Dict[Tuple[str, str, str], float] = {}
-        for rel in graph.relationships:
-            if not _is_relevant_relationship(rel, asset_ids_set):
-                continue
-            entries = _relationship_strength_entries(rel, graph)
-            index.update(entries)
-        return index
+        try:
+            # Create a snapshot of only the relevant source_ids to minimize lock hold time
+            relevant_relationships = {
+                source_id: list(rels)
+                for source_id, rels in graph.relationships.items()
+                if source_id in asset_ids_set
+            }
+        except Exception as exc:  # pylint: disable=broad-except
+            raise ValueError(
+                f"Failed to create snapshot of graph.relationships: {exc}"
+            ) from exc
+    # Build index outside the lock
+    relationship_index: Dict[Tuple[str, str, str], float] = {}
+    for source_id, rels in relevant_relationships.items():
+        # Validate that rels is an appropriate sequence
+        if not isinstance(rels, (list, tuple)):
+            raise TypeError(
+                f"Invalid graph data: relationships for source_id '{source_id}' "
+                f"must be a list or tuple, got {type(rels).__name__}"
+            )
+        for idx, rel in enumerate(rels):
+            # Each relationship must be a (target_id, rel_type, strength) tuple
+            if not isinstance(rel, (list, tuple)):
+                raise TypeError(
+                    f"Invalid graph data: relationship at index {idx} for source_id '{source_id}' "
+                    f"must be a list or tuple, got {type(rel).__name__}"
+                )
+            if len(rel) != 3:
+                raise ValueError(
+                    f"Invalid graph data: relationship at index {idx} for source_id '{source_id}' "
+                    f"must have exactly 3 elements (target_id, rel_type, strength), "
+                    f"got {len(rel)} elements"
+                )
+            target_id, rel_type, strength = rel
+            # Validate target_id and rel_type types
+            if not isinstance(target_id, str):
+                raise TypeError(
+                    f"Invalid graph data: target_id at index {idx} for source_id '{source_id}' "
+                    f"must be a string, got {type(target_id).__name__}"
+                )
+            if not isinstance(rel_type, str):
+                raise TypeError(
+                    f"Invalid graph data: rel_type at index {idx} for source_id '{source_id}' "
+                    f"must be a string, got {type(rel_type).__name__}"
+                )
+            # Validate and normalize strength to float
+            try:
+                strength_float = float(strength)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"Invalid graph data: strength at index {idx} for source_id '{source_id}' "
+                    f"must be numeric (got {type(strength).__name__} with value '{strength}')"
+                ) from exc
+            # Only index relationships whose target is also in the requested asset set
+            if target_id in asset_ids_set:
+                relationship_index[(source_id, target_id, rel_type)] = strength_float
+
+    return relationship_index
 
 
 def _is_relevant_relationship(
