@@ -117,10 +117,7 @@ class FormulaicVisualizer:
                 categories[category] = []
             categories[category].append(r_squared)
 
-        avg_r_squared = {
-            cat: sum(vals) / len(vals) if vals else 0.0
-            for cat, vals in categories.items()
-        }
+        avg_r_squared = {cat: sum(vals) / len(vals) if vals else 0.0 for cat, vals in categories.items()}
 
         fig.add_trace(
             go.Bar(
@@ -147,9 +144,7 @@ class FormulaicVisualizer:
         matrix is missing or not a dict, no trace is added.
         """
         correlation_matrix = (
-            empirical_relationships.get("correlation_matrix")
-            if isinstance(empirical_relationships, dict)
-            else {}
+            empirical_relationships.get("correlation_matrix") if isinstance(empirical_relationships, dict) else {}
         )
 
         if not correlation_matrix:
@@ -167,12 +162,11 @@ class FormulaicVisualizer:
                         a1, a2 = key.split("-", 1)
                         nested.setdefault(a1, {})[a2] = float(value)
                         nested.setdefault(a2, {})[a1] = float(value)
+                for asset in nested:
+                    nested[asset].setdefault(asset, 1.0)
                 correlation_matrix = nested
-            assets = sorted(correlation_matrix.keys())
-            z = [
-                [correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets]
-                for a1 in assets
-            ]
+            assets = sorted(correlation_matrix.keys())[:8]
+            z = [[correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets] for a1 in assets]
         else:
             # Assume it's already a matrix-like structure
             return
@@ -241,8 +235,7 @@ class FormulaicVisualizer:
             categories[category]["total_r2"] += r_squared
 
         sector_performance = {
-            cat: data["total_r2"] / data["count"] if data["count"] > 0 else 0.0
-            for cat, data in categories.items()
+            cat: data["total_r2"] / data["count"] if data["count"] > 0 else 0.0 for cat, data in categories.items()
         }
 
         fig.add_trace(
@@ -282,9 +275,7 @@ class FormulaicVisualizer:
         sorted_formulas = self._get_sorted_formulas(formulas)
         top_formulas = sorted_formulas[:10]
 
-        names, categories, r_squared_values = self._extract_formula_table_data(
-            top_formulas
-        )
+        names, categories, r_squared_values = self._extract_formula_table_data(top_formulas)
 
         fig.add_trace(
             go.Table(
@@ -356,14 +347,9 @@ class FormulaicVisualizer:
                         - r_squared_values: R-squared values formatted as
                             strings (four decimals) or "N/A" if not numeric.
         """
-        names = [
-            FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
-        ]
+        names = [FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas]
         categories = [getattr(f, "category", "N/A") for f in formulas]
-        r_squared_values = [
-            FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
-            for f in formulas
-        ]
+        r_squared_values = [FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None)) for f in formulas]
         return names, categories, r_squared_values
 
     # ------------------------------------------------------------------
@@ -389,6 +375,8 @@ class FormulaicVisualizer:
         Returns:
             go.Figure: Plotly Figure containing a formatted annotation
                 summarizing the formula.
+        Raises:
+            AttributeError: If expected Formula fields are missing.
         """
         fig = go.Figure()
 
@@ -404,9 +392,7 @@ class FormulaicVisualizer:
                 f"<b>Category:</b> {formula.category}<br>"
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
-                + "<br>".join(
-                    f"• {var}: {desc}" for var, desc in formula.variables.items()
-                )
+                + "<br>".join(f"• {var}: {desc}" for var, desc in formula.variables.items())
                 + "<br><br><b>Example Calculation:</b><br>"
                 f"{formula.example_calculation}"
             ),
@@ -446,9 +432,7 @@ class FormulaicVisualizer:
                 with an explanatory title when no strongest correlations are
                 provided.
         """
-        strongest_correlations = empirical_relationships.get(
-            "strongest_correlations", []
-        )
+        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
@@ -502,18 +486,14 @@ class FormulaicVisualizer:
                 node trace representing the correlation network, or an empty
                 Figure with an explanatory title when no assets are available.
         """
-        assets = FormulaicVisualizer._extract_assets_from_correlations(
-            strongest_correlations
-        )
+        assets = FormulaicVisualizer._extract_assets_from_correlations(strongest_correlations)
         if not assets:
             fig = go.Figure()
             fig.update_layout(title="No valid asset correlations found")
             return fig
 
         positions = FormulaicVisualizer._create_circular_positions(assets)
-        edge_traces = FormulaicVisualizer._create_edge_traces(
-            strongest_correlations, positions
-        )
+        edge_traces = FormulaicVisualizer._create_edge_traces(strongest_correlations, positions)
         node_trace = FormulaicVisualizer._create_node_trace(assets, positions)
 
         fig = go.Figure(data=edge_traces + [node_trace])
@@ -579,9 +559,7 @@ class FormulaicVisualizer:
         return positions
 
     @staticmethod
-    def _create_edge_traces(
-        correlations: Any, positions: Dict[str, tuple[float, float]]
-    ) -> list[go.Scatter]:
+    def _create_edge_traces(correlations: Any, positions: Dict[str, tuple[float, float]]) -> list[go.Scatter]:
         """
         Generate Plotly edge traces for each correlation linking two
         positioned assets.
@@ -603,9 +581,7 @@ class FormulaicVisualizer:
         for corr in correlations:
             asset1, asset2, value = FormulaicVisualizer._parse_correlation_item(corr)
             if asset1 in positions and asset2 in positions:
-                trace = FormulaicVisualizer._create_single_edge_trace(
-                    asset1, asset2, value, positions
-                )
+                trace = FormulaicVisualizer._create_single_edge_trace(asset1, asset2, value, positions)
                 edge_traces.append(trace)
         return edge_traces
 
@@ -651,9 +627,7 @@ class FormulaicVisualizer:
         )
 
     @staticmethod
-    def _create_node_trace(
-        assets: list[str], positions: Dict[str, tuple[float, float]]
-    ) -> go.Scatter:
+    def _create_node_trace(assets: list[str], positions: Dict[str, tuple[float, float]]) -> go.Scatter:
         """
         Create a Plotly scatter trace representing asset nodes positioned on a plane.
 
@@ -719,17 +693,17 @@ class FormulaicVisualizer:
         if not formulas:
             return fig
 
-        categories: Dict[str, list[float]] = {}
-        for formula in formulas:
-            categories.setdefault(formula.category, []).append(formula.r_squared)
-
-        category_names = list(categories.keys())
-        r_squared_by_category = [
-            sum(values) / len(values) if values else 0.0
-            for values in categories.values()
-        ]
-
-        category_counts = [len(values) for values in categories.values()]
+        df = pd.DataFrame(
+            [{"category": f.category, "r_squared": f.r_squared} for f in formulas]
+        )
+        grouped = (
+            df.groupby("category", as_index=False)
+            .agg(avg_r_squared=("r_squared", "mean"), count=("r_squared", "size"))
+            .fillna(0.0)
+        )
+        category_names = grouped["category"].tolist()
+        r_squared_by_category = grouped["avg_r_squared"].tolist()
+        category_counts = grouped["count"].tolist()
 
         fig.add_trace(
             go.Bar(
