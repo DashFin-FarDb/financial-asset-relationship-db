@@ -165,6 +165,7 @@ max-statements = 50
 
 [tool.bandit]
 exclude_dirs = ["tests"]
+skips = ["B101"]
 
 [tool.codeflash]
 # All paths are relative to this pyproject.toml's directory.
