@@ -19,7 +19,14 @@ Python optimization flags that would remove assert statements.
 
 import pytest
 
-from src.models.financial_models import Asset, AssetClass, Bond, Equity, RegulatoryActivity, RegulatoryEvent
+from src.models.financial_models import (
+    Asset,
+    AssetClass,
+    Bond,
+    Equity,
+    RegulatoryActivity,
+    RegulatoryEvent,
+)
 
 
 class TestAsset:

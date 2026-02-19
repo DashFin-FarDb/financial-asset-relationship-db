@@ -9,12 +9,15 @@ This module contains tests that verify interactions between data components:
 
 import pytest
 
-from src.data.real_data_fetcher import RealDataFetcher, _deserialize_graph, _serialize_graph
+from src.data.real_data_fetcher import (
+    RealDataFetcher,
+    _deserialize_graph,
+    _serialize_graph,
+)
 from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
-
 
 pytestmark = pytest.mark.unit
 
@@ -25,7 +28,11 @@ class TestRepositoryGraphIntegration:
     @staticmethod
     def test_sample_graph_can_be_saved_to_repository(tmp_path):
         """Test that a sample graph can be saved to and loaded from repository."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         # Create in-memory database
         db_path = tmp_path / "test_integration.db"
@@ -53,7 +60,11 @@ class TestRepositoryGraphIntegration:
     @staticmethod
     def test_sample_graph_relationships_can_be_saved(tmp_path):
         """Test that sample graph relationships can be saved to repository."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         db_path = tmp_path / "test_rel_integration.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -71,7 +82,9 @@ class TestRepositoryGraphIntegration:
         # Save relationships
         for source_id, rels in graph.relationships.items():
             for target_id, rel_type, strength in rels:
-                repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
+                repo.add_or_update_relationship(
+                    source_id, target_id, rel_type, strength, bidirectional=False
+                )
 
         session.commit()
 
@@ -105,7 +118,9 @@ class TestSerializationRoundTrip:
             original_graph.add_asset(asset)
 
         # Add relationships
-        original_graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False)
+        original_graph.add_relationship(
+            "TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False
+        )
 
         # Serialize
         serialized = _serialize_graph(original_graph)
@@ -151,8 +166,12 @@ class TestSerializationRoundTrip:
             graph.add_asset(asset)
 
         # Add bidirectional relationships
-        graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True)
-        graph.add_relationship("TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True)
+        graph.add_relationship(
+            "TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True
+        )
+        graph.add_relationship(
+            "TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True
+        )
 
         # Serialize and deserialize
         serialized = _serialize_graph(graph)
@@ -205,7 +224,11 @@ class TestEdgeCasesAndRegressions:
     @staticmethod
     def test_asset_with_all_none_optional_fields(tmp_path):
         """Test asset with all optional fields as None."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         db_path = tmp_path / "test_none_fields.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -240,7 +263,11 @@ class TestEdgeCasesAndRegressions:
     @staticmethod
     def test_relationship_with_empty_string_type(tmp_path):
         """Test that empty string relationship type is handled."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         db_path = tmp_path / "test_empty_rel.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -310,7 +337,11 @@ class TestEdgeCasesAndRegressions:
     @staticmethod
     def test_large_relationship_strength_values(tmp_path):
         """Test handling of relationship strengths at boundaries."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         db_path = tmp_path / "test_strength_bounds.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -336,13 +367,19 @@ class TestEdgeCasesAndRegressions:
         session.commit()
 
         # Test with exact 0.0
-        repo.add_or_update_relationship("BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False)
+        repo.add_or_update_relationship(
+            "BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False
+        )
 
         # Test with exact 1.0
-        repo.add_or_update_relationship("BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False)
+        repo.add_or_update_relationship(
+            "BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False
+        )
 
         # Test with negative (allowed in some systems)
-        repo.add_or_update_relationship("BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False)
+        repo.add_or_update_relationship(
+            "BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False
+        )
 
         session.commit()
 
@@ -365,7 +402,11 @@ class TestConcurrentOperations:
     @staticmethod
     def test_repeated_asset_upserts(tmp_path):
         """Test that repeated upserts don't create duplicates."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         db_path = tmp_path / "test_repeated_upsert.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -401,7 +442,11 @@ class TestConcurrentOperations:
     @staticmethod
     def test_delete_and_recreate_asset(tmp_path):
         """Test deleting and recreating an asset."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         db_path = tmp_path / "test_delete_recreate.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -476,7 +521,11 @@ class TestDataConsistency:
     @staticmethod
     def test_relationship_consistency_after_asset_delete(tmp_path):
         """Test that relationships are cleaned up when asset is deleted."""
-        from src.data.database import create_engine_from_url, create_session_factory, init_db
+        from src.data.database import (
+            create_engine_from_url,
+            create_session_factory,
+            init_db,
+        )
 
         db_path = tmp_path / "test_rel_consistency.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
@@ -487,12 +536,28 @@ class TestDataConsistency:
         repo = AssetGraphRepository(session)
 
         # Create assets and relationship
-        a1 = Equity(id="DEL1", symbol="D1", name="Del 1", asset_class=AssetClass.EQUITY, sector="Test", price=100.0)
-        a2 = Equity(id="DEL2", symbol="D2", name="Del 2", asset_class=AssetClass.EQUITY, sector="Test", price=200.0)
+        a1 = Equity(
+            id="DEL1",
+            symbol="D1",
+            name="Del 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Test",
+            price=100.0,
+        )
+        a2 = Equity(
+            id="DEL2",
+            symbol="D2",
+            name="Del 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Test",
+            price=200.0,
+        )
 
         repo.upsert_asset(a1)
         repo.upsert_asset(a2)
-        repo.add_or_update_relationship("DEL1", "DEL2", "test_rel", 0.5, bidirectional=False)
+        repo.add_or_update_relationship(
+            "DEL1", "DEL2", "test_rel", 0.5, bidirectional=False
+        )
         session.commit()
 
         # Delete one asset
@@ -501,7 +566,9 @@ class TestDataConsistency:
 
         # Relationship should be gone
         rels = repo.list_relationships()
-        matching_rels = [r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"]
+        matching_rels = [
+            r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"
+        ]
         assert len(matching_rels) == 0
 
         session.close()

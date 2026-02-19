@@ -10,10 +10,23 @@ from typing import Dict, List, Optional
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from src.models.financial_models import (Asset, AssetClass, Bond, Commodity, Currency, Equity, RegulatoryActivity,
-                                         RegulatoryEvent)
+from src.models.financial_models import (
+    Asset,
+    AssetClass,
+    Bond,
+    Commodity,
+    Currency,
+    Equity,
+    RegulatoryActivity,
+    RegulatoryEvent,
+)
 
-from .db_models import AssetORM, AssetRelationshipORM, RegulatoryEventAssetORM, RegulatoryEventORM
+from .db_models import (
+    AssetORM,
+    AssetRelationshipORM,
+    RegulatoryEventAssetORM,
+    RegulatoryEventORM,
+)
 
 
 @contextmanager

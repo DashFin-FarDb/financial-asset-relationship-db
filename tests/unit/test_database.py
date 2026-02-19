@@ -22,7 +22,13 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import StaticPool
 
-from src.data.database import (DEFAULT_DATABASE_URL, Base, create_engine_from_url, create_session_factory, init_db)
+from src.data.database import (
+    DEFAULT_DATABASE_URL,
+    Base,
+    create_engine_from_url,
+    create_session_factory,
+    init_db,
+)
 from src.data.repository import session_scope
 
 pytest.importorskip("sqlalchemy")
@@ -301,7 +307,9 @@ class TestSessionScope:
             assert session.query(TestModel).count() == 0  # nosec B101
 
     @staticmethod
-    def test_propagates_integrity_error(engine: Engine, isolated_base: type[Base]) -> None:
+    def test_propagates_integrity_error(
+        engine: Engine, isolated_base: type[Base]
+    ) -> None:
         """Integrity errors should propagate after rollback."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
@@ -318,7 +326,9 @@ class TestSessionScope:
             session.flush()
 
     @staticmethod
-    def test_multiple_operations_commit(engine: Engine, isolated_base: type[Base]) -> None:
+    def test_multiple_operations_commit(
+        engine: Engine, isolated_base: type[Base]
+    ) -> None:
         """Multiple operations in one scope should commit atomically."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name

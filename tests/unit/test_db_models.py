@@ -13,7 +13,12 @@ from sqlalchemy import create_engine, inspect
 from sqlalchemy.exc import IntegrityError
 
 from src.data.database import create_session_factory, init_db
-from src.data.db_models import AssetORM, AssetRelationshipORM, RegulatoryEventAssetORM, RegulatoryEventORM
+from src.data.db_models import (
+    AssetORM,
+    AssetRelationshipORM,
+    RegulatoryEventAssetORM,
+    RegulatoryEventORM,
+)
 
 pytest.importorskip("sqlalchemy")
 
