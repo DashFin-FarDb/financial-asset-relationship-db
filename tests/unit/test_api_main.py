@@ -57,6 +57,11 @@ def client() -> Iterator[TestClient]:
         api_main.reset_graph()
 
 
+@pytest.fixture()
+def bare_client() -> TestClient:
+    """TestClient fixture without forcing any pre-seeded graph."""
+    return TestClient(app)
+
 @pytest.mark.unit
 class TestValidateOrigin:
     """Test the validate_origin function for CORS configuration."""
