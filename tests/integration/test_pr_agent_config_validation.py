@@ -264,7 +264,11 @@ class TestPRAgentConfigYAMLValidity:
             Overrides construct_mapping to detect duplicate entries at any nesting level and fails the test if found.
             """
 
-            def construct_mapping(self, node, deep=False):
+            def construct_mapping(
+                self,
+                node: yaml.nodes.MappingNode,
+                deep: bool = False,
+            ) -> dict:
                 """
                 Construct a dict from a YAML mapping node, failing the test if a duplicate key is encountered.
 
