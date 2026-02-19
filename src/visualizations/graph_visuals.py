@@ -42,6 +42,7 @@ def _is_valid_color_format(color: str) -> bool:
     """
     pass
 
+
 def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     """Build O(1) lookup index for asset IDs to their positions."""
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
