@@ -102,18 +102,12 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
             "## Business Rules & Constraints",
             "",
             "### Cross-Asset Rules",
-            (
-                "- **Sector Affinity**: Assets in the same sector are "
-                "linked with strength 0.7 (bidirectional)"
-            ),
+            ("- **Sector Affinity**: Assets in the same sector are " "linked with strength 0.7 (bidirectional)"),
             (
                 "- **Corporate Bond Linkage**: A bond whose issuer_id matches another "
                 "asset creates a directional link (strength 0.9)"
             ),
-            (
-                "- **Currency Exposure**: Currency assets reflect FX and "
-                "central-bank policy links"
-            ),
+            ("- **Currency Exposure**: Currency assets reflect FX and " "central-bank policy links"),
         ]
     )
 
