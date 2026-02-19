@@ -329,7 +329,6 @@ class FormulaicAnalyzer:
         formulas.append(enterprise_value_formula)
         return formulas
 
-     def _analyze_risk_return_relationships(
     def _analyze_risk_return_relationships(
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
