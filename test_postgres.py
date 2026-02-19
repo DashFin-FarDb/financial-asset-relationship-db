@@ -79,6 +79,12 @@ def test_postgres_connection_smoke() -> None:
     Expectations:
     - Connection succeeds
     - A trivial query returns a row
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the connection or query fails to return a valid row.
     """
     if os.getenv("RUN_POSTGRES_TESTS") != "1":
         pytest.skip("Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test")
