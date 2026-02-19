@@ -817,12 +817,12 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
         """
-        Build example market-cap strings for up to two equity assets in the graph.
+        Build example market - cap strings for up to two equity assets in the graph.
 
-        Scans assets classified as EQUITY that have a non-null ``market_cap``,
-        formats up to two examples in billions (e.g. "SYM: Market Cap = $1.5B"),
-        and returns them as a semicolon-separated string. If no valid equity
-        market-cap values are found, returns a default example string.
+        Scans assets classified as EQUITY that have a non - null ``market_cap``,
+        formats up to two examples in billions(e.g. "SYM: Market Cap = $1.5B"),
+        and returns them as a semicolon - separated string. If no valid equity
+        market - cap values are found, returns a default example string.
         """
         from src.models.financial_models import AssetClass
 
