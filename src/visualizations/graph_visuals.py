@@ -40,26 +40,6 @@ def _is_valid_color_format(color: str) -> bool:
     Args:
         color: Color string to validate
 
-    Returns:
-        True if color format is valid, False otherwise
-    """
-    if not isinstance(color, str) or not color:
-        return False
-
-    # Hex colors
-    if re.match(r"^#(?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$", color):
-        return True
-
-    # rgb/rgba functions
-    if re.match(
-        r"^rgba?\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*(,\\s*[\\d.]+\\s*)?\\)$", color
-    ):
-        return True
-
-    # Fallback: allow named colors; Plotly will validate at render time
-    return True
-
-
 def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     """Build O(1) lookup index for asset IDs to their positions."""
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
@@ -88,9 +68,47 @@ def _build_relationship_index(
     This function uses a reentrant lock (RLock) to protect concurrent access to
     graph.relationships within this module. However, true thread safety requires
     coordination across the entire codebase.
+    """
+    with _graph_access_lock:
+        asset_ids_set = set(asset_ids)
+        index: Dict[Tuple[str, str, str], float] = {}
+        for rel in graph.relationships:
+            if not _is_relevant_relationship(rel, asset_ids_set):
+                continue
+            entries = _relationship_strength_entries(rel, graph)
+            index.update(entries)
+        return index
 
-    Implementation:
-    - Uses threading.RLock (_graph_access_lock) to synchronize access to
+
+def _is_relevant_relationship(
+    rel,
+    asset_ids_set: Set[str]
+) -> bool:
+    """Check if a relationship is relevant and valid."""
+    if rel.source_id not in asset_ids_set:
+        return False
+    if rel.frozen or not rel.target_id:
+        return False
+    if rel.strength is None:
+        return False
+    return True
+
+
+def _relationship_strength_entries(
+    rel,
+    graph: AssetRelationshipGraph
+) -> Dict[Tuple[str, str, str], float]:
+    """Generate index entries for a relationship, handling bidirectional if needed."""
+    key = (rel.source_id, rel.target_id, rel.relationship_type)
+    strength = rel.strength
+    if rel.bidirectional:
+        reverse_strength = graph.get_strength(rel.target_id, rel.source_id, rel.relationship_type)
+        avg_strength = (strength + reverse_strength) / 2
+        return {
+            key: avg_strength,
+            (rel.target_id, rel.source_id, rel.relationship_type): avg_strength
+        }
+    return {key: strength}
       graph.relationships
     - The lock is reentrant, allowing the same thread to acquire it multiple
       times safely
@@ -895,6 +913,30 @@ def _create_relationship_traces(
     return traces
 
 
+def _validate_directional_arrows_inputs(
+    graph: AssetRelationshipGraph,
+    positions: np.ndarray,
+    asset_ids: List[str],
+) -> None:
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
+    if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
+        raise ValueError(
+            "Invalid input data: graph must have a relationships dictionary"
+        )
+    if positions is None or asset_ids is None:
+        raise ValueError("positions and asset_ids must not be None")
+    try:
+        if len(positions) != len(asset_ids):
+            raise ValueError(
+                "Invalid input data: positions and asset_ids must have the same length"
+            )
+    except TypeError as exc:
+        raise ValueError(
+            "Invalid input data: positions and asset_ids must support len()"
+        ) from exc
+
+
 def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
@@ -905,22 +947,9 @@ def _create_directional_arrows(
 
     Returns a list of traces for batch addition to figure.
     """
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
-    if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
-        raise ValueError(
-            "Invalid input data: graph must have a relationships dictionary"
-        )
-
-    try:
-        if positions is None or asset_ids is None:
-            raise ValueError("positions and asset_ids must not be None")
-        if len(positions) != len(asset_ids):
-            raise ValueError("positions and asset_ids must have the same length")
-    except TypeError as exc:
-        raise ValueError(
-            "Invalid input data: positions and asset_ids must support len()"
-        ) from exc
+    _validate_directional_arrows_inputs(graph, positions, asset_ids)
+    # original arrow creation logic follows unchanged
+    ...
 
     if not isinstance(positions, np.ndarray):
         positions = np.asarray(positions)

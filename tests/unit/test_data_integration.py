@@ -210,6 +210,7 @@ class TestDataFetcherWithFallback:
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():
+            """Factory function returning a preconfigured AssetRelationshipGraph for fallback."""
             return custom_graph
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
