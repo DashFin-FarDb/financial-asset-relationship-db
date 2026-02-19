@@ -125,7 +125,9 @@ class FormulaicVisualizer:
         )
 
     @staticmethod
-    def _plot_empirical_correlation(fig: go.Figure, empirical_relationships: Mapping[str, Any]) -> None:
+    def _plot_empirical_correlation(
+        fig: go.Figure, empirical_relationships: Mapping[str, Any]
+    ) -> None:
         """
         Add an empirical correlation heatmap to the provided subplot figure.
 
@@ -144,7 +146,9 @@ class FormulaicVisualizer:
                 correlation value.
         """
         correlation_matrix = (
-            empirical_relationships.get("correlation_matrix") if isinstance(empirical_relationships, dict) else {}
+            empirical_relationships.get("correlation_matrix")
+            if isinstance(empirical_relationships, dict)
+            else {}
         )
 
         if not correlation_matrix:
@@ -338,7 +342,9 @@ class FormulaicVisualizer:
                         - r_squared_values: R-squared values formatted as
                             strings (four decimals) or "N/A" if not numeric.
         """
-        names = [FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas]
+        names = [
+            FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
+        ]
         categories = [getattr(f, "category", "N/A") for f in formulas]
         r_squared_values = [
             FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None))
@@ -420,7 +426,9 @@ class FormulaicVisualizer:
                 with an explanatory title when no strongest correlations are
                 provided.
         """
-        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
+        strongest_correlations = empirical_relationships.get(
+            "strongest_correlations", []
+        )
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
@@ -462,7 +470,9 @@ class FormulaicVisualizer:
                 node trace representing the correlation network, or an empty
                 Figure with an explanatory title when no assets are available.
         """
-        assets = FormulaicVisualizer._extract_assets_from_correlations(strongest_correlations)
+        assets = FormulaicVisualizer._extract_assets_from_correlations(
+            strongest_correlations
+        )
         if not assets:
             fig = go.Figure()
             fig.update_layout(title="No valid asset correlations found")
@@ -542,7 +552,9 @@ class FormulaicVisualizer:
         return positions
 
     @staticmethod
-    def _create_edge_traces(correlations: Any, positions: Dict[str, tuple[float, float]]) -> list[go.Scatter]:
+    def _create_edge_traces(
+        correlations: Any, positions: Dict[str, tuple[float, float]]
+    ) -> list[go.Scatter]:
         """
         Generate Plotly edge traces for each correlation linking two
         positioned assets.
@@ -612,7 +624,9 @@ class FormulaicVisualizer:
         )
 
     @staticmethod
-    def _create_node_trace(assets: list[str], positions: Dict[str, tuple[float, float]]) -> go.Scatter:
+    def _create_node_trace(
+        assets: list[str], positions: Dict[str, tuple[float, float]]
+    ) -> go.Scatter:
         """
         Create a Plotly scatter trace representing asset nodes positioned on a plane.
 

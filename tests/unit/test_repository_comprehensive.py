@@ -869,7 +869,9 @@ class TestRelationshipTypeVariations:
         )
         repository.session.commit()
 
-        rel = repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
+        rel = repository.get_relationship(
+            "REL_TYPE1", "REL_TYPE2", "same_sector_correlation"
+        )
         assert rel is not None
         assert rel.relationship_type == "same_sector_correlation"
 
@@ -897,8 +899,12 @@ class TestRelationshipTypeVariations:
         repository.session.commit()
 
         # Add relationships with different cases
-        repository.add_or_update_relationship("CASE1", "CASE2", "SameType", 0.5, bidirectional=False)
-        repository.add_or_update_relationship("CASE1", "CASE2", "sametype", 0.6, bidirectional=False)
+        repository.add_or_update_relationship(
+            "CASE1", "CASE2", "SameType", 0.5, bidirectional=False
+        )
+        repository.add_or_update_relationship(
+            "CASE1", "CASE2", "sametype", 0.6, bidirectional=False
+        )
         repository.session.commit()
 
         # Should be treated as different types

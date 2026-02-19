@@ -1391,7 +1391,9 @@ class TestNullAndEmptyValues:
         repository.session.commit()
 
         # Empty relationship type
-        repository.add_or_update_relationship("EMPTY1", "EMPTY2", "", 0.5, bidirectional=False)
+        repository.add_or_update_relationship(
+            "EMPTY1", "EMPTY2", "", 0.5, bidirectional=False
+        )
         repository.session.commit()
 
         rel = repository.get_relationship("EMPTY1", "EMPTY2", "")
@@ -1490,8 +1492,12 @@ class TestComplexQueries:
         repository.session.commit()
 
         # Create relationships
-        repository.add_or_update_relationship("PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False)
-        repository.add_or_update_relationship("PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False)
+        repository.add_or_update_relationship(
+            "PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False
+        )
+        repository.add_or_update_relationship(
+            "PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False
+        )
         repository.session.commit()
 
         # Delete middle asset
