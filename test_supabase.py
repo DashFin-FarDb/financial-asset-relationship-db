@@ -62,6 +62,10 @@ def test_supabase_connection_smoke() -> None:
     - Client initializes
     - Query executes without raising
     - Response contains a 'data' attribute (list-like)
+    Returns:
+        None
+    Raises:
+        AssertionError: If the client or query fails or returns an invalid response.
     """
     if os.getenv("RUN_SUPABASE_TESTS") != "1":
         pytest.skip(
@@ -91,19 +95,11 @@ def test_supabase_connection_smoke() -> None:
         pytest.skip("SUPABASE_URL appears to be a placeholder")
 
     # Build client
-    try:
-        supabase: Client = create_client(supabase_url, supabase_key)
-    except Exception as exc:  # noqa: BLE001
-        pytest.fail(
-            f"Failed to initialize Supabase client (url={_redact(supabase_url)}): {exc}"
-        )
+    supabase: Client = create_client(supabase_url, supabase_key)
 
     # Execute a safe, low-cost query.
     # Assumes 'assets' table exists as per your domain; if not, adjust to a known table.
-    try:
-        response = supabase.table("assets").select("id").limit(1).execute()
-    except Exception as exc:  # noqa: BLE001
-        pytest.fail(f"Supabase query failed (url={_redact(supabase_url)}): {exc}")
+    response = supabase.table("assets").select("id").limit(1).execute()
 
     # Validate response shape
     assert response is not None  # nosec B101
