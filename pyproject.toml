@@ -164,8 +164,8 @@ max-returns = 6
 max-statements = 50
 
 [tool.bandit]
+[tool.bandit]
 exclude_dirs = ["tests"]
-skips = ["B101"]  # Skip assert_used warnings in test files - assert is the correct pattern for pytest
 
 [tool.codeflash]
 # All paths are relative to this pyproject.toml's directory.
