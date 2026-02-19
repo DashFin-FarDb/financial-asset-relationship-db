@@ -58,6 +58,7 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
         engine.dispose()
 
 
+@pytest.mark.integration
 def test_asset_crud_flow(db_session: Session) -> None:
     """CRUD operations for Asset entities: create, read, update, delete."""
     repo = AssetGraphRepository(db_session)
