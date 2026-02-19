@@ -16,19 +16,9 @@ from typing import Dict, List, Tuple
 import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.visualizations.constants import REL_TYPE_COLORS
 
 logger = logging.getLogger(__name__)
-
-# Color mapping for relationship types (shared with 3D visuals)
-REL_TYPE_COLORS = {
-    "same_sector": "#FF6B6B",
-    "market_cap_similar": "#4ECDC4",
-    "correlation": "#45B7D1",
-    "corporate_bond_to_equity": "#96CEB4",
-    "commodity_currency": "#FFEAA7",
-    "income_comparison": "#DDA0DD",
-    "regulatory_impact": "#FFA07A",
-}
 
 
 def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
