@@ -11,7 +11,7 @@ Notes:
 - Bandit B101 (assert_used) is acceptable in pytest; keep assertions as-is.
 """
 
-# nosec B101
+from __future__ import annotations
 
 from __future__ import annotations
 
