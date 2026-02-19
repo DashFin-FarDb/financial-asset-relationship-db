@@ -611,49 +611,49 @@ def _validate_visualization_data(
     _validate_asset_ids_uniqueness(asset_ids)
 
 
- def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
-     """Create enhanced 3D visualization of asset relationship graph
-     with improved relationship visibility"""
-     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-         graph, "get_3d_visualization_data_enhanced"
-     ):
-         raise ValueError("Invalid graph data provided")
+def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
+    """Create enhanced 3D visualization of asset relationship graph
+    with improved relationship visibility"""
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
+        graph, "get_3d_visualization_data_enhanced"
+    ):
+        raise ValueError("Invalid graph data provided")
 
-     positions, asset_ids, colors, hover_texts = (
-         graph.get_3d_visualization_data_enhanced()
-     )
+    positions, asset_ids, colors, hover_texts = (
+        graph.get_3d_visualization_data_enhanced()
+    )
 
-     # Validate visualization data to prevent runtime errors
-     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
+    # Validate visualization data to prevent runtime errors
+    _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-     fig = go.Figure()
+    fig = go.Figure()
 
-     # Create separate traces for different relationship types and directions
-     try:
-         relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
-     except Exception as exc:  # pylint: disable=broad-except
-         logger.exception("Failed to create relationship traces: %s", exc)
-         relationship_traces = []
+    # Create separate traces for different relationship types and directions
+    try:
+        relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.exception("Failed to create relationship traces: %s", exc)
+        relationship_traces = []
 
-     # Batch add traces
-     if relationship_traces:
-         try:
-             fig.add_traces(relationship_traces)
-         except Exception as exc:  # pylint: disable=broad-except
-             logger.exception("Failed to add relationship traces to figure: %s", exc)
+    # Batch add traces
+    if relationship_traces:
+        try:
+            fig.add_traces(relationship_traces)
+        except Exception as exc:  # pylint: disable=broad-except
+            logger.exception("Failed to add relationship traces to figure: %s", exc)
 
     # Add directional arrows for unidirectional relationships
     try:
-        arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
+       arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
     except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to create directional arrow traces: %s", exc)
-        arrow_traces = []
+       logger.exception("Failed to create directional arrow traces: %s", exc)
+       arrow_traces = []
 
     if arrow_traces:
-        try:
-            fig.add_traces(arrow_traces)
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.exception("Failed to add arrow traces to figure: %s", exc)
+       try:
+           fig.add_traces(arrow_traces)
+       except Exception as exc:  # pylint: disable=broad-except
+           logger.exception("Failed to add arrow traces to figure: %s", exc)
 
     # Add nodes with enhanced styling
     node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
@@ -661,41 +661,41 @@ def _validate_visualization_data(
 
     # Calculate total relationships for dynamic title
     total_relationships = (
-        sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces) // 3
+       sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces) // 3
     )
     dynamic_title = _generate_dynamic_title(len(asset_ids), total_relationships)
 
     fig.update_layout(
-        title={
-            "text": dynamic_title,
-            "x": 0.5,
-            "xanchor": "center",
-            "font": {"size": 16},
-        },
-        scene=dict(
-            xaxis=dict(
-                title="Dimension 1", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
-            ),
-            yaxis=dict(
-                title="Dimension 2", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
-            ),
-            zaxis=dict(
-                title="Dimension 3", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
-            ),
-            bgcolor="rgba(248, 248, 248, 0.95)",
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.5)),
-        ),
-        width=1200,
-        height=800,
-        showlegend=True,
-        hovermode="closest",
-        legend=dict(
-            x=0.02,
-            y=0.98,
-            bgcolor="rgba(255, 255, 255, 0.8)",
-            bordercolor="rgba(0, 0, 0, 0.3)",
-            borderwidth=1,
-        ),
+       title={
+           "text": dynamic_title,
+           "x": 0.5,
+           "xanchor": "center",
+           "font": {"size": 16},
+       },
+       scene=dict(
+           xaxis=dict(
+               title="Dimension 1", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
+           ),
+           yaxis=dict(
+               title="Dimension 2", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
+           ),
+           zaxis=dict(
+               title="Dimension 3", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
+           ),
+           bgcolor="rgba(248, 248, 248, 0.95)",
+           camera=dict(eye=dict(x=1.5, y=1.5, z=1.5)),
+       ),
+       width=1200,
+       height=800,
+       showlegend=True,
+       hovermode="closest",
+       legend=dict(
+           x=0.02,
+           y=0.98,
+           bgcolor="rgba(255, 255, 255, 0.8)",
+           bordercolor="rgba(0, 0, 0, 0.3)",
+           borderwidth=1,
+       ),
     )
 
     return fig

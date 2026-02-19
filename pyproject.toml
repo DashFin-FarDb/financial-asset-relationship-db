@@ -164,11 +164,7 @@ max-returns = 6
 max-statements = 50
 
 [tool.bandit]
-[tool.bandit]
-# Exclude test files entirely to avoid false positives from pytest assert statements
 exclude_dirs = ["tests"]
-# Note: The `skips = ["B101"]` line has been intentionally removed per the PR's logic.
-# This is now handled by excluding the entire tests directory.
 
 [tool.codeflash]
 # All paths are relative to this pyproject.toml's directory.

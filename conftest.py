@@ -16,7 +16,8 @@ import pytest
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from src.data.database import Base, create_engine_from_url, create_session_factory, session_scope
+from src.data.database import Base, create_engine_from_url, create_session_factory
+from src.data.repository import session_scope
 
 
 @pytest.fixture(autouse=True)
