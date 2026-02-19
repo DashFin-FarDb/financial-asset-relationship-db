@@ -105,11 +105,7 @@ def sarif_upload_steps(snyk_job_steps):
     Returns:
         list: Steps using codeql-action/upload-sarif.
     """
-    return [
-        s
-        for s in snyk_job_steps
-        if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
-    ]
+    return [s for s in snyk_job_steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
 
 
 @pytest.mark.unit
@@ -268,17 +264,13 @@ class TestSnykJobConfiguration:
     @staticmethod
     def test_job_checks_out_code(snyk_job_steps):
         """Test that job checks out repository code."""
-        checkout_steps = [
-            s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]
-        ]
+        checkout_steps = [s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]]
         assert len(checkout_steps) > 0
 
     @staticmethod
     def test_checkout_uses_v4(snyk_job_steps):
         """Test that checkout action uses v4."""
-        checkout_steps = [
-            s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]
-        ]
+        checkout_steps = [s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]]
         assert len(checkout_steps) > 0
         assert "@v4" in checkout_steps[0]["uses"]
 
@@ -301,9 +293,9 @@ class TestSnykJobConfiguration:
         assert "@" in snyk_action
         sha_part = snyk_action.split("@")[1]
         # Full 40-character lowercase hex SHA
-        assert re.fullmatch(r"[0-9a-f]{40}", sha_part), (
-            f"Action does not appear to be pinned to a full SHA: {sha_part!r}"
-        )
+        assert re.fullmatch(
+            r"[0-9a-f]{40}", sha_part
+        ), f"Action does not appear to be pinned to a full SHA: {sha_part!r}"
 
     @staticmethod
     def test_snyk_step_continues_on_error(snyk_action_steps):
@@ -411,8 +403,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(snyk_workflow_content: str) -> None:
         """Test that workflow is not commented out or disabled."""
         lines = [
-            line for line in snyk_workflow_content.split("\n")
-            if line.strip() and not line.strip().startswith("#")
+            line for line in snyk_workflow_content.split("\n") if line.strip() and not line.strip().startswith("#")
         ]
         assert len(lines) > 0
 
@@ -443,9 +434,7 @@ class TestSnykWorkflowComments:
     def test_workflow_provides_context(snyk_workflow_content):
         """Test that workflow provides context about its purpose."""
         comments = " ".join(
-            line.strip("# ").lower()
-            for line in snyk_workflow_content.split("\n")
-            if line.strip().startswith("#")
+            line.strip("# ").lower() for line in snyk_workflow_content.split("\n") if line.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments
