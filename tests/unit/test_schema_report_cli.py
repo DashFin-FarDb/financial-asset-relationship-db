@@ -24,6 +24,11 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / ".github" / "script
 from schema_report_cli import app, load_graph  # noqa: E402
 
 
+@pytest.fixture
+def runner() -> CliRunner:
+    """Create a CLI test runner."""
+    return CliRunner()
+
 @pytest.mark.unit
 class TestLoadGraph:
     """Test cases for the load_graph function."""
