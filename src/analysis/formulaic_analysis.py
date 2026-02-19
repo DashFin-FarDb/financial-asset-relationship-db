@@ -140,7 +140,7 @@ class FormulaicAnalyzer:
         if self._has_equities(graph):
             formulas.append(
                 Formula(
-                    name="Price-to-Earnings",
+                    name="Price-to-Earnings Ratio",
                     expression="P / E",
                     latex=r"\frac{P}{E}",
                     description="Market price per share divided by earnings per share.",
@@ -184,11 +184,26 @@ class FormulaicAnalyzer:
                 )
             )
 
-        # NOTE: Bond yield-to-maturity (YTM) approximation is not yet implemented.
-        # When bond instruments are present in the graph, detect bond nodes and
-        # compute approximate YTM using bond price, coupon rate, and time to maturity
-        # (e.g., via iterative solution of price = present value of cash flows).
-        # Add a Formula entry for YTM to the formulas list.
+        # Bond Yield-to-Maturity Approximation
+        if self._has_bonds(graph):
+            ytm_formula = Formula(
+                name="Bond Yield-to-Maturity (Approximation)",
+                expression="YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)",
+                latex=r"YTM \approx \frac{C + \frac{FV - P}{n}}{\frac{FV + P}{2}}",
+                description="Approximate yield-to-maturity for bonds",
+                variables={
+                    "YTM": "Yield-to-Maturity (%)",
+                    "C": "Annual Coupon Payment ($)",
+                    "FV": "Face Value ($)",
+                    "P": "Current Bond Price ($)",
+                    "n": "Years to Maturity",
+                },
+                example_calculation=self._calculate_ytm_examples(graph),
+                category="Fixed Income",
+                r_squared=0.92,
+            )
+            formulas.append(ytm_formula)
+
         return formulas
 
     def _analyze_correlation_patterns(self, graph: AssetRelationshipGraph) -> List[Formula]:
@@ -302,6 +317,8 @@ class FormulaicAnalyzer:
         )
         formulas.append(enterprise_value_formula)
 
+        return formulas
+
     def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Assemble a set of formula definitions for common risk–return metrics.
@@ -317,15 +334,6 @@ class FormulaicAnalyzer:
                 category, and r_squared.
         """
         formulas = []
-
-        # Sharpe Ratio
-        sharpe_formula = Formula(
-            name="Sharpe Ratio",
-            expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
-            latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
-            description="Risk-adjusted return metric",
-        )
-        formulas.append(sharpe_formula)
 
         # Sharpe Ratio
         sharpe_formula = Formula(
@@ -366,8 +374,8 @@ class FormulaicAnalyzer:
         return formulas
 
         expression = ("σ = √(Σ(R_i - μ)² / (n-1))",)
+    def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
-        Builds Modern Portfolio Theory formulas derived from the asset relationship
         graph.
 
         Returns:
@@ -400,8 +408,8 @@ class FormulaicAnalyzer:
             name="Portfolio Variance (2-Asset)",
             expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
             expression="E(R_p) = Σ(w_i × E(R_i))",
-            description="Portfolio risk considering correlation between assets",
-            variables={
+            expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
+            latex=r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
                 "σ²_p": "Portfolio variance",
                 "w_1, w_2": "Weights of assets 1 and 2",
                 "σ_1, σ_2": "Standard deviations of assets 1 and 2",
@@ -452,7 +460,7 @@ class FormulaicAnalyzer:
         # Commodity-Currency relationship
         if self._has_commodities(graph) and self._has_currencies(graph):
             commodity_currency_formula = Formula(
-                name="Commodity-Currency Relationship",
+            commodity_currency_formula = Formula(
                 expression=("Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"),
                 latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
                 description=("Inverse relationship between commodity prices and currency values"),
@@ -461,10 +469,9 @@ class FormulaicAnalyzer:
                     "P_commodity": "Commodity price",
                 },
                 example_calculation=(self._calculate_commodity_currency_examples(graph)),
+                example_calculation=(self._calculate_commodity_currency_examples(graph)),
                 category="Cross-Asset",
                 r_squared=0.65,
-            )
-            formulas.append(commodity_currency_formula)
 
         return formulas
 
