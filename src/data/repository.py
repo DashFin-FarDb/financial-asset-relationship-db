@@ -87,9 +87,7 @@ class AssetGraphRepository:
                 representing all assets in the database,
                 ordered by asset id.
         """
-        result = (
-            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
-        )
+        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
