@@ -931,7 +931,6 @@ class TestAPIBoundaryConditions:
         mock_graph_instance.assets = large_graph.assets
         mock_graph_instance.relationships = large_graph.relationships
         mock_graph_instance.calculate_metrics = large_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = large_graph.get_3d_visualization_data
 
         # Should not timeout or error
         response = client.get("/api/assets")
