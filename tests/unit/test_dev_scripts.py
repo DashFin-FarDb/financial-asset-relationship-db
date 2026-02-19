@@ -505,7 +505,8 @@ class TestShellScripts:
         # Should use git branch -d (safe delete) not -D (force delete) by default
         if "git branch" in content and "-" in content:
             # Check the context of deletion
-            pass
+            self.assertIn("git branch -d", content)
+            self.assertNotIn("git branch -D", content)
 
     def test_cleanup_branches_has_dry_run_mode(self):
         """

@@ -35,13 +35,6 @@ def _is_valid_color_format(color: str) -> bool:
     Args:
         color: Color string to validate
 
-"""
-
-
-This module provides utility functions to build and manage asset relationship graphs,
-compute relationship weights, and build efficient lookup indices for visualizations.
-"""
-
     Returns:
         True if color format is valid, False otherwise
     """
