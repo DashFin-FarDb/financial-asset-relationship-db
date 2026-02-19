@@ -255,7 +255,7 @@ class TestEdgeCasesAndRegressions:
         # Retrieve and verify
         retrieved = repo.get_assets_map()["MINIMAL"]
         assert retrieved.id == "MINIMAL"
-        assert retrieved.price == 1.0
+        assert abs(retrieved.price - 1.0) < 1e-9
 
         session.close()
         engine.dispose()
@@ -332,7 +332,7 @@ class TestEdgeCasesAndRegressions:
         metrics = graph.calculate_metrics()
         assert metrics["total_assets"] == 1
         assert metrics["total_relationships"] == 0
-        assert metrics["relationship_density"] == 0.0
+        assert metrics["relationship_density"] == pytest.approx(0.0)
 
     @staticmethod
     def test_large_relationship_strength_values(tmp_path):
@@ -388,9 +388,9 @@ class TestEdgeCasesAndRegressions:
         rel_one = repo.get_relationship("BOUND_1", "BOUND_2", "one")
         rel_neg = repo.get_relationship("BOUND_2", "BOUND_0", "negative")
 
-        assert rel_zero.strength == 0.0
-        assert rel_one.strength == 1.0
-        assert rel_neg.strength == -0.5
+        assert rel_zero.strength == pytest.approx(0.0)
+        assert rel_one.strength == pytest.approx(1.0)
+        assert rel_neg.strength == pytest.approx(-0.5)
 
         session.close()
         engine.dispose()
@@ -434,7 +434,7 @@ class TestConcurrentOperations:
         # Should only have one asset
         assets = repo.list_assets()
         assert len(assets) == 1
-        assert assets[0].price == 140.0  # Last update
+        assert abs(assets[0].price - 140.0) < 1e-9  # Last update
 
         session.close()
         engine.dispose()
@@ -488,7 +488,7 @@ class TestConcurrentOperations:
         assets = repo.list_assets()
         assert len(assets) == 1
         assert assets[0].symbol == "REC2"
-        assert assets[0].price == 200.0
+        assert abs(assets[0].price - 200.0) < 1e-9
 
         session.close()
         engine.dispose()
