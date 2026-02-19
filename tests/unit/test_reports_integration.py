@@ -152,13 +152,12 @@ class TestGradioIntegration:
     """Test cases for Gradio integration helpers."""
 
     @staticmethod
-    """Unit tests for reports integration functionality."""
     def test_make_gradio_report_fn_markdown() -> None:
         """Test Gradio report function creation for markdown."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         def graph_provider():
-                """Provides a mock AssetRelationshipGraph for testing."""
+            """Provide a mock AssetRelationshipGraph for testing."""
                 return mock_graph
 
             with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
