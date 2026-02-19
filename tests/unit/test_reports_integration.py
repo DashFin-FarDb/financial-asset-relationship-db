@@ -158,7 +158,7 @@ class TestGradioIntegration:
 
         def graph_provider():
             """Provide a mock AssetRelationshipGraph for testing."""
-                return mock_graph
+            return mock_graph
 
             with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
                 mock_gen_md.return_value = "# Gradio Report"

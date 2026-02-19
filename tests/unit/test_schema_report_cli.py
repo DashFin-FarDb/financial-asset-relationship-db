@@ -29,6 +29,7 @@ def runner() -> CliRunner:
     """Create a CLI test runner."""
     return CliRunner()
 
+
 @pytest.mark.unit
 class TestLoadGraph:
     """Test cases for the load_graph function."""
