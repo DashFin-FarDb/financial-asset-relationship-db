@@ -528,8 +528,14 @@ class TestFormulaicVisualizer:
         )
 
     @staticmethod
-    def test_formula_dashboard_with_zero_formulas():
-        """Test dashboard creation with empty formula list."""
+    def test_formula_dashboard_with_zero_formulas() -> None:
+        """Test dashboard creation with empty formula list.
+
+        Returns:
+            None
+        Raises:
+            Exception: Propagates any unexpected errors from dashboard creation.
+        """
         visualizer = FormulaicVisualizer()
 
         analysis_results = {
