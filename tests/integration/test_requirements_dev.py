@@ -13,7 +13,6 @@ Policy:
 - Type stub packages (types-*) may omit a version constraint (common in repos).
 """
 
-# nosec B101
 
 from __future__ import annotations
 
