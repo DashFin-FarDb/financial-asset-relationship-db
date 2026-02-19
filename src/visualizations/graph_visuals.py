@@ -36,6 +36,8 @@ def _is_valid_color_format(color: str) -> bool:
         color: Color string to validate
 
 """
+
+
 This module provides utility functions to build and manage asset relationship graphs,
 compute relationship weights, and build efficient lookup indices for visualizations.
 """
@@ -86,7 +88,6 @@ def _compute_relationship_weight(rel_type, weight):
     if multiplier is None:
         return None
     return weight * multiplier
-
 
 
 def _add_relationship(index, src, dst, rel_type, weight, bidirectional):
