@@ -164,7 +164,6 @@ max-returns = 6
 max-statements = 50
 
 [tool.bandit]
-[tool.bandit]
 exclude_dirs = ["tests"]
 
 [tool.codeflash]
