@@ -148,6 +148,7 @@ class TestSerializationRoundTrip:
 
     `@staticmethod`
 
+
     def test_graph_with_complex_relationships_serialization():
         """Test serialization of graph with bidirectional relationships."""
         graph = AssetRelationshipGraph()
