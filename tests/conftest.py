@@ -49,7 +49,7 @@ def sample_bond():
         asset_class=AssetClass.FIXED_INCOME,
         sector="Technology",
         price=100.0,
-        issuer_id="TEST_AAPL",
+        issuer_id="AAPL",
         yield_to_maturity=0.03,
         credit_rating="AAA",
     )
