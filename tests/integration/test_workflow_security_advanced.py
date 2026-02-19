@@ -14,6 +14,7 @@ from typing import Any, Dict, List
 
 import pytest
 
+pytestmark = pytest.mark.integration
 
 class TestWorkflowInjectionPrevention:
     """Tests for preventing injection attacks in workflows."""
