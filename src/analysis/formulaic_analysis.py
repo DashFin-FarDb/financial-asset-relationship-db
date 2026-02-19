@@ -817,26 +817,16 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
         """
-        Builds example market - capitalization strings for up to two equity assets
-        found in the graph.
+        Build example market-cap strings for up to two equity assets in the graph.
 
-        Scans the graph assets for items classified as EQUITY that have a non - null
-        market_cap, formats up to two examples in billions
-        (e.g., 'SYM: Market Cap = $1.5B'),
-        and returns a semicolon - separated string.
-        If no valid equity market - cap values are found, returns the
-        default example string.
-
-        Parameters:
-            graph(AssetRelationshipGraph): Graph containing assets to sample for
-                market - cap examples.
-
-        Returns:
-            str: Formatted example(s) or the default example message.
+        Scans assets classified as EQUITY that have a non-null ``market_cap``,
+        formats up to two examples in billions (e.g. "SYM: Market Cap = $1.5B"),
+        and returns them as a semicolon-separated string. If no valid equity
+        market-cap values are found, returns a default example string.
         """
         from src.models.financial_models import AssetClass
 
-        examples = []
+        examples: list[str] = []
         for asset in graph.assets.values():
             if (
                 asset.asset_class == AssetClass.EQUITY
@@ -844,10 +834,14 @@ class FormulaicAnalyzer:
                 and asset.market_cap is not None
             ):
                 cap_billions = asset.market_cap / 1e9
-                examples.append(f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B")
+                examples.append(
+                    f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B",
+                )
                 if len(examples) >= 2:
                     break
+
         return "; ".join(examples) if examples else "Example: Market Cap = $1.5B"
+
     @staticmethod
     def _calculate_beta_examples(graph: AssetRelationshipGraph) -> str:
         """Generate a string representing beta calculations."""
