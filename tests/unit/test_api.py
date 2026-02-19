@@ -143,7 +143,6 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
 def apply_mock_graph():
     """
     Provide a helper callable that copies key graph attributes from a real AssetRelationshipGraph onto a patched graph instance.
-
     The returned callable has the signature (mock_graph_instance, graph) and mutates mock_graph_instance so its public attributes (assets, relationships, calculate_metrics, get_3d_visualization_data) mirror those of the provided graph.
 
     Returns:
