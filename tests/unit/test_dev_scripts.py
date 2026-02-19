@@ -524,10 +524,8 @@ class TestShellScripts:
             or (
                 "echo" in content
                 and any(
-                    pattern in content
-                    for pattern in ["Would delete", "will be deleted", "to be deleted", "Preview"]
+                    pattern in content for pattern in ["Would delete", "will be deleted", "to be deleted", "Preview"]
                 )
             )
         )
         assert has_preview, "Script should have a dry-run flag or explicitly preview branches before deletion"
-
