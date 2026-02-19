@@ -13,10 +13,7 @@ from src.models.financial_models import Asset
 from src.reports.schema_report import generate_schema_report
 from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
-from src.visualizations.graph_visuals import (
-    visualize_3d_graph,
-    visualize_3d_graph_with_filters,
-)
+from src.visualizations.graph_visuals import visualize_3d_graph, visualize_3d_graph_with_filters
 
 # Configure logging
 logging.basicConfig(
