@@ -134,9 +134,6 @@ def _build_relationship_index(
     """
     # Validate graph input
     _validate_graph_input(graph)
-            f"got {type(graph.relationships).__name__}"
-        )
-
     # Validate asset_ids is iterable and contains only strings
     try:
         asset_ids_set = set(asset_ids)
