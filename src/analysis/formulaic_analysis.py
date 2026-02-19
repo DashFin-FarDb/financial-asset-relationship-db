@@ -924,7 +924,7 @@ class FormulaicAnalyzer:
 
         Returns:
             example(str): A formatted example string showing the portfolio variance
-                expression(σ^2_p) with numeric terms.
+                expression(σ ^ 2_p) with numeric terms.
         """
         return (
             "Example: σ^2_p = (0.6^2 × 0.2^2) + (0.4^2 × 0.1^2) + "
