@@ -290,20 +290,25 @@ class TestSnykJobConfiguration:
     @staticmethod
     def test_snyk_action_is_iac(snyk_action_steps):
         """Test that Snyk action is IaC scan."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         assert "/iac@" in snyk_action_steps[0]["uses"]
 
     @staticmethod
     def test_snyk_action_has_pinned_sha(snyk_action_steps):
         """Test that Snyk action uses pinned SHA for security."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         snyk_action = snyk_action_steps[0]["uses"]
         assert "@" in snyk_action
         sha_part = snyk_action.split("@")[1]
-        # SHA should be 40 hex characters
-        assert len(sha_part) >= 40
+        # Full 40-character lowercase hex SHA
+        assert re.fullmatch(r"[0-9a-f]{40}", sha_part), (
+            f"Action does not appear to be pinned to a full SHA: {sha_part!r}"
+        )
 
     @staticmethod
     def test_snyk_step_continues_on_error(snyk_action_steps):
         """Test that Snyk step is configured to continue on error."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         snyk_step = snyk_action_steps[0]
         # Should continue on error to allow SARIF upload
         assert "continue-on-error" in snyk_step
@@ -312,6 +317,7 @@ class TestSnykJobConfiguration:
     @staticmethod
     def test_snyk_step_has_env_token(snyk_action_steps):
         """Test that Snyk step has SNYK_TOKEN environment variable."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         snyk_step = snyk_action_steps[0]
         assert "env" in snyk_step
         assert "SNYK_TOKEN" in snyk_step["env"]
@@ -319,12 +325,14 @@ class TestSnykJobConfiguration:
     @staticmethod
     def test_snyk_token_uses_secret(snyk_action_steps):
         """Test that SNYK_TOKEN references GitHub secret."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         snyk_step = snyk_action_steps[0]
         assert snyk_step["env"]["SNYK_TOKEN"] == "${{ secrets.SNYK_TOKEN }}"
 
     @staticmethod
     def test_snyk_step_has_file_input(snyk_action_steps):
         """Test that Snyk step specifies file to test."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         snyk_step = snyk_action_steps[0]
         assert "with" in snyk_step
         assert "file" in snyk_step["with"]
@@ -332,11 +340,13 @@ class TestSnykJobConfiguration:
     @staticmethod
     def test_job_uploads_sarif(sarif_upload_steps):
         """Assert that the job includes a SARIF upload step using codeql-action/upload-sarif."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         assert len(sarif_upload_steps) > 0
 
     @staticmethod
     def test_sarif_upload_uses_v4(sarif_upload_steps):
         """Test that SARIF upload uses CodeQL action v4."""
+        assert snyk_action_steps, "No Snyk action steps found in workflow"
         assert "@v4" in sarif_upload_steps[0]["uses"]
 
     @staticmethod
@@ -388,10 +398,9 @@ class TestSnykWorkflowEdgeCases:
     """Test edge cases and potential issues."""
 
     @staticmethod
-    def test_workflow_file_not_empty(snyk_workflow_path):
+    def test_workflow_file_not_empty(snyk_workflow_content: str) -> None:
         """Test that workflow file is not empty."""
-        content = snyk_workflow_path.read_text()
-        assert len(content.strip()) > 0
+        assert len(snyk_workflow_content.strip()) > 0
 
     @staticmethod
     def test_workflow_has_no_syntax_errors(snyk_workflow):
@@ -399,12 +408,10 @@ class TestSnykWorkflowEdgeCases:
         assert snyk_workflow is not None
 
     @staticmethod
-    def test_workflow_not_disabled(snyk_workflow_path):
+    def test_workflow_not_disabled(snyk_workflow_content: str) -> None:
         """Test that workflow is not commented out or disabled."""
-        content = snyk_workflow_path.read_text()
         lines = [
-            line
-            for line in content.split("\n")
+            line for line in snyk_workflow_content.split("\n")
             if line.strip() and not line.strip().startswith("#")
         ]
         assert len(lines) > 0
