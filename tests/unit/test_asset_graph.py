@@ -256,6 +256,7 @@ class TestAddRelationshipRegression:
         assert len(rels) == 1
 
         # Relationship tuple should be (target, rel_type, strength)
+        # Relationship tuple should be (target, rel_type, strength)
         target, rel_type, strength = rels[0]
         assert target == "target"
         assert rel_type == "correlation"
