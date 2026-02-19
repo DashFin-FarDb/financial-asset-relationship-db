@@ -415,7 +415,15 @@ class FormulaicAnalyzer:
                 "σ_1, σ_2": "Standard deviations of assets 1 and 2",
                 "ρ_12": "Correlation between assets 1 and 2",
             },
-            example_calculation=(self._calculate_portfolio_variance_examples(graph)),
+            latex=r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
+            description="Portfolio risk considering correlation between two assets",
+            variables={
+                "σ²_p": "Portfolio variance",
+                "w_1, w_2": "Weights of assets 1 and 2",
+                "σ_1, σ_2": "Standard deviations of assets 1 and 2",
+                "ρ_12": "Correlation between assets 1 and 2",
+            },
+            example_calculation=self._calculate_portfolio_variance_examples(graph),
             category="Portfolio Theory",
             r_squared=0.87,
         )
