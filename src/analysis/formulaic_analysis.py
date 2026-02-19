@@ -374,6 +374,7 @@ class FormulaicAnalyzer:
         return formulas
 
         expression = ("σ = √(Σ(R_i - μ)² / (n-1))",)
+
     def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         graph.
@@ -415,17 +416,17 @@ class FormulaicAnalyzer:
                 "σ_1, σ_2": "Standard deviations of assets 1 and 2",
                 "ρ_12": "Correlation between assets 1 and 2",
             },
-            latex=r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
-            description="Portfolio risk considering correlation between two assets",
-            variables={
+            latex = r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
+            description = "Portfolio risk considering correlation between two assets",
+            variables = {
                 "σ²_p": "Portfolio variance",
                 "w_1, w_2": "Weights of assets 1 and 2",
                 "σ_1, σ_2": "Standard deviations of assets 1 and 2",
                 "ρ_12": "Correlation between assets 1 and 2",
             },
-            example_calculation=self._calculate_portfolio_variance_examples(graph),
-            category="Portfolio Theory",
-            r_squared=0.87,
+            example_calculation = self._calculate_portfolio_variance_examples(graph),
+            category = "Portfolio Theory",
+            r_squared = 0.87,
         )
         formulas.append(portfolio_variance_formula)
 
@@ -450,18 +451,18 @@ class FormulaicAnalyzer:
         # Currency exchange relationships
         if self._has_currencies(graph):
             exchange_rate_formula = Formula(
-                name="Exchange Rate Relationships",
-                expression="USD/EUR × EUR/GBP = USD/GBP",
-                latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
-                description=("Triangular arbitrage relationship between currencies"),
-                variables={
+                name = "Exchange Rate Relationships",
+                expression = "USD/EUR × EUR/GBP = USD/GBP",
+                latex = r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
+                description = ("Triangular arbitrage relationship between currencies"),
+                variables = {
                     "USD/EUR": "US Dollar to Euro exchange rate",
                     "EUR/GBP": "Euro to British Pound exchange rate",
                     "USD/GBP": "US Dollar to British Pound exchange rate",
                 },
-                example_calculation=(self._calculate_exchange_rate_examples(graph)),
-                category="Currency Markets",
-                r_squared=0.99,
+                example_calculation = (self._calculate_exchange_rate_examples(graph)),
+                category = "Currency Markets",
+                r_squared = 0.99,
             )
             formulas.append(exchange_rate_formula)
 
