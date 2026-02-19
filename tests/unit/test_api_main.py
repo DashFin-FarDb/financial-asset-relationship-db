@@ -132,9 +132,7 @@ class TestGraphInitialization:
         graph2 = api_main.get_graph()
         assert graph1 is graph2
 
-    def test_graph_uses_cache_when_configured(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
@@ -151,9 +149,7 @@ class TestGraphInitialization:
         api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
-    def test_graph_fallback_on_corrupted_cache(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_fallback_on_corrupted_cache(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should fallback when cache is corrupted or invalid."""
         cache_path = tmp_path / "graph_snapshot.json"
         cache_path.write_text("not valid json", encoding="utf-8")
@@ -379,9 +375,7 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(
-        self, client: TestClient
-    ) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
         """Metrics endpoint handles multi-node graphs with no relationships."""
         graph = AssetRelationshipGraph()
         graph.add_asset(
@@ -580,9 +574,9 @@ class TestErrorHandling:
 def test_cors_headers_present(bare_client: TestClient) -> None:
     """Ensure allowed origins receive the expected CORS headers."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
-    assert response.status_code == status.HTTP_200_OK  # nosec B101
-    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN  # nosec B101
-    assert response.headers["access-control-allow-credentials"] == "true"  # nosec B101
+    assert response.status_code == status.HTTP_200_OK
+    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN
+    assert response.headers["access-control-allow-credentials"] == "true"
 
 
 def test_cors_rejects_disallowed_origin(bare_client: TestClient) -> None:
@@ -590,16 +584,16 @@ def test_cors_rejects_disallowed_origin(bare_client: TestClient) -> None:
     disallowed_origin = "https://malicious.example.com"
     response = bare_client.get("/api/health", headers={"Origin": disallowed_origin})
 
-    assert response.status_code == status.HTTP_200_OK  # nosec B101
-    assert "access-control-allow-origin" not in response.headers  # nosec B101
-    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin  # nosec B101
+    assert response.status_code == status.HTTP_200_OK
+    assert "access-control-allow-origin" not in response.headers
+    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin
 
 
 @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
 def test_cors_allows_development_origins(bare_client: TestClient) -> None:
     """Allow default dev origins when running in development mode."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
-    assert response.status_code == status.HTTP_200_OK  # nosec B101
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.unit
