@@ -13,6 +13,7 @@ Tests cover:
 """
 
 import json
+import re
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -45,6 +46,7 @@ from src.models.financial_models import (
 pytestmark = pytest.mark.unit
 
 
+@pytest.mark.unit
 class TestRealDataFetcherInitialization:
     """Test RealDataFetcher initialization."""
 
@@ -92,7 +94,12 @@ class TestRealDataFetcherInitialization:
         cache_path = str(tmp_path / "cache.json")
 
         def custom_factory():
-            """Factory function that creates and returns a new AssetRelationshipGraph instance."""
+            """
+            Create a default AssetRelationshipGraph.
+
+            Returns:
+                AssetRelationshipGraph: A new, empty asset relationship graph instance.
+            """
             return AssetRelationshipGraph()
 
         fetcher = RealDataFetcher(
@@ -104,6 +111,7 @@ class TestRealDataFetcherInitialization:
         assert fetcher.enable_network is False
 
 
+@pytest.mark.unit
 class TestCreateRealDatabase:
     """Test create_real_database method."""
 
@@ -189,6 +197,7 @@ class TestCreateRealDatabase:
         assert isinstance(graph, AssetRelationshipGraph)
 
 
+@pytest.mark.unit
 class TestFetchMethods:
     """Test data fetching methods."""
 
@@ -280,6 +289,7 @@ class TestFetchMethods:
             assert event.date
 
 
+@pytest.mark.unit
 class TestFallback:
     """Test fallback mechanism."""
 
@@ -318,6 +328,7 @@ class TestFallback:
         assert len(result.assets) > 0
 
 
+@pytest.mark.unit
 class TestSerialization:
     """Test serialization functions."""
 
@@ -388,6 +399,7 @@ class TestSerialization:
         assert len(serialized["regulatory_events"]) == 1
 
 
+@pytest.mark.unit
 class TestDeserialization:
     """Test deserialization functions."""
 
@@ -510,6 +522,7 @@ class TestDeserialization:
         assert event.impact_score == 0.5
 
 
+@pytest.mark.unit
 class TestCacheOperations:
     """Test cache loading and saving."""
 
@@ -573,6 +586,7 @@ class TestCacheOperations:
         assert cache_path.parent.exists()
 
 
+@pytest.mark.unit
 class TestCreateRealDatabaseFunction:
     """Test the module-level create_real_database function."""
 
@@ -592,6 +606,7 @@ class TestCreateRealDatabaseFunction:
         assert result == mock_graph
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -697,6 +712,7 @@ class TestEdgeCases:
         assert "TEST2" in serialized["relationships"]
 
 
+@pytest.mark.unit
 class TestRegressionCases:
     """Regression tests for previously identified issues."""
 
@@ -734,6 +750,7 @@ class TestRegressionCases:
         assert isinstance(deserialized.asset_class, AssetClass)
 
 
+@pytest.mark.unit
 class TestNetworkDisabled:
     """Test behavior when network is explicitly disabled."""
 
@@ -776,6 +793,7 @@ class TestNetworkDisabled:
         assert result.assets["CACHED_ONLY"].price == 999.0
 
 
+@pytest.mark.unit
 class TestAllAssetTypes:
     """Test fetching and handling all asset types."""
 
@@ -818,11 +836,15 @@ class TestAllAssetTypes:
 
     @patch("yfinance.Ticker")
     def test_fetch_all_commodity_symbols(self, mock_ticker_class):
-        """Test that all commodity symbols are attempted."""
+        """
+        Verifies the commodity data fetcher attempts to fetch data for every expected commodity symbol.
+
+        Asserts the ticker constructor is called once for each expected symbol (GC=F, CL=F, SI=F).
+        """
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
-        mock_close.pct_change.return_value.std.return_value = 0.02
+        mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         mock_hist.__getitem__ = (
             lambda self, key: mock_close if key == "Close" else Mock()
         )
@@ -851,6 +873,7 @@ class TestAllAssetTypes:
         assert mock_ticker_class.call_count == 3
 
 
+@pytest.mark.unit
 class TestRegulatoryEvents:
     """Test regulatory event creation and handling."""
 
@@ -888,6 +911,7 @@ class TestRegulatoryEvents:
             assert 0.0 <= event.impact_score <= 1.0
 
 
+@pytest.mark.unit
 class TestGraphBuilding:
     """Test the complete graph building process."""
 
@@ -991,6 +1015,7 @@ class TestGraphBuilding:
         assert total_relationships > 0
 
 
+@pytest.mark.unit
 class TestSerializationEdgeCases:
     """Test edge cases in serialization/deserialization."""
 
@@ -1105,6 +1130,7 @@ class TestSerializationEdgeCases:
         assert "E2" in serialized["relationships"]
 
 
+@pytest.mark.unit
 class TestCacheOverwriteOperations:
     """Test cache overwrite operations sequentially."""
 
@@ -1145,6 +1171,7 @@ class TestCacheOverwriteOperations:
         assert "V1" not in loaded.assets
 
 
+@pytest.mark.unit
 class TestFetchMethodsErrorHandling:
     """Test error handling in fetch methods."""
 
@@ -1187,3 +1214,222 @@ class TestFetchMethodsErrorHandling:
         # Should not raise, might use default volatility
         commodities = RealDataFetcher._fetch_commodity_data()
         assert isinstance(commodities, list)
+
+
+@pytest.mark.unit
+class TestAssetFieldValidation:
+    """Test validation of asset fields during fetching."""
+
+    @patch("yfinance.Ticker")
+    def test_equity_with_missing_optional_fields(self, mock_ticker_class):
+        """Test equity creation when optional fields are missing."""
+        mock_ticker = Mock()
+        # Only provide minimal info
+        mock_ticker.info = {"symbol": "TEST"}
+        mock_ticker.history.return_value = Mock(empty=False)
+        mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
+            iloc=Mock(__getitem__=lambda self, idx: 100.0)
+        )
+        mock_ticker_class.return_value = mock_ticker
+
+        equities = RealDataFetcher._fetch_equity_data()
+
+        # Should create equities even with missing optional fields
+        assert isinstance(equities, list)
+        for equity in equities:
+            assert equity.price > 0
+            assert equity.symbol
+
+    @staticmethod
+    def test_regulatory_events_have_unique_ids():
+        """Test that all regulatory events have unique IDs."""
+        events = RealDataFetcher._create_regulatory_events()
+
+        event_ids = [event.id for event in events]
+        assert len(event_ids) == len(set(event_ids)), "Event IDs should be unique"
+
+    @staticmethod
+    def test_regulatory_events_dates_are_valid_format():
+        """Test that regulatory event dates follow expected format."""
+        events = RealDataFetcher._create_regulatory_events()
+
+        for event in events:
+            # Should be in YYYY-MM-DD format
+            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), (
+                f"Invalid date format: {event.date}"
+            )
+
+
+@pytest.mark.unit
+class TestCacheEdgeCases:
+    """Test edge cases in cache operations."""
+
+    @staticmethod
+    def test_cache_with_empty_graph(tmp_path):
+        """Test caching an empty graph."""
+        cache_path = tmp_path / "empty_cache.json"
+        empty_graph = AssetRelationshipGraph()
+
+        _save_to_cache(empty_graph, cache_path)
+
+        loaded = _load_from_cache(cache_path)
+        assert isinstance(loaded, AssetRelationshipGraph)
+        assert len(loaded.assets) == 0
+
+    @staticmethod
+    def test_cache_with_only_relationships(tmp_path):
+        """Test caching graph with relationships but modified assets."""
+        cache_path = tmp_path / "rel_cache.json"
+        graph = AssetRelationshipGraph()
+
+        # Add assets and relationships
+        e1 = Equity(
+            id="E1",
+            symbol="E1",
+            name="E1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        e2 = Equity(
+            id="E2",
+            symbol="E2",
+            name="E2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
+        graph.add_asset(e1)
+        graph.add_asset(e2)
+        graph.add_relationship("E1", "E2", "test", 0.5, bidirectional=True)
+
+        _save_to_cache(graph, cache_path)
+        loaded = _load_from_cache(cache_path)
+
+        assert "E1" in loaded.relationships
+        assert "E2" in loaded.relationships
+
+    @staticmethod
+    def test_cache_path_with_nonexistent_directory(tmp_path):
+        """Test saving cache to nonexistent directory path."""
+        cache_path = tmp_path / "deep" / "nested" / "path" / "cache.json"
+        graph = AssetRelationshipGraph()
+
+        # Should create parent directories
+        _save_to_cache(graph, cache_path)
+
+        assert cache_path.exists()
+        assert cache_path.parent.exists()
+
+
+@pytest.mark.unit
+class TestDataFetcherConsistency:
+    """Test consistency of fetched data."""
+
+    @patch("yfinance.Ticker")
+    def test_fetch_equity_sector_assignment_consistent(self, mock_ticker_class):
+        """Test that equity sector assignments are consistent."""
+        mock_ticker = Mock()
+        mock_ticker.info = {}
+        mock_ticker.history.return_value = Mock(empty=False)
+        mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
+            iloc=Mock(__getitem__=lambda self, idx: 100.0)
+        )
+        mock_ticker_class.return_value = mock_ticker
+
+        equities = RealDataFetcher._fetch_equity_data()
+
+        # All equities should have sectors
+        for equity in equities:
+            assert equity.sector
+            assert len(equity.sector) > 0
+
+    @staticmethod
+    def test_regulatory_events_asset_ids_reference_known_symbols():
+        """Test that regulatory events reference known asset symbols."""
+        events = RealDataFetcher._create_regulatory_events()
+
+        # Known equity symbols that should be referenced
+        known_symbols = {"AAPL", "MSFT", "XOM", "JPM"}
+
+        # At least some events should reference known symbols
+        referenced_assets = {event.asset_id for event in events}
+        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
+            "Events should reference known asset IDs"
+        )
+
+
+@pytest.mark.unit
+class TestSerializationRobustness:
+    """Test robustness of serialization functions."""
+
+    @staticmethod
+    def test_serialize_asset_with_all_none_optional_fields():
+        """Test serializing asset where all optional fields are None."""
+        equity = Equity(
+            id="TEST",
+            symbol="TEST",
+            name="Test",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+            market_cap=None,
+            pe_ratio=None,
+            dividend_yield=None,
+            earnings_per_share=None,
+            book_value=None,
+        )
+
+        serialized = _serialize_dataclass(equity)
+
+        assert serialized["id"] == "TEST"
+        assert serialized["market_cap"] is None
+        assert serialized["pe_ratio"] is None
+
+    @staticmethod
+    def test_deserialize_asset_with_unexpected_type():
+        """Test deserializing asset with unknown __type__ field."""
+        data = {
+            "__type__": "UnknownAssetType",
+            "id": "TEST",
+            "symbol": "TEST",
+            "name": "Test",
+            "asset_class": "Equity",
+            "sector": "Tech",
+            "price": 100.0,
+            "market_cap": None,
+            "currency": "USD",
+        }
+
+        # Should fall back to base Asset type
+        asset = _deserialize_asset(data)
+        assert isinstance(asset, Asset)
+        assert asset.id == "TEST"
+
+    @staticmethod
+    def test_serialize_then_deserialize_bond_preserves_data():
+        """Test that bond serialization/deserialization preserves all data."""
+        bond = Bond(
+            id="BOND1",
+            symbol="BND1",
+            name="Test Bond",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Government",
+            price=1000.0,
+            yield_to_maturity=0.03,
+            coupon_rate=0.025,
+            maturity_date="2030-01-01",
+            credit_rating="AAA",
+            issuer_id="ISSUER1",
+        )
+
+        serialized = _serialize_dataclass(bond)
+        deserialized = _deserialize_asset(serialized)
+
+        assert isinstance(deserialized, Bond)
+        assert deserialized.id == bond.id
+        assert deserialized.yield_to_maturity == bond.yield_to_maturity
+        assert deserialized.coupon_rate == bond.coupon_rate
+        assert deserialized.maturity_date == bond.maturity_date
+        assert deserialized.credit_rating == bond.credit_rating
+        assert deserialized.issuer_id == bond.issuer_id
