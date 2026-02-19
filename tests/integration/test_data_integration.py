@@ -146,8 +146,8 @@ class TestSerializationRoundTrip:
         assert len(restored_graph.assets) == 0
         assert len(restored_graph.relationships) == 0
 
-    @staticmethod
-    def test_graph_with_complex_relationships_serialization(sample_equity):
+    `@staticmethod`
+    def test_graph_with_complex_relationships_serialization():
         """Test serialization of graph with bidirectional relationships."""
         graph = AssetRelationshipGraph()
 
