@@ -650,9 +650,7 @@ class TestDocumentationRealisticContent:
             if any(x in unix_path for x in ["...", "test_", "__tests__"]):
                 continue
 
-            assert check_path.exists(), (
-                f"File mentioned in manifest doesn't exist: {unix_path}"
-            )
+            assert check_path.exists(), f"File mentioned in manifest doesn't exist: {unix_path}"
 
     def test_documented_file_counts_reasonable(self):
         """Test that documented file counts are reasonable for the project."""
