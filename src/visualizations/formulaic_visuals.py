@@ -693,9 +693,7 @@ class FormulaicVisualizer:
         if not formulas:
             return fig
 
-        df = pd.DataFrame(
-            [{"category": f.category, "r_squared": f.r_squared} for f in formulas]
-        )
+        df = pd.DataFrame([{"category": f.category, "r_squared": f.r_squared} for f in formulas])
         grouped = (
             df.groupby("category", as_index=False)
             .agg(avg_r_squared=("r_squared", "mean"), count=("r_squared", "size"))
