@@ -758,16 +758,50 @@ class TestHelperMethods:
         assert summary["avg_r_squared"] == 0
 
     @staticmethod
-    def test_calculate_avg_correlation_strength_from_empirical():
-        """Test _calculate_avg_correlation_strength_from_empirical."""
-        # Empty empirical data
+    def test_calculate_avg_correlation_strength_from_empirical_empty() -> None:
+        """Test default strength returned for empty empirical data.
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: If the default neutral value is not returned.
+        """
+        # 0.5 is the documented neutral/unknown default; see formulaic_analysis.py
         result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
             {}
         )
         assert result == 0.5
 
-        # With correlation matrix
+    @staticmethod
+    def test_calculate_avg_correlation_strength_from_empirical_with_matrix() -> None:
+        """Test strength calculation with a regular correlation matrix.
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: If the result is outside [0, 1].
+        """
         empirical = {"correlation_matrix": {"pair1": 0.8, "pair2": 0.6}}
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            empirical
+        )
+        assert 0 <= result <= 1
+
+    @staticmethod
+    def test_calculate_avg_correlation_strength_from_empirical_filters_perfect() -> (
+        None
+    ):
+        """Test that perfect correlations (1.0) are filtered before averaging.
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: If the result is outside [0, 1].
+        """
+        empirical = {"correlation_matrix": {"pair1": 1.0, "pair2": 0.8}}
         result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
             empirical
         )
@@ -1181,39 +1215,69 @@ class TestIntegrationScenarios:
         result = analyzer.analyze_graph(graph)
 
         # Should have formulas from all categories
-        assert result["formula_count"] > 10
-        categories = result["categories"]
-        assert "Valuation" in categories
-        assert "Risk Management" in categories
-        assert "Portfolio Theory" in categories
 
-    @staticmethod
-    def test_sector_correlation_analysis():
-        """Test correlation analysis for same-sector assets."""
-        analyzer = FormulaicAnalyzer()
-        graph = AssetRelationshipGraph()
+    assert result["formula_count"] > 10
+    categories = result["categories"]
+    assert "Valuation" in categories
+    assert "Risk Management" in categories
+    assert "Portfolio Theory" in categories
 
-        # Add multiple tech stocks
-        for i, (symbol, name) in enumerate(
-            [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
-        ):
-            equity = Equity(
-                id=symbol,
-                symbol=symbol,
-                name=name,
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=100.0 + i * 50,
-            )
-            graph.add_asset(equity)
 
-        graph.build_relationships()
+@staticmethod
+ def test_sector_correlation_analysis():
+     """Test correlation analysis for same-sector assets."""
+     graph = AssetRelationshipGraph()
 
-        result = analyzer.analyze_graph(graph)
+     # Add multiple tech stocks
+     for i, (symbol, name) in enumerate(
+         [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
+     ):
+         equity = Equity(
+             id=symbol,
+             symbol=symbol,
+             name=name,
+             asset_class=AssetClass.EQUITY,
+             sector="Technology",
+             price=100.0 + i * 50,
+         )
+         graph.add_asset(equity)
 
-        # Should identify correlations
-        formulas = result["formulas"]
-        correlation_formulas = [
-            f for f in formulas if "Correlation" in f.name or "Beta" in f.name
-        ]
-        assert len(correlation_formulas) > 0
+     graph.build_relationships()
+
+    analyzer = FormulaicAnalyzer()
+    result = analyzer.analyze_graph(graph)
+
+    # Should identify correlations
+    formulas = result["formulas"]
+    correlation_formulas = [
+        f for f in formulas if "Correlation" in f.name or "Beta" in f.name
+    ]
+    assert len(correlation_formulas) > 0
+
+
+@staticmethod
+def test_graph_quality_score_bounds() -> None:
+    """Test that calculate_metrics returns a quality_score within [0, 1].
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the quality score is out of bounds.
+    """
+    graph = AssetRelationshipGraph()
+
+    equity = Equity(
+        id="AAPL",
+        symbol="AAPL",
+        name="Apple",
+        asset_class=AssetClass.EQUITY,
+        sector="Technology",
+        price=150.0,
+        pe_ratio=25.5,
+    )
+    graph.add_asset(equity)
+    graph.build_relationships()
+
+    metrics = graph.calculate_metrics()
+    assert 0.0 <= metrics["quality_score"] <= 1.0

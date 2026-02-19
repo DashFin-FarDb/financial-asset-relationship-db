@@ -385,7 +385,6 @@ class TestFormulaicVisualizer:
         assert count_trace is not None, "Should have count trace"
 
     @staticmethod
-    @staticmethod
     def test_formula_dashboard_handles_large_correlation_matrix(visualizer):
         """Test dashboard with a large correlation matrix."""
         # Create a large correlation matrix (more than 8x8)
@@ -414,7 +413,6 @@ class TestFormulaicVisualizer:
             heatmap = heatmap_traces[0]
             assert len(heatmap.z) <= 8, "Should limit heatmap to 8x8"
 
-    @staticmethod
     @staticmethod
     def test_formula_detail_view_with_special_characters(visualizer):
         """Test detail view with formulas containing special characters."""
@@ -500,3 +498,26 @@ class TestFormulaicVisualizer:
         assert len(r_squared_trace.y) > 0
         avg_value = r_squared_trace.y[0]
         assert abs(avg_value - 0.8) < 0.01, "Should correctly calculate average R-squared"
+
+    @staticmethod
+    def test_formula_dashboard_with_zero_formulas() -> None:
+        """Test dashboard creation with empty formula list.
+
+        Returns:
+            None
+        Raises:
+            Exception: Propagates any unexpected errors from dashboard creation.
+        """
+        visualizer = FormulaicVisualizer()
+
+        analysis_results = {
+            "formulas": [],
+            "formula_count": 0,
+            "categories": {},
+        }
+
+        fig = visualizer.create_formula_dashboard(analysis_results)
+
+        # Should still create a valid figure
+        assert isinstance(fig, go.Figure)
+        assert fig.layout.title.text == "📊 Financial Formulaic Analysis Dashboard"

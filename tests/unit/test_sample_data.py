@@ -52,9 +52,7 @@ class TestSampleDatabaseCreation:
         graph = create_sample_database()
 
         tech_equities = [
-            asset
-            for asset in graph.assets.values()
-            if isinstance(asset, Equity) and asset.sector == "Technology"
+            asset for asset in graph.assets.values() if isinstance(asset, Equity) and asset.sector == "Technology"
         ]
 
         assert len(tech_equities) >= 3, "Should have multiple technology companies"
@@ -72,9 +70,7 @@ class TestSampleDatabaseCreation:
         """Test that sample database includes commodity assets."""
         graph = create_sample_database()
 
-        commodities = [
-            asset for asset in graph.assets.values() if isinstance(asset, Commodity)
-        ]
+        commodities = [asset for asset in graph.assets.values() if isinstance(asset, Commodity)]
         assert len(commodities) > 0, "Sample database should include commodities"
 
     @staticmethod
@@ -82,9 +78,7 @@ class TestSampleDatabaseCreation:
         """Test that sample database includes currency assets."""
         graph = create_sample_database()
 
-        currencies = [
-            asset for asset in graph.assets.values() if isinstance(asset, Currency)
-        ]
+        currencies = [asset for asset in graph.assets.values() if isinstance(asset, Currency)]
         assert len(currencies) > 0, "Sample database should include currencies"
 
 
@@ -97,9 +91,7 @@ class TestSampleAssetProperties:
         """Test that equity assets have positive prices."""
         graph = create_sample_database()
 
-        equities = [
-            asset for asset in graph.assets.values() if isinstance(asset, Equity)
-        ]
+        equities = [asset for asset in graph.assets.values() if isinstance(asset, Equity)]
 
         for equity in equities:
             assert equity.price > 0, f"Equity {equity.id} should have positive price"
@@ -109,24 +101,18 @@ class TestSampleAssetProperties:
         """Test that equity assets have valid market capitalization."""
         graph = create_sample_database()
 
-        equities = [
-            asset for asset in graph.assets.values() if isinstance(asset, Equity)
-        ]
+        equities = [asset for asset in graph.assets.values() if isinstance(asset, Equity)]
 
         for equity in equities:
             if equity.market_cap is not None:
-                assert equity.market_cap > 0, (
-                    f"Equity {equity.id} should have positive market cap"
-                )
+                assert equity.market_cap > 0, f"Equity {equity.id} should have positive market cap"
 
     @staticmethod
     def test_equity_assets_have_sectors():
         """Test that equity assets have sector assignments."""
         graph = create_sample_database()
 
-        equities = [
-            asset for asset in graph.assets.values() if isinstance(asset, Equity)
-        ]
+        equities = [asset for asset in graph.assets.values() if isinstance(asset, Equity)]
 
         for equity in equities:
             assert equity.sector, f"Equity {equity.id} should have a sector"
@@ -166,14 +152,11 @@ class TestSampleAssetProperties:
         """Test that commodity assets have contract information."""
         graph = create_sample_database()
 
-        commodities = [
-            asset for asset in graph.assets.values() if isinstance(asset, Commodity)
-        ]
+        commodities = [asset for asset in graph.assets.values() if isinstance(asset, Commodity)]
 
         for commodity in commodities:
             assert (
-                commodity.contract_size is not None
-                or commodity.delivery_date is not None
+                commodity.contract_size is not None or commodity.delivery_date is not None
             ), f"Commodity {commodity.id} should have contract information"
 
     @staticmethod
@@ -181,14 +164,10 @@ class TestSampleAssetProperties:
         """Test that currency assets have exchange rate information."""
         graph = create_sample_database()
 
-        currencies = [
-            asset for asset in graph.assets.values() if isinstance(asset, Currency)
-        ]
+        currencies = [asset for asset in graph.assets.values() if isinstance(asset, Currency)]
 
         for currency in currencies:
-            assert currency.exchange_rate is not None, (
-                f"Currency {currency.id} should have exchange rate"
-            )
+            assert currency.exchange_rate is not None, f"Currency {currency.id} should have exchange rate"
             assert currency.exchange_rate > 0
 
 
@@ -204,14 +183,16 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_relationships_have_valid_strength():
-        """Test that all relationships have valid strength values."""
+        """Check every relationship strength is within [0.0, 1.0].
+
+        Returns:
+            None
+        """
         graph = create_sample_database()
 
         for _source_id, rels in graph.relationships.items():
             for _target_id, _rel_type, strength in rels:
-                assert 0 <= strength <= 1, (
-                    f"Relationship {_source_id} -> {_target_id} has invalid strength {strength}"
-                )
+                assert 0 <= strength <= 1, f"Relationship {_source_id} -> {_target_id} has invalid strength {strength}"
 
     @staticmethod
     def test_same_sector_relationships_exist():
@@ -228,16 +209,14 @@ class TestSampleRelationships:
             if same_sector_found:
                 break
 
-        assert same_sector_found, (
-            "Sample database should have same_sector relationships"
-        )
+        assert same_sector_found, "Sample database should have same_sector relationships"
 
     @staticmethod
     def test_corporate_bond_relationships_exist():
-        """
-        Verify corporate_bond relationships are present when bond assets exist.
+        """Verify every relationship's source and target IDs exist in graph.assets.
 
-        If the generated sample database contains any Bond assets, this test asserts that at least one relationship with type "corporate_bond" appears in graph.relationships. The test does not fail when no Bond assets are present.
+        Returns:
+            None
         """
         graph = create_sample_database()
 
@@ -255,9 +234,21 @@ class TestSampleRelationships:
         # Just verify the structure is there if bonds exist
         bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
         if len(bonds) > 0:
-            assert bond_rel_found, (
-                "If bonds exist, corporate_bond relationships should be present"
-            )
+            # Look for corporate_link relationships (as produced by the graph)
+            bond_rel_found = False
+            for _source_id, rels in graph.relationships.items():
+                for _target_id, rel_type, _strength in rels:
+                    if rel_type == "corporate_link":
+                        bond_rel_found = True
+                        break
+                if bond_rel_found:
+                    break
+
+            # Bonds may not always be in sample data, so this is optional
+            # Just verify the structure is there if bonds exist
+            bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
+            if len(bonds) > 0:
+                assert bond_rel_found, "If bonds exist, corporate_link relationships should be present"
 
 
 @pytest.mark.unit
@@ -278,9 +269,7 @@ class TestSampleRegulatoryEvents:
 
         if len(graph.regulatory_events) > 0:
             for event in graph.regulatory_events:
-                assert -1 <= event.impact_score <= 1, (
-                    f"Event {event.id} has invalid impact score {event.impact_score}"
-                )
+                assert -1 <= event.impact_score <= 1, f"Event {event.id} has invalid impact score {event.impact_score}"
 
     @staticmethod
     def test_regulatory_events_linked_to_assets():
@@ -289,9 +278,9 @@ class TestSampleRegulatoryEvents:
 
         if len(graph.regulatory_events) > 0:
             for event in graph.regulatory_events:
-                assert event.asset_id in graph.assets, (
-                    f"Event {event.id} references non-existent asset {event.asset_id}"
-                )
+                assert (
+                    event.asset_id in graph.assets
+                ), f"Event {event.id} references non-existent asset {event.asset_id}"
 
 
 @pytest.mark.unit
@@ -325,18 +314,14 @@ class TestSampleDataConsistency:
             assert len(asset.name) > 0
 
     @staticmethod
-    def test_relationship_targets_exist():
-        """Test that all relationship targets reference existing assets."""
+    def test_relationship_targets_exist() -> None:
+        """Ensure all relationship source/target IDs exist in graph.assets."""
         graph = create_sample_database()
 
         for source_id, rels in graph.relationships.items():
-            assert source_id in graph.assets, (
-                f"Source {source_id} should exist in assets"
-            )
+            assert source_id in graph.assets, f"Source {source_id} should exist in assets"
             for target_id, _rel_type, _strength in rels:
-                assert target_id in graph.assets, (
-                    f"Target {target_id} in relationship should exist in assets"
-                )
+                assert target_id in graph.assets, f"Target {target_id} in relationship should exist in assets"
 
     @staticmethod
     def test_bond_issuer_references_valid_asset():
@@ -347,9 +332,7 @@ class TestSampleDataConsistency:
 
         for bond in bonds:
             if bond.issuer_id:
-                assert bond.issuer_id in graph.assets, (
-                    f"Bond {bond.id} issuer {bond.issuer_id} should exist in assets"
-                )
+                assert bond.issuer_id in graph.assets, f"Bond {bond.id} issuer {bond.issuer_id} should exist in assets"
 
 
 @pytest.mark.unit

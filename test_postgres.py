@@ -1,65 +1,125 @@
-import logging
+"""
+Integration test for PostgreSQL connectivity.
+
+This test is intentionally opt-in because it requires real credentials and a live
+database. By default it will be skipped in CI and local runs.
+
+Enable explicitly by setting:
+  RUN_POSTGRES_TESTS=1
+and providing one of:
+  ASSET_GRAPH_DATABASE_URL (preferred)
+  DATABASE_URL
+
+Security:
+- We never print the full DSN.
+- We skip if a placeholder password token is present.
+"""
+
+from __future__ import annotations
+
 import os
+from typing import Final, Optional
 
-import psycopg2
-from dotenv import load_dotenv
+import pytest
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+pytest.importorskip("psycopg2")
+
+from psycopg2 import connect  # noqa: E402  # pylint: disable=wrong-import-position
+
+PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
+    "[YOUR-PASSWORD]",
+    "<PASSWORD>",
+    "YOUR_PASSWORD",
+)
 
 
-def test_postgres_connection():
-    """Test direct PostgreSQL connection to Supabase"""
+def _get_database_url() -> Optional[str]:
+    """Get the database URL from env vars (prefer ASSET_GRAPH..., fallback DATABASE_URL)."""
+    # Prefer the same env var used by the app. Fall back for legacy/local usage.
+    return os.getenv("ASSET_GRAPH_DATABASE_URL") or os.getenv("DATABASE_URL")
 
-    # Load environment variables
-    load_dotenv()
 
-    # Get database URL from environment variables
-    database_url = os.getenv("DATABASE_URL")
+def _redact_dsn(dsn: str) -> str:
+    """
+    Return a redacted connection string suitable for logs.
 
+    We avoid leaking credentials. This is deliberately conservative and does not
+    attempt to parse every DSN format perfectly; it only aims to avoid printing
+    secrets.
+    """
+    # Common URL form: postgresql://user:pass@host:port/db
+    if "://" in dsn and "@" in dsn:
+        scheme, rest = dsn.split("://", 1)
+        # Use rsplit to handle '@' characters within the password
+        creds_and_host = rest.rsplit("@", 1)
+        if len(creds_and_host) == 2:
+            return f"{scheme}://***:***@{creds_and_host[1]}"
+    # psycopg2 keyword DSN: "dbname=... user=... password=... host=..."
+    # Redact 'password=' segment if present.
+    lowered = dsn.lower()
+    if "password=" in lowered:
+        parts = dsn.split()
+        redacted_parts: list[str] = []
+        for part in parts:
+            if part.lower().startswith("password="):
+                redacted_parts.append("password=***")
+            else:
+                redacted_parts.append(part)
+        return " ".join(redacted_parts)
+    return "***"
+
+
+@pytest.mark.integration
+def test_postgres_connection_smoke() -> None:
+    """
+    Smoke-test a live Postgres connection.
+
+    This is opt-in. It will be skipped unless RUN_POSTGRES_TESTS=1 is set.
+
+    Expectations:
+    - Connection succeeds
+    - A trivial query returns a row
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the connection or query fails to return a valid row.
+    """
+    if os.getenv("RUN_POSTGRES_TESTS") != "1":
+        pytest.skip("Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test")
+
+    database_url = _get_database_url()
     if not database_url:
-        logger.error("Missing DATABASE_URL environment variable")
-        return False
+        pytest.skip("No database URL provided. Set ASSET_GRAPH_DATABASE_URL (preferred) or DATABASE_URL.")
 
-    # Check if [YOUR-PASSWORD] placeholder is still in the connection string
-    if "[YOUR-PASSWORD]" in database_url:
-        logger.error("Please replace [YOUR-PASSWORD] with your actual database password in .env file")
-        return False
+    if any(token in database_url for token in PLACEHOLDER_TOKENS):
+        pytest.skip("Database URL contains a placeholder password token")
+
+    # Defensive check: avoid accidentally running against SQLite URL.
+    if database_url.strip().lower().startswith("sqlite"):
+        pytest.skip("Database URL is SQLite; Postgres connectivity test not applicable")
 
     try:
-        # Connect to the database
-        conn = psycopg2.connect(database_url)
+        conn = connect(database_url)
+    except Exception as exc:  # noqa: BLE001
+        pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
 
-        # Create a cursor
-        cur = conn.cursor()
-
-        # Execute a simple query
-        cur.execute("SELECT current_database(), current_user, version();")
-
-        # Fetch the result
-        result = cur.fetchone()
-
-        # Close cursor and connection
-        cur.close()
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute("SELECT current_database(), current_user, version();")
+            row = cur.fetchone()
+    except Exception as exc:  # noqa: BLE001
+        conn.close()
+        pytest.fail(f"Query failed after connecting to Postgres: {exc}")
+    else:
         conn.close()
 
-        logger.info("Successfully connected to PostgreSQL database: %s", result[0])
-        logger.info("Connected as user: %s", result[1])
-        logger.info("PostgreSQL version: %s", result[2])
-
-        return True
-
-    except Exception:
-        logger.exception("Failed to connect to PostgreSQL database")
-        return False
-
-
-if __name__ == "__main__":
-    logger.info("Testing PostgreSQL connection...")
-    success = test_postgres_connection()
-
-    if success:
-        logger.info("✅ PostgreSQL connection test passed!")
-    else:
-        logger.error("❌ PostgreSQL connection test failed!")
+    assert row is not None  # nosec B101
+    assert len(row) == 3  # nosec B101
+    assert isinstance(row[0], str), f"Expected str for database name, got {type(row[0])}"  # nosec B101
+    assert row[0], "Database name must be non-empty"  # nosec B101
+    assert isinstance(row[1], str), f"Expected str for current user, got {type(row[1])}"  # nosec B101
+    assert row[1], "Current user must be non-empty"  # nosec B101
+    assert isinstance(row[2], str), f"Expected str for version, got {type(row[2])}"  # nosec B101
+    assert row[2], "Version string must be non-empty"  # nosec B101

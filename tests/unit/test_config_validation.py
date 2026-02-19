@@ -143,7 +143,15 @@ class TestPackageJson:
 
     @pytest.fixture
     def package_json(self):
-        """Load package.json configuration."""
+        """
+        Load and parse the frontend/package.json file.
+
+        Returns:
+            dict: Parsed JSON content of frontend/package.json.
+
+        Raises:
+            AssertionError: If frontend/package.json does not exist.
+        """
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
 
@@ -216,9 +224,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(semver_pattern, version), (
-            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
-        )
+        assert re.match(
+            semver_pattern, version
+        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
 
 
 @pytest.mark.unit
@@ -227,7 +235,14 @@ class TestTSConfig:
 
     @pytest.fixture
     def tsconfig(self):
-        """Load tsconfig.json."""
+        """
+        Load and parse frontend/tsconfig.json.
+
+        Asserts that the file exists and returns its parsed JSON content.
+
+        Returns:
+            dict: Parsed contents of frontend/tsconfig.json.
+        """
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
 
@@ -319,13 +334,13 @@ class TestEnvExampleFixture:
     @pytest.fixture
     def env_example_content(self):
         """
-        Load and return the contents of the .env.example file.
+        Return the text contents of the repository's .env.example file.
 
         Returns:
-            str: The contents of `.env.example`.
+            str: Contents of .env.example.
 
         Raises:
-            AssertionError: If `.env.example` does not exist.
+            AssertionError: If .env.example does not exist.
         """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
@@ -338,7 +353,14 @@ class TestEnvExample:
 
     @pytest.fixture
     def env_example_content(self):
-        """Load .env.example content."""
+        """
+        Return the contents of the .env.example file.
+
+        Asserts that .env.example exists; raises AssertionError if it does not.
+
+        Returns:
+            content (str): The full text contents of .env.example.
+        """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
         with open(config_path) as f:
@@ -371,9 +393,7 @@ class TestEnvExample:
         ]
 
         for pattern in suspicious_patterns:
-            assert pattern not in env_example_content.lower(), (
-                f"Potential real secret found: {pattern}"
-            )
+            assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
 
 
 @pytest.mark.unit
@@ -383,7 +403,15 @@ class TestGitignore:
     @staticmethod
     @pytest.fixture
     def gitignore_content():
-        """Load .gitignore content."""
+        """
+        Load and return the repository's .gitignore file content.
+
+        Returns:
+            str: The raw text contents of `.gitignore`.
+
+        Raises:
+            AssertionError: If `.gitignore` does not exist in the current working directory.
+        """
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
 
@@ -446,9 +474,7 @@ class TestRequirementsTxt:
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
-            return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
     @staticmethod
     def test_requirements_exists():
@@ -486,9 +512,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(op in req for op in [">=", "==", "~=", "<="]), (
-                    f"Package should have version constraint: {req}"
-                )
+                assert any(
+                    op in req for op in [">=", "==", "~=", "<="]
+                ), f"Package should have version constraint: {req}"
 
 
 @pytest.mark.unit
@@ -523,7 +549,11 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_api_url_consistency():
-        """Test that API URL is consistent across configurations."""
+        """
+        Assert that .env.example documents the NEXT_PUBLIC_API_URL environment variable.
+
+        Reads the .env.example file and fails if the literal `NEXT_PUBLIC_API_URL` is not present.
+        """
         # Check .env.example
         with open(".env.example") as f:
             env_content = f.read()
@@ -575,12 +605,8 @@ class TestConfigurationConsistency:
 
         # Next.js standard scripts
         assert "next dev" in scripts.get("dev", "") or "next" in scripts.get("dev", "")
-        assert "next build" in scripts.get("build", "") or "next" in scripts.get(
-            "build", ""
-        )
-        assert "next start" in scripts.get("start", "") or "next" in scripts.get(
-            "start", ""
-        )
+        assert "next build" in scripts.get("build", "") or "next" in scripts.get("build", "")
+        assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
 
 
 @pytest.mark.unit
@@ -599,7 +625,14 @@ class TestConfigurationSecurityNegative:
 
     @staticmethod
     def test_no_api_keys_in_example_env():
-        """Negative: .env.example should not contain real API keys."""
+        """
+        Ensure .env.example does not contain likely real API keys or secrets.
+
+        Skips the test if .env.example is not present. Scans the file for long
+        alphanumeric sequences and known live key prefixes (e.g., "sk_live", "pk_live", "prod_")
+        and fails if a match appears on a line that does not include obvious placeholder
+        words like "your" or "example".
+        """
         env_example_path = Path(".env.example")
         if not env_example_path.exists():
             pytest.skip(".env.example not found")
@@ -647,9 +680,7 @@ class TestConfigurationSecurityNegative:
             # Should not have rm -rf / or similar dangerous commands
             dangerous_patterns = ["rm -rf /", "rm -rf /*", "sudo rm"]
             for pattern in dangerous_patterns:
-                assert pattern not in script_cmd, (
-                    f"Dangerous pattern '{pattern}' found in script '{script_name}'"
-                )
+                assert pattern not in script_cmd, f"Dangerous pattern '{pattern}' found in script '{script_name}'"
 
 
 @pytest.mark.unit
@@ -671,7 +702,11 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_package_json_wellformed():
-        """Malformed: package.json must be valid JSON."""
+        """
+        Validate that frontend/package.json contains valid JSON.
+
+        Skips the test if frontend/package.json does not exist. Fails if the file cannot be parsed as JSON or if the top-level JSON value is not a JSON object.
+        """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -685,7 +720,11 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_tsconfig_allows_comments():
-        """Edge: tsconfig.json may have comments (JSONC format)."""
+        """
+        Check that frontend/tsconfig.json is either valid JSON or JSONC (contains comments); skip when file is absent or uses comments, and fail only if it's malformed without comments.
+
+        If frontend/tsconfig.json does not exist, the test is skipped. If the file parses as JSON the test passes implicitly; if parsing fails but the file contains comment markers (`//` or `/*`), the test is skipped to allow JSONC; otherwise the test fails.
+        """
         tsconfig_path = Path("frontend/tsconfig.json")
         if not tsconfig_path.exists():
             pytest.skip("frontend/tsconfig.json not found")
@@ -712,7 +751,9 @@ class TestConfigurationBoundaryValues:
 
     @staticmethod
     def test_vercel_lambda_size_not_excessive():
-        """Boundary: Lambda size should not be unreasonably large."""
+        """
+        Ensure Vercel function `maxLambdaSize` values (if present) are between 1 and 250 megabytes.
+        """
         vercel_path = Path("vercel.json")
         if not vercel_path.exists():
             pytest.skip("vercel.json not found")
@@ -760,9 +801,7 @@ class TestConfigurationBoundaryValues:
 
         scripts = package.get("scripts", {})
         for script_name in scripts.keys():
-            assert len(script_name) < 50, (
-                f"Script name '{script_name}' is excessively long"
-            )
+            assert len(script_name) < 50, f"Script name '{script_name}' is excessively long"
 
 
 @pytest.mark.unit
@@ -788,28 +827,24 @@ class TestConfigurationRobustness:
 
     @staticmethod
     def test_requirements_no_conflicting_versions():
-        """Robustness: requirements.txt should not have duplicate packages."""
+        """
+        Ensure requirements.txt does not contain duplicate package entries.
+
+        Skips the test if requirements.txt is missing. Reads non-empty, non-comment lines, normalizes package names by stripping common version specifiers and case, and fails if any package appears more than once.
+        """
         requirements_path = Path("requirements.txt")
         if not requirements_path.exists():
             pytest.skip("requirements.txt not found")
 
         with open(requirements_path) as f:
-            lines = [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+            lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
         # Extract package names (before ==, >=, etc.)
         packages = []
         for line in lines:
             if not line.startswith("-"):
                 # Extract package name
-                package_name = (
-                    line.split("==")[0]
-                    .split(">=")[0]
-                    .split("~=")[0]
-                    .split("<=")[0]
-                    .strip()
-                )
+                package_name = line.split("==")[0].split(">=")[0].split("~=")[0].split("<=")[0].strip()
                 packages.append(package_name.lower())
 
         # Check for duplicates

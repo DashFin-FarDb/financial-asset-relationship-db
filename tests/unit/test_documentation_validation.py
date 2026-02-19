@@ -33,10 +33,6 @@ class TestDependencyMatrix:
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
         """
-    @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
-        """
         Load the dependency matrix markdown content from disk.
 
         Returns:
@@ -50,8 +46,7 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -130,9 +125,8 @@ class TestDependencyMatrix:
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
         found_types = set(file_types)
-        assert found_types.issubset(
-            expected_types | {"jsx", "json", "md"}
-        ), f"Unexpected file types: {found_types - expected_types}"
+        permitted_types = expected_types | {"jsx", "json", "md"}
+        assert found_types.issubset(permitted_types), f"Unexpected file types: {found_types - permitted_types}"
 
     def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
         """Test that dependencyMatrix.md has File Type Distribution section."""
@@ -235,7 +229,7 @@ class TestDependencyMatrix:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content:  # Not just hashes
-                        assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
 @pytest.mark.unit
@@ -270,9 +264,8 @@ class TestSystemManifest:
         with open(system_manifest_path, encoding="utf-8") as f:
             return f.read()
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(system_manifest_content):
+    def system_manifest_lines(self, system_manifest_content):
         """
         Split system manifest content into lines.
 
@@ -319,7 +312,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
+        Verify the system manifest contains a - Description: ... entry documenting the project description.
         """
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
@@ -340,19 +333,11 @@ class TestSystemManifest:
         except ValueError:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
-
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         """Test that systemManifest.md has Current Phase section."""
         assert "## Current Phase" in system_manifest_content
 
-
-        Assert that the System Manifest declares a current project phase.
-
-        Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
-
-        Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md file to inspect.
-        """
+        # Assert that the System Manifest declares a current project phase.
         pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
 
@@ -392,9 +377,7 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """
-        Verify that systemManifest.md contains the "## Dependencies" section.
-        """
+        """Verify that systemManifest.md contains the "## Dependencies" section."""
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
@@ -413,7 +396,12 @@ class TestSystemManifest:
 
     def test_system_manifest_has_language_dependency_sections(self, system_manifest_content):
         """Test that systemManifest.md has language - specific dependency sections."""
-        expected_sections = ["## PY Dependencies", "## JS Dependencies", "## TS Dependencies", "## TSX Dependencies"]
+        expected_sections = [
+            "## PY Dependencies",
+            "## JS Dependencies",
+            "## TS Dependencies",
+            "## TSX Dependencies",
+        ]
 
         found = sum(1 for section in expected_sections if section in system_manifest_content)
         assert found > 0, "No language-specific dependency sections found"
@@ -461,7 +449,12 @@ class TestSystemManifest:
 
     def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
         """Test that there are no duplicate major sections."""
-        major_sections = ["## Project Overview", "## Current Status", "## Project Structure", "## Dependencies"]
+        major_sections = [
+            "## Project Overview",
+            "## Current Phase",
+            "## Project Structure",
+            "## Dependencies",
+        ]
 
         for section in major_sections:
             count = system_manifest_content.count(section)
@@ -472,9 +465,9 @@ class TestSystemManifest:
 
     def test_system_manifest_markdown_formatting(self, system_manifest_lines):
         """
-        Verify markdown heading formatting in the System Manifest.
+        Check that Markdown headings in the System Manifest have a space after the leading hashes.
 
-        Asserts that, within the first 500 lines, any Markdown heading that begins with one or more `  # ` characters has a space immediately following the leading hash sequence (e.g. `# Title`, `## Section`). The test raises an assertion identifying the line number and content when a heading is missing the required space.
+        Examines up to the first 500 lines and asserts any line beginning with '#' contains a space immediately following the leading hash sequence(e.g. '# Title', '## Section'). On failure, raises an AssertionError identifying the offending line number and its content.
         """
         for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines
             # Check heading formatting
@@ -484,7 +477,7 @@ class TestSystemManifest:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content and not content.startswith("#"):  # Not more hashes
-                        assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
 @pytest.mark.unit
@@ -657,7 +650,7 @@ class TestDocumentationRealisticContent:
             if any(x in unix_path for x in ["...", "test_", "__tests__"]):
                 continue
 
-            assert check_path.exists() or "..." in file_path, f"File mentioned in manifest doesn't exist: {unix_path}"
+            assert check_path.exists(), f"File mentioned in manifest doesn't exist: {unix_path}"
 
     def test_documented_file_counts_reasonable(self):
         """Test that documented file counts are reasonable for the project."""

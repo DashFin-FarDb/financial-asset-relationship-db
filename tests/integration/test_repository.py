@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
+from typing import Generator
 
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 
+from src.data.database import create_session_factory
 from src.data.repository import AssetGraphRepository
 from src.models.financial_models import (
     AssetClass,
@@ -22,23 +24,30 @@ pytest.importorskip("sqlalchemy")
 
 
 def _apply_migration(database_path: Path) -> None:
-    """Apply database migrations by executing the initial SQL script on the given database path."""
-    sql = Path("migrations/001_initial.sql").read_text(encoding="utf-8")
+    """
+    Apply database migrations by executing the initial SQL script.
 
-    # The migration script is static, trusted, and not user-controlled.
+    The migration script is static/trusted (repository-owned), not user-controlled.
+    """
+    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
+    sql = migrations_path.read_text(encoding="utf-8")
+
     # executescript() is required for multi-statement DDL migrations.
     with sqlite3.connect(database_path) as connection:
         connection.executescript(sql)  # nosec pythonsecurity:S3649
 
 
-@pytest.fixture
-def session(tmp_path):
-    """Provide a SQLAlchemy session connected to a temporary SQLite database with initial migrations applied."""
+@pytest.fixture()
+def db_session(tmp_path: Path) -> Generator[Session, None, None]:
+    """
+    Provide a SQLAlchemy session connected to a temporary SQLite database
+    with initial migrations applied.
+    """
     db_path = tmp_path / "repository.db"
     _apply_migration(db_path)
+
     engine = create_engine(f"sqlite:///{db_path}")
-    SessionLocal = sessionmaker(bind=engine, autoflush=False)
-    session = SessionLocal()
+    session: Session = create_session_factory(engine)()
     try:
         yield session
     finally:
@@ -46,9 +55,10 @@ def session(tmp_path):
         engine.dispose()
 
 
-def test_asset_crud_flow(session):
-    """Test the CRUD operations for Asset entities: create, read, update, and delete in the repository."""
-    repo = AssetGraphRepository(session)
+@pytest.mark.integration
+def test_asset_crud_flow(db_session: Session) -> None:
+    """CRUD operations for Asset entities: create, read, update, delete."""
+    repo = AssetGraphRepository(db_session)
 
     equity = Equity(
         id="EQ1",
@@ -62,11 +72,11 @@ def test_asset_crud_flow(session):
     )
 
     repo.upsert_asset(equity)
-    session.commit()
-    session.expire_all()
+    db_session.commit()
+    db_session.expire_all()
 
     assets = repo.get_assets_map()
-    assert assets["EQ1"].name == "Equity One"
+    assert assets["EQ1"].name == "Equity One"  # nosec B101
 
     updated_equity = Equity(
         id="EQ1",
@@ -80,24 +90,25 @@ def test_asset_crud_flow(session):
     )
 
     repo.upsert_asset(updated_equity)
-    session.commit()
-    session.expire_all()
+    db_session.commit()
+    db_session.expire_all()
 
     assets = repo.get_assets_map()
-    assert assets["EQ1"].price == pytest.approx(120.0)
-    assert assets["EQ1"].market_cap == pytest.approx(1_200_000.0)
+    assert assets["EQ1"].price == pytest.approx(120.0)  # nosec B101
+    assert assets["EQ1"].market_cap == pytest.approx(1_200_000.0)  # nosec B101
 
     repo.delete_asset("EQ1")
-    session.commit()
-    session.expire_all()
+    db_session.commit()
+    db_session.expire_all()
 
     assets = repo.get_assets_map()
-    assert "EQ1" not in assets
+    assert "EQ1" not in assets  # nosec B101
 
 
-def test_relationship_and_event_crud_flow(session):
-    """Test the CRUD operations for asset relationships and regulatory events in the repository."""
-    repo = AssetGraphRepository(session)
+@pytest.mark.integration
+def test_relationship_and_event_crud_flow(db_session: Session) -> None:
+    """CRUD operations for relationships and regulatory events."""
+    repo = AssetGraphRepository(db_session)
 
     parent_equity = Equity(
         id="PARENT",
@@ -125,19 +136,24 @@ def test_relationship_and_event_crud_flow(session):
 
     repo.upsert_asset(parent_equity)
     repo.upsert_asset(bond)
-    session.commit()
-    session.expire_all()
+    db_session.commit()
+    db_session.expire_all()
 
+    # NOTE: The original test inserted strength=0.5 but asserted 0.8.
+    # Align the setup with the assertion so this is a meaningful CRUD check.
     repo.add_or_update_relationship(
-        "PARENT", "PARENT_BOND", "test", 0.5, bidirectional=False
+        "PARENT",
+        "PARENT_BOND",
+        "test",
+        0.8,
+        bidirectional=False,
     )
-    session.flush()
-    session.commit()
-    session.expire_all()
+    db_session.commit()
+    db_session.expire_all()
 
     relationships = repo.list_relationships()
-    assert len(relationships) == 1
-    assert relationships[0].strength == pytest.approx(0.8)
+    assert len(relationships) == 1  # nosec B101
+    assert relationships[0].strength == pytest.approx(0.8)  # nosec B101
 
     event = RegulatoryEvent(
         id="EVT1",
@@ -150,21 +166,19 @@ def test_relationship_and_event_crud_flow(session):
     )
 
     repo.upsert_regulatory_event(event)
-    session.commit()
-    session.expire_all()
+    db_session.commit()
+    db_session.expire_all()
 
     events = repo.list_regulatory_events()
-    assert len(events) == 1
-    assert events[0].related_assets == ["PARENT_BOND"]
+    assert len(events) == 1  # nosec B101
+    assert events[0].related_assets == ["PARENT_BOND"]  # nosec B101
 
     repo.delete_regulatory_event("EVT1")
-    session.commit()
-    session.expire_all()
-
-    assert repo.list_regulatory_events() == []
+    db_session.commit()
+    db_session.expire_all()
+    assert repo.list_regulatory_events() == []  # nosec B101
 
     repo.delete_relationship("PARENT", "PARENT_BOND", "test")
-    session.commit()
-    session.expire_all()
-
-    assert repo.list_relationships() == []
+    db_session.commit()
+    db_session.expire_all()
+    assert repo.list_relationships() == []  # nosec B101

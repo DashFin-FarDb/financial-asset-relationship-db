@@ -1,55 +1,105 @@
-import logging
+"""
+Integration test for Supabase connectivity.
+
+Opt-in only: requires real credentials and network access.
+
+Enable explicitly by setting:
+  RUN_SUPABASE_TESTS=1
+and providing:
+  SUPABASE_URL
+  SUPABASE_KEY
+
+Notes:
+- This test should not run in standard CI unless you explicitly configure secrets.
+- We do not print secrets or raw URLs beyond a minimal redaction.
+"""
+
+from __future__ import annotations
+
 import os
+from typing import Final, Optional
 
-from dotenv import load_dotenv
-from supabase import Client, create_client
+import pytest
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
+pytest.importorskip("supabase")
+
+from supabase import Client, create_client  # noqa: E402  # pylint: disable=wrong-import-position
+
+PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
+    "[YOUR-KEY]",
+    "<KEY>",
+    "YOUR_KEY",
+    "SUPABASE_KEY_HERE",
+    "your-project",
+    "<URL>",
+    "YOUR_URL",
+    "SUPABASE_URL_HERE",
+)
 
 
-def test_supabase_connection():
-    """Test connection to Supabase database"""
+def _get_env(name: str) -> Optional[str]:
+    """Return the environment variable value for name, or None if unset."""
+    value = os.getenv(name)
+    if value is None:
+        return None
+    value = value.strip()
+    return value or None
 
-    # Load environment variables
-    load_dotenv()
 
-    # Get Supabase credentials from environment variables
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_KEY")
+def _redact(value: str) -> str:
+    """Redact a secret value for logs, preserving only the first/last 4 chars."""
+    if len(value) <= 8:
+        return "***"
+    return f"{value[:4]}***{value[-4:]}"
+
+
+@pytest.mark.integration
+def test_supabase_connection_smoke() -> None:
+    """
+    Smoke-test Supabase connection by querying a small number of records.
+
+    Expectations:
+    - Client initializes
+    - Query executes without raising
+    - Response contains a 'data' attribute (list-like)
+    Returns:
+        None
+    Raises:
+        AssertionError: If the client or query fails or returns an invalid response.
+    """
+    if os.getenv("RUN_SUPABASE_TESTS") != "1":
+        pytest.skip("Set RUN_SUPABASE_TESTS=1 to enable live Supabase connectivity test")
+
+    # If you *really* want local .env loading, do it only when explicitly enabled.
+    if os.getenv("LOAD_DOTENV") == "1":
+        try:
+            from dotenv import load_dotenv
+
+            load_dotenv()
+
+        except ImportError:
+            pass  # dotenv not installed; proceed without it
+
+    supabase_url = _get_env("SUPABASE_URL")
+    supabase_key = _get_env("SUPABASE_KEY")
 
     if not supabase_url or not supabase_key:
-        logger.error("Missing Supabase credentials. Please set SUPABASE_URL and SUPABASE_KEY environment variables.")
-        return False
+        pytest.skip("Missing SUPABASE_URL and/or SUPABASE_KEY")
 
-    try:
-        # Initialize Supabase client
-        supabase: Client = create_client(supabase_url, supabase_key)
+    if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
+        pytest.skip("SUPABASE_KEY appears to be a placeholder")
 
-        # Test connection with a simple query
-        response = supabase.table("assets").select("*").limit(5).execute()
+    if any(tok in supabase_url for tok in PLACEHOLDER_TOKENS):
+        pytest.skip("SUPABASE_URL appears to be a placeholder")
 
-        # Check if we got a response
-        if response and hasattr(response, "data"):
-            logger.info(
-                "Successfully connected to Supabase! Found %d records.",
-                len(response.data),
-            )
-            return True
-        logger.error("Connection successful but no data returned.")
-        return False
+    # Build client
+    supabase: Client = create_client(supabase_url, supabase_key)
 
-    except Exception:
-        logger.exception("Failed to connect to Supabase")
-        return False
+    # Execute a safe, low-cost query.
+    # Assumes 'assets' table exists as per your domain; if not, adjust to a known table.
+    response = supabase.table("assets").select("id").limit(1).execute()
 
-
-if __name__ == "__main__":
-    logger.info("Testing Supabase connection...")
-    success = test_supabase_connection()
-
-    if success:
-        logger.info("✅ Supabase connection test passed!")
-    else:
-        logger.error("❌ Supabase connection test failed!")
+    # Validate response shape
+    assert response is not None  # nosec B101
+    assert hasattr(response, "data")  # nosec B101
+    assert isinstance(response.data, list)  # nosec B101
