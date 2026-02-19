@@ -371,139 +371,109 @@ class FormulaicAnalyzer:
             name="Volatility (Standard Deviation)",
             expression="σ = √(Σ(R_i - μ)² / (n-1))",
             latex=r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}{n-1}}",
-            description="Measure of price variability and risk",
-            variables={
-                "σ": "Standard deviation (volatility)",
-                "R_i": "Individual return",
-                "μ": "Mean return",
-                "n": "Number of observations",
-            },
-            example_calculation=self._calculate_volatility_examples(graph),
-            category="Risk Management",
-            r_squared=0.90,
-        )
-        formulas.append(volatility_formula)
+        def _extract_portfolio_theory_formulas(
+            self, graph: AssetRelationshipGraph
+        ) -> List[Formula]:
+            """
+            Builds Modern Portfolio Theory formulas derived from the asset relationship
+            graph.
 
-        return formulas
+            Returns:
+                List[Formula]: Formula objects representing portfolio theory
+                    relationships, including portfolio expected return and portfolio
+                    variance for a two-asset case.
+            """
+            formulas: List[Formula] = []
 
-        """
-        Builds Modern Portfolio Theory formulas derived from the asset relationship
-        graph.
-
-        Returns:
-            formulas (List[Formula]): Formula objects representing portfolio theory
-                relationships, including portfolio expected return and portfolio
-                variance for a two-asset case.
-        """
-        formulas=[]
-
-        # Portfolio Expected Return
-        portfolio_return_formula=Formula(
-            name="Portfolio Expected Return",
-            expression="E(R_p) = Σ(w_i × E(R_i))",
-            latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
-            description="Weighted average of individual asset expected returns",
-            variables={
-                "E(R_p)": "Expected portfolio return",
-                "w_i": "Weight of asset i in portfolio",
-                "E(R_i)": "Expected return of asset i",
-                "n": "Number of assets",
-            },
-            example_calculation=(self._calculate_portfolio_return_examples(graph)),
-            category="Portfolio Theory",
-            r_squared=1.0,
-        )
-        formulas.append(portfolio_return_formula)
-
-        # Portfolio Variance (2-asset case)
-            def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
-                """
-                Builds Modern Portfolio Theory formulas derived from the asset relationship
-                graph.
-
-                Returns:
-                    formulas (List[Formula]): Formula objects representing portfolio theory
-                        relationships, including portfolio expected return and portfolio
-                        variance for a two-asset case.
-                """
-                formulas: List[Formula]=[]
-
-                # Portfolio Expected Return
-                portfolio_return_formula=Formula(
-                    name="Portfolio Expected Return",
-                    expression="E(R_p) = Σ(w_i × E(R_i))",
-                    latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
-                    description="Weighted average of individual asset expected returns",
-                    variables={
-                        "E(R_p)": "Expected portfolio return",
-                        "w_i": "Weight of asset i in portfolio",
-                        "E(R_i)": "Expected return of asset i",
-                        "n": "Number of assets",
-                    },
-                    example_calculation=self._calculate_portfolio_return_examples(graph),
-                    category="Portfolio Theory",
-                    r_squared=1.0,
-                )
-                formulas.append(portfolio_return_formula)
-
-                # Portfolio Variance (2-asset case)
-                portfolio_variance_formula=Formula(
-                    name="Portfolio Variance (2-Asset)",
-                    expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
-                    latex=r"\sigma^2_p = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
-                    description="Portfolio risk considering correlation between assets",
-                    variables={
-                        "σ²_p": "Portfolio variance",
-                        "w_1, w_2": "Weights of assets 1 and 2",
-                        "σ_1, σ_2": "Standard deviations of assets 1 and 2",
-                        "ρ_12": "Correlation between assets 1 and 2",
-                    },
-                    example_calculation=self._calculate_portfolio_variance_examples(graph),
-        relationships when both commodities and currencies are present.
-
-        Returns:
-            formulas(List[Formula]):
-                A list of Formula objects representing cross - asset relationships
-                in the graph.
-        """
-        formulas = []
-
-        # Currency exchange relationships
-        if self._has_currencies(graph):
-            exchange_rate_formula = Formula(
-                name="Exchange Rate Relationships",
-                expression="USD/EUR × EUR/GBP = USD/GBP",
-                latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
-                description=("Triangular arbitrage relationship between currencies"),
+            # Portfolio Expected Return
+            portfolio_return_formula = Formula(
+                name="Portfolio Expected Return",
+                expression="E(R_p) = Σ(w_i × E(R_i))",
+                latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
+                description="Weighted average of individual asset expected returns",
                 variables={
-                    "USD/EUR": "US Dollar to Euro exchange rate",
-                    "EUR/GBP": "Euro to British Pound exchange rate",
-                    "USD/GBP": "US Dollar to British Pound exchange rate",
+                    "E(R_p)": "Expected portfolio return",
+                    "w_i": "Weight of asset i in portfolio",
+                    "E(R_i)": "Expected return of asset i",
+                    "n": "Number of assets",
                 },
-                example_calculation=(self._calculate_exchange_rate_examples(graph)),
-                category="Currency Markets",
-                r_squared=0.99,
+                example_calculation=self._calculate_portfolio_return_examples(graph),
+                category="Portfolio Theory",
+                r_squared=1.0,
             )
-            formulas.append(exchange_rate_formula)
+            formulas.append(portfolio_return_formula)
 
-        # Commodity-Currency relationship
-        if self._has_commodities(graph) and self._has_currencies(graph):
-            commodity_currency_formula = Formula(
-                name="Commodity-Currency Relationship",
-                expression=(
-                    "Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"
-                ),
-                latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
-                description=(
-                    "Inverse relationship between commodity prices and currency values"
-                ),
+            # Portfolio Variance (2-asset case)
+            portfolio_variance_formula = Formula(
+                name="Portfolio Variance (2-Asset)",
+                expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
+                latex=r"\sigma^2_p = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\sigma_1\sigma_2\rho_{12}",
+                description="Portfolio risk considering correlation between assets",
                 variables={
-                    "FX_commodity": "Currency value of commodity exporter",
-                    "P_commodity": "Commodity price",
+                    "σ²_p": "Portfolio variance",
+                    "w_1, w_2": "Weights of assets 1 and 2",
+                    "σ_1, σ_2": "Standard deviations of assets 1 and 2",
+                    "ρ_12": "Correlation between assets 1 and 2",
                 },
-                example_calculation=(
-                    self._calculate_commodity_currency_examples(graph)
-                ),
+                example_calculation=self._calculate_portfolio_variance_examples(graph),
+                category="Portfolio Theory",
+                r_squared=0.87,
+            )
+            formulas.append(portfolio_variance_formula)
+
+            return formulas
+
+        def _analyze_cross_asset_relationships(
+            self, graph: AssetRelationshipGraph
+        ) -> List[Formula]:
+            """
+            Assemble formulas describing detected relationships between different asset
+            classes in the graph.
+
+            Includes currency triangular-arbitrage/exchange-rate relationships when
+            currencies are present, and commodity–currency inverse relationships when
+            both commodities and currencies are present.
+
+            Returns:
+                List[Formula]: A list of Formula objects representing cross-asset
+                    relationships in the graph.
+            """
+            formulas: List[Formula] = []
+
+            # Currency exchange relationships
+            if self._has_currencies(graph):
+                exchange_rate_formula = Formula(
+                    name="Exchange Rate Relationships",
+                    expression="USD/EUR × EUR/GBP = USD/GBP",
+                    latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
+                    description="Triangular arbitrage relationship between currencies",
+                    variables={
+                        "USD/EUR": "US Dollar to Euro exchange rate",
+                        "EUR/GBP": "Euro to British Pound exchange rate",
+                        "USD/GBP": "US Dollar to British Pound exchange rate",
+                    },
+                    example_calculation=self._calculate_exchange_rate_examples(graph),
+                    category="Currency Markets",
+                    r_squared=0.99,
+                )
+                formulas.append(exchange_rate_formula)
+
+            # Commodity-Currency relationship
+            if self._has_commodities(graph) and self._has_currencies(graph):
+                commodity_currency_formula = Formula(
+                    name="Commodity-Currency Relationship",
+                    expression=(
+                        "Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"
+                    ),
+                    latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
+                    description=(
+                        "Inverse relationship between commodity prices and currency values"
+                    ),
+                    variables={
+                        "FX_commodity": "Currency value of commodity exporter",
+                        "P_commodity": "Commodity price",
+                    },
+                    example_calculation=self._calculate_commodity_currency_examples(graph),
                 category="Cross-Asset",
                 r_squared=0.65,
             )
