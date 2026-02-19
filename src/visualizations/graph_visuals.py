@@ -113,7 +113,7 @@ def _relationship_strength_entries(
             (rel.target_id, rel.source_id, rel.relationship_type): avg_strength
         }
     return {key: strength}
-      graph.relationships
+    graph.relationships
     - The lock is reentrant, allowing the same thread to acquire it multiple
       times safely
     - Creates a snapshot of relationships within the lock to minimize lock hold
