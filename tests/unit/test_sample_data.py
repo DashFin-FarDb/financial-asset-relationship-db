@@ -234,7 +234,7 @@ class TestSampleRelationships:
         # Just verify the structure is there if bonds exist
         bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
         if len(bonds) > 0:
-        # Look for corporate_link relationships (as produced by the graph)
+            # Look for corporate_link relationships (as produced by the graph)
         bond_rel_found = False
         for _source_id, rels in graph.relationships.items():
             for _target_id, rel_type, _strength in rels:
