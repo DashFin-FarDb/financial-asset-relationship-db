@@ -48,7 +48,6 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
 
 
-
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
@@ -120,7 +119,7 @@ def _relationship_strength_entries(
     - Creates a snapshot of relationships within the lock to minimize lock hold
       time
 
-    Thread safety guarantees (with conditions):
+    Thread safety guarantees(with conditions):
     ✓ SAFE: Multiple threads calling visualization functions in this module
       concurrently
     ✓ SAFE: Concurrent calls to this function with the same graph object
@@ -128,7 +127,7 @@ def _relationship_strength_entries(
       if:
       - All code that modifies graph.relationships uses the same
         _graph_access_lock, OR
-      - The graph object is treated as immutable after creation (recommended
+      - The graph object is treated as immutable after creation(recommended
         approach)
 
     Recommended usage patterns for thread safety:
@@ -144,26 +143,26 @@ def _relationship_strength_entries(
     code. If other parts of your application modify graph.relationships without
     using _graph_access_lock, race conditions may occur.
 
-    Error Handling (addresses review feedback):
-    ===========================================
+    Error Handling(addresses review feedback):
+    == == == == == == == == == == == == == == == == == == == == == =
     This function implements comprehensive error handling to ensure robustness:
     - Validates that graph is an AssetRelationshipGraph instance
     - Validates that graph.relationships exists and is a properly formatted
       dictionary
     - Validates that asset_ids is iterable and contains only strings
-    - Validates each relationship tuple has the correct structure (3 elements)
-    - Validates data types for target_id (string), rel_type (string), and
-      strength (numeric)
+    - Validates each relationship tuple has the correct structure(3 elements)
+    - Validates data types for target_id(string), rel_type(string), and
+      strength(numeric)
     - Provides detailed error messages indicating the exact location and nature
       of any issues
 
     Args:
         graph: The asset relationship graph
-        asset_ids: Iterable of asset IDs to include (will be converted to a set
+        asset_ids: Iterable of asset IDs to include(will be converted to a set
             for O(1) membership tests)
 
     Returns:
-        Dictionary mapping (source_id, target_id, rel_type) to strength for all
+        Dictionary mapping(source_id, target_id, rel_type) to strength for all
         relationships
 
     Raises:
@@ -289,19 +288,19 @@ def _create_node_trace(
     """Create node trace for 3D visualization with comprehensive input validation.
 
     Validates all inputs to ensure:
-    - positions is a non-empty 2D numpy array with
+    - positions is a non - empty 2D numpy array with
       shape(n, 3) containing finite numeric values
-    - asset_ids is a non-empty list or tuple of
-      non-empty strings with length matching positions
-    - colors is a non-empty list or tuple of valid color strings with
+    - asset_ids is a non - empty list or tuple of
+      non - empty strings with length matching positions
+    - colors is a non - empty list or tuple of valid color strings with
       length matching positions
-    - hover_texts is a non-empty list or tuple of strings with
+    - hover_texts is a non - empty list or tuple of strings with
       length matching positions
 
     Args:
         positions: NumPy array of node positions with shape(n, 3)
             containing finite numeric values
-        asset_ids: List of asset ID strings (must be non-empty strings,
+        asset_ids: List of asset ID strings(must be non - empty strings,
             length must match positions)
         colors: List of node colors(length must match positions)
         hover_texts: List of hover texts(length must match positions)
@@ -439,11 +438,11 @@ def _prepare_layout_config(
         num_assets: Number of assets in the visualization
         relationship_traces: List of relationship traces to count visible
             relationships
-        base_title: Base title text (default: "Financial Asset Network")
+        base_title: Base title text(default: "Financial Asset Network")
         layout_options: Optional layout customization options
 
     Returns:
-        Tuple of (dynamic_title, layout_options) ready for use with
+        Tuple of(dynamic_title, layout_options) ready for use with
             _configure_3d_layout
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
@@ -729,7 +728,7 @@ def _collect_and_group_relationships(
     asset_ids: Iterable[str],
     relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> Dict[Tuple[str, bool], List[dict]]:
-    """Collect and group relationships with directionality info in a single pass."""
+    """Collect and group relationships with directionality info in a single pass ."""
     relationship_index = _build_relationship_index(graph, asset_ids)
 
     processed_pairs: Set[Tuple[str, str, str]] = set()
@@ -801,7 +800,7 @@ def _build_edge_coordinates_optimized(
 def _build_hover_texts(
     relationships: List[dict], rel_type: str, is_bidirectional: bool
 ) -> List[Optional[str]]:
-    """Build hover text list for relationships with pre-allocation for performance."""
+    """Build hover text list for relationships with pre - allocation for performance."""
     direction_text = "↔" if is_bidirectional else "→"
 
     num_rels = len(relationships)
@@ -1079,7 +1078,7 @@ def _validate_relationship_filters(
 
     Raises:
         TypeError: If relationship_filters is not None and not a dictionary
-        ValueError: If relationship_filters contains invalid keys or non-boolean
+        ValueError: If relationship_filters contains invalid keys or non - boolean
             values
     """
     if relationship_filters is None:
@@ -1137,19 +1136,19 @@ def visualize_3d_graph_with_filters(
 
     Args:
         graph: Asset relationship graph to visualize
-        show_same_sector: Show same sector relationships (default: True)
-        show_market_cap: Show market cap relationships (default: True)
-        show_correlation: Show correlation relationships (default: True)
-        show_corporate_bond: Show corporate bond relationships (default: True)
+        show_same_sector: Show same sector relationships(default: True)
+        show_market_cap: Show market cap relationships(default: True)
+        show_correlation: Show correlation relationships(default: True)
+        show_corporate_bond: Show corporate bond relationships(default: True)
         show_commodity_currency: Show commodity currency relationships
             (default: True)
         show_income_comparison: Show income comparison relationships
             (default: True)
-        show_regulatory: Show regulatory relationships (default: True)
+        show_regulatory: Show regulatory relationships(default: True)
         show_all_relationships: Master toggle to show all relationships
             (default: True)
         toggle_arrows: Show directional arrows for unidirectional
-            relationships (default: True)
+            relationships(default: True)
 
     Returns:
         Plotly Figure object with 3D visualization
