@@ -583,6 +583,7 @@ class TestErrorHandling:
 # -----------------------
 # CORS middleware behaviour
 # -----------------------
+@pytest.mark.unit
 def test_cors_headers_present(bare_client: TestClient) -> None:
     """Ensure allowed origins receive the expected CORS headers."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
@@ -591,6 +592,7 @@ def test_cors_headers_present(bare_client: TestClient) -> None:
     assert response.headers["access-control-allow-credentials"] == "true"
 
 
+@pytest.mark.unit
 def test_cors_rejects_disallowed_origin(bare_client: TestClient) -> None:
     """Ensure disallowed origins do not receive CORS headers."""
     disallowed_origin = "https://malicious.example.com"
@@ -602,6 +604,7 @@ def test_cors_rejects_disallowed_origin(bare_client: TestClient) -> None:
 
 
 @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
+@pytest.mark.unit
 def test_cors_allows_development_origins(bare_client: TestClient) -> None:
     """Allow default dev origins when running in development mode."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
