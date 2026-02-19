@@ -516,5 +516,18 @@ class TestShellScripts:
 
         # Should have some mechanism for previewing changes before deleting
         # Look for common dry-run patterns
-        has_preview = "echo" in content.lower() and ("branch" in content.lower() or "delete" in content.lower())
-        assert has_preview, "Script should preview changes before deleting"
+        # A genuine preview mechanism: either a dry-run flag or explicit branch-listing before deletion
+        has_preview = (
+            "--dry-run" in content
+            or "DRY_RUN" in content
+            or "PREVIEW" in content
+            or (
+                "echo" in content
+                and any(
+                    pattern in content
+                    for pattern in ["Would delete", "will be deleted", "to be deleted", "Preview"]
+                )
+            )
+        )
+        assert has_preview, "Script should have a dry-run flag or explicitly preview branches before deletion"
+
