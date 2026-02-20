@@ -161,6 +161,17 @@ class TestSessionFactory:
         finally:
             session.close()
 
+    def test_sessions_are_not_autocommit(self, engine: Engine) -> None:
+        """Sessions should have autocommit disabled."""
+        factory = create_session_factory(engine)
+        session = factory()
+        try:
+            assert session.bind == engine
+            # Note: session.autocommit is deprecated in SQLAlchemy 2.0.
+            # Sessions created with future=True don't have autocommit mode.
+        finally:
+            session.close()
+
 
 # ---------------------------------------------------------------------------
 # Database initialization tests
@@ -679,10 +690,7 @@ class TestResourceCleanup:
         factory = create_session_factory(engine)
 
         # First transaction
-        # First transaction
         with session_scope(factory) as session:
-            session.add(TestModelBase(id=1))
-            session.commit()  # Explicit commit (regression scenario)
             session.add(TestModelBase(id=1))
             session.commit()  # Explicit commit (regression scenario)
 

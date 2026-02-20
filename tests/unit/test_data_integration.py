@@ -19,7 +19,7 @@ from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
-pytestmark = pytest.mark.integration
+pytestmark = pytest.mark.unit
 
 
 class TestRepositoryGraphIntegration:
@@ -152,7 +152,6 @@ class TestSerializationRoundTrip:
         graph = AssetRelationshipGraph()
 
         # Add multiple assets
-        assets = []
         for i in range(3):
             asset = Equity(
                 id=f"TEST_{i}",
@@ -162,7 +161,6 @@ class TestSerializationRoundTrip:
                 sector="Technology",
                 price=100.0 + i * 10,
             )
-            assets.append(asset)
             graph.add_asset(asset)
 
         # Add bidirectional relationships
@@ -352,7 +350,6 @@ class TestEdgeCasesAndRegressions:
 
         repo = AssetGraphRepository(session)
 
-        assets = []
         for i in range(3):
             asset = Equity(
                 id=f"BOUND_{i}",
@@ -362,7 +359,6 @@ class TestEdgeCasesAndRegressions:
                 sector="Test",
                 price=100.0,
             )
-            assets.append(asset)
             repo.upsert_asset(asset)
 
         session.commit()

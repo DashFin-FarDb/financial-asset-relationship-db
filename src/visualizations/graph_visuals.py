@@ -79,7 +79,7 @@ def _build_relationship_index(
 
     Thread Safety:
     This function uses a reentrant lock (RLock) to protect concurrent access to
-    graph.relationships within this module. However, true thread safety requires#
+    graph.relationships within this module. However, true thread safety requires
     coordination across the entire codebase.
 
     Error handling:
@@ -170,201 +170,6 @@ def _build_relationship_index(
                     f"must be numeric (got {type(strength).__name__} with value '{strength}')"
                 ) from exc
             # Only index relationships whose target is also in the requested asset set
-            if target_id in asset_ids_set:
-                relationship_index[(source_id, target_id, rel_type)] = strength_float
-
-    return relationship_index
-
-
-def _is_relevant_relationship(
-    rel,
-    asset_ids_set: Set[str]
-) -> bool:
-    """Check if a relationship is relevant and valid."""
-    if rel.source_id not in asset_ids_set:
-        return False
-    if rel.frozen or not rel.target_id:
-        return False
-    if rel.strength is None:
-        return False
-    return True
-
-
-def _relationship_strength_entries(
-    rel,
-    graph: AssetRelationshipGraph
-) -> Dict[Tuple[str, str, str], float]:
-    """Generate index entries for a relationship, handling bidirectional if needed."""
-    key = (rel.source_id, rel.target_id, rel.relationship_type)
-    strength = rel.strength
-    if rel.bidirectional:
-        reverse_strength = graph.get_strength(rel.target_id, rel.source_id, rel.relationship_type)
-        avg_strength = (strength + reverse_strength) / 2
-        return {
-            key: avg_strength,
-            (rel.target_id, rel.source_id, rel.relationship_type): avg_strength
-        }
-    return {key: strength}
-    graph.relationships
-    - The lock is reentrant, allowing the same thread to acquire it multiple
-      times safely
-    - Creates a snapshot of relationships within the lock to minimize lock hold
-      time
-
-    Thread safety guarantees(with conditions):
-    ✓ SAFE: Multiple threads calling visualization functions in this module
-      concurrently
-    ✓ SAFE: Concurrent calls to this function with the same graph object
-    ⚠ CONDITIONAL: Concurrent modifications to graph.relationships are only safe
-      if:
-      - All code that modifies graph.relationships uses the same
-        _graph_access_lock, OR
-      - The graph object is treated as immutable after creation(recommended
-        approach)
-
-    Recommended usage patterns for thread safety:
-    1. PREFERRED: Treat graph objects as immutable after creation. Build the graph
-       completely before passing it to visualization functions. This eliminates the
-       need for locking.
-    2. ALTERNATIVE: If you must modify graph.relationships concurrently, ensure all
-       modification code acquires _graph_access_lock before accessing
-       graph.relationships. This requires coordination across your entire codebase.
-
-    Note: The AssetRelationshipGraph class itself does not implement any locking
-    mechanisms. Thread safety for modifications must be managed by the calling
-    code. If other parts of your application modify graph.relationships without
-    using _graph_access_lock, race conditions may occur.
-
-    Error Handling(addresses review feedback):
-    == == == == == == == == == == == == == == == == == == == == == =
-    This function implements comprehensive error handling to ensure robustness:
-    - Validates that graph is an AssetRelationshipGraph instance
-    - Validates that graph.relationships exists and is a properly formatted
-      dictionary
-    - Validates that asset_ids is iterable and contains only strings
-    - Validates each relationship tuple has the correct structure(3 elements)
-    - Validates data types for target_id(string), rel_type(string), and
-      strength(numeric)
-    - Provides detailed error messages indicating the exact location and nature
-      of any issues
-
-    Args:
-        graph: The asset relationship graph
-        asset_ids: Iterable of asset IDs to include(will be converted to a set
-            for O(1) membership tests)
-
-    Returns:
-        Dictionary mapping(source_id, target_id, rel_type) to strength for all
-        relationships
-
-    Raises:
-        TypeError: If graph is not an AssetRelationshipGraph instance, or if data
-            types are invalid
-        ValueError: If graph.relationships has invalid structure or malformed
-            data
-    """
-    # Validate graph input
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(
-            f"Invalid input: graph must be an AssetRelationshipGraph instance, "
-            f"got {type(graph).__name__}"
-        )
-
-    # Validate graph.relationships exists and is a dictionary
-    if not hasattr(graph, "relationships"):
-        raise ValueError("Invalid graph: missing 'relationships' attribute")
-
-    if not isinstance(graph.relationships, dict):
-        raise TypeError(
-            f"Invalid graph data: graph.relationships must be a dictionary, "
-            f"got {type(graph.relationships).__name__}"
-        )
-
-    # Validate asset_ids is iterable
-    try:
-        asset_ids_set = set(asset_ids)
-    except TypeError as exc:
-        raise TypeError(
-            f"Invalid input: asset_ids must be an iterable, "
-            f"got {type(asset_ids).__name__}"
-        ) from exc
-
-    # Validate asset_ids contains only strings
-    if not all(isinstance(aid, str) for aid in asset_ids_set):
-        raise ValueError("Invalid input: asset_ids must contain only string values")
-
-    # Thread-safe access to graph.relationships using synchronization lock
-    # This protects against concurrent modifications and ensures
-    # data consistency
-    with _graph_access_lock:
-        # Create a snapshot of relationships within the lock to minimize
-        # lock hold time
-        # Pre-filter to only include relevant source_ids
-        try:
-            relevant_relationships = {
-                source_id: list(rels)  # Create a copy of the list
-                for source_id, rels in graph.relationships.items()
-                if source_id in asset_ids_set
-            }
-        except Exception as exc:  # pylint: disable=broad-except
-            raise ValueError(
-                f"Failed to create snapshot of graph.relationships: {exc}"
-            ) from exc
-
-    # Build index outside the lock (no shared state access)
-    # This minimizes the time the lock is held
-    relationship_index: Dict[Tuple[str, str, str], float] = {}
-
-    # Process relationships with comprehensive error handling
-    for source_id, rels in relevant_relationships.items():
-        # Validate that rels is iterable
-        if not isinstance(rels, (list, tuple)):
-            raise TypeError(
-                f"Invalid graph data: relationships for source_id '{source_id}' must be a list or tuple, "
-                f"got {type(rels).__name__}"
-            )
-
-        # Process each relationship with validation
-        for idx, rel in enumerate(rels):
-            # Validate relationship structure
-            if not isinstance(rel, (list, tuple)):
-                raise TypeError(
-                    f"Invalid graph data: relationship at index {idx} for source_id '{source_id}' "
-                    f"must be a list or tuple, got {type(rel).__name__}"
-                )
-
-            if len(rel) != 3:
-                raise ValueError(
-                    f"Invalid graph data: relationship at index {idx} for source_id '{source_id}' "
-                    f"must have exactly 3 elements (target_id, rel_type, strength), got {len(rel)} elements"
-                )
-
-            target_id, rel_type, strength = rel
-
-            # Validate target_id type
-            if not isinstance(target_id, str):
-                raise TypeError(
-                    f"Invalid graph data: target_id at index {idx} for source_id '{source_id}' "
-                    f"must be a string, got {type(target_id).__name__}"
-                )
-
-            # Validate rel_type type
-            if not isinstance(rel_type, str):
-                raise TypeError(
-                    f"Invalid graph data: rel_type at index {idx} for source_id '{source_id}' "
-                    f"must be a string, got {type(rel_type).__name__}"
-                )
-
-            # Validate and convert strength to float
-            try:
-                strength_float = float(strength)
-            except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"Invalid graph data: strength at index {idx} for source_id '{source_id}' "
-                    f"must be numeric (got {type(strength).__name__} with value '{strength}')"
-                ) from exc
-
-            # Add to index if target is in asset_ids_set
             if target_id in asset_ids_set:
                 relationship_index[(source_id, target_id, rel_type)] = strength_float
 
@@ -1044,8 +849,7 @@ def _create_directional_arrows(
     Returns a list of traces for batch addition to figure.
     """
     _validate_directional_arrows_inputs(graph, positions, asset_ids)
-    # original arrow creation logic follows unchanged
-    ...
+    # Input validation complete; proceed with arrow creation logic below
 
     if not isinstance(positions, np.ndarray):
         positions = np.asarray(positions)

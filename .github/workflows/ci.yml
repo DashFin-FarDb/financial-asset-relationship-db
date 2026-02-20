@@ -134,7 +134,7 @@ jobs:
             pip install safety bandit
           test: |
             echo "===== Safety ====="
-            safety check --json || true
+            safety check --json
 
             echo "===== Bandit ====="
-            bandit -r src/ -ll || true
+            bandit -r src/ -ll

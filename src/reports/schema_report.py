@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.schema_report_generator import SchemaReportGenerator
 
