@@ -59,7 +59,12 @@ def client() -> Iterator[TestClient]:
 
 @pytest.fixture()
 def bare_client() -> TestClient:
-    """TestClient fixture without forcing any pre-seeded graph."""
+    """
+    Provide a TestClient without a pre-seeded in-memory graph.
+
+    Returns:
+        test_client (TestClient): A TestClient instance for the FastAPI app with no pre-seeded graph.
+    """
     return TestClient(app)
 
 
@@ -252,14 +257,12 @@ class TestAPIEndpoints:
     @pytest.fixture
     def client():
         """
-        Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
+        Provide a TestClient bound to the application with a preloaded sample in-memory graph.
 
-        Sets a sample in-memory graph on the application before yielding the client and resets the graph after the test completes.
-
-        Sets the application's graph to a sample database and yields a TestClient for use in tests. On fixture teardown the application's graph is reset.
+        The fixture sets the application's graph to a sample in-memory database before yielding and resets the graph on teardown.
 
         Returns:
-            TestClient: A test client instance connected to the application populated with the sample graph.
+            TestClient: A TestClient instance connected to the app with the sample graph populated.
         """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
@@ -331,7 +334,15 @@ class TestAPIEndpoints:
             assert asset["sector"] == "Technology"
 
     def test_get_metrics_enriched_statistics(self, client: TestClient) -> None:
-        """Metrics endpoint returns populated statistics and valid bounds."""
+        """
+        Verify /api/metrics provides populated statistics and that key metrics fall within expected bounds.
+
+        Checks:
+        - `total_assets`, `total_relationships`, and `avg_degree` are greater than zero.
+        - `max_degree` is greater than or equal to `avg_degree`.
+        - `network_density` is between 0 and 1 inclusive.
+        - if present, `relationship_density` is between 0 and 1 inclusive.
+        """
         response = client.get("/api/metrics")
         assert response.status_code == 200
         data: Dict[str, Any] = response.json()
@@ -536,14 +547,16 @@ class TestErrorHandling:
 
     def test_get_assets_server_error(self, bare_client: TestClient) -> None:
         """
-        Force get_graph() / graph access to raise, ensuring endpoint maps to 500.
-
-        This is more robust than patching a module-level `graph` variable, because
-        implementations often use get_graph() internally.
+        Verifies that when graph access raises an exception, the /api/assets endpoint responds with HTTP 500 and includes "database error" in the error detail.
         """
 
         def _raise() -> NoReturn:
-            """Raise a generic exception to simulate a backend graph access failure."""
+            """
+            Force a generic exception to simulate a backend graph access failure.
+
+            Raises:
+                Exception: Always raised with the message "Database error".
+            """
             raise Exception("Database error")
 
         with patch.object(api_main, "get_graph", side_effect=_raise):
@@ -741,7 +754,11 @@ class TestGraphInitializationRaceConditions:
         errors = []
 
         def init_graph():
-            """Thread worker for graph initialization."""
+            """
+            Initialize the shared graph instance and record the outcome.
+
+            On success, appends the initialized graph object to the outer-scope `results` list; on failure, appends the raised exception to the outer-scope `errors` list.
+            """
             try:
                 graph = api_main.get_graph()
                 results.append(graph)
@@ -780,7 +797,11 @@ class TestGraphInitializationRaceConditions:
         api_main.reset_graph()
 
     def test_graph_reset_and_reinitialize(self):
-        """Boundary: Resetting and reinitializing graph should work correctly."""
+        """
+        Verify that resetting the singleton graph yields a new instance when reinitialized.
+
+        Asserts an initial graph instance exists, calls reset_graph to clear the cached singleton, and confirms a subsequent get_graph call returns a different, newly created graph instance.
+        """
         # Initialize graph
         graph1 = api_main.get_graph()
         assert graph1 is not None
@@ -818,7 +839,11 @@ class TestGraphCachingEdgeCases:
     """Edge cases for graph caching and persistence."""
 
     def test_empty_cache_file_handling(self, tmp_path, monkeypatch):
-        """Edge: Empty cache file should trigger fallback."""
+        """
+        Ensures that when GRAPH_CACHE_PATH points to an empty file, graph initialization falls back to a valid in-memory graph.
+
+        Writes an empty cache file, sets the environment to use it, resets the cached graph, and asserts that get_graph() returns a usable graph instance.
+        """
         cache_path = tmp_path / "empty_cache.json"
         cache_path.write_text("")
 
@@ -844,7 +869,9 @@ class TestGraphCachingEdgeCases:
         api_main.reset_graph()
 
     def test_cache_with_missing_required_fields(self, tmp_path, monkeypatch):
-        """Edge: Cache missing required fields should trigger fallback."""
+        """
+        Ensure graph initialization falls back to a valid graph when the configured cache file is missing required fields.
+        """
         cache_path = tmp_path / "incomplete_cache.json"
         cache_path.write_text('{"incomplete": "data"}')
 
@@ -902,7 +929,11 @@ class TestPydanticModelValidation:
         assert rel_max.strength == 1.0
 
     def test_metrics_response_validates_non_negative_values(self):
-        """Negative: MetricsResponse should reject negative metrics."""
+        """
+        Verify MetricsResponse accepts negative values for numeric fields.
+
+        Constructs a MetricsResponse with a negative `total_assets` value and asserts an instance is created, documenting the current observable behavior that numeric field validation is not enforced.
+        """
         metrics = MetricsResponse(
             total_assets=-1,  # Currently allowed as no validation is implemented
             total_relationships=0,
@@ -921,7 +952,14 @@ class TestEndpointStressTests:
     @staticmethod
     @pytest.fixture
     def client():
-        """Create test client with sample data."""
+        """
+        Provide a TestClient configured with a sample in-memory graph and ensure graph reset after use.
+
+        Sets a sample graph on the application before yielding the TestClient and resets the application's graph state when the fixture is torn down.
+
+        Returns:
+            TestClient: A TestClient instance connected to the app with a pre-seeded sample graph.
+        """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
         try:
@@ -963,7 +1001,14 @@ class TestErrorMessageQuality:
     @staticmethod
     @pytest.fixture
     def client():
-        """Create test client."""
+        """
+        Provide a TestClient with a sample in-memory graph configured on api_main.
+
+        Sets api_main's graph to a sample database, yields a TestClient for the FastAPI app, and ensures the graph is reset after the test completes.
+
+        Returns:
+            TestClient: A TestClient instance for the application with the sample graph mounted.
+        """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
         try:
@@ -972,7 +1017,11 @@ class TestErrorMessageQuality:
             api_main.reset_graph()
 
     def test_404_error_message_is_informative(self, client):
-        """Error messages should be informative for developers."""
+        """
+        Verify that requesting a nonexistent asset returns a 404 with an informative detail message mentioning the asset ID.
+
+        Asserts the response contains a "detail" field and that its text (case-insensitive) indicates the asset was not found.
+        """
         response = client.get("/api/assets/NONEXISTENT_ASSET")
         assert response.status_code == 404
         error_data = response.json()

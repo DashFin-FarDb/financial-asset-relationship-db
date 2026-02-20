@@ -33,8 +33,12 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Initialise the RealDataFetcher with optional cache, fallback and
-        network controls.
+        Initializes the RealDataFetcher with optional cache, fallback factory, and network control.
+
+        Parameters:
+            cache_path (Optional[str]): Filesystem path to a JSON cache file used to load or persist the serialized AssetRelationshipGraph. If None, caching is disabled.
+            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]): Callable that returns an AssetRelationshipGraph to use when network access is disabled or when fetching real data fails. If None, a built-in sample database is used as the fallback.
+            enable_network (bool): When False, network-based data fetching is disabled and the fetcher will return the fallback graph instead.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -201,19 +205,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """
-        Fetch bond and treasury ETF data and construct Bond objects used as
-        fixed-income proxies.
+        Fetches price and metadata for a small set of bond ETF proxies and returns them as Bond objects.
 
-        Retrieves price and metadata for a small set of bond and treasury ETFs
-        (used as proxies for individual bonds). If yield information is missing,
-        `yield_to_maturity` defaults to 0.03 and `coupon_rate` is set to an
-        approximate value. Maturity dates and some fields are approximate for
-        ETF-based proxies.
+        Uses Treasury and corporate bond ETFs (currently TLT and LQD) as fixed-income proxies. When yield information is unavailable, `yield_to_maturity` defaults to 0.03 and `coupon_rate` defaults to 0.025. Maturity dates and certain fields are approximate because ETF instruments are used instead of individual bonds.
 
         Returns:
-            bonds (List[Bond]): List of Bond instances populated with id,
-                symbol, name, asset_class, sector, price, yield_to_maturity,
-                coupon_rate, maturity_date, credit_rating, and issuer_id.
+            bonds (List[Bond]): Bond instances populated with id, symbol, name, asset_class (FIXED_INCOME), sector, price, yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.
         """
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
@@ -358,14 +355,10 @@ class RealDataFetcher:
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
-        Create a short list of recent regulatory events tied to fetched assets.
+        Create a short list of recent sample regulatory events tied to common assets.
 
         Returns:
-            List[RegulatoryEvent]: A list of RegulatoryEvent objects
-            representing sample recent events (AAPL earnings report, MSFT
-            dividend announcement, and an XOM SEC filing), each with an id,
-            asset_id, event_type, date,
-            description, impact_score, and related_assets.
+            List[RegulatoryEvent]: Three sample events (AAPL earnings report, MSFT dividend announcement, XOM SEC filing). Each event includes `id`, `asset_id`, `event_type`, `date`, `description`, `impact_score`, and `related_assets`.
         """
         # Create some realistic recent events
         events = []

@@ -42,7 +42,11 @@ class TestThreadSafeGraph:
 
     @staticmethod
     def test_thread_safe_graph_callable_attribute_wrapping():
-        """Test that callable attributes are wrapped with lock protection."""
+        """
+        Verifies that callable attributes accessed through _ThreadSafeGraph are exposed as callables.
+
+        Specifically checks that an underlying graph method (here, `add_asset`) retrieved from the wrapper is a callable, indicating it has been wrapped for lock protection.
+        """
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
@@ -88,7 +92,14 @@ class TestThreadSafeGraph:
         original_release = lock.release
 
         def tracked_acquire(*args, **kwargs):
-            """Record a lock acquire event and delegate to the original acquire call."""
+            """
+            Record a lock acquire event and call the original acquire implementation.
+
+            Appends "acquired" to the shared `lock_acquired` list to track acquisition events, then forwards all arguments to the original acquire and returns its result.
+
+            Returns:
+                The value returned by the original acquire call.
+            """
             lock_acquired.append("acquired")
             return original_acquire(*args, **kwargs)
 
@@ -133,7 +144,11 @@ class TestAddEquityNode:
 
     @staticmethod
     def test_add_equity_node_successful_addition():
-        """Test successful equity node addition."""
+        """
+        Verify the add_equity_node tool adds an equity node and reports success.
+
+        Builds the MCP app, locates the registered `add_equity_node` tool, resets the global graph state, invokes the tool with valid equity data, and asserts the tool's response contains a success indicator plus the provided asset name and symbol.
+        """
         from mcp_server import _build_mcp_app, graph
 
         # Reset graph state

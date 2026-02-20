@@ -20,6 +20,21 @@ class MockGraph:
     """
 
     def calculate_metrics(self) -> Dict[str, Any]:
+        """
+        Return deterministic mock metrics representing statistics for an asset relationship graph.
+
+        Returns:
+            metrics (Dict[str, Any]): A dictionary with the following keys:
+                - relationship_distribution (Dict[str, int]): Counts per relationship type (e.g., "correlation": 4).
+                - total_assets (int): Number of distinct assets.
+                - total_relationships (int): Total number of relationships.
+                - average_relationship_strength (float): Average strength value (0.0–1.0).
+                - relationship_density (float): Density metric for relationships.
+                - regulatory_event_count (int): Number of regulatory events observed.
+                - asset_class_distribution (Dict[str, int]): Counts per asset class (e.g., "Equity": 1).
+                - top_relationships (List[Tuple[str, str, str, float]]): Ordered list of top relationships as tuples (source, target, type, strength).
+                - quality_score (float): Data quality score as a fraction (0.0–1.0).
+        """
         return {
             "relationship_distribution": {
                 "correlation": 4,

@@ -22,9 +22,10 @@ app = typer.Typer(add_completion=False)
 # ----------------------------------------------------------------------
 def load_graph() -> AssetRelationshipGraph:
     """
-    Placeholder for loading the AssetRelationshipGraph.
+    Create and return a new AssetRelationshipGraph instance.
 
-    Replace this with the actual graph-loading logic used in your system.
+    Returns:
+        AssetRelationshipGraph: A newly constructed AssetRelationshipGraph ready for use (placeholder loader; replace with project-specific loading logic if needed).
     """
     graph = AssetRelationshipGraph()
     return graph
@@ -54,7 +55,13 @@ def save_report(
     out: Path = typer.Argument(..., help="Output file path"),
     fmt: str = typer.Option("md", help="Output format: md or html"),
 ) -> None:
-    """Save the schema report to a file."""
+    """
+    Write the generated schema report to the specified file.
+
+    Parameters:
+        out (Path): Destination file path where the report will be written; existing files will be overwritten.
+        fmt (str): Output format, either "md" for Markdown or "html" for HTML.
+    """
     graph = load_graph()
     content = export_report(graph, fmt=fmt)
     out.write_text(content, encoding="utf-8")
@@ -62,6 +69,11 @@ def save_report(
 
 
 def main() -> None:
+    """
+    Run the CLI application.
+
+    Starts the Typer app; on any unexpected exception it prints an error message to stderr and exits the process with status code 1.
+    """
     try:
         app()
     except Exception as exc:  # pragma: no cover

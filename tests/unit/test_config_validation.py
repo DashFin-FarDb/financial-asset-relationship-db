@@ -21,7 +21,16 @@ class TestVercelConfig:
     @staticmethod
     @pytest.fixture
     def vercel_config():
-        """Load vercel.json configuration."""
+        """
+        Load and parse the project's vercel.json configuration.
+
+        Returns:
+            dict: The parsed JSON object representing the Vercel configuration.
+
+        Raises:
+            AssertionError: If vercel.json does not exist.
+            json.JSONDecodeError: If vercel.json contains invalid JSON.
+        """
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
 
@@ -38,7 +47,11 @@ class TestVercelConfig:
 
     @staticmethod
     def test_vercel_config_has_builds(vercel_config):
-        """Test that vercel.json has builds configuration."""
+        """
+        Assert that the parsed vercel.json contains a non-empty "builds" list.
+
+        Checks that the top-level "builds" key exists and its value is a list with at least one entry.
+        """
         assert "builds" in vercel_config
         assert isinstance(vercel_config["builds"], list)
         assert len(vercel_config["builds"]) > 0
@@ -52,7 +65,14 @@ class TestVercelConfig:
 
     @staticmethod
     def test_vercel_build_python_backend(vercel_config):
-        """Test that Python backend build is configured correctly."""
+        """
+        Verify the Vercel configuration includes a Python backend build with required settings.
+
+        Asserts there is a build entry that references "api/main.py", that its "use" is "@vercel/python", and that it contains a "config" object with a "maxLambdaSize" key.
+
+        Parameters:
+            vercel_config (dict): Parsed contents of vercel.json as a dictionary.
+        """
         builds = vercel_config["builds"]
         python_build = next((b for b in builds if "api/main.py" in b["src"]), None)
 
@@ -63,7 +83,14 @@ class TestVercelConfig:
 
     @staticmethod
     def test_vercel_build_nextjs_frontend(vercel_config):
-        """Test that Next.js frontend build is configured correctly."""
+        """
+        Verify that the project's Vercel configuration contains a Next.js frontend build entry that uses @vercel/next.
+
+        Asserts that a build entry with "package.json" in its "src" exists and that its "use" field equals "@vercel/next".
+
+        Parameters:
+            vercel_config (dict): Parsed contents of vercel.json loaded as a dictionary.
+        """
         builds = vercel_config["builds"]
         nextjs_build = next((b for b in builds if "package.json" in b["src"]), None)
 
@@ -72,7 +99,12 @@ class TestVercelConfig:
 
     @staticmethod
     def test_vercel_routes_api_routing(vercel_config):
-        """Test that API routes are configured correctly."""
+        """
+        Assert that the Vercel configuration contains an API route whose `src` includes "/api/" and whose `dest` is "api/main.py".
+
+        Parameters:
+            vercel_config (dict): Parsed contents of vercel.json loaded from the project root.
+        """
         routes = vercel_config["routes"]
         api_route = next((r for r in routes if "/api/" in r["src"]), None)
 
@@ -90,7 +122,14 @@ class TestVercelConfig:
 
     @staticmethod
     def test_vercel_lambda_size_reasonable(vercel_config):
-        """Test that Lambda size limit is reasonable."""
+        """
+        Assert that the Vercel Python build's `maxLambdaSize` (in MB) is within a reasonable range.
+
+        If a build entry referencing "api/main.py" exists and contains a `config`, this test checks that `maxLambdaSize` parses to an integer number of megabytes between 1 and 250. If `maxLambdaSize` is missing, a default of 50 MB is used for the check.
+
+        Parameters:
+            vercel_config (dict): Parsed contents of vercel.json loaded from the project root.
+        """
         builds = vercel_config["builds"]
         python_build = next((b for b in builds if "api/main.py" in b["src"]), None)
 
@@ -108,7 +147,15 @@ class TestNextConfig:
     @staticmethod
     @pytest.fixture
     def next_config_content():
-        """Load Next.js configuration file content."""
+        """
+        Load and return the contents of frontend/next.config.js.
+
+        Returns:
+            content (str): Raw text of the Next.js configuration file.
+
+        Raises:
+            AssertionError: If frontend/next.config.js does not exist.
+        """
         config_path = Path("frontend/next.config.js")
         assert config_path.exists(), "next.config.js not found"
 
@@ -128,7 +175,12 @@ class TestNextConfig:
 
     @staticmethod
     def test_next_config_has_react_strict_mode(next_config_content):
-        """Test that React strict mode is configured."""
+        """
+        Verify that the Next.js configuration enables React Strict Mode.
+
+        Parameters:
+            next_config_content (str): The text content of frontend/next.config.js used by the test.
+        """
         assert "reactStrictMode" in next_config_content
 
     @staticmethod
@@ -143,7 +195,15 @@ class TestPackageJson:
 
     @pytest.fixture
     def package_json(self):
-        """Load package.json configuration."""
+        """
+        Load and parse the frontend package.json file.
+
+        Returns:
+            dict: Parsed JSON object from frontend/package.json.
+
+        Raises:
+            AssertionError: If frontend/package.json does not exist.
+        """
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
 
@@ -160,14 +220,24 @@ class TestPackageJson:
 
     @staticmethod
     def test_package_json_has_required_fields(package_json):
-        """Test that package.json has required fields."""
+        """
+        Assert that the parsed frontend package.json contains the required top-level keys: "name", "version", "scripts", and "dependencies".
+
+        Parameters:
+            package_json (dict): Parsed contents of frontend/package.json to validate.
+        """
         required_fields = ["name", "version", "scripts", "dependencies"]
         for field in required_fields:
             assert field in package_json, f"Missing required field: {field}"
 
     @staticmethod
     def test_package_json_has_build_scripts(package_json):
-        """Test that package.json has necessary build scripts."""
+        """
+        Assert that the parsed package.json contains the required lifecycle scripts for development, build, and production start.
+
+        Parameters:
+            package_json (dict): Parsed JSON object from frontend/package.json; must contain a "scripts" mapping.
+        """
         scripts = package_json["scripts"]
         required_scripts = ["dev", "build", "start"]
 
@@ -176,7 +246,12 @@ class TestPackageJson:
 
     @staticmethod
     def test_package_json_has_react_dependencies(package_json):
-        """Test that React dependencies are present."""
+        """
+        Verify that the package.json declares the frontend dependencies 'react', 'react-dom', and 'next'.
+
+        Parameters:
+            package_json (dict): Parsed package.json content; expected to contain a "dependencies" mapping.
+        """
         deps = package_json["dependencies"]
         required_deps = ["react", "react-dom", "next"]
 
@@ -194,13 +269,20 @@ class TestPackageJson:
 
     @staticmethod
     def test_package_json_has_axios(package_json):
-        """Test that axios is included for API calls."""
+        """
+        Check that the project's package.json lists "axios" under its dependencies.
+        """
         deps = package_json["dependencies"]
         assert "axios" in deps, "Missing axios dependency"
 
     @staticmethod
     def test_package_json_has_typescript_deps(package_json):
-        """Test that TypeScript dependencies are present."""
+        """
+        Assert that the package.json "devDependencies" contains the required TypeScript-related packages.
+
+        Parameters:
+            package_json (dict): Parsed package.json content as a dictionary; looks up the "devDependencies" mapping.
+        """
         dev_deps = package_json.get("devDependencies", {})
         ts_deps = ["typescript", "@types/react", "@types/node"]
 
@@ -227,7 +309,12 @@ class TestTSConfig:
 
     @pytest.fixture
     def tsconfig(self):
-        """Load tsconfig.json."""
+        """
+        Load and parse frontend/tsconfig.json.
+
+        Returns:
+            tsconfig (dict): Parsed contents of the tsconfig.json file.
+        """
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
 
@@ -263,7 +350,12 @@ class TestTSConfig:
 
     @staticmethod
     def test_tsconfig_module_resolution(tsconfig):
-        """Test that module resolution is configured."""
+        """
+        Assert that the TypeScript configuration specifies a module resolution strategy.
+
+        Parameters:
+            tsconfig (dict): Parsed contents of tsconfig.json; expected to include a "compilerOptions" mapping.
+        """
         compiler_options = tsconfig["compilerOptions"]
         assert "moduleResolution" in compiler_options
 
@@ -282,7 +374,17 @@ class TestTailwindConfig:
     @pytest.fixture
     @staticmethod
     def tailwind_config_content():
-        """Load Tailwind configuration content."""
+        """
+        Load the content of frontend/tailwind.config.js.
+
+        Reads and returns the file contents as a string. Asserts the file exists before reading.
+
+        Returns:
+            str: Contents of frontend/tailwind.config.js.
+
+        Raises:
+            AssertionError: If frontend/tailwind.config.js does not exist.
+        """
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists(), "tailwind.config.js not found"
 
@@ -298,7 +400,11 @@ class TestTailwindConfig:
 
     @staticmethod
     def test_tailwind_config_has_module_exports(tailwind_config_content):
-        """Test that Tailwind config exports configuration."""
+        """
+        Verify the Tailwind config contains a CommonJS module export.
+
+        This test checks that the string "module.exports" appears in the Tailwind configuration content.
+        """
         assert "module.exports" in tailwind_config_content
 
     @staticmethod
@@ -322,7 +428,7 @@ class TestEnvExampleFixture:
         Load and return the contents of the .env.example file.
 
         Returns:
-            str: The contents of `.env.example`.
+            str: The file contents of `.env.example`.
 
         Raises:
             AssertionError: If `.env.example` does not exist.
@@ -339,7 +445,15 @@ class TestEnvExample:
 
     @pytest.fixture
     def env_example_content(self):
-        """Load .env.example content."""
+        """
+        Load and return the contents of the .env.example file.
+
+        Returns:
+            str: Contents of the .env.example file.
+
+        Raises:
+            AssertionError: If .env.example is not found.
+        """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
         with open(config_path) as f:
@@ -382,7 +496,15 @@ class TestGitignore:
     @staticmethod
     @pytest.fixture
     def gitignore_content():
-        """Load .gitignore content."""
+        """
+        Load and return the repository's .gitignore file contents.
+
+        Returns:
+            str: The complete text of the .gitignore file.
+
+        Raises:
+            AssertionError: If .gitignore does not exist in the current working directory.
+        """
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
 
@@ -408,7 +530,12 @@ class TestGitignore:
 
     @staticmethod
     def test_gitignore_excludes_env_files(gitignore_content):
-        """Test that environment files are excluded."""
+        """
+        Assert that the repository's .gitignore lists environment files such as `.env.local`.
+
+        Parameters:
+            gitignore_content (str): Contents of the repository's `.gitignore` file.
+        """
         assert ".env.local" in gitignore_content
 
     @staticmethod
@@ -470,9 +597,9 @@ class TestRequirementsTxt:
 
     def test_requirements_has_version_constraints(self, requirements):
         """
-        Ensure each non-option requirement includes a version constraint when version pinning is enabled.
+        Assert that every non-option line in requirements.txt contains a version constraint when version pinning is enabled.
 
-        If the test runner's `require_version_pinning` flag is False, this test will be skipped.
+        Skips the test if the instance flag `require_version_pinning` is False. Iterates over `requirements` and fails the test for any line that does not start with "-" and does not include one of the version operators: ">=", "==", "~=", "<=".
 
         Parameters:
             requirements (list[str]): Filtered lines from requirements.txt (non-empty, non-comment).
@@ -495,7 +622,14 @@ class TestPostCSSConfig:
     @staticmethod
     @pytest.fixture
     def postcss_config_content():
-        """Load PostCSS configuration."""
+        """
+        Load the contents of frontend/postcss.config.js for use in tests.
+
+        If the file does not exist, the test is skipped by calling pytest.skip.
+
+        Returns:
+            str: The raw contents of frontend/postcss.config.js.
+        """
         config_path = Path("frontend/postcss.config.js")
         if not config_path.exists():
             pytest.skip("postcss.config.js not found")
@@ -505,12 +639,22 @@ class TestPostCSSConfig:
 
     @staticmethod
     def test_postcss_config_has_tailwindcss(postcss_config_content):
-        """Test that Tailwind CSS plugin is configured."""
+        """
+        Verify that the PostCSS configuration references the Tailwind CSS plugin.
+
+        Parameters:
+            postcss_config_content (str): Contents of `postcss.config.js`.
+        """
         assert "tailwindcss" in postcss_config_content
 
     @staticmethod
     def test_postcss_config_has_autoprefixer(postcss_config_content):
-        """Test that autoprefixer plugin is configured."""
+        """
+        Check that the PostCSS configuration includes the "autoprefixer" plugin.
+
+        Parameters:
+            postcss_config_content (str): Contents of the frontend/postcss.config.js file.
+        """
         assert "autoprefixer" in postcss_config_content
 
 
@@ -528,7 +672,11 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_env_and_next_config():
-        """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
+        """
+        Ensure NEXT_PUBLIC_API_URL is declared in both the environment file and frontend/next.config.js.
+
+        Reads .env.local (falling back to .env.example) and frontend/next.config.js and asserts each contains the string `NEXT_PUBLIC_API_URL`.
+        """
         env_path = Path(".env.local")
         if not env_path.exists():
             env_path = Path(".env.example")
@@ -546,7 +694,11 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_package_json_and_tsconfig_consistency():
-        """Test that package.json and tsconfig are consistent."""
+        """
+        Verify that a TypeScript setup declared in frontend/package.json has corresponding compiler options in frontend/tsconfig.json.
+
+        If "typescript" appears in package.json's "devDependencies", the test asserts that tsconfig.json contains a top-level "compilerOptions" object.
+        """
         with open("frontend/package.json") as f:
             package = json.load(f)
 
@@ -582,7 +734,9 @@ class TestConfigurationSecurityNegative:
 
     @staticmethod
     def test_gitignore_prevents_env_file_leak():
-        """Negative: .env files should be gitignored to prevent secret leaks."""
+        """
+        Ensure `.env` or `.env.local` is listed in `.gitignore` to prevent accidental commits of secrets.
+        """
         gitignore_path = Path(".gitignore")
         with open(gitignore_path) as f:
             gitignore_content = f.read()
@@ -592,7 +746,11 @@ class TestConfigurationSecurityNegative:
 
     @staticmethod
     def test_no_api_keys_in_example_env():
-        """Negative: .env.example should not contain real API keys."""
+        """
+        Fail the test if .env.example contains values that look like real API keys.
+
+        Scans the .env.example file (skips the test if the file is missing) for suspicious patterns such as long alphanumeric strings, "sk_live", "pk_live", and "prod_". If a match is found on a line that does not include the words "your" or "example" (case-insensitive), the test asserts failure reporting a snippet of the suspected key.
+        """
         env_example_path = Path(".env.example")
         if not env_example_path.exists():
             pytest.skip(".env.example not found")
@@ -662,7 +820,11 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_package_json_wellformed():
-        """Malformed: package.json must be valid JSON."""
+        """
+        Validate that frontend/package.json exists and contains well-formed JSON that parses to a JSON object.
+
+        If the file is missing the test is skipped; if the content cannot be parsed as JSON the test fails with the JSON decoder error.
+        """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -703,7 +865,11 @@ class TestConfigurationBoundaryValues:
 
     @staticmethod
     def test_vercel_lambda_size_not_excessive():
-        """Boundary: Lambda size should not be unreasonably large."""
+        """
+        Verify that any build entries in vercel.json that specify `maxLambdaSize` have a numeric size between 1 and 250 MB.
+
+        Parses `vercel.json`'s "builds" entries for "config.maxLambdaSize", extracts the numeric megabyte value, and asserts it is at least 1 and at most 250. The test is skipped if `vercel.json` is not present.
+        """
         vercel_path = Path("vercel.json")
         if not vercel_path.exists():
             pytest.skip("vercel.json not found")
@@ -724,7 +890,11 @@ class TestConfigurationBoundaryValues:
 
     @staticmethod
     def test_package_version_not_zero():
-        """Boundary: Package version should not be 0.0.0."""
+        """
+        Ensure the frontend package.json version is not "0.0.0".
+
+        Skips the test if frontend/package.json is not present.
+        """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -740,7 +910,7 @@ class TestConfigurationBoundaryValues:
         """
         Ensure package.json script names are shorter than 50 characters.
 
-        Skips the test when frontend/package.json is missing. Fails the test if any script name has length greater than or equal to 50 characters.
+        Skips the test if frontend/package.json is missing. Fails if any script name has length greater than or equal to 50 characters.
         """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
@@ -777,7 +947,16 @@ class TestConfigurationRobustness:
 
     @staticmethod
     def test_requirements_no_conflicting_versions():
-        """Robustness: requirements.txt should not have duplicate packages."""
+        """
+        Checks that requirements.txt does not contain the same package listed more than once.
+
+        Reads non-empty, non-comment lines from requirements.txt (skips the test if the file is missing),
+        normalizes package names by removing common version specifiers, and fails the test if any package
+        appears multiple times.
+
+        Raises:
+            AssertionError: If one or more duplicate package names are found.
+        """
         requirements_path = Path("requirements.txt")
         if not requirements_path.exists():
             pytest.skip("requirements.txt not found")
@@ -802,7 +981,11 @@ class TestConfigurationRobustness:
 
     @staticmethod
     def test_env_example_documents_all_required_vars():
-        """Robustness: .env.example should document key variables."""
+        """
+        Ensure .env.example documents at least one required environment variable.
+
+        Asserts that the repository's .env.example file exists and contains either `API_URL` or `NEXT_PUBLIC`.
+        """
         env_example_path = Path(".env.example")
         if not env_example_path.exists():
             pytest.skip(".env.example not found")

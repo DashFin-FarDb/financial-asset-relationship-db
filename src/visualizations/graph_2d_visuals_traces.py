@@ -22,29 +22,26 @@ def _create_2d_relationship_traces(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
-    """Create 2D relationship traces for a given asset relationship graph.
+    """
+    Builds Plotly line traces representing relationships between the specified assets.
 
-    This function generates visual traces representing relationships between assets
-    based on various filters. It processes the input `graph` to identify
-    relationships between `asset_ids` and their corresponding `positions`, applying
-    filters for different relationship types. The resulting traces are formatted
-    for visualization, including hover information for each relationship.
+    Filters relationships from the provided graph according to the boolean flags and groups them by relationship type. Each returned trace contains line segments connecting asset positions and hover text showing "source → target", relationship type, and numeric strength.
 
-    Args:
-        graph (AssetRelationshipGraph): The graph containing asset relationships.
-        positions (Dict[str, Tuple[float, float]]): A dictionary mapping asset IDs to their 2D positions.
-        asset_ids (List[str]): A list of asset IDs to include in the traces.
-        show_same_sector (bool?): Flag to show relationships within the same sector. Defaults to True.
-        show_market_cap (bool?): Flag to show relationships based on market capitalization. Defaults to True.
-        show_correlation (bool?): Flag to show correlation relationships. Defaults to True.
-        show_corporate_bond (bool?): Flag to show corporate bond relationships. Defaults to True.
-        show_commodity_currency (bool?): Flag to show commodity currency relationships. Defaults to True.
-        show_income_comparison (bool?): Flag to show income comparison relationships. Defaults to True.
-        show_regulatory (bool?): Flag to show regulatory impact relationships. Defaults to True.
-        show_all_relationships (bool?): Flag to show all relationships regardless of type. Defaults to False.
+    Parameters:
+        graph (AssetRelationshipGraph): Graph containing assets and their relationships.
+        positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to (x, y) coordinates.
+        asset_ids (List[str]): Asset IDs to include; order is preserved for node layout.
+        show_same_sector (bool): Include "same_sector" relationships when True.
+        show_market_cap (bool): Include "market_cap_similar" relationships when True.
+        show_correlation (bool): Include "correlation" relationships when True.
+        show_corporate_bond (bool): Include "corporate_bond_to_equity" relationships when True.
+        show_commodity_currency (bool): Include "commodity_currency" relationships when True.
+        show_income_comparison (bool): Include "income_comparison" relationships when True.
+        show_regulatory (bool): Include "regulatory_impact" relationships when True.
+        show_all_relationships (bool): When True, ignore the individual relationship flags and include all relationships present in the graph.
 
     Returns:
-        List[go.Scatter]: A list of scatter traces representing the relationships.
+        List[go.Scatter]: A list of Plotly Scatter traces (mode="lines"), one per relationship type present, each containing line segments and hover text for its edges.
     """
     if not asset_ids or not positions:
         return []
@@ -110,18 +107,18 @@ def _create_node_trace(
     positions: Dict[str, Tuple[float, float]],
     asset_ids: List[str],
 ) -> go.Scatter:
-    """Create a scatter plot trace for asset nodes.
+    """
+    Create a Plotly scatter trace representing asset nodes positioned in 2D.
 
-    This function generates a scatter plot trace using the provided asset
-    positions and their corresponding asset IDs. It retrieves the asset  classes to
-    determine the colors for each node and calculates the node  sizes based on the
-    number of connections each asset has. The resulting  trace is suitable for
-    visualization in a graphing library.
+    Each node's color is derived from its asset class via ASSET_CLASS_COLORS (falls back to "#7f7f7f"), and its marker size is 20 plus up to 30 additional units based on the asset's number of outgoing relationships (5 units per connection, capped at +30). Hover text shows the asset ID and its class.
 
-    Args:
-        graph (AssetRelationshipGraph): The graph containing asset relationships.
-        positions (Dict[str, Tuple[float, float]]): A dictionary mapping asset IDs to their (x, y) positions.
-        asset_ids (List[str]): A list of asset IDs to be included in the trace.
+    Parameters:
+        graph (AssetRelationshipGraph): Graph containing assets and their relationships.
+        positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to (x, y) coordinates.
+        asset_ids (List[str]): Ordered list of asset IDs to include in the trace.
+
+    Returns:
+        go.Scatter: A scatter trace with markers and labels for the specified assets.
     """
     node_x = [positions[a][0] for a in asset_ids]
     node_y = [positions[a][1] for a in asset_ids]

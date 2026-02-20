@@ -829,9 +829,9 @@ class TestAllAssetTypes:
     @patch("yfinance.Ticker")
     def test_fetch_all_commodity_symbols(self, mock_ticker_class):
         """
-        Verifies the commodity data fetcher attempts to fetch data for every expected commodity symbol.
+        Verify the commodity data fetcher attempts to fetch data for all expected commodity symbols.
 
-        Asserts the ticker constructor is called once for each expected symbol (GC=F, CL=F).
+        Asserts that the ticker constructor is invoked once for each expected symbol ("GC=F", "CL=F") while using a mocked ticker and history to simulate close price data.
         """
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)

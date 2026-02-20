@@ -26,7 +26,12 @@ def empty_graph():
 
 @pytest.fixture
 def sample_equity():
-    """Provide a sample Equity asset."""
+    """
+    Return a representative Equity asset used by tests.
+
+    Returns:
+        Equity: An `Equity` instance for Apple Inc. with id "AAPL", symbol "AAPL", asset_class AssetClass.EQUITY, sector "Technology", price 150.0, pe_ratio 25.5, and dividend_yield 0.005.
+    """
     return Equity(
         id="AAPL",
         symbol="AAPL",
@@ -41,7 +46,16 @@ def sample_equity():
 
 @pytest.fixture
 def sample_bond():
-    """Provide a sample Bond asset."""
+    """
+    Create a sample Bond asset used in tests.
+
+    The returned Bond represents a fixed-income instrument issued by the sample equity with:
+    id "AAPL_BOND", symbol "AAPL_B", issuer_id "AAPL", asset_class FIXED_INCOME, sector "Technology",
+    price 100.0, yield_to_maturity 0.03, and credit_rating "AAA".
+
+    Returns:
+        Bond: A Bond instance populated with the values described above.
+    """
     return Bond(
         id="AAPL_BOND",
         symbol="AAPL_B",
@@ -57,7 +71,12 @@ def sample_bond():
 
 @pytest.fixture
 def sample_commodity():
-    """Provide a sample Commodity asset."""
+    """
+    Create a sample Commodity asset for tests.
+
+    Returns:
+        Commodity: A Commodity instance representing gold with id "GOLD", symbol "GC", name "Gold", asset_class AssetClass.COMMODITY, sector "Metals", price 2000.0, contract_size 100.0, and volatility 0.15.
+    """
     return Commodity(
         id="GOLD",
         symbol="GC",
@@ -72,7 +91,12 @@ def sample_commodity():
 
 @pytest.fixture
 def sample_currency():
-    """Provide a sample Currency asset."""
+    """
+    Return a sample Currency asset representing the Euro.
+
+    Returns:
+        Currency: Currency asset with id "EUR", symbol "EUR", name "Euro", asset_class AssetClass.CURRENCY, sector "Currency", price 1.1, exchange_rate 1.1, and country "Eurozone".
+    """
     return Currency(
         id="EUR",
         symbol="EUR",
@@ -87,7 +111,12 @@ def sample_currency():
 
 @pytest.fixture
 def sample_regulatory_event():
-    """Provide a sample RegulatoryEvent."""
+    """
+    Create a sample RegulatoryEvent for use in tests.
+
+    Returns:
+        RegulatoryEvent: Event with id "EVENT_001", asset_id "TEST_AAPL", event_type earnings report, date "2024-01-01", description "Earnings report", impact_score 0.8, and related_assets ["AAPL_BOND"].
+    """
     return RegulatoryEvent(
         id="EVENT_001",
         asset_id="TEST_AAPL",
