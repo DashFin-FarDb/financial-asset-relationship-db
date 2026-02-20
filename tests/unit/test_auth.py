@@ -590,6 +590,11 @@ class TestGetCurrentActiveUser:
         result = await get_current_active_user(user)
 
         assert result.username == "user"
+    @pytest.fixture
+    def valid_token():
+        data = {"sub": "testuser"}
+        return create_access_token(data)
+
     @pytest.mark.asyncio
     @patch('api.auth.user_repository.get_user')
     async def test_get_current_user_user_not_in_db(self, mock_get_user, valid_token):
@@ -599,16 +604,6 @@ class TestGetCurrentActiveUser:
         with pytest.raises(HTTPException) as exc_info:
             await get_current_user(valid_token)
 
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-
-    @patch('api.auth.user_repository.get_user')
-    async def test_get_current_user_user_not_in_db(self, mock_get_user, valid_token):
-        """Test user in token but not in database."""
-        mock_get_user.return_value = None
-        
-        with pytest.raises(HTTPException) as exc_info:
-            await get_current_user(valid_token)
-        
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
 
