@@ -1000,7 +1000,7 @@ class TestAuthenticationIntegrationFlow:
         repository = UserRepository()
         plain_password = "secure_password_123"
         hashed = get_password_hash(plain_password)
-        
+
         repository.create_or_update_user(
             username="newuser",
             hashed_password=hashed,
@@ -1008,7 +1008,7 @@ class TestAuthenticationIntegrationFlow:
             full_name="New User",
             disabled=False
         )
-        
+
         # Step 2: Simulate retrieval
         mock_fetch.return_value = {
             "username": "newuser",
@@ -1017,13 +1017,13 @@ class TestAuthenticationIntegrationFlow:
             "hashed_password": hashed,
             "disabled": 0
         }
-        
+
         retrieved_user = repository.get_user("newuser")
         assert retrieved_user is not None
         assert retrieved_user.username == "newuser"
-        
-        # Step 3: Authenticate
-        authenticated = authenticate_user("newuser", plain_password)
+
+        # Step 3: Authenticate (use the same repository instance)
+        authenticated = authenticate_user("newuser", plain_password, repository=repository)
         assert authenticated is not False
         assert authenticated.username == "newuser"
 
