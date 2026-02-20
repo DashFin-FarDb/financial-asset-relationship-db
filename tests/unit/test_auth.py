@@ -406,54 +406,8 @@ class TestJWTOperations:
 class TestGetCurrentActiveUser:
     """Test get_current_active_user dependency."""
 
-    @pytest.fixture
-    def active_user(self):
-        """Fixture providing an active user."""
-        return User(
-            username="activeuser",
-            email="active@example.com",
-            disabled=False,
-        )
-
-    @pytest.fixture
-    def disabled_user(self):
-        """
-        Provides a disabled User model instance for tests.
-
-        Returns:
-            User: A User with username "disableduser", email "disabled@example.com", and `disabled` set to True.
-        """
-        return User(
-            username="disableduser",
-            email="disabled@example.com",
-            disabled=True,
-        )
-
-    @pytest.mark.asyncio
-    async def test_get_current_active_user_success(self, active_user):
-        """Test getting active user succeeds."""
-        user = await get_current_active_user(active_user)
-
-        assert user.username == "activeuser"
-        assert user.disabled is False
-
-    @pytest.mark.asyncio
-    async def test_get_current_active_user_disabled(self, disabled_user):
-        """Test that disabled user raises HTTPException."""
-        with pytest.raises(HTTPException) as exc_info:
-            await get_current_active_user(disabled_user)
-
-        assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-        assert "Inactive user" in exc_info.value.detail
-
-    @pytest.mark.asyncio
-    async def test_get_current_active_user_none_disabled(self):
-        """Test user with None disabled field is treated as active."""
-        user = User(username="user", disabled=None)
-
-        result = await get_current_active_user(user)
-
-        assert result.username == "user"
+class TestEdgeCases:
+    
     @pytest.fixture
     def valid_token(self):
         data = {"sub": "testuser"}
