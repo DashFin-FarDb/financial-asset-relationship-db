@@ -428,11 +428,14 @@ class FormulaicVisualizer:
             barmode="group",
             plot_bgcolor="white",
         )
+
     return fig
+
 
 # ------------------------------------------------------------------ #
 # Helpers                                                              #
 # ------------------------------------------------------------------ #
+
 
 @staticmethod
 def _get_sorted_formulas(formulas: Any) -> List[Any]:
@@ -445,17 +448,20 @@ def _get_sorted_formulas(formulas: Any) -> List[Any]:
     except TypeError:
         return list(formulas)
 
+
 @staticmethod
 def _format_name(name: Any, max_length: int = 30) -> str:
     if not isinstance(name, str) or not name:
         return "N/A"
-    return name if len(name) <= max_length else f"{name[:max_length - 3]}..."
+    return name if len(name) <= max_length else f"{name[: max_length - 3]}..."
+
 
 @staticmethod
 def _format_r_squared(r_value: Any) -> str:
     if isinstance(r_value, (int, float)):
         return f"{r_value:.4f}"
     return "N/A"
+
 
 @staticmethod
 def _extract_formula_table_data(
