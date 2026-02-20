@@ -9,6 +9,8 @@ This module contains tests that verify interactions between data components:
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 from src.data.real_data_fetcher import (
     RealDataFetcher,
     _deserialize_graph,
@@ -18,8 +20,6 @@ from src.data.repository import AssetGraphRepository
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
-
-pytestmark = pytest.mark.integration
 
 
 class TestRepositoryGraphIntegration:
