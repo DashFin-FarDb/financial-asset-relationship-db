@@ -477,9 +477,10 @@ class TestEdgeCases:
         result = await get_current_active_user(user)
         
         assert result.username == "user"
+def test_special_character_usernames_do_not_break_hashing(self):
+        special_chars = ["user!name", "user@name", "user#name", "user$name"]
 
-@pytest.mark.asyncio
-        
+        for username in special_chars:
         for username in special_chars:
             hashed = get_password_hash("password")
             # Should not raise exceptions
