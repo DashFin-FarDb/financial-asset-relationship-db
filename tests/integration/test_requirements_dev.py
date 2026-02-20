@@ -12,6 +12,7 @@ Policy:
 - All non-types packages must have a version constraint.
 - Type stub packages (types-*) may omit a version constraint (common in repos).
 """
+
 from __future__ import annotations
 
 import re
