@@ -147,12 +147,13 @@ class TestSerializationRoundTrip:
         assert len(restored_graph.relationships) == 0
 
     @staticmethod
-    """Test serialization of graph with bidirectional relationships."""
-     graph = AssetRelationshipGraph()
+    def test_graph_bidirectional_serialization():
+        """Test serialization of graph with bidirectional relationships."""
+        graph = AssetRelationshipGraph()
 
-      # Add multiple assets
-      assets = []
-       for i in range(3):
+        # Add multiple assets
+        assets = []
+        for i in range(3):
             asset = Equity(
                 id=f"TEST_{i}",
                 symbol=f"T{i}",
