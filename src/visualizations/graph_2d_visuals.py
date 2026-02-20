@@ -29,10 +29,7 @@ def _resolve_positions(
     # Default: spring — project 3D positions to 2D
     if hasattr(graph, "get_3d_visualization_data_enhanced"):
         positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
-        positions_3d = {
-            asset_ids_ordered[i]: tuple(positions_3d_array[i])
-            for i in range(len(asset_ids_ordered))
-        }
+        positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
@@ -67,7 +64,9 @@ def visualize_2d_graph(
     positions = _resolve_positions(graph, layout_type, asset_ids)
 
     for trace in _create_2d_relationship_traces(
-        graph, positions, asset_ids,
+        graph,
+        positions,
+        asset_ids,
         show_same_sector=show_same_sector,
         show_market_cap=show_market_cap,
         show_correlation=show_correlation,
@@ -92,14 +91,20 @@ def visualize_2d_graph(
         height=800,
         hovermode="closest",
         showlegend=True,
-        legend=dict(x=0.02, y=0.98, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.3)", borderwidth=1),
-        annotations=[dict(
-            text=f"Layout: {layout_name}",
-            xref="paper", yref="paper",
-            x=0.5, y=-0.05,
-            showarrow=False,
-            font=dict(size=12, color="gray"),
-        )],
+        legend=dict(
+            x=0.02, y=0.98, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.3)", borderwidth=1
+        ),
+        annotations=[
+            dict(
+                text=f"Layout: {layout_name}",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=-0.05,
+                showarrow=False,
+                font=dict(size=12, color="gray"),
+            )
+        ],
     )
 
     return fig

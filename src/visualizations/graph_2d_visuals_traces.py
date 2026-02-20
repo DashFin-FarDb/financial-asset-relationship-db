@@ -20,13 +20,13 @@ def _create_2d_relationship_traces(
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
     """Create 2D relationship traces for a given asset relationship graph.
-    
+
     This function generates visual traces representing relationships between assets
     based on various filters. It processes the input `graph` to identify
     relationships between `asset_ids` and their corresponding `positions`, applying
     filters for different relationship types. The resulting traces are formatted
     for visualization, including hover information for each relationship.
-    
+
     Args:
         graph (AssetRelationshipGraph): The graph containing asset relationships.
         positions (Dict[str, Tuple[float, float]]): A dictionary mapping asset IDs to their 2D positions.
@@ -39,7 +39,7 @@ def _create_2d_relationship_traces(
         show_income_comparison (bool?): Flag to show income comparison relationships. Defaults to True.
         show_regulatory (bool?): Flag to show regulatory impact relationships. Defaults to True.
         show_all_relationships (bool?): Flag to show all relationships regardless of type. Defaults to False.
-    
+
     Returns:
         List[go.Scatter]: A list of scatter traces representing the relationships.
     """
@@ -86,16 +86,18 @@ def _create_2d_relationship_traces(
             )
             hover_texts.extend([hover, hover, None])
 
-        traces.append(go.Scatter(
-            x=edges_x,
-            y=edges_y,
-            mode="lines",
-            line=dict(color=REL_TYPE_COLORS.get(rel_type, "#888888"), width=2),
-            hovertext=hover_texts,
-            hoverinfo="text",
-            name=rel_type.replace("_", " ").title(),
-            showlegend=True,
-        ))
+        traces.append(
+            go.Scatter(
+                x=edges_x,
+                y=edges_y,
+                mode="lines",
+                line=dict(color=REL_TYPE_COLORS.get(rel_type, "#888888"), width=2),
+                hovertext=hover_texts,
+                hoverinfo="text",
+                name=rel_type.replace("_", " ").title(),
+                showlegend=True,
+            )
+        )
 
     return traces
 
@@ -106,13 +108,13 @@ def _create_node_trace(
     asset_ids: List[str],
 ) -> go.Scatter:
     """Create a scatter plot trace for asset nodes.
-    
+
     This function generates a scatter plot trace using the provided asset
     positions and their corresponding asset IDs. It retrieves the asset  classes to
     determine the colors for each node and calculates the node  sizes based on the
     number of connections each asset has. The resulting  trace is suitable for
     visualization in a graphing library.
-    
+
     Args:
         graph (AssetRelationshipGraph): The graph containing asset relationships.
         positions (Dict[str, Tuple[float, float]]): A dictionary mapping asset IDs to their (x, y) positions.

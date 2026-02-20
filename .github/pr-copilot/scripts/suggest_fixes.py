@@ -12,7 +12,8 @@ import os
 import re
 import sys
 import tempfile
-from collections imporfrom typing import Any, Dict, List, TupleOptional, Tuple
+
+from collectionsimporfromtyping import Any, Dict, List, Tuple, TupleOptional
 
 try:
     import yaml

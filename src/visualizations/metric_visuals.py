@@ -10,10 +10,10 @@ _BASE_COLORS = ["blue", "green", "orange", "red", "purple"]
 
 def _asset_class_distribution(distribution: dict) -> go.Figure:
     """Creates a bar chart for asset class distribution.
-    
+
     Args:
         distribution (dict): A dictionary with asset classes as keys and their counts as values.
-    
+
     Returns:
         go.Figure: A Plotly figure object representing the asset class distribution.
     """
@@ -32,10 +32,10 @@ def _asset_class_distribution(distribution: dict) -> go.Figure:
 
 def _relationship_distribution(distribution: dict) -> go.Figure:
     """Creates a bar chart for relationship types distribution.
-    
+
     Args:
         distribution (dict): A dictionary with relationship types as keys and their counts as values.
-    
+
     Returns:
         go.Figure: A Plotly figure object representing the bar chart.
     """
@@ -54,13 +54,13 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
 
 def _regulatory_events_timeline(events: list) -> go.Figure:
     """Generate a timeline of regulatory events as a bar chart.
-    
+
     This function takes a list of regulatory events, sorts them by date,  and
     constructs a bar chart displaying the impact scores of each event.  It extracts
     the dates, names, and impact scores from the sorted events  and uses Plotly's
     graphing library to create a visually informative  representation of the
     regulatory timeline.
-    
+
     Args:
         events (list): A list of regulatory event objects containing date,
             asset_id, event_type, and impact_score attributes.
