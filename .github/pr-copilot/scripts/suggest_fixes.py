@@ -13,7 +13,7 @@ import re
 import sys
 import tempfile
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 try:
     import yaml
