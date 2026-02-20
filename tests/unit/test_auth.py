@@ -591,7 +591,7 @@ class TestGetCurrentActiveUser:
 
         assert result.username == "user"
     @pytest.fixture
-    def valid_token():
+    def valid_token(self):
         data = {"sub": "testuser"}
         return create_access_token(data)
 
