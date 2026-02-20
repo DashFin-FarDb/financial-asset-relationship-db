@@ -158,6 +158,7 @@ class TestCacheHelpers:
     reason="RealDataFetcher currently lacks the per-symbol fetch API used in these tests; update or re-enable when the implementation is available.",
     strict=True,
 )
+class TestRealDataFetcher:
     """Test RealDataFetcher class."""
 
     @pytest.fixture
