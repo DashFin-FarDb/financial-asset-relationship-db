@@ -79,6 +79,7 @@ def db_session(
     with session_scope(session_factory) as session:
         yield session
 
+
 @pytest.fixture()
 def database_url(tmp_path: Path) -> str:
     """

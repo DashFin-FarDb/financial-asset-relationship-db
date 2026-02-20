@@ -91,7 +91,11 @@ def _resolve_positions(
                 continue
 
             # Apply filters if not showing all relationships
-            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
+            if (
+                not show_all_relationships
+                and rel_type in relationship_filters
+                and not relationship_filters[rel_type]
+            ):
                 continue
 
             # Group by relationship type
@@ -142,7 +146,10 @@ def _resolve_positions(
             name=trace_name,
             showlegend=True,
         )
-        positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
+        positions_3d = {
+            asset_ids_ordered[i]: tuple(positions_3d_array[i])
+            for i in range(len(asset_ids_ordered))
+        }
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
