@@ -179,9 +179,7 @@ class TestUpdateAssetInfo:
 
         mock_graph = MagicMock()
         mock_graph.assets = {"AAPL": mock_asset}
-        mock_graph.relationships = {
-            "AAPL": [("MSFT", "same_sector", 0.8)]
-        }
+        mock_graph.relationships = {"AAPL": [("MSFT", "same_sector", 0.8)]}
         mock_create.return_value = mock_graph
 
         app_instance = FinancialAssetApp()
@@ -354,19 +352,21 @@ class TestCreateInterface:
         app_instance = FinancialAssetApp()
 
         # Mock all gradio components
-        with patch("app.gr.Markdown"), \
-             patch("app.gr.Textbox"), \
-             patch("app.gr.Tabs"), \
-             patch("app.gr.Tab"), \
-             patch("app.gr.Row"), \
-             patch("app.gr.Column"), \
-             patch("app.gr.Radio"), \
-             patch("app.gr.Checkbox"), \
-             patch("app.gr.Plot"), \
-             patch("app.gr.Button"), \
-             patch("app.gr.Dropdown"), \
-             patch("app.gr.JSON"), \
-             patch("app.gr.State"):
+        with (
+            patch("app.gr.Markdown"),
+            patch("app.gr.Textbox"),
+            patch("app.gr.Tabs"),
+            patch("app.gr.Tab"),
+            patch("app.gr.Row"),
+            patch("app.gr.Column"),
+            patch("app.gr.Radio"),
+            patch("app.gr.Checkbox"),
+            patch("app.gr.Plot"),
+            patch("app.gr.Button"),
+            patch("app.gr.Dropdown"),
+            patch("app.gr.JSON"),
+            patch("app.gr.State"),
+        ):
             result = app_instance.create_interface()
 
         assert result is not None
@@ -404,7 +404,15 @@ class TestEdgeCases:
             mock_graph,
             "3D",
             "spring",
-            True, True, True, True, True, True, True, True, True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
         )
 
         # Should return empty figure and error message
@@ -414,7 +422,7 @@ class TestEdgeCases:
     def test_update_all_metrics_outputs(self, mock_create):
         """
         Verifies that update_all_metrics_outputs produces three metric figures plus a metrics text entry.
-        
+
         Sets up a mocked graph with calculated metrics and patches the visualize_metrics function to return three Plotly figures, then asserts the method returns a list of four items (three figures and one text/summary element).
         """
         from plotly import graph_objects as go
@@ -452,9 +460,7 @@ class TestEdgeCases:
         }
         analysis_results = {
             "empirical_relationships": {
-                "strongest_correlations": [
-                    {"pair": "AAPL-MSFT", "correlation": 0.85, "strength": "strong"}
-                ]
+                "strongest_correlations": [{"pair": "AAPL-MSFT", "correlation": 0.85, "strength": "strong"}]
             }
         }
 

@@ -78,7 +78,7 @@ def test_as_top_relationships_valid() -> None:
 def test_as_top_relationships_filters_invalid() -> None:
     """
     Verifies that _as_top_relationships filters out malformed relationship entries and normalizes strengths.
-    
+
     Ensures entries with incorrect tuple length or a non-string relationship type are dropped, and entries with non-numeric strength default their strength to 0.0 while preserving valid src, dst, and relationship values.
     """
     src = [

@@ -32,13 +32,13 @@ REL_TYPE_COLORS = defaultdict(
 def _is_valid_color_format(color: str) -> bool:
     """
     Determines whether a string appears to be a valid color format.
-    
+
     Parameters:
         color (str): The color string to check.
-    
+
     Returns:
         bool: `True` if the string matches a common hex or rgb/rgba pattern or is accepted as a named color fallback, `False` otherwise.
-    
+
     Notes:
         Named color validation is permissive: strings that are not hex or rgb/rgba are allowed as named colors and will be validated later by Plotly at render time.
     """
@@ -57,7 +57,7 @@ def _is_valid_color_format(color: str) -> bool:
 def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     """
     Build a lookup mapping from each asset ID to its zero-based index in the provided sequence.
-    
+
     Returns:
         index (Dict[str, int]): Dictionary where keys are asset IDs and values are their positions (0-based) in the input list.
     """
@@ -69,14 +69,14 @@ def _build_relationship_index(
 ) -> Dict[Tuple[str, str, str], float]:
     """
     Build a fast lookup index of relationships for the provided asset IDs.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph object exposing a mapping of relationships.
         asset_ids (Iterable[str]): Iterable of asset IDs to include in the resulting index.
-    
+
     Returns:
         Dict[Tuple[str, str, str], float]: Mapping from (source_id, target_id, rel_type) to numeric strength.
-    
+
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph, `graph.relationships` is not a dict,
                    `asset_ids` is not iterable, or relationship entries have incorrect types.
@@ -85,8 +85,7 @@ def _build_relationship_index(
     # Validate graph input
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError(
-            f"Invalid input: graph must be an AssetRelationshipGraph instance, "
-            f"got {type(graph).__name__}"
+            f"Invalid input: graph must be an AssetRelationshipGraph instance, " f"got {type(graph).__name__}"
         )
     # Validate graph.relationships exists and is a dictionary
     if not hasattr(graph, "relationships"):
@@ -100,10 +99,7 @@ def _build_relationship_index(
     try:
         asset_ids_set: Set[str] = set(asset_ids)
     except TypeError as exc:
-        raise TypeError(
-            f"Invalid input: asset_ids must be an iterable, "
-            f"got {type(asset_ids).__name__}"
-        ) from exc
+        raise TypeError(f"Invalid input: asset_ids must be an iterable, " f"got {type(asset_ids).__name__}") from exc
     # Validate asset_ids contains only strings
     if not all(isinstance(aid, str) for aid in asset_ids_set):
         raise ValueError("Invalid input: asset_ids must contain only string values")
@@ -112,14 +108,10 @@ def _build_relationship_index(
         try:
             # Create a snapshot of only the relevant source_ids to minimize lock hold time
             relevant_relationships = {
-                source_id: list(rels)
-                for source_id, rels in graph.relationships.items()
-                if source_id in asset_ids_set
+                source_id: list(rels) for source_id, rels in graph.relationships.items() if source_id in asset_ids_set
             }
         except Exception as exc:  # pylint: disable=broad-except
-            raise ValueError(
-                f"Failed to create snapshot of graph.relationships: {exc}"
-            ) from exc
+            raise ValueError(f"Failed to create snapshot of graph.relationships: {exc}") from exc
     # Build index outside the lock
     relationship_index: Dict[Tuple[str, str, str], float] = {}
     for source_id, rels in relevant_relationships.items():
@@ -177,35 +169,29 @@ def _create_node_trace(
 ) -> go.Scatter3d:
     """
     Create a Plotly 3D node trace representing assets with markers, labels, and hover texts.
-    
+
     Parameters:
         positions (np.ndarray): Array of shape (n, 3) with finite numeric coordinates for n nodes.
         asset_ids (List[str]): Sequence of n non-empty asset identifier strings.
         colors (List[str]): Sequence of n color strings (hex, rgb/rgba, or named) for node markers.
         hover_texts (List[str]): Sequence of n non-empty strings used for hover text.
-    
+
     Returns:
         go.Scatter3d: A configured Scatter3d trace containing node positions, marker styling, text labels, and hover information.
-    
+
     Raises:
         ValueError: If inputs are the wrong types, positions is not shape (n, 3), any list lengths differ or are zero, or any elements fail content validation (e.g., non-finite coordinates or empty strings).
     """
     # Input validation: Perform basic type checks before delegating to comprehensive validator
     # This provides early failure with clear error messages for common mistakes
     if not isinstance(positions, np.ndarray):
-        raise ValueError(
-            f"positions must be a numpy array, got {type(positions).__name__}"
-        )
+        raise ValueError(f"positions must be a numpy array, got {type(positions).__name__}")
     if not isinstance(asset_ids, (list, tuple)):
-        raise ValueError(
-            f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}"
-        )
+        raise ValueError(f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}")
     if not isinstance(colors, (list, tuple)):
         raise ValueError(f"colors must be a list or tuple, got {type(colors).__name__}")
     if not isinstance(hover_texts, (list, tuple)):
-        raise ValueError(
-            f"hover_texts must be a list or tuple, got {type(hover_texts).__name__}"
-        )
+        raise ValueError(f"hover_texts must be a list or tuple, got {type(hover_texts).__name__}")
 
     # Validate dimensions and alignment before detailed validation
     if positions.ndim != 2 or positions.shape[1] != 3:
@@ -217,10 +203,7 @@ def _create_node_trace(
             f"hover_texts({len(hover_texts)}) must all be equal"
         )
     if positions.shape[0] != len(asset_ids):
-        raise ValueError(
-            f"positions length ({positions.shape[0]}) "
-            f"must match asset_ids length ({len(asset_ids)})"
-        )
+        raise ValueError(f"positions length ({positions.shape[0]}) " f"must match asset_ids length ({len(asset_ids)})")
 
     # Comprehensive validation: detailed checks on content, numeric types, and finite values
     # Delegates to shared validator to ensure consistency across all visualization functions
@@ -228,9 +211,7 @@ def _create_node_trace(
 
     # Edge case validation: Ensure inputs are not empty
     if len(asset_ids) == 0:
-        raise ValueError(
-            "Cannot create node trace with empty inputs (asset_ids length is 0)"
-        )
+        raise ValueError("Cannot create node trace with empty inputs (asset_ids length is 0)")
     return go.Scatter3d(
         x=positions[:, 0],
         y=positions[:, 1],
@@ -263,12 +244,12 @@ def _generate_dynamic_title(
 ) -> str:
     """
     Create a title string that includes the base title plus counts of assets and relationships.
-    
+
     Parameters:
         num_assets (int): Number of assets included in the visualization.
         num_relationships (int): Number of relationships displayed.
         base_title (str): Base title text to prefix the counts.
-    
+
     Returns:
         str: Formatted title like "Financial Asset Network - 10 Assets, 5 Relationships".
     """
@@ -278,18 +259,15 @@ def _generate_dynamic_title(
 def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) -> int:
     """
     Count visible relationship edges represented by a list of relationship traces.
-    
+
     Parameters:
         relationship_traces (List[go.Scatter3d]): Scatter3d traces where each visible edge contributes three consecutive `x` coordinates.
-    
+
     Returns:
-        int: Number of visible relationship edges (computed as total `x` coordinates across traces divided by 3). 
+        int: Number of visible relationship edges (computed as total `x` coordinates across traces divided by 3).
     """
     try:
-        return (
-            sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces)
-            // 3
-        )
+        return sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces) // 3
     except Exception:  # pylint: disable=broad-except
         return 0
 
@@ -302,13 +280,13 @@ def _prepare_layout_config(
 ) -> Tuple[str, Dict[str, object]]:
     """
     Create a layout title and options tailored to the provided visualization data.
-    
+
     Parameters:
         num_assets (int): Total number of assets represented in the figure.
         relationship_traces (List[go.Scatter3d]): Relationship traces used to determine the count of visible relationships for the dynamic title.
         base_title (str): Base title text to prefix the generated title (default: "Financial Asset Network").
         layout_options (Optional[Dict[str, object]]): Additional layout options to merge into the returned configuration; when None an empty dict is returned.
-    
+
     Returns:
         Tuple[str, Dict[str, object]]: A tuple where the first element is the generated dynamic title and the second element is the layout options dictionary.
     """
@@ -326,9 +304,9 @@ def _add_directional_arrows_to_figure(
 ) -> None:
     """
     Add arrow traces representing unidirectional relationships to the provided 3D figure.
-    
+
     This function creates arrow traces for edges that are not bidirectional and appends them to `fig` in-place; if no unidirectional edges exist, `fig` is not modified.
-    
+
     Parameters:
         fig (go.Figure): Plotly 3D figure to which arrow traces will be added.
         graph (AssetRelationshipGraph): Graph containing relationship data used to determine arrows.
@@ -347,7 +325,7 @@ def _configure_3d_layout(
 ) -> None:
     """
     Configure a 3D Plotly figure's layout and scene settings.
-    
+
     Parameters:
         fig (go.Figure): Plotly figure to update.
         title (str): Centered title text to apply to the figure.
@@ -398,10 +376,10 @@ def _configure_3d_layout(
 def _validate_positions_array(positions: np.ndarray) -> None:
     """
     Validate that `positions` is a (n, 3) numeric NumPy array containing only finite values.
-    
+
     Parameters:
         positions (np.ndarray): Array of 3D coordinates with shape (n, 3), where each row is (x, y, z).
-    
+
     Raises:
         ValueError: If `positions` is not a numpy.ndarray.
         ValueError: If `positions` does not have two dimensions with size 3 in the second axis (i.e., not shape (n, 3)).
@@ -409,10 +387,7 @@ def _validate_positions_array(positions: np.ndarray) -> None:
         ValueError: If any element in `positions` is not finite (contains NaN or Inf); message includes counts of NaN and Inf.
     """
     if not isinstance(positions, np.ndarray):
-        raise ValueError(
-            f"Invalid graph data: positions must be a numpy array, "
-            f"got {type(positions).__name__}"
-        )
+        raise ValueError(f"Invalid graph data: positions must be a numpy array, " f"got {type(positions).__name__}")
     if positions.ndim != 2 or positions.shape[1] != 3:
         raise ValueError(
             "Invalid graph data: Expected positions to be a "
@@ -420,10 +395,7 @@ def _validate_positions_array(positions: np.ndarray) -> None:
             f"{positions.shape}"
         )
     if not np.issubdtype(positions.dtype, np.number):
-        raise ValueError(
-            f"Invalid graph data: positions must contain numeric values, "
-            f"got dtype {positions.dtype}"
-        )
+        raise ValueError(f"Invalid graph data: positions must contain numeric values, " f"got dtype {positions.dtype}")
     if not np.isfinite(positions).all():
         nan_count = int(np.isnan(positions).sum())
         inf_count = int(np.isinf(positions).sum())
@@ -437,18 +409,15 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 def _validate_asset_ids_list(asset_ids: List[str]) -> None:
     """
     Validate that `asset_ids` is a list or tuple of non-empty strings.
-    
+
     Parameters:
         asset_ids (List[str]): Sequence of asset identifier strings to validate.
-    
+
     Raises:
         ValueError: If `asset_ids` is not a list or tuple, or if any element is not a non-empty string.
     """
     if not isinstance(asset_ids, (list, tuple)):
-        raise ValueError(
-            f"Invalid graph data: asset_ids must be a list or tuple, "
-            f"got {type(asset_ids).__name__}"
-        )
+        raise ValueError(f"Invalid graph data: asset_ids must be a list or tuple, " f"got {type(asset_ids).__name__}")
     if not all(isinstance(a, str) and a for a in asset_ids):
         raise ValueError("Invalid graph data: asset_ids must contain non-empty strings")
 
@@ -456,11 +425,11 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
     """
     Validate that `colors` is a list or tuple of color strings with the expected length and valid formats.
-    
+
     Parameters:
         colors (List[str]): Sequence of color strings to validate.
         expected_length (int): Required number of color entries.
-    
+
     Raises:
         ValueError: If `colors` is not a list/tuple of length `expected_length`, if any element is not a non-empty string, or if any color string fails `_is_valid_color_format`.
     """
@@ -476,9 +445,7 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
 
     for i, color in enumerate(colors):
         if not _is_valid_color_format(color):
-            raise ValueError(
-                f"Invalid graph data: colors[{i}] has invalid color format: '{color}'"
-            )
+            raise ValueError(f"Invalid graph data: colors[{i}] has invalid color format: '{color}'")
 
 
 def _validate_hover_texts_list(
@@ -487,35 +454,27 @@ def _validate_hover_texts_list(
 ) -> None:
     """
     Validate the structure and contents of the hover_texts list used for node/edge tooltips.
-    
+
     Parameters:
         hover_texts (List[str]): Sequence of hover text entries; each entry must be a non-empty string.
         expected_length (int): Required length of the sequence; hover_texts must have this exact length.
-    
+
     Raises:
         ValueError: If hover_texts is not a list or tuple of length `expected_length`, or if any entry is not a non-empty string.
     """
-    if (
-        not isinstance(hover_texts, (list, tuple))
-        or len(hover_texts) != expected_length
-    ):
-        raise ValueError(
-            f"Invalid graph data: hover_texts must be a list/tuple of length "
-            f"{expected_length}"
-        )
+    if not isinstance(hover_texts, (list, tuple)) or len(hover_texts) != expected_length:
+        raise ValueError(f"Invalid graph data: hover_texts must be a list/tuple of length " f"{expected_length}")
     if not all(isinstance(h, str) and h for h in hover_texts):
-        raise ValueError(
-            "Invalid graph data: hover_texts must contain non-empty strings"
-        )
+        raise ValueError("Invalid graph data: hover_texts must contain non-empty strings")
 
 
 def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
     """
     Ensure all asset IDs are unique.
-    
+
     Parameters:
         asset_ids (List[str]): Sequence of asset identifier strings to validate.
-    
+
     Raises:
         ValueError: If any duplicate asset IDs are found. The exception message lists the duplicate IDs.
     """
@@ -540,13 +499,13 @@ def _validate_visualization_data(
 ) -> None:
     """
     Validate arrays and lists used for 3D visualization to ensure consistent shapes, types, and content.
-    
+
     Parameters:
         positions (np.ndarray): Array of shape (n, 3) containing finite numeric coordinates for n assets.
         asset_ids (List[str]): List of n non-empty asset identifier strings; must be unique.
         colors (List[str]): List of n color strings (e.g., hex, rgb/rgba, or named colors) validated for acceptable format.
         hover_texts (List[str]): List of n non-empty hover text strings for nodes.
-    
+
     Raises:
         ValueError: If lengths or shapes do not match, if values are missing/invalid, or if asset_ids are not unique.
     """
@@ -556,8 +515,7 @@ def _validate_visualization_data(
     n = len(asset_ids)
     if positions.shape[0] != n:
         raise ValueError(
-            f"Invalid graph data: positions length ({positions.shape[0]}) "
-            f"must match asset_ids length ({n})"
+            f"Invalid graph data: positions length ({positions.shape[0]}) " f"must match asset_ids length ({n})"
         )
 
     _validate_colors_list(colors, n)
@@ -568,24 +526,20 @@ def _validate_visualization_data(
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     """
     Build a 3D Plotly figure visualizing an AssetRelationshipGraph with node markers, relationship line traces, and optional directional arrow indicators.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph object exposing `get_3d_visualization_data_enhanced()` used to obtain node positions, asset identifiers, colors, and hover texts.
-    
+
     Returns:
         go.Figure: A configured Plotly 3D figure containing node and relationship traces along with layout and legend settings.
-    
+
     Raises:
         ValueError: If `graph` is not a valid AssetRelationshipGraph or the visualization data is missing or fails validation.
     """
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-        graph, "get_3d_visualization_data_enhanced"
-    ):
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
         raise ValueError("Invalid graph data provided")
 
-    positions, asset_ids, colors, hover_texts = (
-        graph.get_3d_visualization_data_enhanced()
-    )
+    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
     # Validate visualization data to prevent runtime errors
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
@@ -624,9 +578,7 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     fig.add_trace(node_trace)
 
     # Calculate total relationships for dynamic title
-    total_relationships = (
-        sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces) // 3
-    )
+    total_relationships = sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces) // 3
     dynamic_title = _generate_dynamic_title(len(asset_ids), total_relationships)
 
     fig.update_layout(
@@ -637,15 +589,9 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
             "font": {"size": 16},
         },
         scene=dict(
-            xaxis=dict(
-                title="Dimension 1", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
-            ),
-            yaxis=dict(
-                title="Dimension 2", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
-            ),
-            zaxis=dict(
-                title="Dimension 3", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"
-            ),
+            xaxis=dict(title="Dimension 1", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"),
+            yaxis=dict(title="Dimension 2", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"),
+            zaxis=dict(title="Dimension 3", showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)"),
             bgcolor="rgba(248, 248, 248, 0.95)",
             camera=dict(eye=dict(x=1.5, y=1.5, z=1.5)),
         ),
@@ -672,14 +618,14 @@ def _collect_and_group_relationships(
 ) -> Dict[Tuple[str, bool], List[dict]]:
     """
     Group the graph's relationships by relationship type and whether they are bidirectional.
-    
+
     This scans the graph for relationships that involve any of the provided asset_ids, optionally filters out disabled relationship types, and produces groups keyed by (rel_type, is_bidirectional). Each group contains a list of relationship dictionaries with `source_id`, `target_id`, and numeric `strength`. Bidirectional relationships are detected by the presence of the reverse edge and are included only once in the bidirectional group.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph to scan for relationships.
         asset_ids (Iterable[str]): Asset IDs to include when building the relationship snapshot.
         relationship_filters (Optional[Dict[str, bool]]): If provided, keys are relationship types and values enable (`True`) or disable (`False`) inclusion; disabled types are skipped.
-    
+
     Returns:
         Dict[Tuple[str, bool], List[dict]]: Mapping from `(rel_type, is_bidirectional)` to a list of relationships where each relationship is `{"source_id": str, "target_id": str, "strength": float}`.
     """
@@ -689,11 +635,7 @@ def _collect_and_group_relationships(
     relationship_groups: Dict[Tuple[str, bool], List[dict]] = defaultdict(list)
 
     for (source_id, target_id, rel_type), strength in relationship_index.items():
-        if (
-            relationship_filters
-            and rel_type in relationship_filters
-            and not relationship_filters[rel_type]
-        ):
+        if relationship_filters and rel_type in relationship_filters and not relationship_filters[rel_type]:
             continue
 
         # Canonical pair key for bidirectional detection
@@ -729,13 +671,13 @@ def _build_edge_coordinates_optimized(
 ) -> Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]:
     """
     Build x, y, and z coordinate lists for edge traces using O(1) lookups.
-    
+
     Parameters:
         relationships (List[dict]): Sequence of relationship dicts; each dict must contain
             the keys "source_id" and "target_id" identifying endpoints.
         positions (np.ndarray): Array of shape (n, 3) with 3D coordinates for each asset.
         asset_id_index (Dict[str, int]): Mapping from asset_id to its row index in `positions`.
-    
+
     Returns:
         Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]:
             Three lists (edges_x, edges_y, edges_z), each of length 3 * number_of_relationships.
@@ -765,17 +707,15 @@ def _build_edge_coordinates_optimized(
     return edges_x, edges_y, edges_z
 
 
-def _build_hover_texts(
-    relationships: List[dict], rel_type: str, is_bidirectional: bool
-) -> List[Optional[str]]:
+def _build_hover_texts(relationships: List[dict], rel_type: str, is_bidirectional: bool) -> List[Optional[str]]:
     """
     Create hover text entries for a group of relationships, preallocating None placeholders so the result aligns with Plotly edge coordinate triples.
-    
+
     Parameters:
         relationships (List[dict]): Sequence of relationship dicts. Each dict must contain 'source_id' (str), 'target_id' (str), and 'strength' (numeric).
         rel_type (str): Relationship type label included in each hover entry.
         is_bidirectional (bool): If True, uses the bidirectional symbol (↔) in the hover text; otherwise uses the unidirectional symbol (→).
-    
+
     Returns:
         List[Optional[str]]: A list sized to 3 * len(relationships) where, for each relationship, index 3*i and 3*i+1 contain identical HTML-formatted hover text
         ("{source} ↔/→ {target}<br>Type: {rel_type}<br>Strength: {strength:.2f}") and index 3*i+2 is left as None (placeholder) for alignment with edge coordinate arrays.
@@ -800,9 +740,9 @@ def _build_hover_texts(
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     """
     Determine the line styling for a relationship group, returning a dictionary of color, width, and dash.
-    
+
     Validates the configured color for the given relationship type and uses a gray fallback ("#888888") if the color is invalid.
-    
+
     Returns:
         dict: A mapping with keys:
             - `color` (str): The validated color string to use.
@@ -812,8 +752,7 @@ def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     color = REL_TYPE_COLORS[rel_type]
     if not _is_valid_color_format(color):
         logger.warning(
-            "Invalid color format for relationship type '%s': '%s'. "
-            "Using default gray.",
+            "Invalid color format for relationship type '%s': '%s'. " "Using default gray.",
             rel_type,
             color,
         )
@@ -829,11 +768,11 @@ def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
 def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
     """
     Create a human-readable trace name for a relationship group.
-    
+
     Parameters:
         rel_type (str): Relationship type identifier (e.g., "same_sector").
         is_bidirectional (bool): Whether the relationship is bidirectional.
-    
+
     Returns:
         str: Title-cased relationship name with " (↔)" if bidirectional, otherwise " (→)".
     """
@@ -851,13 +790,11 @@ def _create_trace_for_group(
 ) -> go.Scatter3d:
     """
     Create a 3D line trace representing a group of relationships.
-    
+
     Returns:
         go.Scatter3d: A configured 3D line trace containing the group's edge coordinates, hover texts, visual style (color, width, dash), and legend grouping.
     """
-    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(
-        relationships, positions, asset_id_index
-    )
+    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(relationships, positions, asset_id_index)
     hover_texts = _build_hover_texts(relationships, rel_type, is_bidirectional)
 
     return go.Scatter3d(
@@ -882,48 +819,38 @@ def _create_relationship_traces(
 ) -> List[go.Scatter3d]:
     """
     Create Plotly 3D line traces grouped by relationship type and directionality for batch addition to a figure.
-    
+
     This function groups graph.relationships by (relationship type, is_bidirectional), builds optimized edge coordinates and hover information for each non-empty group, and returns a list of go.Scatter3d traces ready to add to a Plotly figure.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Source graph containing a `relationships` mapping.
         positions (numpy.ndarray): Array of 3D node positions with one row per asset.
         asset_ids (List[str]): Ordered list of asset IDs corresponding to `positions`.
         relationship_filters (Optional[Dict[str, bool]]): Optional mapping of relationship type keys to booleans to include/exclude specific relationship types; when None all relationship types are considered.
-    
+
     Returns:
         List[go.Scatter3d]: A list of configured 3D scatter traces (one per relationship group) suitable for fig.add_traces().
-    
+
     Raises:
         ValueError: If `graph` is not an AssetRelationshipGraph, if `graph.relationships` is missing or not a dict, if `positions` is not a numpy array, or if `positions` length does not match `asset_ids`.
     """
     if not isinstance(graph, AssetRelationshipGraph):
-        raise ValueError(
-            "Invalid input data: graph must be an AssetRelationshipGraph instance"
-        )
+        raise ValueError("Invalid input data: graph must be an AssetRelationshipGraph instance")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
-        raise ValueError(
-            "Invalid input data: graph must have a relationships dictionary"
-        )
+        raise ValueError("Invalid input data: graph must have a relationships dictionary")
     if not isinstance(positions, np.ndarray):
         raise ValueError("Invalid input data: positions must be a numpy array")
     if len(positions) != len(asset_ids):
-        raise ValueError(
-            "Invalid input data: positions array length must match asset_ids length"
-        )
+        raise ValueError("Invalid input data: positions array length must match asset_ids length")
 
     asset_id_index = _build_asset_id_index(asset_ids)
 
-    relationship_groups = _collect_and_group_relationships(
-        graph, asset_ids, relationship_filters
-    )
+    relationship_groups = _collect_and_group_relationships(graph, asset_ids, relationship_filters)
 
     traces: List[go.Scatter3d] = []
     for (rel_type, is_bidirectional), relationships in relationship_groups.items():
         if relationships:
-            trace = _create_trace_for_group(
-                rel_type, is_bidirectional, relationships, positions, asset_id_index
-            )
+            trace = _create_trace_for_group(rel_type, is_bidirectional, relationships, positions, asset_id_index)
             traces.append(trace)
 
     return traces
@@ -936,12 +863,12 @@ def _validate_directional_arrows_inputs(
 ) -> None:
     """
     Validate inputs required to create directional arrow traces.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph object expected to expose a `relationships` dictionary.
         positions (np.ndarray): Array of 3D positions; must support len() and have one entry per asset.
         asset_ids (List[str]): Sequence of asset identifiers matching `positions` length.
-    
+
     Raises:
         TypeError: If `graph` is not an instance of AssetRelationshipGraph.
         ValueError: If `graph.relationships` is missing or not a dict; if `positions` or `asset_ids` is None; if their lengths differ or do not support len().
@@ -949,20 +876,14 @@ def _validate_directional_arrows_inputs(
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
-        raise ValueError(
-            "Invalid input data: graph must have a relationships dictionary"
-        )
+        raise ValueError("Invalid input data: graph must have a relationships dictionary")
     if positions is None or asset_ids is None:
         raise ValueError("positions and asset_ids must not be None")
     try:
         if len(positions) != len(asset_ids):
-            raise ValueError(
-                "Invalid input data: positions and asset_ids must have the same length"
-            )
+            raise ValueError("Invalid input data: positions and asset_ids must have the same length")
     except TypeError as exc:
-        raise ValueError(
-            "Invalid input data: positions and asset_ids must support len()"
-        ) from exc
+        raise ValueError("Invalid input data: positions and asset_ids must support len()") from exc
 
 
 def _create_directional_arrows(
@@ -972,9 +893,9 @@ def _create_directional_arrows(
 ) -> List[go.Scatter3d]:
     """
     Create marker traces representing directional arrows for unidirectional relationships in the graph.
-    
+
     For each relationship that does not have a corresponding reverse relationship, computes an arrow position at 70% of the vector from source to target and returns a list containing a single Scatter3d trace of diamond markers (one marker per unidirectional relationship). If there are no unidirectional relationships, returns an empty list.
-    
+
     Returns:
         List[go.Scatter3d]: A list containing one Scatter3d trace with marker positions and hover texts for unidirectional relationships, or an empty list if none are present.
     """
@@ -1020,9 +941,7 @@ def _create_directional_arrows(
         if reverse_key not in relationship_index:
             source_indices.append(asset_id_index[source_id])
             target_indices.append(asset_id_index[target_id])
-            hover_texts.append(
-                f"Direction: {source_id} → {target_id}<br>Type: {rel_type}"
-            )
+            hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
 
     if not source_indices:
         return []
@@ -1058,25 +977,22 @@ def _create_directional_arrows(
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
     """
     Validate that all values in filter_params are booleans.
-    
+
     Parameters:
         filter_params (dict): Mapping of filter names to boolean flags. Expected keys include
             'show_same_sector', 'show_market_cap', 'show_correlation', 'show_corporate_bond',
             'show_commodity_currency', 'show_income_comparison', 'show_regulatory',
             'show_all_relationships', and 'toggle_arrows'.
-    
+
     Raises:
         TypeError: If `filter_params` is not a dict or if any mapped value is not a boolean.
     """
     if not isinstance(filter_params, dict):
         raise TypeError(
-            f"Invalid filter configuration: filter_params must be a dictionary, "
-            f"got {type(filter_params).__name__}"
+            f"Invalid filter configuration: filter_params must be a dictionary, " f"got {type(filter_params).__name__}"
         )
 
-    invalid_params = [
-        name for name, value in filter_params.items() if not isinstance(value, bool)
-    ]
+    invalid_params = [name for name, value in filter_params.items() if not isinstance(value, bool)]
 
     if invalid_params:
         raise TypeError(
@@ -1090,12 +1006,12 @@ def _validate_relationship_filters(
 ) -> None:
     """
     Validate the structure and contents of a relationship_filters mapping.
-    
+
     Parameters:
         relationship_filters (Optional[Dict[str, bool]]): Mapping from relationship type names
             to boolean flags indicating whether each type should be shown. May be None to
             indicate no filtering.
-    
+
     Raises:
         TypeError: If relationship_filters is not None and is not a dictionary.
         ValueError: If any key in relationship_filters is not a string or any value is not a boolean.
@@ -1111,11 +1027,7 @@ def _validate_relationship_filters(
         )
 
     # Validate all values are boolean
-    invalid_values = [
-        key
-        for key, value in relationship_filters.items()
-        if not isinstance(value, bool)
-    ]
+    invalid_values = [key for key, value in relationship_filters.items() if not isinstance(value, bool)]
     if invalid_values:
         raise ValueError(
             f"Invalid filter configuration: "
@@ -1124,13 +1036,10 @@ def _validate_relationship_filters(
         )
 
     # Validate keys are strings
-    invalid_keys = [
-        key for key in relationship_filters.keys() if not isinstance(key, str)
-    ]
+    invalid_keys = [key for key in relationship_filters.keys() if not isinstance(key, str)]
     if invalid_keys:
         raise ValueError(
-            f"Invalid filter configuration: relationship_filters keys must be strings. "
-            f"Invalid keys: {invalid_keys}"
+            f"Invalid filter configuration: relationship_filters keys must be strings. " f"Invalid keys: {invalid_keys}"
         )
 
 
@@ -1148,22 +1057,20 @@ def visualize_3d_graph_with_filters(
 ) -> go.Figure:
     """
     Create a 3D Plotly Figure of the asset relationship graph with optional relationship-type filters and toggleable directional arrows.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Source graph providing visualization data via get_3d_visualization_data_enhanced().
         toggle_arrows (bool): If True, include directional arrow indicators for unidirectional relationships.
-    
+
     Returns:
         go.Figure: A Plotly Figure containing node and relationship traces configured according to the provided filters.
-    
+
     Raises:
         ValueError: If the graph is invalid, required visualization data cannot be retrieved, or required traces cannot be constructed.
         TypeError: If any provided filter parameter is not a boolean.
     """
     # Validate graph input
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-        graph, "get_3d_visualization_data_enhanced"
-    ):
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
         raise ValueError(
             "Invalid graph data provided: graph must be an AssetRelationshipGraph instance "
             "with get_3d_visualization_data_enhanced method"
@@ -1205,10 +1112,7 @@ def visualize_3d_graph_with_filters(
             # Check if all filters are disabled (would result in empty
             # visualization)
             if not any(relationship_filters.values()):
-                logger.warning(
-                    "All relationship filters are disabled. "
-                    "Visualization will show no relationships."
-                )
+                logger.warning("All relationship filters are disabled. " "Visualization will show no relationships.")
         else:
             relationship_filters = None
     except (TypeError, ValueError) as exc:
@@ -1223,9 +1127,7 @@ def visualize_3d_graph_with_filters(
 
     # Retrieve visualization data with error handling
     try:
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
     except Exception as exc:  # pylint: disable=broad-except
         logger.exception(
             "Failed to retrieve visualization data from graph: %s",
@@ -1245,9 +1147,7 @@ def visualize_3d_graph_with_filters(
 
     # Build relationship traces with comprehensive error handling
     try:
-        relationship_traces = _create_relationship_traces(
-            graph, positions, asset_ids, relationship_filters
-        )
+        relationship_traces = _create_relationship_traces(graph, positions, asset_ids, relationship_filters)
     except (TypeError, ValueError) as exc:
         logger.exception(
             "Failed to create filtered relationship traces due to invalid data (filters: %s): %s",
@@ -1268,18 +1168,14 @@ def visualize_3d_graph_with_filters(
         try:
             fig.add_traces(relationship_traces)
         except Exception as exc:  # pylint: disable=broad-except
-            logger.exception(
-                "Failed to add filtered relationship traces to figure: %s", exc
-            )
+            logger.exception("Failed to add filtered relationship traces to figure: %s", exc)
 
     # Add directional arrows if enabled
     if toggle_arrows:
         try:
             arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
         except (TypeError, ValueError) as exc:
-            logger.exception(
-                "Failed to create directional arrows due to invalid data: %s", exc
-            )
+            logger.exception("Failed to create directional arrows due to invalid data: %s", exc)
             arrow_traces = []
         except Exception as exc:  # pylint: disable=broad-except
             logger.exception("Unexpected error creating directional arrows: %s", exc)
@@ -1301,9 +1197,7 @@ def visualize_3d_graph_with_filters(
 
     # Configure layout using centralized helper function
     try:
-        dynamic_title, options = _prepare_layout_config(
-            len(asset_ids), relationship_traces
-        )
+        dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
         _configure_3d_layout(fig, dynamic_title, options)
     except Exception as exc:  # pylint: disable=broad-except
         logger.exception("Failed to configure figure layout: %s", exc)

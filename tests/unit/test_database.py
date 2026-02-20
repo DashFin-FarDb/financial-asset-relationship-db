@@ -39,7 +39,7 @@ pytestmark = pytest.mark.unit
 def _assert_model_registered(model: type[Base], expected_tablename: str) -> None:
     """
     Verify a SQLAlchemy model's __tablename__ matches the expected table name.
-    
+
     Parameters:
         model (type[Base]): Declarative model class to check.
         expected_tablename (str): Expected value of the model's `__tablename__`.
@@ -56,10 +56,10 @@ def _assert_model_registered(model: type[Base], expected_tablename: str) -> None
 def isolated_base() -> Iterator[type[Base]]:
     """
     Provide an isolated SQLAlchemy declarative base for each test.
-    
+
     Yields a declarative base subclass to define test-specific models. After the test finishes,
     any tables that were registered on the global Base.metadata during the test are removed.
-    
+
     Returns:
         isolated_base (type[Base]): A subclass of `Base` (marked `__abstract__ = True`) for test model definitions.
     """
@@ -86,7 +86,7 @@ def isolated_base() -> Iterator[type[Base]]:
 def engine() -> Iterator[Engine]:
     """
     Provide a SQLite in-memory Engine that is shared across connections and disposed after use.
-    
+
     Returns:
         engine (Engine): An in-memory SQLite Engine configured for shared connections; the engine is disposed after the caller finishes using it.
     """
@@ -104,10 +104,10 @@ def engine() -> Iterator[Engine]:
 def session_factory(engine: Engine):
     """
     Return a session factory callable bound to the given SQLAlchemy engine.
-    
+
     Parameters:
         engine (Engine): SQLAlchemy Engine to bind sessions to.
-    
+
     Returns:
         Callable[..., Session]: A factory that produces Session instances bound to the provided engine.
     """
@@ -404,7 +404,7 @@ class TestEdgeCases:
     def test_create_engine_with_none(self) -> None:
         """
         Ensure passing `None` to `create_engine_from_url` falls back to the default database URL.
-        
+
         Asserts that an engine instance is returned when `None` is supplied.
         """
         fallback_engine = create_engine_from_url(None)
@@ -483,7 +483,7 @@ class TestConcurrentDatabaseAccess:
         def create_session() -> None:
             """
             Create a session using the enclosing `factory` and record the outcome.
-            
+
             Appends the created session to the enclosing `sessions` list (the session is closed before the function returns).
             If session creation raises an exception, appends the exception to the enclosing `errors` list instead.
             """
@@ -527,7 +527,7 @@ class TestConcurrentDatabaseAccess:
         def read_data() -> None:
             """
             Worker that counts TestModel rows and records the result for concurrent read tests.
-            
+
             Queries the number of rows for `TestModel` using a session from `factory` and appends the integer count to the enclosing `results` list. If an exception occurs during the operation, appends the exception to the enclosing `errors` list.
             """
             try:
@@ -565,10 +565,10 @@ class TestConcurrentDatabaseAccess:
         def write_data(thread_id: int) -> None:
             """
             Insert a TestModel row with the given id and record any exception to the shared `errors` list.
-            
+
             Parameters:
                 thread_id (int): Value used as the TestModel `id` for the inserted row.
-            
+
             Notes:
                 If an exception occurs, it is appended to the shared `errors` list as a side effect.
             """
@@ -580,9 +580,7 @@ class TestConcurrentDatabaseAccess:
                 errors.append(exc)
 
         num_threads = 20
-        threads = [
-            threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)
-        ]
+        threads = [threading.Thread(target=write_data, args=(i,)) for i in range(num_threads)]
         for thread in threads:
             thread.start()
         for thread in threads:
@@ -590,9 +588,7 @@ class TestConcurrentDatabaseAccess:
 
         with session_scope(factory) as session:
             count = session.query(TestModel).count()
-            assert count >= num_threads - 1, (
-                f"Expected at least {num_threads - 1} writes but found {count}"
-            )
+            assert count >= num_threads - 1, f"Expected at least {num_threads - 1} writes but found {count}"
 
         assert len(errors) <= 1, f"Too many errors: {len(errors)}"
 
@@ -606,9 +602,7 @@ class TestConcurrentDatabaseAccess:
 class TestDatabaseErrorRecovery:
     """Tests for database error recovery scenarios."""
 
-    def test_session_scope_recovers_from_nested_error(
-        self, engine: Engine, isolated_base
-    ) -> None:
+    def test_session_scope_recovers_from_nested_error(self, engine: Engine, isolated_base) -> None:
         """Session scope should recover after error in nested operation."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
@@ -634,9 +628,7 @@ class TestDatabaseErrorRecovery:
             assert result.id == 2
             assert result.value == "success"
 
-    def test_session_scope_handles_commit_failure(
-        self, engine: Engine, isolated_base
-    ) -> None:
+    def test_session_scope_handles_commit_failure(self, engine: Engine, isolated_base) -> None:
         """Session scope should handle commit failures gracefully."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
@@ -688,9 +680,7 @@ class TestResourceCleanup:
             assert session.is_active
             raise RuntimeError("Test error")
 
-    def test_multiple_session_scopes_cleanup_properly(
-        self, engine: Engine, isolated_base
-    ) -> None:
+    def test_multiple_session_scopes_cleanup_properly(self, engine: Engine, isolated_base) -> None:
         """Multiple session scopes should clean up properly."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name

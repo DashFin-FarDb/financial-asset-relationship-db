@@ -473,9 +473,9 @@ class TestSystemManifest:
     def test_system_manifest_markdown_formatting(self, system_manifest_lines):
         """
         Validate that Markdown headings in the System Manifest contain a space after the leading hash characters within the first 500 lines.
-        
+
         Checks each line that starts with one or more `#` characters and asserts there is a single space immediately following the leading hash sequence; on failure raises an AssertionError that includes the 1-based line number and the offending line content.
-        
+
         Parameters:
             system_manifest_lines (list[str]): Lines of the system manifest file to inspect.
         """

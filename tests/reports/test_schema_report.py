@@ -22,7 +22,7 @@ class MockGraph:
     def calculate_metrics(self) -> Dict[str, Any]:
         """
         Return a deterministic metrics dictionary used to mock an asset relationship graph for tests.
-        
+
         The dictionary contains pre-defined values for schema-report generation and assertions:
         - relationship_distribution: mapping of relationship type to occurrence count.
         - total_assets: total number of assets (int).
@@ -33,7 +33,7 @@ class MockGraph:
         - asset_class_distribution: mapping of asset class name to count.
         - top_relationships: list of tuples (source, target, relationship_type, strength).
         - quality_score: data quality score as a float between 0 and 1.
-        
+
         Returns:
             Dict[str, Any]: The deterministic metrics dictionary described above.
         """
@@ -87,7 +87,7 @@ def test_schema_report_contains_sections() -> None:
 def test_schema_report_relationship_distribution() -> None:
     """
     Verify the generated schema report includes relationship distribution counts for `correlation` and `hedge`.
-    
+
     Asserts that the markdown contains the exact lines "- **correlation**: 4 instances" and "- **hedge**: 2 instances".
     """
     graph = MockGraph()

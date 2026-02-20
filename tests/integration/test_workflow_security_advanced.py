@@ -82,14 +82,14 @@ class TestWorkflowSecretHandling:
     def test_secrets_not_echoed_in_logs(all_workflows):
         """
         Prevent workflow secrets from being emitted to logs.
-        
+
         Checks for occurrences of `secrets.<name>` on lines that invoke `echo`, `print`, or `printf` (case-insensitive) and fails if any such combination is found.
-        
+
         Parameters:
-        	all_workflows (Iterable[Mapping]): Iterable of workflow dictionaries. Each workflow must include a `raw` key with the YAML content as a string and a `path` key used in assertion messages.
-        
+                all_workflows (Iterable[Mapping]): Iterable of workflow dictionaries. Each workflow must include a `raw` key with the YAML content as a string and a `path` key used in assertion messages.
+
         Raises:
-        	AssertionError: If a secret reference appears on a line that calls `echo`, `print`, or `printf`. The assertion message includes the secret name, workflow path, and line number.
+                AssertionError: If a secret reference appears on a line that calls `echo`, `print`, or `printf`. The assertion message includes the secret name, workflow path, and line number.
         """
         for workflow in all_workflows:
             raw_content = workflow["raw"]
@@ -106,20 +106,18 @@ class TestWorkflowSecretHandling:
                             r"(echo|print|printf)\s+.*" + re.escape(secret_ref),
                             line,
                             re.IGNORECASE,
-                        ), (
-                            f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
-                        )
+                        ), f"Secret {secret_ref} may be logged in {workflow['path']} line {line_no}"
 
     @staticmethod
     def test_secrets_not_in_artifact_uploads(all_workflows):
         """
         Ensure workflow steps using actions/upload-artifact do not reference secrets.
-        
+
         Parameters:
             all_workflows (Iterable[dict]): Iterable of workflow mappings. Each mapping must contain:
                 - "content": parsed workflow YAML as a dict (jobs -> job configs -> steps)
                 - "path": string path or identifier for the workflow file
-        
+
         Raises:
             AssertionError: If a step that uses `actions/upload-artifact` contains a `secrets.` reference.
         """
@@ -148,9 +146,7 @@ class TestWorkflowPermissionsHardening:
             all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item contains a 'content' mapping for the workflow YAML and a 'path' string used in failure messages.
         """
         for workflow in all_workflows:
-            assert "permissions" in workflow["content"], (
-                f"Workflow {workflow['path']} should define permissions"
-            )
+            assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
@@ -172,18 +168,14 @@ class TestWorkflowPermissionsHardening:
                 assert permissions in [
                     "read-all",
                     "none",
-                ], (
-                    f"Workflow {workflow['path']} has overly permissive default: {permissions}"
-                )
+                ], f"Workflow {workflow['path']} has overly permissive default: {permissions}"
             elif isinstance(permissions, dict):
-                default_write_perms = [
-                    k for k, v in permissions.items() if v == "write"
-                ]
+                default_write_perms = [k for k, v in permissions.items() if v == "write"]
                 allowed_write_perms = {"contents", "pull-requests", "issues", "checks"}
                 unexpected_write = set(default_write_perms) - allowed_write_perms
-                assert len(unexpected_write) == 0, (
-                    f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
-                )
+                assert (
+                    len(unexpected_write) == 0
+                ), f"Workflow {workflow['path']} has unexpected write permissions: {unexpected_write}"
 
     @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
@@ -202,9 +194,7 @@ class TestWorkflowPermissionsHardening:
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
             if isinstance(permissions, str):
-                assert permissions != "write-all", (
-                    f"Workflow {workflow['path']} uses dangerous 'write-all'"
-                )
+                assert permissions != "write-all", f"Workflow {workflow['path']} uses dangerous 'write-all'"
 
 
 class TestWorkflowSupplyChainSecurity:
@@ -232,12 +222,12 @@ class TestWorkflowSupplyChainSecurity:
     def test_no_insecure_downloads(all_workflows):
         """
         Check that no workflow contains insecure HTTP downloads invoked via `curl`, `wget`, or `download`.
-        
+
         Parameters:
             all_workflows (iterable[dict]): Iterable of workflow dictionaries. Each dictionary must include:
                 - 'raw' (str): raw workflow YAML/content to scan.
                 - 'path' (str): workflow file path used in assertion messages.
-        
+
         Raises:
             AssertionError: If any insecure `http://` download invocation is found; the assertion message includes the workflow path and the matching download snippets.
         """
@@ -248,6 +238,6 @@ class TestWorkflowSupplyChainSecurity:
                 raw_content,
                 re.IGNORECASE,
             )
-            assert len(insecure_downloads) == 0, (
-                f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"
-            )
+            assert (
+                len(insecure_downloads) == 0
+            ), f"Insecure HTTP download found in {workflow['path']}: {insecure_downloads}"

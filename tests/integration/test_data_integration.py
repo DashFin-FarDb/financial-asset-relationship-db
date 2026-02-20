@@ -61,7 +61,7 @@ class TestRepositoryGraphIntegration:
     def test_sample_graph_relationships_can_be_saved(tmp_path):
         """
         Save a sample asset graph's assets and relationships into a repository and verify that relationships are persisted.
-        
+
         Saves all assets from the sample graph, adds each relationship with bidirectional=False, commits the session, and asserts that at least one relationship was stored.
         """
         from src.data.database import (
@@ -86,9 +86,7 @@ class TestRepositoryGraphIntegration:
         # Save relationships
         for source_id, rels in graph.relationships.items():
             for target_id, rel_type, strength in rels:
-                repo.add_or_update_relationship(
-                    source_id, target_id, rel_type, strength, bidirectional=False
-                )
+                repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
 
         session.commit()
 
@@ -122,9 +120,7 @@ class TestSerializationRoundTrip:
             original_graph.add_asset(asset)
 
         # Add relationships
-        original_graph.add_relationship(
-            "TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False
-        )
+        original_graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False)
 
         # Serialize
         serialized = _serialize_graph(original_graph)
@@ -168,12 +164,8 @@ class TestSerializationRoundTrip:
             graph.add_asset(asset)
 
         # Add bidirectional relationships
-        graph.add_relationship(
-            "TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True
-        )
-        graph.add_relationship(
-            "TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True
-        )
+        graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True)
+        graph.add_relationship("TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True)
 
         # Serialize and deserialize
         serialized = _serialize_graph(graph)
@@ -214,7 +206,7 @@ class TestDataFetcherWithFallback:
         def custom_factory():
             """
             Return a preconfigured AssetRelationshipGraph used as a fallback.
-            
+
             Returns:
                 AssetRelationshipGraph: The prebuilt graph instance (`custom_graph`) to use when network fetch is disabled.
             """
@@ -373,19 +365,13 @@ class TestEdgeCasesAndRegressions:
         session.commit()
 
         # Test with exact 0.0
-        repo.add_or_update_relationship(
-            "BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False)
 
         # Test with exact 1.0
-        repo.add_or_update_relationship(
-            "BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False)
 
         # Test with negative (allowed in some systems)
-        repo.add_or_update_relationship(
-            "BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False)
 
         session.commit()
 
@@ -449,7 +435,7 @@ class TestConcurrentOperations:
     def test_delete_and_recreate_asset(tmp_path):
         """
         Verify that deleting an asset and recreating a new asset with the same ID replaces the original.
-        
+
         Creates an asset, deletes it, then upserts a new asset using the same ID and asserts the repository contains exactly one asset whose symbol and price match the recreated asset.
         """
         from src.data.database import (
@@ -567,9 +553,7 @@ class TestDataConsistency:
 
         repo.upsert_asset(a1)
         repo.upsert_asset(a2)
-        repo.add_or_update_relationship(
-            "DEL1", "DEL2", "test_rel", 0.5, bidirectional=False
-        )
+        repo.add_or_update_relationship("DEL1", "DEL2", "test_rel", 0.5, bidirectional=False)
         session.commit()
 
         # Delete one asset
@@ -578,9 +562,7 @@ class TestDataConsistency:
 
         # Relationship should be gone
         rels = repo.list_relationships()
-        matching_rels = [
-            r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"
-        ]
+        matching_rels = [r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"]
         assert len(matching_rels) == 0
 
         session.close()

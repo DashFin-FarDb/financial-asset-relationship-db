@@ -17,7 +17,7 @@ pytestmark = pytest.mark.unit
 def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Temporarily preserves api.database state and the DATABASE_URL environment variable for a test, restoring them on teardown.
-    
+
     Yields to the test. On teardown, closes any in-memory connection stored in api.database._MEMORY_CONNECTION, restores or clears the original DATABASE_URL environment variable, and reloads the api.database module to reset its state.
     """
     original_url = os.environ.get("DATABASE_URL")
@@ -38,9 +38,7 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     importlib.reload(database)
 
 
-def test_in_memory_database_persists_schema_and_data(
-    monkeypatch, restore_database_module
-):
+def test_in_memory_database_persists_schema_and_data(monkeypatch, restore_database_module):
     """
     Verify an in-memory SQLite configuration preserves schema and data
     across multiple connections.
@@ -72,9 +70,7 @@ def test_in_memory_database_persists_schema_and_data(
     # Persistence is the contract; connection identity is an implementation detail
 
 
-def test_uri_style_memory_database_persists_schema_and_data(
-    monkeypatch, restore_database_module
-):
+def test_uri_style_memory_database_persists_schema_and_data(monkeypatch, restore_database_module):
     """Verify URI-style in-memory SQLite configuration preserves schema and data."""
     monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 
@@ -220,9 +216,7 @@ class TestIsMemoryDb:
         ]
 
         for uri in memory_uris_mode_parameter:
-            assert database._is_memory_db(uri) is False, (
-                f"Unexpectedly detected as memory DB: {uri}"
-            )
+            assert database._is_memory_db(uri) is False, f"Unexpectedly detected as memory DB: {uri}"
 
     @staticmethod
     def test_is_memory_db_case_sensitivity(
@@ -470,7 +464,7 @@ class TestThreadSafety:
     ) -> None:
         """
         Verify concurrent write operations against a shared in-memory SQLite database persist all inserts.
-        
+
         Spawns five threads that each insert a distinct user row into the shared in-memory database, collects any exceptions raised by worker threads, and asserts that no errors occurred and that exactly five rows are present after all threads complete.
         """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
@@ -546,9 +540,7 @@ class TestEdgeCasesAndErrorHandling:
         """Test that DATABASE_URL environment variable is required."""
         monkeypatch.delenv("DATABASE_URL", raising=False)
 
-        with pytest.raises(
-            ValueError, match="DATABASE_URL environment variable must be set"
-        ):
+        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
             importlib.reload(database)
 
     @staticmethod
@@ -568,9 +560,7 @@ class TestEdgeCasesAndErrorHandling:
         )
 
         # Verify data was committed
-        row = reloaded_database.fetch_one(
-            "SELECT username FROM user_credentials WHERE username = ?", ("testuser",)
-        )
+        row = reloaded_database.fetch_one("SELECT username FROM user_credentials WHERE username = ?", ("testuser",))
         assert row is not None
         assert row["username"] == "testuser"
 
@@ -590,9 +580,7 @@ class TestEdgeCasesAndErrorHandling:
         )
 
         # Fetch single value
-        username = reloaded_database.fetch_value(
-            "SELECT username FROM user_credentials WHERE username = ?", ("alice",)
-        )
+        username = reloaded_database.fetch_value("SELECT username FROM user_credentials WHERE username = ?", ("alice",))
         assert username == "alice"
 
         # Fetch non-existent value
@@ -618,9 +606,7 @@ class TestEdgeCasesAndErrorHandling:
             ("bob", "hashed", "bob@example.com"),
         )
 
-        row = reloaded_database.fetch_one(
-            "SELECT username, email FROM user_credentials WHERE username = ?", ("bob",)
-        )
+        row = reloaded_database.fetch_one("SELECT username, email FROM user_credentials WHERE username = ?", ("bob",))
 
         assert isinstance(row, sqlite3.Row)
         assert row["username"] == "bob"
@@ -683,9 +669,7 @@ class TestEdgeCasesAndErrorHandling:
         ]
 
         for fmt in memory_formats:
-            assert database._is_memory_db(fmt) is True, (
-                f"Failed to detect {fmt} as memory DB"
-            )
+            assert database._is_memory_db(fmt) is True, f"Failed to detect {fmt} as memory DB"
 
         non_memory_formats = [
             "/path/to/file.db",
@@ -696,6 +680,4 @@ class TestEdgeCasesAndErrorHandling:
         ]
 
         for fmt in non_memory_formats:
-            assert database._is_memory_db(fmt) is False, (
-                f"Incorrectly detected {fmt} as memory DB"
-            )
+            assert database._is_memory_db(fmt) is False, f"Incorrectly detected {fmt} as memory DB"

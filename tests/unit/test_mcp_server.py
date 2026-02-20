@@ -90,7 +90,7 @@ class TestThreadSafeGraph:
         def tracked_acquire(*args, **kwargs):
             """
             Record a lock acquire event by appending "acquired" to the tracking list and delegate to the original acquire implementation.
-            
+
             Returns:
                 The value returned by the original acquire call.
             """
@@ -100,9 +100,9 @@ class TestThreadSafeGraph:
         def tracked_release(*args, **kwargs):
             """
             Record a lock release event and delegate to the original release callable.
-            
+
             Appends the string "released" to the enclosing `lock_acquired` list, then calls and returns the result of the original release callable.
-            
+
             Returns:
                 The value returned by the original release callable.
             """
@@ -145,11 +145,7 @@ class TestAddEquityNode:
 
         # Access the registered tool
         tool_func = next(
-            (
-                tool.fn
-                for tool in mcp_app.list_tools()
-                if tool.name == "add_equity_node"
-            ),
+            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
             None,
         )
         assert tool_func is not None, "add_equity_node tool not found"
@@ -272,11 +268,7 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (
-                resource.fn
-                for resource in mcp_app.list_resources()
-                if "3d-layout" in resource.uri
-            ),
+            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
             None,
         )
         assert resource_func is not None, "3d-layout resource not found"

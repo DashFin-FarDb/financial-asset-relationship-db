@@ -23,9 +23,9 @@ app = typer.Typer(add_completion=False)
 def load_graph() -> AssetRelationshipGraph:
     """
     Return an AssetRelationshipGraph instance for report generation.
-    
+
     This function creates and returns a new AssetRelationshipGraph. Replace this implementation with the application's real graph-loading logic when integrating with actual data sources.
-    
+
     Returns:
         AssetRelationshipGraph: The graph instance used by the CLI reporting commands.
     """
@@ -61,7 +61,7 @@ def save_report(
 ) -> None:
     """
     Save the generated schema report to the specified file.
-    
+
     Parameters:
         out (Path): Destination file path to write the report.
         fmt (str): Output format; either "md" for Markdown or "html" for HTML.
@@ -75,7 +75,7 @@ def save_report(
 def main() -> None:
     """
     Run the CLI Typer application and exit on unhandled errors.
-    
+
     If the application raises an exception, print a concise error message to stderr and terminate the process with exit status 1.
     """
     try:

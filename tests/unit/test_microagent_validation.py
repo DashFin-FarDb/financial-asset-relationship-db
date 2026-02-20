@@ -29,7 +29,7 @@ class TestMicroagentValidation:
     def microagents_dir(self) -> Path:
         """
         Get the Path to the repository's .openhands/microagents directory.
-        
+
         Returns:
             Path: Path object pointing to the .openhands/microagents directory.
         """
@@ -39,13 +39,13 @@ class TestMicroagentValidation:
     def microagent_files(self, microagents_dir: Path) -> List[Path]:
         """
         Collects all Markdown microagent files from the given directory.
-        
+
         Parameters:
             microagents_dir (Path): Path to the microagents directory to scan.
-        
+
         Returns:
             files (List[Path]): List of paths to `.md` files found in the directory.
-        
+
         Raises:
             AssertionError: If `microagents_dir` does not exist or no `.md` files are found.
         """
@@ -58,15 +58,15 @@ class TestMicroagentValidation:
     def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
         """
         Extract YAML frontmatter and the remaining Markdown body from a Markdown content string.
-        
+
         Frontmatter must be delimited by `---` on a line by itself before and after the YAML block. Leading whitespace is ignored.
-        
+
         Parameters:
             content (str): Full Markdown file content.
-        
+
         Returns:
             tuple[dict[str, Any] | None, str]: A tuple (frontmatter_dict, body) where `frontmatter_dict` is the parsed YAML mapping (or `None` if the YAML block is empty) and `body` is the Markdown content following the frontmatter.
-        
+
         Raises:
             ValueError: If no valid frontmatter block is found or if the YAML cannot be parsed.
         """
@@ -96,13 +96,13 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def repo_engineer_path(microagents_dir: Path) -> Path:
         """
         Return the Path to the repo_engineer_lead.md file inside the given microagents directory.
-        
+
         Parameters:
             microagents_dir (Path): Directory containing microagent Markdown files.
-        
+
         Returns:
             Path: Path to repo_engineer_lead.md within microagents_dir.
-        
+
         Raises:
             AssertionError: If repo_engineer_lead.md does not exist at the expected location.
         """
@@ -115,10 +115,10 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def repo_engineer_content(repo_engineer_path: Path) -> str:
         """
         Return the contents of the repo_engineer_lead.md file as a UTF-8 decoded string.
-        
+
         Parameters:
             repo_engineer_path (Path): Path to the repo_engineer_lead.md file.
-        
+
         Returns:
             content (str): The file contents decoded as UTF-8.
         """
@@ -129,10 +129,10 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def repo_engineer_frontmatter(self, repo_engineer_content: str) -> Dict[str, Any]:
         """
         Extract the YAML frontmatter from the repo_engineer_lead Markdown content.
-        
+
         Parameters:
             repo_engineer_content (str): Full text of repo_engineer_lead.md.
-        
+
         Returns:
             frontmatter (Dict[str, Any]): Parsed YAML frontmatter as a dictionary.
         """
@@ -143,10 +143,10 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def repo_engineer_body(self, repo_engineer_content: str) -> str:
         """
         Extract the Markdown body (content after YAML frontmatter) from the provided repo_engineer_lead.md content.
-        
+
         Parameters:
             repo_engineer_content (str): The full text of repo_engineer_lead.md including YAML frontmatter.
-        
+
         Returns:
             body (str): The Markdown body following the YAML frontmatter.
         """
@@ -176,18 +176,16 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         """Test that frontmatter contains all required fields."""
         required_fields = ["name", "type", "version", "agent"]
         for field in required_fields:
-            assert field in repo_engineer_frontmatter, (
-                f"Missing required field: {field}"
-            )
+            assert field in repo_engineer_frontmatter, f"Missing required field: {field}"
 
     @staticmethod
     def test_frontmatter_name_field(repo_engineer_frontmatter: Dict[str, Any]):
         """
         Validate the frontmatter 'name' field for repo_engineer_lead.md.
-        
+
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for the repo_engineer_lead microagent.
-        
+
         This test asserts that the frontmatter contains a `name` key, that its value is a non-empty string, and that it equals "repo_engineer_lead".
         """
         assert "name" in repo_engineer_frontmatter
@@ -200,18 +198,14 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_frontmatter_type_field(repo_engineer_frontmatter: Dict[str, Any]):
         """
         Validate that the frontmatter 'type' field exists and is a valid microagent type for repo_engineer_lead.
-        
+
         Checks that 'type' is present in the frontmatter, is a string, is one of "knowledge", "action", or "hybrid", and equals "knowledge" for the repo_engineer_lead microagent.
         """
         assert "type" in repo_engineer_frontmatter
         agent_type = repo_engineer_frontmatter["type"]
         assert isinstance(agent_type, str)
-        assert agent_type in ["knowledge", "action", "hybrid"], (
-            "Type must be valid microagent type"
-        )
-        assert agent_type == "knowledge", (
-            "Expected knowledge type for repo_engineer_lead"
-        )
+        assert agent_type in ["knowledge", "action", "hybrid"], "Type must be valid microagent type"
+        assert agent_type == "knowledge", "Expected knowledge type for repo_engineer_lead"
 
     @staticmethod
     def test_frontmatter_version_field(
@@ -219,7 +213,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     ) -> None:
         """
         Verify the frontmatter contains a `version` field whose value is a semantic version in the form `x.y.z`.
-        
+
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for the microagent; must include a `version` key with a string value that matches the numeric major.minor.patch pattern.
         """
@@ -227,18 +221,16 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         version = repo_engineer_frontmatter["version"]
         assert isinstance(version, str)
         # Should match semantic versioning pattern
-        assert re.match(r"^\d+\.\d+\.\d+$", version), (
-            "Version should follow semver format (x.y.z)"
-        )
+        assert re.match(r"^\d+\.\d+\.\d+$", version), "Version should follow semver format (x.y.z)"
 
     @staticmethod
     def test_frontmatter_agent_field(repo_engineer_frontmatter: Dict[str, Any]) -> None:
         """
         Validate the `agent` field in the parsed frontmatter for the repo_engineer_lead microagent.
-        
+
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for repo_engineer_lead.md; expected to contain an `agent` key.
-        
+
         Raises:
             AssertionError: If the `agent` key is missing, not a non-empty string, or not one of the allowed agent types (`CodeActAgent`, `PlannerAgent`, `BrowsingAgent`).
         """
@@ -257,9 +249,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         # So triggers should either be absent or empty
         if "triggers" in repo_engineer_frontmatter:
             triggers = repo_engineer_frontmatter["triggers"]
-            assert triggers is None or triggers == [] or triggers == "", (
-                "repo_engineer_lead should not have triggers as per documentation"
-            )
+            assert (
+                triggers is None or triggers == [] or triggers == ""
+            ), "repo_engineer_lead should not have triggers as per documentation"
 
     @staticmethod
     def test_body_content_not_empty(repo_engineer_body: str):
@@ -272,17 +264,16 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_describes_purpose(repo_engineer_body: str):
         """
         Ensure the microagent body describes repository engineering responsibilities.
-        
+
         Asserts that the provided body contains at least one of the expected keywords: "repository engineer", "issues", "prs", or "pull requests".
-        
+
         Parameters:
             repo_engineer_body (str): The Markdown body content of the microagent.
         """
         body_lower = repo_engineer_body.lower()
         # Should mention key responsibilities
         assert any(
-            keyword in body_lower
-            for keyword in ["repository engineer", "issues", "prs", "pull requests"]
+            keyword in body_lower for keyword in ["repository engineer", "issues", "prs", "pull requests"]
         ), "Body should describe repository engineering responsibilities"
 
     @staticmethod
@@ -298,41 +289,35 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_pr_handling(repo_engineer_body: str):
         """
         Assert the microagent body mentions pull request handling.
-        
+
         Parameters:
             repo_engineer_body (str): Markdown body text to inspect; matching is case-insensitive and checks for either "pr" or "pull request".
         """
         body_lower = repo_engineer_body.lower()
-        assert any(term in body_lower for term in ["pr", "pull request"]), (
-            "Should mention PR handling"
-        )
+        assert any(term in body_lower for term in ["pr", "pull request"]), "Should mention PR handling"
 
     @staticmethod
     def test_body_mentions_code_changes(repo_engineer_body: str):
         """
         Ensure the microagent body mentions code change responsibilities.
-        
+
         Parameters:
             repo_engineer_body (str): The markdown body content of the repo_engineer_lead microagent to validate.
         """
         body_lower = repo_engineer_body.lower()
-        assert "code changes" in body_lower or "changes" in body_lower, (
-            "Should mention code change capabilities"
-        )
+        assert "code changes" in body_lower or "changes" in body_lower, "Should mention code change capabilities"
 
     @staticmethod
     def test_body_mentions_documentation(repo_engineer_body: str):
         """Test that body mentions documentation responsibilities."""
         body_lower = repo_engineer_body.lower()
-        assert "documentation" in body_lower, (
-            "Should mention documentation responsibilities"
-        )
+        assert "documentation" in body_lower, "Should mention documentation responsibilities"
 
     @staticmethod
     def test_body_mentions_merge_conflicts(repo_engineer_body: str):
         """
         Ensure the microagent body mentions merge conflict handling.
-        
+
         Parameters:
             repo_engineer_body (str): Markdown body text of the microagent to validate.
         """
@@ -349,7 +334,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_commit_responsibility(repo_engineer_body: str):
         """
         Verify the microagent body mentions commit responsibilities.
-        
+
         Parameters:
             repo_engineer_body (str): The markdown body content of the repo_engineer_lead microagent.
         """
@@ -360,23 +345,23 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_no_malformed_sentences(repo_engineer_body: str):
         """
         Ensure the microagent body contains no obvious sentence malformations caused by multiple consecutive spaces.
-        
+
         Parameters:
             repo_engineer_body (str): The Markdown body text extracted from the microagent file; checked for occurrences of two or more consecutive spaces outside sentence endings (i.e., not immediately following a period).
         """
         # Check for multiple spaces in a row (except after periods)
-        assert not re.search(r"[^\.]  +", repo_engineer_body), (
-            "Should not have multiple consecutive spaces (except after periods)"
-        )
+        assert not re.search(
+            r"[^\.]  +", repo_engineer_body
+        ), "Should not have multiple consecutive spaces (except after periods)"
 
     @staticmethod
     def test_content_appropriate_length(repo_engineer_body: str) -> None:
         """
         Validate that the microagent body contains a reasonable number of words.
-        
+
         Parameters:
             repo_engineer_body (str): Markdown body of the microagent to validate.
-        
+
         Raises:
             AssertionError: If the word count is less than 30 or greater than 1000.
         """
@@ -388,7 +373,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_yaml_frontmatter_syntax_valid(repo_engineer_content: str):
         """
         Validate that the Markdown file contains YAML frontmatter delimited by `---` and that the frontmatter is syntactically valid YAML.
-        
+
         The test fails if the frontmatter delimiters are missing or if `yaml.safe_load` cannot parse the frontmatter.
         """
         content = repo_engineer_content.lstrip()
@@ -407,7 +392,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_no_trailing_whitespace(repo_engineer_content: str):
         """
         Ensure all lines except the last do not end with two trailing space characters.
-        
+
         Parameters:
             repo_engineer_content (str): Full text content of the microagent Markdown file to check.
         """
@@ -421,9 +406,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
         # Should not contain Windows line endings
-        assert b"\r\n" not in content, (
-            "File should use Unix line endings (LF, not CRLF)"
-        )
+        assert b"\r\n" not in content, "File should use Unix line endings (LF, not CRLF)"
 
     @staticmethod
     def test_encoding_is_utf8(repo_engineer_path: Path):
@@ -448,19 +431,19 @@ class TestAllMicroagents(TestMicroagentValidation):
 
             # Should have frontmatter (after stripping leading whitespace)
             content = content.lstrip()
-            assert re.match(r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL), (
-                f"{file_path.name} should have valid frontmatter"
-            )
+            assert re.match(
+                r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL
+            ), f"{file_path.name} should have valid frontmatter"
 
     def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
         """
         Validate that each microagent Markdown file includes the required YAML frontmatter keys.
-        
+
         Checks that every file in `microagent_files` has a parsed frontmatter mapping containing the keys: "name", "type", "version", and "agent".
-        
+
         Parameters:
             microagent_files (List[Path]): Paths to microagent Markdown files to validate.
-        
+
         Raises:
             AssertionError: If any file's frontmatter is missing one of the required keys.
         """
@@ -473,9 +456,7 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
 
             for field in required_fields:
-                assert field in frontmatter, (
-                    f"{file_path.name} is missing required field: {field}"
-                )
+                assert field in frontmatter, f"{file_path.name} is missing required field: {field}"
 
     def test_all_microagents_have_unique_names(self, microagent_files: List[Path]):
         """Test that all microagent names are unique."""
@@ -499,9 +480,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             version = frontmatter["version"]
 
-            assert re.match(r"^\d+\.\d+\.\d+$", version), (
-                f"{file_path.name} should have valid semver version, got: {version}"
-            )
+            assert re.match(
+                r"^\d+\.\d+\.\d+$", version
+            ), f"{file_path.name} should have valid semver version, got: {version}"
 
     def test_all_microagents_valid_types(self, microagent_files: List[Path]):
         """Test that all microagents have valid type values."""
@@ -514,9 +495,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             agent_type = frontmatter["type"]
 
-            assert agent_type in valid_types, (
-                f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
-            )
+            assert (
+                agent_type in valid_types
+            ), f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
 
     def test_all_microagents_valid_agents(self, microagent_files: List[Path]):
         """Test that all microagents have valid agent values."""
@@ -529,9 +510,7 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             agent = frontmatter["agent"]
 
-            assert agent in valid_agents, (
-                f"{file_path.name} has invalid agent: {agent}, must be one of {valid_agents}"
-            )
+            assert agent in valid_agents, f"{file_path.name} has invalid agent: {agent}, must be one of {valid_agents}"
 
     def test_triggers_field_is_optional(self, microagent_files: List[Path]):
         """Test that triggers field is optional and properly formatted when present."""
@@ -546,16 +525,10 @@ class TestAllMicroagents(TestMicroagentValidation):
                 triggers = frontmatter["triggers"]
                 # If present, should be a list of strings or None/empty
                 if triggers:
-                    assert isinstance(triggers, list), (
-                        f"{file_path.name} triggers should be a list"
-                    )
+                    assert isinstance(triggers, list), f"{file_path.name} triggers should be a list"
                     for trigger in triggers:
-                        assert isinstance(trigger, str), (
-                            f"{file_path.name} each trigger should be a string"
-                        )
-                        assert len(trigger.strip()) > 0, (
-                            f"{file_path.name} triggers should not be empty strings"
-                        )
+                        assert isinstance(trigger, str), f"{file_path.name} each trigger should be a string"
+                        assert len(trigger.strip()) > 0, f"{file_path.name} triggers should not be empty strings"
 
 
 @pytest.mark.unit
@@ -567,7 +540,7 @@ class TestMicroagentSemantic:
     def repo_engineer_path() -> Path:
         """
         Get the Path to the repo_engineer_lead microagent Markdown file.
-        
+
         Returns:
             Path: Path pointing to ".openhands/microagents/repo_engineer_lead.md" (relative to the repository root).
         """
@@ -578,10 +551,10 @@ class TestMicroagentSemantic:
     def repo_engineer_content(repo_engineer_path: Path) -> str:
         """
         Return the contents of the repo_engineer_lead.md file as a UTF-8 decoded string.
-        
+
         Parameters:
             repo_engineer_path (Path): Path to the repo_engineer_lead.md file.
-        
+
         Returns:
             content (str): The file contents decoded as UTF-8.
         """
@@ -592,37 +565,33 @@ class TestMicroagentSemantic:
     def test_autonomous_nature_described(repo_engineer_content: str):
         """
         Assert that the microagent body describes its autonomous or automated nature.
-        
+
         Checks that the provided microagent content includes either "autonomous" or "automated" (case-insensitive).
-        
+
         Parameters:
             repo_engineer_content (str): Full Markdown content of the repo_engineer_lead microagent file.
         """
         body_lower = repo_engineer_content.lower()
-        assert "autonomous" in body_lower or "automated" in body_lower, (
-            "Should describe autonomous/automated nature"
-        )
+        assert "autonomous" in body_lower or "automated" in body_lower, "Should describe autonomous/automated nature"
 
     @staticmethod
     def test_describes_summary_and_plan(repo_engineer_content: str):
         """
         Ensure the microagent body describes both a summary and a plan.
-        
+
         Parameters:
             repo_engineer_content (str): Full Markdown content of the repo_engineer_lead microagent; checked case-insensitively for the presence of both "summary" and "plan".
         """
         body_lower = repo_engineer_content.lower()
-        assert "summary" in body_lower and "plan" in body_lower, (
-            "Should mention creating summaries and plans"
-        )
+        assert "summary" in body_lower and "plan" in body_lower, "Should mention creating summaries and plans"
 
     @staticmethod
     def test_describes_reviewer_interaction(repo_engineer_content: str):
         """
         Ensure the microagent body describes interaction with reviewers, contributors, or comments.
-        
+
         Checks that the body text contains at least one of the keywords "reviewer", "contributor", or "comment" (case-insensitive).
-        
+
         Parameters:
             repo_engineer_content (str): Full Markdown content of the repo_engineer_lead microagent.
         """
@@ -635,9 +604,9 @@ class TestMicroagentSemantic:
     def test_describes_commit_process(repo_engineer_content: str):
         """
         Ensure the microagent body describes the commit process.
-        
+
         Checks that the content mentions "commit" and includes a phrase explaining committing actions (for example "commit any changes" or "commit changes").
-        
+
         Parameters:
             repo_engineer_content (str): The full Markdown content of the repo_engineer_lead microagent.
         """
@@ -652,17 +621,15 @@ class TestMicroagentSemantic:
     def test_describes_post_explanation(repo_engineer_content: str):
         """
         Verify the microagent body mentions posting explanations or explaining.
-        
+
         Parameters:
             repo_engineer_content (str): Complete Markdown content of the repo_engineer_lead microagent (frontmatter and body).
-        
+
         Raises:
             AssertionError: If the body does not contain "post" or "explain" (case-insensitive).
         """
         body_lower = repo_engineer_content.lower()
-        assert "post" in body_lower or "explain" in body_lower, (
-            "Should mention posting explanations"
-        )
+        assert "post" in body_lower or "explain" in body_lower, "Should mention posting explanations"
 
     @staticmethod
     def test_describes_efficiency_focus(repo_engineer_content: str):
@@ -674,9 +641,9 @@ class TestMicroagentSemantic:
     def test_proper_grammar_and_punctuation(repo_engineer_content: str):
         """
         Validate basic grammar and punctuation in the repo_engineer_lead Markdown body.
-        
+
         This test extracts the Markdown body after YAML frontmatter and enforces a few observable punctuation and sentence-structure constraints: the frontmatter must be present, the body must not contain double periods ("..") or a space before a period ("  ."), and longer sentences are checked with a basic punctuation/structure heuristic.
-        
+
         Parameters:
             repo_engineer_content (str): Full file content of the microagent Markdown (including YAML frontmatter).
         """
@@ -702,7 +669,7 @@ class TestMicroagentSemantic:
     def test_consistent_terminology(repo_engineer_content: str):
         """
         Ensure terminology in the microagent body is consistent.
-        
+
         If the body mentions pull requests, verifies it contains either the abbreviation "PR" (case-insensitive) or the phrase "pull request". Also verifies the body mentions "issue".
         """
         body = repo_engineer_content.lower()
@@ -726,7 +693,7 @@ class TestMicroagentEdgeCases:
     def repo_engineer_path() -> Path:
         """
         Get the Path to the repo_engineer_lead microagent Markdown file.
-        
+
         Returns:
             Path: Path pointing to ".openhands/microagents/repo_engineer_lead.md" (relative to the repository root).
         """
@@ -743,7 +710,7 @@ class TestMicroagentEdgeCases:
     def test_no_binary_content(repo_engineer_path: Path):
         """
         Check that the file at repo_engineer_path contains only UTF-8-decodable text.
-        
+
         Parameters:
             repo_engineer_path (Path): Path to the microagent Markdown file to validate.
         """
@@ -767,9 +734,7 @@ class TestMicroagentEdgeCases:
         for char in content:
             code = ord(char)
             if code < 32:  # Control character
-                assert char in ["\n", "\t", "\r"], (
-                    f"File should not contain control character: {repr(char)}"
-                )
+                assert char in ["\n", "\t", "\r"], f"File should not contain control character: {repr(char)}"
 
     @staticmethod
     def test_consistent_newlines(repo_engineer_path: Path):
@@ -797,14 +762,12 @@ class TestMicroagentPerformance(TestMicroagentValidation):
     def test_all_microagents_reasonable_size(microagent_files: List[Path]):
         """
         Ensure each microagent file's size is within reasonable bounds.
-        
+
         Asserts that every file in `microagent_files` is greater than 50 bytes and less than 100000 bytes; fails with a message identifying the offending file when a bound is violated.
         """
         for file_path in microagent_files:
             file_size = file_path.stat().st_size
-            assert file_size < 100000, (
-                f"{file_path.name} is too large ({file_size} bytes)"
-            )
+            assert file_size < 100000, f"{file_path.name} is too large ({file_size} bytes)"
             assert file_size > 50, f"{file_path.name} is too small ({file_size} bytes)"
 
     @staticmethod
@@ -824,12 +787,10 @@ class TestMicroagentPerformance(TestMicroagentValidation):
 class TestMicroagentDocumentation(TestMicroagentValidation):
     """Test documentation quality in microagent files."""
 
-    def test_all_microagents_have_body_content(
-        self, microagent_files: List[Path]
-    ) -> None:
+    def test_all_microagents_have_body_content(self, microagent_files: List[Path]) -> None:
         """
         Assert that each microagent Markdown file's body contains at least 20 words.
-        
+
         Files with unparseable YAML frontmatter are skipped. An AssertionError is raised for any file whose body has fewer than 20 words.
         """
         for file_path in microagent_files:
@@ -839,18 +800,14 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
             try:
                 _, body = self.parse_frontmatter(content)
                 word_count = len(body.split())
-                assert word_count >= 20, (
-                    f"{file_path.name} has insufficient body content ({word_count} words)"
-                )
+                assert word_count >= 20, f"{file_path.name} has insufficient body content ({word_count} words)"
             except ValueError as e:
                 pytest.skip(f"{file_path.name} has unparseable frontmatter: {e}")
 
-    def test_all_microagents_use_markdown_formatting(
-        self, microagent_files: List[Path]
-    ) -> None:
+    def test_all_microagents_use_markdown_formatting(self, microagent_files: List[Path]) -> None:
         """
         Verify each microagent's body contains Markdown formatting indicators.
-        
+
         Checks that the Markdown body (after frontmatter) includes at least one common Markdown element such as headings (`#`), lists (`-` or `*`), emphasis (`*` or `**`), or inline code/backticks. Files with unparsable frontmatter are skipped.
         @param microagent_files: List of file paths to microagent Markdown files to validate.
         """
@@ -886,15 +843,13 @@ class TestMicroagentBoundaryConditions:
         Verifies that a markdown microagent file containing the minimal required YAML frontmatter can be parsed and its fields extracted.
         """
         test_file = tmp_path / "minimal.md"
-        test_file.write_text(
-            """---
+        test_file.write_text("""---
 name: test
 type: knowledge
 version: 1.0.0
 agent: CodeActAgent
 ---
-Minimal content."""
-        )
+Minimal content.""")
 
         with open(test_file, encoding="utf-8") as f:
             content = f.read()
@@ -910,8 +865,7 @@ Minimal content."""
     def test_frontmatter_with_extra_fields_allowed(tmp_path):
         """Test that extra fields in frontmatter are allowed."""
         test_file = tmp_path / "extra.md"
-        test_file.write_text(
-            """---
+        test_file.write_text("""---
 name: test
 type: knowledge
 version: 1.0.0
@@ -919,8 +873,7 @@ agent: CodeActAgent
 extra_field: extra_value
 custom: true
 ---
-Content."""
-        )
+Content.""")
 
         with open(test_file, encoding="utf-8") as f:
             content = f.read()
@@ -960,14 +913,12 @@ This is a sentence.. This should be caught."""
     def test_malformed_frontmatter_raises_error(tmp_path):
         """Test that malformed frontmatter raises appropriate error."""
         test_file = tmp_path / "malformed.md"
-        test_file.write_text(
-            """---
+        test_file.write_text("""---
 name: test
 type: knowledge
 version 1.0.0
 ---
-Content."""
-        )
+Content.""")
 
         with open(test_file, encoding="utf-8") as f:
             content = f.read()

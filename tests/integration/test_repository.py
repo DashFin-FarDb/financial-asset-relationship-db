@@ -25,15 +25,13 @@ pytest.importorskip("sqlalchemy")
 def _apply_migration(database_path: Path) -> None:
     """
     Apply the repository's initial SQL migration to a SQLite database file.
-    
+
     Reads the migration SQL from migrations/001_initial.sql (two levels up from this file) and executes it against the provided database file, creating the schema and any seeded data defined by the script.
-    
+
     Parameters:
         database_path (Path): Path to the SQLite database file that will receive the migration.
     """
-    migrations_path = (
-        Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
-    )
+    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
     sql = migrations_path.read_text(encoding="utf-8")
 
     # executescript() is required for multi-statement DDL migrations.
@@ -45,10 +43,10 @@ def _apply_migration(database_path: Path) -> None:
 def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     """
     Yield a SQLAlchemy Session connected to a temporary SQLite database initialized with the repository migrations.
-    
+
     Parameters:
         tmp_path (Path): Temporary directory where the SQLite database file (repository.db) will be created.
-    
+
     Returns:
         Session: A SQLAlchemy Session bound to the temporary database. The session is yielded to the caller and will be closed and its engine disposed when the fixture completes.
     """

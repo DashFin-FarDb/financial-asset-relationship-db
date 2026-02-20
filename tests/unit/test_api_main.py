@@ -138,9 +138,7 @@ class TestGraphInitialization:
         graph2 = api_main.get_graph()
         assert graph1 is graph2
 
-    def test_graph_uses_cache_when_configured(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_uses_cache_when_configured(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should load from cached dataset when provided."""
         cache_path = tmp_path / "graph_snapshot.json"
         reference_graph = create_sample_database()
@@ -157,9 +155,7 @@ class TestGraphInitialization:
         api_main.reset_graph()
         monkeypatch.delenv("GRAPH_CACHE_PATH", raising=False)
 
-    def test_graph_fallback_on_corrupted_cache(
-        self, tmp_path: Path, monkeypatch
-    ) -> None:
+    def test_graph_fallback_on_corrupted_cache(self, tmp_path: Path, monkeypatch) -> None:
         """Graph initialization should fallback when cache is corrupted or invalid."""
         cache_path = tmp_path / "graph_snapshot.json"
         cache_path.write_text("not valid json", encoding="utf-8")
@@ -257,9 +253,9 @@ class TestAPIEndpoints:
     def client():
         """
         Provide a TestClient bound to the app with a pre-seeded sample in-memory graph.
-        
+
         The fixture yields a TestClient whose application has been populated with a sample graph; on teardown the application's graph is reset.
-        
+
         Returns:
             TestClient: Test client connected to the FastAPI app with the sample graph loaded.
         """
@@ -383,9 +379,7 @@ class TestAPIEndpoints:
         assert data["max_degree"] == 0
         assert data["network_density"] == 0
 
-    def test_get_metrics_multiple_assets_no_relationships(
-        self, client: TestClient
-    ) -> None:
+    def test_get_metrics_multiple_assets_no_relationships(self, client: TestClient) -> None:
         """Metrics endpoint handles multi-node graphs with no relationships."""
         graph = AssetRelationshipGraph()
         graph.add_asset(
@@ -541,7 +535,7 @@ class TestErrorHandling:
     def test_get_assets_server_error(self, bare_client: TestClient) -> None:
         """
         Verify the /api/assets endpoint responds with HTTP 500 when graph access raises an exception.
-        
+
         Forces api_main.get_graph() to raise and asserts the response status is 500 and the error detail contains "database error".
         """
 
@@ -746,7 +740,7 @@ class TestGraphInitializationRaceConditions:
         def init_graph():
             """
             Initialize the shared graph and record the outcome for a worker thread.
-            
+
             On success, appends the initialized graph instance to the outer-scope list `results`.
             On failure, appends the raised exception to the outer-scope list `errors`.
             """
@@ -777,7 +771,7 @@ class TestGraphInitializationRaceConditions:
     def test_graph_initialization_with_corrupted_environment(self, monkeypatch):
         """
         Verify that initializing the graph with a corrupted or invalid cache path falls back to a valid in-memory graph.
-        
+
         Sets GRAPH_CACHE_PATH to an invalid location, resets the cached graph, and asserts that get_graph() returns a non-null graph-like object exposing an `assets` attribute without raising an exception.
         """
         # Set invalid cache path
@@ -876,7 +870,7 @@ class TestPydanticModelValidation:
     def test_asset_response_rejects_negative_price(self):
         """
         Verifies AssetResponse accepts a negative price value.
-        
+
         Creates an AssetResponse with price -100.0 and asserts an instance is produced, confirming that negative prices are not rejected by model validation.
         """
         asset = AssetResponse(
@@ -939,7 +933,7 @@ class TestEndpointStressTests:
     def client():
         """
         Create a TestClient pre-seeded with a sample in-memory graph for tests.
-        
+
         Yields:
             TestClient: FastAPI TestClient bound to the application with a sample graph set. The graph is reset when the fixture tears down.
         """
@@ -986,9 +980,9 @@ class TestErrorMessageQuality:
     def client():
         """
         Create a TestClient with a seeded in-memory graph and ensure graph cleanup on teardown.
-        
+
         Sets a sample graph on the application prior to yielding and resets the global graph state when the fixture is torn down.
-        
+
         Returns:
             TestClient: A TestClient instance bound to the FastAPI app with the sample in-memory graph preloaded.
         """

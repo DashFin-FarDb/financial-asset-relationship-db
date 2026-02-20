@@ -51,7 +51,7 @@ class TestVercelConfiguration:
     def test_vercel_routes_configuration():
         """
         Verify that vercel.json contains a route mapping the API path `/api/(.*)` to `api/main.py`.
-        
+
         Checks the `routes` section of vercel.json and asserts that a route with `src` equal to `/api/(.*)` has `dest` set to `api/main.py`. If no matching route is present the test exits without failing.
         """
         with open("vercel.json") as f:
@@ -407,10 +407,7 @@ class TestShellScripts:
             content = f.read()
 
         # Should reference the analysis document
-        assert (
-            "BRANCH_CLEANUP_ANALYSIS.md" in content
-            or "documentation" in content.lower()
-        )
+        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
 
     def test_shell_scripts_consistent_style(self):
         """Test that shell scripts use consistent coding style."""
@@ -510,9 +507,7 @@ class TestShellScripts:
         if "git branch" in content and "-" in content:
             # Check the context of deletion
             lines = content.split("\n")
-            delete_lines = [
-                line for line in lines if "git branch -" in line and "xargs" in line
-            ]
+            delete_lines = [line for line in lines if "git branch -" in line and "xargs" in line]
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)
@@ -520,7 +515,7 @@ class TestShellScripts:
     def test_cleanup_branches_has_dry_run_mode(self):
         """
         Check that cleanup-branches.sh offers a dry-run or preview mode before performing branch deletions.
-        
+
         Searches the script for user-facing output (e.g., echo lines) that indicate a preview of branches or delete actions so users can review planned deletions before they are applied.
         """
         with open("cleanup-branches.sh") as f:
@@ -528,7 +523,5 @@ class TestShellScripts:
 
         # Should have some mechanism for previewing changes before deleting
         # Look for common dry-run patterns
-        has_preview = "echo" in content.lower() and (
-            "branch" in content.lower() or "delete" in content.lower()
-        )
+        has_preview = "echo" in content.lower() and ("branch" in content.lower() or "delete" in content.lower())
         assert has_preview, "Script should preview changes before deleting"

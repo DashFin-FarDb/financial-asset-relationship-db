@@ -24,7 +24,7 @@ class TestYAMLSyntaxAndStructure:
     def test_all_yaml_files_parse_successfully():
         """
         Check that every YAML file under .github parses without YAML syntax errors.
-        
+
         Scans the .github directory recursively for files ending with .yml or .yaml and asserts that loading each file with yaml.safe_load does not raise a yaml.YAMLError.
         """
         yaml_files = []
@@ -48,9 +48,7 @@ class TestYAMLSyntaxAndStructure:
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
         """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(
-            Path(".github").rglob("*.yaml")
-        )
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
         indentation_errors = []
 
         for yaml_file in yaml_files:
@@ -95,15 +93,13 @@ class TestYAMLSyntaxAndStructure:
 
             # Reset flags per file (handled by reinitialization each loop)
 
-        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
-            indentation_errors
-        )
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
 
 
 def test_no_duplicate_keys_in_yaml():
     """
     Ensure YAML files under .github parse without duplicate keys or other YAML parsing errors using ruamel.yaml.
-    
+
     If ruamel.yaml is not available the test is skipped. Parses each `.github/*.yml` and `.github/*.yaml` file with ruamel.yaml.YAML(typ="safe"), collects YAML parsing errors, file I/O errors, and unexpected exceptions with file context, and fails the test if any errors are found.
     """
     try:
@@ -111,9 +107,7 @@ def test_no_duplicate_keys_in_yaml():
     except ImportError:
         pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
 
-    yaml_files = list(Path(".github").rglob("*.yml")) + list(
-        Path(".github").rglob("*.yaml")
-    )
+    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
     parser = YAML(typ="safe")
     parse_errors = []
 
@@ -140,7 +134,7 @@ class TestWorkflowSchemaCompliance:
     def all_workflows() -> List[Dict[str, Any]]:
         """
         Collect all GitHub Actions workflow YAML files under .github/workflows and parse each file.
-        
+
         Returns:
             List[Dict[str, Any]]: A list of mappings for each workflow file with keys:
                 - "path" (Path): Path to the workflow file.
@@ -156,21 +150,19 @@ class TestWorkflowSchemaCompliance:
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """
         Ensure each GitHub Actions workflow contains the required top-level keys "name" and "jobs".
-        
+
         Parameters:
             all_workflows (list): Iterable of workflow descriptors; each item is a dict with:
                 - 'path' (str): filesystem path to the workflow file
                 - 'content' (dict): parsed YAML mapping of the workflow; must contain the required keys
-        
+
         Notes:
             Assertions include the workflow file path when a required key is missing.
         """
         required_keys = ["name", "jobs"]
         for workflow in all_workflows:
             for key in required_keys:
-                assert key in workflow["content"], (
-                    f"Workflow {workflow['path']} missing required key: {key}"
-                )
+                assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
 
 
 class TestDefaultValueHandling:
@@ -180,7 +172,7 @@ class TestDefaultValueHandling:
     def test_missing_optional_fields_have_defaults() -> None:
         """
         Validate optional fields in .github/pr-agent-config.yml.
-        
+
         Checks the top-level "agent" mapping in the file; if an "enabled" key is present its value must be a boolean. Omission of "enabled" is allowed and treated as the configuration default.
         """
         config_path = Path(".github/pr-agent-config.yml")
@@ -199,7 +191,7 @@ class TestDefaultValueHandling:
     def test_workflow_timeout_defaults():
         """
         Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
-        
+
         When a job defines `timeout-minutes`, ensure the value is an `int` between 1 and 360 (inclusive). Assertion failures include the workflow file path and job id.
         """
         workflow_dir = Path(".github/workflows")
@@ -212,12 +204,8 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(timeout, int), (
-                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    )
-                    assert 1 <= timeout <= 360, (
-                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
-                    )
+                    assert isinstance(timeout, int), f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    assert 1 <= timeout <= 360, f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
 
 
 if __name__ == "__main__":

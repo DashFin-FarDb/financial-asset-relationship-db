@@ -32,9 +32,9 @@ def _resolve_positions(
 ) -> List[go.Scatter]:
     """
     Build Plotly Scatter traces representing asset-to-asset relationships, grouped and colored by relationship type and filtered by the provided toggles.
-    
+
     Each returned trace draws edges for a single relationship type (lines between asset coordinates) and includes hover text with "source → target", relationship type, and strength. Relationship inclusion is controlled by the per-type flags unless `show_all_relationships` is True. If there are no assets or no position mapping available for the requested assets, an empty list is returned.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing relationship mappings keyed by source asset ID; each relationship is a tuple of (target_id, rel_type, strength).
         layout_type (str): Requested layout hint (e.g., "spring", "circular", "grid"); used to influence layout-related trace construction.
@@ -47,7 +47,7 @@ def _resolve_positions(
         show_income_comparison (bool): Include relationships with type "income_comparison".
         show_regulatory (bool): Include relationships with type "regulatory_impact".
         show_all_relationships (bool): If True, ignore individual show_* flags and include all relationship types present in the graph.
-    
+
     Returns:
         List[go.Scatter]: A list of Plotly Scatter traces (one per relationship type) where each trace contains line segments for edges and hover text describing each edge.
     """
@@ -81,11 +81,7 @@ def _resolve_positions(
                 continue
 
             # Apply filters if not showing all relationships
-            if (
-                not show_all_relationships
-                and rel_type in relationship_filters
-                and not relationship_filters[rel_type]
-            ):
+            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
                 continue
 
             # Group by relationship type
@@ -136,10 +132,7 @@ def _resolve_positions(
             name=trace_name,
             showlegend=True,
         )
-        positions_3d = {
-            asset_ids_ordered[i]: tuple(positions_3d_array[i])
-            for i in range(len(asset_ids_ordered))
-        }
+        positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
@@ -215,10 +208,7 @@ def visualize_2d_graph(
                 _,
             ) = graph.get_3d_visualization_data_enhanced()
             # Convert array to dictionary
-            positions_3d = {
-                asset_ids_ordered[i]: tuple(positions_3d_array[i])
-                for i in range(len(asset_ids_ordered))
-            }
+            positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
             positions = _create_spring_layout_2d(positions_3d, asset_ids)
         else:
             # Fallback to circular if 3D data not available
@@ -250,11 +240,7 @@ def visualize_2d_graph(
     colors = []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = (
-            asset.asset_class.value
-            if hasattr(asset.asset_class, "value")
-            else str(asset.asset_class)
-        )
+        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
 
         # Color mapping by asset class
         color_map = {
@@ -278,9 +264,7 @@ def visualize_2d_graph(
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
         hover_text = f"{asset_id}<br>Class: " + (
-            asset.asset_class.value
-            if hasattr(asset.asset_class, "value")
-            else str(asset.asset_class)
+            asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
         )
         hover_texts.append(hover_text)
 
