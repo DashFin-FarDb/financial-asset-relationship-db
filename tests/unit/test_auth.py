@@ -476,12 +476,7 @@ class TestEdgeCases:
         
         assert result.username == "user"
 
-class TestEdgeCases:
-    """Test edge cases and error conditions."""
-
-    def test_special_characters_in_username(self):
-        """Test handling of special characters in usernames."""
-        special_chars = ["user@domain", "user-name", "user.name", "user_123"]
+@pytest.mark.asyncio
         
         for username in special_chars:
             hashed = get_password_hash("password")
