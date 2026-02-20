@@ -135,6 +135,11 @@ class TestCacheHelpers:
         written = json.loads(cache_path.read_text())
         assert written == cache_data
 
+        assert cache_path.exists(), "Cache file should have been created"
+        import json
+        written = json.loads(cache_path.read_text())
+        assert written == cache_data
+
     @patch('src.data.real_data_fetcher.Path.write_text')
     @patch('src.data.real_data_fetcher.Path.mkdir')
     def test_save_to_cache_creates_directory(self, mock_mkdir, mock_write):
