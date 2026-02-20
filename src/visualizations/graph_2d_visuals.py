@@ -64,7 +64,6 @@ def _resolve_positions(
     if not asset_ids or not positions:
         return []
 
-    traces = []
     asset_id_set = set(asset_ids)
 
     # Construct relationship filters dictionary
