@@ -125,7 +125,7 @@ def _create_node_trace(
     """
     node_x = [positions[a][0] for a in asset_ids]
     node_y = [positions[a][1] for a in asset_ids]
-        asset_ids (List[str]): A list of asset IDs to be included in the trace.
+    asset_ids(List[str]): A list of asset IDs to be included in the trace.
 
     Returns:
         go.Scatter: A Plotly scatter trace representing the asset nodes.
