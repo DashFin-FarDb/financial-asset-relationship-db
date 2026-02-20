@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(/mnt/c/Users/Administrator/Projects/financial-asset-relationship-db/.venv/Scripts/python.exe:*)"
+    ]
+  }
+}
