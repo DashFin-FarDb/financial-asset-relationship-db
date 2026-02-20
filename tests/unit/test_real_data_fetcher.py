@@ -19,11 +19,15 @@ import pytest
 from src.data.real_data_fetcher import (
     RealDataFetcher,
     create_real_database,
-    _get_cache_path,
-    _is_cache_valid,
     _load_from_cache,
     _save_to_cache,
 )
+
+try:
+    from src.data.real_data_fetcher import _get_cache_path, _is_cache_valid
+except ImportError:
+    _get_cache_path = None
+    _is_cache_valid = None
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import Asset, AssetClass, Equity, Bond, Commodity, Currency
 
