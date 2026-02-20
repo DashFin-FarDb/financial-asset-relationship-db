@@ -64,7 +64,6 @@ def _resolve_positions(
     if not asset_ids or not positions:
         return []
 
-    traces = []
     asset_id_set = set(asset_ids)
 
     # Construct relationship filters dictionary
@@ -136,16 +135,6 @@ def _resolve_positions(
         color = REL_TYPE_COLORS.get(rel_type, "#888888")
         trace_name = rel_type.replace("_", " ").title()
 
-        trace = go.Scatter(
-            x=edges_x,
-            y=edges_y,
-            mode="lines",
-            line=dict(color=color, width=2),
-            hovertext=hover_texts,
-            hoverinfo="text",
-            name=trace_name,
-            showlegend=True,
-        )
         positions_3d = {
             asset_ids_ordered[i]: tuple(positions_3d_array[i])
             for i in range(len(asset_ids_ordered))
