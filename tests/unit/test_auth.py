@@ -957,16 +957,6 @@ class TestTokenCreationEdgeCases:
 
     def test_create_token_with_special_claims(self):
         """Test creating token with special-character claims."""
-        token = create_access_token(data={})
-        assert isinstance(token, str)
-        assert len(token) > 0
-
-    def test_create_token_with_special_claims(self):
-        """Test creating token with special-character claims."""
-        data = {
-            "sub": "user@example.com",
-            "custom": "value with spaces & special!@#",
-        }
         token = create_access_token(data=data)
         assert isinstance(token, str)
         assert len(token) > 0
