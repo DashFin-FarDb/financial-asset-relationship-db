@@ -7,9 +7,6 @@ from pathlib import Path
 from typing import Generator
 
 import pytest
-
-pytest.importorskip("sqlalchemy")
-
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -25,13 +22,18 @@ from src.models.financial_models import (
 pytest.importorskip("sqlalchemy")
 
 
+pytest.importorskip("sqlalchemy")
+
+
 def _apply_migration(database_path: Path) -> None:
     """
     Apply database migrations by executing the initial SQL script.
 
     The migration script is static/trusted (repository-owned), not user-controlled.
     """
-    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
+    migrations_path = (
+        Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
+    )
     sql = migrations_path.read_text(encoding="utf-8")
 
     # executescript() is required for multi-statement DDL migrations.
