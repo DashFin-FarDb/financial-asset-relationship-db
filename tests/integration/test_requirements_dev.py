@@ -30,6 +30,11 @@ def _strip_inline_comment(line: str) -> str:
     return line.split("#", 1)[0].strip()
 
 
+def _strip_inline_comment(line: str) -> str:
+    """Strip trailing inline comments from a requirements line."""
+    return line.split("#", 1)[0].strip()
+
+
 def _extract_package_token(raw_line: str, req: Requirement) -> str:
     """
     Extract the package token as written in the file (preserve original casing),
@@ -87,6 +92,11 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
         requirements.append((pkg, spec))
 
     return requirements
+
+
+@pytest.fixture()
+def package_names(parsed_requirements: list[tuple[str, str]]) -> list[str]:
+    """Return just the package tokens extracted from the parsed requirements."""
 
 
 def _normalize_name_for_dupe_check(name: str) -> str:

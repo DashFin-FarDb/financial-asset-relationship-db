@@ -38,7 +38,7 @@ for branch in $branches; do
         ((unrelated_count++))
 
         # Check if it has valuable changes we could extract
-        files=$(git show --name-only "$branch" | grep -E "(\.py$|\.txt$|\.yml$|\.yaml$|\.md$)" | wc -l)
+        files=$(git show --name-only "$branch" | grep -E "(\.py$|\.txt$|\.yml$"|"\".ya"""ml$|\.md$)" | wc -l)
         if [ $files -gt 0 ]; then
             echo "  💎 Potential value: $files relevant files for extraction"
             ((valuable_count++))

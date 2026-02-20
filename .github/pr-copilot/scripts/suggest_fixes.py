@@ -19,7 +19,10 @@ try:
     import yaml
     from github import Github, GithubException
 except ImportError:
-    print("Error: Required packages not installed. Run: pip install PyGithub pyyaml", file=sys.stderr)
+    print(
+        "Error: Required packages not installed. Run: pip install PyGithub pyyaml",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
@@ -64,13 +67,17 @@ def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
     suggestion_pattern = r"```suggestion\s*\n(.*?)\n```"
     matches = re.finditer(suggestion_pattern, comment_body, re.DOTALL)
     for match in matches:
-        suggestions.append({"type": "code_suggestion", "content": match.group(1).strip()})
+        suggestions.append(
+            {"type": "code_suggestion", "content": match.group(1).strip()}
+        )
 
     # Pattern 2: Inline code in quotes with suggestion words
     inline_pattern = r"(?:should be|change to|replace with|use)\s+`([^`]+)`"
     matches = re.finditer(inline_pattern, comment_body, re.IGNORECASE)
     for match in matches:
-        suggestions.append({"type": "inline_suggestion", "content": match.group(1).strip()})
+        suggestions.append(
+            {"type": "inline_suggestion", "content": match.group(1).strip()}
+        )
 
     return suggestions
 
@@ -84,7 +91,11 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 
     # Define category keywords with their priorities
     categories = [
-        ("critical", 1, ["security", "vulnerability", "exploit", "critical", "breaking"]),
+        (
+            "critical",
+            1,
+            ["security", "vulnerability", "exploit", "critical", "breaking"],
+        ),
         ("bug", 1, ["bug", "error", "fails", "broken", "incorrect", "wrong"]),
         ("question", 3, ["why", "what", "how", "?", "clarify", "explain"]),
         ("style", 3, ["style", "format", "lint", "naming", "convention"]),
@@ -106,7 +117,9 @@ def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
     return any(keyword in body_lower for keyword in actionable_keywords)
 
 
-def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[str, Any]]:
+def parse_review_comments(
+    pr: Any, actionable_keywords: List[str]
+) -> List[Dict[str, Any]]:
     """Parse all review comments and extract actionable items."""
     actionable_items = []
 
@@ -228,7 +241,13 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 
     # Order of presentation
     priority_order = ["critical", "bug", "improvement", "style", "question"]
-    emoji_map = {"critical": "🚨", "bug": "🐛", "improvement": "💡", "style": "🎨", "question": "❓"}
+    emoji_map = {
+        "critical": "🚨",
+        "bug": "🐛",
+        "improvement": "💡",
+        "style": "🎨",
+        "question": "❓",
+    }
 
     for category in priority_order:
         items = categorized.get(category, [])
@@ -256,12 +275,18 @@ def write_output(report: str) -> None:
             with open(gh_summary, "a", encoding="utf-8") as f:
                 f.write(report)
         except IOError as e:
-            print(f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
+            print(
+                f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr
+            )
 
     # 2. Secure Temp File
     try:
         with tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", delete=False, suffix=".md", prefix="fix_proposals_"
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+            suffix=".md",
+            prefix="fix_proposals_",
         ) as tmp:
             tmp.write(report)
             print(f"Fix proposals generated: {tmp.name}", file=sys.stderr)
@@ -288,7 +313,8 @@ def main():
 
     config = load_config()
     keywords = config.get("review_handling", {}).get(
-        "actionable_keywords", ["please", "should", "fix", "refactor", "change", "update", "add", "remove"]
+        "actionable_keywords",
+        ["please", "should", "fix", "refactor", "change", "update", "add", "remove"],
     )
 
     try:

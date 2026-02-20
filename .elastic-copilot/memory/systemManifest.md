@@ -9,18 +9,3989 @@
 ## Current Status
 
 - Current Phase: Set-up/Maintenance
-- Last Updated: 2025-11-10T00:21:57.491Z
+- Last Updated: 2026-02-16T07:57:42.656Z
 
 ## Project Structure
 
-- 35 py files
-- 4 ts files
-- 9 tsx files
-- 8 js files
-- 5 ts files
-- 12 tsx files
+- 84 py files
+- 5 js files
+- 12 ts files
+- 10 tsx files
 
 ## Dependencies
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+## TSX Dependencies
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/NetworkVisualization
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/MetricsDashboard
+- ../../app/types/api
+- ../test-utils
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \mcp_server.py
+
+Dependencies:
+
+- argparse
+- copy
+- json
+- threading
+- src.logic.asset_graph
+- AssetRelationshipGraph
+- src.models.financial_models
+- AssetClass,
+- mcp.server.fastmcp
+- FastMCP
+- (lazy)
+- e
+
+### \main.py
+
+Dependencies:
+
+- os
+- socket
+- psycopg2
+- dotenv
+- load_dotenv
+- supabase
+- Client,
+- .env
+- DATABASE_URL
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \conftest.py
+
+Dependencies:
+
+- **future**
+- annotations
+- collections.abc
+- Callable,
+- pathlib
+- Path
+- pytest
+- sqlalchemy.engine
+- Engine
+- sqlalchemy.orm
+- Session,
+- src.data.database
+- (
+- within
+
+## JS Dependencies
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+## TSX Dependencies
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+### \frontend\app\components\NetworkVisualization.tsx
+
+Dependencies:
+
+- react
+- next/dynamic
+- ../types/api
+- plotly.js
+
+### \frontend\app\components\MetricsDashboard.tsx
+
+Dependencies:
+
+- react
+- ../types/api
+
+### \frontend\app\components\AssetList.tsx
+
+Dependencies:
+
+- react
+- next/navigation
+- ../types/api
+
+## TS Dependencies
+
+### \frontend\app\types\api.ts
+
+No dependencies found
+
+### \frontend\app\lib\api.ts
+
+Dependencies:
+
+- axios
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## JS Dependencies
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+## TSX Dependencies
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/AssetList
+- ../../app/lib/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\app\components\AssetList.tsx
+
+Dependencies:
+
+- react
+- next/navigation
+- ../types/api
+
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/NetworkVisualization
+- ../../app/types/api
+- ../test-utils
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+## TSX Dependencies
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/MetricsDashboard
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/AssetList
+- ../../app/lib/api
+- ../test-utils
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+## TSX Dependencies
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\app\components\NetworkVisualization.tsx
+
+Dependencies:
+
+- react
+- next/dynamic
+- ../types/api
+- plotly.js
+
+### \frontend\app\components\MetricsDashboard.tsx
+
+Dependencies:
+
+- react
+- ../types/api
+
+### \frontend\app\components\AssetList.tsx
+
+Dependencies:
+
+- react
+- next/navigation
+- ../types/api
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \mcp_server.py
+
+Dependencies:
+
+- argparse
+- copy
+- json
+- threading
+- src.logic.asset_graph
+- AssetRelationshipGraph
+- src.models.financial_models
+- AssetClass,
+- mcp.server.fastmcp
+- FastMCP
+- (lazy)
+- e
+
+### \main.py
+
+Dependencies:
+
+- os
+- socket
+- psycopg2
+- dotenv
+- load_dotenv
+- supabase
+- Client,
+- .env
+- DATABASE_URL
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+## JS Dependencies
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\app\types\api.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+## TSX Dependencies
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/NetworkVisualization
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/MetricsDashboard
+- ../../app/types/api
+- ../test-utils
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+## TSX Dependencies
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+### \frontend\app\components\NetworkVisualization.tsx
+
+Dependencies:
+
+- react
+- next/dynamic
+- ../types/api
+- plotly.js
+
+### \frontend\app\components\MetricsDashboard.tsx
+
+Dependencies:
+
+- react
+- ../types/api
+
+### \frontend\app\components\AssetList.tsx
+
+Dependencies:
+
+- react
+- next/navigation
+- ../types/api
+
+## TS Dependencies
+
+### \frontend\app\types\api.ts
+
+No dependencies found
+
+### \frontend\app\lib\api.ts
+
+Dependencies:
+
+- axios
+
+### \frontend\app\lib\assetHelpers.ts
+
+Dependencies:
+
+- ./api
+- ../types/api
+
+### \frontend\app\lib\index.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## TSX Dependencies
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/NetworkVisualization
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/MetricsDashboard
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/AssetList
+- ../../app/lib/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## TSX Dependencies
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/NetworkVisualization
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/MetricsDashboard
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/AssetList
+- ../../app/lib/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+## TSX Dependencies
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+### \frontend\app\components\NetworkVisualization.tsx
+
+Dependencies:
+
+- react
+- next/dynamic
+- ../types/api
+- plotly.js
+
+### \frontend\app\components\MetricsDashboard.tsx
+
+Dependencies:
+
+- react
+- ../types/api
+
+### \frontend\app\components\AssetList.tsx
+
+Dependencies:
+
+- react
+- next/navigation
+- ../types/api
+
+## TS Dependencies
+
+### \frontend\app\lib\assetHelpers.ts
+
+Dependencies:
+
+- ./api
+- ../types/api
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\app\lib\index.ts
+
+No dependencies found
+
+### \frontend\app\lib\api.ts
+
+Dependencies:
+
+- axios
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+## TS Dependencies
+
+### \frontend\app\types\api.ts
+
+No dependencies found
+
+### \frontend\app\lib\index.ts
+
+No dependencies found
+
+### \frontend\app\lib\assetHelpers.ts
+
+Dependencies:
+
+- ./api
+- ../types/api
+
+### \frontend\app\lib\api.ts
+
+Dependencies:
+
+- axios
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+## TSX Dependencies
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+### \frontend\app\components\AssetList.tsx
+
+Dependencies:
+
+- react
+- next/navigation
+- ../types/api
+
+### \frontend\app\components\NetworkVisualization.tsx
+
+Dependencies:
+
+- react
+- next/dynamic
+- ../types/api
+- plotly.js
+
+### \frontend\app\components\MetricsDashboard.tsx
+
+Dependencies:
+
+- react
+- ../types/api
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 **init**.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 **tests**/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 **init**.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 **init**.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 **init**.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 **init**.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \app.py
+
+Dependencies:
+
+- json
+- logging
+- dataclasses
+- asdict
+- typing
+- Dict,
+- gradio
+- plotly.graph_objects
+- src.analysis.formulaic_analysis
+- FormulaicdAnalyzer
+- src.data.real_data_fetcher
+- create_real_database
+- src.logic.asset_graph
+- AssetRelationshipGraph
+- src.models.financial_models
+- Asset
+- src.reports.schema_report
+- generate_schema_report
+- src.visualizations.formulaic_visuals
+- FormulaicVisualizer
+- src.visualizations.graph_2d_visuals
+- visualize_2d_graph
+- src.visualizations.graph_visuals
+- (
+- Yahoo
+- starting.
+- the
+
+### \main.py
+
+Dependencies:
+
+- os
+- socket
+- psycopg2
+- dotenv
+- load_dotenv
+- supabase
+- Client,
+- .env
+- DATABASE_URL
+
+### \test_supabase.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- **future**
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+## JS Dependencies
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## TSX Dependencies
+
+### \frontend\app\page.tsx
+
+Dependencies:
+
+- react
+- ./lib/api
+- ./components/NetworkVisualization
+- ./components/MetricsDashboard
+- ./components/AssetList
+- ./types/api
+
+### \frontend\app\layout.tsx
+
+Dependencies:
+
+- ./globals.css
+- next
+- @vercel/speed-insights/next
+
+### \frontend\app\components\NetworkVisualization.tsx
+
+Dependencies:
+
+- react
+- next/dynamic
+- ../types/api
+- plotly.js
+
+### \frontend\app\components\MetricsDashboard.tsx
+
+Dependencies:
+
+- react
+- ../types/api
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
 
 ## Project Directory Structure
 
