@@ -15,7 +15,6 @@ DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMA
 import pytest
 
 
-
 class TestDocumentationSections:
     """Test that all expected sections are present."""
 
@@ -34,11 +33,7 @@ class TestDocumentationSections:
 
     def test_has_generated_files_section(self, section_headers: List[str]):
         """Test that there's a section about generated files."""
-        generated = [
-            h
-            for h in section_headers
-            if "generated" in h.lower() or "file" in h.lower()
-        ]
+        generated = [h for h in section_headers if "generated" in h.lower() or "file" in h.lower()]
         assert len(generated) > 0, "Should have a section about generated files"
 
     def test_has_running_section(self, section_headers: List[str]):
@@ -48,6 +43,6 @@ class TestDocumentationSections:
 
     def test_has_sufficient_sections(self, section_headers: List[str]):
         """Test that document has sufficient number of sections."""
-        assert len(section_headers) >= 5, (
-            f"Document should have at least 5 major sections, found {len(section_headers)}"
-        )
+        assert (
+            len(section_headers) >= 5
+        ), f"Document should have at least 5 major sections, found {len(section_headers)}"
