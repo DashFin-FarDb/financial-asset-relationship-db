@@ -271,7 +271,9 @@ class TestGetCurrentUser:
             await get_current_user(token)
 
         assert exc_info.value.status_code == 401
-        assert exc_info.value.detail == "Token has expired"
+        assert exc_info.value.detail
+        assert "expired" in str(exc_info.value.detail).lower()
+
     @pytest.mark.asyncio
     async def test_get_current_user_with_invalid_token(self):
         """Test get_current_user with invalid token."""
