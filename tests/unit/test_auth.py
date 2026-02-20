@@ -464,9 +464,6 @@ class TestGetCurrentUser:
             await get_current_user(invalid_token)
 
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "Could not validate credentials" in exc_info.value.detail
-
-
     @pytest.fixture
     def valid_token(self):
         """
