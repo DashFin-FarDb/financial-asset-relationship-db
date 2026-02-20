@@ -101,6 +101,7 @@ class TestWorkflowYAMLSyntax:
         Uses a custom SafeLoader to reliably detect duplicates during parsing.
         """
         for workflow_file in workflow_files:
+
             def no_duplicates_constructor(loader, node, deep=False):
                 """Construct a mapping from a YAML node, raising an error if duplicate keys are found."""
                 mapping = {}
@@ -118,6 +119,7 @@ class TestWorkflowYAMLSyntax:
                 Custom YAML loader that enforces unique keys in mappings,
                 raising an error on duplicates.
                 """
+
                 pass
 
             UniqueKeyLoader.add_constructor(
@@ -540,12 +542,13 @@ class TestWorkflowPerformance:
             triggers = workflow_data.get("on", {})
 
             # If triggered on PR synchronize, should have concurrency
-            if isinstance(triggers, dict) and ("pull_request" in triggers or "pull_request_target" in triggers):
+            if isinstance(triggers, dict) and (
+                "pull_request" in triggers or "pull_request_target" in triggers
+            ):
                 for job_name, job_config in workflow_data["jobs"].items():
                     # Check for concurrency at job or workflow level
                     has_concurrency = (
-                        "concurrency" in job_config
-                        or "concurrency" in workflow_data
+                        "concurrency" in job_config or "concurrency" in workflow_data
                     )
 
                     if not has_concurrency:
