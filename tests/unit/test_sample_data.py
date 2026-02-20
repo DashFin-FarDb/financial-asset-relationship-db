@@ -235,7 +235,7 @@ class TestSampleRelationships:
         )
 
     @staticmethod
-    def test_corporate_bond_relationships_exist():
+    def test_corporate_link_relationships_exist():
         """
         Verify corporate_link relationships are present when bond assets exist.
 
