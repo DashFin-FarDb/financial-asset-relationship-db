@@ -39,8 +39,13 @@ def _apply_migration(database_path: Path) -> None:
 @pytest.fixture()
 def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     """
-    Provide a SQLAlchemy session connected to a temporary SQLite database
-    with initial migrations applied.
+    Yield a SQLAlchemy Session bound to a temporary SQLite database initialized with the project's migrations.
+    
+    Parameters:
+        tmp_path (Path): Directory in which a temporary `repository.db` SQLite file is created and populated by the initial migration.
+    
+    Returns:
+        session (Session): A SQLAlchemy Session connected to the temporary database. The session is closed and the engine disposed after use.
     """
     db_path = tmp_path / "repository.db"
     _apply_migration(db_path)

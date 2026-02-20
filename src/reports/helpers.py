@@ -5,9 +5,13 @@ from typing import Any, Iterable, Mapping
 
 def _as_int(value: Any, default: int = 0) -> int:
     """
-    Convert a value to an integer with fallback.
-
-    Returns `default` when `value` is None or cannot be coerced to int.
+    Convert a value to an integer, falling back to `default` when `value` is None or cannot be converted.
+    
+    Parameters:
+        default (int): Fallback returned when `value` is None or not convertible to `int`.
+    
+    Returns:
+        int: `default` if conversion is not possible, otherwise the integer conversion of `value`.
     """
     try:
         if value is None:
@@ -19,9 +23,13 @@ def _as_int(value: Any, default: int = 0) -> int:
 
 def _as_float(value: Any, default: float = 0.0) -> float:
     """
-    Convert a value to a float with fallback.
-
-    Returns `default` when `value` is None or cannot be converted.
+    Normalize a value into a float, using a fallback when the value is None or not convertible.
+    
+    Parameters:
+        default (float): Fallback returned when `value` is `None` or cannot be converted to a float.
+    
+    Returns:
+        float: The converted float, or `default` if conversion fails.
     """
     try:
         if value is None:
@@ -33,9 +41,15 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 
 def _as_str_int_map(value: Any) -> dict[str, int]:
     """
-    Convert a mapping-like object into a dict[str, int].
-
-    Only string keys are retained. Values are converted using `_as_int`.
+    Normalize a mapping-like object into a dict with string keys and integer values.
+    
+    Non-string keys are ignored. Each retained value is converted to an integer; if a value is None or cannot be converted, it becomes 0.
+    
+    Parameters:
+        value (Any): The mapping-like object to normalize. If this is not a Mapping, it is treated as empty.
+    
+    Returns:
+        dict[str, int]: A dictionary containing only string keys from the input mapped to their integer-converted values.
     """
     if not isinstance(value, Mapping):
         return {}
@@ -53,11 +67,11 @@ def _as_top_relationships(
 ) -> list[tuple[str, str, str, float]]:
     """
     Normalize an iterable into a list of top-relationship tuples.
-
-    Expected format of each entry:
-        (source_id: str, target_id: str, type: str, strength: Any)
-
-    Entries not matching the 4-element tuple contract are ignored.
+    
+    Each valid entry must be a 4-tuple (source_id, target_id, type, strength). Entries that are not 4-tuples or that do not have string values for source_id, target_id, and type are ignored. The fourth element is coerced to a float, defaulting to 0.0 on failure.
+    
+    Returns:
+        list[tuple[str, str, str, float]]: A list of (source_id, target_id, type, strength) tuples with `strength` as a float.
     """
     if not isinstance(value, Iterable):
         return []

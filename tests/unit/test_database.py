@@ -37,7 +37,16 @@ pytestmark = pytest.mark.unit
 
 
 def _assert_model_registered(model: type[Base], expected_tablename: str) -> None:
-    """Assert the model is registered and has the expected __tablename__."""
+    """
+    Verify that a SQLAlchemy model class is registered with the expected table name.
+    
+    Parameters:
+        model (type[Base]): Declarative model class to check.
+        expected_tablename (str): Expected value of the model's `__tablename__`.
+    
+    Raises:
+        AssertionError: If the model's `__tablename__` does not equal `expected_tablename`.
+    """
     assert model.__tablename__ == expected_tablename
 
 
@@ -49,10 +58,10 @@ def _assert_model_registered(model: type[Base], expected_tablename: str) -> None
 @pytest.fixture()
 def isolated_base() -> Iterator[type[Base]]:
     """
-    Provide an isolated SQLAlchemy declarative base for each test.
-
-    This prevents table metadata leakage across test cases and avoids cross-test
-    interference when defining ad-hoc models.
+    Provide an isolated SQLAlchemy declarative base for a test and remove any tables defined during that test.
+    
+    Yields:
+        A declarative base subclass that tests can use to define ad-hoc ORM models. Any tables registered to the shared Base.metadata while the test runs will be removed after the test completes.
     """
     existing_tables = set(Base.metadata.tables)
 
@@ -76,10 +85,13 @@ def isolated_base() -> Iterator[type[Base]]:
 @pytest.fixture()
 def engine() -> Iterator[Engine]:
     """
-    Provide an in-memory SQLite engine.
-
+    Create and yield an in-memory SQLite Engine configured for tests.
+    
+    The engine uses a shared (StaticPool) connection configuration suitable for concurrent access
+    within the test process; the engine is disposed after use.
+    
     Returns:
-        Iterator[Engine]: Yielded in-memory engine.
+        An Engine connected to an in-memory SQLite database.
     """
     in_memory_engine = create_engine(
         "sqlite:///:memory:",
@@ -93,7 +105,12 @@ def engine() -> Iterator[Engine]:
 
 @pytest.fixture()
 def session_factory(engine: Engine):
-    """Provide a SQLAlchemy session factory bound to the test engine."""
+    """
+    Create a session factory bound to the provided SQLAlchemy engine.
+    
+    Returns:
+        callable: A factory callable that produces Session objects bound to the given engine.
+    """
     return create_session_factory(engine)
 
 
@@ -226,7 +243,11 @@ class TestDatabaseInitialization:
         session_factory,
         isolated_base,
     ) -> None:
-        """init_db should not wipe existing data."""
+        """
+        Ensure init_db preserves existing rows in registered tables.
+        
+        Verifies that data inserted into a table before calling init_db remains present after re-initialization.
+        """
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Model for testing data preservation during database initialization."""
@@ -458,7 +479,9 @@ class TestConcurrentDatabaseAccess:
         errors: list[Exception] = []
 
         def create_session() -> None:
-            """Thread worker to create sessions."""
+            """
+            Worker run by a thread that attempts to create a session using `factory`, appends the session to the shared `sessions` list, and closes it. If session creation fails, the raised exception is appended to the shared `errors` list.
+            """
             try:
                 session = factory()
                 sessions.append(session)
@@ -497,7 +520,11 @@ class TestConcurrentDatabaseAccess:
         errors: list[Exception] = []
 
         def read_data() -> None:
-            """Thread worker for concurrent reads."""
+            """
+            Perform a concurrent database read by opening a session, counting rows of TestModel, and appending the count to the enclosing `results` list.
+            
+            On any exception, append the raised exception to the enclosing `errors` list.
+            """
             try:
                 with session_scope(factory) as session:
                     count = session.query(TestModel).count()
@@ -532,11 +559,11 @@ class TestConcurrentDatabaseAccess:
 
         def write_data(thread_id: int) -> None:
             """
-            Worker used by a thread to insert a TestModel row and record any exception.
-
+            Insert a TestModel row using a session for a worker thread and record any exception.
+            
             Parameters:
-                thread_id (int): Value used as the TestModel `id` for the inserted row.
-
+                thread_id (int): Value to use as the TestModel `id` for the inserted row.
+            
             Notes:
                 On failure, the raised exception is appended to the shared `errors` list as a side effect.
             """
@@ -627,7 +654,11 @@ class TestResourceCleanup:
     """Tests for proper resource cleanup."""
 
     def test_engine_disposal_releases_connections(self) -> None:
-        """Engine disposal should release all connections."""
+        """
+        Verify disposing an engine releases its pooled connections.
+        
+        Opens and closes several sessions from an in-memory engine, disposes that engine, and asserts that a new engine can be created and disposed without error.
+        """
         in_memory_engine = create_engine_from_url("sqlite:///:memory:")
         factory = create_session_factory(in_memory_engine)
 

@@ -80,7 +80,14 @@ class AssetGraphRepository:
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
-        """Create or update an asset record."""
+        """
+        Ensure the provided Asset domain model is persisted in the current session.
+        
+        If an ORM row with the asset's id exists, its fields are updated to reflect the Asset instance; otherwise a new ORM row is created and added to the session so it will be persisted on commit.
+        
+        Args:
+            asset (Asset): Domain model whose data should be inserted or updated in the database.
+        """
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -89,12 +96,10 @@ class AssetGraphRepository:
 
     def list_assets(self) -> List[Asset]:
         """
-        Retrieve all assets ordered by id.
-
+        Retrieve all assets from the database ordered by asset id.
+        
         Returns:
-            List[Asset]: A list of domain Asset instances
-                representing all assets in the database,
-                ordered by asset id.
+            List[Asset]: A list of Asset domain instances representing all assets in the database, ordered by asset id.
         """
         result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]

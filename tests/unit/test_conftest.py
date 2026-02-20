@@ -89,7 +89,9 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_handles_inline_cov_args():
-        """Test handling of inline --cov= and --cov-report= arguments."""
+        """
+        Remove inline `--cov=` and `--cov-report=` arguments from the provided `args` list when the pytest-cov plugin is not available, preserving non-coverage arguments.
+        """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
 
@@ -106,7 +108,8 @@ class TestConftestHelpers:
             assert "tests/" in args
 
     @staticmethod
-    def test_pytest_load_initial_conftests_preserves_non_cov_args():
+    @pytest.mark.parametrize("args, expected", [([...], [...]), ([...], [...])])
+    def test_pytest_load_initial_conftests_preserves_non_cov_args(args, expected):
         """Test that non-coverage arguments are preserved."""
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests

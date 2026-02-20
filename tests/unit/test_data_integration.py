@@ -200,7 +200,12 @@ class TestDataFetcherWithFallback:
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():
-            """Factory function returning a preconfigured AssetRelationshipGraph for fallback."""
+            """
+            Create a preconfigured AssetRelationshipGraph to use as a fallback graph.
+            
+            Returns:
+                AssetRelationshipGraph: The preconfigured graph (`custom_graph`) containing assets and relationships to return when live data is unavailable.
+            """
             return custom_graph
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
@@ -253,7 +258,11 @@ class TestEdgeCasesAndRegressions:
 
     @staticmethod
     def test_relationship_with_empty_string_type(tmp_path):
-        """Test that empty string relationship type is handled."""
+        """
+        Verifies that a relationship with an empty-string type can be created, persisted, and retrieved from the repository.
+        
+        Creates two equity assets, upserts them into a temporary SQLite repository, adds a relationship whose `relationship_type` is the empty string, commits, and asserts the relationship exists and its type is `""`.
+        """
         from src.data.database import (
             create_engine_from_url,
             create_session_factory,

@@ -15,6 +15,16 @@ from src.visualizations.graph_visuals import (
 class DummyGraph(AssetRelationshipGraph):
     def __init__(self, relationships):
         # relationships: Dict[str, List[Tuple[str, str, float]]]
+        """
+        Initialize the DummyGraph with a mapping of asset relationships.
+        
+        Parameters:
+            relationships (Dict[str, List[Tuple[str, str, float]]]):
+                Mapping from source asset ID to a list of relationships, where each relationship
+                tuple is (target_asset_id, relationship_type, weight). Keys and target IDs
+                are expected to be non-empty strings, relationship_type is a string, and weight
+                is a numeric value. The mapping is stored on the instance as-is.
+        """
         super().__init__()
         self.relationships = relationships
 

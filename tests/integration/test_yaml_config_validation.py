@@ -22,7 +22,11 @@ class TestYAMLSyntaxAndStructure:
 
     @staticmethod
     def test_all_yaml_files_parse_successfully():
-        """Verify all YAML files have valid syntax."""
+        """
+        Verify that every YAML file under the `.github` directory with `.yml` or `.yaml` extension parses without syntax errors.
+        
+        If any file contains invalid YAML, the test fails and reports each file path with the parser's error message.
+        """
         yaml_files = []
 
         # Find all YAML files in .github
@@ -43,7 +47,11 @@ class TestYAMLSyntaxAndStructure:
 
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
-        """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
+        """
+        Check that YAML files under .github use consistent 2-space indentation while preserving block scalar content.
+        
+        Scans all .yml and .yaml files in the .github tree and reports any lines (excluding empty lines and full-line comments) whose leading spaces are not a multiple of two. Block scalar content introduced by `|` or `>` is exempted from indentation checks until the scalar finishes. On failure, asserts with a list of file paths and line numbers showing the detected indentation counts.
+        """
         yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
         indentation_errors = []
 
@@ -94,9 +102,9 @@ class TestYAMLSyntaxAndStructure:
 
 def test_no_duplicate_keys_in_yaml():
     """
-    Validate that all .github/*.yml and .github/*.yaml files parse without duplicate keys or other YAML errors when checked with ruamel.yaml.
-
-    If ruamel.yaml is not available, the test is skipped. Each YAML file is loaded with ruamel.yaml.YAML(typ="safe"); parsing errors (YAMLError), file system errors (OSError), and unexpected exceptions are recorded with file context and reported so the test fails when any such errors are found.
+    Ensure YAML files under .github do not contain duplicate keys or other parsing errors when validated with ruamel.yaml.
+    
+    If ruamel.yaml is not installed the test is skipped. For each YAML file this test records parsing errors, file system errors, and any unexpected exceptions with file context and fails if any such errors are found.
     """
     try:
         from ruamel.yaml import YAML, YAMLError
@@ -129,12 +137,12 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-        Collects and parses all YAML workflow files found in .github / workflows.
-
+        Collect all GitHub Actions workflow files from .github/workflows and return their paths with parsed YAML content.
+        
         Returns:
-            workflows(List[Dict[str, Any]]): A list of dictionaries, each containing:
+            workflows (List[Dict[str, Any]]): A list of dictionaries for each workflow file containing:
                 - 'path' (Path): Path to the workflow file.
-                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load(typically a dict, or None if the file is empty).
+                - 'content' (Any): Parsed YAML content (typically a dict, or `None` if the file is empty).
         """
         workflow_dir = Path(".github/workflows")
         workflows = []
@@ -145,14 +153,14 @@ class TestWorkflowSchemaCompliance:
 
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """
-        Validate each workflow has required top-level keys and that checkout action versions are reasonably consistent.
-
-        Checks that every workflow mapping in `all_workflows` contains the top-level keys "name" and "jobs". Also verifies that the set of observed checkout action versions across workflows does not exceed two unique values; if it does, an assertion failure includes the collected `checkout_versions`.
-
+        Ensure each workflow contains the required top-level keys "name" and "jobs".
+        
+        Asserts that every workflow descriptor in `all_workflows` includes both keys; assertion failures reference the workflow's `path`.
+        
         Parameters:
-            all_workflows (list): Iterable of workflow descriptors where each item is a dict with at least:
+            all_workflows (list): Iterable of workflow descriptors. Each descriptor is a dict with at least:
                 - 'path' (str): filesystem path to the workflow file
-                - 'content' (dict): parsed YAML content of the workflow
+                - 'content' (dict): parsed YAML mapping of the workflow
         """
         required_keys = ["name", "jobs"]
         for workflow in all_workflows:
@@ -166,11 +174,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_missing_optional_fields_have_defaults() -> None:
         """
-        Ensure optional fields in `.github / pr - agent - config.yml` are handled and validated.
-
-        Asserts that if the top - level 'agent' section includes an 'enabled' key,
-        its value is a boolean. Omission of 'enabled' is permitted and treated
-        as the configuration default.
+        Validate that optional agent configuration fields are either absent or of the expected type.
+        
+        Checks the top-level "agent" section in .github/pr-agent-config.yml and asserts that if the "enabled" key is present, its value is a boolean. Omission of "enabled" is allowed and treated as the default.
         """
         config_path = Path(".github/pr-agent-config.yml")
 
@@ -188,8 +194,8 @@ class TestDefaultValueHandling:
     def test_workflow_timeout_defaults():
         """
         Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
-
-        Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive); assertion messages include the workflow file path and job id.
+        
+        Asserts that when a job defines `timeout-minutes`, its value is an integer between 1 and 360 inclusive. Assertion messages include the workflow file path and the job identifier.
         """
         workflow_dir = Path(".github/workflows")
 

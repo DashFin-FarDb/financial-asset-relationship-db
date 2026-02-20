@@ -96,7 +96,7 @@ class TestRealDataFetcherInitialization:
         def custom_factory():
             """
             Create a default AssetRelationshipGraph.
-
+            
             Returns:
                 AssetRelationshipGraph: A new, empty asset relationship graph instance.
             """
@@ -829,9 +829,9 @@ class TestAllAssetTypes:
     @patch("yfinance.Ticker")
     def test_fetch_all_commodity_symbols(self, mock_ticker_class):
         """
-        Verifies the commodity data fetcher attempts to fetch data for every expected commodity symbol.
-
-        Asserts the ticker constructor is called once for each expected symbol (GC=F, CL=F).
+        Verify the commodity data fetcher attempts to fetch data for all expected commodity symbols.
+        
+        Asserts that the ticker constructor is invoked once for each expected symbol ("GC=F", "CL=F") while using a mocked ticker and history to simulate close price data.
         """
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)

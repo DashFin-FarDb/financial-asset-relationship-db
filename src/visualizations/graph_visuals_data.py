@@ -19,13 +19,19 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
-    """Build a (source, target, rel_type) → strength index for the given asset IDs.
-
-    Only relationships where both endpoints are in *asset_ids* are included.
-
+    """
+    Builds an index mapping (source_id, target_id, rel_type) to numeric strength for relationships where both endpoints are in the provided asset IDs.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph containing a `relationships` mapping.
+        asset_ids (Iterable[str]): Iterable of asset IDs to include.
+    
+    Returns:
+        Dict[Tuple[str, str, str], float]: Mapping from (source_id, target_id, rel_type) to the relationship strength as a float.
+    
     Raises:
-        TypeError: If graph or asset_ids types are invalid.
-        ValueError: If relationship data is malformed.
+        TypeError: If `graph` is not an AssetRelationshipGraph, `graph.relationships` is not a dict, `asset_ids` is not iterable, or relationship entries have incorrect types.
+        ValueError: If `graph` is missing `relationships`, `asset_ids` contains non-string values, relationship entries are not 3-element tuples, or strength values are not numeric.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError(f"graph must be an AssetRelationshipGraph instance, " f"got {type(graph).__name__}")
@@ -75,7 +81,17 @@ def _collect_and_group_relationships(
     asset_ids: Iterable[str],
     relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> Dict[Tuple[str, bool], List[dict]]:
-    """Collect relationships in one pass and group by (rel_type, is_bidirectional)."""
+    """
+    Collect relationships for the given asset_ids and group them by relationship type and bidirectionality.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph to read relationships from.
+        asset_ids (Iterable[str]): Asset IDs to include.
+        relationship_filters (Optional[Dict[str, bool]]): Optional mapping of relationship type to a boolean; relationship types present with a value of False are excluded.
+    
+    Returns:
+        relationship_groups (Dict[Tuple[str, bool], List[dict]]): Mapping from (rel_type, is_bidirectional) to lists of relationship dictionaries. Each dictionary contains "source_id", "target_id", and "strength" (float).
+    """
     relationship_index = _build_relationship_index(graph, asset_ids)
 
     processed_pairs: Set[Tuple[str, str, str]] = set()
@@ -111,7 +127,20 @@ def _build_edge_coordinates_optimized(
     positions: np.ndarray,
     asset_id_index: Dict[str, int],
 ) -> Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]:
-    """Build x/y/z coordinate lists for edge traces using pre-allocated arrays."""
+    """
+    Create pre-allocated x, y, and z coordinate lists for edge traces from relationships and node positions.
+    
+    Parameters:
+        relationships (List[dict]): List of relationship dicts containing at least "source_id" and "target_id".
+        positions (np.ndarray): Array of node positions with shape (N, 3) where columns are x, y, z.
+        asset_id_index (Dict[str, int]): Mapping from asset ID to row index in `positions`.
+    
+    Returns:
+        edges_x (List[Optional[float]]): List of length 3 * len(relationships) where for each relationship i
+            the source x and target x are stored at indices 3*i and 3*i+1 respectively (third slot remains None).
+        edges_y (List[Optional[float]]): Same layout as `edges_x`, for y coordinates.
+        edges_z (List[Optional[float]]): Same layout as `edges_x`, for z coordinates.
+    """
     n = len(relationships)
     edges_x: List[Optional[float]] = [None] * (n * 3)
     edges_y: List[Optional[float]] = [None] * (n * 3)
@@ -129,7 +158,20 @@ def _build_edge_coordinates_optimized(
 
 
 def _build_hover_texts(relationships: List[dict], rel_type: str, is_bidirectional: bool) -> List[Optional[str]]:
-    """Build pre-allocated hover text list for a relationship group."""
+    """
+    Build hover text entries for a group of relationships, pre-allocating space for plotting traces.
+    
+    Parameters:
+        relationships (List[dict]): List of relationship dicts containing at least the keys
+            'source_id', 'target_id', and 'strength'.
+        rel_type (str): Relationship type label to include in each hover text.
+        is_bidirectional (bool): Whether the relationship is bidirectional; affects the direction symbol.
+    
+    Returns:
+        List[Optional[str]]: A list of length 3 * len(relationships) containing hover text strings and None
+        placeholders. For each relationship, the formatted hover text appears at positions base and base+1
+        (where base = index * 3); the third slot for each relationship is left as None.
+    """
     direction = "↔" if is_bidirectional else "→"
     n = len(relationships)
     hover_texts: List[Optional[str]] = [None] * (n * 3)

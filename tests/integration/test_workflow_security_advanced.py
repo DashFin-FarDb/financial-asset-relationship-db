@@ -136,10 +136,10 @@ class TestWorkflowPermissionsHardening:
     @staticmethod
     def test_workflows_define_explicit_permissions(all_workflows):
         """
-        Require each workflow to include a top-level 'permissions' key.
-
+        Ensure each workflow defines a top-level "permissions" key.
+        
         Parameters:
-            all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item contains a 'content' mapping for the workflow YAML and a 'path' string used in failure messages.
+            all_workflows (Iterable[Mapping]): Iterable of workflow objects; each item must provide a 'content' mapping for the parsed workflow YAML and a 'path' string used in assertion messages.
         """
         for workflow in all_workflows:
             assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
