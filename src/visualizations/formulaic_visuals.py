@@ -412,7 +412,7 @@ class FormulaicVisualizer:
             text=(
                 f"<b>{formula.name}</b><br><br>"
                 "<b>Mathematical Expression:</b><br>"
-                f"{formula.formula}<br><br>"
+                f"{formula.expression}<br><br>"
                 "<b>LaTeX:</b><br>"
                 f"{formula.latex}<br><br>"
                 "<b>Description:</b><br>"
