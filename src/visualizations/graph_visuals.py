@@ -198,7 +198,7 @@ def _relationship_strength_entries(rel, graph: AssetRelationshipGraph) -> Dict[T
         }
     return {key: strength}
     graph.relationships
-    
+
         raise TypeError(
             f"Invalid input: graph must be an AssetRelationshipGraph instance, " f"got {type(graph).__name__}"
         )
@@ -430,8 +430,8 @@ def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) ->
 def _prepare_layout_config(
     num_assets: int,
     relationship_traces: List[go.Scatter3d],
-    base_title: str = "Financial Asset Network",
-    layout_options: Optional[Dict[str, object]] = None,
+    base_title: str="Financial Asset Network",
+    layout_options: Optional[Dict[str, object]]=None,
 ) -> Tuple[str, Dict[str, object]]:
     """Prepare layout configuration with dynamic title based on visualization data.
 
@@ -455,7 +455,7 @@ def _prepare_layout_config(
     options = layout_options or {}
     return dynamic_title, options
 
-    arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
+    arrow_traces=_create_directional_arrows(graph, positions, asset_ids)
     if arrow_traces:
         fig.add_traces(arrow_traces)
 
@@ -465,7 +465,7 @@ def _prepare_layout_config(
 def _configure_3d_layout(
     fig: go.Figure,
     title: str,
-    options: Optional[Dict[str, object]] = None,
+    options: Optional[Dict[str, object]]=None,
 ) -> None:
     """Configure the 3D layout for the figure.
 
@@ -616,12 +616,12 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
         raise ValueError("Invalid graph data provided")
 
-    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+    positions, asset_ids, colors, hover_texts=graph.get_3d_visualization_data_enhanced()
 
     # Validate visualization data to prevent runtime errors
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-    fig = go.Figure()
+    fig=go.Figure()
 
     # Create separate traces for different relationship types and directions
     try:
@@ -691,7 +691,7 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
 def _collect_and_group_relationships(
     graph: AssetRelationshipGraph,
     asset_ids: Iterable[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
+    relationship_filters: Optional[Dict[str, bool]]=None,
 ) -> Dict[Tuple[str, bool], List[dict]]:
     """Collect and group relationships with directionality info in a single pass ."""
     relationship_index = _build_relationship_index(graph, asset_ids)
@@ -812,8 +812,8 @@ def _create_trace_for_group(
     asset_id_index: Dict[str, int],
 ) -> go.Scatter3d:
     """Create a single trace for a relationship group with optimized performance."""
-    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(relationships, positions, asset_id_index)
-    hover_texts = _build_hover_texts(relationships, rel_type, is_bidirectional)
+    edges_x, edges_y, edges_z=_build_edge_coordinates_optimized(relationships, positions, asset_id_index)
+    hover_texts=_build_hover_texts(relationships, rel_type, is_bidirectional)
 
     return go.Scatter3d(
         x=edges_x,
@@ -833,7 +833,7 @@ def _create_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: List[str],
-    relationship_filters: Optional[Dict[str, bool]] = None,
+    relationship_filters: Optional[Dict[str, bool]]=None,
 ) -> List[go.Scatter3d]:
     """Create separate traces for different types of relationships
     with enhanced visibility.
@@ -1045,15 +1045,15 @@ def _validate_relationship_filters(
 
 def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
-    show_same_sector: bool = True,
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = True,
-    toggle_arrows: bool = True,
+    show_same_sector: bool=True,
+    show_market_cap: bool=True,
+    show_correlation: bool=True,
+    show_corporate_bond: bool=True,
+    show_commodity_currency: bool=True,
+    show_income_comparison: bool=True,
+    show_regulatory: bool=True,
+    show_all_relationships: bool=True,
+    toggle_arrows: bool=True,
 ) -> go.Figure:
     """Create a 3D visualization with selective relationship filtering.
 
@@ -1112,12 +1112,12 @@ def visualize_3d_graph_with_filters(
         if not any(relationship_filters.values()):
             logger.warning("All relationship filters are disabled. " "Visualization will show no relationships.")
 
-    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+    positions, asset_ids, colors, hover_texts=graph.get_3d_visualization_data_enhanced()
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-    fig = go.Figure()
+    fig=go.Figure()
 
-    relationship_traces = _create_relationship_traces(graph, positions, asset_ids, relationship_filters)
+    relationship_traces=_create_relationship_traces(graph, positions, asset_ids, relationship_filters)
     if relationship_traces:
         fig.add_traces(relationship_traces)
 
@@ -1128,7 +1128,7 @@ def visualize_3d_graph_with_filters(
 
     fig.add_trace(_create_node_trace(positions, asset_ids, colors, hover_texts))
 
-    dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
+    dynamic_title, options=_prepare_layout_config(len(asset_ids), relationship_traces)
     _configure_3d_layout(fig, dynamic_title, options)
 
     return fig
