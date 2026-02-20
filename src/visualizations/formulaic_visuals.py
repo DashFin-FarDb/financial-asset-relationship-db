@@ -429,7 +429,7 @@ class FormulaicVisualizer:
             plot_bgcolor="white",
         )
 
-    return fig
+        return fig
 
 
 # ------------------------------------------------------------------ #
