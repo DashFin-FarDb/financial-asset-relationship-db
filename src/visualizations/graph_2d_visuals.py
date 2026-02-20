@@ -1,113 +1,25 @@
-"""
-2D graph visualization module for financial asset relationships.
-
-This module provides 2D visualization capabilities for asset relationship
-graphs,
-including multiple layout algorithms (spring, circular, grid) and
-relationship filtering.
-
-
-"""
-
-import logging
-import math
 from typing import Dict, List, Tuple
 
 import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.visualizations.graph_2d_visuals_constants import REL_TYPE_COLORS  # noqa: F401 — re-export
+from src.visualizations.graph_2d_visuals_layouts import (
+    _create_circular_layout,
+    _create_grid_layout,
+    _create_spring_layout_2d,
+)
+from src.visualizations.graph_2d_visuals_traces import (
+    _create_2d_relationship_traces,
+    _create_node_trace,
+)
 
-logger = logging.getLogger(__name__)
-
-# Color mapping for relationship types (shared with 3D visuals)
-REL_TYPE_COLORS = {
-    "same_sector": "#FF6B6B",
-    "market_cap_similar": "#4ECDC4",
-    "correlation": "#45B7D1",
-    "corporate_bond_to_equity": "#96CEB4",
-    "commodity_currency": "#FFEAA7",
-    "income_comparison": "#DDA0DD",
-    "regulatory_impact": "#FFA07A",
-}
-
-
-def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
-    """Create circular layout for 2D visualization.
-
-    Args:
-        asset_ids: List of asset IDs to position
-
-    Returns:
-        Dictionary mapping asset IDs to (x, y) positions on a unit circle
-    """
-    if not asset_ids:
-        return {}
-
-    n = len(asset_ids)
-    positions = {}
-
-    for i, asset_id in enumerate(asset_ids):
-        angle = 2 * math.pi * i / n
-        x = math.cos(angle)
-        y = math.sin(angle)
-        positions[asset_id] = (x, y)
-
-    return positions
+__all__ = ["visualize_2d_graph", "REL_TYPE_COLORS"]
 
 
-def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
-    """Create grid layout for 2D visualization.
-
-    Args:
-        asset_ids: List of asset IDs to position
-
-    Returns:
-        Dictionary mapping asset IDs to (x, y) positions in a grid
-    """
-    if not asset_ids:
-        return {}
-
-    n = len(asset_ids)
-    cols = int(math.ceil(math.sqrt(n)))
-
-    positions = {}
-    for i, asset_id in enumerate(asset_ids):
-        row = i // cols
-        col = i % cols
-        positions[asset_id] = (float(col), float(row))
-
-    return positions
-
-
-def _create_spring_layout_2d(
-    positions_3d: Dict[str, Tuple[float, float, float]], asset_ids: List[str]
-) -> Dict[str, Tuple[float, float]]:
-    """Convert 3D spring layout positions to 2D by dropping z-coordinate.
-
-    Args:
-        positions_3d: Dictionary mapping asset IDs to (x, y, z) positions
-        asset_ids: List of asset IDs
-
-    Returns:
-        Dictionary mapping asset IDs to (x, y) positions
-    """
-    if not positions_3d or not asset_ids:
-        return {}
-
-    positions_2d = {}
-    for asset_id in asset_ids:
-        if asset_id in positions_3d:
-            pos_3d = positions_3d[asset_id]
-            # Handle both tuple and array-like positions
-            if hasattr(pos_3d, "__getitem__"):
-                positions_2d[asset_id] = (float(pos_3d[0]), float(pos_3d[1]))
-
-    return positions_2d
-
-
-def _create_2d_relationship_traces(
+def _resolve_positions(
     graph: AssetRelationshipGraph,
-    positions: Dict[str, Tuple[float, float]],
+    layout_type: str,
     asset_ids: List[str],
     show_same_sector: bool = True,
     show_market_cap: bool = True,
@@ -234,9 +146,12 @@ def _create_2d_relationship_traces(
             name=trace_name,
             showlegend=True,
         )
-        traces.append(trace)
-
-    return traces
+        positions_3d = {
+            asset_ids_ordered[i]: tuple(positions_3d_array[i])
+            for i in range(len(asset_ids_ordered))
+        }
+        return _create_spring_layout_2d(positions_3d, asset_ids)
+    return _create_circular_layout(asset_ids)
 
 
 def visualize_2d_graph(
@@ -284,12 +199,10 @@ def visualize_2d_graph(
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")
 
-    # Get asset data
     asset_ids = list(graph.assets.keys())
+    fig = go.Figure()
 
     if not asset_ids:
-        # Return empty figure for empty graph
-        fig = go.Figure()
         fig.update_layout(
             title="2D Asset Relationship Network (No Assets)",
             plot_bgcolor="white",
@@ -324,8 +237,7 @@ def visualize_2d_graph(
     # Create figure
     fig = go.Figure()
 
-    # Add relationship traces
-    relationship_traces = _create_2d_relationship_traces(
+    for trace in _create_2d_relationship_traces(
         graph,
         positions,
         asset_ids,
@@ -337,9 +249,7 @@ def visualize_2d_graph(
         show_income_comparison=show_income_comparison,
         show_regulatory=show_regulatory,
         show_all_relationships=show_all_relationships,
-    )
-
-    for trace in relationship_traces:
+    ):
         fig.add_trace(trace)
 
     # Add node trace
@@ -405,7 +315,6 @@ def visualize_2d_graph(
 
     fig.add_trace(node_trace)
 
-    # Update layout
     layout_name = layout_type.capitalize()
     fig.update_layout(
         title=f"2D Asset Relationship Network ({layout_name} Layout)",
