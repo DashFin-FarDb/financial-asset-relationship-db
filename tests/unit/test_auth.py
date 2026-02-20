@@ -345,6 +345,7 @@ class TestJWTOperations:
         assert decoded["sub"] == "testuser"
         assert decoded["role"] == "admin"
     @pytest.fixture
+    @pytest.fixture
     def valid_token(self):
         data = {"sub": "testuser"}
         return create_access_token(data)
