@@ -638,7 +638,7 @@ class TestGetCurrentActiveUser:
         assert user.username == "activeuser"
         assert user.disabled is False
 
-    `@pytest.mark.asyncio`
+    @pytest.mark.asyncio
     async def test_get_current_active_user_disabled(self, disabled_user):
         """Test that disabled user raises HTTPException."""
         with pytest.raises(HTTPException) as exc_info:
