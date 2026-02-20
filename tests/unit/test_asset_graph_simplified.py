@@ -42,7 +42,7 @@ class TestGet3DVisualizationDataEnhanced:
         assert len(hover) == 1
         assert "A" in hover[0]  # placeholder hover is "Asset A"
 
-        def test_get_3d_visualization_with_single_relationship(self):
+    def test_get_3d_visualization_with_single_relationship(self):
         """Test visualization data with single relationship."""
         graph = AssetRelationshipGraph()
         graph.relationships = {
