@@ -138,13 +138,10 @@ class TestCacheHelpers:
 
         mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
-    @patch('src.data.real_data_fetcher.Path.write_text')
-    @patch('src.data.real_data_fetcher.Path.parent')
-    def test_save_to_cache_error_handling(self, mock_parent, mock_write):
+    @patch("src.data.real_data_fetcher.Path.write_text", side_effect=OSError("Permission denied"))
+    @patch("src.data.real_data_fetcher.Path.mkdir")
+    def test_save_to_cache_error_handling(self, mock_mkdir, mock_write):
         """Test error handling when saving cache fails."""
-        mock_parent.mkdir = Mock()
-        mock_write.side_effect = OSError("Permission denied")
-        
         # Should not raise, just log error
         _save_to_cache({"test": "data"}, Path("test.json"))
 
