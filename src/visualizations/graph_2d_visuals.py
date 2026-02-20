@@ -19,7 +19,7 @@ __all__ = ["visualize_2d_graph", "REL_TYPE_COLORS"]
 
 def _resolve_positions(
     graph: AssetRelationshipGraph,
-    layout_type: str,
+    ,
     asset_ids: List[str],
     show_same_sector: bool = True,
     show_market_cap: bool = True,
