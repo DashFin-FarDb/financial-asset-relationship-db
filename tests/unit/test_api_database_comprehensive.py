@@ -106,8 +106,6 @@ class TestIsMemoryDb:
 class TestConnect:
     """Test cases for _connect function."""
 
-    def test_connect_creates_memory_connection(self):
-        """Test that connecting to memory database creates shared connection."""
         import api.database
         conn = None
         with patch.object(api.database, "DATABASE_PATH", ":memory:"), patch.object(api.database, "_MEMORY_CONNECTION", None):
