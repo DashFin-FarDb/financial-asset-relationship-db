@@ -33,6 +33,7 @@ dependencies = [
     "PyJWT>=2.8.0",
     "passlib[bcrypt]>=1.7.4",
     "SQLAlchemy>=2.0.0",
+    "Markdown>=3.4,<4.0",
 ]
 
 [project.optional-dependencies]
