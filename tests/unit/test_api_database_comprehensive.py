@@ -110,8 +110,15 @@ class TestConnect:
     @patch("api.database._MEMORY_CONNECTION", None)
     def test_connect_creates_memory_connection(self):
         """Test that connecting to memory database creates shared connection."""
-        conn = _connect()
-        assert isinstance(conn, sqlite3.Connection)
+        import api.database
+        api.database._MEMORY_CONNECTION = None
+        try:
+            conn = _connect()
+            assert isinstance(conn, sqlite3.Connection)
+        finally:
+            if api.database._MEMORY_CONNECTION is not None:
+                api.database._MEMORY_CONNECTION.close()
+                api.database._MEMORY_CONNECTION = None
 
     @patch("api.database.DATABASE_PATH", "test.db")
     @patch("api.database.sqlite3.connect")
