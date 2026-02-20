@@ -24,9 +24,11 @@ from packaging.requirements import Requirement
 # tests/integration/test_requirements_dev.py -> repo root is parents[2]
 REQUIREMENTS_FILE = Path(__file__).resolve().parents[2] / "requirements-dev.txt"
 
+
 def _strip_inline_comment(line: str) -> str:
     """Strip trailing inline comments from a requirements line."""
     return line.split("#", 1)[0].strip()
+
 
 def _strip_inline_comment(line: str) -> str:
     """Strip trailing inline comments from a requirements line."""
@@ -91,9 +93,11 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
 
     return requirements
 
+
 @pytest.fixture()
 def package_names(parsed_requirements: list[tuple[str, str]]) -> list[str]:
     """Return just the package tokens extracted from the parsed requirements."""
+
 
 def _normalize_name_for_dupe_check(name: str) -> str:
     """PEP 503-ish normalization sufficient for duplicate detection."""
@@ -149,11 +153,7 @@ def test_file_ends_with_newline() -> None:
 def test_no_trailing_whitespace() -> None:
     """Ensure no line contains trailing whitespace (excluding the newline)."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines(True)
-    lines_with_trailing = [
-        (i + 1, line)
-        for i, line in enumerate(lines)
-        if line.rstrip("\n") != line.rstrip()
-    ]
+    lines_with_trailing = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip("\n") != line.rstrip()]
     assert lines_with_trailing == []
 
 
@@ -267,9 +267,7 @@ def test_version_specifiers_are_valid(
             assert op is not None, f"Invalid operator in spec '{spec}' for {pkg}"
 
             tail = part[len(op) :].strip()
-            assert tail and tail[0].isdigit(), (
-                f"Invalid version in spec '{spec}' for {pkg}"
-            )
+            assert tail and tail[0].isdigit(), f"Invalid version in spec '{spec}' for {pkg}"
 
 
 # -----------------------
@@ -289,18 +287,10 @@ def test_types_pyyaml_present(package_names: list[str]) -> None:
 
 def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> None:
     """Ensure PyYAML specifies a minimum supported version (>=6.0)."""
-    pyyaml_specs = [
-        ver
-        for pkg, ver in parsed_requirements
-        if _normalize_name_for_dupe_check(pkg) == "pyyaml"
-    ]
+    pyyaml_specs = [ver for pkg, ver in parsed_requirements if _normalize_name_for_dupe_check(pkg) == "pyyaml"]
     assert len(pyyaml_specs) == 1
-    assert pyyaml_specs[0].startswith(">="), (
-        "PyYAML should use a minimum version constraint"
-    )
-    assert pyyaml_specs[0].startswith(">=6.0"), (
-        f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
-    )
+    assert pyyaml_specs[0].startswith(">="), "PyYAML should use a minimum version constraint"
+    assert pyyaml_specs[0].startswith(">=6.0"), f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
 
 
 def test_type_stubs_have_base_packages(
@@ -313,6 +303,4 @@ def test_type_stubs_have_base_packages(
         norm = _normalize_name_for_dupe_check(pkg)
         if norm.startswith("types_"):
             base = norm.removeprefix("types_")
-            assert base in lowered, (
-                f"Type stub package '{pkg}' has no corresponding base package"
-            )
+            assert base in lowered, f"Type stub package '{pkg}' has no corresponding base package"
