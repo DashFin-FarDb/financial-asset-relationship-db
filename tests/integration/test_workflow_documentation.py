@@ -9,10 +9,10 @@ import re
 from pathlib import Path
 from typing import List, Set
 
-# Path to the documentation file
-DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMARY.md"
 import pytest
 
+# Path to the documentation file
+DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMARY.md"
 
 
 class TestDocumentationSections:
