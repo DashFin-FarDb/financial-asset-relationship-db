@@ -109,17 +109,15 @@ class TestConnect:
     def test_connect_creates_memory_connection(self):
         """Test that connecting to memory database creates shared connection."""
         import api.database
-        import api.database
         conn = None
         with patch.object(api.database, "DATABASE_PATH", ":memory:"), patch.object(api.database, "_MEMORY_CONNECTION", None):
             try:
                 conn = _connect()
                 assert isinstance(conn, sqlite3.Connection)
             finally:
-                # Always use the module's cleanup helper to match production behavior.
                 _cleanup_memory_connection()
-                # Defensive: if implementation returns a non-shared connection, close it too.
-                if conn is not None and getattr(api.database, "_MEMORY_CONNECTION", None) is not conn:
+                shared_conn = getattr(api.database, "_MEMORY_CONNECTION", None)
+                if conn is not None and conn is not shared_conn:
                     conn.close()
 
     @patch("api.database.DATABASE_PATH", "test.db")
