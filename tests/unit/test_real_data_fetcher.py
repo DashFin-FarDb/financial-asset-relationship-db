@@ -412,14 +412,14 @@ class TestCreateRealDatabase:
     reason="RealDataFetcher.create_equity_from_data is not present in the current implementation; update tests when this API exists.",
     strict=True,
 )
-)
-class TestDataValidation:
-)
 class TestDataValidation:
     """Test data validation and transformation."""
+
+    @pytest.fixture
+    def fetcher(self):
         """
         Provides a new RealDataFetcher instance for use in tests.
-        
+
         Returns:
             RealDataFetcher: a fresh instance configured for unit testing.
         """
