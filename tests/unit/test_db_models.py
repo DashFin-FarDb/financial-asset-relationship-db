@@ -25,7 +25,17 @@ pytest.importorskip("sqlalchemy")
 
 @pytest.fixture
 def db_session(tmp_path):
-    """Create a test database session."""
+    """
+    Provide a SQLAlchemy Session connected to an isolated SQLite database file located at `tmp_path / "test.db"` for use in tests.
+    
+    The fixture creates and initializes the database schema, yields a session for test use, and ensures the session is closed and the engine disposed after the test.
+    
+    Parameters:
+        tmp_path (pathlib.Path): Temporary directory in which the test database file will be created.
+    
+    Returns:
+        session (sqlalchemy.orm.Session): Session bound to the test SQLite database.
+    """
     db_path = tmp_path / "test.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
@@ -36,6 +46,7 @@ def db_session(tmp_path):
     engine.dispose()
 
 
+@pytest.mark.unit
 class TestAssetORM:
     """Test cases for AssetORM model."""
 
@@ -156,7 +167,9 @@ class TestAssetORM:
         )
         db_session.add(asset)
         db_session.commit()
-        assert db_session.query(AssetORM).filter_by(id="TEST_REQUIRED").first() is not None
+        assert (
+            db_session.query(AssetORM).filter_by(id="TEST_REQUIRED").first() is not None
+        )
 
     def test_asset_nullable_fields(self, db_session):
         """Test that nullable fields can be None."""
@@ -221,6 +234,7 @@ class TestAssetORM:
         assert retrieved is None
 
 
+@pytest.mark.unit
 class TestAssetRelationshipORM:
     """Test cases for AssetRelationshipORM model."""
 
@@ -264,7 +278,11 @@ class TestAssetRelationshipORM:
         db_session.add(rel)
         db_session.commit()
 
-        retrieved = db_session.query(AssetRelationshipORM).filter_by(source_asset_id="ASSET1").first()
+        retrieved = (
+            db_session.query(AssetRelationshipORM)
+            .filter_by(source_asset_id="ASSET1")
+            .first()
+        )
         assert retrieved is not None
         assert retrieved.target_asset_id == "ASSET2"
         assert retrieved.strength == 0.7
@@ -350,11 +368,19 @@ class TestAssetRelationshipORM:
         db_session.commit()
 
         # Relationship should be deleted
-        remaining = db_session.query(AssetRelationshipORM).filter_by(source_asset_id="CASCADE1").first()
+        remaining = (
+            db_session.query(AssetRelationshipORM)
+            .filter_by(source_asset_id="CASCADE1")
+            .first()
+        )
         assert remaining is None
 
     def test_bidirectional_flag(self, db_session):
-        """Test bidirectional flag on relationships."""
+        """
+        Verify that a relationship created with the bidirectional flag is persisted as bidirectional.
+        
+        Creates two assets, adds an AssetRelationshipORM marked as bidirectional, commits the session, and asserts the retrieved relationship preserves the bidirectional flag.
+        """
         asset1 = AssetORM(
             id="BIDIR1",
             symbol="B1",
@@ -386,7 +412,11 @@ class TestAssetRelationshipORM:
         db_session.add(rel)
         db_session.commit()
 
-        retrieved = db_session.query(AssetRelationshipORM).filter_by(source_asset_id="BIDIR1").first()
+        retrieved = (
+            db_session.query(AssetRelationshipORM)
+            .filter_by(source_asset_id="BIDIR1")
+            .first()
+        )
         assert retrieved.bidirectional is True
 
     def test_relationship_strength_bounds(self, db_session):
@@ -423,10 +453,15 @@ class TestAssetRelationshipORM:
             db_session.add(rel)
         db_session.commit()
 
-        relationships = db_session.query(AssetRelationshipORM).filter_by(source_asset_id="STRENGTH1").all()
+        relationships = (
+            db_session.query(AssetRelationshipORM)
+            .filter_by(source_asset_id="STRENGTH1")
+            .all()
+        )
         assert len(relationships) == 3
 
 
+@pytest.mark.unit
 class TestRegulatoryEventORM:
     """Test cases for RegulatoryEventORM model."""
 
@@ -460,7 +495,9 @@ class TestRegulatoryEventORM:
         db_session.add(event)
         db_session.commit()
 
-        retrieved = db_session.query(RegulatoryEventORM).filter_by(id="EVENT_001").first()
+        retrieved = (
+            db_session.query(RegulatoryEventORM).filter_by(id="EVENT_001").first()
+        )
         assert retrieved is not None
         assert retrieved.event_type == "EARNINGS_REPORT"
         assert retrieved.impact_score == 0.8
@@ -496,7 +533,9 @@ class TestRegulatoryEventORM:
         db_session.commit()
 
         # Event should be deleted
-        remaining = db_session.query(RegulatoryEventORM).filter_by(id="EVENT_002").first()
+        remaining = (
+            db_session.query(RegulatoryEventORM).filter_by(id="EVENT_002").first()
+        )
         assert remaining is None
 
     def test_regulatory_event_with_related_assets(self, db_session):
@@ -555,6 +594,7 @@ class TestRegulatoryEventORM:
         assert len(event.related_assets) == 2
 
 
+@pytest.mark.unit
 class TestRegulatoryEventAssetORM:
     """Test cases for RegulatoryEventAssetORM join table."""
 
@@ -599,12 +639,16 @@ class TestRegulatoryEventAssetORM:
         db_session.commit()
 
         # Add related asset
-        rel1 = RegulatoryEventAssetORM(event_id="UNIQUE_EVENT", asset_id="UNIQUE_RELATED")
+        rel1 = RegulatoryEventAssetORM(
+            event_id="UNIQUE_EVENT", asset_id="UNIQUE_RELATED"
+        )
         db_session.add(rel1)
         db_session.commit()
 
         # Try to add duplicate
-        rel2 = RegulatoryEventAssetORM(event_id="UNIQUE_EVENT", asset_id="UNIQUE_RELATED")
+        rel2 = RegulatoryEventAssetORM(
+            event_id="UNIQUE_EVENT", asset_id="UNIQUE_RELATED"
+        )
         db_session.add(rel2)
 
         with pytest.raises(IntegrityError):
@@ -644,7 +688,9 @@ class TestRegulatoryEventAssetORM:
         db_session.add(event)
         db_session.commit()
 
-        rel = RegulatoryEventAssetORM(event_id="CASCADE_EVENT", asset_id="CASCADE_RELATED")
+        rel = RegulatoryEventAssetORM(
+            event_id="CASCADE_EVENT", asset_id="CASCADE_RELATED"
+        )
         db_session.add(rel)
         db_session.commit()
 
@@ -653,5 +699,9 @@ class TestRegulatoryEventAssetORM:
         db_session.commit()
 
         # Related asset link should be deleted
-        remaining = db_session.query(RegulatoryEventAssetORM).filter_by(event_id="CASCADE_EVENT").first()
+        remaining = (
+            db_session.query(RegulatoryEventAssetORM)
+            .filter_by(event_id="CASCADE_EVENT")
+            .first()
+        )
         assert remaining is None

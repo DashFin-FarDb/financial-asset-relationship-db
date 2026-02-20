@@ -24,11 +24,16 @@ pytest.importorskip("sqlalchemy")
 
 def _apply_migration(database_path: Path) -> None:
     """
-    Apply database migrations by executing the initial SQL script.
-
-    The migration script is static/trusted (repository-owned), not user-controlled.
+    Apply the repository's initial SQL migration to a SQLite database file.
+    
+    Reads the migration SQL from migrations/001_initial.sql (two levels up from this file) and executes it against the provided database file, creating the schema and any seeded data defined by the script.
+    
+    Parameters:
+        database_path (Path): Path to the SQLite database file that will receive the migration.
     """
-    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
+    migrations_path = (
+        Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
+    )
     sql = migrations_path.read_text(encoding="utf-8")
 
     # executescript() is required for multi-statement DDL migrations.
@@ -39,8 +44,13 @@ def _apply_migration(database_path: Path) -> None:
 @pytest.fixture()
 def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     """
-    Provide a SQLAlchemy session connected to a temporary SQLite database
-    with initial migrations applied.
+    Yield a SQLAlchemy Session connected to a temporary SQLite database initialized with the repository migrations.
+    
+    Parameters:
+        tmp_path (Path): Temporary directory where the SQLite database file (repository.db) will be created.
+    
+    Returns:
+        Session: A SQLAlchemy Session bound to the temporary database. The session is yielded to the caller and will be closed and its engine disposed when the fixture completes.
     """
     db_path = tmp_path / "repository.db"
     _apply_migration(db_path)
@@ -56,6 +66,7 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
         engine.dispose()
 
 
+@pytest.mark.integration
 def test_asset_crud_flow(db_session: Session) -> None:
     """CRUD operations for Asset entities: create, read, update, delete."""
     repo = AssetGraphRepository(db_session)
@@ -105,6 +116,7 @@ def test_asset_crud_flow(db_session: Session) -> None:
     assert "EQ1" not in assets  # nosec B101
 
 
+@pytest.mark.integration
 def test_relationship_and_event_crud_flow(db_session: Session) -> None:
     """CRUD operations for relationships and regulatory events."""
     repo = AssetGraphRepository(db_session)

@@ -33,11 +33,20 @@ from .db_models import (
 def session_scope(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
-    """
-    Provide a transactional scope around a series of operations.
+    """Provide a transactional scope around a series of database operations.
 
-    Tech spec alignment: session_scope is defined in repository.py to provide a
-    standard transaction boundary for repository interactions.
+    Commits on successful exit, rolls back on any exception, and always
+    closes the session.
+
+    Args:
+        session_factory: Zero-argument callable that returns a new Session.
+
+    Yields:
+        Session: The active database session for the duration of the block.
+
+    Raises:
+        Exception: Re-raises any exception that occurs inside the ``with`` block
+            after rolling back the transaction.
     """
     session = session_factory()
     try:
@@ -71,7 +80,12 @@ class AssetGraphRepository:
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
-        """Create or update an asset record."""
+        """
+        Create or persist an Asset domain object in the repository, updating an existing record if one exists or creating a new record otherwise.
+        
+        Parameters:
+            asset (Asset): Domain Asset object whose fields should be saved to the database.
+        """
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -79,12 +93,27 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_assets(self) -> List[Asset]:
-        """Return all assets as dataclass instances ordered by id."""
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        """
+        Retrieve all assets ordered by id.
+
+        Returns:
+            List[Asset]: A list of domain Asset instances
+                representing all assets in the database,
+                ordered by asset id.
+        """
+        result = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
-        """Return mapping of asset id to asset dataclass."""
+        """
+        Builds a mapping from asset id to Asset domain objects.
+
+        Returns:
+            Dict[str, Asset]: Mapping where each key is an asset id and
+                each value is the corresponding Asset instance.
+        """
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
@@ -269,7 +298,9 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)
