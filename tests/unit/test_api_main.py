@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, NoReturn
 from unittest.mock import Mock, patch
 
 import api.main as api_main
