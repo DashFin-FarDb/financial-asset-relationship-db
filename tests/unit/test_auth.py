@@ -528,32 +528,24 @@ def test_unicode_password():
     
     assert verify_password(unicode_password, hashed)
 
-@patch('api.auth.user_repository.get_user')
+def test_unicode_password():
+    """Test handling of unicode characters in passwords."""
+    unicode_password = "пароль123密码🔐"
+    hashed = get_password_hash(unicode_password)
+
+    assert verify_password(unicode_password, hashed)
+
+
+@patch("api.auth.user_repository.get_user")
 def test_sql_injection_attempt(mock_get_user):
     """Test that SQL injection attempts are handled safely."""
     mock_get_user.return_value = None
-    
+
     malicious_input = "admin' OR '1'='1"
     result = authenticate_user(malicious_input, "password")
-    
+
     assert result is False
     mock_get_user.assert_called_once_with(malicious_input)
-        """Test handling of unicode characters in passwords."""
-        unicode_password = "пароль123密码🔐"
-        hashed = get_password_hash(unicode_password)
-        
-        assert verify_password(unicode_password, hashed)
-
-    @patch('api.auth.user_repository.get_user')
-    def test_sql_injection_attempt(self, mock_get_user):
-        """Test that SQL injection attempts are handled safely."""
-        mock_get_user.return_value = None
-        
-        malicious_input = "admin' OR '1'='1"
-        result = authenticate_user(malicious_input, "password")
-        
-        assert result is False
-        mock_get_user.assert_called_once_with(malicious_input)
 
 
 class TestSecretKeyValidation:
