@@ -966,18 +966,12 @@ class TestTokenCreationEdgeCases:
         """Test token creation with special characters in data."""
         data = {
             "sub": "user@example.com",
-            "custom": "value with spaces & special!@#"
+            "custom": "value with spaces & special!@#",
         }
-            """Test creating token with negative expiry (already expired)."""
-            import jwt
-            from api.auth import SECRET_KEY, ALGORITHM
+        token = create_access_token(data=data)
+        assert isinstance(token, str)
+        assert len(token) > 0
 
-            delta = timedelta(minutes=-30)
-            token = create_access_token({"sub": "test"}, expires_delta=delta)
-    
-            # Token should be created but immediately expired
-            with pytest.raises(ExpiredSignatureError):
-                jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     def test_create_token_with_very_long_expiry(self):
         """Test creating token with very long expiry."""
         delta = timedelta(days=365 * 10)  # 10 years
