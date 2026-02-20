@@ -415,12 +415,6 @@ class FormulaicVisualizer:
                 categories.setdefault(cat, []).append(float(r2 or 0.0))
 
 
-"""Module for formatting and extracting formula data for visualization.
-
-Provides helper functions to sort formulas by R-squared value, format formula names and
-R-squared values, and extract table data (names, categories, and R-squared) from formula objects.
-"""
-
             names = list(categories.keys())
             avg_r2 = [sum(v) / len(v) for v in categories.values()]
             counts = [len(v) for v in categories.values()]
