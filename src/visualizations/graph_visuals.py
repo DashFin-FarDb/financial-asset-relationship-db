@@ -20,7 +20,6 @@ from src.visualizations.graph_visuals_layout import (
 )
 from src.visualizations.graph_visuals_traces import _create_trace_for_group  # noqa: F401
 from src.visualizations.graph_visuals_traces import _format_trace_name  # noqa: F401
-from src.visualizations.graph_visuals_traces import _get_line_style  # noqa: F401
 from src.visualizations.graph_visuals_traces import (
     _create_directional_arrows,
     _create_node_trace,
