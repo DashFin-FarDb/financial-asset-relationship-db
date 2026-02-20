@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
 from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -39,7 +39,8 @@ def schema_report(
     graph = get_graph()
 
     if report_format == "md":
-        return generate_markdown_report(graph)
+        markdown = generate_markdown_report(graph)
+        return PlainTextResponse(content=markdown, media_type="text/markdown")
     if report_format == "html":
         html = generate_html_report(graph)
         return HTMLResponse(content=html)

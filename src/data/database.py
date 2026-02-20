@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
+
+if TYPE_CHECKING:
+    from .repository import session_scope as session_scope
 
 Base = declarative_base()
 
@@ -56,7 +60,7 @@ def init_db(engine: Engine) -> None:
 
 
 # Re-export session_scope from repository for backward compatibility
-def __getattr__(name):
+def __getattr__(name: str) -> object:
     """Lazy import to avoid circular dependency."""
     if name == "session_scope":
         from .repository import session_scope
