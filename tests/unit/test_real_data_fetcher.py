@@ -126,10 +126,6 @@ class TestCacheHelpers:
     def test_save_to_cache_success(self, tmp_path):
         """Test saving data to cache."""
         cache_data = {"test": "data"}
-        cache_path = tmp_path / "test.json"
-
-        _save_to_cache(cache_data, cache_path)
-
         assert cache_path.exists(), "Cache file should have been created"
         written = json.loads(cache_path.read_text())
         assert written == cache_data
