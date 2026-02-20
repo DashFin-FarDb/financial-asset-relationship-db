@@ -454,8 +454,18 @@ class TestGetCurrentUser:
 
         assert user.username == "testuser"
         assert isinstance(user, UserInDB)
-class TestGetCurrentUser:
-    """Test get_current_user dependency."""
+
+    @pytest.mark.asyncio
+    async def test_get_current_user_invalid_token(self):
+        """Test that invalid token raises HTTPException."""
+        invalid_token = "invalid.jwt.token"
+
+        with pytest.raises(HTTPException) as exc_info:
+            await get_current_user(invalid_token)
+
+        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
+        assert "Could not validate credentials" in exc_info.value.detail
+
 
     @pytest.fixture
     def valid_token(self):
