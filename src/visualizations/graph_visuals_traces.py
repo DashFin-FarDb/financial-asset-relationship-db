@@ -48,7 +48,9 @@ def _create_trace_for_group(
     Returns:
         go.Scatter3d: A Plotly 3D line trace with coordinates for each edge, hover texts, styling, name, and legend grouping.
     """
-    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(relationships, positions, asset_id_index)
+    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(
+        relationships, positions, asset_id_index
+    )
     hover_texts = _build_hover_texts(relationships, rel_type, is_bidirectional)
     return go.Scatter3d(
         x=edges_x,
@@ -132,10 +134,14 @@ def _create_relationship_traces(
         raise ValueError("positions array length must match asset_ids length")
 
     asset_id_index = _build_asset_id_index(asset_ids)
-    relationship_groups = _collect_and_group_relationships(graph, asset_ids, relationship_filters)
+    relationship_groups = _collect_and_group_relationships(
+        graph, asset_ids, relationship_filters
+    )
 
     return [
-        _create_trace_for_group(rel_type, is_bidirectional, rels, positions, asset_id_index)
+        _create_trace_for_group(
+            rel_type, is_bidirectional, rels, positions, asset_id_index
+        )
         for (rel_type, is_bidirectional), rels in relationship_groups.items()
         if rels
     ]
@@ -194,14 +200,18 @@ def _create_directional_arrows(
         if (target_id, source_id, rel_type) not in relationship_index:
             source_indices.append(asset_id_index[source_id])
             target_indices.append(asset_id_index[target_id])
-            hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
+            hover_texts.append(
+                f"Direction: {source_id} → {target_id}<br>Type: {rel_type}"
+            )
 
     if not source_indices:
         return []
 
     src_arr = np.asarray(source_indices, dtype=int)
     tgt_arr = np.asarray(target_indices, dtype=int)
-    arrow_positions = positions[src_arr] + 0.7 * (positions[tgt_arr] - positions[src_arr])
+    arrow_positions = positions[src_arr] + 0.7 * (
+        positions[tgt_arr] - positions[src_arr]
+    )
 
     return [
         go.Scatter3d(

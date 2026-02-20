@@ -52,7 +52,9 @@ class TestYAMLSyntaxAndStructure:
 
         Scans all .yml and .yaml files in the .github tree and reports any lines (excluding empty lines and full-line comments) whose leading spaces are not a multiple of two. Block scalar content introduced by `|` or `>` is exempted from indentation checks until the scalar finishes. On failure, asserts with a list of file paths and line numbers showing the detected indentation counts.
         """
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(
+            Path(".github").rglob("*.yaml")
+        )
         indentation_errors = []
 
         for yaml_file in yaml_files:
@@ -97,7 +99,9 @@ class TestYAMLSyntaxAndStructure:
 
             # Reset flags per file (handled by reinitialization each loop)
 
-        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
+            indentation_errors
+        )
 
 
 def test_no_duplicate_keys_in_yaml():
@@ -111,7 +115,9 @@ def test_no_duplicate_keys_in_yaml():
     except ImportError:
         pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
 
-    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+    yaml_files = list(Path(".github").rglob("*.yml")) + list(
+        Path(".github").rglob("*.yaml")
+    )
     parser = YAML(typ="safe")
     parse_errors = []
 
@@ -165,7 +171,9 @@ class TestWorkflowSchemaCompliance:
         required_keys = ["name", "jobs"]
         for workflow in all_workflows:
             for key in required_keys:
-                assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
+                assert key in workflow["content"], (
+                    f"Workflow {workflow['path']} missing required key: {key}"
+                )
 
 
 class TestDefaultValueHandling:
@@ -207,8 +215,12 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(timeout, int), f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    assert 1 <= timeout <= 360, f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    assert isinstance(timeout, int), (
+                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    )
+                    assert 1 <= timeout <= 360, (
+                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    )
 
 
 if __name__ == "__main__":
