@@ -116,8 +116,9 @@ class TestCacheHelpers:
 
     def test_load_from_cache_file_not_found(self):
         """Test loading from non-existent cache raises FileNotFoundError."""
-        with pytest.raises(FileNotFoundError):
-            _load_from_cache(Path("nonexistent.json"))
+        with patch("src.data.real_data_fetcher.Path.open", side_effect=FileNotFoundError):
+            with pytest.raises(FileNotFoundError):
+                _load_from_cache(Path("nonexistent.json"))
 
     @patch('src.data.real_data_fetcher.Path.write_text')
     @patch('src.data.real_data_fetcher.Path.parent')
