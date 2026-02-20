@@ -509,15 +509,31 @@ def test_special_character_usernames_do_not_break_token_creation():
         assert len(token) > 0
 
 
-def test_very_long_password(self):
-        """Test handling of very long passwords."""
-        long_password = "a" * 1000
-        hashed = get_password_hash(long_password)
-        
-        assert verify_password(long_password, hashed)
-        assert not verify_password(long_password[:-1], hashed)
+def test_very_long_password():
+    """Test handling of very long passwords."""
+    long_password = "a" * 1000
+    hashed = get_password_hash(long_password)
+    
+    assert verify_password(long_password, hashed)
+    assert not verify_password(long_password[:-1], hashed)
 
-    def test_unicode_password(self):
+def test_unicode_password():
+    """Test handling of unicode characters in passwords."""
+    unicode_password = "пароль123密码🔐"
+    hashed = get_password_hash(unicode_password)
+    
+    assert verify_password(unicode_password, hashed)
+
+@patch('api.auth.user_repository.get_user')
+def test_sql_injection_attempt(mock_get_user):
+    """Test that SQL injection attempts are handled safely."""
+    mock_get_user.return_value = None
+    
+    malicious_input = "admin' OR '1'='1"
+    result = authenticate_user(malicious_input, "password")
+    
+    assert result is False
+    mock_get_user.assert_called_once_with(malicious_input)
         """Test handling of unicode characters in passwords."""
         unicode_password = "пароль123密码🔐"
         hashed = get_password_hash(unicode_password)
