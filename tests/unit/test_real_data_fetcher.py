@@ -470,7 +470,6 @@ class TestDataValidation:
     reason="RealDataFetcher does not implement the per-symbol fetch methods exercised in these error-handling tests; mark as xfail until the API is aligned.",
     strict=True,
 )
-)
 class TestErrorHandling:
     """Test error handling and edge cases."""
 
