@@ -448,7 +448,9 @@ class TestRequirementsTxt:
 
         with open(config_path) as f:
             return [
-                line.strip() for line in f if line.strip() and not line.strip().startswith("#")
+                line.strip()
+                for line in f
+                if line.strip() and not line.strip().startswith("#")
             ]
 
     @staticmethod
@@ -796,7 +798,9 @@ class TestConfigurationRobustness:
 
         with open(requirements_path) as f:
             lines = [
-                line.strip() for line in f if line.strip() and not line.strip().startswith("#")
+                line.strip()
+                for line in f
+                if line.strip() and not line.strip().startswith("#")
             ]
 
         # Extract package names (before ==, >=, etc.)
