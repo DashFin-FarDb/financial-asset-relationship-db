@@ -82,35 +82,40 @@ class TestCacheHelpers:
         
         assert result is False
 
-    @patch('src.data.real_data_fetcher.Path.read_text')
-    def test_load_from_cache_success(self, mock_read):
+    def test_load_from_cache_success(self):
         """Test loading data from cache."""
-        cache_data = {"assets": ["AAPL", "GOOGL"], "timestamp": "2024-01-01"}
-        mock_read.return_value = json.dumps(cache_data)
-        
-        result = _load_from_cache(Path("test.json"))
-        
-        assert result == cache_data
-        assert "assets" in result
-        mock_read.assert_called_once()
+        cache_payload = {
+            "assets": [],
+            "regulatory_events": [],
+            "relationships": {},
+            "incoming_relationships": {},
+        }
+        expected_graph = AssetRelationshipGraph()
 
-    @patch('src.data.real_data_fetcher.Path.read_text')
-    def test_load_from_cache_invalid_json(self, mock_read):
-        """Test loading invalid JSON returns None."""
-        mock_read.return_value = "invalid json {{"
-        
-        result = _load_from_cache(Path("test.json"))
-        
-        assert result is None
+        with patch("src.data.real_data_fetcher.Path.open") as mock_open, \
+             patch("src.data.real_data_fetcher.json.load", return_value=cache_payload) as mock_json_load, \
+             patch("src.data.real_data_fetcher._deserialize_graph", return_value=expected_graph) as mock_deserialize:
+            result = _load_from_cache(Path("test.json"))
 
-    @patch('src.data.real_data_fetcher.Path.read_text')
-    def test_load_from_cache_file_not_found(self, mock_read):
-        """Test loading from non-existent cache."""
-        mock_read.side_effect = FileNotFoundError()
-        
-        result = _load_from_cache(Path("nonexistent.json"))
-        
-        assert result is None
+        mock_open.assert_called_once()
+        mock_json_load.assert_called_once()
+        mock_deserialize.assert_called_once_with(cache_payload)
+        assert result is expected_graph
+
+    def test_load_from_cache_invalid_json(self):
+        """Test that invalid JSON propagates JSONDecodeError."""
+        with patch("src.data.real_data_fetcher.Path.open"), \
+             patch(
+                 "src.data.real_data_fetcher.json.load",
+                 side_effect=json.JSONDecodeError("Invalid JSON", "doc", 0),
+             ):
+            with pytest.raises(json.JSONDecodeError):
+                _load_from_cache(Path("test.json"))
+
+    def test_load_from_cache_file_not_found(self):
+        """Test loading from non-existent cache raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            _load_from_cache(Path("nonexistent.json"))
 
     @patch('src.data.real_data_fetcher.Path.write_text')
     @patch('src.data.real_data_fetcher.Path.parent')
