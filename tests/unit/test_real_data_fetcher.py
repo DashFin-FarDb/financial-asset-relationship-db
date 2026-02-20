@@ -410,6 +410,7 @@ class TestCreateRealDatabase:
     reason="RealDataFetcher.create_equity_from_data is not present in the current implementation; update tests when this API exists.",
     strict=True,
 )
+)
 class TestDataValidation:
     """Test data validation and transformation."""
 
