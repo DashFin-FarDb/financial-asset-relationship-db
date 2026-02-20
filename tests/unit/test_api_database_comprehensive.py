@@ -117,7 +117,7 @@ class TestConnect:
                 # Always use the module's cleanup helper to match production behavior.
                 _cleanup_memory_connection()
                 # Defensive: if implementation returns a non-shared connection, close it too.
-                if getattr(api.database, "_MEMORY_CONNECTION", None) is not conn:
+                if "conn" in locals() and getattr(api.database, "_MEMORY_CONNECTION", None) is not conn:
                     conn.close()
 
     @patch("api.database.DATABASE_PATH", "test.db")
