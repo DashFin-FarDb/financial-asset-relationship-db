@@ -413,6 +413,11 @@ class FormulaicVisualizer:
                     else formula.get("r_squared", 0.0)
                 )
                 categories.setdefault(cat, []).append(float(r2 or 0.0))
+"""Module for formatting and extracting formula data for visualization.
+
+Provides helper functions to sort formulas by R-squared value, format formula names and
+R-squared values, and extract table data (names, categories, and R-squared) from formula objects.
+"""
 
             names = list(categories.keys())
             avg_r2 = [sum(v) / len(v) for v in categories.values()]
@@ -429,7 +434,7 @@ class FormulaicVisualizer:
             plot_bgcolor="white",
         )
 
-    return fig
+        return fig
 
 
 # ------------------------------------------------------------------ #
@@ -439,6 +444,10 @@ class FormulaicVisualizer:
 
 @staticmethod
 def _get_sorted_formulas(formulas: Any) -> List[Any]:
+    """Return a list of formulas sorted by their R-squared value in descending order.
+
+    If the formulas cannot be sorted due to a TypeError, returns the original list.
+    """
     try:
         return sorted(
             formulas,
@@ -451,6 +460,10 @@ def _get_sorted_formulas(formulas: Any) -> List[Any]:
 
 @staticmethod
 def _format_name(name: Any, max_length: int = 30) -> str:
+    """Format and truncate a formula name to a maximum length.
+
+    Returns 'N/A' if the name is not a valid non-empty string.
+    """
     if not isinstance(name, str) or not name:
         return "N/A"
     return name if len(name) <= max_length else f"{name[: max_length - 3]}..."
@@ -458,6 +471,10 @@ def _format_name(name: Any, max_length: int = 30) -> str:
 
 @staticmethod
 def _format_r_squared(r_value: Any) -> str:
+    """Format an R-squared value to four decimal places.
+
+    Returns 'N/A' for non-numeric values.
+    """
     if isinstance(r_value, (int, float)):
         return f"{r_value:.4f}"
     return "N/A"
@@ -467,6 +484,11 @@ def _format_r_squared(r_value: Any) -> str:
 def _extract_formula_table_data(
     formulas: Any,
 ) -> Tuple[List[str], List[str], List[str]]:
+    """Extract names, categories, and R-squared values from a list of formulas.
+
+    Returns three lists: formatted names, categories, and formatted R-squared values
+    for table visualization.
+    """
     names = [
         FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
     ]
