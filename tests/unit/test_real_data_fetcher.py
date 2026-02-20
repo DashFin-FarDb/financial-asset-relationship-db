@@ -40,9 +40,8 @@ class TestCacheHelpers:
     def test_get_cache_path_default(self):
         """Test getting default cache path."""
         if _get_cache_path is None:
-        """Test getting default cache path."""
-        if _get_cache_path is None:
             pytest.skip("_get_cache_path not available in this implementation")
+
         cache_path = _get_cache_path()
         
         assert isinstance(cache_path, Path)
