@@ -365,8 +365,8 @@ class TestJWTOperations:
             disabled=False,
         )
 
-    @patch("api.auth.user_repository.get_user")
     @pytest.mark.asyncio
+    @patch("api.auth.user_repository.get_user")
     async def test_get_current_user_valid_token(self, mock_get_user, valid_token, mock_user):
         mock_get_user.return_value = mock_user
 
