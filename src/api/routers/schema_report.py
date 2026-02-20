@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 
+from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
     export_report,
@@ -20,9 +21,7 @@ def get_graph() -> AssetRelationshipGraph:
     """
     Replace this with your production graph loader.
     """
-    graph = AssetRelationshipGraph()
-    graph.initialize_assets_from_source()
-    return graph
+    return create_sample_database()
 
 
 # ----------------------------------------------------------------------
@@ -30,10 +29,10 @@ def get_graph() -> AssetRelationshipGraph:
 # ----------------------------------------------------------------------
 
 
-@router.get("/", summary="Get schema report")
+@router.get("/", summary="Get schema report", response_model=None)
 def schema_report(
     report_format: str = Query("md", pattern="^(md|html)$"),
-) -> str:
+):
     """
     Return the schema report in Markdown or HTML format.
     """

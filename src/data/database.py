@@ -11,6 +11,14 @@ from sqlalchemy.pool import StaticPool
 
 Base = declarative_base()
 
+__all__ = [
+    "Base",
+    "session_scope",
+    "create_engine_from_url",
+    "create_session_factory",
+    "init_db",
+]
+
 DEFAULT_DATABASE_URL = os.getenv(
     "ASSET_GRAPH_DATABASE_URL",
     "sqlite:///./asset_graph.db",
@@ -45,3 +53,13 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 def init_db(engine: Engine) -> None:
     """Initialise database schema if it has not been created."""
     Base.metadata.create_all(engine)
+
+
+# Re-export session_scope from repository for backward compatibility
+def __getattr__(name):
+    """Lazy import to avoid circular dependency."""
+    if name == "session_scope":
+        from .repository import session_scope
+
+        return session_scope
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
