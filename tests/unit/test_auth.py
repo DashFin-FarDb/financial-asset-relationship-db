@@ -337,11 +337,11 @@ class TestJWTOperations:
         """Test token with additional claims."""
         data = {"sub": "testuser", "role": "admin", "permissions": ["read", "write"]}
         token = create_access_token(data)
-        
+
         import jwt
-        secret_key = os.getenv("SECRET_KEY")
-        decoded = jwt.decode(token, secret_key, algorithms=["HS256"])
-        
+        from api.auth import SECRET_KEY, ALGORITHM
+        decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+
         assert decoded["sub"] == "testuser"
         assert decoded["role"] == "admin"
         assert decoded["permissions"] == ["read", "write"]
