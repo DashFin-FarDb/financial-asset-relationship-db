@@ -62,16 +62,18 @@ def _create_2d_relationship_traces(
             )
             hover_texts.extend([hover, hover, None])
 
-        traces.append(go.Scatter(
-            x=edges_x,
-            y=edges_y,
-            mode="lines",
-            line=dict(color=REL_TYPE_COLORS.get(rel_type, "#888888"), width=2),
-            hovertext=hover_texts,
-            hoverinfo="text",
-            name=rel_type.replace("_", " ").title(),
-            showlegend=True,
-        ))
+        traces.append(
+            go.Scatter(
+                x=edges_x,
+                y=edges_y,
+                mode="lines",
+                line=dict(color=REL_TYPE_COLORS.get(rel_type, "#888888"), width=2),
+                hovertext=hover_texts,
+                hoverinfo="text",
+                name=rel_type.replace("_", " ").title(),
+                showlegend=True,
+            )
+        )
 
     return traces
 
