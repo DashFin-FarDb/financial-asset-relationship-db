@@ -524,11 +524,6 @@ def test_unicode_password():
     assert verify_password(unicode_password, hashed)
 
 def test_unicode_password():
-    """Test handling of unicode characters in passwords."""
-    unicode_password = "пароль123密码🔐"
-    hashed = get_password_hash(unicode_password)
-
-    assert verify_password(unicode_password, hashed)
 
 
 @patch("api.auth.user_repository.get_user")
