@@ -548,7 +548,7 @@ class TestErrorHandling:
         implementations often use get_graph() internally.
         """
 
-        def _raise() -> AssetRelationshipGraph:
+        def _raise() -> NoReturn:
             """Raise a generic exception to simulate a backend graph access failure."""
             raise Exception("Database error")
 
