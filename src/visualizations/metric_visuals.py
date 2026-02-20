@@ -64,6 +64,10 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
     Args:
         events (list): A list of regulatory event objects containing date,
             asset_id, event_type, and impact_score attributes.
+
+    Returns:
+        go.Figure: A Plotly figure object representing the regulatory events
+        timeline visualization.
     """
     sorted_events = sorted(events, key=lambda e: datetime.fromisoformat(e.date))
     dates = [datetime.fromisoformat(e.date) for e in sorted_events]
