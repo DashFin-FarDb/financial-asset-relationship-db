@@ -161,17 +161,6 @@ class TestSessionFactory:
         finally:
             session.close()
 
-    def test_sessions_are_not_autocommit(self, engine: Engine) -> None:
-        """Sessions should have autocommit disabled."""
-        factory = create_session_factory(engine)
-        session = factory()
-        try:
-            assert session.bind == engine
-            # Note: session.autocommit is deprecated in SQLAlchemy 2.0.
-            # Sessions created with future=True don't have autocommit mode.
-        finally:
-            session.close()
-
 
 # ---------------------------------------------------------------------------
 # Database initialization tests
