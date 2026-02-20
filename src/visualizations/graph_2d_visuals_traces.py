@@ -3,7 +3,10 @@ from typing import Dict, List, Tuple
 import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.visualizations.graph_2d_visuals_constants import ASSET_CLASS_COLORS, REL_TYPE_COLORS
+from src.visualizations.graph_2d_visuals_constants import (
+    ASSET_CLASS_COLORS,
+    REL_TYPE_COLORS,
+)
 
 
 def _create_2d_relationship_traces(
@@ -65,7 +68,11 @@ def _create_2d_relationship_traces(
         for target_id, rel_type, strength in graph.relationships[source_id]:
             if target_id not in positions or target_id not in asset_id_set:
                 continue
-            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
+            if (
+                not show_all_relationships
+                and rel_type in relationship_filters
+                and not relationship_filters[rel_type]
+            ):
                 continue
             relationship_groups.setdefault(rel_type, []).append(
                 {"source_id": source_id, "target_id": target_id, "strength": strength}
@@ -126,7 +133,11 @@ def _create_node_trace(
     colors, hover_texts, node_sizes = [], [], []
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
+        asset_class = (
+            asset.asset_class.value
+            if hasattr(asset.asset_class, "value")
+            else str(asset.asset_class)
+        )
         colors.append(ASSET_CLASS_COLORS.get(asset_class.lower(), "#7f7f7f"))
         hover_texts.append(f"{asset_id}<br>Class: {asset_class}")
         num_connections = len(graph.relationships.get(asset_id, []))

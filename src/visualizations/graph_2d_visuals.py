@@ -28,8 +28,13 @@ def _resolve_positions(
         return _create_grid_layout(asset_ids)
     # Default: spring — project 3D positions to 2D
     if hasattr(graph, "get_3d_visualization_data_enhanced"):
-        positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
-        positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
+        positions_3d_array, asset_ids_ordered, _, _ = (
+            graph.get_3d_visualization_data_enhanced()
+        )
+        positions_3d = {
+            asset_ids_ordered[i]: tuple(positions_3d_array[i])
+            for i in range(len(asset_ids_ordered))
+        }
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
@@ -85,14 +90,28 @@ def visualize_2d_graph(
         title=f"2D Asset Relationship Network ({layout_name} Layout)",
         plot_bgcolor="white",
         paper_bgcolor="#F8F9FA",
-        xaxis=dict(showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)", zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)", zeroline=False, showticklabels=False),
+        xaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(200, 200, 200, 0.3)",
+            zeroline=False,
+            showticklabels=False,
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(200, 200, 200, 0.3)",
+            zeroline=False,
+            showticklabels=False,
+        ),
         width=1200,
         height=800,
         hovermode="closest",
         showlegend=True,
         legend=dict(
-            x=0.02, y=0.98, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.3)", borderwidth=1
+            x=0.02,
+            y=0.98,
+            bgcolor="rgba(255, 255, 255, 0.8)",
+            bordercolor="rgba(0, 0, 0, 0.3)",
+            borderwidth=1,
         ),
         annotations=[
             dict(
