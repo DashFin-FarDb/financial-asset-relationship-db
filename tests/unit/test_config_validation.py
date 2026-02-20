@@ -36,7 +36,7 @@ class TestVercelConfig:
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
 
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             return json.load(f)
 
     @staticmethod
