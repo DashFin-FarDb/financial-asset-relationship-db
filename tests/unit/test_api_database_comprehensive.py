@@ -195,27 +195,37 @@ class TestThreadSafety:
 
     @patch("api.database.DATABASE_PATH", ":memory:")
     def test_memory_connection_thread_safety(self):
-        """Test that memory connection is thread-safe."""
+        """Test that concurrent memory connects don't race/raise."""
         import api.database
-        # Reset shared connection before test
+
         api.database._MEMORY_CONNECTION = None
 
-        connections = []
+        connect_calls = []
+        errors = []
+
+        real_connect = sqlite3.connect
+
+        def counting_connect(*args, **kwargs):
+            connect_calls.append(1)
+            return real_connect(*args, **kwargs)
 
         def get_conn():
-            conn = _connect()
-            connections.append(id(conn))
+            try:
+                _connect()
+            except Exception as e:
+                errors.append(e)
 
-        threads = [threading.Thread(target=get_conn) for _ in range(5)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        with patch("api.database.sqlite3.connect", side_effect=counting_connect):
+            threads = [threading.Thread(target=get_conn) for _ in range(5)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
 
-        # All connections should be the same object (same id)
-        assert len(set(connections)) == 1
+        assert errors == []
+        # Should initialize the shared connection once
+        assert sum(connect_calls) == 1
 
-        # Cleanup
         if api.database._MEMORY_CONNECTION is not None:
             api.database._MEMORY_CONNECTION.close()
             api.database._MEMORY_CONNECTION = None
