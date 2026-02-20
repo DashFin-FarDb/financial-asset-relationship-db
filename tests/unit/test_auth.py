@@ -614,8 +614,8 @@ class TestGetCurrentActiveUser:
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
 
-class TestGetCurrentActiveUser:
-    """Test get_current_active_user dependency."""
+class TestGetCurrentActiveUserAdditional:
+    """Additional tests for get_current_active_user dependency."""
 
     @pytest.fixture
     def active_user(self):
