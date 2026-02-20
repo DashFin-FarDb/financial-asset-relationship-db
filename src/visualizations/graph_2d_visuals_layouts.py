@@ -14,6 +14,7 @@ def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, floa
 
 
 def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
+    """Creates a grid layout for the given asset IDs."""
     if not asset_ids:
         return {}
     cols = int(math.ceil(math.sqrt(len(asset_ids))))
@@ -27,6 +28,18 @@ def _create_spring_layout_2d(
     positions_3d: Dict[str, Tuple[float, float, float]],
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
+    """Create a 2D spring layout from 3D positions.
+    
+    This function takes a dictionary of 3D positions and a list of asset IDs,
+    returning a new dictionary that contains the corresponding 2D positions for
+    each asset ID. It checks if the provided positions_3d and asset_ids are  valid,
+    and extracts the first two dimensions of the 3D positions for each  asset ID
+    that exists in the positions_3d dictionary.
+    
+    Args:
+        positions_3d: A dictionary mapping asset IDs to their 3D coordinates.
+        asset_ids: A list of asset IDs to retrieve 2D positions for.
+    """
     if not positions_3d or not asset_ids:
         return {}
     positions_2d = {}
