@@ -43,7 +43,7 @@ def _get_env(name: str) -> Optional[str]:
 
 
 def _redact(value: str) -> str:
-    if len(value) <= 12:
+    """Redact a secret value for logs, preserving only the first/last 4 chars."""
     if len(value) <= 12:
         return "***"
     return f"{value[:4]}***{value[-4:]}"
