@@ -413,30 +413,17 @@ class TestGetCurrentUser:
 
     @pytest.fixture
     def valid_token(self):
-        """
-        Provide a JWT access token with the subject "testuser".
-
-        Returns:
-            token (str): A JWT access token string whose `sub` claim equals "testuser".
-        """
         data = {"sub": "testuser"}
         return create_access_token(data)
 
     @pytest.fixture
     def expired_token(self):
-        """Fixture providing an expired JWT token."""
         data = {"sub": "testuser"}
         expires_delta = timedelta(seconds=-10)  # Already expired
         return create_access_token(data, expires_delta)
 
     @pytest.fixture
     def mock_user(self):
-        """
-        Create a mock UserInDB instance for tests.
-
-        Returns:
-            UserInDB: A user with username "testuser", email "test@example.com", hashed_password "hashed", and disabled=False.
-        """
         return UserInDB(
             username="testuser",
             email="test@example.com",
@@ -447,7 +434,6 @@ class TestGetCurrentUser:
     @patch("api.auth.user_repository.get_user")
     @pytest.mark.asyncio
     async def test_get_current_user_valid_token(self, mock_get_user, valid_token, mock_user):
-        """Test getting current user with valid token."""
         mock_get_user.return_value = mock_user
 
         user = await get_current_user(valid_token)
@@ -457,60 +443,6 @@ class TestGetCurrentUser:
 
     @pytest.mark.asyncio
     async def test_get_current_user_invalid_token(self):
-        """Test that invalid token raises HTTPException."""
-        invalid_token = "invalid.jwt.token"
-
-        with pytest.raises(HTTPException) as exc_info:
-            await get_current_user(invalid_token)
-
-        assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
-    @pytest.fixture
-    def valid_token(self):
-        """
-        Provide a JWT access token with the subject "testuser".
-
-        Returns:
-            token (str): A JWT access token string whose `sub` claim equals "testuser".
-        """
-        data = {"sub": "testuser"}
-        return create_access_token(data)
-
-    @pytest.fixture
-    def expired_token(self):
-        """Fixture providing an expired JWT token."""
-        data = {"sub": "testuser"}
-        expires_delta = timedelta(seconds=-10)  # Already expired
-        return create_access_token(data, expires_delta)
-
-    @pytest.fixture
-    def mock_user(self):
-        """
-        Create a mock UserInDB instance for tests.
-
-        Returns:
-            UserInDB: A user with username "testuser", email "test@example.com", hashed_password "hashed", and disabled=False.
-        """
-        return UserInDB(
-            username="testuser",
-            email="test@example.com",
-            hashed_password="hashed",
-            disabled=False,
-        )
-
-    @patch("api.auth.user_repository.get_user")
-    @pytest.mark.asyncio
-    async def test_get_current_user_valid_token(self, mock_get_user, valid_token, mock_user):
-        """Test getting current user with valid token."""
-        mock_get_user.return_value = mock_user
-
-        user = await get_current_user(valid_token)
-
-        assert user.username == "testuser"
-        assert isinstance(user, UserInDB)
-
-    @pytest.mark.asyncio
-    async def test_get_current_user_invalid_token(self):
-        """Test that invalid token raises HTTPException."""
         invalid_token = "invalid.jwt.token"
 
         with pytest.raises(HTTPException) as exc_info:
