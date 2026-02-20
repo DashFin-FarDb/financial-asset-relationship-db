@@ -116,9 +116,8 @@ class TestConnect:
             conn = _connect()
             assert isinstance(conn, sqlite3.Connection)
         finally:
-            if api.database._MEMORY_CONNECTION is not None:
-                api.database._MEMORY_CONNECTION.close()
-                api.database._MEMORY_CONNECTION = None
+            _cleanup_memory_connection()
+            api.database._MEMORY_CONNECTION = None
 
     @patch("api.database.DATABASE_PATH", "test.db")
     @patch("api.database.sqlite3.connect")
