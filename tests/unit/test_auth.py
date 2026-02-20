@@ -527,9 +527,6 @@ def test_unicode_password():
     
     assert verify_password(unicode_password, hashed)
 
-def test_unicode_password():
-
-
 @patch("api.auth.user_repository.get_user")
 def test_sql_injection_attempt(mock_get_user):
     """Test that SQL injection attempts are handled safely."""
