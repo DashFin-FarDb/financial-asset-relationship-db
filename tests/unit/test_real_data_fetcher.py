@@ -414,12 +414,9 @@ class TestCreateRealDatabase:
 )
 )
 class TestDataValidation:
+)
+class TestDataValidation:
     """Test data validation and transformation."""
-    """Test data validation and transformation."""
-    """Test data validation and transformation."""
-
-    @pytest.fixture
-    def fetcher(self):
         """
         Provides a new RealDataFetcher instance for use in tests.
         
