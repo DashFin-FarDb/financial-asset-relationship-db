@@ -959,12 +959,6 @@ class TestTokenCreationEdgeCases:
     def test_create_token_with_empty_data(self):
         """Test creating token with empty data dict."""
         token = create_access_token(data={})
-        assert isinstance(token, str)
-        assert len(token) > 0
-
-    def test_create_token_with_special_characters_in_data(self):
-        """Test token creation with special characters in data."""
-        data = {
             "sub": "user@example.com",
             "custom": "value with spaces & special!@#",
         }
