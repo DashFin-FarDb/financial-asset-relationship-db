@@ -524,7 +524,13 @@ class TestEdgeCases:
         )
 
     @pytest.mark.asyncio
-    async def test_get_current_active_user_success(self, active_user):
+    def test_very_long_password():
+        """Test handling of very long passwords."""
+        long_password = "a" * 1000
+        hashed = get_password_hash(long_password)
+
+        assert verify_password(long_password, hashed)
+        assert not verify_password(long_password[:-1], hashed)
         """Test getting active user succeeds."""
         user = await get_current_active_user(active_user)
         
