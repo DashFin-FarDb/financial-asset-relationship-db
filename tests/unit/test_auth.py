@@ -268,12 +268,7 @@ class TestUserRepository:
         mock_execute.assert_called_once()
         call_args = mock_execute.call_args
         params = call_args[0][1]
-        # Tuple order: (username, email, full_name, hashed_password, disabled)
-        assert params[0] == "newuser"
-        assert params[1] == "new@example.com"
-        assert params[2] == "New User"
-        assert params[3] == "hashed_pwd"
-        assert params[4] == 0  # disabled=False -> 0
+        assert params == ("newuser", "new@example.com", "New User", "hashed_pwd", 0)
 
     @patch('api.auth.execute')
     def test_create_or_update_user_disabled(self, mock_execute, user_repo):
