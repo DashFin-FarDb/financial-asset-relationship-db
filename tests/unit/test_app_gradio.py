@@ -67,7 +67,11 @@ class TestCreateDatabase:
     def test_create_database_raises_when_no_factory_found(self, mock_fetcher):
         """Test that _create_database raises when no factory is found."""
         # Remove all candidate attributes
-        for attr in ["create_real_database", "create_sample_database", "create_database"]:
+        for attr in [
+            "create_real_database",
+            "create_sample_database",
+            "create_database",
+        ]:
             if hasattr(mock_fetcher, attr):
                 delattr(mock_fetcher, attr)
 
@@ -179,9 +183,7 @@ class TestUpdateAssetInfo:
 
         mock_graph = MagicMock()
         mock_graph.assets = {"AAPL": mock_asset}
-        mock_graph.relationships = {
-            "AAPL": [("MSFT", "same_sector", 0.8)]
-        }
+        mock_graph.relationships = {"AAPL": [("MSFT", "same_sector", 0.8)]}
         mock_create.return_value = mock_graph
 
         app_instance = FinancialAssetApp()
@@ -273,7 +275,9 @@ class TestGenerateFormulaicAnalysis:
     @patch("app.FinancialAssetApp._create_database")
     @patch("app.FormulaicAnalyzer")
     @patch("app.FormulaicVisualizer")
-    def test_generate_formulaic_analysis_success(self, mock_visualizer_class, mock_analyzer_class, mock_create):
+    def test_generate_formulaic_analysis_success(
+        self, mock_visualizer_class, mock_analyzer_class, mock_create
+    ):
         """Test successful formulaic analysis generation."""
         mock_graph = MagicMock()
         mock_create.return_value = mock_graph
@@ -317,7 +321,9 @@ class TestRefreshAllOutputs:
     @patch("app.visualize_metrics")
     @patch("app.generate_schema_report")
     @patch("app.gr")
-    def test_refresh_all_outputs_success(self, mock_gr, mock_schema, mock_metrics, mock_viz, mock_create):
+    def test_refresh_all_outputs_success(
+        self, mock_gr, mock_schema, mock_metrics, mock_viz, mock_create
+    ):
         """Test successful refresh of all outputs."""
         mock_graph = MagicMock()
         mock_graph.assets = {"AAPL": MagicMock(), "MSFT": MagicMock()}
@@ -354,19 +360,21 @@ class TestCreateInterface:
         app_instance = FinancialAssetApp()
 
         # Mock all gradio components
-        with patch("app.gr.Markdown"), \
-             patch("app.gr.Textbox"), \
-             patch("app.gr.Tabs"), \
-             patch("app.gr.Tab"), \
-             patch("app.gr.Row"), \
-             patch("app.gr.Column"), \
-             patch("app.gr.Radio"), \
-             patch("app.gr.Checkbox"), \
-             patch("app.gr.Plot"), \
-             patch("app.gr.Button"), \
-             patch("app.gr.Dropdown"), \
-             patch("app.gr.JSON"), \
-             patch("app.gr.State"):
+        with (
+            patch("app.gr.Markdown"),
+            patch("app.gr.Textbox"),
+            patch("app.gr.Tabs"),
+            patch("app.gr.Tab"),
+            patch("app.gr.Row"),
+            patch("app.gr.Column"),
+            patch("app.gr.Radio"),
+            patch("app.gr.Checkbox"),
+            patch("app.gr.Plot"),
+            patch("app.gr.Button"),
+            patch("app.gr.Dropdown"),
+            patch("app.gr.JSON"),
+            patch("app.gr.State"),
+        ):
             result = app_instance.create_interface()
 
         assert result is not None
@@ -404,7 +412,15 @@ class TestEdgeCases:
             mock_graph,
             "3D",
             "spring",
-            True, True, True, True, True, True, True, True, True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
+            True,
         )
 
         # Should return empty figure and error message
@@ -477,6 +493,8 @@ class TestEdgeCases:
 
         with patch("app.gr.update") as mock_update:
             mock_update.return_value = MagicMock()
-            result_fig, result_update = app_instance.show_formula_details("Test Formula", mock_graph)
+            result_fig, result_update = app_instance.show_formula_details(
+                "Test Formula", mock_graph
+            )
 
             assert result_fig is not None

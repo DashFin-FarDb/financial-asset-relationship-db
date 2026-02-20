@@ -2,19 +2,24 @@
 
 from __future__ import annotations
 
+# Import the module under test
+import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
+from schema_report_cli import (
+    app,
+    generate_html,
+    generate_md,
+    load_graph,
+    main,
+    save_report,
+)
 from typer.testing import CliRunner
-
-# Import the module under test
-import sys
 
 scripts_path = Path(__file__).parent.parent.parent / ".github" / "scripts"
 sys.path.insert(0, str(scripts_path))
-
-from schema_report_cli import app, generate_html, generate_md, load_graph, main, save_report
 
 
 runner = CliRunner()
@@ -109,7 +114,9 @@ class TestSaveReport:
     @patch("schema_report_cli.load_graph")
     @patch("schema_report_cli.export_report")
     @patch("schema_report_cli.typer.echo")
-    def test_save_report_markdown_default(self, mock_echo, mock_export, mock_load, tmp_path):
+    def test_save_report_markdown_default(
+        self, mock_echo, mock_export, mock_load, tmp_path
+    ):
         """Test saving report in markdown format (default)."""
         mock_graph = MagicMock()
         mock_load.return_value = mock_graph
@@ -148,7 +155,9 @@ class TestSaveReport:
     @patch("schema_report_cli.load_graph")
     @patch("schema_report_cli.export_report")
     @patch("schema_report_cli.typer.echo")
-    def test_save_report_outputs_message(self, mock_echo, mock_export, mock_load, tmp_path):
+    def test_save_report_outputs_message(
+        self, mock_echo, mock_export, mock_load, tmp_path
+    ):
         """Test that save command outputs success message."""
         mock_graph = MagicMock()
         mock_load.return_value = mock_graph
@@ -285,7 +294,9 @@ class TestEdgeCases:
 
     @patch("schema_report_cli.AssetRelationshipGraph")
     @patch("schema_report_cli.export_report")
-    def test_save_creates_parent_directories(self, mock_export, mock_graph_class, tmp_path):
+    def test_save_creates_parent_directories(
+        self, mock_export, mock_graph_class, tmp_path
+    ):
         """Test that save creates parent directories."""
         mock_graph_class.return_value = MagicMock()
         mock_export.return_value = "content"
@@ -334,7 +345,9 @@ class TestEdgeCases:
 
     @patch("schema_report_cli.load_graph")
     @patch("schema_report_cli.export_report")
-    def test_save_with_special_characters_in_path(self, mock_export, mock_load, tmp_path):
+    def test_save_with_special_characters_in_path(
+        self, mock_export, mock_load, tmp_path
+    ):
         """Test save with special characters in filename."""
         mock_load.return_value = MagicMock()
         mock_export.return_value = "content"

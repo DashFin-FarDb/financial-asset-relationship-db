@@ -2,17 +2,12 @@
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, mock_open, patch
-
-import pytest
-
 # Add the scripts directory to path for imports
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, mock_open, patch
 
-scripts_path = Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
-sys.path.insert(0, str(scripts_path))
-
+import pytest
 from suggest_fixes import (
     categorize_comment,
     extract_code_suggestions,
@@ -24,11 +19,20 @@ from suggest_fixes import (
     write_output,
 )
 
+scripts_path = (
+    Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
+)
+sys.path.insert(0, str(scripts_path))
+
 
 class TestLoadConfig:
     """Test load_config function."""
 
-    @patch("builtins.open", new_callable=mock_open, read_data="review_handling:\n  actionable_keywords:\n    - custom\n")
+    @patch(
+        "builtins.open",
+        new_callable=mock_open,
+        read_data="review_handling:\n  actionable_keywords:\n    - custom\n",
+    )
     @patch("suggest_fixes.yaml.safe_load")
     def test_load_config_exists(self, mock_yaml_load, mock_file):
         """Test loading config when file exists."""
@@ -110,7 +114,9 @@ class TestCategorizeComment:
 
     def test_categorize_critical(self):
         """Test categorizing critical issues."""
-        category, priority = categorize_comment("This is a critical security vulnerability")
+        category, priority = categorize_comment(
+            "This is a critical security vulnerability"
+        )
         assert category == "critical"
         assert priority == 1
 
@@ -134,7 +140,9 @@ class TestCategorizeComment:
 
     def test_categorize_improvement(self):
         """Test categorizing improvements."""
-        category, priority = categorize_comment("Consider refactoring this for better performance")
+        category, priority = categorize_comment(
+            "Consider refactoring this for better performance"
+        )
         assert category == "improvement"
         assert priority == 2
 
@@ -384,7 +392,9 @@ class TestWriteOutput:
     @patch("suggest_fixes.os.environ.get")
     @patch("builtins.print")
     @patch("suggest_fixes.tempfile.NamedTemporaryFile")
-    def test_write_output_with_github_summary(self, mock_temp, mock_print, mock_env, mock_file_open):
+    def test_write_output_with_github_summary(
+        self, mock_temp, mock_print, mock_env, mock_file_open
+    ):
         """Test writing output with GitHub summary."""
         mock_env.return_value = "/tmp/summary"
         mock_temp_file = MagicMock()
@@ -418,7 +428,9 @@ class TestMain:
     @patch("suggest_fixes.write_output")
     @patch("suggest_fixes.sys.exit")
     @patch("suggest_fixes.load_config")
-    def test_main_success(self, mock_config, mock_exit, mock_write, mock_env, mock_github_class):
+    def test_main_success(
+        self, mock_config, mock_exit, mock_write, mock_env, mock_github_class
+    ):
         """Test successful main execution."""
         env_values = {
             "GITHUB_TOKEN": "token",

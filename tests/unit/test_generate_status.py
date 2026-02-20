@@ -2,18 +2,13 @@
 
 from __future__ import annotations
 
+# Add the scripts directory to path for imports
+import sys
 from datetime import datetime, timezone
+from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
-# Add the scripts directory to path for imports
-import sys
-from pathlib import Path
-
-scripts_path = Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
-sys.path.insert(0, str(scripts_path))
-
 from generate_status import (
     CheckRunInfo,
     PRStatus,
@@ -24,6 +19,11 @@ from generate_status import (
     main,
     write_output,
 )
+
+scripts_path = (
+    Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
+)
+sys.path.insert(0, str(scripts_path))
 
 
 class TestCheckRunInfo:
@@ -63,7 +63,12 @@ class TestPRStatus:
             labels=["bug", "enhancement"],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 2, "total": 3},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 2,
+                "total": 3,
+            },
             open_thread_count=3,
             check_runs=[CheckRunInfo("ci", "completed", "success")],
         )
@@ -150,7 +155,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[CheckRunInfo("test", "completed", "success")],
         )
@@ -180,7 +190,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=None,
             mergeable_state="unknown",
-            review_stats={"approved": 0, "changes_requested": 1, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 1,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -208,7 +223,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[
                 CheckRunInfo("test1", "completed", "success"),
@@ -280,7 +300,12 @@ class TestGenerateMarkdown:
             labels=["bug", "enhancement"],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 2, "total": 3},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 2,
+                "total": 3,
+            },
             open_thread_count=5,
             check_runs=[CheckRunInfo("ci", "completed", "success")],
         )
@@ -306,7 +331,9 @@ class TestWriteOutput:
     @patch("builtins.open", create=True)
     @patch("generate_status.os.environ.get")
     @patch("builtins.print")
-    def test_write_output_with_github_summary(self, mock_print, mock_env_get, mock_open):
+    def test_write_output_with_github_summary(
+        self, mock_print, mock_env_get, mock_open
+    ):
         """Test writing output with GitHub summary."""
         mock_env_get.return_value = "/tmp/github_summary"
         mock_file = MagicMock()
@@ -324,7 +351,9 @@ class TestWriteOutput:
     @patch("builtins.open", create=True)
     @patch("generate_status.os.environ.get")
     @patch("builtins.print")
-    def test_write_output_without_github_summary(self, mock_print, mock_env_get, mock_open):
+    def test_write_output_without_github_summary(
+        self, mock_print, mock_env_get, mock_open
+    ):
         """Test writing output without GitHub summary."""
         mock_env_get.return_value = None
         write_output("Test content")
@@ -437,7 +466,12 @@ class TestEdgeCases:
             labels=[],
             mergeable=False,
             mergeable_state="dirty",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -462,7 +496,12 @@ class TestEdgeCases:
             labels=[],
             mergeable=None,
             mergeable_state="unknown",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
