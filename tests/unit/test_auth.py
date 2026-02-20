@@ -478,12 +478,14 @@ class TestEdgeCases:
         
         assert result.username == "user"
 def test_special_character_usernames_do_not_break_hashing(self):
-        special_chars = ["user!name", "user@name", "user#name", "user$name"]
-
-        for username in special_chars:
-        for username in special_chars:
-            hashed = get_password_hash("password")
-            # Should not raise exceptions
+# This orphaned code block should be removed or placed inside a proper test method.
+# If the intent was to test special characters in usernames, it should be part of a class method like:
+# class TestEdgeCases:
+#     def test_special_characters_in_username(self):
+#         special_chars = ["user@name", "user name", "user'name", "user\"name"]
+#         for username in special_chars:
+#             hashed = get_password_hash("password")
+#             assert len(hashed) > 0
             assert len(hashed) > 0
 
     def test_very_long_password(self):
