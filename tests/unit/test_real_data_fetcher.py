@@ -133,8 +133,6 @@ class TestCacheHelpers:
         assert cache_path.exists(), "Cache file should have been created"
         import json
         written = json.loads(cache_path.read_text())
-        assert written == cache_data
-
         assert cache_path.exists(), "Cache file should have been created"
         import json
         written = json.loads(cache_path.read_text())
