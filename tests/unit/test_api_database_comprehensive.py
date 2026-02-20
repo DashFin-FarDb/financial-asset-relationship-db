@@ -204,6 +204,16 @@ class TestThreadSafety:
         errors = []
 
         real_connect = sqlite3.connect
+    def test_memory_connection_thread_safety(self):
+        """Test that concurrent memory connects don't race/raise."""
+        import api.database
+
+        api.database._MEMORY_CONNECTION = None
+
+        connect_calls = []
+        errors = []
+
+        real_connect = sqlite3.connect
 
         def counting_connect(*args, **kwargs):
             connect_calls.append(1)
