@@ -414,7 +414,6 @@ class FormulaicVisualizer:
                 )
                 categories.setdefault(cat, []).append(float(r2 or 0.0))
 
-
             names = list(categories.keys())
             avg_r2 = [sum(v) / len(v) for v in categories.values()]
             counts = [len(v) for v in categories.values()]
