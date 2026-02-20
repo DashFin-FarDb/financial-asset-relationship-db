@@ -770,8 +770,7 @@ def _create_directional_arrows(
     Returns a list of traces for batch addition to figure.
     """
     _validate_directional_arrows_inputs(graph, positions, asset_ids)
-    # original arrow creation logic follows unchanged
-    ...
+    # Input validation complete; proceed with arrow creation logic below
 
     if not isinstance(positions, np.ndarray):
         positions = np.asarray(positions)
