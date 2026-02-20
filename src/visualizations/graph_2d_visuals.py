@@ -29,78 +29,45 @@ def _resolve_positions(
     show_income_comparison: bool = True,
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
-) -> List[go.Scatter]:
+) -> Dict[str, Tuple[float, float]]:
     """
-    Build Plotly Scatter traces representing asset-to-asset relationships, grouped and colored by relationship type and filtered by the provided toggles.
+    Resolve 2D positions for the given assets according to the selected layout.
 
-    Each returned trace draws edges for a single relationship type (lines between asset coordinates) and includes hover text with "source → target", relationship type, and strength. Relationship inclusion is controlled by the per-type flags unless `show_all_relationships` is True. If there are no assets or no position mapping available for the requested assets, an empty list is returned.
+    This helper returns a mapping from asset ID to (x, y) coordinates that can be
+    consumed by node and relationship trace builders. The additional boolean
+    arguments are kept for backward compatibility with earlier versions of this
+    helper but are not used here; relationship filtering is handled by
+    `_create_2d_relationship_traces`.
 
     Parameters:
-        graph (AssetRelationshipGraph): Graph containing relationship mappings keyed by source asset ID; each relationship is a tuple of (target_id, rel_type, strength).
-        layout_type (str): Requested layout hint (e.g., "spring", "circular", "grid"); used to influence layout-related trace construction.
-        asset_ids (List[str]): Sequence of asset IDs to consider when collecting relationships.
-        show_same_sector (bool): Include relationships with type "same_sector".
-        show_market_cap (bool): Include relationships with type "market_cap_similar".
-        show_correlation (bool): Include relationships with type "correlation".
-        show_corporate_bond (bool): Include relationships with type "corporate_bond_to_equity".
-        show_commodity_currency (bool): Include relationships with type "commodity_currency".
-        show_income_comparison (bool): Include relationships with type "income_comparison".
-        show_regulatory (bool): Include relationships with type "regulatory_impact".
-        show_all_relationships (bool): If True, ignore individual show_* flags and include all relationship types present in the graph.
+        graph (AssetRelationshipGraph): Graph containing the asset universe and
+            relationships.
+        layout_type (str): Layout name hint (e.g. "spring", "circular", "grid").
+        asset_ids (List[str]): Sequence of asset IDs to place in 2D space.
+        show_same_sector (bool): Unused here; reserved for compatibility.
+        show_market_cap (bool): Unused here; reserved for compatibility.
+        show_correlation (bool): Unused here; reserved for compatibility.
+        show_corporate_bond (bool): Unused here; reserved for compatibility.
+        show_commodity_currency (bool): Unused here; reserved for compatibility.
+        show_income_comparison (bool): Unused here; reserved for compatibility.
+        show_regulatory (bool): Unused here; reserved for compatibility.
+        show_all_relationships (bool): Unused here; reserved for compatibility.
 
     Returns:
-        List[go.Scatter]: A list of Plotly Scatter traces (one per relationship type) where each trace contains line segments for edges and hover text describing each edge.
+        Dict[str, Tuple[float, float]]: Mapping of asset IDs to (x, y) positions.
     """
-    if not asset_ids or not positions:
-        return []
+    if not asset_ids:
+        return {}
 
-    traces = []
-    asset_id_set = set(asset_ids)
+    layout = (layout_type or "").strip().lower()
 
-    # Construct relationship filters dictionary
-    relationship_filters = {
-        "same_sector": show_same_sector,
-        "market_cap_similar": show_market_cap,
-        "correlation": show_correlation,
-        "corporate_bond_to_equity": show_corporate_bond,
-        "commodity_currency": show_commodity_currency,
-        "income_comparison": show_income_comparison,
-        "regulatory_impact": show_regulatory,
-    }
+    if layout == "circular":
+        return _create_circular_layout(graph, asset_ids)
+    if layout == "grid":
+        return _create_grid_layout(graph, asset_ids)
 
-    # Group relationships by type
-    relationship_groups = {}
-
-    for source_id in asset_ids:
-        if source_id not in graph.relationships:
-            continue
-
-        for target_id, rel_type, strength in graph.relationships[source_id]:
-            # Skip if target not in positions
-            if target_id not in positions or target_id not in asset_id_set:
-                continue
-
-            # Apply filters if not showing all relationships
-            if (
-                not show_all_relationships
-                and rel_type in relationship_filters
-                and not relationship_filters[rel_type]
-            ):
-                continue
-
-            # Group by relationship type
-            if rel_type not in relationship_groups:
-                relationship_groups[rel_type] = []
-
-            relationship_groups[rel_type].append(
-                {
-                    "source_id": source_id,
-                    "target_id": target_id,
-                    "strength": strength,
-                }
-            )
-
-    # Create traces for each relationship type
+    # Default to spring layout (or when explicitly requested)
+    return _create_spring_layout_2d(graph, asset_ids)
     for rel_type, relationships in relationship_groups.items():
         if not relationships:
             continue
