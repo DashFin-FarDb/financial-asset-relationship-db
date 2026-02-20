@@ -7,9 +7,6 @@ from pathlib import Path
 from typing import Generator
 
 import pytest
-
-pytest.importorskip("sqlalchemy")
-
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
@@ -21,6 +18,8 @@ from src.models.financial_models import (
     RegulatoryActivity,
     RegulatoryEvent,
 )
+
+pytest.importorskip("sqlalchemy")
 
 
 def _apply_migration(database_path: Path) -> None:
