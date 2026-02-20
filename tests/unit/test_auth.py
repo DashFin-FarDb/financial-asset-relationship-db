@@ -447,14 +447,13 @@ class TestGetCurrentActiveUser:
         result = await get_current_active_user(user)
         assert result.username == "user"
 class TestEdgeCases:
-    
     @pytest.fixture
     def valid_token(self):
         data = {"sub": "testuser"}
         return create_access_token(data)
 
     @pytest.mark.asyncio
-    @patch('api.auth.user_repository.get_user')
+    @patch("api.auth.user_repository.get_user")
     async def test_get_current_user_user_not_in_db(self, mock_get_user, valid_token):
         """Test user in token but not in database."""
         mock_get_user.return_value = None
@@ -464,78 +463,31 @@ class TestEdgeCases:
 
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
-
-        @pytest.fixture
-        def active_user(self):
-            """Fixture providing an active user."""
-            return User(
-                username="activeuser",
-                email="active@example.com",
-                disabled=False
-            )
-
-        @pytest.fixture
-        def disabled_user(self):
-            return User(
-                username="disableduser",
-                email="disabled@example.com",
-                disabled=True
-            )
-
-        @pytest.mark.asyncio
-        async def test_get_current_active_user_success(self, active_user):
-            """Test getting active user succeeds."""
-            user = await get_current_active_user(active_user)
-            assert user.username == "activeuser"
-            assert user.disabled is False
-
-        @pytest.mark.asyncio
-        async def test_get_current_active_user_disabled(self, disabled_user):
-            """Test that disabled user raises HTTPException."""
-            with pytest.raises(HTTPException) as exc_info:
-                await get_current_active_user(disabled_user)
-            assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
-            assert "Inactive user" in exc_info.value.detail
-
-        @pytest.mark.asyncio
-        async def test_get_current_active_user_none_disabled(self):
-            """Test user with None disabled field is treated as active."""
-            user = User(username="user", disabled=None)
-            result = await get_current_active_user(user)
-            assert result.username == "user"
+    @pytest.fixture
+    def active_user(self):
+        """Fixture providing an active user."""
         return User(
             username="activeuser",
             email="active@example.com",
-            disabled=False
+            disabled=False,
         )
 
     @pytest.fixture
     def disabled_user(self):
-        """
-        Provides a disabled User model instance for tests.
-        
-        Returns:
-            User: A User with username "disableduser", email "disabled@example.com", and `disabled` set to True.
-        """
+        """Fixture providing a disabled user."""
         return User(
             username="disableduser",
             email="disabled@example.com",
-            disabled=True
+            disabled=True,
         )
 
-    @pytest.mark.asyncio
-    def test_very_long_password():
+    def test_very_long_password(self):
         """Test handling of very long passwords."""
         long_password = "a" * 1000
         hashed = get_password_hash(long_password)
 
         assert verify_password(long_password, hashed)
         assert not verify_password(long_password[:-1], hashed)
-        """Test getting active user succeeds."""
-        user = await get_current_active_user(active_user)
-        
-        assert user.username == "activeuser"
-        assert user.disabled is False
 
     @pytest.mark.asyncio
     async def test_get_current_active_user_disabled(self, disabled_user):
