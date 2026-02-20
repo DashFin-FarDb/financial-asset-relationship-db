@@ -166,7 +166,9 @@ def _create_directional_arrows(
 
     src_arr = np.asarray(source_indices, dtype=int)
     tgt_arr = np.asarray(target_indices, dtype=int)
-    arrow_positions = positions[src_arr] + 0.7 * (positions[tgt_arr] - positions[src_arr])
+    arrow_positions = positions[src_arr] + 0.7 * (
+        positions[tgt_arr] - positions[src_arr]
+    )
 
     return [
         go.Scatter3d(

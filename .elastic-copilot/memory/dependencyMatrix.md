@@ -1,6 +1,6 @@
 # Dependency Matrix
 
-*Generated: 2026-02-16T07:58:03.539Z*
+_Generated: 2026-02-16T07:58:03.539Z_
 
 ## Summary
 
@@ -23,11 +23,13 @@ No common dependencies found
 ### JS
 
 Top dependencies:
+
 - @testing-library/jest-dom
 
 ### TS
 
 Top dependencies:
+
 - ../app/types/api
 - ../../app/types/api
 - ../test-utils
@@ -40,6 +42,7 @@ Top dependencies:
 ### TSX
 
 Top dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -50,4 +53,3 @@ Top dependencies:
 - ./components/MetricsDashboard
 - ./components/AssetList
 - ./types/api
-

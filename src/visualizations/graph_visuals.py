@@ -7,26 +7,23 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 # Sub-module re-exports — kept here so existing imports from this module continue to work.
 from src.visualizations.graph_visuals_constants import REL_TYPE_COLORS  # noqa: F401
-from src.visualizations.graph_visuals_data import (
-    _build_asset_id_index,  # noqa: F401
-    _build_edge_coordinates_optimized,  # noqa: F401
-    _build_hover_texts,  # noqa: F401
-    _build_relationship_index,  # noqa: F401
-    _collect_and_group_relationships,  # noqa: F401
-)
+from src.visualizations.graph_visuals_data import _build_asset_id_index  # noqa: F401
+from src.visualizations.graph_visuals_data import _build_edge_coordinates_optimized  # noqa: F401
+from src.visualizations.graph_visuals_data import _build_hover_texts  # noqa: F401
+from src.visualizations.graph_visuals_data import _build_relationship_index  # noqa: F401
+from src.visualizations.graph_visuals_data import _collect_and_group_relationships  # noqa: F401
+from src.visualizations.graph_visuals_layout import _calculate_visible_relationships  # noqa: F401
+from src.visualizations.graph_visuals_layout import _generate_dynamic_title  # noqa: F401
 from src.visualizations.graph_visuals_layout import (
-    _calculate_visible_relationships,  # noqa: F401
     _configure_3d_layout,
-    _generate_dynamic_title,  # noqa: F401
     _prepare_layout_config,
 )
+from src.visualizations.graph_visuals_traces import _create_trace_for_group  # noqa: F401
+from src.visualizations.graph_visuals_traces import _format_trace_name  # noqa: F401
 from src.visualizations.graph_visuals_traces import (
     _create_directional_arrows,
     _create_node_trace,
     _create_relationship_traces,
-    _create_trace_for_group,  # noqa: F401
-    _format_trace_name,  # noqa: F401
-    _get_line_style,  # noqa: F401
 )
 from src.visualizations.graph_visuals_validation import (
     _validate_filter_parameters,

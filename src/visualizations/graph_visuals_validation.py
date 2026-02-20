@@ -44,7 +44,10 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
 
 
 def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> None:
-    if not isinstance(hover_texts, (list, tuple)) or len(hover_texts) != expected_length:
+    if (
+        not isinstance(hover_texts, (list, tuple))
+        or len(hover_texts) != expected_length
+    ):
         raise ValueError(
             f"hover_texts must be a list/tuple of length {expected_length}"
         )

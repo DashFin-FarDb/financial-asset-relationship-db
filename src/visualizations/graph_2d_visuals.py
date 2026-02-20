@@ -28,7 +28,9 @@ def _resolve_positions(
         return _create_grid_layout(asset_ids)
     # Default: spring — project 3D positions to 2D
     if hasattr(graph, "get_3d_visualization_data_enhanced"):
-        positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
+        positions_3d_array, asset_ids_ordered, _, _ = (
+            graph.get_3d_visualization_data_enhanced()
+        )
         positions_3d = {
             asset_ids_ordered[i]: tuple(positions_3d_array[i])
             for i in range(len(asset_ids_ordered))
@@ -49,7 +51,7 @@ def visualize_2d_graph(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> go.Figure:
-    """Create 2D visualization of asset relationship graph."""
+    """Create a 2D visualization of the asset relationship graph."""
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")
 
@@ -67,7 +69,9 @@ def visualize_2d_graph(
     positions = _resolve_positions(graph, layout_type, asset_ids)
 
     for trace in _create_2d_relationship_traces(
-        graph, positions, asset_ids,
+        graph,
+        positions,
+        asset_ids,
         show_same_sector=show_same_sector,
         show_market_cap=show_market_cap,
         show_correlation=show_correlation,
@@ -86,20 +90,40 @@ def visualize_2d_graph(
         title=f"2D Asset Relationship Network ({layout_name} Layout)",
         plot_bgcolor="white",
         paper_bgcolor="#F8F9FA",
-        xaxis=dict(showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)", zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=True, gridcolor="rgba(200, 200, 200, 0.3)", zeroline=False, showticklabels=False),
+        xaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(200, 200, 200, 0.3)",
+            zeroline=False,
+            showticklabels=False,
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor="rgba(200, 200, 200, 0.3)",
+            zeroline=False,
+            showticklabels=False,
+        ),
         width=1200,
         height=800,
         hovermode="closest",
         showlegend=True,
-        legend=dict(x=0.02, y=0.98, bgcolor="rgba(255, 255, 255, 0.8)", bordercolor="rgba(0, 0, 0, 0.3)", borderwidth=1),
-        annotations=[dict(
-            text=f"Layout: {layout_name}",
-            xref="paper", yref="paper",
-            x=0.5, y=-0.05,
-            showarrow=False,
-            font=dict(size=12, color="gray"),
-        )],
+        legend=dict(
+            x=0.02,
+            y=0.98,
+            bgcolor="rgba(255, 255, 255, 0.8)",
+            bordercolor="rgba(0, 0, 0, 0.3)",
+            borderwidth=1,
+        ),
+        annotations=[
+            dict(
+                text=f"Layout: {layout_name}",
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=-0.05,
+                showarrow=False,
+                font=dict(size=12, color="gray"),
+            )
+        ],
     )
 
     return fig
