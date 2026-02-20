@@ -6,8 +6,7 @@ contains required sections, and has no broken internal references.
 """
 
 import re
-from pathlib import Path
-from typing import List, Set
+from pathlib impofrom typing import ListList, Set
 
 import pytest
 

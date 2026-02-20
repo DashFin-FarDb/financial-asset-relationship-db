@@ -12,8 +12,7 @@ import os
 import sys
 import tempfile
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from datetime import datetfrom typing import Dict, List, Optional List, Optional
 
 try:
     from github import Github, GithubException
