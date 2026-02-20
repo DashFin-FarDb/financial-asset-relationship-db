@@ -33,7 +33,8 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Initialise the RealDataFetcher with optional cache, fallback and network controls.
+        Initialise the RealDataFetcher with optional cache, fallback and
+        network controls.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -41,8 +42,19 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """Create an AssetRelationshipGraph populated with real financial
-        data.
+        """
+        Constructs and returns an AssetRelationshipGraph populated with
+        current market data or a fallback dataset.
+
+        If a cache file exists it will be loaded and returned. If network
+        access is disabled or real-data fetching fails, a fallback/sample
+        graph is returned. When fetching succeeds and a cache path is
+        configured, the populated graph is persisted to cache.
+
+        Returns:
+            AssetRelationshipGraph: Populated graph built from real financial
+                data; if loading or fetching fails (or network is disabled),
+                a fallback/sample AssetRelationshipGraph is returned.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -188,7 +200,21 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """Fetch real bond and treasury data."""
+        """
+        Fetch bond and treasury ETF data and construct Bond objects used as
+        fixed-income proxies.
+
+        Retrieves price and metadata for a small set of bond and treasury ETFs
+        (used as proxies for individual bonds). If yield information is missing,
+        `yield_to_maturity` defaults to 0.03 and `coupon_rate` is set to an
+        approximate value. Maturity dates and some fields are approximate for
+        ETF-based proxies.
+
+        Returns:
+            bonds (List[Bond]): List of Bond instances populated with id,
+                symbol, name, asset_class, sector, price, yield_to_maturity,
+                coupon_rate, maturity_date, credit_rating, and issuer_id.
+        """
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
@@ -331,7 +357,16 @@ class RealDataFetcher:
 
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
-        """Create realistic regulatory events for the fetched assets"""
+        """
+        Create a short list of recent regulatory events tied to fetched assets.
+
+        Returns:
+            List[RegulatoryEvent]: A list of RegulatoryEvent objects
+            representing sample recent events (AAPL earnings report, MSFT
+            dividend announcement, and an XOM SEC filing), each with an id,
+            asset_id, event_type, date,
+            description, impact_score, and related_assets.
+        """
         # Create some realistic recent events
         events = []
 
@@ -430,23 +465,26 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """Serialize an AssetRelationshipGraph into a JSON - serializable dictionary.
+    """
+    Create a JSON-serializable dictionary representation of an AssetRelationshipGraph.
 
-    This function processes the given AssetRelationshipGraph to create a structured
-    dictionary representation. It computes the incoming relationships from the graph's
-    relationships and serializes both assets and regulatory events using the
-    _serialize_dataclass function. The resulting dictionary includes lists of
-    serialized assets, regulatory events, and mappings of relationships.
+    The returned mapping includes serialized assets and regulatory events,
+    outgoing relationships keyed by source asset id, and computed incoming
+    relationships keyed by target asset id.
 
-    Args:
-        graph(AssetRelationshipGraph): Graph to serialize.
+    Parameters:
+        graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:
-        Dict[str, Any]: Dictionary containing:
-            - "assets": list of serialized asset objects
-            - "regulatory_events": list of serialized regulatory event objects
-            - "relationships": mapping from source id to a list of outgoing
-              relationships
+        Dict[str, Any]: Dictionary with keys:
+            - "assets": list of serialized asset objects.
+            - "regulatory_events": list of serialized regulatory event objects.
+            - "relationships": mapping from source id to a list of
+              outgoing relationships,
+              each item containing "target", "relationship_type", and "strength".
+            - "incoming_relationships": mapping from target id to a list of
+              incoming relationships,
+              each item containing "source", "relationship_type", and "strength".
     """
     # Compute incoming_relationships from relationships
 

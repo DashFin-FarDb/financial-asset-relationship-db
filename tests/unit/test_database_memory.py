@@ -7,23 +7,18 @@ import os
 import threading
 from typing import Iterator
 
-import pytest
-
 import api.database as database
+import pytest
 
 pytestmark = pytest.mark.unit
 
 
 @pytest.fixture()
 def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
-    """Preserve and restore api.database state and DATABASE_URL around a test.
+    """
+    Preserve api.database state and the DATABASE_URL environment variable for the duration of a test and restore them on teardown.
 
-    Args:
-        monkeypatch: Pytest monkeypatch fixture for environment overrides.
-
-    Returns:
-        Iterator[None]: Control back to the caller for the test duration.
-
+    Yields control to the test; on teardown closes any in-memory connection stored in api.database._MEMORY_CONNECTION, restores or clears the original DATABASE_URL environment variable, and reloads the api.database module to reset its state.
     """
     original_url = os.environ.get("DATABASE_URL")
 
@@ -104,6 +99,7 @@ def test_uri_style_memory_database_persists_schema_and_data(monkeypatch, restore
     # Connection identity is an implementation detail; persistence is the contract.
 
 
+@pytest.mark.unit
 class TestIsMemoryDb:
     """Comprehensive tests for the _is_memory_db function."""
 
@@ -234,6 +230,7 @@ class TestIsMemoryDb:
         assert database._is_memory_db(":Memory:") is False
 
 
+@pytest.mark.unit
 class TestConnectWithMemoryDb:
     """Tests for _connect function with various memory database configurations."""
 
@@ -359,6 +356,7 @@ class TestConnectWithMemoryDb:
         assert conn is not None
 
 
+@pytest.mark.unit
 class TestGetConnectionWithMemoryDb:
     """Tests for get_connection context manager with memory databases."""
 
@@ -426,6 +424,7 @@ class TestGetConnectionWithMemoryDb:
                 os.remove(tmp_path)
 
 
+@pytest.mark.unit
 class TestThreadSafety:
     """Tests for thread safety of memory database connections."""
 
@@ -498,6 +497,7 @@ class TestThreadSafety:
         assert count == 5
 
 
+@pytest.mark.unit
 class TestEdgeCasesAndErrorHandling:
     """Tests for edge cases and error handling in database connection management."""
 

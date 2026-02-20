@@ -169,7 +169,7 @@ const AssetTable = ({ children, className }: AssetTableProps) => {
 /**
  * Fetches and displays a list of assets with filtering and pagination.
  *
- * The AssetList component manages the state for assets, loading status, error handling, and pagination. It utilizes hooks to fetch asset metadata and assets based on the current filter and pagination settings. The component updates the URL query parameters to reflect the current filter and pagination state, ensuring a seamless user experience.
+ * The AssetList component manages the state for assets, loading status, error handling, and pagination. It utilizes hooks to fetch asset metadata and assets based on the current filter and pagination settings. The component also updates the URL query parameters to reflect the current filter and pagination state, ensuring a seamless user experience.
  *
  * @returns {JSX.Element} The AssetList component.
  */
@@ -359,10 +359,9 @@ export default function AssetList() {
   /**
    * Renders the status of an asset list based on loading and error states.
    *
-   * The component evaluates the loading and error states to determine what to display.
-   * If loading is false and there is no error, it returns null. If loading is true,
-   * it shows a loading message; otherwise, it displays an error message with the provided error string.
-   * The text color changes based on the loading state, visually indicating the current status.
+   * The component checks if the loading state is false and there is no error; if so, it returns null.
+   * If loading is true, it displays a loading message, otherwise, it shows an error message with the provided error string.
+   * The text color changes based on the loading state, indicating the current status visually.
    *
    * @param {Object} params - The parameters for the component.
    * @param {boolean} params.loading - Indicates if the asset list is currently loading.

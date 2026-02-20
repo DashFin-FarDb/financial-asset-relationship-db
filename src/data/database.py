@@ -13,8 +13,6 @@ from sqlalchemy.pool import StaticPool
 # Re-export here for backward compatibility with older imports.
 from .repository import session_scope  # noqa: F401
 
-Base = declarative_base()
-
 DEFAULT_DATABASE_URL = os.getenv(
     "ASSET_GRAPH_DATABASE_URL",
     "sqlite:///./asset_graph.db",

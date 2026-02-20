@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestEnhancedTestSummary:
     """Test cases for ENHANCED_TEST_SUMMARY.md."""
 
@@ -26,7 +27,6 @@ class TestEnhancedTestSummary:
     def summary_path(self):
         """
         Provide the path to the enhanced test summary file.
-        """
 
         Returns:
             Path: Path to "ENHANCED_TEST_SUMMARY.md".
@@ -110,7 +110,9 @@ class TestEnhancedTestSummary:
         for i, line in enumerate(lines, 1):
             if line.startswith("#"):
                 # Headings should have space after #
-                assert re.match(r"^#+\s", line), f"Line {i}: Heading missing space after #"
+                assert re.match(r"^#+\s", line), (
+                    f"Line {i}: Heading missing space after #"
+                )
 
     def test_summary_no_broken_formatting(self, summary_content):
         """
@@ -120,9 +122,13 @@ class TestEnhancedTestSummary:
             summary_content(str): The full text content of the summary markdown file to validate.
         """
         # Check for common markdown issues
-        assert "##" not in summary_content.replace("##", "# #")  # No triple hashes without space
+        # Ensure no heading markers (e.g., ###) appear without a trailing space
+        assert not re.search(r"^#{2,}[^ #\n]", summary_content, re.MULTILINE), (
+            "Found heading markers without proper spacing"
+        )
 
 
+@pytest.mark.unit
 class TestFinalTestSummary:
     """Test cases for FINAL_TEST_SUMMARY.md."""
 
@@ -184,7 +190,9 @@ class TestFinalTestSummary:
 
     def test_summary_has_test_statistics(self, summary_content):
         """Test that summary includes test statistics."""
-        assert "Statistics:" in summary_content or "statistics" in summary_content.lower()
+        assert (
+            "Statistics:" in summary_content or "statistics" in summary_content.lower()
+        )
         # Should mention line count
         assert "lines" in summary_content.lower()
 
@@ -221,12 +229,15 @@ class TestFinalTestSummary:
             assert heading_levels[0] == 1, "Document should start with h1"
 
 
+`@pytest.mark.unit`
+
+
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
+    """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
 
-    @staticmethod
     @pytest.fixture
-    def summary_path():
+    def summary_path(self):
         """
         Provide the path to the test documentation summary file.
 
