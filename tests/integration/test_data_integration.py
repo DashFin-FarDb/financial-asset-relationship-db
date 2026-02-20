@@ -19,6 +19,8 @@ from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
+pytestmark = pytest.mark.integration
+
 
 class TestRepositoryGraphIntegration:
     """Test integration between repository and graph."""
@@ -29,8 +31,6 @@ class TestRepositoryGraphIntegration:
         from src.data.database import (
             create_engine_from_url,
             create_session_factory,
-pytestmark = pytest.mark.integration
-
             init_db,
         )
 
