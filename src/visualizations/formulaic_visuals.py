@@ -413,6 +413,8 @@ class FormulaicVisualizer:
                     else formula.get("r_squared", 0.0)
                 )
                 categories.setdefault(cat, []).append(float(r2 or 0.0))
+
+
 """Module for formatting and extracting formula data for visualization.
 
 Provides helper functions to sort formulas by R-squared value, format formula names and
