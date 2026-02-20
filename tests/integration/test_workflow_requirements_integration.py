@@ -211,7 +211,7 @@ class TestRequirementsMatchWorkflowNeeds:
     def test_requirements_support_python_version_in_workflow():
         """
         Ensure the pr-agent workflow declares Python 3.8 or newer when a `python-version` is specified.
-        
+
         If .github/workflows/pr-agent.yml is missing the test is skipped. If a workflow `setup-python` step provides a `python-version`, this test asserts its major.minor is at least 3.8; if no `python-version` is found, the test makes no assertion.
         """
         pr_agent_file = WORKFLOWS_DIR / "pr-agent.yml"

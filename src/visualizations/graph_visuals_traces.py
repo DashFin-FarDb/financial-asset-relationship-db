@@ -37,14 +37,14 @@ def _create_trace_for_group(
 ) -> go.Scatter3d:
     """
     Create a 3D line trace representing all relationships of a given type and directionality.
-    
+
     Parameters:
         rel_type (str): Relationship type key used to style and group the trace.
         is_bidirectional (bool): Whether the relationships are bidirectional (affects line style and name).
         relationships (List[dict]): Sequence of relationship records belonging to this group.
         positions (np.ndarray): Array of asset 3D coordinates with shape (n, 3).
         asset_id_index (Dict[str, int]): Mapping from asset ID to index into `positions`.
-    
+
     Returns:
         go.Scatter3d: A Plotly 3D line trace with coordinates for each edge, hover texts, styling, name, and legend grouping.
     """
@@ -104,18 +104,18 @@ def _create_relationship_traces(
 ) -> List[go.Scatter3d]:
     """
     Create Plotly 3D traces grouped by relationship type and directionality.
-    
+
     Collects graph relationships for the provided asset_ids, groups them by (relationship type, is_bidirectional), and returns one go.Scatter3d trace per non-empty group suitable for batch addition to a figure.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The asset relationship graph to visualize.
         positions (np.ndarray): Array of node positions with shape (n, 3), where n equals len(asset_ids).
         asset_ids (List[str]): Ordered list of asset IDs corresponding to rows in `positions`.
         relationship_filters (Optional[Dict[str, bool]]): Optional mapping of relationship type to a boolean indicating whether that type should be included; if `None`, all relationship types are considered.
-    
+
     Returns:
         List[go.Scatter3d]: A list of 3D Scatter traces, one per non-empty (relationship type, directionality) group.
-    
+
     Raises:
         ValueError: If `graph` is not an AssetRelationshipGraph instance.
         ValueError: If `graph.relationships` is missing or not a dict.
@@ -148,12 +148,12 @@ def _create_directional_arrows(
 ) -> List[go.Scatter3d]:
     """
     Create diamond-shaped markers positioned at 70% along each unidirectional relationship edge.
-    
+
     Only relationships that do not have a reverse counterpart with the same type are considered; if none exist, an empty list is returned.
-    
+
     Returns:
         List[go.Scatter3d]: A list containing a single Scatter3d trace with diamond markers placed at the computed arrow positions and corresponding hover texts, or an empty list if there are no unidirectional edges.
-    
+
     Raises:
         TypeError: If `graph` is not an instance of AssetRelationshipGraph.
         ValueError: If `graph` lacks a `relationships` dictionary, if `positions` or `asset_ids` are None, if their lengths differ, if `positions` does not have shape (n, 3) or contains non-finite/non-numeric values, or if `asset_ids` contains empty/non-string entries.

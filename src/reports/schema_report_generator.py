@@ -17,10 +17,10 @@ Metrics = Dict[str, Any]
 def _default_formatter(lines: Iterable[str]) -> str:
     """
     Format an iterable of lines into a single Markdown string.
-    
+
     Parameters:
         lines (Iterable[str]): Lines or fragments that will be concatenated.
-    
+
     Returns:
         str: The lines joined with a single newline character between each.
     """
@@ -44,7 +44,7 @@ class SchemaReportGenerator:
     ) -> None:
         """
         Initialize the SchemaReportGenerator with the source graph and an optional output formatter.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): The asset relationship graph used to collect metrics and render the report.
             formatter (Formatter | None): Optional callable that takes an iterable of lines and returns the formatted report string.
@@ -59,9 +59,9 @@ class SchemaReportGenerator:
     def generate(self) -> str:
         """
         Builds the complete Markdown report for the generator's graph.
-        
+
         Assembles the report sections, applies the configured formatter, and returns the final Markdown document.
-        
+
         Returns:
             markdown (str): The composed Markdown report as a single string.
         """
@@ -86,7 +86,7 @@ class SchemaReportGenerator:
     def _collect_metrics(self) -> Metrics:
         """
         Collect metrics from the underlying AssetRelationshipGraph for report generation.
-        
+
         Returns:
             metrics (Metrics): Dictionary of raw metrics produced by the graph's `calculate_metrics`.
         """
@@ -98,7 +98,7 @@ class SchemaReportGenerator:
     def _render_header(self) -> List[str]:
         """
         Return the top-level Markdown header for the report as a list of lines.
-        
+
         Returns:
             List[str]: Lines comprising the main report title and a trailing blank line.
         """
@@ -110,7 +110,7 @@ class SchemaReportGenerator:
     def _render_schema_overview(self) -> List[str]:
         """
         Create the "Schema Overview" Markdown section as a sequence of lines.
-        
+
         Returns:
             lines (List[str]): Ordered lines that form the "Schema Overview" section, including the header, an "Entity Types" subsection, and a numbered list of entity type descriptions (Equity, Bond, Commodity, Currency, Regulatory Events).
         """
@@ -129,10 +129,10 @@ class SchemaReportGenerator:
     def _render_relationship_types(self, metrics: Metrics) -> List[str]:
         """
         Builds the "Relationship Types" Markdown section listing relationship types sorted by count descending.
-        
+
         Parameters:
             metrics (Metrics): Metrics dictionary containing a "relationship_distribution" mapping of relationship name to integer count.
-        
+
         Returns:
             List[str]: Lines of Markdown for the section; includes a header, one bullet per relationship in the form "`- **<rel>**: <count> instances`", and a trailing blank line.
         """
@@ -146,12 +146,12 @@ class SchemaReportGenerator:
     def _render_calculated_metrics(self, metrics: Metrics) -> List[str]:
         """
         Builds the "Calculated Metrics" Markdown section as a list of lines containing network statistics.
-        
+
         Parameters:
             metrics (Metrics): Mapping containing metric values used to render the section. Expected keys include
                 "total_assets", "total_relationships", "average_relationship_strength",
                 "relationship_density", and "regulatory_event_count".
-        
+
         Returns:
             List[str]: Lines of Markdown for the "Calculated Metrics" section. The list includes a section header,
             a "Network Statistics" subsection, and formatted metric lines where average relationship strength is
@@ -178,11 +178,11 @@ class SchemaReportGenerator:
     def _render_asset_class_distribution(self, metrics: Metrics) -> List[str]:
         """
         Render the "Asset Class Distribution" Markdown section as a list of lines.
-        
+
         Parameters:
             metrics (Metrics): Metrics dictionary expected to contain the key "asset_class_distribution"
                 with a mapping of asset class names to integer counts.
-        
+
         Returns:
             List[str]: Markdown lines for the section, one line per asset class sorted by class name,
             followed by a trailing blank line.
@@ -197,11 +197,11 @@ class SchemaReportGenerator:
     def _render_top_relationships(self, metrics: Metrics) -> List[str]:
         """
         Render the "Top Relationships" section as Markdown lines for the report.
-        
+
         Parameters:
             metrics (Metrics): Metrics dictionary; expects the key "top_relationships" containing an iterable of
                 tuples (source, target, relationship_type, strength).
-        
+
         Returns:
             List[str]: A list of Markdown lines representing the "Top Relationships" section. If no top relationships
             are present, the list includes a single bullet indicating none are recorded.
@@ -219,9 +219,9 @@ class SchemaReportGenerator:
     def _render_business_rules(self) -> List[str]:
         """
         Render the "Business Rules & Constraints" section as Markdown lines.
-        
+
         This section includes subheadings for Cross-Asset Rules, Regulatory Rules, and Valuation Rules and provides bullet-pointed business constraints and normalization rules.
-        
+
         Returns:
             lines (List[str]): Markdown-formatted lines comprising the "Business Rules & Constraints" section.
         """
@@ -246,12 +246,12 @@ class SchemaReportGenerator:
     def _render_schema_optimization(self, metrics: Metrics) -> List[str]:
         """
         Builds the "Schema Optimization Metrics" section as Markdown lines.
-        
+
         Parameters:
             metrics (Metrics): Mapping that should include:
                 - "relationship_density": numeric value (percentage-like) used to decide recommendations.
                 - "quality_score": numeric value between 0 and 1 representing data quality.
-        
+
         Returns:
             List[str]: Markdown lines for the "Schema Optimization Metrics" section, including a formatted data quality score and a density-based recommendation.
         """
@@ -279,7 +279,7 @@ class SchemaReportGenerator:
     def _render_implementation_notes(self) -> List[str]:
         """
         Render the Implementation Notes section as a list of Markdown lines.
-        
+
         Returns:
             lines (List[str]): Markdown-formatted lines for the "Implementation Notes" section,
             including notes on timestamps, normalization ranges, directionality, and a trailing blank line.

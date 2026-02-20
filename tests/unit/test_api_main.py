@@ -61,7 +61,7 @@ def client() -> Iterator[TestClient]:
 def bare_client() -> TestClient:
     """
     Provide a TestClient without a pre-seeded in-memory graph.
-    
+
     Returns:
         test_client (TestClient): A TestClient instance for the FastAPI app with no pre-seeded graph.
     """
@@ -258,9 +258,9 @@ class TestAPIEndpoints:
     def client():
         """
         Provide a TestClient bound to the application with a preloaded sample in-memory graph.
-        
+
         The fixture sets the application's graph to a sample in-memory database before yielding and resets the graph on teardown.
-        
+
         Returns:
             TestClient: A TestClient instance connected to the app with the sample graph populated.
         """
@@ -336,7 +336,7 @@ class TestAPIEndpoints:
     def test_get_metrics_enriched_statistics(self, client: TestClient) -> None:
         """
         Verify /api/metrics provides populated statistics and that key metrics fall within expected bounds.
-        
+
         Checks:
         - `total_assets`, `total_relationships`, and `avg_degree` are greater than zero.
         - `max_degree` is greater than or equal to `avg_degree`.
@@ -553,7 +553,7 @@ class TestErrorHandling:
         def _raise() -> NoReturn:
             """
             Force a generic exception to simulate a backend graph access failure.
-            
+
             Raises:
                 Exception: Always raised with the message "Database error".
             """
@@ -756,7 +756,7 @@ class TestGraphInitializationRaceConditions:
         def init_graph():
             """
             Initialize the shared graph instance and record the outcome.
-            
+
             On success, appends the initialized graph object to the outer-scope `results` list; on failure, appends the raised exception to the outer-scope `errors` list.
             """
             try:
@@ -799,7 +799,7 @@ class TestGraphInitializationRaceConditions:
     def test_graph_reset_and_reinitialize(self):
         """
         Verify that resetting the singleton graph yields a new instance when reinitialized.
-        
+
         Asserts an initial graph instance exists, calls reset_graph to clear the cached singleton, and confirms a subsequent get_graph call returns a different, newly created graph instance.
         """
         # Initialize graph
@@ -841,7 +841,7 @@ class TestGraphCachingEdgeCases:
     def test_empty_cache_file_handling(self, tmp_path, monkeypatch):
         """
         Ensures that when GRAPH_CACHE_PATH points to an empty file, graph initialization falls back to a valid in-memory graph.
-        
+
         Writes an empty cache file, sets the environment to use it, resets the cached graph, and asserts that get_graph() returns a usable graph instance.
         """
         cache_path = tmp_path / "empty_cache.json"
@@ -931,7 +931,7 @@ class TestPydanticModelValidation:
     def test_metrics_response_validates_non_negative_values(self):
         """
         Verify MetricsResponse accepts negative values for numeric fields.
-        
+
         Constructs a MetricsResponse with a negative `total_assets` value and asserts an instance is created, documenting the current observable behavior that numeric field validation is not enforced.
         """
         metrics = MetricsResponse(
@@ -954,9 +954,9 @@ class TestEndpointStressTests:
     def client():
         """
         Provide a TestClient configured with a sample in-memory graph and ensure graph reset after use.
-        
+
         Sets a sample graph on the application before yielding the TestClient and resets the application's graph state when the fixture is torn down.
-        
+
         Returns:
             TestClient: A TestClient instance connected to the app with a pre-seeded sample graph.
         """
@@ -1003,9 +1003,9 @@ class TestErrorMessageQuality:
     def client():
         """
         Provide a TestClient with a sample in-memory graph configured on api_main.
-        
+
         Sets api_main's graph to a sample database, yields a TestClient for the FastAPI app, and ensures the graph is reset after the test completes.
-        
+
         Returns:
             TestClient: A TestClient instance for the application with the sample graph mounted.
         """
@@ -1019,7 +1019,7 @@ class TestErrorMessageQuality:
     def test_404_error_message_is_informative(self, client):
         """
         Verify that requesting a nonexistent asset returns a 404 with an informative detail message mentioning the asset ID.
-        
+
         Asserts the response contains a "detail" field and that its text (case-insensitive) indicates the asset was not found.
         """
         response = client.get("/api/assets/NONEXISTENT_ASSET")

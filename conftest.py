@@ -93,9 +93,9 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     def _setter(**kwargs: str) -> None:
         """
         Set multiple environment variables for a test.
-        
+
         Each keyword argument name is used as the environment variable key and its value is used as the variable's value. This helper is intended to be used with pytest's `monkeypatch` fixture to set environment variables for the duration of a test.
-        
+
         Parameters:
             **kwargs: Environment variable names and their corresponding values to set.
         """
@@ -109,9 +109,9 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
     Provide a fixture that returns a callable for removing environment variables from the test environment.
-    
+
     The returned function accepts one or more environment variable names and unsets each for the current test.
-    
+
     Returns:
         A callable that takes any number of string names and removes those environment variables.
     """
@@ -119,7 +119,7 @@ def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     def _unsetter(*keys: str) -> None:
         """
         Remove the given environment variables from the test environment.
-        
+
         Parameters:
             *keys (str): Names of environment variables to remove. Missing keys are ignored (no error is raised).
         """

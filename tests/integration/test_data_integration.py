@@ -101,7 +101,7 @@ class TestSerializationRoundTrip:
     def test_sample_graph_serialization_roundtrip():
         """
         Verify that serializing and then deserializing an AssetRelationshipGraph preserves its assets and relationships.
-        
+
         Creates a small graph with three Equity assets and a unidirectional relationship, performs a serialization round-trip, and asserts that the restored graph contains the same number of assets and the same asset identifiers as the original.
         """
         # Create a simple graph for testing (sample database may have events that complicate deserialization)
@@ -184,7 +184,7 @@ class TestDataFetcherWithFallback:
     def test_fetcher_with_network_disabled_uses_fallback():
         """
         Verifies that RealDataFetcher uses fallback data when network access is disabled.
-        
+
         When instantiated with network disabled, calling create_real_database() must return an AssetRelationshipGraph containing at least one asset (fallback data).
         """
         fetcher = RealDataFetcher(enable_network=False)
@@ -210,7 +210,7 @@ class TestDataFetcherWithFallback:
         def custom_factory():
             """
             Create a preconfigured AssetRelationshipGraph used as a fallback.
-            
+
             Returns:
                 AssetRelationshipGraph: the prepared graph instance to use when fallback data is required.
             """
@@ -268,7 +268,7 @@ class TestEdgeCasesAndRegressions:
     def test_relationship_with_empty_string_type(tmp_path):
         """
         Verify the repository accepts and persists a relationship whose type is an empty string.
-        
+
         Creates two Equity assets, upserts them to the repository, adds a relationship with an empty string as its type, commits, and asserts the relationship is stored with an empty `relationship_type`.
         """
         from src.data.database import (
@@ -346,7 +346,7 @@ class TestEdgeCasesAndRegressions:
     def test_large_relationship_strength_values(tmp_path):
         """
         Verify that relationship strength values at boundary and edge cases are persisted and retrieved accurately.
-        
+
         Creates three Equity assets in a temporary SQLite repository, adds relationships with strengths 0.0, 1.0, and -0.5 (negative allowed), commits them, and asserts that retrieved relationship strengths match the expected values.
         """
         from src.data.database import (
@@ -505,7 +505,7 @@ class TestDataConsistency:
     def test_graph_clone_independence():
         """
         Verify that modifying one sample graph does not affect another separate sample graph.
-        
+
         Creates two independent sample graphs, adds a new asset to the first, and asserts the added asset is present only in the modified graph and absent from the unmodified graph.
         """
         graph1 = create_sample_database()

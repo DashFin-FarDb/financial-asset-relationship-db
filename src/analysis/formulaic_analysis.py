@@ -41,7 +41,7 @@ class FormulaicAnalyzer:
     def __init__(self):
         """
         Initialize analyzer state.
-        
+
         Creates the instance attribute `formulas` as an empty list for accumulating Formula objects discovered during graph analysis.
         """
         self.formulas: List[Formula] = []
@@ -121,10 +121,10 @@ class FormulaicAnalyzer:
     def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Builds fundamental valuation and income formulas relevant to the assets present in the given graph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): AssetRelationshipGraph to inspect for asset types and sample values used in example calculations.
-        
+
         Returns:
             List[Formula]: List of Formula objects for core metrics such as price-to-earnings, dividend yield, bond yield-to-maturity approximation, and market capitalization when applicable to the graph.
         """
@@ -208,9 +208,9 @@ class FormulaicAnalyzer:
     def _analyze_correlation_patterns(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Constructs Formula objects for correlation and systematic risk measures.
-        
+
         Creates Formula entries for Beta (systematic risk) and the correlation coefficient, each populated with expression, LaTeX, variable descriptions, example calculations, category, and an r_squared estimate.
-        
+
         Returns:
             formulas (List[Formula]): List containing Formula objects for Beta and the correlation coefficient.
         """
@@ -258,12 +258,12 @@ class FormulaicAnalyzer:
     def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Assemble valuation formulas applicable to the given asset relationship graph.
-        
+
         Builds a list of valuation-related Formula objects (for example, Price-to-Book when equities are present and Enterprise Value) based on asset types and attributes found in the provided AssetRelationshipGraph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph of assets and relationships used to determine which valuation formulas apply.
-        
+
         Returns:
             list[Formula]: List of valuation Formula objects discovered or constructed for the graph.
         """
@@ -365,7 +365,7 @@ class FormulaicAnalyzer:
     def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Builds Modern Portfolio Theory formulas derived from the asset relationship graph.
-        
+
         Returns:
             List[Formula]: Formula objects for portfolio theory, including the portfolio expected return and the two-asset portfolio variance.
         """
@@ -412,9 +412,9 @@ class FormulaicAnalyzer:
     def _analyze_cross_asset_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """
         Constructs Formula objects representing cross-asset relationships detected in the given AssetRelationshipGraph.
-        
+
         When currency assets exist, includes a triangular-arbitrage (exchange rate) formula. When both commodity and currency assets exist, additionally includes a commodity–currency inverse relationship (typical for commodity-exporting currencies).
-        
+
         Returns:
             formulas (List[Formula]): List of Formula objects for cross-asset relationships found in the graph.
         """
@@ -463,10 +463,10 @@ class FormulaicAnalyzer:
     ) -> Dict[str, Any]:
         """
         Calculate empirical relationships derived from an AssetRelationshipGraph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph of assets and relationships to analyze for empirical relationships (correlations, pairwise statistics, sample sizes, etc.).
-        
+
         Returns:
             Dict[str, Any]: A dictionary intended to contain empirical relationship data (for example keys like "correlation_matrix", "pairwise_statistics", "sample_counts"). Currently returns an empty dict as a placeholder implementation.
         """
@@ -476,7 +476,7 @@ class FormulaicAnalyzer:
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
         """
         Estimate the average correlation strength across relationships in the graph.
-        
+
         Returns:
             float: Average relationship strength clamped to the range 0.0–0.75; returns 0.5 if no relationship strength data is present.
         """
@@ -490,7 +490,7 @@ class FormulaicAnalyzer:
     def _categorize_formulas(formulas: List[Formula]) -> Dict[str, int]:
         """
         Count formulas grouped by their category.
-        
+
         Returns:
             Dict[str, int]: Mapping from category name to the number of formulas in that category.
         """
@@ -574,7 +574,7 @@ class FormulaicAnalyzer:
     def _has_equities(graph: AssetRelationshipGraph) -> bool:
         """
         Determine whether the graph contains any equity assets.
-        
+
         Returns:
             true if the graph contains at least one equity asset, false otherwise.
         """
@@ -586,7 +586,7 @@ class FormulaicAnalyzer:
     def _has_bonds(graph: AssetRelationshipGraph) -> bool:
         """
         Check whether the graph contains any fixed-income (bond) assets.
-        
+
         Returns:
             True if the graph contains at least one asset with class `FIXED_INCOME`, `False` otherwise.
         """
@@ -598,7 +598,7 @@ class FormulaicAnalyzer:
     def _has_commodities(graph: AssetRelationshipGraph) -> bool:
         """
         Check whether the provided asset graph contains any commodity assets.
-        
+
         Returns:
             True if the graph contains at least one asset with `AssetClass.COMMODITY`, False otherwise.
         """
@@ -623,7 +623,7 @@ class FormulaicAnalyzer:
     def _has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
         """
         Return whether the graph contains any equity asset with a dividend yield greater than zero.
-        
+
         Returns:
             bool: `True` if at least one equity asset has a numeric `dividend_yield` greater than 0, `False` otherwise.
         """
@@ -641,10 +641,10 @@ class FormulaicAnalyzer:
     def _calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
         """
         Produce up to two example price-to-earnings (P/E) ratio calculations sampled from equity assets in the graph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to sample equity assets and their P/E ratios.
-        
+
         Returns:
             str: A semi-colon separated string of up to two examples formatted as "SYMB: PE = 12.34", or a default illustrative example if no P/E values are available.
         """
@@ -662,7 +662,7 @@ class FormulaicAnalyzer:
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         """
         Produce up to two formatted dividend-yield examples sampled from equity assets in the graph.
-        
+
         Returns:
             str: Semicolon-separated examples like "SYM: Yield = X.XX% at price $Y.YY" for up to two equities that have a defined `dividend_yield`; if no such assets are found, returns a default illustrative example string.
         """
@@ -715,9 +715,9 @@ class FormulaicAnalyzer:
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
         """
         Generate up to two market-cap examples from EQUITY assets in the graph.
-        
+
         Searches the graph for equity assets with a non-null `market_cap` and returns up to two examples formatted in billions (e.g., "SYM: Market Cap = $1.5B") joined by "; ". If no examples are found, returns the default: "Example: Market Cap = $1.5T".
-        
+
         Returns:
             str: Formatted example(s) or the default example message.
         """
@@ -736,9 +736,9 @@ class FormulaicAnalyzer:
     def _calculate_beta_examples(graph: AssetRelationshipGraph) -> str:
         """
         Generate a concise, human-readable example describing how beta is calculated for assets in the graph.
-        
+
         If equity and market index return data are present, the string references historical return comparison; otherwise it provides a generic beta calculation description.
-        
+
         Returns:
             A string describing beta calculation examples (historical asset returns vs. market index).
         """
@@ -748,10 +748,10 @@ class FormulaicAnalyzer:
     def _calculate_correlation_examples(graph: AssetRelationshipGraph) -> str:
         """
         Create a short example string describing how correlation values were derived from the graph's asset relationships.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): The asset relationship graph used to sample relationship counts.
-        
+
         Returns:
             str: Example text — `"Calculated from N asset pair relationships"` when relationship data exists, otherwise a generic explanation of how correlations are computed.
         """
@@ -764,10 +764,10 @@ class FormulaicAnalyzer:
     def _calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
         """
         Build up to two example Price-to-Book (P/B) ratio strings from equity assets in the graph.
-        
+
         Collects up to two equities that have a non-null `book_value` and formats each as
         "SYMBOL: P/B = X.XX"; if none are found, returns a fixed illustrative example.
-        
+
         Returns:
             str: One or two examples joined by "; " (e.g. "AAPL: P/B = 8.12; MSFT: P/B = 13.45")
                  or the default "Example: P/B = 150 / 50 = 3.0" when no examples are available.
@@ -787,7 +787,7 @@ class FormulaicAnalyzer:
     def _calculate_sharpe_examples(graph: AssetRelationshipGraph) -> str:
         """
         Produce a brief example illustrating a Sharpe ratio calculation.
-        
+
         Returns:
             example (str): A human-readable example string showing a sample Sharpe ratio calculation (e.g., "Sharpe = (10% - 2%) / 15% = 0.53").
         """
@@ -797,9 +797,9 @@ class FormulaicAnalyzer:
     def _calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
         """
         Return up to two example volatility values for commodity assets found in the graph.
-        
+
         Returns:
-        	A string containing one or two volatility examples formatted like "SYMBOL: σ = 20.00%"; if no commodity volatility is available, returns the default "Example: σ = 20% annualized".
+                A string containing one or two volatility examples formatted like "SYMBOL: σ = 20.00%"; if no commodity volatility is available, returns the default "Example: σ = 20% annualized".
         """
         from src.models.financial_models import AssetClass
 
@@ -820,7 +820,7 @@ class FormulaicAnalyzer:
     def _calculate_portfolio_return_examples(graph: AssetRelationshipGraph) -> str:
         """
         Return a human-readable example showing how to compute a portfolio's expected return.
-        
+
         Returns:
             example (str): A single-line example string illustrating E(Rp) = sum(weight × return), e.g. "E(Rp) = 0.6 × 10% + 0.4 × 5% = 8%".
         """
@@ -830,10 +830,10 @@ class FormulaicAnalyzer:
     def _calculate_portfolio_variance_examples(graph: AssetRelationshipGraph) -> str:
         """
         Generate a human-readable example of the two-asset portfolio variance formula using weights and volatilities sourced from the graph when available.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to source asset weights and volatilities for the example; defaults are used if values are not present.
-        
+
         Returns:
             A formatted string showing the portfolio variance (σ²p) with numeric terms.
         """
@@ -843,7 +843,7 @@ class FormulaicAnalyzer:
     def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
         """
         Create a worked example string illustrating an exchange-rate conversion using two currencies from the graph.
-        
+
         Returns:
             example (str): A conversion example using two currency symbols found in `graph` (e.g., "EUR/USD × USD/GBP = EUR/GBP"); if fewer than two currencies are present, returns a default example string.
         """
@@ -859,7 +859,7 @@ class FormulaicAnalyzer:
     def _calculate_commodity_currency_examples(graph: AssetRelationshipGraph) -> str:
         """
         Provide a concise example illustrating a commodity–currency relationship.
-        
+
         Returns:
             example (str): A short example string showing how a commodity price (oil) and a currency (USD) co-move, e.g. "Example: As oil prices rise, USD strengthens (inverse relationship)".
         """

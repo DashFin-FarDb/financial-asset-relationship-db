@@ -19,7 +19,7 @@ router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 def get_graph() -> AssetRelationshipGraph:
     """
     Create and return an AssetRelationshipGraph populated from the configured source.
-    
+
     Returns:
         AssetRelationshipGraph: A graph instance with assets initialized from the default/configured source.
     """
@@ -39,14 +39,14 @@ def schema_report(
 ) -> str:
     """
     Produce the schema report for the current asset graph.
-    
+
     Parameters:
         report_format (str): Report format to produce; either "md" for Markdown or "html" for HTML.
-    
+
     Returns:
         If `report_format` is "md", a `str` containing the Markdown report.
         If `report_format` is "html", an `HTMLResponse` containing the rendered HTML report.
-    
+
     Raises:
         HTTPException: Raised with status code 400 if an unsupported format is provided.
     """
@@ -68,10 +68,10 @@ def schema_report_raw(
 ) -> dict[str, str]:
     """
     Provide the schema report as a downloadable payload in the requested format.
-    
+
     Parameters:
         fmt (str): Report format, either "md" for Markdown or "html" for HTML.
-    
+
     Returns:
         dict[str, str]: A payload with keys:
             - `filename`: the suggested filename (e.g., "schema_report.md" or "schema_report.html"),

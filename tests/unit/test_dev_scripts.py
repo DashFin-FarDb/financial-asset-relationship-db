@@ -131,7 +131,7 @@ class TestDocumentationFiles:
     def test_readme_has_quick_start():
         """
         Verify README.md includes a Quick Start/Getting Started section and an Installation/Setup section.
-        
+
         This test asserts the repository README contains either "Quick Start" or "Getting Started", and either "Installation" or "Setup".
         """
         with open("README.md") as f:
@@ -515,7 +515,7 @@ class TestShellScripts:
     def test_cleanup_branches_has_dry_run_mode(self):
         """
         Checks that cleanup-branches.sh provides a dry-run or preview mechanism for branch deletions.
-        
+
         Asserts the script contains output patterns (for example `echo` combined with "branch" or "delete") that indicate planned deletions are displayed to the user before any removal is performed.
         """
         with open("cleanup-branches.sh") as f:

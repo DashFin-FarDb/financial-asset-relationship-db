@@ -143,7 +143,7 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
 def apply_mock_graph():
     """
     Provide a helper that configures a mocked graph instance to mirror a concrete graph.
-    
+
     The returned callable accepts (mock_graph_instance, graph) and copies the concrete
     graph's public data and behaviors (assets, relationships, and methods used by the
     API such as calculate_metrics and get_3d_visualization_data) onto the mock so
@@ -990,7 +990,7 @@ class TestNegativeScenarios:
     def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
         """
         Ensure the metrics endpoint handles an empty graph without raising a division-by-zero error.
-        
+
         Verifies the response returns total_assets equal to 0 and network_density equal to 0.
         """
         empty_graph = AssetRelationshipGraph()

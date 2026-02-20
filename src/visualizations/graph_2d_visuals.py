@@ -32,7 +32,7 @@ def _resolve_positions(
 ) -> List[go.Scatter]:
     """
     Build Plotly Scatter traces for asset-to-asset relationships, grouped and color-coded by relationship type and filtered by the provided toggles.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing asset relationship entries (source -> [(target_id, rel_type, strength), ...]).
         layout_type (str): Layout hint ("spring", "circular", "grid") used by callers when converting or arranging traces.
@@ -45,7 +45,7 @@ def _resolve_positions(
         show_income_comparison (bool): Include relationships of type "income_comparison".
         show_regulatory (bool): Include relationships of type "regulatory_impact".
         show_all_relationships (bool): If True, ignore individual show_* flags and include all relationship types present in the graph.
-    
+
     Returns:
         List[go.Scatter]: A list of Plotly Scatter traces where each trace represents one relationship type (edges drawn as lines with hover text showing `source → target`, relationship type, and numeric strength). Returns an empty list if no relationships are available for the provided asset_ids.
     """
@@ -149,9 +149,9 @@ def visualize_2d_graph(
 ) -> go.Figure:
     """
     Render an interactive 2D Plotly network of assets and their relationships using the chosen layout and relationship filters.
-    
+
     The layout_type controls node placement and accepts "spring", "circular", or "grid". Relationship toggle flags control which edge types are included; setting show_all_relationships to True overrides individual toggles and includes all relationship types.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
         layout_type (str): Layout algorithm to use; one of "spring", "circular", or "grid".
@@ -163,10 +163,10 @@ def visualize_2d_graph(
         show_income_comparison (bool): Include "income comparison" relationships when True.
         show_regulatory (bool): Include "regulatory" relationships when True.
         show_all_relationships (bool): If True, ignore individual toggles and include all relationship types.
-    
+
     Returns:
         go.Figure: A Plotly Figure containing asset nodes and filtered relationship edge traces.
-    
+
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
     """

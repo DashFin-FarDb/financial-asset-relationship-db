@@ -12,7 +12,7 @@ class FormulaicVisualizer:
     def __init__(self) -> None:
         """
         Initialize the visualizer and set the color_scheme mapping for formula categories.
-        
+
         Creates the instance attribute `color_scheme`, a dictionary mapping formula category names to their hex color codes used by plotting routines.
         """
         self.color_scheme = {
@@ -29,12 +29,12 @@ class FormulaicVisualizer:
     def create_formula_dashboard(self, analysis_results: Dict[str, Any]) -> go.Figure:
         """
         Builds a 3x2 Plotly dashboard visualizing formula analysis, including category distribution, reliability, empirical correlations, asset-class relationships, sector performance, and example formulas.
-        
+
         Parameters:
             analysis_results (Dict[str, Any]): Analysis payload expected to contain:
                 - "formulas": iterable of formula objects or mappings used to populate category, reliability, sector, asset-class and example panels.
                 - "empirical_relationships": mapping containing correlation data (e.g., a correlation matrix and strongest correlations) for the empirical correlation heatmap and correlation network.
-        
+
         Returns:
             go.Figure: A Plotly Figure composed of six subplots arranged in 3 rows × 2 columns:
                 Row 1 Col 1: Formula Categories Distribution (pie)
@@ -84,7 +84,7 @@ class FormulaicVisualizer:
     def _plot_category_distribution(fig: go.Figure, formulas: Any) -> None:
         """
         Plot the count distribution of formulas by category into the dashboard's row 1, column 1 as a pie chart.
-        
+
         Parameters:
             formulas (Iterable): Iterable of formula-like objects where each object may have a `category` attribute; missing or falsy categories are counted under "Unknown".
         """
@@ -110,9 +110,9 @@ class FormulaicVisualizer:
     def _plot_reliability(fig: go.Figure, formulas: Any) -> None:
         """
         Add a bar chart of average R-squared grouped by formula category to the provided figure.
-        
+
         If `formulas` is falsy or empty the function returns without modifying `fig`. Each item in `formulas` is expected to expose a `category` attribute (defaults to "Unknown" if missing) and an `r_squared` attribute (defaults to 0.0 if missing). The computed averages are plotted as a bar trace in the subplot at row 1, column 2.
-        
+
         Parameters:
             fig (go.Figure): Plotly figure to which the bar trace will be added.
             formulas (Iterable[Any]): Iterable of objects with `category` and `r_squared` attributes.
@@ -144,12 +144,12 @@ class FormulaicVisualizer:
     def _plot_empirical_correlation(fig: go.Figure, empirical_relationships: Mapping[str, Any]) -> None:
         """
         Add an empirical correlation heatmap to the dashboard at row 2, column 1.
-        
+
         If `empirical_relationships` contains a dictionary under the "correlation_matrix" key,
         constructs a square matrix of correlation values ordered by sorted asset names (missing
         pair entries use 0.0) and appends a Heatmap trace using the "RdBu" colorscale centered at 0.
         If the correlation matrix is missing or not a dict, the figure is left unchanged.
-        
+
         Parameters:
             fig (go.Figure): Subplot Figure to receive the heatmap trace.
             empirical_relationships (Mapping[str, Any]): Mapping expected to contain a
@@ -185,11 +185,11 @@ class FormulaicVisualizer:
     def _plot_asset_class_relationships(fig: go.Figure, formulas: Any) -> None:
         """
         Add a bar plot of formula counts grouped by asset class (category) to the dashboard at subplot row 2, column 2.
-        
+
         Parameters:
             fig (go.Figure): The Plotly Figure containing the dashboard subplots to which the bar trace will be added.
             formulas (Iterable): An iterable of formula-like objects where each item may have a `category` attribute. Missing or falsy categories are counted under "Unknown".
-        
+
         Notes:
             If `formulas` is empty or falsy, the figure is left unmodified.
         """
@@ -216,9 +216,9 @@ class FormulaicVisualizer:
     def _plot_sector_analysis(fig: go.Figure, formulas: Any) -> None:
         """
         Visualize average R-squared by formula category and add the result as a bar trace to the dashboard.
-        
+
         Aggregates formulas by their `category`, computes the average `r_squared` per category, and appends a bar trace to the subplot at row 3, column 1. Items missing `category` or `r_squared` are treated as category `"Unknown"` and r-squared `0.0`.
-        
+
         Parameters:
             fig (go.Figure): Plotly Figure containing the subplot grid where the bar trace will be added (row 3, col 1).
             formulas (Iterable): Iterable of objects exposing `category` (str) and `r_squared` (numeric); entries missing these attributes are handled as described above.
@@ -257,7 +257,7 @@ class FormulaicVisualizer:
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
         """
         Add a table of the top formula examples (by R-squared) to an existing subplot figure.
-        
+
         Parameters:
             fig (go.Figure): Plotly Figure with a subplot grid; the table trace is added to row 3, column 2.
             formulas (Any): Iterable of formula objects or mappings. Up to 10 formulas with the highest `r_squared` are selected and shown with their name, category, and formatted R-squared. If `formulas` is empty or falsy, the function does nothing.
@@ -295,12 +295,12 @@ class FormulaicVisualizer:
     def _get_sorted_formulas(formulas: Any) -> list[Any]:
         """
         Sorts the provided formulas by descending R-squared, with a safe fallback if sorting fails.
-        
+
         If a formula lacks an `r_squared` attribute, it is treated as having R-squared = -inf (so it appears last). If sorting raises a TypeError (e.g., elements are not comparable), returns a shallow list copy of the original iterable.
-        
+
         Parameters:
             formulas (Any): Iterable of formula-like objects (expected to have an `r_squared` attribute).
-        
+
         Returns:
             list[Any]: Formulas sorted by descending `r_squared`, or a list copy of `formulas` if sorting cannot be performed.
         """
@@ -317,11 +317,11 @@ class FormulaicVisualizer:
     def _format_name(name: Any, max_length: int = 30) -> str:
         """
         Normalize a formula name for display, truncating and appending an ellipsis when it exceeds the maximum length.
-        
+
         Parameters:
             name: The candidate name to format; non-string or empty values produce "N/A".
             max_length (int): Maximum allowed length of the returned string; if truncation occurs, the result ends with "..." and the total length does not exceed this value.
-        
+
         Returns:
             The original name if it is a non-empty string within max_length, a truncated name ending with "..." if it exceeds max_length, or "N/A" for invalid input.
         """
@@ -333,10 +333,10 @@ class FormulaicVisualizer:
     def _format_r_squared(r_value: Any) -> str:
         """
         Format an R-squared numeric value as a string with four decimal places.
-        
+
         Parameters:
             r_value (Any): Value representing R-squared to format.
-        
+
         Returns:
             str: Formatted R-squared with four decimal places, or "N/A" if the input is not an int or float.
         """
@@ -350,12 +350,12 @@ class FormulaicVisualizer:
     ) -> tuple[list[str], list[str], list[str]]:
         """
         Produce three parallel lists for table display: formula names, categories, and formatted R-squared values.
-        
+
         Parameters:
             formulas (Iterable): Iterable of objects (typically Formula instances) from which
                 `name`, `category`, and `r_squared` attributes are read; missing or invalid values
                 are handled gracefully.
-        
+
         Returns:
             tuple[list[str], list[str], list[str]]: Three lists in order:
                 - names: Display-ready formula names (truncated and suffixed with "..." when too long, or "N/A" if unavailable).
@@ -454,7 +454,7 @@ class FormulaicVisualizer:
     def _create_empty_correlation_figure() -> go.Figure:
         """
         Create a placeholder Plotly figure indicating that no correlation data is available.
-        
+
         Returns:
             fig (plotly.graph_objs._figure.Figure): A Figure with the title "No correlation data available".
         """
@@ -469,13 +469,13 @@ class FormulaicVisualizer:
     ) -> go.Figure:
         """
         Render a Plotly network graph of asset correlations.
-        
+
         If `strongest_correlations` contains no valid assets, returns an empty Figure titled "No valid asset correlations found".
-        
+
         Parameters:
             strongest_correlations (Any): Iterable of correlation items (e.g., dicts or sequences) describing pairwise relationships to render as edges. Each item should contain two asset identifiers and optionally a correlation value.
             correlation_matrix (Any): Optional full correlation matrix or mapping of pairwise correlations provided for context.
-        
+
         Returns:
             go.Figure: A Plotly Figure containing edge traces for the strongest correlations and a node trace for the assets, or an empty Figure with an explanatory title when no valid assets are present.
         """
@@ -503,10 +503,10 @@ class FormulaicVisualizer:
     def _extract_assets_from_correlations(correlations: Any) -> list[str]:
         """
         Collect unique, non-empty asset identifiers from correlation items and return them sorted.
-        
+
         Parameters:
             correlations (iterable): Sequence of correlation items (any structure supported by _parse_correlation_item).
-        
+
         Returns:
             list[str]: Alphabetically sorted list of unique, non-empty asset names extracted from the input.
         """
@@ -523,14 +523,14 @@ class FormulaicVisualizer:
     def _parse_correlation_item(corr: Any) -> tuple[str, str, float]:
         """
         Normalize a correlation item into a tuple of (asset1, asset2, correlation).
-        
+
         Parameters:
             corr (Any): Correlation representation. Supported shapes:
                 - dict with keys "asset1", "asset2", and optional "correlation";
                 - sequence (list/tuple) with at least 3 elements [asset1, asset2, correlation];
                 - sequence with at least 2 elements [asset1, asset2] (correlation assumed 0.0).
                 Other values are treated as missing.
-        
+
         Returns:
             tuple[str, str, float]: A 3-tuple containing asset1, asset2, and the correlation value.
                 Missing asset names default to an empty string and missing correlation defaults to 0.0.
@@ -576,13 +576,13 @@ class FormulaicVisualizer:
     def _create_edge_traces(correlations: Any, positions: Dict[str, tuple[float, float]]) -> list[go.Scatter]:
         """
         Create Plotly line traces representing correlations between positioned assets.
-        
+
         Only correlation items for which both assets have coordinates in `positions` are converted into line Scatter traces.
-        
+
         Parameters:
             correlations (Any): Iterable of correlation items; each item should contain asset identifiers and a numeric correlation value.
             positions (Dict[str, tuple[float, float]]): Mapping from asset name to (x, y) coordinates used to place nodes.
-        
+
         Returns:
             list[go.Scatter]: Scatter traces (lines) for correlations where both assets have positions.
         """
@@ -641,11 +641,11 @@ class FormulaicVisualizer:
     def _create_node_trace(assets: list[str], positions: Dict[str, tuple[float, float]]) -> go.Scatter:
         """
         Builds a Plotly Scatter trace containing labeled asset markers positioned by the provided coordinates.
-        
+
         Parameters:
             assets (list[str]): Ordered list of asset names to include in the trace.
             positions (Dict[str, tuple[float, float]]): Mapping from asset name to its (x, y) coordinates.
-        
+
         Returns:
             go.Scatter: Scatter trace with markers and text labels for each asset.
         """

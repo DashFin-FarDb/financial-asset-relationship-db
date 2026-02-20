@@ -137,7 +137,7 @@ class TestWorkflowPermissionsHardening:
     def test_workflows_define_explicit_permissions(all_workflows):
         """
         Ensure each workflow defines a top-level "permissions" key.
-        
+
         Parameters:
             all_workflows (Iterable[Mapping]): Iterable of workflow objects; each item must provide a 'content' mapping for the parsed workflow YAML and a 'path' string used in assertion messages.
         """

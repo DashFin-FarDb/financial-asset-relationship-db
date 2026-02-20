@@ -62,12 +62,12 @@ def load_config() -> Dict[str, Any]:
 def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
     """
     Extracts code suggestion snippets from a comment body.
-    
+
     Scans the provided text for fenced suggestion blocks marked with ```suggestion``` and for inline backticked code preceded by common suggestion phrases.
-    
+
     Parameters:
         comment_body (str): The comment text to search for code suggestions.
-    
+
     Returns:
         suggestions (List[Dict[str, str]]): A list of suggestion dictionaries. Each dictionary has:
             - "type": either "code_suggestion" for fenced suggestion blocks or "inline_suggestion" for inline backticked suggestions.
@@ -122,15 +122,15 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
     """
     Determine whether a comment contains any actionable keyword.
-    
+
     Matches each keyword against the comment body using a case-insensitive substring check.
-    
+
     Parameters:
-    	comment_body (str): The comment text to inspect.
-    	actionable_keywords (List[str]): Keywords to look for in the comment; each is matched case-insensitively as a substring.
-    
+        comment_body (str): The comment text to inspect.
+        actionable_keywords (List[str]): Keywords to look for in the comment; each is matched case-insensitively as a substring.
+
     Returns:
-    	bool: `True` if any keyword is present in the comment body, `False` otherwise.
+        bool: `True` if any keyword is present in the comment body, `False` otherwise.
     """
     body_lower = comment_body.lower()
     return any(keyword in body_lower for keyword in actionable_keywords)
@@ -139,13 +139,13 @@ def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
 def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[str, Any]]:
     """
     Collect actionable review comments from a pull request and return them as structured items.
-    
+
     This scans file-level review comments and top-level reviews with state "CHANGES_REQUESTED", extracts actionable entries using the provided actionable keywords, and sorts the results by priority (1 = highest) and creation date.
-    
+
     Parameters:
         pr (Any): GitHub PullRequest-like object to inspect (must provide get_review_comments and get_reviews).
         actionable_keywords (List[str]): Keywords used to decide if a comment is actionable (case-insensitive).
-    
+
     Returns:
         List[Dict[str, Any]]: A list of actionable item dictionaries, each containing:
             - id: comment or review identifier
@@ -307,9 +307,9 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 def write_output(report: str) -> None:
     """
     Write the provided report to the GitHub Actions step summary (when configured), save it to a secure temporary markdown file, and print the report to standard output.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set, the report is appended to that file path. A temporary file is created with prefix "fix_proposals_" and suffix ".md"; its path is printed to standard error. IO errors when writing either destination are reported to standard error.
-    
+
     Parameters:
         report (str): The full report text to write.
     """

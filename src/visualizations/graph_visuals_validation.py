@@ -6,10 +6,10 @@ import numpy as np
 def _validate_positions_array(positions: np.ndarray) -> None:
     """
     Validate that `positions` is a 2D numeric NumPy array with shape (n, 3) and all finite values.
-    
+
     Parameters:
         positions (np.ndarray): Array of 3D positions; expected shape is (n, 3) where n >= 0.
-    
+
     Raises:
         ValueError: If `positions` is not a NumPy ndarray, does not have shape (n, 3),
             does not have a numeric dtype, or contains NaN or infinite values.
@@ -29,10 +29,10 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 def _validate_asset_ids_list(asset_ids: List[str]) -> None:
     """
     Validate that `asset_ids` is a list or tuple of non-empty strings.
-    
+
     Parameters:
         asset_ids (List[str]): Sequence of asset identifier strings to validate.
-    
+
     Raises:
         ValueError: If `asset_ids` is not a list or tuple, or if any element is not a non-empty string.
     """
@@ -56,11 +56,11 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
 def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> None:
     """
     Validate that `hover_texts` is a list or tuple of non-empty strings with the expected length.
-    
+
     Parameters:
         hover_texts (List[str]): Sequence of hover text strings to validate; each element must be a non-empty string.
         expected_length (int): Required length of `hover_texts`.
-    
+
     Raises:
         ValueError: If `hover_texts` is not a list/tuple of length `expected_length`, or if any element is not a non-empty string.
     """
@@ -90,9 +90,9 @@ def _validate_visualization_data(
 ) -> None:
     """
     Validate visualization inputs for positions, asset identifiers, colors, and hover texts.
-    
+
     Checks that `positions` is a (n, 3) numeric numpy array with finite values, `asset_ids` is a sequence of n non-empty strings that are unique, and that `colors` and `hover_texts` are sequences of n non-empty strings. Raises ValueError or TypeError with details when a validation fails.
-    
+
     Parameters:
         positions (np.ndarray): Array of shape (n, 3) containing numeric, finite position values.
         asset_ids (List[str]): Sequence of n non-empty strings identifying each asset; values must be unique.
@@ -112,10 +112,10 @@ def _validate_visualization_data(
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
     """
     Validate that `filter_params` is a mapping of filter names to boolean values.
-    
+
     Parameters:
         filter_params (Dict[str, bool]): Mapping where keys are filter parameter names and values indicate whether the filter is enabled.
-    
+
     Raises:
         TypeError: If `filter_params` is not a dictionary.
         TypeError: If any value in `filter_params` is not a boolean; the error message lists the offending parameter names.
@@ -132,10 +132,10 @@ def _validate_relationship_filters(
 ) -> None:
     """
     Validate that `relationship_filters` is either None or a dictionary mapping string keys to boolean values.
-    
+
     Parameters:
         relationship_filters (Optional[Dict[str, bool]]): Mapping of relationship names to boolean flags, or None.
-    
+
     Raises:
         TypeError: If `relationship_filters` is not a dict or None.
         ValueError: If any value in `relationship_filters` is not a boolean, or if any key is not a string.

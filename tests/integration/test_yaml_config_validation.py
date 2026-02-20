@@ -24,7 +24,7 @@ class TestYAMLSyntaxAndStructure:
     def test_all_yaml_files_parse_successfully():
         """
         Verify that every YAML file under the `.github` directory with `.yml` or `.yaml` extension parses without syntax errors.
-        
+
         If any file contains invalid YAML, the test fails and reports each file path with the parser's error message.
         """
         yaml_files = []
@@ -49,7 +49,7 @@ class TestYAMLSyntaxAndStructure:
     def test_yaml_files_use_consistent_indentation():
         """
         Check that YAML files under .github use consistent 2-space indentation while preserving block scalar content.
-        
+
         Scans all .yml and .yaml files in the .github tree and reports any lines (excluding empty lines and full-line comments) whose leading spaces are not a multiple of two. Block scalar content introduced by `|` or `>` is exempted from indentation checks until the scalar finishes. On failure, asserts with a list of file paths and line numbers showing the detected indentation counts.
         """
         yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
@@ -103,7 +103,7 @@ class TestYAMLSyntaxAndStructure:
 def test_no_duplicate_keys_in_yaml():
     """
     Ensure YAML files under .github do not contain duplicate keys or other parsing errors when validated with ruamel.yaml.
-    
+
     If ruamel.yaml is not installed the test is skipped. For each YAML file this test records parsing errors, file system errors, and any unexpected exceptions with file context and fails if any such errors are found.
     """
     try:
@@ -138,7 +138,7 @@ class TestWorkflowSchemaCompliance:
     def all_workflows() -> List[Dict[str, Any]]:
         """
         Collect all GitHub Actions workflow files from .github/workflows and return their paths with parsed YAML content.
-        
+
         Returns:
             workflows (List[Dict[str, Any]]): A list of dictionaries for each workflow file containing:
                 - 'path' (Path): Path to the workflow file.
@@ -154,9 +154,9 @@ class TestWorkflowSchemaCompliance:
     def test_workflows_have_required_top_level_keys(self, all_workflows):
         """
         Ensure each workflow contains the required top-level keys "name" and "jobs".
-        
+
         Asserts that every workflow descriptor in `all_workflows` includes both keys; assertion failures reference the workflow's `path`.
-        
+
         Parameters:
             all_workflows (list): Iterable of workflow descriptors. Each descriptor is a dict with at least:
                 - 'path' (str): filesystem path to the workflow file
@@ -175,7 +175,7 @@ class TestDefaultValueHandling:
     def test_missing_optional_fields_have_defaults() -> None:
         """
         Validate that optional agent configuration fields are either absent or of the expected type.
-        
+
         Checks the top-level "agent" section in .github/pr-agent-config.yml and asserts that if the "enabled" key is present, its value is a boolean. Omission of "enabled" is allowed and treated as the default.
         """
         config_path = Path(".github/pr-agent-config.yml")
@@ -194,7 +194,7 @@ class TestDefaultValueHandling:
     def test_workflow_timeout_defaults():
         """
         Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
-        
+
         Asserts that when a job defines `timeout-minutes`, its value is an integer between 1 and 360 inclusive. Assertion messages include the workflow file path and the job identifier.
         """
         workflow_dir = Path(".github/workflows")

@@ -78,9 +78,9 @@ class SecretMarker(str, Enum):
 def pr_agent_config() -> dict[str, object]:
     """
     Load and parse the PR agent YAML configuration from .github/pr-agent-config.yml.
-    
+
     Calls pytest.fail to abort the test if the file is missing, the YAML is invalid, or the top-level document is not a mapping.
-    
+
     Returns:
         dict[str, object]: Parsed YAML content as a Python mapping.
     """
@@ -120,12 +120,12 @@ def _shannon_entropy(value: str) -> float:
 def _looks_like_secret(value: str) -> bool:
     """
     Determine whether a string likely contains a secret or credential.
-    
+
     Strips surrounding whitespace and treats known safe placeholders as non-secrets; flags inline URL credentials, values containing secret-indicating keywords of sufficient length, long base64-like strings with high entropy, or long hexadecimal strings.
-    
+
     Parameters:
         value (str): String to evaluate.
-    
+
     Returns:
         bool: `true` if the value is likely a secret, `false` otherwise.
     """
@@ -175,7 +175,7 @@ class TestPRAgentConfigSimplification:
     def test_no_chunking_settings(pr_agent_config):
         """
         Verify the agent configuration contains no chunking-related settings.
-        
+
         Checks that the keys "chunking", "chunk_size", and "overlap_tokens" do not appear in the serialized YAML of the configuration (case-insensitive); the test fails if any are present.
         """
         config_str = yaml.dump(pr_agent_config)
@@ -209,10 +209,10 @@ class TestPRAgentConfigSimplification:
     def test_monitoring_config_present(pr_agent_config):
         """
         Verify the top-level "monitoring" section contains the required keys.
-        
+
         Parameters:
             pr_agent_config (dict): The parsed PR agent configuration mapping.
-        
+
         The monitoring section must include the keys "check_interval", "max_retries", and "timeout".
         """
         monitoring = pr_agent_config["monitoring"]
@@ -241,7 +241,7 @@ class TestPRAgentConfigYAMLValidity:
     def test_config_is_valid_yaml():
         """
         Validate that .github/pr-agent-config.yml contains valid YAML.
-        
+
         Attempts to parse the file with yaml.safe_load and fails the test if parsing raises a YAML parser error.
         """
         config_path = Path(".github/pr-agent-config.yml")
@@ -269,14 +269,14 @@ class TestPRAgentConfigYAMLValidity:
             def construct_mapping(self, node, deep=False):
                 """
                 Build a dict from a YAML mapping node, failing the test on duplicate keys.
-                
+
                 Parameters:
                     node: YAML mapping node with `.value` pairs and `.start_mark.line`; entries will be constructed via `construct_object`.
                     deep (bool): If True, construct nested objects recursively.
-                
+
                 Returns:
                     dict: Mapping of constructed keys to their constructed values.
-                
+
                 Raises:
                     pytest.fail: If a duplicate key is found; message includes the 1-based line number where the duplicate occurs.
                 """
@@ -297,7 +297,7 @@ class TestPRAgentConfigYAMLValidity:
     def test_consistent_indentation():
         """
         Ensure non-empty, non-comment lines in the PR agent YAML use two-space indentation increments.
-        
+
         Raises:
             AssertionError: if a line's leading spaces are not a multiple of two; message includes the line number.
         """
@@ -319,7 +319,7 @@ class TestPRAgentConfigSecurity:
     def scan(obj: object, suspected: list[tuple[str, str]]) -> None:
         """
         Recursively search a configuration object for strings that resemble secrets and record them.
-        
+
         Parameters:
             obj (object): The value to scan; may be a dict, list/tuple, or scalar.
             suspected (list[tuple[str, str]]): Mutable list that will be appended with (kind, value) tuples for each detected secret.
@@ -353,7 +353,7 @@ class TestPRAgentConfigSecurity:
         def _redact(value: str) -> str:
             """
             Produce a redacted representation of a string, preserving up to the first and last four characters when possible.
-            
+
             Returns:
                 `'***'` if the input length is eight characters or less, otherwise a string in the form `'<first4>...<last4>'` where the first four and last four characters are kept and the middle is replaced by an ellipsis.
             """
@@ -387,10 +387,10 @@ class TestPRAgentConfigSecurity:
         def is_allowed_placeholder(v: object) -> bool:
             """
             Check whether a value is an allowed placeholder or a templated variable.
-            
+
             Parameters:
                 v (object): Value to evaluate; may be None or a string.
-            
+
             Returns:
                 bool: True if v is None, one of the allowed placeholder strings (case-insensitive after trimming), or matches the templated variable pattern; False otherwise.
             """
@@ -407,11 +407,11 @@ class TestPRAgentConfigSecurity:
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
             Validate that values whose keys match sensitive indicator patterns are allowed placeholders by recursively traversing mappings and sequences.
-            
+
             Parameters:
                 node (object): Current node to inspect; may be a dict, list/tuple, or scalar.
                 path (str): Dot/bracket-notation path to `node` used in assertion messages (default "root").
-            
+
             Raises:
                 AssertionError: If a sensitive key contains a disallowed hardcoded value; the error message includes the offending node path.
             """
@@ -450,7 +450,7 @@ class TestPRAgentConfigRemovedComplexity:
     def pr_agent_config_content(self) -> str:
         """
         Get the raw text of the .github/pr-agent-config.yml file.
-        
+
         Returns:
             Raw YAML content of the PR agent configuration file as a string.
         """
@@ -468,7 +468,7 @@ class TestPRAgentConfigRemovedComplexity:
     def test_no_token_management(pr_agent_config_content):
         """
         Ensure token management settings are not present in the PR agent configuration content.
-        
+
         Asserts that the raw configuration text does not contain the keys "max_tokens" or "context_length".
         """
         assert "max_tokens" not in pr_agent_config_content
@@ -478,7 +478,7 @@ class TestPRAgentConfigRemovedComplexity:
     def test_no_llm_model_references(pr_agent_config_content):
         """
         Verify that the raw PR agent configuration contains no explicit LLM model identifiers.
-        
+
         Parameters:
             pr_agent_config_content (str): Raw contents of .github/pr-agent-config.yml to scan for model names.
         """

@@ -40,10 +40,10 @@ def _apply_migration(database_path: Path) -> None:
 def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     """
     Yield a SQLAlchemy Session bound to a temporary SQLite database initialized with the project's migrations.
-    
+
     Parameters:
         tmp_path (Path): Directory in which a temporary `repository.db` SQLite file is created and populated by the initial migration.
-    
+
     Returns:
         session (Session): A SQLAlchemy Session connected to the temporary database. The session is closed and the engine disposed after use.
     """

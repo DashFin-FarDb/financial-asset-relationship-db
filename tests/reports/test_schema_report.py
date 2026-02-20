@@ -22,7 +22,7 @@ class MockGraph:
     def calculate_metrics(self) -> Dict[str, Any]:
         """
         Return deterministic mock metrics representing statistics for an asset relationship graph.
-        
+
         Returns:
             metrics (Dict[str, Any]): A dictionary with the following keys:
                 - relationship_distribution (Dict[str, int]): Counts per relationship type (e.g., "correlation": 4).

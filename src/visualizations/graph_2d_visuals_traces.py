@@ -24,9 +24,9 @@ def _create_2d_relationship_traces(
 ) -> List[go.Scatter]:
     """
     Builds Plotly line traces representing relationships between the specified assets.
-    
+
     Filters relationships from the provided graph according to the boolean flags and groups them by relationship type. Each returned trace contains line segments connecting asset positions and hover text showing "source → target", relationship type, and numeric strength.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing assets and their relationships.
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to (x, y) coordinates.
@@ -39,7 +39,7 @@ def _create_2d_relationship_traces(
         show_income_comparison (bool): Include "income_comparison" relationships when True.
         show_regulatory (bool): Include "regulatory_impact" relationships when True.
         show_all_relationships (bool): When True, ignore the individual relationship flags and include all relationships present in the graph.
-    
+
     Returns:
         List[go.Scatter]: A list of Plotly Scatter traces (mode="lines"), one per relationship type present, each containing line segments and hover text for its edges.
     """
@@ -109,14 +109,14 @@ def _create_node_trace(
 ) -> go.Scatter:
     """
     Create a Plotly scatter trace representing asset nodes positioned in 2D.
-    
+
     Each node's color is derived from its asset class via ASSET_CLASS_COLORS (falls back to "#7f7f7f"), and its marker size is 20 plus up to 30 additional units based on the asset's number of outgoing relationships (5 units per connection, capped at +30). Hover text shows the asset ID and its class.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing assets and their relationships.
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to (x, y) coordinates.
         asset_ids (List[str]): Ordered list of asset IDs to include in the trace.
-    
+
     Returns:
         go.Scatter: A scatter trace with markers and labels for the specified assets.
     """

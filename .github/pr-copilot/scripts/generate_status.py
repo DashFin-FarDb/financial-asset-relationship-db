@@ -66,9 +66,9 @@ class PRStatus:
 def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     """
     Assemble a consolidated PRStatus by fetching metadata, stats, reviews, review-comment activity, and check-run summaries from GitHub for a given pull request.
-    
+
     The returned PRStatus includes PR metadata (number, title, author, branches, draft flag, URL), size statistics (commit count, file count, additions, deletions), labels, mergeability and mergeable_state (defaults to "unknown" when unset), review statistics (counts of APPROVED, CHANGES_REQUESTED, COMMENTED, and total), an open_thread_count derived from the PR's total review comments, and a list of CheckRunInfo entries for the head commit's check runs.
-    
+
     Returns:
         PRStatus: Consolidated PR information suitable for generating a status report.
     """
@@ -123,17 +123,17 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 def format_checklist(status: PRStatus) -> str:
     """
     Create a Markdown task checklist summarizing PR readiness and required actions.
-    
+
     The checklist contains task items for:
     - whether the PR is marked ready for review,
     - whether there is at least one approval,
     - CI checks summary (pending/not configured, all passing, or partial pass with counts),
     - merge conflict status (resolve / no conflicts / check),
     - whether there are pending change requests.
-    
+
     Parameters:
         status (PRStatus): PR metadata and computed status used to populate checklist items.
-    
+
     Returns:
         str: A newline-separated Markdown task list where each line is a GitHub task item (e.g., "- [ ] ...", "- [x] ...").
     """
@@ -206,12 +206,12 @@ def format_checks_section(checks: List[CheckRunInfo]) -> str:
 def generate_markdown(status: PRStatus) -> str:
     """
     Render a complete Markdown status report for a pull request.
-    
+
     Produces a multi-section Markdown string containing PR metadata, review summary, open comment/thread count, CI/check results, merge status, a task checklist, and a UTC last-updated timestamp.
-    
+
     Parameters:
         status (PRStatus): Consolidated PR data to include in the report.
-    
+
     Returns:
         str: The full Markdown-formatted PR status report.
     """
@@ -267,7 +267,7 @@ def generate_markdown(status: PRStatus) -> str:
 def write_output(content: str) -> None:
     """
     Write the rendered report to available outputs and print it to standard output.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set, appends the content to that file.
     Also writes (overwriting) a file named `pr_status_report.md` in the system temporary
     directory and prints the report to stdout. IO errors encountered while writing files

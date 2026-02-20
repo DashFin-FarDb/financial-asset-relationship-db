@@ -23,10 +23,10 @@ class TestVercelConfig:
     def vercel_config():
         """
         Load and parse the project's vercel.json configuration.
-        
+
         Returns:
             dict: The parsed JSON object representing the Vercel configuration.
-        
+
         Raises:
             AssertionError: If vercel.json does not exist.
             json.JSONDecodeError: If vercel.json contains invalid JSON.
@@ -49,7 +49,7 @@ class TestVercelConfig:
     def test_vercel_config_has_builds(vercel_config):
         """
         Assert that the parsed vercel.json contains a non-empty "builds" list.
-        
+
         Checks that the top-level "builds" key exists and its value is a list with at least one entry.
         """
         assert "builds" in vercel_config
@@ -67,9 +67,9 @@ class TestVercelConfig:
     def test_vercel_build_python_backend(vercel_config):
         """
         Verify the Vercel configuration includes a Python backend build with required settings.
-        
+
         Asserts there is a build entry that references "api/main.py", that its "use" is "@vercel/python", and that it contains a "config" object with a "maxLambdaSize" key.
-        
+
         Parameters:
             vercel_config (dict): Parsed contents of vercel.json as a dictionary.
         """
@@ -85,9 +85,9 @@ class TestVercelConfig:
     def test_vercel_build_nextjs_frontend(vercel_config):
         """
         Verify that the project's Vercel configuration contains a Next.js frontend build entry that uses @vercel/next.
-        
+
         Asserts that a build entry with "package.json" in its "src" exists and that its "use" field equals "@vercel/next".
-        
+
         Parameters:
             vercel_config (dict): Parsed contents of vercel.json loaded as a dictionary.
         """
@@ -101,7 +101,7 @@ class TestVercelConfig:
     def test_vercel_routes_api_routing(vercel_config):
         """
         Assert that the Vercel configuration contains an API route whose `src` includes "/api/" and whose `dest` is "api/main.py".
-        
+
         Parameters:
             vercel_config (dict): Parsed contents of vercel.json loaded from the project root.
         """
@@ -124,9 +124,9 @@ class TestVercelConfig:
     def test_vercel_lambda_size_reasonable(vercel_config):
         """
         Assert that the Vercel Python build's `maxLambdaSize` (in MB) is within a reasonable range.
-        
+
         If a build entry referencing "api/main.py" exists and contains a `config`, this test checks that `maxLambdaSize` parses to an integer number of megabytes between 1 and 250. If `maxLambdaSize` is missing, a default of 50 MB is used for the check.
-        
+
         Parameters:
             vercel_config (dict): Parsed contents of vercel.json loaded from the project root.
         """
@@ -149,10 +149,10 @@ class TestNextConfig:
     def next_config_content():
         """
         Load and return the contents of frontend/next.config.js.
-        
+
         Returns:
             content (str): Raw text of the Next.js configuration file.
-        
+
         Raises:
             AssertionError: If frontend/next.config.js does not exist.
         """
@@ -177,7 +177,7 @@ class TestNextConfig:
     def test_next_config_has_react_strict_mode(next_config_content):
         """
         Verify that the Next.js configuration enables React Strict Mode.
-        
+
         Parameters:
             next_config_content (str): The text content of frontend/next.config.js used by the test.
         """
@@ -197,10 +197,10 @@ class TestPackageJson:
     def package_json(self):
         """
         Load and parse the frontend package.json file.
-        
+
         Returns:
             dict: Parsed JSON object from frontend/package.json.
-        
+
         Raises:
             AssertionError: If frontend/package.json does not exist.
         """
@@ -222,7 +222,7 @@ class TestPackageJson:
     def test_package_json_has_required_fields(package_json):
         """
         Assert that the parsed frontend package.json contains the required top-level keys: "name", "version", "scripts", and "dependencies".
-        
+
         Parameters:
             package_json (dict): Parsed contents of frontend/package.json to validate.
         """
@@ -234,7 +234,7 @@ class TestPackageJson:
     def test_package_json_has_build_scripts(package_json):
         """
         Assert that the parsed package.json contains the required lifecycle scripts for development, build, and production start.
-        
+
         Parameters:
             package_json (dict): Parsed JSON object from frontend/package.json; must contain a "scripts" mapping.
         """
@@ -248,7 +248,7 @@ class TestPackageJson:
     def test_package_json_has_react_dependencies(package_json):
         """
         Verify that the package.json declares the frontend dependencies 'react', 'react-dom', and 'next'.
-        
+
         Parameters:
             package_json (dict): Parsed package.json content; expected to contain a "dependencies" mapping.
         """
@@ -279,7 +279,7 @@ class TestPackageJson:
     def test_package_json_has_typescript_deps(package_json):
         """
         Assert that the package.json "devDependencies" contains the required TypeScript-related packages.
-        
+
         Parameters:
             package_json (dict): Parsed package.json content as a dictionary; looks up the "devDependencies" mapping.
         """
@@ -311,7 +311,7 @@ class TestTSConfig:
     def tsconfig(self):
         """
         Load and parse frontend/tsconfig.json.
-        
+
         Returns:
             tsconfig (dict): Parsed contents of the tsconfig.json file.
         """
@@ -352,7 +352,7 @@ class TestTSConfig:
     def test_tsconfig_module_resolution(tsconfig):
         """
         Assert that the TypeScript configuration specifies a module resolution strategy.
-        
+
         Parameters:
             tsconfig (dict): Parsed contents of tsconfig.json; expected to include a "compilerOptions" mapping.
         """
@@ -376,12 +376,12 @@ class TestTailwindConfig:
     def tailwind_config_content():
         """
         Load the content of frontend/tailwind.config.js.
-        
+
         Reads and returns the file contents as a string. Asserts the file exists before reading.
-        
+
         Returns:
             str: Contents of frontend/tailwind.config.js.
-        
+
         Raises:
             AssertionError: If frontend/tailwind.config.js does not exist.
         """
@@ -402,7 +402,7 @@ class TestTailwindConfig:
     def test_tailwind_config_has_module_exports(tailwind_config_content):
         """
         Verify the Tailwind config contains a CommonJS module export.
-        
+
         This test checks that the string "module.exports" appears in the Tailwind configuration content.
         """
         assert "module.exports" in tailwind_config_content
@@ -426,10 +426,10 @@ class TestEnvExampleFixture:
     def env_example_content(self):
         """
         Load and return the contents of the .env.example file.
-        
+
         Returns:
             str: The file contents of `.env.example`.
-        
+
         Raises:
             AssertionError: If `.env.example` does not exist.
         """
@@ -447,10 +447,10 @@ class TestEnvExample:
     def env_example_content(self):
         """
         Load and return the contents of the .env.example file.
-        
+
         Returns:
             str: Contents of the .env.example file.
-        
+
         Raises:
             AssertionError: If .env.example is not found.
         """
@@ -498,10 +498,10 @@ class TestGitignore:
     def gitignore_content():
         """
         Load and return the repository's .gitignore file contents.
-        
+
         Returns:
             str: The complete text of the .gitignore file.
-        
+
         Raises:
             AssertionError: If .gitignore does not exist in the current working directory.
         """
@@ -532,7 +532,7 @@ class TestGitignore:
     def test_gitignore_excludes_env_files(gitignore_content):
         """
         Assert that the repository's .gitignore lists environment files such as `.env.local`.
-        
+
         Parameters:
             gitignore_content (str): Contents of the repository's `.gitignore` file.
         """
@@ -598,9 +598,9 @@ class TestRequirementsTxt:
     def test_requirements_has_version_constraints(self, requirements):
         """
         Assert that every non-option line in requirements.txt contains a version constraint when version pinning is enabled.
-        
+
         Skips the test if the instance flag `require_version_pinning` is False. Iterates over `requirements` and fails the test for any line that does not start with "-" and does not include one of the version operators: ">=", "==", "~=", "<=".
-        
+
         Parameters:
             requirements (list[str]): Filtered lines from requirements.txt (non-empty, non-comment).
         """
@@ -624,9 +624,9 @@ class TestPostCSSConfig:
     def postcss_config_content():
         """
         Load the contents of frontend/postcss.config.js for use in tests.
-        
+
         If the file does not exist, the test is skipped by calling pytest.skip.
-        
+
         Returns:
             str: The raw contents of frontend/postcss.config.js.
         """
@@ -641,7 +641,7 @@ class TestPostCSSConfig:
     def test_postcss_config_has_tailwindcss(postcss_config_content):
         """
         Verify that the PostCSS configuration references the Tailwind CSS plugin.
-        
+
         Parameters:
             postcss_config_content (str): Contents of `postcss.config.js`.
         """
@@ -651,7 +651,7 @@ class TestPostCSSConfig:
     def test_postcss_config_has_autoprefixer(postcss_config_content):
         """
         Check that the PostCSS configuration includes the "autoprefixer" plugin.
-        
+
         Parameters:
             postcss_config_content (str): Contents of the frontend/postcss.config.js file.
         """
@@ -674,7 +674,7 @@ class TestConfigurationConsistency:
     def test_env_and_next_config():
         """
         Ensure NEXT_PUBLIC_API_URL is declared in both the environment file and frontend/next.config.js.
-        
+
         Reads .env.local (falling back to .env.example) and frontend/next.config.js and asserts each contains the string `NEXT_PUBLIC_API_URL`.
         """
         env_path = Path(".env.local")
@@ -696,7 +696,7 @@ class TestConfigurationConsistency:
     def test_package_json_and_tsconfig_consistency():
         """
         Verify that a TypeScript setup declared in frontend/package.json has corresponding compiler options in frontend/tsconfig.json.
-        
+
         If "typescript" appears in package.json's "devDependencies", the test asserts that tsconfig.json contains a top-level "compilerOptions" object.
         """
         with open("frontend/package.json") as f:
@@ -748,7 +748,7 @@ class TestConfigurationSecurityNegative:
     def test_no_api_keys_in_example_env():
         """
         Fail the test if .env.example contains values that look like real API keys.
-        
+
         Scans the .env.example file (skips the test if the file is missing) for suspicious patterns such as long alphanumeric strings, "sk_live", "pk_live", and "prod_". If a match is found on a line that does not include the words "your" or "example" (case-insensitive), the test asserts failure reporting a snippet of the suspected key.
         """
         env_example_path = Path(".env.example")
@@ -822,7 +822,7 @@ class TestMalformedConfigurationHandling:
     def test_package_json_wellformed():
         """
         Validate that frontend/package.json exists and contains well-formed JSON that parses to a JSON object.
-        
+
         If the file is missing the test is skipped; if the content cannot be parsed as JSON the test fails with the JSON decoder error.
         """
         package_path = Path("frontend/package.json")
@@ -867,7 +867,7 @@ class TestConfigurationBoundaryValues:
     def test_vercel_lambda_size_not_excessive():
         """
         Verify that any build entries in vercel.json that specify `maxLambdaSize` have a numeric size between 1 and 250 MB.
-        
+
         Parses `vercel.json`'s "builds" entries for "config.maxLambdaSize", extracts the numeric megabyte value, and asserts it is at least 1 and at most 250. The test is skipped if `vercel.json` is not present.
         """
         vercel_path = Path("vercel.json")
@@ -892,7 +892,7 @@ class TestConfigurationBoundaryValues:
     def test_package_version_not_zero():
         """
         Ensure the frontend package.json version is not "0.0.0".
-        
+
         Skips the test if frontend/package.json is not present.
         """
         package_path = Path("frontend/package.json")
@@ -909,7 +909,7 @@ class TestConfigurationBoundaryValues:
     def test_no_excessively_long_script_names():
         """
         Ensure package.json script names are shorter than 50 characters.
-        
+
         Skips the test if frontend/package.json is missing. Fails if any script name has length greater than or equal to 50 characters.
         """
         package_path = Path("frontend/package.json")
@@ -949,11 +949,11 @@ class TestConfigurationRobustness:
     def test_requirements_no_conflicting_versions():
         """
         Checks that requirements.txt does not contain the same package listed more than once.
-        
+
         Reads non-empty, non-comment lines from requirements.txt (skips the test if the file is missing),
         normalizes package names by removing common version specifiers, and fails the test if any package
         appears multiple times.
-        
+
         Raises:
             AssertionError: If one or more duplicate package names are found.
         """
@@ -983,7 +983,7 @@ class TestConfigurationRobustness:
     def test_env_example_documents_all_required_vars():
         """
         Ensure .env.example documents at least one required environment variable.
-        
+
         Asserts that the repository's .env.example file exists and contains either `API_URL` or `NEXT_PUBLIC`.
         """
         env_example_path = Path(".env.example")

@@ -44,7 +44,7 @@ class TestDocumentationSections:
     def test_has_sufficient_sections(self, section_headers: list[str]):
         """
         Ensure the document contains at least five major section headers.
-        
+
         Asserts that the provided list of section headers has length >= 5 and raises an assertion error reporting the actual count if the check fails.
         """
         assert (

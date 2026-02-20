@@ -17,7 +17,7 @@ pytestmark = pytest.mark.unit
 def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Preserve the api.database module state and the DATABASE_URL environment variable for the duration of a test.
-    
+
     Yields to the test body and on teardown closes any in-memory connection stored on api.database._MEMORY_CONNECTION (if present), restores or clears the original DATABASE_URL environment variable, and reloads the api.database module to reset its internal state.
     """
     original_url = os.environ.get("DATABASE_URL")
@@ -464,7 +464,7 @@ class TestThreadSafety:
     ) -> None:
         """
         Verify that concurrent inserts from multiple threads into an in-memory SQLite database succeed and persist.
-        
+
         Sets the DATABASE_URL to an in-memory database, initializes the schema, spawns multiple threads that each insert a row, and asserts that no exceptions were raised and the final row count equals the number of inserts.
         """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")

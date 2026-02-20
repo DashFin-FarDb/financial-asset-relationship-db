@@ -34,7 +34,7 @@ class RealDataFetcher:
     ) -> None:
         """
         Initializes the RealDataFetcher with optional cache, fallback factory, and network control.
-        
+
         Parameters:
             cache_path (Optional[str]): Filesystem path to a JSON cache file used to load or persist the serialized AssetRelationshipGraph. If None, caching is disabled.
             fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]): Callable that returns an AssetRelationshipGraph to use when network access is disabled or when fetching real data fails. If None, a built-in sample database is used as the fallback.
@@ -206,9 +206,9 @@ class RealDataFetcher:
     def _fetch_bond_data() -> List[Bond]:
         """
         Fetches price and metadata for a small set of bond ETF proxies and returns them as Bond objects.
-        
+
         Uses Treasury and corporate bond ETFs (currently TLT and LQD) as fixed-income proxies. When yield information is unavailable, `yield_to_maturity` defaults to 0.03 and `coupon_rate` defaults to 0.025. Maturity dates and certain fields are approximate because ETF instruments are used instead of individual bonds.
-        
+
         Returns:
             bonds (List[Bond]): Bond instances populated with id, symbol, name, asset_class (FIXED_INCOME), sector, price, yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.
         """
@@ -356,7 +356,7 @@ class RealDataFetcher:
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
         Create a short list of recent sample regulatory events tied to common assets.
-        
+
         Returns:
             List[RegulatoryEvent]: Three sample events (AAPL earnings report, MSFT dividend announcement, XOM SEC filing). Each event includes `id`, `asset_id`, `event_type`, `date`, `description`, `impact_score`, and `related_assets`.
         """
