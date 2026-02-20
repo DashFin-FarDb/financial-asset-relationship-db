@@ -396,42 +396,40 @@ class FormulaicVisualizer:
             barmode="group",
             plot_bgcolor="white",
         )
-        return fig
+    return fig
 
-    # ------------------------------------------------------------------ #
-    # Helpers                                                              #
-    # ------------------------------------------------------------------ #
+# ------------------------------------------------------------------ #
+# Helpers                                                              #
+# ------------------------------------------------------------------ #
 
-    @staticmethod
-    def _get_sorted_formulas(formulas: Any) -> List[Any]:
-        try:
-            return sorted(
-                formulas,
-                key=lambda f: getattr(f, "r_squared", float("-inf")),
-                reverse=True,
-            )
-        except TypeError:
-            return list(formulas)
+@staticmethod
+def _get_sorted_formulas(formulas: Any) -> List[Any]:
+    try:
+        return sorted(
+            formulas,
+            key=lambda f: getattr(f, "r_squared", float("-inf")),
+            reverse=True,
+        )
+    except TypeError:
+        return list(formulas)
 
-    @staticmethod
-    def _format_name(name: Any, max_length: int = 30) -> str:
-        if not isinstance(name, str) or not name:
-            return "N/A"
-
-
-return name if len(name) <= max_length else f"{name[:max_length - 3]}..."
-
-  @staticmethod
-   def _format_r_squared(r_value: Any) -> str:
-        if isinstance(r_value, (int, float)):
-            return f"{r_value:.4f}"
+@staticmethod
+def _format_name(name: Any, max_length: int = 30) -> str:
+    if not isinstance(name, str) or not name:
         return "N/A"
+    return name if len(name) <= max_length else f"{name[:max_length - 3]}..."
 
-    @staticmethod
-    def _extract_formula_table_data(
-        formulas: Any,
-    ) -> Tuple[List[str], List[str], List[str]]:
-        names = [FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas]
-        categories = [getattr(f, "category", "N/A") for f in formulas]
-        r2_values = [FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None)) for f in formulas]
-        return names, categories, r2_values
+@staticmethod
+def _format_r_squared(r_value: Any) -> str:
+    if isinstance(r_value, (int, float)):
+        return f"{r_value:.4f}"
+    return "N/A"
+
+@staticmethod
+def _extract_formula_table_data(
+    formulas: Any,
+) -> Tuple[List[str], List[str], List[str]]:
+    names = [FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas]
+    categories = [getattr(f, "category", "N/A") for f in formulas]
+    r2_values = [FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None)) for f in formulas]
+    return names, categories, r2_values
