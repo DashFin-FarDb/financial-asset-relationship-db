@@ -280,8 +280,6 @@ class TestGet3DLayout:
         )
         assert resource_func is not None, "3d-layout resource not found"
 
-        assert resource_func is not None, "3d-layout resource not found"
-
         result = resource_func()
 
         # Should return valid JSON

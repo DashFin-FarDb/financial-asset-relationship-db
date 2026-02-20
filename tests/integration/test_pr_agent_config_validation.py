@@ -283,7 +283,7 @@ class TestPRAgentConfigYAMLValidity:
                     entry = self.construct_object(entry_node, deep=deep)
                     if entry in mapping:
                         pytest.fail(
-                            f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}"
+                            f"Duplicate entry found: {entry} at line {entry_node.start_mark.line + 1}"
                         )
                     value = self.construct_object(val_node, deep=deep)
                     mapping[entry] = value

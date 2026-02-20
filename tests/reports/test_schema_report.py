@@ -33,7 +33,7 @@ class MockGraph:
             "asset_class_distribution": {"Equity": 1, "Bond": 2},
             "top_relationships": [
                 ("A", "B", "correlation", 0.9),
-                ("X", "Y", "hedge", "0.7"),
+                ("X", "Y", "hedge", 0.7),
             ],
             "quality_score": 0.82,
         }
@@ -44,6 +44,7 @@ class MockGraph:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 def test_schema_report_contains_sections() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
@@ -65,6 +66,7 @@ def test_schema_report_contains_sections() -> None:
         assert section in md
 
 
+@pytest.mark.unit
 def test_schema_report_relationship_distribution() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
@@ -73,6 +75,7 @@ def test_schema_report_relationship_distribution() -> None:
     assert "- **hedge**: 2 instances" in md
 
 
+@pytest.mark.unit
 def test_schema_report_top_relationships() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
@@ -81,6 +84,7 @@ def test_schema_report_top_relationships() -> None:
     assert "**X** → **Y** (hedge, strength 0.70)" in md
 
 
+@pytest.mark.unit
 def test_schema_report_quality_score() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
@@ -88,6 +92,7 @@ def test_schema_report_quality_score() -> None:
     assert "### Data Quality Score: 82.0%" in md
 
 
+@pytest.mark.unit
 def test_schema_report_recommendation_logic() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)

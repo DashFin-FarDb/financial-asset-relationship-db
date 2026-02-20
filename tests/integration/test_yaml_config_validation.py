@@ -83,9 +83,7 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith(
-                    "  " * (leading_spaces // 2 + 1) + "- |"
-                ):
+                if line[0] == " " and not re.match(r"^\s+-\s*[|>]", line):
                     if leading_spaces % 2 != 0:
                         indentation_errors.append(
                             f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
@@ -163,17 +161,11 @@ class TestWorkflowSchemaCompliance:
                 - 'content' (dict): parsed YAML content of the workflow
         """
         required_keys = ["name", "jobs"]
-        checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
                 assert key in workflow["content"], (
                     f"Workflow {workflow['path']} missing required key: {key}"
                 )
-            unique_versions = set(checkout_versions.values())
-            # Allow v3 and v4, but should be mostly consistent
-            assert len(unique_versions) <= 2, (
-                f"Too many different checkout versions: {checkout_versions}"
-            )
 
 
 class TestDefaultValueHandling:

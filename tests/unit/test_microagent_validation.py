@@ -692,9 +692,8 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                 assert word_count >= 20, (
                     f"{file_path.name} has insufficient body content ({word_count} words)"
                 )
-            except ValueError:
-                # Skip files with unparseable frontmatter (may have special YAML syntax)
-                pass
+            except ValueError as e:
+                pytest.skip(f"{file_path.name} has unparseable frontmatter: {e}")
 
     def test_all_microagents_use_markdown_formatting(
         self, microagent_files: List[Path]
@@ -718,9 +717,8 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                     ]
                 )
                 assert has_markdown, f"{file_path.name} should use markdown formatting"
-            except ValueError:
-                # Skip files with unparseable frontmatter
-                pass
+            except ValueError as e:
+                pytest.skip(f"{file_path.name} has unparseable frontmatter: {e}")
 
 
 @pytest.mark.unit

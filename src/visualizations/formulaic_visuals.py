@@ -536,11 +536,6 @@ class FormulaicVisualizer:
             positions (Dict[str, tuple[float, float]]):
             Mapping from asset identifier to its (x, y) coordinate
             on the unit circle.
-
-        Returns:
-            positions (Dict[str, tuple[float, float]]):
-            Mapping from asset identifier to its (x, y) coordinate
-            on the unit circle.
         """
         import math
 

@@ -146,14 +146,12 @@ class TestSerializationRoundTrip:
         assert len(restored_graph.assets) == 0
         assert len(restored_graph.relationships) == 0
 
-    `@staticmethod`
-
+    @staticmethod
     def test_graph_with_complex_relationships_serialization():
         """Test serialization of graph with bidirectional relationships."""
         graph = AssetRelationshipGraph()
 
         # Add multiple assets
-        assets = []
         for i in range(3):
             asset = Equity(
                 id=f"TEST_{i}",
@@ -163,7 +161,6 @@ class TestSerializationRoundTrip:
                 sector="Technology",
                 price=100.0 + i * 10,
             )
-            assets.append(asset)
             graph.add_asset(asset)
 
         # Add bidirectional relationships
@@ -353,7 +350,6 @@ class TestEdgeCasesAndRegressions:
 
         repo = AssetGraphRepository(session)
 
-        assets = []
         for i in range(3):
             asset = Equity(
                 id=f"BOUND_{i}",
@@ -363,7 +359,6 @@ class TestEdgeCasesAndRegressions:
                 sector="Test",
                 price=100.0,
             )
-            assets.append(asset)
             repo.upsert_asset(asset)
 
         session.commit()
