@@ -414,6 +414,7 @@ class TestCreateRealDatabase:
 class TestDataValidation:
     """Test data validation and transformation."""
     """Test data validation and transformation."""
+    """Test data validation and transformation."""
 
     @pytest.fixture
     def fetcher(self):
