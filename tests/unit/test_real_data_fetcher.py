@@ -118,20 +118,20 @@ class TestCacheHelpers:
                 _load_from_cache(Path("test.json"))
 
     def test_load_from_cache_file_not_found(self):
-        def test_save_to_cache_success(self, tmp_path):
-            """Test saving data to cache."""
-            cache_data = {"test": "data"}
-            cache_path = tmp_path / "test.json"
+        """Test that missing cache file propagates FileNotFoundError."""
+        with patch("src.data.real_data_fetcher.Path.open", side_effect=FileNotFoundError):
+            with pytest.raises(FileNotFoundError):
+                _load_from_cache(Path("missing.json"))
 
-            _save_to_cache(cache_data, cache_path)
+    def test_save_to_cache_success(self, tmp_path):
+        """Test saving data to cache."""
+        cache_data = {"test": "data"}
+        cache_path = tmp_path / "test.json"
 
-            assert cache_path.exists()
-            assert json.loads(cache_path.read_text(encoding="utf-8")) == cache_data
-        _save_to_cache(cache_data, Path("test.json"))
-        
-        mock_write.assert_called_once()
-        written_data = json.loads(mock_write.call_args[0][0])
-        assert written_data == cache_data
+        _save_to_cache(cache_data, cache_path)
+
+        assert cache_path.exists()
+        assert json.loads(cache_path.read_text(encoding="utf-8")) == cache_data
 
     @patch('src.data.real_data_fetcher.Path.write_text')
     @patch('src.data.real_data_fetcher.Path.parent')
