@@ -39,6 +39,10 @@ def _create_spring_layout_2d(
     Args:
         positions_3d: A dictionary mapping asset IDs to their 3D coordinates.
         asset_ids: A list of asset IDs to retrieve 2D positions for.
+
+    Returns:
+        Dict[str, Tuple[float, float]]: A dictionary mapping asset IDs to their
+        corresponding 2D coordinates.
     """
     if not positions_3d or not asset_ids:
         return {}
