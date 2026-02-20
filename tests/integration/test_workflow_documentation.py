@@ -6,9 +6,9 @@ contains required sections, and has no broken internal references.
 """
 
 import re
-from pathlib impofrom typing import ListList, Set
 
 import pytest
+from pathlibimpofromtyping import ListList, Set
 
 # Path to the documentation file
 DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMARY.md"

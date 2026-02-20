@@ -12,9 +12,7 @@ def _generate_dynamic_title(
 
 
 def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) -> int:
-    return (
-        sum(len(getattr(t, "x", []) or []) for t in relationship_traces) // 3
-    )
+    return sum(len(getattr(t, "x", []) or []) for t in relationship_traces) // 3
 
 
 def _prepare_layout_config(

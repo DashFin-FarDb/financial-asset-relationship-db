@@ -7,26 +7,24 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 # Sub-module re-exports — kept here so existing imports from this module continue to work.
 from src.visualizations.graph_visuals_constants import REL_TYPE_COLORS  # noqa: F401
-from src.visualizations.graph_visuals_data import (
-    _build_asset_id_index,  # noqa: F401
-    _build_edge_coordinates_optimized,  # noqa: F401
-    _build_hover_texts,  # noqa: F401
-    _build_relationship_index,  # noqa: F401
-    _collect_and_group_relationships,  # noqa: F401
-)
+from src.visualizations.graph_visuals_data import _build_asset_id_index  # noqa: F401
+from src.visualizations.graph_visuals_data import _build_edge_coordinates_optimized  # noqa: F401
+from src.visualizations.graph_visuals_data import _build_hover_texts  # noqa: F401
+from src.visualizations.graph_visuals_data import _build_relationship_index  # noqa: F401
+from src.visualizations.graph_visuals_data import _collect_and_group_relationships  # noqa: F401
+from src.visualizations.graph_visuals_layout import _calculate_visible_relationships  # noqa: F401
+from src.visualizations.graph_visuals_layout import _generate_dynamic_title  # noqa: F401
 from src.visualizations.graph_visuals_layout import (
-    _calculate_visible_relationships,  # noqa: F401
     _configure_3d_layout,
-    _generate_dynamic_title,  # noqa: F401
     _prepare_layout_config,
 )
+from src.visualizations.graph_visuals_traces import _create_trace_for_group  # noqa: F401
+from src.visualizations.graph_visuals_traces import _format_trace_name  # noqa: F401
+from src.visualizations.graph_visuals_traces import _get_line_style  # noqa: F401
 from src.visualizations.graph_visuals_traces import (
     _create_directional_arrows,
     _create_node_trace,
     _create_relationship_traces,
-    _create_trace_for_group,  # noqa: F401
-    _format_trace_name,  # noqa: F401
-    _get_line_style,  # noqa: F401
 )
 from src.visualizations.graph_visuals_validation import (
     _validate_filter_parameters,
@@ -39,14 +37,10 @@ logger = logging.getLogger(__name__)
 
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     """Create a 3D visualization of the asset relationship graph."""
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-        graph, "get_3d_visualization_data_enhanced"
-    ):
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
         raise ValueError("Invalid graph data provided")
 
-    positions, asset_ids, colors, hover_texts = (
-        graph.get_3d_visualization_data_enhanced()
-    )
+    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
     fig = go.Figure()
@@ -100,13 +94,8 @@ def visualize_3d_graph_with_filters(
         ValueError: If graph is invalid.
         TypeError: If any filter parameter is not boolean.
     """
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-        graph, "get_3d_visualization_data_enhanced"
-    ):
-        raise ValueError(
-            "graph must be an AssetRelationshipGraph instance "
-            "with get_3d_visualization_data_enhanced"
-        )
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
+        raise ValueError("graph must be an AssetRelationshipGraph instance " "with get_3d_visualization_data_enhanced")
 
     filter_params = {
         "show_same_sector": show_same_sector,
@@ -135,21 +124,14 @@ def visualize_3d_graph_with_filters(
         }
         _validate_relationship_filters(relationship_filters)
         if not any(relationship_filters.values()):
-            logger.warning(
-                "All relationship filters are disabled. "
-                "Visualization will show no relationships."
-            )
+            logger.warning("All relationship filters are disabled. " "Visualization will show no relationships.")
 
-    positions, asset_ids, colors, hover_texts = (
-        graph.get_3d_visualization_data_enhanced()
-    )
+    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
     fig = go.Figure()
 
-    relationship_traces = _create_relationship_traces(
-        graph, positions, asset_ids, relationship_filters
-    )
+    relationship_traces = _create_relationship_traces(graph, positions, asset_ids, relationship_filters)
     if relationship_traces:
         fig.add_traces(relationship_traces)
 
