@@ -521,7 +521,8 @@ def test_special_character_usernames_do_not_break_token_creation():
         assert isinstance(token, str)
         assert len(token) > 0
 
-    def test_very_long_password(self):
+
+def test_very_long_password(self):
         """Test handling of very long passwords."""
         long_password = "a" * 1000
         hashed = get_password_hash(long_password)
