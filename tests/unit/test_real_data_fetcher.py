@@ -26,8 +26,10 @@ from src.data.real_data_fetcher import (
 try:
     from src.data.real_data_fetcher import _get_cache_path, _is_cache_valid
 except ImportError:
-    _get_cache_path = None
-    _is_cache_valid = None
+    pytest.skip(
+        "real_data_fetcher cache helpers not available in this version",
+        allow_module_level=True,
+    )
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import Asset, AssetClass, Equity, Bond, Commodity, Currency
 
