@@ -34,6 +34,8 @@ def sample_equity():
         asset_class=AssetClass.EQUITY,
         sector="Technology",
         price=150.0,
+        pe_ratio=25.5,
+        dividend_yield=0.005,
     )
 
 
@@ -48,6 +50,8 @@ def sample_bond():
         sector="Technology",
         price=100.0,
         issuer_id="AAPL",
+        yield_to_maturity=0.03,
+        credit_rating="AAA",
     )
 
 
@@ -61,6 +65,8 @@ def sample_commodity():
         asset_class=AssetClass.COMMODITY,
         sector="Metals",
         price=2000.0,
+        contract_size=100.0,
+        volatility=0.15,
     )
 
 
@@ -74,6 +80,8 @@ def sample_currency():
         asset_class=AssetClass.CURRENCY,
         sector="Currency",
         price=1.1,
+        exchange_rate=1.1,
+        country="Eurozone",
     )
 
 
@@ -81,12 +89,12 @@ def sample_currency():
 def sample_regulatory_event():
     """Provide a sample RegulatoryEvent."""
     return RegulatoryEvent(
-        id="EVENT1",
-        asset_id="AAPL",
+        id="EVENT_001",
+        asset_id="TEST_AAPL",
         event_type=RegulatoryActivity.EARNINGS_REPORT,
         date="2024-01-01",
         description="Earnings report",
-        impact_score=0.5,
+        impact_score=0.8,
         related_assets=["AAPL_BOND"],
     )
 

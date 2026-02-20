@@ -33,6 +33,7 @@ dependencies = [
     "PyJWT>=2.8.0",
     "passlib[bcrypt]>=1.7.4",
     "SQLAlchemy>=2.0.0",
+    "Markdown>=3.4,<4.0",
 ]
 
 [project.optional-dependencies]
@@ -163,8 +164,8 @@ max-returns = 6
 max-statements = 50
 
 [tool.bandit]
-exclude_dirs = []
-skips = ["B101"]  # Skip assert_used warnings in test files - assert is the correct pattern for pytest
+exclude_dirs = ["tests"]
+skips = ["B101"]
 
 [tool.codeflash]
 # All paths are relative to this pyproject.toml's directory.

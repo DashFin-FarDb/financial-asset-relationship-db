@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -25,6 +27,36 @@ from .db_models import (
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
+
+
+@contextmanager
+def session_scope(
+    session_factory: Callable[[], Session],
+) -> Generator[Session, None, None]:
+    """Provide a transactional scope around a series of database operations.
+
+    Commits on successful exit, rolls back on any exception, and always
+    closes the session.
+
+    Args:
+        session_factory: Zero-argument callable that returns a new Session.
+
+    Yields:
+        Session: The active database session for the duration of the block.
+
+    Raises:
+        Exception: Re-raises any exception that occurs inside the ``with`` block
+            after rolling back the transaction.
+    """
+    session = session_factory()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 @dataclass
@@ -88,8 +120,6 @@ class AssetGraphRepository:
             asset_id: Asset identifier to retrieve.
         Returns:
             Optional[Asset]: The asset if found, otherwise None.
-        Raises:
-            None
         """
         orm = self.session.get(AssetORM, asset_id)
         if orm is None:
@@ -126,9 +156,6 @@ class AssetGraphRepository:
             strength: Relationship strength in [-1.0, 1.0].
             bidirectional: Whether the relationship is bidirectional.
 
-        Returns:
-            None
-
         Raises:
             ValueError: If strength is not numeric or outside [-1.0, 1.0].
         """
@@ -148,11 +175,11 @@ class AssetGraphRepository:
                 source_asset_id=source_id,
                 target_asset_id=target_id,
                 relationship_type=rel_type,
-                strength=strength,
+                strength=float(strength),
                 bidirectional=bidirectional,
             )
         else:
-            existing.strength = strength
+            existing.strength = float(strength)
             existing.bidirectional = bidirectional
         self.session.add(existing)
 
@@ -164,7 +191,7 @@ class AssetGraphRepository:
                 source_id=rel.source_asset_id,
                 target_id=rel.target_asset_id,
                 relationship_type=rel.relationship_type,
-                strength=rel.strength,
+                strength=float(rel.strength),
                 bidirectional=rel.bidirectional,
             )
             for rel in result
@@ -199,7 +226,7 @@ class AssetGraphRepository:
             source_id=relationship.source_asset_id,
             target_id=relationship.target_asset_id,
             relationship_type=relationship.relationship_type,
-            strength=relationship.strength,
+            strength=float(relationship.strength),
             bidirectional=relationship.bidirectional,
         )
 
@@ -209,14 +236,7 @@ class AssetGraphRepository:
         target_id: str,
         rel_type: str,
     ) -> None:
-        """
-        Remove a relationship.
-
-        Returns:
-            None
-        Raises:
-            None
-        """
+        """Remove a relationship."""
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
             AssetRelationshipORM.target_asset_id == target_id,
@@ -263,19 +283,10 @@ class AssetGraphRepository:
     @staticmethod
     def _update_asset_orm(orm: AssetORM, asset: Asset) -> None:
         """
-        Populate an existing AssetORM row from an Asset (or subclass)
-        instance.
+        Populate an existing AssetORM row from an Asset (or subclass) instance.
 
-        This method always updates the common Asset fields
-        (id/symbol/name/class/sector/price/etc).
-
-        It also clears and repopulates optional,
-        asset-class-specific columns by reading attributes from `asset`
-        via `getattr(..., None)`
-        so that missing attributes are written as NULL.
-
-        This prevents stale values from remaining in the database
-        when an asset's type/available fields change between updates.
+        Clears and repopulates optional, asset-class-specific columns so missing
+        attributes become NULL and stale values cannot persist across updates.
         """
         orm.symbol = asset.symbol
         orm.name = asset.name
@@ -287,7 +298,6 @@ class AssetGraphRepository:
         )
         orm.currency = asset.currency
 
-        # Reset all optional fields to avoid stale values
         orm.pe_ratio = getattr(asset, "pe_ratio", None)
         orm.dividend_yield = getattr(asset, "dividend_yield", None)
         orm.earnings_per_share = getattr(asset, "earnings_per_share", None)
@@ -357,10 +367,7 @@ class AssetGraphRepository:
 
     @staticmethod
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
-        """
-        Convert a RegulatoryEventORM database object to a RegulatoryEvent
-        domain model instance.
-        """
+        """Convert a RegulatoryEventORM row into a RegulatoryEvent domain model."""
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(
             id=orm.id,

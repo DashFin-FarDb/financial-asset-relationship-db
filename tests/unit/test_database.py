@@ -28,8 +28,8 @@ from src.data.database import (
     create_engine_from_url,
     create_session_factory,
     init_db,
-    session_scope,
 )
+from src.data.repository import session_scope
 
 pytest.importorskip("sqlalchemy")
 
@@ -67,6 +67,7 @@ def isolated_base() -> Iterator[type[Base]]:
 
     yield _IsolatedBase
 
+    # Remove any tables registered during the test.
     new_tables = [name for name in Base.metadata.tables if name not in existing_tables]
     for name in new_tables:
         Base.metadata.remove(Base.metadata.tables[name])
@@ -74,13 +75,15 @@ def isolated_base() -> Iterator[type[Base]]:
 
 @pytest.fixture()
 def engine() -> Iterator[Engine]:
-    """Provide an in-memory SQLite engine.
+    """
+    Provide an in-memory SQLite engine.
 
     Returns:
         Iterator[Engine]: Yielded in-memory engine.
     """
     in_memory_engine = create_engine(
         "sqlite:///:memory:",
+        future=True,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
@@ -147,25 +150,14 @@ class TestSessionFactory:
     def test_factory_returns_callable(self, engine: Engine) -> None:
         """Factory should be callable."""
         factory = create_session_factory(engine)
-        assert callable(factory)
+        assert callable(factory)  # nosec B101
 
     def test_factory_creates_sessions(self, engine: Engine) -> None:
         """Factory should create usable sessions."""
         factory = create_session_factory(engine)
         session = factory()
         try:
-            assert session.bind == engine
-        finally:
-            session.close()
-
-    def test_sessions_are_not_autocommit(self, engine: Engine) -> None:
-        """Sessions should have autocommit disabled."""
-        factory = create_session_factory(engine)
-        session = factory()
-        try:
-            assert session.bind == engine
-            # Note: session.autocommit is deprecated in SQLAlchemy 2.0.
-            # Sessions created with future=True don't have autocommit mode.
+            assert session.bind == engine  # nosec B101
         finally:
             session.close()
 
@@ -196,7 +188,7 @@ class TestDatabaseInitialization:
         from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
-        assert "test_model" in inspector.get_table_names()
+        assert "test_model" in inspector.get_table_names()  # nosec B101
 
     def test_init_db_is_idempotent(self, engine: Engine, isolated_base) -> None:
         """Calling init_db multiple times should not error."""
@@ -215,7 +207,7 @@ class TestDatabaseInitialization:
         from sqlalchemy import inspect  # noqa: PLC0415
 
         inspector = inspect(engine)
-        assert "test_idempotent" in inspector.get_table_names()
+        assert "test_idempotent" in inspector.get_table_names()  # nosec B101
 
     def test_init_db_preserves_existing_data(
         self,
@@ -241,8 +233,8 @@ class TestDatabaseInitialization:
 
         with session_scope(session_factory) as session:
             result = session.query(TestModel).one_or_none()
-            assert result is not None
-            assert result.value == "persisted"
+            assert result is not None  # nosec B101
+            assert result.value == "persisted"  # nosec B101
 
 
 # ---------------------------------------------------------------------------
@@ -272,8 +264,8 @@ class TestSessionScope:
 
         with session_scope(factory) as session:
             result = session.query(TestModel).one_or_none()
-            assert result is not None
-            assert result.value == "committed"
+            assert result is not None  # nosec B101
+            assert result.value == "committed"  # nosec B101
 
     def test_rolls_back_on_exception(self, engine: Engine, isolated_base) -> None:
         """session_scope should rollback on error."""
@@ -292,7 +284,7 @@ class TestSessionScope:
             raise ValueError("trigger rollback")
 
         with session_scope(factory) as session:
-            assert session.query(TestModel).count() == 0
+            assert session.query(TestModel).count() == 0  # nosec B101
 
     def test_propagates_integrity_error(self, engine: Engine, isolated_base) -> None:
         """Integrity errors should propagate after rollback."""
@@ -330,7 +322,7 @@ class TestSessionScope:
             session.add(TestModel(id=2, value="b"))
 
         with session_scope(factory) as session:
-            assert session.query(TestModel).count() == 2
+            assert session.query(TestModel).count() == 2  # nosec B101
 
 
 # ---------------------------------------------------------------------------
@@ -344,11 +336,11 @@ class TestDefaultDatabaseURL:
 
     def test_default_is_sqlite(self) -> None:
         """Default database URL should use SQLite."""
-        assert "sqlite" in DEFAULT_DATABASE_URL.lower()
+        assert "sqlite" in DEFAULT_DATABASE_URL.lower()  # nosec B101
 
     def test_default_points_to_file(self) -> None:
         """Default SQLite URL should point to a file."""
-        assert "asset_graph.db" in DEFAULT_DATABASE_URL
+        assert "asset_graph.db" in DEFAULT_DATABASE_URL  # nosec B101
 
     def test_env_override_works(self) -> None:
         """Environment variable should override default URL."""
