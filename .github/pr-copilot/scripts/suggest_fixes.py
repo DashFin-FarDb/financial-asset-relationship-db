@@ -68,17 +68,13 @@ def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
     suggestion_pattern = r"```suggestion\s*\n(.*?)\n```"
     matches = re.finditer(suggestion_pattern, comment_body, re.DOTALL)
     for match in matches:
-        suggestions.append(
-            {"type": "code_suggestion", "content": match.group(1).strip()}
-        )
+        suggestions.append({"type": "code_suggestion", "content": match.group(1).strip()})
 
     # Pattern 2: Inline code in quotes with suggestion words
     inline_pattern = r"(?:should be|change to|replace with|use)\s+`([^`]+)`"
     matches = re.finditer(inline_pattern, comment_body, re.IGNORECASE)
     for match in matches:
-        suggestions.append(
-            {"type": "inline_suggestion", "content": match.group(1).strip()}
-        )
+        suggestions.append({"type": "inline_suggestion", "content": match.group(1).strip()})
 
     return suggestions
 
@@ -118,9 +114,7 @@ def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
     return any(keyword in body_lower for keyword in actionable_keywords)
 
 
-def parse_review_comments(
-    pr: Any, actionable_keywords: List[str]
-) -> List[Dict[str, Any]]:
+def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[str, Any]]:
     """Parse all review comments and extract actionable items."""
     actionable_items = []
 
@@ -276,9 +270,7 @@ def write_output(report: str) -> None:
             with open(gh_summary, "a", encoding="utf-8") as f:
                 f.write(report)
         except IOError as e:
-            print(
-                f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr
-            )
+            print(f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
 
     # 2. Secure Temp File
     try:
