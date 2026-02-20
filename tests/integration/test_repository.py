@@ -7,6 +7,9 @@ from pathlib import Path
 from typing import Generator
 
 import pytest
+
+pytest.importorskip("sqlalchemy")
+
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
