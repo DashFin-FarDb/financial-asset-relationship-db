@@ -341,10 +341,12 @@ class TestSystemManifest:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Test that systemManifest.md has Current Phase section."""
-        assert "## Current Phase" in system_manifest_content
+        """
+        Test that systemManifest.md has Current Phase section.
 
         Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
+        """
+        assert "## Current Phase" in system_manifest_content
 
         Parameters:
             system_manifest_content(str): Full text of the systemManifest.md file to inspect.

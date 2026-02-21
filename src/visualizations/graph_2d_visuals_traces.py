@@ -38,10 +38,10 @@ def _create_2d_relationship_traces(
         asset_ids (List[str]): A list of asset IDs to include in the traces.
         show_same_sector (bool):
             Flag to show relationships within the same sector. Defaults to True.
-    """
-        show_market_cap(bool):
+        show_market_cap (bool):
             Flag to show relationships based on market
             capitalization. Defaults to True.
+    """
         show_correlation(bool):
             Flag to show correlation relationships.
             Defaults to True.
