@@ -520,7 +520,7 @@ class TestEdgeCases:
         if acquired:
             # Calling add_asset with invalid data should raise an exception, but the
             # lock must still be released after the exception.
-    with pytest.raises(Exception):
+        with pytest.raises(Exception):
 
     @staticmethod
     def test_add_equity_node_with_special_characters():
