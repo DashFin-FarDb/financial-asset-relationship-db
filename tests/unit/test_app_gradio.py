@@ -56,7 +56,8 @@ class TestCreateDatabase:
     @patch("app.real_data_fetcher")
     def test_create_database_tries_multiple_candidates(self, mock_fetcher):
         """Test that _create_database tries multiple function candidates."""
-        mock_graph = MagicMock()
+        from src.logic.asset_graph import AssetRelationshipGraph
+        mock_graph = MagicMock(spec=AssetRelationshipGraph)
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
         result = FinancialAssetApp._create_database()
