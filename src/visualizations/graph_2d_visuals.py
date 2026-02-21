@@ -241,9 +241,10 @@ def visualize_2d_graph(
     ):
         fig.add_trace(trace)
 
-    # Add node trace
-    node_x = [positions[asset_id][0] for asset_id in asset_ids]
-    node_y = [positions[asset_id][1] for asset_id in asset_ids]
+    # Guard: some assets may be absent from positions (e.g. no relationships)
+    positioned_ids = [aid for aid in asset_ids if aid in positions]
+    node_x = [positions[aid][0] for aid in positioned_ids]
+    node_y = [positions[aid][1] for aid in positioned_ids]
 
     # Get colors for nodes
     colors = []
