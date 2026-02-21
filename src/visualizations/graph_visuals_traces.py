@@ -166,6 +166,15 @@ def _validate_and_prepare_directional_arrows_inputs(
 
 
 def _validate_graph(graph: AssetRelationshipGraph):
+    """
+    Validate that the provided graph is a valid AssetRelationshipGraph.
+
+    Checks that graph is an instance of AssetRelationshipGraph and has a relationships dictionary.
+
+    Raises:
+        TypeError: if graph is not an instance of AssetRelationshipGraph.
+        ValueError: if graph.relationships is missing or not a dict.
+    """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
@@ -173,6 +182,12 @@ def _validate_graph(graph: AssetRelationshipGraph):
 
 
 def _prepare_positions(positions) -> np.ndarray:
+    """
+    Convert and validate positions into a (n, 3) numpy array of finite numeric values.
+
+    Raises:
+        ValueError: if positions is None, not a 2D array of shape (n, 3), or contains non-finite values.
+    """
     if positions is None:
         raise ValueError("positions must not be None")
     arr = np.asarray(positions)
@@ -183,40 +198,48 @@ def _prepare_positions(positions) -> np.ndarray:
     return arr
 
 
-def _prepare_asset_ids(asset_ids, positions_arr: np.ndarray) -> list[str]:
+def _prepare_asset_ids(asset_ids, positions_arr: np.ndarray) -> tuple[np.ndarray, list[str]]:
+    """
+    Validate and normalize asset IDs corresponding to provided positions.
+
+    Ensures asset_ids is a list or tuple of non-empty strings matching the number of positions
+    and that positions_arr is a (n, 3) numeric array of finite values.
+    Returns the normalized positions array and list of validated asset IDs.
+
+    Raises:
+        ValueError: if asset_ids is None or length does not match positions, or if positions_arr
+                    has incorrect shape or contains non-finite values.
+        TypeError: if asset_ids is not a list or tuple of strings.
+    """
+    asset_ids_list = _validate_asset_ids(asset_ids, positions_arr.shape[0])
+    positions_clean = _validate_and_normalize_positions(positions_arr)
+    return positions_clean, asset_ids_list
+
+def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
     if asset_ids is None:
         raise ValueError("asset_ids must not be None")
     if not isinstance(asset_ids, (list, tuple)):
         raise TypeError("asset_ids must be a list or tuple of strings")
-    if len(asset_ids) != positions_arr.shape[0]:
+    if len(asset_ids) != expected_len:
         raise ValueError("Length of asset_ids must match number of positions")
+    validated = []
     for idx, aid in enumerate(asset_ids):
         if not isinstance(aid, str) or not aid:
             raise ValueError(f"asset_ids[{idx}] must be a non-empty string")
-    return list(asset_ids)
+        validated.append(aid)
+    return validated
 
+def _validate_and_normalize_positions(positions: np.ndarray) -> np.ndarray:
     if positions.ndim != 2 or positions.shape[1] != 3:
         raise ValueError("Invalid positions shape: expected (n, 3)")
-
     if not np.issubdtype(positions.dtype, np.number):
         try:
             positions = positions.astype(float)
         except Exception as exc:  # noqa: BLE001
             raise ValueError("Invalid positions: values must be numeric") from exc
-
     if not np.isfinite(positions).all():
         raise ValueError("Invalid positions: values must be finite numbers")
-
-    if not isinstance(asset_ids, (list, tuple)):
-        asset_ids = list(asset_ids)
-
-    if len(positions) != len(asset_ids):
-        raise ValueError("positions and asset_ids must have the same length")
-
-    if not all(isinstance(a, str) and a for a in asset_ids):
-        raise ValueError("asset_ids must contain non-empty strings")
-
-    return positions, list(asset_ids)
+    return positions
 
 
 def _create_directional_arrows_traces(

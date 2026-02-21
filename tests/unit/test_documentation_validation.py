@@ -344,7 +344,6 @@ class TestSystemManifest:
         """Test that systemManifest.md has Current Phase section."""
         assert "## Current Phase" in system_manifest_content
 
-
         Assert that the System Manifest declares a current project phase.
 
         Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.

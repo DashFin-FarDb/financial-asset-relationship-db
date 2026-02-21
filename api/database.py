@@ -275,12 +275,11 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """
     Retrieve the first row produced by an SQL query.
-    """
 
     Parameters:
-        query(str): SQL statement to execute.
-        parameters(tuple | list | None): Optional sequence of parameters
-        to bind into the query.
+        query (str): SQL statement to execute.
+        parameters (tuple | list | None): Optional sequence of parameters
+            to bind into the query.
 
     Returns:
         sqlite3.Row | None: The first row of the result set
@@ -295,10 +294,9 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     """
     Fetches the first column value from the first row of a query result.
 
-    """
     Parameters:
-        query(str): SQL query to execute; may include parameter placeholders.
-        parameters(tuple | list | None): Sequence of parameters for the query
+        query (str): SQL query to execute; may include parameter placeholders.
+        parameters (tuple | list | None): Sequence of parameters for the query
             placeholders.
 
     Returns:
