@@ -14,7 +14,7 @@ class TestCLIInputValidation:
     """Test cases for CLI input validation."""
 
     def test_valid_markdown_format(self, tmp_path):
-        """Test CLI accepts valid markdown format."""
+        """Test if the CLI accepts valid markdown format."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
             [
@@ -35,7 +35,7 @@ class TestCLIInputValidation:
         assert "# Financial Asset Relationship Database Schema & Rules" in content
 
     def test_valid_json_format(self, tmp_path):
-        """Test CLI accepts valid json format."""
+        """Test if the CLI accepts valid JSON format."""
         output_file = tmp_path / "report.json"
         result = subprocess.run(
             [
@@ -82,7 +82,7 @@ class TestCLIInputValidation:
         assert "Financial Asset Relationship Database Schema" in content
 
     def test_invalid_format_rejected(self):
-        """Test CLI rejects invalid format."""
+        """Test that the CLI rejects an invalid format."""
         result = subprocess.run(
             [
                 sys.executable,
@@ -102,7 +102,7 @@ class TestCLIInputValidation:
         )
 
     def test_default_format_is_markdown(self, tmp_path):
-        """Test default format is markdown when not specified."""
+        """Test that the default format is markdown when not specified."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
             [
@@ -124,9 +124,9 @@ class TestCLIErrorHandling:
     """Test cases for CLI error handling."""
 
     def test_generic_error_message_on_failure(self, tmp_path, monkeypatch):
-        """Test that CLI shows generic error message on failure."""
         # We can't easily simulate internal errors without mocking,
         # but we can test invalid output path
+        """Test that a generic error message is shown on failure."""
         result = subprocess.run(
             [
                 sys.executable,
@@ -144,22 +144,16 @@ class TestCLIErrorHandling:
         assert "Traceback" not in result.stderr
 
     def test_keyboard_interrupt_handling(self):
-        """Test CLI handles keyboard interrupt gracefully.
-
-        Note: This test documents the expected behavior (exit code 130)
-        but actual testing of SIGINT handling requires process control
-        which is complex in unit tests. The implementation is verified
-        in the main() function at lines 234-237 of schema_report_cli.py.
-        """
         # Documenting expected behavior:
         # When KeyboardInterrupt is raised, CLI should:
         # 1. Log a warning message
         # 2. Print "Operation cancelled by user" to stderr
         # 3. Return exit code 130 (standard for SIGINT)
+        """Test CLI handles keyboard interrupt gracefully."""
         pass
 
     def test_help_message_available(self):
-        """Test that help message is available and formatted properly."""
+        """Test that the help message is available and correctly formatted."""
         result = subprocess.run(
             [sys.executable, ".github/scripts/schema_report_cli.py", "--help"],
             capture_output=True,
@@ -177,7 +171,7 @@ class TestCLIOutputOptions:
     """Test cases for CLI output options."""
 
     def test_stdout_output_when_no_file_specified(self):
-        """Test CLI writes to stdout when no output file specified."""
+        """Test CLI output to stdout when no output file is specified."""
         result = subprocess.run(
             [
                 sys.executable,
@@ -193,7 +187,7 @@ class TestCLIOutputOptions:
         assert "# Financial Asset Relationship Database Schema & Rules" in result.stdout
 
     def test_output_file_creation(self, tmp_path):
-        """Test CLI creates output file."""
+        """Test the creation of the output file by the CLI."""
         output_file = tmp_path / "subdir" / "report.md"
         result = subprocess.run(
             [
@@ -210,7 +204,7 @@ class TestCLIOutputOptions:
         assert output_file.exists()
 
     def test_verbose_mode(self, tmp_path):
-        """Test verbose mode enables additional logging."""
+        """Test the verbose mode for additional logging output."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
             [
@@ -253,7 +247,7 @@ class TestCLIFormatConversion:
         assert "**" in content
 
     def test_text_removes_markdown_formatting(self, tmp_path):
-        """Test text format removes markdown formatting."""
+        """Test that text format removes markdown formatting."""
         output_file = tmp_path / "report.txt"
         subprocess.run(
             [
@@ -276,7 +270,7 @@ class TestCLIFormatConversion:
         assert len(lines_with_headers) == 0  # No markdown headers
 
     def test_json_contains_valid_structure(self, tmp_path):
-        """Test JSON format contains valid structure with expected keys."""
+        """Test JSON format contains expected keys."""
         output_file = tmp_path / "report.json"
         subprocess.run(
             [
@@ -323,7 +317,7 @@ class TestCLIArgumentParsing:
         assert output_file.exists()
 
     def test_short_verbose_flag(self, tmp_path):
-        """Test short -v flag works for verbose."""
+        """Test the short -v flag for verbose output."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
             [
@@ -340,7 +334,7 @@ class TestCLIArgumentParsing:
         assert result.returncode == 0
 
     def test_combined_flags(self, tmp_path):
-        """Test all flags can be combined."""
+        """Test if all flags can be combined successfully."""
         output_file = tmp_path / "report.json"
         result = subprocess.run(
             [
@@ -379,8 +373,8 @@ class TestCLILogging:
         assert log_file.exists()
 
     def test_errors_logged_to_file(self):
-        """Test that errors are logged to the log file."""
         # Trigger an error
+        """Test that errors are logged to the log file."""
         result = subprocess.run(
             [
                 sys.executable,
