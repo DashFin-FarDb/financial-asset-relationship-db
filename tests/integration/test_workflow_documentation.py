@@ -5,11 +5,11 @@ This test suite validates that the documentation file exists, is well-formed,
 contains required sections, and has no broken internal references.
 """
 
-import pytest
 import re
 from pathlib import Path
 from typing import List, Set
 
+import pytest
 
 # Path to the documentation file
 DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMARY.md"
@@ -17,15 +17,15 @@ DOC_FILE = Path(__file__).parent.parent.parent / "TEST_GENERATION_WORKFLOW_SUMMA
 
 class TestDocumentationExists:
     """Test that the documentation file exists and is readable."""
-    
+
     def test_file_exists(self):
         """Test that TEST_GENERATION_WORKFLOW_SUMMARY.md exists."""
         assert DOC_FILE.exists(), f"Documentation file {DOC_FILE} does not exist"
-    
+
     def test_file_is_file(self):
         """Test that the path is a file, not a directory."""
         assert DOC_FILE.is_file(), f"{DOC_FILE} is not a file"
-    
+
     def test_file_is_readable(self):
         """Test that the file can be read."""
         try:
@@ -34,7 +34,7 @@ class TestDocumentationExists:
                 assert len(content) > 0, "Documentation file is empty"
         except Exception as e:
             pytest.fail(f"Could not read documentation file: {e}")
-    
+
     def test_file_extension(self):
         """Test that the file has .md extension."""
         assert DOC_FILE.suffix == ".md", "Documentation file should have .md extension"
@@ -44,9 +44,9 @@ class TestDocumentationExists:
 def doc_content() -> str:
     """
     Load the entire documentation file content as a single string for use by tests.
-    
+
     If the file cannot be found or read, fails the test session via pytest.fail with a descriptive message.
-    
+
     Returns:
         The full text contents of DOC_FILE.
     """
@@ -63,13 +63,13 @@ def doc_content() -> str:
 def doc_lines(doc_content: str) -> List[str]:
     """
     Split the documentation text into a list of lines while preserving original line endings.
-    
+
     Parameters:
         doc_content (str): Full documentation text to split; must be non-empty.
-    
+
     Returns:
         List[str]: Lines from `doc_content` in order, each retaining its trailing newline or line-ending characters.
-    
+
     Raises:
         pytest.fail: If `doc_content` is empty, fails the test session with an explanatory message.
     """
@@ -82,13 +82,13 @@ def doc_lines(doc_content: str) -> List[str]:
 def section_headers(doc_lines: List[str]) -> List[str]:
     """
     Extracts Markdown section header lines from a list of document lines.
-    
+
     Ignores lines inside fenced code blocks delimited by lines that start with "```".
     Returns header lines with surrounding whitespace removed (each line begins with one or more `#` characters).
-    
+
     Parameters:
         doc_lines (List[str]): Lines of the Markdown document.
-    
+
     Returns:
         List[str]: A list of header lines (stripped), e.g. "# Overview", "## Details".
     """
@@ -106,17 +106,16 @@ def section_headers(doc_lines: List[str]) -> List[str]:
     return headers
 
 
-from typing import List, Set
 
-    def test_has_overview(self, section_headers: List[str]):
+   def test_has_overview(self, section_headers: List[str]):
         """Test that there's an Overview section."""
         overview = [h for h in section_headers if 'overview' in h.lower()]
         assert len(overview) > 0, "Should have an Overview section"
 
     def test_has_generated_files_section(self, section_headers: List[str]):
         """Test that there's a section about generated files."""
-        generated = [h for h in section_headers 
-                    if 'generated' in h.lower() or 'file' in h.lower()]
+        generated = [h for h in section_headers
+                     if 'generated' in h.lower() or 'file' in h.lower()]
         assert len(generated) > 0, "Should have a section about generated files"
 
     def test_has_running_section(self, section_headers: List[str]):
