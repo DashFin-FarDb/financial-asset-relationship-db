@@ -1,13 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)",
-      "Bash(/mnt/c/Users/Administrator/Projects/financial-asset-relationship-db/.venv/Scripts/python.exe:*)",
-      "Bash(git checkout:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(git rebase:*)",
-      "Bash(git stash:*)"
+      "Bash(claude doctor)"
     ]
   }
 }

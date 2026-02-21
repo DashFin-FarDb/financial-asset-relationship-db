@@ -28,9 +28,7 @@ def _apply_migration(database_path: Path) -> None:
 
     The migration script is static/trusted (repository-owned), not user-controlled.
     """
-    migrations_path = (
-        Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
-    )
+    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
     sql = migrations_path.read_text(encoding="utf-8")
 
     # executescript() is required for multi-statement DDL migrations.
@@ -58,7 +56,6 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
         engine.dispose()
 
 
-@pytest.mark.integration
 def test_asset_crud_flow(db_session: Session) -> None:
     """CRUD operations for Asset entities: create, read, update, delete."""
     repo = AssetGraphRepository(db_session)
@@ -108,7 +105,6 @@ def test_asset_crud_flow(db_session: Session) -> None:
     assert "EQ1" not in assets  # nosec B101
 
 
-@pytest.mark.integration
 def test_relationship_and_event_crud_flow(db_session: Session) -> None:
     """CRUD operations for relationships and regulatory events."""
     repo = AssetGraphRepository(db_session)
