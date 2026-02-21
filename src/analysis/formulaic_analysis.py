@@ -34,6 +34,10 @@ class Formula:
     category: str
     r_squared: float = 0.0  # Correlation strength if applicable
 
+    @property
+    def formula(self) -> str:
+        """Backward-compatible alias for `expression` used by visualization code."""
+        return self.expression
 
 class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
