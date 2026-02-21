@@ -243,7 +243,6 @@ class FormulaicAnalyzer:
         """
         Create Formula objects that describe correlation and systematic risk measures.
         between assets.
-
         Returns:
             formulas (List[Formula]): A list of Formula objects
                 representing correlation and related statistical risk measures
