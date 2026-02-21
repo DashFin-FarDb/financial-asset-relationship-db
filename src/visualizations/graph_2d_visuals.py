@@ -231,6 +231,11 @@ def visualize_2d_graph(
     ):
         fig.add_trace(trace)
 
+    # Determine which asset IDs have positions and their coordinates
+    positioned_ids = list(positions.keys())
+    node_x = [positions[asset_id][0] for asset_id in positioned_ids]
+    node_y = [positions[asset_id][1] for asset_id in positioned_ids]
+
     # Color mapping by asset class (defined once, outside loop)
     color_map = {
         "equity": "#1f77b4",
@@ -250,11 +255,12 @@ def visualize_2d_graph(
     # Calculate node sizes based on connections
     node_sizes = []
     for asset_id in positioned_ids:
-        # Determine which asset IDs have positions and their coordinates
-    positioned_ids = list(positions.keys())
-    node_x = [positions[asset_id][0] for asset_id in positioned_ids]
-    node_y = [positions[asset_id][1] for asset_id in positioned_ids]
+        num_connections = len(graph.relationships.get(asset_id, []))
+        size = 20 + min(num_connections * 5, 30)  # Size between 20 and 50
+        node_sizes.append(size)
 
+    # Create hover texts
+    hover_texts = []
     for asset_id in positioned_ids:
         asset = graph.assets[asset_id]
         hover_text = f"{asset_id}<br>Class: " + (
