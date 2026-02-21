@@ -10,7 +10,6 @@ import sys
 from pathlib import Path
 
 
-
 class TestCLIInputValidation:
     """Test cases for CLI input validation."""
 
@@ -146,7 +145,7 @@ class TestCLIErrorHandling:
 
     def test_keyboard_interrupt_handling(self):
         """Test CLI handles keyboard interrupt gracefully.
-        
+
         Note: This test documents the expected behavior (exit code 130)
         but actual testing of SIGINT handling requires process control
         which is complex in unit tests. The implementation is verified
