@@ -143,15 +143,7 @@ class TestPackageJson:
 
     @pytest.fixture
     def package_json(self):
-        """
-        Load and parse the frontend/package.json file.
-
-        Returns:
-            dict: Parsed JSON content of frontend/package.json.
-
-        Raises:
-            AssertionError: If frontend/package.json does not exist.
-        """
+        """Load package.json configuration."""
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
 
@@ -235,14 +227,7 @@ class TestTSConfig:
 
     @pytest.fixture
     def tsconfig(self):
-        """
-        Load and parse frontend/tsconfig.json.
-
-        Asserts that the file exists and returns its parsed JSON content.
-
-        Returns:
-            dict: Parsed contents of frontend/tsconfig.json.
-        """
+        """Load tsconfig.json."""
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
 
@@ -334,13 +319,13 @@ class TestEnvExampleFixture:
     @pytest.fixture
     def env_example_content(self):
         """
-        Return the text contents of the repository's .env.example file.
+        Load and return the contents of the .env.example file.
 
         Returns:
-            str: Contents of .env.example.
+            str: The contents of `.env.example`.
 
         Raises:
-            AssertionError: If .env.example does not exist.
+            AssertionError: If `.env.example` does not exist.
         """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
@@ -348,19 +333,13 @@ class TestEnvExampleFixture:
             return f.read()
 
 
+@pytest.mark.unit
 class TestEnvExample:
     """Test cases for .env.example file."""
 
     @pytest.fixture
     def env_example_content(self):
-        """
-        Return the contents of the .env.example file.
-
-        Asserts that .env.example exists; raises AssertionError if it does not.
-
-        Returns:
-            content (str): The full text contents of .env.example.
-        """
+        """Load .env.example content."""
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
         with open(config_path) as f:
@@ -405,15 +384,7 @@ class TestGitignore:
     @staticmethod
     @pytest.fixture
     def gitignore_content():
-        """
-        Load and return the repository's .gitignore file content.
-
-        Returns:
-            str: The raw text contents of `.gitignore`.
-
-        Raises:
-            AssertionError: If `.gitignore` does not exist in the current working directory.
-        """
+        """Load .gitignore content."""
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
 
@@ -477,7 +448,9 @@ class TestRequirementsTxt:
 
         with open(config_path) as f:
             return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
+                line.strip()
+                for line in f
+                if line.strip() and not line.strip().startswith("#")
             ]
 
     @staticmethod
@@ -553,11 +526,7 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_api_url_consistency():
-        """
-        Assert that .env.example documents the NEXT_PUBLIC_API_URL environment variable.
-
-        Reads the .env.example file and fails if the literal `NEXT_PUBLIC_API_URL` is not present.
-        """
+        """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
             env_content = f.read()
@@ -633,14 +602,7 @@ class TestConfigurationSecurityNegative:
 
     @staticmethod
     def test_no_api_keys_in_example_env():
-        """
-        Ensure .env.example does not contain likely real API keys or secrets.
-
-        Skips the test if .env.example is not present. Scans the file for long
-        alphanumeric sequences and known live key prefixes (e.g., "sk_live", "pk_live", "prod_")
-        and fails if a match appears on a line that does not include obvious placeholder
-        words like "your" or "example".
-        """
+        """Negative: .env.example should not contain real API keys."""
         env_example_path = Path(".env.example")
         if not env_example_path.exists():
             pytest.skip(".env.example not found")
@@ -712,11 +674,7 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_package_json_wellformed():
-        """
-        Validate that frontend/package.json contains valid JSON.
-
-        Skips the test if frontend/package.json does not exist. Fails if the file cannot be parsed as JSON or if the top-level JSON value is not a JSON object.
-        """
+        """Malformed: package.json must be valid JSON."""
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -730,11 +688,7 @@ class TestMalformedConfigurationHandling:
 
     @staticmethod
     def test_tsconfig_allows_comments():
-        """
-        Check that frontend/tsconfig.json is either valid JSON or JSONC (contains comments); skip when file is absent or uses comments, and fail only if it's malformed without comments.
-
-        If frontend/tsconfig.json does not exist, the test is skipped. If the file parses as JSON the test passes implicitly; if parsing fails but the file contains comment markers (`//` or `/*`), the test is skipped to allow JSONC; otherwise the test fails.
-        """
+        """Edge: tsconfig.json may have comments (JSONC format)."""
         tsconfig_path = Path("frontend/tsconfig.json")
         if not tsconfig_path.exists():
             pytest.skip("frontend/tsconfig.json not found")
@@ -761,9 +715,7 @@ class TestConfigurationBoundaryValues:
 
     @staticmethod
     def test_vercel_lambda_size_not_excessive():
-        """
-        Ensure Vercel function `maxLambdaSize` values (if present) are between 1 and 250 megabytes.
-        """
+        """Boundary: Lambda size should not be unreasonably large."""
         vercel_path = Path("vercel.json")
         if not vercel_path.exists():
             pytest.skip("vercel.json not found")
@@ -839,18 +791,16 @@ class TestConfigurationRobustness:
 
     @staticmethod
     def test_requirements_no_conflicting_versions():
-        """
-        Ensure requirements.txt does not contain duplicate package entries.
-
-        Skips the test if requirements.txt is missing. Reads non-empty, non-comment lines, normalizes package names by stripping common version specifiers and case, and fails if any package appears more than once.
-        """
+        """Robustness: requirements.txt should not have duplicate packages."""
         requirements_path = Path("requirements.txt")
         if not requirements_path.exists():
             pytest.skip("requirements.txt not found")
 
         with open(requirements_path) as f:
             lines = [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
+                line.strip()
+                for line in f
+                if line.strip() and not line.strip().startswith("#")
             ]
 
         # Extract package names (before ==, >=, etc.)

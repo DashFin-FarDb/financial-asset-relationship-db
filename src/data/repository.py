@@ -33,11 +33,20 @@ from .db_models import (
 def session_scope(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
-    """
-    Provide a transactional scope around a series of operations.
+    """Provide a transactional scope around a series of database operations.
 
-    Tech spec alignment: session_scope is defined in repository.py to provide a
-    standard transaction boundary for repository interactions.
+    Commits on successful exit, rolls back on any exception, and always
+    closes the session.
+
+    Args:
+        session_factory: Zero-argument callable that returns a new Session.
+
+    Yields:
+        Session: The active database session for the duration of the block.
+
+    Raises:
+        Exception: Re-raises any exception that occurs inside the ``with`` block
+            after rolling back the transaction.
     """
     session = session_factory()
     try:

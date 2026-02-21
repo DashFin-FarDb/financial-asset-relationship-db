@@ -30,10 +30,6 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
     "<KEY>",
     "YOUR_KEY",
     "SUPABASE_KEY_HERE",
-    "your-project",
-    "<URL>",
-    "YOUR_URL",
-    "SUPABASE_URL_HERE",
 )
 
 
@@ -48,7 +44,7 @@ def _get_env(name: str) -> Optional[str]:
 
 def _redact(value: str) -> str:
     """Redact a secret value for logs, preserving only the first/last 4 chars."""
-    if len(value) <= 8:
+    if len(value) <= 12:
         return "***"
     return f"{value[:4]}***{value[-4:]}"
 
@@ -70,13 +66,8 @@ def test_supabase_connection_smoke() -> None:
 
     # If you *really* want local .env loading, do it only when explicitly enabled.
     if os.getenv("LOAD_DOTENV") == "1":
-        try:
-            from dotenv import load_dotenv
-
-            load_dotenv()
-
-        except ImportError:
-            pass  # dotenv not installed; proceed without it
+        dotenv = pytest.importorskip("dotenv")
+        dotenv.load_dotenv()
 
     supabase_url = _get_env("SUPABASE_URL")
     supabase_key = _get_env("SUPABASE_KEY")
@@ -86,9 +77,6 @@ def test_supabase_connection_smoke() -> None:
 
     if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
         pytest.skip("SUPABASE_KEY appears to be a placeholder")
-
-    if any(tok in supabase_url for tok in PLACEHOLDER_TOKENS):
-        pytest.skip("SUPABASE_URL appears to be a placeholder")
 
     # Build client
     try:

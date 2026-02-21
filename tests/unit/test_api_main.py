@@ -11,13 +11,11 @@ Notes:
 - Bandit B101 (assert_used) is acceptable in pytest; keep assertions as-is.
 """
 
-# nosec B101
-
 from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, NoReturn
 from unittest.mock import Mock, patch
 
 import api.main as api_main
@@ -47,12 +45,9 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
     """
-    Provide a TestClient configured with a sample in-memory graph and ensure the graph is reset after the test.
+    Shared TestClient fixture with a sample in-memory graph.
 
-    This fixture sets a sample graph on the API, yields a TestClient connected to the application, and restores the previous graph state when the client is torn down.
-
-    Returns:
-        TestClient: A TestClient instance whose backend is seeded with the sample in-memory graph.
+    This matches the default expectation for most endpoint tests: a populated graph.
     """
     api_main.set_graph(create_sample_database())
     tc = TestClient(app)
@@ -64,11 +59,7 @@ def client() -> Iterator[TestClient]:
 
 @pytest.fixture()
 def bare_client() -> TestClient:
-    """
-    Provide a raw TestClient without mutating the global graph.
-
-    This client is intended for tests that patch graph access functions directly (for example, get_graph) or only exercise middleware such as CORS.
-    """
+    """TestClient fixture without forcing any pre-seeded graph."""
     return TestClient(app)
 
 
@@ -351,11 +342,11 @@ class TestAPIEndpoints:
         assert data["total_relationships"] > 0
         assert data["avg_degree"] > 0
         assert data["max_degree"] >= data["avg_degree"]
-        assert 0 <= data["network_density"] <= 100
+        assert 0 <= data["network_density"] <= 1
 
         # If the API includes relationship_density separately, validate its bounds too.
         if "relationship_density" in data:
-            assert 0 <= data["relationship_density"] <= 100
+            assert 0 <= data["relationship_density"] <= 1
 
     def test_get_metrics_no_assets(self, client: TestClient) -> None:
         """Metrics endpoint returns zeros for an empty graph."""
@@ -555,7 +546,7 @@ class TestErrorHandling:
         implementations often use get_graph() internally.
         """
 
-        def _raise() -> AssetRelationshipGraph:
+        def _raise() -> NoReturn:
             """Raise a generic exception to simulate a backend graph access failure."""
             raise Exception("Database error")
 
@@ -590,29 +581,32 @@ class TestErrorHandling:
 # -----------------------
 # CORS middleware behaviour
 # -----------------------
+@pytest.mark.unit
 def test_cors_headers_present(bare_client: TestClient) -> None:
     """Ensure allowed origins receive the expected CORS headers."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
-    assert response.status_code == status.HTTP_200_OK  # nosec B101
-    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN  # nosec B101
-    assert response.headers["access-control-allow-credentials"] == "true"  # nosec B101
+    assert response.status_code == status.HTTP_200_OK
+    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN
+    assert response.headers["access-control-allow-credentials"] == "true"
 
 
+@pytest.mark.unit
 def test_cors_rejects_disallowed_origin(bare_client: TestClient) -> None:
     """Ensure disallowed origins do not receive CORS headers."""
     disallowed_origin = "https://malicious.example.com"
     response = bare_client.get("/api/health", headers={"Origin": disallowed_origin})
 
-    assert response.status_code == status.HTTP_200_OK  # nosec B101
-    assert "access-control-allow-origin" not in response.headers  # nosec B101
-    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin  # nosec B101
+    assert response.status_code == status.HTTP_200_OK
+    assert "access-control-allow-origin" not in response.headers
+    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin
 
 
 @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
+@pytest.mark.unit
 def test_cors_allows_development_origins(bare_client: TestClient) -> None:
     """Allow default dev origins when running in development mode."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
-    assert response.status_code == status.HTTP_200_OK  # nosec B101
+    assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.unit

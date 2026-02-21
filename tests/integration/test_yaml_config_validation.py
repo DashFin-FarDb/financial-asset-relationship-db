@@ -43,11 +43,7 @@ class TestYAMLSyntaxAndStructure:
 
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
-        """
-        Check that YAML files under .github use 2-space indentation while ignoring block scalar contents.
-
-        Scans all .yml and .yaml files under .github and reports any non-empty, non-comment lines whose leading indentation is not a multiple of two spaces. Lines inside block scalars (introduced with `|` or `>`, including optional chomping or indent indicators) are excluded from indentation checks. The test fails with a consolidated list of file paths and line numbers for each indentation violation.
-        """
+        """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
         yaml_files = list(Path(".github").rglob("*.yml")) + list(
             Path(".github").rglob("*.yaml")
         )
@@ -87,9 +83,7 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith(
-                    "  " * (leading_spaces // 2 + 1) + "- |"
-                ):
+                if line[0] == " " and not re.match(r"^\s+-\s*[|>]", line):
                     if leading_spaces % 2 != 0:
                         indentation_errors.append(
                             f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
@@ -141,12 +135,12 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-        Collect and parse all YAML workflow files in .github/workflows.
+        Collects and parses all YAML workflow files found in .github / workflows.
 
         Returns:
-            List[Dict[str, Any]]: A list of mappings for each workflow file with keys:
+            workflows(List[Dict[str, Any]]): A list of dictionaries, each containing:
                 - 'path' (Path): Path to the workflow file.
-                - 'content' (Any): Parsed YAML content from yaml.safe_load (typically a dict, or `None` if the file is empty).
+                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load(typically a dict, or None if the file is empty).
         """
         workflow_dir = Path(".github/workflows")
         workflows = []
@@ -167,17 +161,11 @@ class TestWorkflowSchemaCompliance:
                 - 'content' (dict): parsed YAML content of the workflow
         """
         required_keys = ["name", "jobs"]
-        checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
                 assert key in workflow["content"], (
                     f"Workflow {workflow['path']} missing required key: {key}"
                 )
-            unique_versions = set(checkout_versions.values())
-            # Allow v3 and v4, but should be mostly consistent
-            assert len(unique_versions) <= 2, (
-                f"Too many different checkout versions: {checkout_versions}"
-            )
 
 
 class TestDefaultValueHandling:
@@ -207,9 +195,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Validate `timeout-minutes` values for jobs in workflow files under .github/workflows.
+        Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
 
-        Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive). Assertion messages include the workflow file path and the job id for context.
+        Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive); assertion messages include the workflow file path and job id.
         """
         workflow_dir = Path(".github/workflows")
 

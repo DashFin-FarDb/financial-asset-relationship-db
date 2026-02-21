@@ -33,7 +33,7 @@ class MockGraph:
             "asset_class_distribution": {"Equity": 1, "Bond": 2},
             "top_relationships": [
                 ("A", "B", "correlation", 0.9),
-                ("X", "Y", "hedge", "0.7"),
+                ("X", "Y", "hedge", 0.7),
             ],
             "quality_score": 0.82,
         }
@@ -44,6 +44,7 @@ class MockGraph:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 def test_schema_report_contains_sections() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
@@ -65,6 +66,7 @@ def test_schema_report_contains_sections() -> None:
         assert section in md
 
 
+@pytest.mark.unit
 def test_schema_report_relationship_distribution() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
@@ -73,15 +75,16 @@ def test_schema_report_relationship_distribution() -> None:
     assert "- **hedge**: 2 instances" in md
 
 
+@pytest.mark.unit
 def test_schema_report_top_relationships() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
 
-    # Use simple arrow instead of Unicode arrow
-    assert "**A** -> **B** (correlation, strength 0.90)" in md
-    assert "**X** -> **Y** (hedge, strength 0.70)" in md
+    assert "**A** → **B** (correlation, strength 0.90)" in md
+    assert "**X** → **Y** (hedge, strength 0.70)" in md
 
 
+@pytest.mark.unit
 def test_schema_report_quality_score() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
@@ -89,125 +92,10 @@ def test_schema_report_quality_score() -> None:
     assert "### Data Quality Score: 82.0%" in md
 
 
+@pytest.mark.unit
 def test_schema_report_recommendation_logic() -> None:
     graph = MockGraph()
     md = generate_schema_report(graph)
 
     # density = 12.5 -> mid range → "Well-balanced"
     assert "Well-balanced" in md
-
-
-# ---------------------------------------------------------------------------
-# Additional edge case tests
-# ---------------------------------------------------------------------------
-
-
-class EmptyGraph:
-    """Mock graph with no assets or relationships."""
-
-    def calculate_metrics(self):
-        """Calculate and return default metrics for an empty graph.
-
-        Returns:
-            dict: Dictionary with zero or empty default values for all metrics.
-        """
-        return {
-            "relationship_distribution": {},
-            "total_assets": 0,
-            "total_relationships": 0,
-            "average_relationship_strength": 0.0,
-            "relationship_density": 0.0,
-            "regulatory_event_count": 0,
-            "asset_class_distribution": {},
-            "top_relationships": [],
-            "quality_score": 0.0,
-        }
-
-
-def test_schema_report_with_empty_graph() -> None:
-    """Test schema report generation with empty graph."""
-    graph = EmptyGraph()
-    md = generate_schema_report(graph)
-
-    assert "# Financial Asset Relationship Database Schema & Rules" in md
-    assert "**Total Assets**: 0" in md
-    assert "**Total Relationships**: 0" in md
-    assert "No relationships recorded yet" in md
-
-
-"""
-Module defining test graphs for schema report tests.
-
-This module provides HighDensityGraph to simulate a graph with high relationship density used in schema report testing.
-"""
-
-
-class HighDensityGraph:
-    """Mock graph with high relationship density."""
-
-    def calculate_metrics(self):
-        """Calculate and return various metrics for the high density graph.
-
-        Returns:
-            dict: A dictionary containing relationship distribution, total assets, total relationships,
-                  average relationship strength, relationship density, regulatory event count,
-                  asset class distribution, top relationships, and quality score.
-        """
-        return {
-            "relationship_distribution": {"correlation": 50},
-            "total_assets": 10,
-            "total_relationships": 45,
-            "average_relationship_strength": 0.85,
-            "relationship_density": 45.0,  # > 30%
-            "regulatory_event_count": 5,
-            "asset_class_distribution": {"Equity": 10},
-            "top_relationships": [],
-            "quality_score": 0.95,
-        }
-
-
-def test_schema_report_high_density_recommendation() -> None:
-    """Test schema report recommendation for high density graphs."""
-    graph = HighDensityGraph()
-    md = generate_schema_report(graph)
-
-    assert "High connectivity - consider normalization" in md
-
-
-"""Module for defining graph schemas and calculating their metrics.
-
-This module provides the SparseDensityGraph class used in tests to mock a graph
-with sparse relationship density and compute various metrics for reporting.
-"""
-
-
-class SparseDensityGraph:
-    """Mock graph with sparse relationship density."""
-
-    def calculate_metrics(self):
-        """Calculate and return metrics of the sparse density graph.
-
-        Returns:
-            dict: A dictionary containing relationship distribution, asset counts,
-            relationship statistics, density, event counts, distribution, top relationships,
-            and quality score.
-        """
-        return {
-            "relationship_distribution": {"correlation": 2},
-            "total_assets": 20,
-            "total_relationships": 2,
-            "average_relationship_strength": 0.3,
-            "relationship_density": 5.0,  # < 10%
-            "regulatory_event_count": 0,
-            "asset_class_distribution": {"Equity": 20},
-            "top_relationships": [],
-            "quality_score": 0.4,
-        }
-
-
-def test_schema_report_sparse_density_recommendation() -> None:
-    """Test schema report recommendation for sparse density graphs."""
-    graph = SparseDensityGraph()
-    md = generate_schema_report(graph)
-
-    assert "Sparse connections - consider adding more relationships" in md

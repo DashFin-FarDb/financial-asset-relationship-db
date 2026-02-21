@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
@@ -30,16 +30,18 @@ def get_graph() -> AssetRelationshipGraph:
 # ----------------------------------------------------------------------
 
 
-@router.get("/", summary="Get schema report", response_class=PlainTextResponse)
-def schema_report(format: str = Query("md", regex="^(md|html)$")):
+@router.get("/", summary="Get schema report")
+def schema_report(
+    report_format: str = Query("md", pattern="^(md|html)$"),
+) -> str:
     """
     Return the schema report in Markdown or HTML format.
     """
     graph = get_graph()
 
-    if format == "md":
+    if report_format == "md":
         return generate_markdown_report(graph)
-    if format == "html":
+    if report_format == "html":
         html = generate_html_report(graph)
         return HTMLResponse(content=html)
 
@@ -49,16 +51,13 @@ def schema_report(format: str = Query("md", regex="^(md|html)$")):
 
 @router.get("/raw", summary="Raw export of schema report")
 def schema_report_raw(
-    fmt: str = Query("md", regex="^(md|html)$"),
-):
+    fmt: str = Query("md", pattern="^(md|html)$"),
+) -> dict[str, str]:
     """
     Return the schema report as a downloadable file payload.
     """
     graph = get_graph()
-    try:
-        content = export_report(graph, fmt=fmt)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid format.")
+    content = export_report(graph, fmt=fmt)
 
     return {
         "filename": f"schema_report.{fmt}",

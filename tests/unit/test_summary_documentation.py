@@ -26,7 +26,7 @@ class TestEnhancedTestSummary:
     @pytest.fixture
     def summary_path(self):
         """
-        Provide the filesystem path to the enhanced test summary Markdown file.
+        Provide the path to the enhanced test summary file.
 
         Returns:
             Path: Path to "ENHANCED_TEST_SUMMARY.md".
@@ -98,13 +98,13 @@ class TestEnhancedTestSummary:
 
     def test_summary_valid_markdown_headings(self, summary_content):
         """
-        Validate that every Markdown heading in the given content has a space after the leading `#` characters.
+        Assert that every Markdown heading in the provided content has a space after the leading `  # ` characters.
 
         Parameters:
-            summary_content (str): Full text of the Markdown summary to check.
+            summary_content(str): Full text content of the summary Markdown file to validate.
 
         Raises:
-            AssertionError: If any heading line does not match the pattern `^#+\\s`; message includes the failing line number.
+            AssertionError: If any heading line does not have a space after its `  # ` markers; the error message includes the failing line number.
         """
         lines = summary_content.split("\n")
         for i, line in enumerate(lines, 1):
@@ -116,10 +116,10 @@ class TestEnhancedTestSummary:
 
     def test_summary_no_broken_formatting(self, summary_content):
         """
-        Check that the markdown summary contains no malformed heading markers (each '#' heading is followed by a space).
+        Verify the summary contains no malformed Markdown heading markers(for example, consecutive `  # ` characters without the required space).
 
         Parameters:
-            summary_content (str): Full text of the summary markdown file to validate.
+            summary_content(str): The full text content of the summary markdown file to validate.
         """
         # Check for common markdown issues
         # Ensure no heading markers (e.g., ###) appear without a trailing space
@@ -214,9 +214,7 @@ class TestFinalTestSummary:
         assert re.search(r"\|[-\s|]+\|", summary_content)
 
     def test_summary_valid_markdown_structure(self, summary_content):
-        """
-        Ensure the document's first Markdown heading is level 1 (H1) if any headings exist.
-        """
+        """Validate that a Markdown document top - level heading is H1 when headings are present."""
         lines = summary_content.split("\n")
         # Check heading hierarchy
         heading_levels = []
@@ -238,7 +236,7 @@ class TestDocumentationSummary:
     @pytest.fixture
     def summary_path(self):
         """
-        Return the path to the test documentation summary file.
+        Provide the path to the test documentation summary file.
 
         Returns:
             Path: Path to 'TEST_DOCUMENTATION_SUMMARY.md'.

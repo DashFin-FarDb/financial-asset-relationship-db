@@ -88,14 +88,7 @@ class TestThreadSafeGraph:
         original_release = lock.release
 
         def tracked_acquire(*args, **kwargs):
-            """
-            Record a lock acquisition event and forward the call to the original acquire function.
-
-            Appends an "acquired" marker to the surrounding test's tracking list and returns whatever the wrapped `original_acquire` call returns.
-
-            Returns:
-                The value returned by `original_acquire`.
-            """
+            """Record a lock acquire event and delegate to the original acquire call."""
             lock_acquired.append("acquired")
             return original_acquire(*args, **kwargs)
 
@@ -285,8 +278,6 @@ class TestGet3DLayout:
             ),
             None,
         )
-        assert resource_func is not None, "3d-layout resource not found"
-
         assert resource_func is not None, "3d-layout resource not found"
 
         result = resource_func()
@@ -565,11 +556,7 @@ class TestEdgeCases:
 
     @staticmethod
     def test_get_3d_layout_with_empty_graph():
-        """
-        Verify the 3D-layout resource returns the expected JSON structure when the global graph contains no assets.
-
-        The returned JSON must include the keys: `asset_ids`, `positions`, `colors`, and `hover`.
-        """
+        """Test get_3d_layout with empty graph."""
         from mcp_server import _build_mcp_app, graph
 
         # Clear graph

@@ -31,15 +31,7 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def repository(tmp_path):
-    """
-    Provide a temporary AssetGraphRepository backed by a SQLite database for use in tests.
-
-    Parameters:
-        tmp_path (pathlib.Path): Temporary directory provided by pytest for filesystem isolation.
-
-    Returns:
-        AssetGraphRepository: A repository instance connected to a test SQLite database created under `tmp_path`. The fixture yields the repository and ensures the underlying database session is closed and the engine disposed after the test.
-    """
+    """Create a repository with a test database."""
     db_path = tmp_path / "test_repo.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
@@ -1265,9 +1257,6 @@ class TestBoundaryValues:
 
         rel = repository.get_relationship("NEG1", "NEG2", "negative_corr")
         assert rel.strength == -0.8
-        repository.add_or_update_relationship(
-            "NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False
-        )
 
 
 @pytest.mark.unit
