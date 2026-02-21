@@ -1,15 +1,16 @@
 runtimes:
-  - dart@3.7.2
-  - go@1.22.3
-  - java@17.0.10
+  # Frontend: Next.js, JS, Tailwind, HTML
   - node@22.2.0
+
+  # Backend: Python + Gradio
   - python@3.11.11
+
 tools:
-  - dartanalyzer@3.7.2
+  # JavaScript / TypeScript / Next.js / frontend
   - eslint@8.57.0
-  - lizard@1.17.31
-  - pmd@7.11.0
+
+  # Python backend static analysis (complements ruff/flake8 in CI)
   - pylint@3.3.6
-  - revive@1.7.0
+
+  # Multi-language security/SAST for frontend + backend
   - semgrep@1.78.0
-  - trivy@0.66.0
