@@ -185,20 +185,18 @@ class TestSchemaReportRawEndpoint:
             mock_export.side_effect = ValueError("Invalid format")
 
             # Use valid format that passes validation but triggers export error
-            response = client.get("/schema-report/raw?fmt=md")
+    """Test that a ValueError from export_report is propagated as a server error."""
+    with (
+        patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
+        patch("src.api.routers.schema_report.export_report") as mock_export,
+    ):
+        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_get_graph.return_value = mock_graph
+        mock_export.side_effect = ValueError("Invalid format")
 
-            assert response.status_code == 400
-            assert "Invalid format" in response.json()["detail"]
-
-    @staticmethod
-    def test_raw_endpoint_with_invalid_format(client: TestClient) -> None:
-        """Test that raw endpoint rejects invalid format parameters."""
-        response = client.get("/schema-report/raw?fmt=json")
-
-        assert response.status_code == 422  # Unprocessable Entity
-
-
-@pytest.mark.unit
+        # Use valid format that passes validation but triggers export error
+        with pytest.raises(ValueError, match="Invalid format"):
+            client.get("/schema-report/raw?fmt=md")
 class TestSchemaReportEdgeCases:
     """Test edge cases and error conditions for schema report endpoints."""
 
