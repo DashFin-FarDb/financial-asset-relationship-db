@@ -140,6 +140,8 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
 
     mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
     mock_graph_instance.get_3d_visualization_data_enhanced = graph.get_3d_visualization_data_enhanced
+
+
 @pytest.fixture
 def apply_mock_graph():
     """Return a helper callable that wires the patched graph to a concrete graph."""

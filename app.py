@@ -193,10 +193,7 @@ class FinancialAssetApp:
             relationship_density=metrics.get("relationship_density", 0.0),
             regulatory_event_count=metrics.get("regulatory_event_count", 0),
             asset_class_distribution=json.dumps(
-                average_relationship_strength=metrics.get(
-                    "average_relationship_strength"
-                )
-                or 0.0,
+                average_relationship_strength=metrics.get("average_relationship_strength") or 0.0,
                 indent=2,
             ),
         )
