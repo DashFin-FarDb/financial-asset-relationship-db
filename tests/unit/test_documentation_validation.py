@@ -344,10 +344,10 @@ class TestSystemManifest:
         """Ensure systemManifest.md defines a current phase section.
 
         The manifest must contain a "## Current Phase" heading and a line of the
-        form "- Current Phase: <value>" with a non-empty value.
+        form "- Current Phase: <value>" with a non - empty value.
 
         Parameters:
-            system_manifest_content (str): Full text of the systemManifest.md
+            system_manifest_content(str): Full text of the systemManifest.md
                 file to inspect.
         """
         # Basic structural checks
