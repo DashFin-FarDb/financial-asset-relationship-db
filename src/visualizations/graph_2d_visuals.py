@@ -135,10 +135,10 @@ def _resolve_positions(
         color = REL_TYPE_COLORS.get(rel_type, "#888888")
         trace_name = rel_type.replace("_", " ").title()
 
-        positions_3d = {
-            asset_ids_ordered[i]: tuple(positions_3d_array[i])
-            for i in range(len(asset_ids_ordered))
-        }
+positions_3d = {
+    asset_id: tuple(coords)
+    for asset_id, coords in zip(asset_ids_ordered, positions_3d_array)
+}
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
