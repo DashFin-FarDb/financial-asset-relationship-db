@@ -12,7 +12,7 @@ import enum
 import logging
 import sys
 from pathlib import Path
-from typing import NoReturn, Optional
+from typing import Optional
 
 from src.data.sample_data import create_sample_database
 from src.reports.schema_report import generate_schema_report
