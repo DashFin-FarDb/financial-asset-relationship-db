@@ -63,7 +63,7 @@ class TestCreateDatabase:
 
         assert result == mock_graph
 
-    @patch("app.real_data_fetcher")
+    `@patch`("app.real_data_fetcher")
     def test_create_database_raises_when_no_factory_found(self, mock_fetcher):
         """Test that _create_database raises when no factory is found."""
         # Remove all candidate attributes
@@ -71,6 +71,7 @@ class TestCreateDatabase:
             "create_real_database",
             "create_sample_database",
             "create_database",
+            "create_real_data_database",
         ]:
             if hasattr(mock_fetcher, attr):
                 delattr(mock_fetcher, attr)
