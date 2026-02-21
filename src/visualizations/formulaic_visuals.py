@@ -405,8 +405,8 @@ class FormulaicVisualizer:
 f"{formula.expression}<br><br>"
 # ------------------------------------------------------------------
 
-  @staticmethod
-   def create_correlation_network(
+    @staticmethod
+    def create_correlation_network(
         empirical_relationships: Mapping[str, Any],
     ) -> go.Figure:
         """
