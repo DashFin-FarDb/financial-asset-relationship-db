@@ -206,7 +206,6 @@ class TestSchemaReportEdgeCases:
             mock_get_graph.return_value = mock_graph
             mock_gen_md.return_value = "# Empty Report\n\nNo assets found."
             response = client.get("/schema-report/")
-
             assert response.status_code == 200
             assert "Empty Report" in response.text
 
