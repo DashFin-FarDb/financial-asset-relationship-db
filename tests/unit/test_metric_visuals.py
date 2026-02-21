@@ -88,8 +88,12 @@ class TestVisualizeMetrics:
     def test_relationship_distribution_data(populated_graph):
         """Test that relationship distribution contains correct data."""
         # Add some relationships
-        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
-        populated_graph.add_relationship("TEST_GOLD", "TEST_EUR", "commodity_currency", 0.6)
+        populated_graph.add_relationship(
+            "TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8
+        )
+        populated_graph.add_relationship(
+            "TEST_GOLD", "TEST_EUR", "commodity_currency", 0.6
+        )
 
         # Execute
         _, fig2, _ = visualize_metrics(populated_graph)
@@ -146,7 +150,9 @@ class TestVisualizeMetrics:
         dates = bar_trace.x
 
         # Convert to datetime for comparison
-        datetime_dates = [datetime.fromisoformat(d) if isinstance(d, str) else d for d in dates]
+        datetime_dates = [
+            datetime.fromisoformat(d) if isinstance(d, str) else d for d in dates
+        ]
         sorted_dates = sorted(datetime_dates)
 
         assert datetime_dates == sorted_dates, "Events should be sorted by date"
@@ -212,14 +218,19 @@ class TestVisualizeMetrics:
     def test_visualize_metrics_preserves_graph_state(populated_graph):
         """Test that visualization doesn't modify the graph."""
         initial_asset_count = len(populated_graph.assets)
-        initial_relationship_count = sum(len(rels) for rels in populated_graph.relationships.values())
+        initial_relationship_count = sum(
+            len(rels) for rels in populated_graph.relationships.values()
+        )
 
         # Execute
         visualize_metrics(populated_graph)
 
         # Verify graph state unchanged
         assert len(populated_graph.assets) == initial_asset_count
-        assert sum(len(rels) for rels in populated_graph.relationships.values()) == initial_relationship_count
+        assert (
+            sum(len(rels) for rels in populated_graph.relationships.values())
+            == initial_relationship_count
+        )
 
     @staticmethod
     def test_multiple_asset_classes_distribution(populated_graph):
@@ -233,7 +244,9 @@ class TestVisualizeMetrics:
         bar_trace = fig1.data[0]
         num_classes = len(bar_trace.x)
 
-        assert num_classes >= 2, "Should have at least 2 asset classes in populated graph"
+        assert num_classes >= 2, (
+            "Should have at least 2 asset classes in populated graph"
+        )
         assert len(bar_trace.y) == num_classes, "Should have count for each class"
 
     @staticmethod
@@ -261,7 +274,9 @@ class TestVisualizeMetrics:
         # Verify zero impact is handled correctly
         bar_trace = fig3.data[0]
         assert len(bar_trace.y) > 0, "Should have impact scores"
-        assert 0.0 in bar_trace.y or any(abs(score) < 0.01 for score in bar_trace.y), "Should include zero impact"
+        assert 0.0 in bar_trace.y or any(abs(score) < 0.01 for score in bar_trace.y), (
+            "Should include zero impact"
+        )
 
     @staticmethod
     def test_figure_return_types(empty_graph):
