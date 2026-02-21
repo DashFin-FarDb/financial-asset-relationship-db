@@ -41,6 +41,7 @@ class Formula:
 
 
 
+
 class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
 
