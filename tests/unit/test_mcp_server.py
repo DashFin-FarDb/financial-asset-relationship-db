@@ -37,11 +37,11 @@ class TestThreadSafeGraph:
         lock = threading.Lock()
         safe_graph = _ThreadSafeGraph(graph, lock)
 
-        assert safe_graph._graph is graph
-        assert safe_graph._lock is lock
+        assert safe_graph._graph is graph  # noqa: SLF001
+        assert safe_graph._lock is lock    # noqa: SLF001
 
     @staticmethod
-    def test_thread_safe_graph_callable_attribute_wrapping():
+    def test_thread_safe_graph_callable_attribute_wrapping() -> None:
         """Test that callable attributes are wrapped with lock protection."""
         from mcp_server import _ThreadSafeGraph
 
@@ -49,73 +49,80 @@ class TestThreadSafeGraph:
         lock = threading.Lock()
         safe_graph = _ThreadSafeGraph(graph, lock)
 
-        # Access a callable method
+        # Access a callable method – should be wrapped callable, not raw function
         add_asset_method = safe_graph.add_asset
 
-        # Should return a wrapped callable
         assert callable(add_asset_method)
 
     @staticmethod
-    def test_thread_safe_graph_non_callable_attribute_copy():
+    def test_thread_safe_graph_non_callable_attribute_copy() -> None:
         """Test that non-callable attributes return defensive copies."""
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-        graph.assets = {"TEST": Mock()}
+        graph.assets = {"TEST": Mock()}  # type: ignore[assignment]
         lock = threading.Lock()
         safe_graph = _ThreadSafeGraph(graph, lock)
 
         # Access a non-callable attribute
         assets = safe_graph.assets
 
-        # Should be a deep copy, not the same object
+        # Should be a deep/defensive copy, not the same object
         assert assets is not graph.assets
         assert isinstance(assets, dict)
 
     @staticmethod
-    def test_thread_safe_graph_method_execution_under_lock():
-        """Test that wrapped methods execute under lock protection."""
+    def test_thread_safe_graph_method_execution_under_lock() -> None:
+        """Wrapped graph methods execute under lock protection."""
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
 
         class TrackingLock:
-            """Simple lock-like object that records acquire/release events."""
+            """Lock-like object that records acquire/release events."""
 
             def __init__(self) -> None:
+                """Initialise the tracking lock with an empty event log."""
                 self.events: list[str] = []
 
             def acquire(self, *args, **kwargs) -> bool:  # type: ignore[override]
+                """Record an acquire event and indicate success."""
                 self.events.append("acquired")
                 return True
 
             def release(self, *args, **kwargs) -> None:  # type: ignore[override]
+                """Record a release event."""
                 self.events.append("released")
 
-            def __enter__(self):
+            def __enter__(self) -> "TrackingLock":
+                """Enter the context manager and acquire the lock."""
                 self.acquire()
                 return self
 
-            def __exit__(self, exc_type, exc, tb):
+            def __exit__(self, exc_type, exc, tb) -> None:
+                """Exit the context manager and release the lock."""
                 self.release()
 
         lock = TrackingLock()
+
+        # Replace add_asset with a simple tracker to ensure it is actually called.
+        calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
+
+        def tracking_add_asset(*args: object, **kwargs: object) -> None:
+            """Record calls made to add_asset."""
+            calls.append((args, kwargs))
+
+        graph.add_asset = tracking_add_asset  # type: ignore[assignment]
+
         safe_graph = _ThreadSafeGraph(graph, lock)
 
-        # Call a method
-        equity = Equity(
-            id="TEST",
-            symbol="TST",
-            name="Test",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-        )
-        safe_graph.add_asset(equity)
+        # Act: invoke the wrapped method
+        safe_graph.add_asset("AAPL")  # type: ignore[arg-type]
 
-        # Lock should have been acquired and released
-        assert "acquired" in lock.events
-        assert "released" in lock.events
+        # Assert: lock was acquired and released around the method call
+        assert lock.events == ["acquired", "released"]
+        assert len(calls) == 1
+        assert calls[0][0] == ("AAPL",)
 
 
 @pytest.mark.unit
