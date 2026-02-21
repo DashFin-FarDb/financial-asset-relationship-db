@@ -241,41 +241,36 @@ def visualize_2d_graph(
     ):
         fig.add_trace(trace)
 
-    # Guard: some assets may be absent from positions (e.g. no relationships)
-    positioned_ids = [aid for aid in asset_ids if aid in positions]
-    node_x = [positions[aid][0] for aid in positioned_ids]
-    node_y = [positions[aid][1] for aid in positioned_ids]
+    # Color mapping by asset class (defined once, outside loop)
+    color_map = {
+        "equity": "#1f77b4",
+        "fixed_income": "#2ca02c",
+        "commodity": "#ff7f0e",
+        "currency": "#d62728",
+        "derivative": "#9467bd",
+    }
 
-    # Get colors for nodes
+    # Get colors for positioned nodes
     colors = []
-    for asset_id in asset_ids:
+    for asset_id in positioned_ids:
         asset = graph.assets[asset_id]
         asset_class = (
             asset.asset_class.value
             if hasattr(asset.asset_class, "value")
             else str(asset.asset_class)
         )
-
-        # Color mapping by asset class
-        color_map = {
-            "equity": "#1f77b4",
-            "fixed_income": "#2ca02c",
-            "commodity": "#ff7f0e",
-            "currency": "#d62728",
-            "derivative": "#9467bd",
-        }
         colors.append(color_map.get(asset_class.lower(), "#7f7f7f"))
 
     # Calculate node sizes based on connections
     node_sizes = []
-    for asset_id in asset_ids:
+    for asset_id in positioned_ids:
         num_connections = len(graph.relationships.get(asset_id, []))
         size = 20 + min(num_connections * 5, 30)  # Size between 20 and 50
         node_sizes.append(size)
 
     # Create hover texts
     hover_texts = []
-    for asset_id in asset_ids:
+    for asset_id in positioned_ids:
         asset = graph.assets[asset_id]
         hover_text = f"{asset_id}<br>Class: " + (
             asset.asset_class.value
@@ -294,7 +289,7 @@ def visualize_2d_graph(
             opacity=0.9,
             line=dict(color="rgba(0,0,0,0.8)", width=2),
         ),
-        text=asset_ids,
+        text=positioned_ids,
         hovertext=hover_texts,
         hoverinfo="text",
         textposition="top center",
