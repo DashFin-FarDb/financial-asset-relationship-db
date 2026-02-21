@@ -346,6 +346,8 @@ class TestSystemManifest:
 
         Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
         """
+        assert "- Current Phase:" in system_manifest_content
+        """
         assert "## Current Phase" in system_manifest_content
 
         Parameters:

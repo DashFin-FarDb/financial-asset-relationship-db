@@ -41,10 +41,10 @@ def _create_2d_relationship_traces(
         show_market_cap (bool):
             Flag to show relationships based on market
             capitalization. Defaults to True.
-    """
-        show_correlation(bool):
+        show_correlation (bool):
             Flag to show correlation relationships.
             Defaults to True.
+    """
         show_corporate_bond(bool):
             Flag to show corporate bond relationships.
             Defaults to True.
