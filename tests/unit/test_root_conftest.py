@@ -336,9 +336,7 @@ class TestDocumentationAndCodeQuality:
 
         docstring = conftest.__doc__.lower()
         # Should mention coverage and pytest-cov
-        assert (
-            "coverage" in docstring or "pytest-cov" in docstring or "cov" in docstring
-        )
+        assert "coverage" in docstring or "pytest-cov" in docstring or "cov" in docstring
 
     @staticmethod
     def test_cov_plugin_available_has_docstring():
