@@ -280,11 +280,11 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
     Parameters:
         query(str): SQL statement to execute.
         parameters(tuple | list | None): Optional sequence of parameters
-            to bind into the query.
+        to bind into the query.
 
     Returns:
         sqlite3.Row | None: The first row of the result set
-            as a `sqlite3.Row`, or `None` if the query returned no rows.
+        as a `sqlite3.Row`, or `None` if the query returned no rows.
     """
     with get_connection() as connection:
         cursor = connection.execute(query, parameters or ())

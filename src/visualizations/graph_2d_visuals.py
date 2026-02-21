@@ -94,9 +94,9 @@ def visualize_2d_graph(
 
     if not asset_ids:
         fig.update_layout(
-            title = "2D Asset Relationship Network (No Assets)",
-            plot_bgcolor = "white",
-            paper_bgcolor = "#F8F9FA",
+            title="2D Asset Relationship Network (No Assets)",
+            plot_bgcolor="white",
+            paper_bgcolor="#F8F9FA",
         )
         return fig
 
