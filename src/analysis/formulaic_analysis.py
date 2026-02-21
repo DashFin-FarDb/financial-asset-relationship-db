@@ -34,7 +34,38 @@ class Formula:
     category: str
     r_squared: float = 0.0  # Correlation strength if applicable
 
-    @property
+    def __init__(
+        self,
+        name,
+        expression=None,
+        latex="",
+        description="",
+        variables=None,
+        example_calculation="",
+        category="",
+        r_squared=0.0,
+        formula=None,
+    ):
+        """
+        Initialize a Formula instance, accepting either `expression` or `formula`
+        for backward compatibility.
+
+        If both `expression` and `formula` are provided, `expression` takes
+        precedence. If neither is provided, the expression defaults to an
+        empty string.
+        """
+        if expression is None and formula is not None:
+            expression = formula
+
+        self.name = name
+        self.expression = expression if expression is not None else ""
+        self.latex = latex
+        self.description = description
+        self.variables = variables or {}
+        self.example_calculation = example_calculation
+        self.category = category
+        self.r_squared = r_squared
+
     def formula(self) -> str:
         """Backward-compatible alias for `expression` used by visualization code."""
         return self.expression
