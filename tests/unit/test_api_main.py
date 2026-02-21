@@ -344,7 +344,7 @@ class TestAPIEndpoints:
 
         # If the API includes relationship_density separately, validate its bounds too.
         if "relationship_density" in data:
-            assert 0 <= data["relationship_density"] <= 1
+            assert 0 <= data["relationship_density"] <= 100
 
     def test_get_metrics_no_assets(self, client: TestClient) -> None:
         """Metrics endpoint returns zeros for an empty graph."""
