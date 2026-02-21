@@ -20,7 +20,9 @@ from generate_status import (
     write_output,
 )
 
-scripts_path = Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
+scripts_path = (
+    Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
+)
 sys.path.insert(0, str(scripts_path))
 
 
@@ -329,7 +331,9 @@ class TestWriteOutput:
     @patch("builtins.open", create=True)
     @patch("generate_status.os.environ.get")
     @patch("builtins.print")
-    def test_write_output_with_github_summary(self, mock_print, mock_env_get, mock_open):
+    def test_write_output_with_github_summary(
+        self, mock_print, mock_env_get, mock_open
+    ):
         """Test writing output with GitHub summary."""
         mock_env_get.return_value = "/tmp/github_summary"
         mock_file = MagicMock()
@@ -347,7 +351,9 @@ class TestWriteOutput:
     @patch("builtins.open", create=True)
     @patch("generate_status.os.environ.get")
     @patch("builtins.print")
-    def test_write_output_without_github_summary(self, mock_print, mock_env_get, mock_open):
+    def test_write_output_without_github_summary(
+        self, mock_print, mock_env_get, mock_open
+    ):
         """Test writing output without GitHub summary."""
         mock_env_get.return_value = None
         write_output("Test content")
