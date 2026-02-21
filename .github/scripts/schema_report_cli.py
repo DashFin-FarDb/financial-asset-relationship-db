@@ -20,7 +20,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from src.data.sample_data import create_sample_database
 from src.reports.schema_report import generate_schema_report
 
-
 # Configure logging for detailed diagnostics
 logging.basicConfig(
     level=logging.INFO,

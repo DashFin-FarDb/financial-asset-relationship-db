@@ -42,7 +42,7 @@ python .github/scripts/schema_report_cli.py -v
    - `markdown`
    - `text`
    - `json`
-   
+
    Invalid values are rejected by argparse before any processing occurs.
 
 2. **Exception Handling**: Multi-layered error handling approach:
