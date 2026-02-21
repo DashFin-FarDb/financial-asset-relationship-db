@@ -24,7 +24,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.data.sample_data import create_sample_database  # noqa: E402
 from src.reports.schema_report import generate_schema_report  # noqa: E402
 
-
 # Configure logging for detailed diagnostics
 LOG_PATH = Path(__file__).resolve().parent / "schema_report_cli.log"
 
