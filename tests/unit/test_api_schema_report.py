@@ -197,7 +197,6 @@ class TestSchemaReportEdgeCases:
     @pytest.fixture
     def client() -> TestClient:
         """Create a test client with the router mounted."""
-
         from fastapi import FastAPI
 
         app = FastAPI()
@@ -214,7 +213,6 @@ class TestSchemaReportEdgeCases:
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_gen_md.return_value = "# Empty Report\n\nNo assets found."
-
             response = client.get("/schema-report/")
 
             assert response.status_code == 200
