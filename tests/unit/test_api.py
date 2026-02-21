@@ -148,8 +148,6 @@ def _apply_mock_graph_configuration(
     )
 
 
-
-
 @pytest.fixture
 def apply_mock_graph():
     """Return a helper callable that wires the patched graph to a concrete graph."""
@@ -1053,15 +1051,15 @@ class TestNegativeScenarios:
         """Negative: Metrics with empty graph should not cause division by zero."""
         large_graph.get_3d_visualization_data_enhanced
     )
-    mock_graph_instance.get_3d_visualization_data_enhanced = (
-        large_graph.get_3d_visualization_data_enhanced
-        mock_graph_instance.assets = empty_graph.assets
-        mock_graph_instance.relationships = empty_graph.relationships
-        mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data_enhanced = (
+    large_graph.get_3d_visualization_data_enhanced
+    mock_graph_instance.assets = empty_graph.assets
+    mock_graph_instance.relationships = empty_graph.relationships
+    mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
 
-        # Should not raise ZeroDivisionError
-        response = client.get("/api/metrics")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["total_assets"] == 0
-        assert data["network_density"] == 0
+    # Should not raise ZeroDivisionError
+    response = client.get("/api/metrics")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_assets"] == 0
+    assert data["network_density"] == 0
