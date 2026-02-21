@@ -35,11 +35,10 @@ def _create_2d_relationship_traces(
         graph (AssetRelationshipGraph): The graph containing asset relationships.
         positions (Dict[str, Tuple[float, float]]):
             A dictionary mapping asset IDs to their 2D positions.
-"""
-        asset_ids(List[str]): A list of asset IDs to include in the traces.
-        show_same_sector(bool):
-            Flag to show relationships within the same sector.
-            Defaults to True.
+        asset_ids (List[str]): A list of asset IDs to include in the traces.
+        show_same_sector (bool):
+            Flag to show relationships within the same sector. Defaults to True.
+    """
         show_market_cap(bool):
             Flag to show relationships based on market
             capitalization. Defaults to True.

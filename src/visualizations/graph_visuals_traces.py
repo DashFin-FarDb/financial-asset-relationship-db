@@ -219,6 +219,17 @@ def _prepare_asset_ids(
 
 
 def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
+    """Validate and normalize a list of asset IDs.
+
+    Ensures that asset_ids is a non-None list or tuple of non-empty strings matching expected length.
+
+    Raises:
+        ValueError: if asset_ids is None, length mismatch, or contains invalid IDs.
+        TypeError: if asset_ids is not a list or tuple of strings.
+
+    Returns:
+        A list of validated asset ID strings.
+    """
     if asset_ids is None:
         raise ValueError("asset_ids must not be None")
     if not isinstance(asset_ids, (list, tuple)):
@@ -234,6 +245,17 @@ def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
 
 
 def _validate_and_normalize_positions(positions: np.ndarray) -> np.ndarray:
+    """Validate and normalize position coordinates.
+
+    Ensures positions is a 2D numeric array of shape (n, 3) with finite values,
+    converting to float if necessary.
+
+    Raises:
+        ValueError: if positions shape is invalid, contains non-numeric or non-finite values.
+
+    Returns:
+        A numpy array of shape (n, 3) with float type and finite values.
+    """
     if positions.ndim != 2 or positions.shape[1] != 3:
         raise ValueError("Invalid positions shape: expected (n, 3)")
     if not np.issubdtype(positions.dtype, np.number):
