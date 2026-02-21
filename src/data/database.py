@@ -3,17 +3,25 @@
 from __future__ import annotations
 
 import os
+from typing import TYPE_CHECKING
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-# Canonical transaction helper lives in repository.py per tech spec.
-# Re-export here for backward compatibility with older imports.
-from .repository import session_scope  # noqa: F401
+if TYPE_CHECKING:
+    from .repository import session_scope as session_scope
 
 Base = declarative_base()
+
+__all__ = [
+    "Base",
+    "session_scope",
+    "create_engine_from_url",
+    "create_session_factory",
+    "init_db",
+]
 
 DEFAULT_DATABASE_URL = os.getenv(
     "ASSET_GRAPH_DATABASE_URL",
@@ -49,3 +57,13 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 def init_db(engine: Engine) -> None:
     """Initialise database schema if it has not been created."""
     Base.metadata.create_all(engine)
+
+
+# Re-export session_scope from repository for backward compatibility
+def __getattr__(name: str) -> object:
+    """Lazy import to avoid circular dependency."""
+    if name == "session_scope":
+        from .repository import session_scope
+
+        return session_scope
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
