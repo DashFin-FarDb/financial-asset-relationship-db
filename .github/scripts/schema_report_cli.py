@@ -52,7 +52,7 @@ def generate_html() -> None:
 @app.command("save")
 def save_report(
     out: Path = typer.Argument(..., help="Output file path"),
-    fmt: str = typer.Option("md", help="Output format: md or html"),
+    fmt: str = typer.Option("md", "--fmt", "-f", help="Output format: md or html", case_sensitive=False),
 ) -> None:
     """Save the schema report to a file."""
     graph = load_graph()
