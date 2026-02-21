@@ -33,7 +33,8 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Initialise the RealDataFetcher with optional cache, fallback and network controls.
+        Initialise the RealDataFetcher with optional cache, fallback,
+        and network controls.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None

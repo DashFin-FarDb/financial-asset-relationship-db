@@ -1,9 +1,17 @@
+"""
+Graph visualizations validation module.
+
+Provides functions to validate positions arrays, asset IDs, colors,
+hover texts, filter parameters, relationship filters, and overall
+visualization data coherence.
+"""
 from typing import Dict, List, Optional, Set
 
 import numpy as np
 
 
 def _validate_positions_array(positions: np.ndarray) -> None:
+    """Validate that positions is a 2D numpy array of shape (n, 3) containing finite numeric values."""
     if not isinstance(positions, np.ndarray):
         raise ValueError(
             f"positions must be a numpy array, got {type(positions).__name__}"
@@ -24,6 +32,7 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 
 
 def _validate_asset_ids_list(asset_ids: List[str]) -> None:
+    """Validate that asset_ids is a list or tuple of non-empty strings."""
     if not isinstance(asset_ids, (list, tuple)):
         raise ValueError(
             f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}"
@@ -33,6 +42,7 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 
 
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
+    """Validate that colors is a list or tuple of non-empty strings of the expected length."""
     if not isinstance(colors, (list, tuple)) or len(colors) != expected_length:
         colors_len = len(colors) if isinstance(colors, (list, tuple)) else "N/A"
         raise ValueError(
@@ -44,6 +54,7 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
 
 
 def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> None:
+    """Validate that hover_texts is a list or tuple of non-empty strings of the expected length."""
     if (
         not isinstance(hover_texts, (list, tuple))
         or len(hover_texts) != expected_length
@@ -56,6 +67,7 @@ def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> 
 
 
 def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
+    """Validate that asset_ids contains unique values and raise an error if duplicates are found."""
     if len(set(asset_ids)) == len(asset_ids):
         return
     seen: Set[str] = set()
@@ -73,6 +85,7 @@ def _validate_visualization_data(
     colors: List[str],
     hover_texts: List[str],
 ) -> None:
+    """Validate consistency of visualization data: positions, asset_ids, colors, and hover_texts, and ensure asset_ids uniqueness."""
     _validate_positions_array(positions)
     _validate_asset_ids_list(asset_ids)
     n = len(asset_ids)
@@ -86,6 +99,7 @@ def _validate_visualization_data(
 
 
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
+    """Validate that filter_params is a dictionary with boolean values for each key."""
     if not isinstance(filter_params, dict):
         raise TypeError(
             f"filter_params must be a dictionary, got {type(filter_params).__name__}"
@@ -100,6 +114,7 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 def _validate_relationship_filters(
     relationship_filters: Optional[Dict[str, bool]],
 ) -> None:
+    """Validate that relationship_filters is None or a dictionary with string keys and boolean values."""
     if relationship_filters is None:
         return
     if not isinstance(relationship_filters, dict):

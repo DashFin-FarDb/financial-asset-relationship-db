@@ -1,3 +1,9 @@
+"""
+Graph 2D visualization utilities.
+
+This module provides functions to compute layouts and render asset relationship graphs in 2D using Plotly.
+"""
+
 from typing import Dict, List, Tuple
 
 import plotly.graph_objects as go
@@ -22,6 +28,22 @@ def _resolve_positions(
     layout_type: str,
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
+    """
+    Resolve positions of assets based on the layout type.
+
+    Calculates x and y positions for each asset ID according to the specified layout type.
+    - 'circular': positions assets on a circle.
+    - 'grid': positions assets in a grid.
+    - 'spring': uses 3D data (if available) projected to 2D with a spring layout.
+
+    Parameters:
+        graph: AssetRelationshipGraph
+        layout_type: str
+        asset_ids: List[str]
+
+    Returns:
+        Dict[str, Tuple[float, float]]: Mapping from asset ID to its (x, y) position.
+    """
     if layout_type == "circular":
         return _create_circular_layout(asset_ids)
     if layout_type == "grid":
@@ -43,6 +65,20 @@ def visualize_2d_graph(
     graph: AssetRelationshipGraph,
     layout_type: str = "spring",
     show_same_sector: bool = True,
+) -> go.Figure:
+    """
+    Visualize the asset relationship graph in 2D.
+
+    Creates an interactive Plotly figure displaying nodes and relationships between assets.
+
+    Parameters:
+        graph: AssetRelationshipGraph
+        layout_type: str: layout type ('spring', 'circular', 'grid').
+        show_same_sector: bool: whether to display relationships within the same sector.
+
+    Returns:
+        plotly.graph_objects.Figure: The constructed 2D graph figure.
+    """
     show_market_cap: bool = True,
     show_correlation: bool = True,
     show_corporate_bond: bool = True,

@@ -1,8 +1,16 @@
+"""
+This module provides layout algorithms for positioning assets in 2D visualizations,
+including circular, grid, and spring layouts.
+"""
+
 import math
 from typing import Dict, List, Tuple
 
 
 def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
+    """Creates a circular layout mapping asset IDs to coordinates on a unit circle.
+    Assets are evenly distributed around the circle.
+    """
     if not asset_ids:
         return {}
     n = len(asset_ids)
@@ -28,6 +36,8 @@ def _create_spring_layout_2d(
     positions_3d: Dict[str, Tuple[float, float, float]],
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
+    """Creates a 2D spring layout from 3D positions for the given assets.
+    """
     """Create a 2D spring layout from 3D positions.
 
     This function takes a dictionary of 3D positions and a list of asset IDs,

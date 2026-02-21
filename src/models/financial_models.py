@@ -6,6 +6,7 @@ from typing import List, Optional
 
 # Asset Class Definitions
 class AssetClass(Enum):
+    """An enumeration of possible asset classes, representing categories such as equity, fixed income, commodity, currency, and derivative."""
     EQUITY = "Equity"
     FIXED_INCOME = "Fixed Income"
     COMMODITY = "Commodity"
@@ -14,6 +15,7 @@ class AssetClass(Enum):
 
 
 class RegulatoryActivity(Enum):
+    """An enumeration of regulatory activities for financial assets, including earnings reports, SEC filings, dividend announcements, bond issuances, acquisitions, and bankruptcies."""
     EARNINGS_REPORT = "Earnings Report"
     SEC_FILING = "SEC Filing"
     DIVIDEND_ANNOUNCEMENT = "Dividend Announcement"

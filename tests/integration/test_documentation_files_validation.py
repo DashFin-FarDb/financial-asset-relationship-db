@@ -13,4 +13,10 @@ from typing import List, Tuple
 
 
 class TestDocumentationFilesValidation:
+    """Test suite for validating documentation markdown files in the current branch.
+
+    Ensures that markdown files are parseable, links are correctly formatted,
+    code blocks have proper language identifiers, tables are formatted correctly,
+    and heading hierarchy is followed.
+    """
     pass

@@ -13,6 +13,7 @@ from src.visualizations.graph_visuals import (
 
 
 class DummyGraph(AssetRelationshipGraph):
+    """A dummy graph for testing, extending AssetRelationshipGraph to provide controllable relationships."""
     def __init__(self, relationships):
         # relationships: Dict[str, List[Tuple[str, str, float]]]
         super().__init__()
@@ -36,7 +37,6 @@ def test_rel_type_colors_default():
     """Test that the default relationship type colors mapping returns fallback color for unknown types."""
     # Ensure defaultdict provides fallback color, and direct indexing works without KeyError
     assert REL_TYPE_COLORS["unknown_type"] == "#888888"
-
 
 def test_build_asset_id_index():
     """Test building an index mapping asset IDs to their positions."""

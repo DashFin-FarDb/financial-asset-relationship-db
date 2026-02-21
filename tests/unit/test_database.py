@@ -273,6 +273,10 @@ class TestSessionScope:
         """session_scope should commit on success."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """
+            TestModel represents a simple database model used to verify that
+            session_scope commits transactions on successful operations.
+            """
             __tablename__ = "test_commit"
             id = Column(Integer, primary_key=True)
             value = Column(String)
@@ -293,6 +297,7 @@ class TestSessionScope:
         """session_scope should rollback on error."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """SQLAlchemy model for testing rollback behavior."""
             __tablename__ = "test_rollback"
             id = Column(Integer, primary_key=True)
 
@@ -313,6 +318,7 @@ class TestSessionScope:
         """Integrity errors should propagate after rollback."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """ORM model representing the 'test_integrity' table used to trigger IntegrityError on duplicate primary keys."""
             __tablename__ = "test_integrity"
             id = Column(Integer, primary_key=True)
 
@@ -332,6 +338,7 @@ class TestSessionScope:
         """Multiple operations in one scope should commit atomically."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """ORM model for the test_nested table used in atomic commit tests."""
             __tablename__ = "test_nested"
             id = Column(Integer, primary_key=True)
             value = Column(String)

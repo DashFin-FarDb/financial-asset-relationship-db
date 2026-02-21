@@ -289,32 +289,33 @@ class TestLabelWorkflowChanges:
         checkout_steps = [s for s in steps if "actions/checkout" in s.get("uses", "")]
         assert len(checkout_steps) == 0
 
-    def test_simplified_to_single_step(self, label_workflow):
-        """
-        Assert the label workflow has been simplified to a single actions/labeler step.
+def test_simplified_to_single_step(self, label_workflow):
+    """
+    Assert the label workflow has been simplified to a single actions/labeler step.
 
-        Checks that the 'label' job contains exactly one step and that the step's `uses`
-        reference includes `actions/labeler`.
-        """
-        jobs = label_workflow.get("jobs", {})
-        label_job = jobs.get("label", {})
-        steps = label_job.get("steps", [])
+    Checks that the 'label' job contains exactly one step and that the step's `uses`
+    reference includes `actions/labeler`.
+    """
+    jobs = label_workflow.get("jobs", {})
+    label_job = jobs.get("label", {})
+    steps = label_job.get("steps", [])
 
-        # Should only have the labeler action step
-        assert len(steps) == 1
-        assert "actions/labeler" in steps[0].get("uses", "")
+    # Should only have the labeler action step
+    assert len(steps) == 1
+    assert "actions/labeler" in steps[0].get("uses", "")
 
-    def test_no_conditional_execution(self, label_workflow):
-        """Verify no conditional if statements in steps."""
-        jobs = label_workflow.get("jobs", {})
-        label_job = jobs.get("label", {})
-        steps = label_job.get("steps", [])
+def test_no_conditional_execution(self, label_workflow):
+    """Verify no conditional if statements in steps."""
+    jobs = label_workflow.get("jobs", {})
+    label_job = jobs.get("label", {})
+    steps = label_job.get("steps", [])
 
-        for step in steps:
-            assert "if" not in step, "Steps should not have conditional execution"
+    for step in steps:
+        assert "if" not in step, "Steps should not have conditional execution"
 
 
 class TestAPISecScanWorkflowChanges:
+    """Tests for API security scan workflow changes."""
     pass
 
 

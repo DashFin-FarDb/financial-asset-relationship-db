@@ -1,3 +1,11 @@
+"""
+Module for generating dynamic titles and preparing layout configurations
+for 3D financial asset network visualizations.
+
+This module provides helper functions to generate dynamic titles,
+calculate visible relationships, and prepare layout configurations
+for financial asset network plots.
+"""
 from typing import Dict, List, Optional, Tuple
 
 import plotly.graph_objects as go
@@ -8,10 +16,22 @@ def _generate_dynamic_title(
     num_relationships: int,
     base_title: str = "Financial Asset Network",
 ) -> str:
+    """
+    Generate a dynamic title string for the network visualization.
+
+    Constructs a title using the number of assets and relationships,
+    with an optional base title prefix.
+    """
     return f"{base_title} - {num_assets} Assets, {num_relationships} Relationships"
 
 
 def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) -> int:
+    """
+    Calculate the number of visible relationships.
+
+    Counts the total number of points across all provided Scatter3d traces
+    and estimates the number of relationships by dividing by 3.
+    """
     return sum(len(getattr(t, "x", []) or []) for t in relationship_traces) // 3
 
 
@@ -21,6 +41,12 @@ def _prepare_layout_config(
     base_title: str = "Financial Asset Network",
     layout_options: Optional[Dict[str, object]] = None,
 ) -> Tuple[str, Dict[str, object]]:
+    """
+    Prepare layout configuration for the visualization.
+
+    Calculates a dynamic title based on the number of assets and relationships
+    and returns it alongside layout options, using defaults if none are provided.
+    """
     num_relationships = _calculate_visible_relationships(relationship_traces)
     dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
     return dynamic_title, layout_options or {}

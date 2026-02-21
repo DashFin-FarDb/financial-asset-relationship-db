@@ -1,3 +1,5 @@
+"""This module contains functions to generate Plotly Scatter3d traces for visualizing asset relationship graphs. It includes utilities for styling relationship lines, formatting trace names, and grouping relationship data into Plotly traces."""
+
 from typing import Dict, List, Optional
 
 import numpy as np
@@ -16,6 +18,10 @@ from src.visualizations.graph_visuals_validation import _validate_visualization_
 
 
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
+    """Return a style dictionary for edges based on relationship type and directionality.
+
+    The style includes color, width, and dash pattern depending on whether the connection is bidirectional.
+    """
     return dict(
         color=REL_TYPE_COLORS[rel_type],
         width=4 if is_bidirectional else 2,
@@ -24,6 +30,10 @@ def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
 
 
 def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
+    """Format the trace name for a relationship based on its type and if it is bidirectional.
+
+    Replaces underscores with spaces, applies title casing, and appends an arrow symbol to indicate direction.
+    """
     base = rel_type.replace("_", " ").title()
     return base + (" (↔)" if is_bidirectional else " (→)")
 
@@ -35,6 +45,10 @@ def _create_trace_for_group(
     positions: np.ndarray,
     asset_id_index: Dict[str, int],
 ) -> go.Scatter3d:
+    """Build a Plotly Scatter3d trace for a group of relationships of the same type and direction.
+
+    Generates 3D edge coordinates, constructs hover texts, and applies line styling and naming conventions.
+    """
     edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(
         relationships, positions, asset_id_index
     )
@@ -121,6 +135,16 @@ def _create_directional_arrows(
     asset_ids: List[str],
 ) -> List[go.Scatter3d]:
     """Create diamond markers at 70% along each unidirectional edge."""
+    positions, asset_ids = _validate_and_prepare_directional_arrows_inputs(
+        graph, positions, asset_ids
+    )
+
+
+def _validate_and_prepare_directional_arrows_inputs(
+    graph: AssetRelationshipGraph,
+    positions,
+    asset_ids,
+):
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
@@ -141,6 +165,8 @@ def _create_directional_arrows(
             positions = positions.astype(float)
         except Exception as exc:
             raise ValueError("Invalid positions: values must be numeric") from exc
+
+    return positions, asset_ids
     if not np.isfinite(positions).all():
         raise ValueError("Invalid positions: values must be finite numbers")
     if not all(isinstance(a, str) and a for a in asset_ids):
