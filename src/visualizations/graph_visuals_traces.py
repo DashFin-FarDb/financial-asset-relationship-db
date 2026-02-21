@@ -159,16 +159,41 @@ def _validate_and_prepare_directional_arrows_inputs(
     Returns:
         (positions_array, asset_ids_list)
     """
+    _validate_graph(graph)
+    positions_arr = _prepare_positions(positions)
+    asset_ids_list = _prepare_asset_ids(asset_ids, positions_arr)
+    return positions_arr, asset_ids_list
+
+
+def _validate_graph(graph: AssetRelationshipGraph):
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
         raise ValueError("graph must have a relationships dictionary")
 
-    if positions is None or asset_ids is None:
-        raise ValueError("positions and asset_ids must not be None")
 
-    if not isinstance(positions, np.ndarray):
-        positions = np.asarray(positions)
+def _prepare_positions(positions) -> np.ndarray:
+    if positions is None:
+        raise ValueError("positions must not be None")
+    arr = np.asarray(positions)
+    if arr.ndim != 2 or arr.shape[1] != 3:
+        raise ValueError("positions must be a 2D array with shape (n, 3)")
+    if not np.isfinite(arr).all():
+        raise ValueError("positions must contain finite values")
+    return arr
+
+
+def _prepare_asset_ids(asset_ids, positions_arr: np.ndarray) -> list[str]:
+    if asset_ids is None:
+        raise ValueError("asset_ids must not be None")
+    if not isinstance(asset_ids, (list, tuple)):
+        raise TypeError("asset_ids must be a list or tuple of strings")
+    if len(asset_ids) != positions_arr.shape[0]:
+        raise ValueError("Length of asset_ids must match number of positions")
+    for idx, aid in enumerate(asset_ids):
+        if not isinstance(aid, str) or not aid:
+            raise ValueError(f"asset_ids[{idx}] must be a non-empty string")
+    return list(asset_ids)
 
     if positions.ndim != 2 or positions.shape[1] != 3:
         raise ValueError("Invalid positions shape: expected (n, 3)")

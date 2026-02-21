@@ -119,6 +119,9 @@ def _create_2d_relationship_traces(
                 y=edges_y,
                 mode="lines",
                 line=dict(color=REL_TYPE_COLORS.get(rel_type, "#888888"), width=2),
+            )
+        )
+
 def _create_node_trace(
     graph: AssetRelationshipGraph,
     positions: Dict[str, Tuple[float, float]],

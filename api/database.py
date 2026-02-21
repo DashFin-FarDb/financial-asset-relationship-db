@@ -295,6 +295,7 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     """
     Fetches the first column value from the first row of a query result.
 
+    """
     Parameters:
         query(str): SQL query to execute; may include parameter placeholders.
         parameters(tuple | list | None): Sequence of parameters for the query

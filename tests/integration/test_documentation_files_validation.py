@@ -19,5 +19,3 @@ class TestDocumentationFilesValidation:
     code blocks have proper language identifiers, tables are formatted correctly,
     and heading hierarchy is followed.
     """
-
-    pass

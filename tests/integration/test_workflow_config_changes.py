@@ -319,8 +319,6 @@ def test_no_conditional_execution(self, label_workflow):
 class TestAPISecScanWorkflowChanges:
     """Tests for API security scan workflow changes."""
 
-    pass
-
 
 class TestRequirementsDevChanges:
     """Tests for requirements-dev.txt changes."""

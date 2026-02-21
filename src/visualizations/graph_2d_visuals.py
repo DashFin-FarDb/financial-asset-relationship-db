@@ -65,6 +65,13 @@ def visualize_2d_graph(
     graph: AssetRelationshipGraph,
     layout_type: str = "spring",
     show_same_sector: bool = True,
+    show_market_cap: bool = True,
+    show_correlation: bool = True,
+    show_corporate_bond: bool = True,
+    show_commodity_currency: bool = True,
+    show_income_comparison: bool = True,
+    show_regulatory: bool = True,
+    show_all_relationships: bool = False,
 ) -> go.Figure:
     """
     Visualize the asset relationship graph in 2D.
@@ -79,17 +86,6 @@ def visualize_2d_graph(
     Returns:
         plotly.graph_objects.Figure: The constructed 2D graph figure.
     """
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = False,
-
-
-) -> go.Figure:
-    """Create a 2D visualization of the asset relationship graph."""
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")
 
