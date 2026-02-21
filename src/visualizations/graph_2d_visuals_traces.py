@@ -9,7 +9,6 @@ from src.visualizations.graph_2d_visuals_constants import (
 )
 
 
-
 def _create_2d_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: Dict[str, Tuple[float, float]],
@@ -139,20 +138,20 @@ def _create_node_trace(
             their (x, y) positions.
         asset_ids (List[str]): A list of asset IDs to be included in the trace.
     """
-    node_x = [positions[a][0] for a in asset_ids]
-    node_y = [positions[a][1] for a in asset_ids]
-    colors, hover_texts, node_sizes = [], [], []
+    node_x=[positions[a][0] for a in asset_ids]
+    node_y=[positions[a][1] for a in asset_ids]
+    colors, hover_texts, node_sizes=[], [], []
 
     for asset_id in asset_ids:
-        asset = graph.assets[asset_id]
-        asset_class = (
+        asset=graph.assets[asset_id]
+        asset_class=(
             asset.asset_class.value
             if hasattr(asset.asset_class, "value")
             else str(asset.asset_class)
         )
         colors.append(ASSET_CLASS_COLORS.get(asset_class.lower(), "#7f7f7f"))
         hover_texts.append(f"{asset_id}<br>Class: {asset_class}")
-        num_connections = len(graph.relationships.get(asset_id, []))
+        num_connections=len(graph.relationships.get(asset_id, []))
         node_sizes.append(20 + min(num_connections * 5, 30))
 
     return go.Scatter(

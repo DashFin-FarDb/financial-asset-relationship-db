@@ -36,8 +36,7 @@ def _create_spring_layout_2d(
     positions_3d: Dict[str, Tuple[float, float, float]],
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
-    """Creates a 2D spring layout from 3D positions for the given assets.
-    """
+    """Creates a 2D spring layout from 3D positions for the given assets."""
     """Create a 2D spring layout from 3D positions.
 
     This function takes a dictionary of 3D positions and a list of asset IDs,

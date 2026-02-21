@@ -6,6 +6,7 @@ This module provides helper functions to generate dynamic titles,
 calculate visible relationships, and prepare layout configurations
 for financial asset network plots.
 """
+
 from typing import Dict, List, Optional, Tuple
 
 import plotly.graph_objects as go

@@ -289,6 +289,7 @@ class TestLabelWorkflowChanges:
         checkout_steps = [s for s in steps if "actions/checkout" in s.get("uses", "")]
         assert len(checkout_steps) == 0
 
+
 def test_simplified_to_single_step(self, label_workflow):
     """
     Assert the label workflow has been simplified to a single actions/labeler step.
@@ -304,6 +305,7 @@ def test_simplified_to_single_step(self, label_workflow):
     assert len(steps) == 1
     assert "actions/labeler" in steps[0].get("uses", "")
 
+
 def test_no_conditional_execution(self, label_workflow):
     """Verify no conditional if statements in steps."""
     jobs = label_workflow.get("jobs", {})
@@ -316,6 +318,7 @@ def test_no_conditional_execution(self, label_workflow):
 
 class TestAPISecScanWorkflowChanges:
     """Tests for API security scan workflow changes."""
+
     pass
 
 

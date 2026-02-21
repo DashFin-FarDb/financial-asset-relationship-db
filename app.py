@@ -2,6 +2,7 @@ import json
 import logging
 from dataclasses import asdict
 from typing import Dict, Optional, Tuple
+
 import gradio as gr
 import plotly.graph_objects as go
 
@@ -28,6 +29,7 @@ logger = logging.getLogger(__name__)
 # ------------- Constants -------------
 class AppConstants:
     """Contains application-wide constant values for UI labels, messages, and configuration used by the Financial Asset Relationship Database Visualization application."""
+
     TITLE = "Financial Asset Relationship Database Visualization"
     MARKDOWN_HEADER = """
     # 🏦 Financial Asset Relationship Network
@@ -138,6 +140,7 @@ class FinancialAssetApp:
     Initializes the asset relationship graph using real or sample data,
     provides methods to ensure graph availability and perform analyses.
     """
+
     def __init__(self):
         self.graph: Optional[AssetRelationshipGraph] = None
         self._initialize_graph()

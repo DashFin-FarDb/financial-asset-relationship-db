@@ -5,6 +5,7 @@ Provides functions to validate positions arrays, asset IDs, colors,
 hover texts, filter parameters, relationship filters, and overall
 visualization data coherence.
 """
+
 from typing import Dict, List, Optional, Set
 
 import numpy as np

@@ -86,6 +86,8 @@ def visualize_2d_graph(
     show_income_comparison: bool = True,
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
+
+
 ) -> go.Figure:
     """Create a 2D visualization of the asset relationship graph."""
     if not isinstance(graph, AssetRelationshipGraph):
@@ -96,9 +98,9 @@ def visualize_2d_graph(
 
     if not asset_ids:
         fig.update_layout(
-            title="2D Asset Relationship Network (No Assets)",
-            plot_bgcolor="white",
-            paper_bgcolor="#F8F9FA",
+            title = "2D Asset Relationship Network (No Assets)",
+            plot_bgcolor = "white",
+            paper_bgcolor = "#F8F9FA",
         )
         return fig
 
