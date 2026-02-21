@@ -58,6 +58,7 @@ class TestCreateDatabase:
         """Test that _create_database tries multiple function candidates."""
         from src.logic.asset_graph import AssetRelationshipGraph
 
+
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
