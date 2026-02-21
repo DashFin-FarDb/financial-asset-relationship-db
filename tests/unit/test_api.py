@@ -1051,7 +1051,10 @@ class TestNegativeScenarios:
     @patch("api.main.graph")
     def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
         """Negative: Metrics with empty graph should not cause division by zero."""
-        empty_graph = AssetRelationshipGraph()
+        large_graph.get_3d_visualization_data_enhanced
+    )
+    mock_graph_instance.get_3d_visualization_data_enhanced = (
+        large_graph.get_3d_visualization_data_enhanced
         mock_graph_instance.assets = empty_graph.assets
         mock_graph_instance.relationships = empty_graph.relationships
         mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
