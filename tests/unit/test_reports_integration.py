@@ -162,7 +162,6 @@ class TestGradioIntegration:
 
                 assert result == "# Gradio Report"
                 mock_gen_md.assert_called_once_with(mock_graph)
-
     @staticmethod
     def test_make_gradio_report_fn_html() -> None:
         """Test Gradio report function creation for HTML."""
