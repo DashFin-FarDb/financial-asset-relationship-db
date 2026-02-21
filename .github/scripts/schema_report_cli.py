@@ -45,7 +45,9 @@ def setup_logging(verbose: bool = False) -> logging.Logger:
         Configured logger instance
     """
     log_level = logging.DEBUG if verbose else logging.INFO
-    handlers = [logging.FileHandler(".github/scripts/schema_report_cli.log")]
+    # Use absolute path relative to script location
+    log_file = Path(__file__).parent / "schema_report_cli.log"
+    handlers = [logging.FileHandler(log_file)]
 
     # Only add stderr handler in verbose mode
     if verbose:
@@ -182,12 +184,8 @@ def main() -> int:
     Returns:
         Exit code (0 for success, 1 for error)
     """
-    # Parse arguments first (this validates fmt via choices)
-    try:
-        args = parse_arguments()
-    except SystemExit as e:
-        # argparse calls sys.exit on parse errors, which we catch here
-        return e.code if isinstance(e.code, int) else 1
+    # Parse arguments (argparse will handle --help and validation errors)
+    args = parse_arguments()
 
     # Setup logging
     logger = setup_logging(args.verbose)

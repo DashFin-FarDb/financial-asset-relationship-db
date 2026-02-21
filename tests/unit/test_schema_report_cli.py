@@ -9,7 +9,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
 
 
 class TestCLIInputValidation:
@@ -146,10 +145,19 @@ class TestCLIErrorHandling:
         assert "Traceback" not in result.stderr
 
     def test_keyboard_interrupt_handling(self):
-        """Test CLI handles keyboard interrupt gracefully."""
-        # Note: This is hard to test in practice without actual user interaction
-        # This test documents the expected behavior
-        pass  # Placeholder for documentation
+        """Test CLI handles keyboard interrupt gracefully.
+        
+        Note: This test documents the expected behavior (exit code 130)
+        but actual testing of SIGINT handling requires process control
+        which is complex in unit tests. The implementation is verified
+        in the main() function at lines 234-237 of schema_report_cli.py.
+        """
+        # Documenting expected behavior:
+        # When KeyboardInterrupt is raised, CLI should:
+        # 1. Log a warning message
+        # 2. Print "Operation cancelled by user" to stderr
+        # 3. Return exit code 130 (standard for SIGINT)
+        pass
 
     def test_help_message_available(self):
         """Test that help message is available and formatted properly."""
@@ -228,7 +236,7 @@ class TestCLIFormatConversion:
     def test_markdown_contains_headers(self, tmp_path):
         """Test markdown format contains proper headers."""
         output_file = tmp_path / "report.md"
-        result = subprocess.run(
+        subprocess.run(
             [
                 sys.executable,
                 ".github/scripts/schema_report_cli.py",
@@ -248,7 +256,7 @@ class TestCLIFormatConversion:
     def test_text_removes_markdown_formatting(self, tmp_path):
         """Test text format removes markdown formatting."""
         output_file = tmp_path / "report.txt"
-        result = subprocess.run(
+        subprocess.run(
             [
                 sys.executable,
                 ".github/scripts/schema_report_cli.py",
@@ -271,7 +279,7 @@ class TestCLIFormatConversion:
     def test_json_contains_valid_structure(self, tmp_path):
         """Test JSON format contains valid structure with expected keys."""
         output_file = tmp_path / "report.json"
-        result = subprocess.run(
+        subprocess.run(
             [
                 sys.executable,
                 ".github/scripts/schema_report_cli.py",
