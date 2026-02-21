@@ -1,32 +1,37 @@
 #!/usr/bin/env python3
 """
-Schema Report CLI - Generate financial asset relationship schema reports.
+Schema Report CLI - generate financial asset relationship schema reports.
 
 This CLI tool generates schema reports with validated input options and
-proper error handling that presents generic errors to users while maintaining
-detailed diagnostics in logs.
+proper error handling. User-facing errors stay generic while logs contain
+detailed diagnostics.
 """
+
+from __future__ import annotations
 
 import argparse
 import enum
+import json
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.sample_data import create_sample_database
 from src.reports.schema_report import generate_schema_report
 
-# Add the project root to Python path for imports
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-
-
 # Configure logging for detailed diagnostics
+LOG_PATH = Path(".github/scripts/schema_report_cli.log")
+
+LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler(".github/scripts/schema_report_cli.log"),
+        logging.FileHandler(LOG_PATH),
         logging.StreamHandler(sys.stderr),
     ],
 )
@@ -47,15 +52,13 @@ class OutputFormat(enum.Enum):
 class CLIError(Exception):
     """Base exception for CLI errors with user-friendly messages."""
 
-    pass
-
 
 def parse_arguments() -> argparse.Namespace:
     """
     Parse and validate command-line arguments.
 
     Returns:
-        Validated argument namespace.
+        argparse.Namespace: Validated argument namespace.
     """
     parser = argparse.ArgumentParser(
         description="Generate schema reports for financial asset relationships",
@@ -87,43 +90,65 @@ def parse_arguments() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def generate_report(fmt: str, output: Optional[Path]) -> None:
+def convert_markdown_to_plain_text(markdown: str) -> str:
+    """
+    Naive Markdown-to-text conversion for CLI output.
+
+    Strips a few common Markdown markers but keeps content intact.
+    """
+    lines = []
+    for line in markdown.splitlines():
+        stripped = line.lstrip("# ").lstrip("- ").lstrip("* ")
+        lines.append(stripped)
+    return "\n".join(lines)
+
+
+def convert_markdown_to_json(markdown: str) -> str:
+    """
+    Wrap the Markdown report in a simple JSON structure.
+
+    This is a minimal implementation that can be extended later.
+    """
+    payload = {"schema_report": markdown}
+    return json.dumps(payload, indent=2)
+
+
+def generate_report(fmt: OutputFormat, output: Path | None) -> None:
     """
     Generate and output the schema report.
 
     Args:
-        fmt: Output format (validated enum value).
+        fmt: Output format enum value.
         output: Optional output file path.
 
     Raises:
         CLIError: If report generation fails.
     """
     try:
-        logger.info(f"Generating schema report with format: {fmt}")
+        logger.info("Generating schema report with format: %s", fmt.value)
         graph = create_sample_database()
         report = generate_schema_report(graph)
 
-        # Validate and implement format conversion
-        if fmt == OutputFormat.MARKDOWN.value:
-            formatted = report  # Already markdown
-        elif fmt == OutputFormat.TEXT.value:
+        if fmt is OutputFormat.MARKDOWN:
+            formatted = report
+        elif fmt is OutputFormat.TEXT:
             formatted = convert_markdown_to_plain_text(report)
-        elif fmt == OutputFormat.JSON.value:
+        elif fmt is OutputFormat.JSON:
             formatted = convert_markdown_to_json(report)
         else:
             # Should never reach here due to enum validation
-            raise ValueError(f"Unsupported format: {fmt}")    
+            raise ValueError(f"Unsupported format: {fmt}")
 
-        # Output report
         if output:
-            output.write_text(report)
-            logger.info(f"Report written to: {output}")
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_text(formatted, encoding="utf-8")
+            logger.info("Report written to: %s", output)
         else:
-            print(report)
+            sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
 
-    except Exception as e:
+    except Exception as exc:  # noqa: BLE001
         logger.exception("Failed to generate schema report")
-        raise CLIError("Report generation failed. Check logs for details.") from e
+        raise CLIError("Report generation failed. Check logs for details.") from exc
 
 
 def main() -> int:
@@ -136,31 +161,28 @@ def main() -> int:
     try:
         args = parse_arguments()
 
-        # Configure logging level
         if args.verbose:
             logging.getLogger().setLevel(logging.DEBUG)
             logger.debug("Verbose logging enabled")
 
-        # Validate format (already validated by argparse choices, but convert to enum)
         try:
             output_format = OutputFormat(args.fmt)
-            logger.debug(f"Using output format: {output_format}")
-        except ValueError as e:
-            logger.error(f"Invalid format value: {args.fmt}")
+            logger.debug("Using output format: %s", output_format)
+        except ValueError:
+            logger.error("Invalid format value: %s", args.fmt)
             print(
-                "Error: Invalid output format. Please use one of: markdown, text, json",
+                "Error: Invalid output format. Please use one of: "
+                "markdown, text, json",
                 file=sys.stderr,
             )
             return 1
 
-        # Generate report
-        generate_report(args.fmt, args.output)
+        generate_report(output_format, args.output)
         logger.info("Schema report generation completed successfully")
         return 0
 
-    except CLIError as e:
-        # User-friendly error message (generic)
-        print(f"Error: {e}", file=sys.stderr)
+    except CLIError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
         return 1
 
     except KeyboardInterrupt:
@@ -168,8 +190,7 @@ def main() -> int:
         print("\nOperation cancelled.", file=sys.stderr)
         return 130
 
-    except Exception as e:
-        # Catch-all for unexpected errors - log details but show generic message
+    except Exception:  # noqa: BLE001
         logger.exception("Unexpected error occurred")
         print(
             "Error: An unexpected error occurred. Please check the logs for details.",
