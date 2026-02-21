@@ -502,25 +502,23 @@ class TestEdgeCases:
     """Test edge cases and error conditions."""
 
     @staticmethod
-    def test_thread_safe_graph_with_exception_in_method():
-        """Test that lock is released even if wrapped method raises exception."""
+    def test_thread_safe_graph_with_exception_in_method() -> None:
+        """Lock is released even if wrapped method raises an exception."""
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
         lock = threading.Lock()
         safe_graph = _ThreadSafeGraph(graph, lock)
 
-        # Calling add_asset with invalid data should raise ValueError, but the
-        # lock must still be released after the exception.
+        # Calling add_asset with invalid data should raise ValueError,
+        # but the lock must still be released after the exception.
         with pytest.raises(ValueError):
             safe_graph.add_asset(None)
 
         # Lock should not be held after exception
         acquired = lock.acquire(blocking=False)
-        if acquired:
-            # Calling add_asset with invalid data should raise an exception, but the
-            # lock must still be released after the exception.
-        with pytest.raises(Exception):
+        assert acquired, "Lock should be released after exception"
+        lock.release()
 
     @staticmethod
     def test_add_equity_node_with_special_characters():
