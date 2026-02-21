@@ -402,16 +402,12 @@ class TestIntegrationEdgeCases:
             assert "€$¥£" in result
 
     @staticmethod
-    """
-    Unit tests for the reports integration module, focusing on the Gradio report function behavior.
-    """
-
     def test_make_gradio_report_fn_calls_provider_each_time() -> None:
-        """Test that Gradio report function calls provider each time."""
+        """Gradio report function calls the provider on every invocation."""
         call_count = 0
 
-        def graph_provider():
-            """Provides a mock AssetRelationshipGraph and increments the call count."""
+        def graph_provider() -> AssetRelationshipGraph:
+            """Provide a mock graph and increment the call counter."""
             nonlocal call_count
             call_count += 1
             return MagicMock(spec=AssetRelationshipGraph)
