@@ -188,7 +188,7 @@ def main() -> int:
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user")
         # Remove partial output file if it was being written
-        if getattr(args, "output", None):
+        if "args" in locals() and getattr(args, "output", None):
             output_path = Path(args.output)
             if output_path.exists():
                 output_path.unlink()
