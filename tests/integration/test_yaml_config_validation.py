@@ -22,7 +22,11 @@ class TestYAMLSyntaxAndStructure:
 
     @staticmethod
     def test_all_yaml_files_parse_successfully():
-        """Verify all YAML files have valid syntax."""
+        """
+        Check that every YAML file under .github parses without YAML syntax errors.
+
+        Scans the .github directory recursively for files ending with .yml or .yaml and asserts that loading each file with yaml.safe_load does not raise a yaml.YAMLError.
+        """
         yaml_files = []
 
         # Find all YAML files in .github
@@ -44,7 +48,9 @@ class TestYAMLSyntaxAndStructure:
     @staticmethod
     def test_yaml_files_use_consistent_indentation():
         """Ensure YAML files use consistent 2-space indentation, respecting block scalars."""
-        yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+        yaml_files = list(Path(".github").rglob("*.yml")) + list(
+            Path(".github").rglob("*.yaml")
+        )
         indentation_errors = []
 
         for yaml_file in yaml_files:
@@ -81,7 +87,7 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |"):
+                if line[0] == " " and not re.match(r"^\s+-\s*[|>]", line):
                     if leading_spaces % 2 != 0:
                         indentation_errors.append(
                             f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
@@ -89,19 +95,25 @@ class TestYAMLSyntaxAndStructure:
 
             # Reset flags per file (handled by reinitialization each loop)
 
-        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
+            indentation_errors
+        )
 
 
 def test_no_duplicate_keys_in_yaml():
     """
-    Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate - key errors are collected and cause the test to fail with a consolidated error message.
+    Ensure YAML files under .github parse without duplicate keys or other YAML parsing errors using ruamel.yaml.
+
+    If ruamel.yaml is not available the test is skipped. Parses each `.github/*.yml` and `.github/*.yaml` file with ruamel.yaml.YAML(typ="safe"), collects YAML parsing errors, file I/O errors, and unexpected exceptions with file context, and fails the test if any errors are found.
     """
     try:
         from ruamel.yaml import YAML, YAMLError
     except ImportError:
         pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
 
-    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+    yaml_files = list(Path(".github").rglob("*.yml")) + list(
+        Path(".github").rglob("*.yaml")
+    )
     parser = YAML(typ="safe")
     parse_errors = []
 
@@ -117,6 +129,8 @@ def test_no_duplicate_keys_in_yaml():
         except Exception as e:
             parse_errors.append(f"{yaml_file}: Unexpected error - {e}")
 
+    assert not parse_errors, "YAML errors found:\n" + "\n".join(parse_errors)
+
 
 class TestWorkflowSchemaCompliance:
     """Tests for GitHub Actions workflow schema compliance."""
@@ -125,12 +139,12 @@ class TestWorkflowSchemaCompliance:
     @pytest.fixture
     def all_workflows() -> List[Dict[str, Any]]:
         """
-        Collects and parses all YAML workflow files found in .github / workflows.
+        Collect all GitHub Actions workflow YAML files under .github/workflows and parse each file.
 
         Returns:
-            workflows(List[Dict[str, Any]]): A list of dictionaries, each containing:
-                - 'path' (Path): Path to the workflow file.
-                - 'content' (Any): Parsed YAML content as returned by yaml.safe_load(typically a dict, or None if the file is empty).
+            List[Dict[str, Any]]: A list of mappings for each workflow file with keys:
+                - "path" (Path): Path to the workflow file.
+                - "content" (Any): Parsed YAML content (typically a dict) or `None` if the file is empty.
         """
         workflow_dir = Path(".github/workflows")
         workflows = []
@@ -140,15 +154,23 @@ class TestWorkflowSchemaCompliance:
         return workflows
 
     def test_workflows_have_required_top_level_keys(self, all_workflows):
-        """Verify workflows have all required top - level keys."""
+        """
+        Ensure each GitHub Actions workflow contains the required top-level keys "name" and "jobs".
+
+        Parameters:
+            all_workflows (list): Iterable of workflow descriptors; each item is a dict with:
+                - 'path' (str): filesystem path to the workflow file
+                - 'content' (dict): parsed YAML mapping of the workflow; must contain the required keys
+
+        Notes:
+            Assertions include the workflow file path when a required key is missing.
+        """
         required_keys = ["name", "jobs"]
-        checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
-                assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
-            unique_versions = set(checkout_versions.values())
-            # Allow v3 and v4, but should be mostly consistent
-            assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
+                assert key in workflow["content"], (
+                    f"Workflow {workflow['path']} missing required key: {key}"
+                )
 
 
 class TestDefaultValueHandling:
@@ -157,11 +179,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_missing_optional_fields_have_defaults() -> None:
         """
-        Ensure optional fields in `.github / pr - agent - config.yml` are handled and validated.
+        Validate optional fields in .github/pr-agent-config.yml.
 
-        Asserts that if the top - level 'agent' section includes an 'enabled' key,
-        its value is a boolean. Omission of 'enabled' is permitted and treated
-        as the configuration default.
+        Checks the top-level "agent" mapping in the file; if an "enabled" key is present its value must be a boolean. Omission of "enabled" is allowed and treated as the configuration default.
         """
         config_path = Path(".github/pr-agent-config.yml")
 
@@ -178,9 +198,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Ensure job - level workflow timeouts, when specified, are integers between 1 and 360 minutes.
+        Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
 
-        Checks each YAML file in .github / workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
+        When a job defines `timeout-minutes`, ensure the value is an `int` between 1 and 360 (inclusive). Assertion failures include the workflow file path and job id.
         """
         workflow_dir = Path(".github/workflows")
 
@@ -192,8 +212,12 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(timeout, int), f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    assert 1 <= timeout <= 360, f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    assert isinstance(timeout, int), (
+                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    )
+                    assert 1 <= timeout <= 360, (
+                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
+                    )
 
 
 if __name__ == "__main__":

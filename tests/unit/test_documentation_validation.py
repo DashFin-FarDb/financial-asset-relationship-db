@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
@@ -237,6 +238,7 @@ class TestDependencyMatrix:
                         assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
 
@@ -470,9 +472,12 @@ class TestSystemManifest:
 
     def test_system_manifest_markdown_formatting(self, system_manifest_lines):
         """
-        Verify markdown heading formatting in the System Manifest.
+        Validate that Markdown headings in the System Manifest contain a space after the leading hash characters within the first 500 lines.
 
-        Asserts that, within the first 500 lines, any Markdown heading that begins with one or more `  # ` characters has a space immediately following the leading hash sequence (e.g. `# Title`, `## Section`). The test raises an assertion identifying the line number and content when a heading is missing the required space.
+        Checks each line that starts with one or more `#` characters and asserts there is a single space immediately following the leading hash sequence; on failure raises an AssertionError that includes the 1-based line number and the offending line content.
+
+        Parameters:
+            system_manifest_lines (list[str]): Lines of the system manifest file to inspect.
         """
         for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines
             # Check heading formatting
@@ -485,6 +490,7 @@ class TestSystemManifest:
                         assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestDocumentationConsistency:
     """Test cases for consistency between documentation files."""
 
@@ -616,6 +622,7 @@ class TestDocumentationConsistency:
                 )
 
 
+@pytest.mark.unit
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
 

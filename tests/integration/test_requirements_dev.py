@@ -13,8 +13,6 @@ Policy:
 - Type stub packages (types-*) may omit a version constraint (common in repos).
 """
 
-# nosec B101
-
 from __future__ import annotations
 
 import re
@@ -145,7 +143,11 @@ def test_file_ends_with_newline() -> None:
 def test_no_trailing_whitespace() -> None:
     """Ensure no line contains trailing whitespace (excluding the newline)."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines(True)
-    lines_with_trailing = [(i + 1, line) for i, line in enumerate(lines) if line.rstrip("\n") != line.rstrip()]
+    lines_with_trailing = [
+        (i + 1, line)
+        for i, line in enumerate(lines)
+        if line.rstrip("\n") != line.rstrip()
+    ]
     assert lines_with_trailing == []
 
 
@@ -233,9 +235,17 @@ def test_version_specifiers_are_valid(
     parsed_requirements: list[tuple[str, str]],
 ) -> None:
     """
-    Validate that each non-empty specifier string is acceptable in practice.
+    Validate that each non-empty version specifier in parsed_requirements is syntactically acceptable.
 
-    Allows compound constraints like ">=6.0,<7.0" and operators like "!=".
+    Parameters:
+        parsed_requirements (list[tuple[str, str]]): Sequence of (package_token, normalized_specifier) pairs as produced by parse_requirements; specifier may be an empty string to indicate no constraint.
+
+    Description:
+        Accepts compound specifiers separated by commas (e.g. ">=6.0,<7.0") and the operators >=, ==, <=, ~=, !=, >, and <.
+        For each non-empty specifier it asserts every comma-separated part begins with one of the allowed operators and is followed by a version token that starts with a digit.
+
+    Raises:
+        AssertionError: If a specifier is empty, contains an invalid or missing operator, or does not contain a numeric version after the operator. The assertion message includes the offending package and specifier.
     """
     # Longest-first prevents accidental matches of ">" before ">=", etc.
     allowed_ops: tuple[str, ...] = (">=", "==", "<=", "~=", "!=", ">", "<")
@@ -259,7 +269,9 @@ def test_version_specifiers_are_valid(
             assert op is not None, f"Invalid operator in spec '{spec}' for {pkg}"
 
             tail = part[len(op) :].strip()
-            assert tail and tail[0].isdigit(), f"Invalid version in spec '{spec}' for {pkg}"
+            assert tail and tail[0].isdigit(), (
+                f"Invalid version in spec '{spec}' for {pkg}"
+            )
 
 
 # -----------------------
@@ -279,10 +291,18 @@ def test_types_pyyaml_present(package_names: list[str]) -> None:
 
 def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> None:
     """Ensure PyYAML specifies a minimum supported version (>=6.0)."""
-    pyyaml_specs = [ver for pkg, ver in parsed_requirements if _normalize_name_for_dupe_check(pkg) == "pyyaml"]
+    pyyaml_specs = [
+        ver
+        for pkg, ver in parsed_requirements
+        if _normalize_name_for_dupe_check(pkg) == "pyyaml"
+    ]
     assert len(pyyaml_specs) == 1
-    assert pyyaml_specs[0].startswith(">="), "PyYAML should use a minimum version constraint"
-    assert pyyaml_specs[0].startswith(">=6.0"), f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
+    assert pyyaml_specs[0].startswith(">="), (
+        "PyYAML should use a minimum version constraint"
+    )
+    assert pyyaml_specs[0].startswith(">=6.0"), (
+        f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
+    )
 
 
 def test_type_stubs_have_base_packages(
@@ -295,4 +315,6 @@ def test_type_stubs_have_base_packages(
         norm = _normalize_name_for_dupe_check(pkg)
         if norm.startswith("types_"):
             base = norm.removeprefix("types_")
-            assert base in lowered, f"Type stub package '{pkg}' has no corresponding base package"
+            assert base in lowered, (
+                f"Type stub package '{pkg}' has no corresponding base package"
+            )
