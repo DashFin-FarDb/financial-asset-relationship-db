@@ -36,10 +36,10 @@ class OutputFormat(str, Enum):
 
 def setup_logging(verbose: bool = False) -> logging.Logger:
     """Configure logging for the CLI.
-    
+
     Args:
         verbose (bool): If True, set log level to DEBUG; otherwise INFO.
-    
+
     Returns:
         logging.Logger: Configured logger instance.
     """
@@ -62,7 +62,7 @@ def setup_logging(verbose: bool = False) -> logging.Logger:
 
 def format_as_json(metrics: Dict[str, Any]) -> str:
     """Format metrics as a JSON string.
-    
+
     Args:
         metrics: Dictionary of calculated metrics.
     """
@@ -109,9 +109,7 @@ def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
                 return report
 
     except Exception as e:
-        logger.error(
-            f"Failed to generate report: {type(e).__name__}: {e}", exc_info=True
-        )
+        logger.error(f"Failed to generate report: {type(e).__name__}: {e}", exc_info=True)
         raise ValueError("Report generation failed") from e
 
 
@@ -141,13 +139,9 @@ Examples:
         help=f"Output format (default: {OutputFormat.MARKDOWN.value})",
     )
 
-    parser.add_argument(
-        "--output", "-o", type=str, help="Output file path (default: stdout)"
-    )
+    parser.add_argument("--output", "-o", type=str, help="Output file path (default: stdout)")
 
-    parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
-    )
+    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
 
     return parser.parse_args()
 
@@ -155,7 +149,7 @@ Examples:
 def main() -> int:
     # Parse arguments (argparse will handle --help and validation errors)
     """def main() -> int:
-    
+
     Main CLI entry point.  This function serves as the main entry point for the
     command-line interface (CLI) of the schema report generator.  It handles
     argument parsing, logging setup, and the generation of the report based on the
