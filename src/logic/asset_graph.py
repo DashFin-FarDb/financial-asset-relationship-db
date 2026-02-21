@@ -315,7 +315,7 @@ class AssetRelationshipGraph:
     ) -> None:
         """
         Add a relationship from source_id to target_id if a relationship with the same
-            target and type does not already exist.
+        "regulatory_impact",
 
         Parameters:
             source_id (str): ID of the source asset whose relationship list will
