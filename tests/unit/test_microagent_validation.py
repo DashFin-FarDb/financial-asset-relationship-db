@@ -618,9 +618,7 @@ class TestMicroagentPerformance(TestMicroagentValidation):
             assert file_size < 100000, (
                 f"{file_path.name} is too large ({file_size} bytes)"
             )
-            assert file_size > 50, (
-                f"{file_path.name} is too small ({file_size} bytes)"
-            )
+            assert file_size > 50, f"{file_path.name} is too small ({file_size} bytes)"
 
     @staticmethod
     def test_all_microagents_parse_quickly(
@@ -658,9 +656,7 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                     f"({word_count} words)"
                 )
             except ValueError as exc:
-                pytest.skip(
-                    f"{file_path.name} has unparseable frontmatter: {exc}"
-                )
+                pytest.skip(f"{file_path.name} has unparseable frontmatter: {exc}")
 
     def test_all_microagents_use_markdown_formatting(
         self,
@@ -683,13 +679,9 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                         "`" in body,
                     ]
                 )
-                assert has_markdown, (
-                    f"{file_path.name} should use markdown formatting"
-                )
+                assert has_markdown, f"{file_path.name} should use markdown formatting"
             except ValueError as exc:
-                pytest.skip(
-                    f"{file_path.name} has unparseable frontmatter: {exc}"
-                )
+                pytest.skip(f"{file_path.name} has unparseable frontmatter: {exc}")
 
 
 @pytest.mark.unit
