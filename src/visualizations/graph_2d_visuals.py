@@ -250,7 +250,7 @@ def visualize_2d_graph(
     # Calculate node sizes based on connections
     node_sizes = []
     for asset_id in positioned_ids:
-    # Determine which asset IDs have positions and their coordinates
+        # Determine which asset IDs have positions and their coordinates
     positioned_ids = list(positions.keys())
     node_x = [positions[asset_id][0] for asset_id in positioned_ids]
     node_y = [positions[asset_id][1] for asset_id in positioned_ids]
