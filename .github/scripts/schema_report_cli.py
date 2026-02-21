@@ -14,11 +14,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict
 
-from src.data.sample_data import create_sample_database
-from src.reports.schema_report import generate_schema_report
-
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+from src.data.sample_data import create_sample_database  # noqa: E402
+from src.reports.schema_report import generate_schema_report  # noqa: E402
 
 
 class OutputFormat(str, Enum):
