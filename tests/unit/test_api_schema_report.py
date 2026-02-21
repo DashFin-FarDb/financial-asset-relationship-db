@@ -191,6 +191,7 @@ class TestSchemaReportEdgeCases:
         """Create a test client with the router mounted."""
         from fastapi import FastAPI
 
+
         app = FastAPI()
         app.include_router(router)
         return TestClient(app)
