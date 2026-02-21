@@ -135,6 +135,7 @@ def _resolve_positions(
         color = REL_TYPE_COLORS.get(rel_type, "#888888")
         trace_name = rel_type.replace("_", " ").title()
 
+
 positions_3d = {
     asset_id: tuple(coords)
     for asset_id, coords in zip(asset_ids_ordered, positions_3d_array)
