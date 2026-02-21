@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Optional
 
 import typer
-
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
     export_report,
@@ -52,9 +51,7 @@ def generate_html() -> None:
 @app.command("save")
 def save_report(
     out: Path = typer.Argument(..., help="Output file path"),
-    fmt: str = typer.Option(
-        "md", "--fmt", "-f", help="Output format: md or html", case_sensitive=False
-    ),
+    fmt: str = typer.Option("md", "--fmt", "-f", help="Output format: md or html", case_sensitive=False),
 ) -> None:
     """Save the schema report to a file."""
     graph = load_graph()
