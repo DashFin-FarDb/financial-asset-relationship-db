@@ -19,10 +19,17 @@ class TestCLIInputValidation:
         """Test CLI accepts valid markdown format."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "markdown", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "markdown",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert output_file.exists()
@@ -33,10 +40,17 @@ class TestCLIInputValidation:
         """Test CLI accepts valid json format."""
         output_file = tmp_path / "report.json"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "json", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "json",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert output_file.exists()
@@ -50,10 +64,17 @@ class TestCLIInputValidation:
         """Test CLI accepts valid text format."""
         output_file = tmp_path / "report.txt"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "text", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "text",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert output_file.exists()
@@ -65,23 +86,36 @@ class TestCLIInputValidation:
     def test_invalid_format_rejected(self):
         """Test CLI rejects invalid format."""
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "invalid"],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "invalid",
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode != 0
         # Should show error about invalid choice
-        assert "invalid choice" in result.stderr.lower() or "error" in result.stderr.lower()
+        assert (
+            "invalid choice" in result.stderr.lower()
+            or "error" in result.stderr.lower()
+        )
 
     def test_default_format_is_markdown(self, tmp_path):
         """Test default format is markdown when not specified."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         content = output_file.read_text()
@@ -96,10 +130,15 @@ class TestCLIErrorHandling:
         # We can't easily simulate internal errors without mocking,
         # but we can test invalid output path
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--output", "/invalid/path/report.md"],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--output",
+                "/invalid/path/report.md",
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode != 0
         # Should show generic error, not raw exception
@@ -118,7 +157,7 @@ class TestCLIErrorHandling:
             [sys.executable, ".github/scripts/schema_report_cli.py", "--help"],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert "--fmt" in result.stdout
@@ -133,10 +172,15 @@ class TestCLIOutputOptions:
     def test_stdout_output_when_no_file_specified(self):
         """Test CLI writes to stdout when no output file specified."""
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "markdown"],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "markdown",
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert "# Financial Asset Relationship Database Schema & Rules" in result.stdout
@@ -145,10 +189,15 @@ class TestCLIOutputOptions:
         """Test CLI creates output file."""
         output_file = tmp_path / "subdir" / "report.md"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert output_file.exists()
@@ -157,10 +206,16 @@ class TestCLIOutputOptions:
         """Test verbose mode enables additional logging."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--verbose", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--verbose",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         # In verbose mode, we expect more logging output to stderr
@@ -174,10 +229,17 @@ class TestCLIFormatConversion:
         """Test markdown format contains proper headers."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "markdown", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "markdown",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         content = output_file.read_text()
         assert "##" in content
@@ -187,28 +249,44 @@ class TestCLIFormatConversion:
         """Test text format removes markdown formatting."""
         output_file = tmp_path / "report.txt"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "text", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "text",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         content = output_file.read_text()
         # Should have minimal markdown formatting
-        lines_with_headers = [line for line in content.split('\n') if line.startswith('#')]
+        lines_with_headers = [
+            line for line in content.split("\n") if line.startswith("#")
+        ]
         assert len(lines_with_headers) == 0  # No markdown headers
 
     def test_json_contains_valid_structure(self, tmp_path):
         """Test JSON format contains valid structure with expected keys."""
         output_file = tmp_path / "report.json"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--fmt", "json", "--output", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--fmt",
+                "json",
+                "--output",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         content = output_file.read_text()
         data = json.loads(content)
-        
+
         # Check for expected keys
         assert "total_assets" in data
         assert "total_relationships" in data
@@ -224,10 +302,15 @@ class TestCLIArgumentParsing:
         """Test short -o flag works for output."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "-o", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "-o",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert output_file.exists()
@@ -236,10 +319,16 @@ class TestCLIArgumentParsing:
         """Test short -v flag works for verbose."""
         output_file = tmp_path / "report.md"
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "-v", "-o", str(output_file)],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "-v",
+                "-o",
+                str(output_file),
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
 
@@ -248,15 +337,17 @@ class TestCLIArgumentParsing:
         output_file = tmp_path / "report.json"
         result = subprocess.run(
             [
-                sys.executable, 
+                sys.executable,
                 ".github/scripts/schema_report_cli.py",
-                "--fmt", "json",
-                "--output", str(output_file),
-                "--verbose"
+                "--fmt",
+                "json",
+                "--output",
+                str(output_file),
+                "--verbose",
             ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
         assert output_file.exists()
@@ -272,10 +363,10 @@ class TestCLILogging:
             [sys.executable, ".github/scripts/schema_report_cli.py"],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode == 0
-        
+
         # Check log file exists
         log_file = Path(".github/scripts/schema_report_cli.log")
         assert log_file.exists()
@@ -284,13 +375,18 @@ class TestCLILogging:
         """Test that errors are logged to the log file."""
         # Trigger an error
         result = subprocess.run(
-            [sys.executable, ".github/scripts/schema_report_cli.py", "--output", "/invalid/path/report.md"],
+            [
+                sys.executable,
+                ".github/scripts/schema_report_cli.py",
+                "--output",
+                "/invalid/path/report.md",
+            ],
             capture_output=True,
             text=True,
-            cwd=Path.cwd()
+            cwd=Path.cwd(),
         )
         assert result.returncode != 0
-        
+
         # Check that log file contains error details
         log_file = Path(".github/scripts/schema_report_cli.log")
         if log_file.exists():
