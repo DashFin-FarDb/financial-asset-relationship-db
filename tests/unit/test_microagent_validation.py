@@ -64,7 +64,6 @@ class TestMicroagentValidation:
 
         return frontmatter, body
 
-
 @pytest.mark.unit
 class TestRepoEngineerLead(TestMicroagentValidation):
     """Test cases for repo_engineer_lead.md microagent."""
