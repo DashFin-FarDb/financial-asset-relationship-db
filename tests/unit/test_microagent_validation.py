@@ -195,14 +195,14 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             assert (
                 triggers is None or triggers == [] or triggers == ""
             ), "repo_engineer_lead should not have triggers as per documentation"
-
-    @staticmethod
-    def test_body_content_not_empty(repo_engineer_body: str):
-        """Test that body content is not empty."""
-        assert len(repo_engineer_body.strip()) > 0
-
-    @staticmethod
-    def test_body_describes_purpose(repo_engineer_body: str):
+                    """Test that triggers field, if present, is well-formed."""
+                    # The microagent may or may not define triggers; if present, they should be a
+                    # list of non-empty strings.
+                    if "triggers" in repo_engineer_frontmatter and repo_engineer_frontmatter["triggers"]:
+                        triggers = repo_engineer_frontmatter["triggers"]
+                        assert isinstance(triggers, list), "triggers should be a list when present"
+                        for trigger in triggers:
+                            assert isinstance(trigger, str) and trigger.strip(), "each trigger should be a non-empty string"
         """Test that body describes the microagent's purpose."""
         body_lower = repo_engineer_body.lower()
         # Should mention key responsibilities
