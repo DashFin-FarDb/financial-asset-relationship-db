@@ -5,6 +5,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+import typer
+
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
     export_report,
