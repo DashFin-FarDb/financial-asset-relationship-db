@@ -38,6 +38,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+
 class OutputFormat(enum.Enum):
     """Constrained enum for valid output formats."""
 
@@ -171,8 +172,7 @@ def main() -> int:
         except ValueError:
             logger.error("Invalid format value: %s", args.fmt)
             print(
-                "Error: Invalid output format. Please use one of: "
-                "markdown, text, json",
+                "Error: Invalid output format. Please use one of: " "markdown, text, json",
                 file=sys.stderr,
             )
             return 1
