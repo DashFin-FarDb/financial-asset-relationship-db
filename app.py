@@ -334,18 +334,66 @@ class FinancialAssetApp:
             formulaic_analyzer = FormulaicdAnalyzer()
             formulaic_visualizer = FormulaicVisualizer()
 
+    def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
+        """Generate comprehensive formulaic analysis of the asset graph."""
+        try:
+            logger.info("Generating formulaic analysis")
+            graph = self.ensure_graph() if graph_state is None else graph_state
+
+            # Initialize analyzers
+            formulaic_analyzer = FormulaicdAnalyzer()
+            formulaic_visualizer = FormulaicVisualizer()
+
             # Perform analysis
             analysis_results = formulaic_analyzer.analyze_graph(graph)
+
+            # Defensive checks: ensure we got a usable mapping back
+            if not analysis_results or not isinstance(analysis_results, dict):
+                raise ValueError("Formulaic analysis failed: No results returned.")
+
+            # Use `.get()` with defaults to avoid KeyError/None surprises downstream
+            empirical_relationships = analysis_results.get("empirical_relationships") or {}
+            formulas = analysis_results.get("formulas") or []
+            summary = analysis_results.get("summary") or {}
 
             # Generate visualizations
             dashboard_fig = formulaic_visualizer.create_formula_dashboard(analysis_results)
             correlation_network_fig = formulaic_visualizer.create_correlation_network(
-                analysis_results.get("empirical_relationships", {})
+                empirical_relationships
             )
             metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
 
             # Generate formula selector options
-            formulas = analysis_results.get("formulas", [])
+            formula_choices = [f.name for f in formulas]
+
+            # Generate summary
+            summary_text = self._format_formula_summary(summary, analysis_results)
+
+            logger.info("Generated formulaic analysis with %d formulas", len(formulas))
+            return (
+                dashboard_fig,
+                correlation_network_fig,
+                metric_comparison_fig,
+                gr.update(
+                    choices=formula_choices,
+                    value=formula_choices[0] if formula_choices else None,
+                ),
+                summary_text,
+                gr.update(visible=False),  # Hide error message
+            )
+
+        except Exception as e:
+            logger.error("Error generating formulaic analysis: %s", e)
+            empty_fig = go.Figure()
+            error_msg = f"Error generating formulaic analysis: {str(e)}"
+            return (
+                empty_fig,
+                empty_fig,
+                empty_fig,
+                gr.update(choices=[], value=None),
+                error_msg,
+                gr.update(value=error_msg, visible=True),
+            )
             formula_choices = [f.name for f in formulas]
 
             # Generate summary
@@ -382,10 +430,10 @@ class FinancialAssetApp:
     def show_formula_details(formula_name: str, graph_state: AssetRelationshipGraph):
         """Show detailed view of a specific formula."""
         try:
-            # Placeholder implementation: return an empty figure and hide any error message.
+            # Placeholder implementation returning an empty figure and hidden message
             return (
                 go.Figure(),
-                gr.update(value=None, visible=False),
+                gr.update(value="", visible=False),
             )
         except Exception as e:
             logger.error("Error showing formula details: %s", e)
