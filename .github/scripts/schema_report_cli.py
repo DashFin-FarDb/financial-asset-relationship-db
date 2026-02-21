@@ -187,12 +187,15 @@ def main() -> int:
         return 1
 
     except KeyboardInterrupt:
-    logger.info("Operation cancelled by user")
-    if output and output.exists():
-        output.unlink()  # Remove partial output
-        logger.debug(f"Removed partial output file: {output}")
-    print("\nOperation cancelled.", file=sys.stderr)
-    return 130
+        logger.info("Operation cancelled by user")
+        # Remove partial output file if it was being written
+        if getattr(args, "output", None):
+            output_path = Path(args.output)
+            if output_path.exists():
+                output_path.unlink()
+                logger.debug("Removed partial output file: %s", output_path)
+        print("\nOperation cancelled.", file=sys.stderr)
+        return 130
 
     except Exception:  # noqa: BLE001
         logger.exception("Unexpected error occurred")
