@@ -147,32 +147,36 @@ class TestGradioIntegration:
 
     @staticmethod
     def test_make_gradio_report_fn_markdown() -> None:
-        """Test Gradio report function creation for markdown."""
+        """Test Gradio report function creation for markdown output."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
+        def graph_provider() -> AssetRelationshipGraph:
             """Provide a mock AssetRelationshipGraph for testing."""
             return mock_graph
 
-            with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-                mock_gen_md.return_value = "# Gradio Report"
+        with patch(
+            "src.reports.integration.generate_markdown_report",
+        ) as mock_gen_md:
+            mock_gen_md.return_value = "# Gradio Report"
 
-                fn = make_gradio_report_fn(graph_provider, html=False)
-                result = fn()
+            fn = make_gradio_report_fn(graph_provider, html=False)
+            result = fn()
 
-                assert result == "# Gradio Report"
-                mock_gen_md.assert_called_once_with(mock_graph)
+            assert result == "# Gradio Report"
+            mock_gen_md.assert_called_once_with(mock_graph)
 
     @staticmethod
     def test_make_gradio_report_fn_html() -> None:
-        """Test Gradio report function creation for HTML."""
+        """Test Gradio report function creation for HTML output."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
+        def graph_provider() -> AssetRelationshipGraph:
             """Provide the mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
-        with patch("src.reports.integration.generate_html_report") as mock_gen_html:
+        with patch(
+            "src.reports.integration.generate_html_report",
+        ) as mock_gen_html:
             mock_gen_html.return_value = "<h1>Gradio Report</h1>"
 
             fn = make_gradio_report_fn(graph_provider, html=True)
@@ -181,19 +185,19 @@ class TestGradioIntegration:
             assert result == "<h1>Gradio Report</h1>"
             mock_gen_html.assert_called_once_with(mock_graph)
 
-    """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
-
     @staticmethod
     def test_attach_to_gradio_interface_markdown() -> None:
-        """Test attaching markdown report to Gradio interface."""
+        """Test attaching markdown report to a Gradio Markdown component."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
+        def graph_provider() -> AssetRelationshipGraph:
             """Provide a mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
         with (
-            patch("src.reports.integration.generate_markdown_report") as mock_gen_md,
+            patch(
+                "src.reports.integration.generate_markdown_report",
+            ) as mock_gen_md,
             patch("gradio.Markdown") as mock_markdown,
         ):
             mock_gen_md.return_value = "# Report"
@@ -206,15 +210,17 @@ class TestGradioIntegration:
 
     @staticmethod
     def test_attach_to_gradio_interface_html() -> None:
-        """Test attaching HTML report to Gradio interface."""
+        """Test attaching HTML report to a Gradio HTML component."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
-            """Provide the graph for testing by returning a mock graph."""
+        def graph_provider() -> AssetRelationshipGraph:
+            """Provide a mock AssetRelationshipGraph instance for testing."""
             return mock_graph
 
         with (
-            patch("src.reports.integration.generate_html_report") as mock_gen_html,
+            patch(
+                "src.reports.integration.generate_html_report",
+            ) as mock_gen_html,
             patch("gradio.HTML") as mock_html,
         ):
             mock_gen_html.return_value = "<h1>Report</h1>"
@@ -227,15 +233,18 @@ class TestGradioIntegration:
 
     @staticmethod
     def test_attach_to_gradio_interface_missing_gradio() -> None:
-        """Test that missing Gradio raises RuntimeError."""
+        """Test that missing Gradio raises a RuntimeError."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        def graph_provider():
-            """Provide a mock AssetRelationshipGraph instance for testing when Gradio is missing."""
+        def graph_provider() -> AssetRelationshipGraph:
+            """Provide a mock AssetRelationshipGraph instance when Gradio is missing."""
             return mock_graph
 
         with (
-            patch("builtins.__import__", side_effect=ImportError("No module gradio")),
+            patch(
+                "builtins.__import__",
+                side_effect=ImportError("No module gradio"),
+            ),
             pytest.raises(RuntimeError, match="Gradio is not installed"),
         ):
             attach_to_gradio_interface(graph_provider)
