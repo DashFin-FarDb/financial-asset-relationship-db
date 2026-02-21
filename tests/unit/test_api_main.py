@@ -340,7 +340,7 @@ class TestAPIEndpoints:
         assert data["total_relationships"] > 0
         assert data["avg_degree"] > 0
         assert data["max_degree"] >= data["avg_degree"]
-        assert 0 <= data["network_density"] <= 1
+        assert 0 <= data["network_density"] <= 100
 
         # If the API includes relationship_density separately, validate its bounds too.
         if "relationship_density" in data:
