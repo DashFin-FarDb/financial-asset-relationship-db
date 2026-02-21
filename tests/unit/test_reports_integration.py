@@ -187,9 +187,8 @@ class TestGradioIntegration:
             assert result == "<h1>Gradio Report</h1>"
             mock_gen_html.assert_called_once_with(mock_graph)
 
-
     """Unit tests for the integration of the attach_to_gradio_interface function in reports.integration module."""
-    
+
     @staticmethod
     def test_attach_to_gradio_interface_markdown() -> None:
         """Test attaching markdown report to Gradio interface."""
