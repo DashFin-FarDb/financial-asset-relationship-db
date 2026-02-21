@@ -10,13 +10,12 @@ This module tests microagent markdown files to ensure:
 - Compatibility with OpenHands agent framework
 """
 
+import re
 from pathlib import Path
 from typing import Any
 
 import pytest
 import yaml
-
-import re
 
 
 @pytest.mark.unit
@@ -579,9 +578,7 @@ class TestMicroagentPerformance(TestMicroagentValidation):
             assert file_size < 100_000, (
                 f"{file_path.name} is too large ({file_size} bytes)"
             )
-            assert file_size > 50, (
-                f"{file_path.name} is too small ({file_size} bytes)"
-            )
+            assert file_size > 50, f"{file_path.name} is too small ({file_size} bytes)"
 
     @staticmethod
     def test_all_microagents_parse_quickly(
@@ -612,9 +609,7 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
             try:
                 _, body = self.parse_frontmatter(content)
             except ValueError as exc:
-                pytest.skip(
-                    f"{file_path.name} has unparseable frontmatter: {exc}"
-                )
+                pytest.skip(f"{file_path.name} has unparseable frontmatter: {exc}")
             else:
                 word_count = len(body.split())
                 assert word_count >= 20, (
@@ -633,17 +628,12 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
             try:
                 _, body = self.parse_frontmatter(content)
             except ValueError as exc:
-                pytest.skip(
-                    f"{file_path.name} has unparseable frontmatter: {exc}"
-                )
+                pytest.skip(f"{file_path.name} has unparseable frontmatter: {exc}")
             else:
                 has_markdown = any(
-                    token in body
-                    for token in ("**", "*", "#", "-", "`")
+                    token in body for token in ("**", "*", "#", "-", "`")
                 )
-                assert has_markdown, (
-                    f"{file_path.name} should use markdown formatting"
-                )
+                assert has_markdown, f"{file_path.name} should use markdown formatting"
 
 
 @pytest.mark.unit
@@ -735,14 +725,7 @@ class TestMicroagentRegressionCases:
         """Test that malformed frontmatter raises appropriate error."""
         test_file = tmp_path / "malformed.md"
         test_file.write_text(
-            (
-                "---\n"
-                "name: test\n"
-                "type: knowledge\n"
-                "version 1.0.0\n"
-                "---\n"
-                "Content."
-            ),
+            ("---\nname: test\ntype: knowledge\nversion 1.0.0\n---\nContent."),
             encoding="utf-8",
         )
 
