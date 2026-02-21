@@ -132,54 +132,89 @@ def _create_relationship_traces(
 def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
-    asset_ids: List[str],
-) -> List[go.Scatter3d]:
+    asset_ids: list[str],
+) -> list[go.Scatter3d]:
     """Create diamond markers at 70% along each unidirectional edge."""
-    positions, asset_ids = _validate_and_prepare_directional_arrows_inputs(
-        graph, positions, asset_ids
+    positions_arr, asset_ids_norm = _validate_and_prepare_directional_arrows_inputs(
+        graph,
+        positions,
+        asset_ids,
     )
+    return _create_directional_arrows_traces(graph, positions_arr, asset_ids_norm)
 
 
 def _validate_and_prepare_directional_arrows_inputs(
     graph: AssetRelationshipGraph,
     positions,
     asset_ids,
-):
+) -> tuple[np.ndarray, list[str]]:
+    """
+    Validate and normalize inputs for directional arrows.
+
+    Ensures:
+    - graph is an AssetRelationshipGraph with a relationships dict
+    - positions is a numeric (n, 3) array of finite values
+    - asset_ids is a list of non-empty strings with same length as positions
+
+    Returns:
+        (positions_array, asset_ids_list)
+    """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
     if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
         raise ValueError("graph must have a relationships dictionary")
+
     if positions is None or asset_ids is None:
         raise ValueError("positions and asset_ids must not be None")
-    if len(positions) != len(asset_ids):
-        raise ValueError("positions and asset_ids must have the same length")
 
     if not isinstance(positions, np.ndarray):
         positions = np.asarray(positions)
+
     if positions.ndim != 2 or positions.shape[1] != 3:
         raise ValueError("Invalid positions shape: expected (n, 3)")
-    if not isinstance(asset_ids, (list, tuple)):
-        asset_ids = list(asset_ids)
+
     if not np.issubdtype(positions.dtype, np.number):
         try:
             positions = positions.astype(float)
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             raise ValueError("Invalid positions: values must be numeric") from exc
 
-    return positions, asset_ids
     if not np.isfinite(positions).all():
         raise ValueError("Invalid positions: values must be finite numbers")
+
+    if not isinstance(asset_ids, (list, tuple)):
+        asset_ids = list(asset_ids)
+
+    if len(positions) != len(asset_ids):
+        raise ValueError("positions and asset_ids must have the same length")
+
     if not all(isinstance(a, str) and a for a in asset_ids):
         raise ValueError("asset_ids must contain non-empty strings")
 
+    return positions, list(asset_ids)
+
+
+def _create_directional_arrows_traces(
+    graph: AssetRelationshipGraph,
+    positions: np.ndarray,
+    asset_ids: list[str],
+) -> list[go.Scatter3d]:
+    """
+    Build 3D directional arrow traces for asymmetric relationships.
+
+    Returns:
+        A list with a single Scatter3d trace, or an empty list if no
+        asymmetric relationships exist between the given asset_ids.
+    """
     relationship_index = _build_relationship_index(graph, asset_ids)
     asset_id_index = _build_asset_id_index(asset_ids)
 
-    source_indices: List[int] = []
-    target_indices: List[int] = []
-    hover_texts: List[str] = []
+    source_indices: list[int] = []
+    target_indices: list[int] = []
+    hover_texts: list[str] = []
 
     for (source_id, target_id, rel_type), _ in relationship_index.items():
+        # Only add an arrow if there is no reverse relationship of the same type
         if (target_id, source_id, rel_type) not in relationship_index:
             source_indices.append(asset_id_index[source_id])
             target_indices.append(asset_id_index[target_id])
@@ -196,22 +231,21 @@ def _validate_and_prepare_directional_arrows_inputs(
         positions[tgt_arr] - positions[src_arr]
     )
 
-    return [
-        go.Scatter3d(
-            x=arrow_positions[:, 0].tolist(),
-            y=arrow_positions[:, 1].tolist(),
-            z=arrow_positions[:, 2].tolist(),
-            mode="markers",
-            marker=dict(
-                symbol="diamond",
-                size=8,
-                color="rgba(255, 0, 0, 0.8)",
-                line=dict(color="red", width=1),
-            ),
-            hovertext=hover_texts,
-            hoverinfo="text",
-            name="Direction Arrows",
-            visible=True,
-            showlegend=False,
-        )
-    ]
+    trace = go.Scatter3d(
+        x=arrow_positions[:, 0].tolist(),
+        y=arrow_positions[:, 1].tolist(),
+        z=arrow_positions[:, 2].tolist(),
+        mode="markers",
+        marker=dict(
+            symbol="diamond",
+            size=8,
+            color="rgba(255, 0, 0, 0.8)",
+            line=dict(color="red", width=1),
+        ),
+        hovertext=hover_texts,
+        hoverinfo="text",
+        name="Direction Arrows",
+        visible=True,
+        showlegend=False,
+    )
+    return [trace]
