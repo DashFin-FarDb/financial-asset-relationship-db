@@ -1,4 +1,70 @@
-# PR Agent Context Chunking
+# GitHub Scripts
+
+This directory contains utility scripts for GitHub Actions workflows and local development.
+
+## Schema Report CLI (`schema_report_cli.py`)
+
+### Overview
+
+A command-line tool for generating financial asset relationship schema reports with validated input options and proper error handling.
+
+### Features
+
+- **Validated Input**: Uses constrained enum for format validation to prevent unexpected states
+- **Secure Error Handling**: Presents generic error messages to users while maintaining detailed diagnostics in logs
+- **Multiple Output Formats**: Supports markdown, text, and JSON (markdown fully implemented)
+- **Flexible Output**: Write to file or stdout
+- **Comprehensive Logging**: Detailed logs for debugging without exposing sensitive information
+
+### Usage
+
+```bash
+# Generate report to stdout (default markdown format)
+python .github/scripts/schema_report_cli.py
+
+# Specify output format
+python .github/scripts/schema_report_cli.py --fmt markdown
+python .github/scripts/schema_report_cli.py --fmt text
+python .github/scripts/schema_report_cli.py --fmt json
+
+# Write to file
+python .github/scripts/schema_report_cli.py --output report.md
+python .github/scripts/schema_report_cli.py -o report.md --fmt markdown
+
+# Enable verbose logging
+python .github/scripts/schema_report_cli.py --verbose
+python .github/scripts/schema_report_cli.py -v
+```
+
+### Security Features
+
+1. **Input Validation**: The `--fmt` option uses a constrained enum (`OutputFormat`) that only accepts valid values:
+   - `markdown`
+   - `text`
+   - `json`
+   
+   Invalid values are rejected by argparse before any processing occurs.
+
+2. **Exception Handling**: Multi-layered error handling approach:
+   - **User-facing**: Generic error messages that don't expose implementation details
+   - **Logging**: Detailed exception information logged to `.github/scripts/schema_report_cli.log`
+   - **Exit Codes**: Appropriate exit codes for different failure scenarios
+
+3. **No Sensitive Data Exposure**: Error messages shown to users are generic and don't reveal:
+   - Internal paths or structure
+   - Stack traces
+   - Configuration details
+   - Database connection information
+
+### Exit Codes
+
+- `0`: Success
+- `1`: Error (validation, generation, or unexpected)
+- `130`: User cancelled (Ctrl+C)
+
+---
+
+## PR Agent Context Chunking
 
 ## Overview
 
