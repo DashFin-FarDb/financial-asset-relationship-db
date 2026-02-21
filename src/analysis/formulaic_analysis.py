@@ -1,6 +1,8 @@
+from __future__ import annotations
+
 import logging
 from dataclasses import dataclass
-from typing import Any, Dict, List
+from typing import Any
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -11,7 +13,7 @@ logger = logging.getLogger(__name__)
 class Formula:
     """Represents a mathematical formula between financial variables.
 
-    The formula expression is stored in the `expression` field.
+    The formula expression is stored in the ``expression`` field.
 
     Example:
         >>> Formula(
@@ -29,30 +31,32 @@ class Formula:
     expression: str
     latex: str
     description: str
-    variables: Dict[str, str]  # variable_name -> description
+    variables: dict[str, str]  # variable_name -> description
     example_calculation: str
     category: str
     r_squared: float = 0.0  # Correlation strength if applicable
 
     def __init__(
         self,
-        name,
-        expression=None,
-        latex="",
-        description="",
-        variables=None,
-        example_calculation="",
-        category="",
-        r_squared=0.0,
-        formula=None,
-    ):
-        """
-        Initialize a Formula instance, accepting either `expression` or `formula`
-        for backward compatibility.
+        name: str,
+        expression: str | None = None,
+        latex: str = "",
+        description: str = "",
+        variables: dict[str, str] | None = None,
+        example_calculation: str = "",
+        category: str = "",
+        r_squared: float = 0.0,
+        formula: str | None = None,
+    ) -> None:
+        """Initialise a Formula instance.
 
-        If both `expression` and `formula` are provided, `expression` takes
-        precedence. If neither is provided, the expression defaults to an
-        empty string.
+        Accepts either ``expression`` or legacy ``formula`` for backward
+        compatibility.
+
+        Resolution rules:
+        - If both ``expression`` and ``formula`` are provided,
+          ``expression`` takes precedence.
+        - If neither is provided, ``expression`` defaults to the empty string.
         """
         if expression is None and formula is not None:
             expression = formula
@@ -66,43 +70,40 @@ class Formula:
         self.category = category
         self.r_squared = r_squared
 
+    @property
     def formula(self) -> str:
-        """Backward-compatible alias for `expression` used by visualization code."""
+        """Backward-compatible alias for ``expression``."""
         return self.expression
 
 
 class FormulaicAnalyzer:
     """Analyzes financial data to extract and render mathematical relationships."""
 
-    def __init__(self):
-        self.formulas: List[Formula] = []
+    def __init__(self) -> None:
+        self.formulas: list[Formula] = []
 
-    def analyze_graph(self, graph: AssetRelationshipGraph) -> Dict[str, Any]:
-        """
-        Analyze an AssetRelationshipGraph and assemble a collection of
-        financial formulas and empirical relationship data describing asset
-        interactions.
+    def analyze_graph(self, graph: AssetRelationshipGraph) -> dict[str, Any]:
+        """Analyze an AssetRelationshipGraph and assemble formulaic relationships.
 
         Parameters:
-            graph (AssetRelationshipGraph):
+            graph:
                 Graph of assets and their relationships used to detect
                 asset types, extract formula templates, and compute empirical
                 relationship metrics.
 
         Returns:
-            dict:
-                A summary structure with the following keys:
-                - "formulas" (List[Formula]):
+            dict with keys:
+                - ``formulas`` (list[Formula]):
                     All generated Formula objects describing relationships
                     and metrics.
-                - "empirical_relationships" (Any):
+                - ``empirical_relationships`` (Any):
                     Empirical data derived from the graph (e.g.,
                     correlation matrices or derived metrics).
-                - "formula_count" (int):
+                - ``formula_count`` (int):
                     Total number of formulas generated.
-                - "categories" (Dict[str, int]):
+                - ``categories`` (dict[str, int]):
                     Counts of formulas grouped by category.
-                - "summary" (Dict[str, Any]):
+                - ``summary`` (dict[str, Any]):
                     High-level summary metrics and insights about the generated
                     formulas and empirical relationships.
         """
@@ -150,20 +151,18 @@ class FormulaicAnalyzer:
         }
 
     def _extract_fundamental_formulas(
-        self, graph: AssetRelationshipGraph
-    ) -> List[Formula]:
-        """
-        Builds a list of fundamental financial formulas applicable to the
-        provided asset graph.
+        self,
+        graph: AssetRelationshipGraph,
+    ) -> list[Formula]:
+        """Build a list of fundamental financial formulas for the given graph.
 
         Returns:
-            formulas (List[Formula]):
-                List of Formula objects representing valuation and income
-                metrics relevant to assets present in the graph (for example:
-                price-to-earnings, dividend yield, bond yield-to-maturity
-                approximation, and market capitalization).
+            list[Formula]: Valuation and income metrics relevant to assets
+            present in the graph (for example: price-to-earnings, dividend
+            yield, bond yield-to-maturity approximation, and market
+            capitalization).
         """
-        formulas = []
+        formulas: list[Formula] = []
 
         # Price-to-Earnings Ratio
         if self._has_equities(graph):
@@ -188,7 +187,9 @@ class FormulaicAnalyzer:
                 name="Dividend Yield",
                 expression="Div_Yield = (Annual_Dividends / Price) × 100%",
                 latex=r"DivYield = \frac{D_{annual}}{P} \times 100%",
-                description="Percentage return from dividends relative to stock price",
+                description=(
+                    "Percentage return from dividends relative to stock price"
+                ),
                 variables={
                     "Div_Yield": "Dividend Yield (%)",
                     "D_annual": "Annual Dividends per Share ($)",
@@ -239,6 +240,7 @@ class FormulaicAnalyzer:
             formulas.append(market_cap_formula)
 
         return formulas
+
 
     def _analyze_correlation_patterns(
         self, graph: AssetRelationshipGraph
