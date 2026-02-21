@@ -185,6 +185,7 @@ class TestSchemaReportRawEndpoint:
         mock_get_graph.return_value = mock_graph
         mock_export.side_effect = ValueError("Invalid format")
 
+
         # Use valid format that passes validation but triggers export error
         with pytest.raises(ValueError, match="Invalid format"):
             client.get("/schema-report/raw?fmt=md")
@@ -197,6 +198,8 @@ class TestSchemaReportEdgeCases:
     @pytest.fixture
     def client() -> TestClient:
         """Create a test client with the router mounted."""
+
+
         from fastapi import FastAPI
 
         app = FastAPI()
