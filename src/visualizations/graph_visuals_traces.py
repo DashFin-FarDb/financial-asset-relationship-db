@@ -198,7 +198,9 @@ def _prepare_positions(positions) -> np.ndarray:
     return arr
 
 
-def _prepare_asset_ids(asset_ids, positions_arr: np.ndarray) -> tuple[np.ndarray, list[str]]:
+def _prepare_asset_ids(
+    asset_ids, positions_arr: np.ndarray
+) -> tuple[np.ndarray, list[str]]:
     """
     Validate and normalize asset IDs corresponding to provided positions.
 
@@ -215,6 +217,7 @@ def _prepare_asset_ids(asset_ids, positions_arr: np.ndarray) -> tuple[np.ndarray
     positions_clean = _validate_and_normalize_positions(positions_arr)
     return positions_clean, asset_ids_list
 
+
 def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
     if asset_ids is None:
         raise ValueError("asset_ids must not be None")
@@ -228,6 +231,7 @@ def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
             raise ValueError(f"asset_ids[{idx}] must be a non-empty string")
         validated.append(aid)
     return validated
+
 
 def _validate_and_normalize_positions(positions: np.ndarray) -> np.ndarray:
     if positions.ndim != 2 or positions.shape[1] != 3:
