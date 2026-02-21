@@ -37,7 +37,7 @@ class TestFormula:
         """Test creating a Formula instance with all fields."""
         formula = Formula(
             name="Test Formula",
-            formula="A = B + C",
+            expression="A = B + C",
             latex=r"A = B + C",
             description="A test formula",
             variables={"A": "Result", "B": "Input 1", "C": "Input 2"},
@@ -47,7 +47,7 @@ class TestFormula:
         )
 
         assert formula.name == "Test Formula"
-        assert formula.formula == "A = B + C"
+        assert formula.expression == "A = B + C"
         assert formula.latex == r"A = B + C"
         assert formula.description == "A test formula"
         assert formula.variables == {"A": "Result", "B": "Input 1", "C": "Input 2"}
@@ -60,7 +60,7 @@ class TestFormula:
         """Test that r_squared defaults to 0.0."""
         formula = Formula(
             name="Test",
-            formula="A = B",
+            expression="A = B",
             latex=r"A = B",
             description="Test",
             variables={"A": "A", "B": "B"},
@@ -323,7 +323,7 @@ class TestExtractFundamentalFormulas:
 
         for formula in formulas:
             assert formula.name
-            assert formula.formula
+            assert formula.expression
             assert formula.latex
             assert formula.description
             assert isinstance(formula.variables, dict)
@@ -686,7 +686,7 @@ class TestHelperMethods:
         formulas = [
             Formula(
                 name="Test1",
-                formula="A=B",
+                expression="A=B",
                 latex="A=B",
                 description="Test",
                 variables={},
@@ -695,7 +695,7 @@ class TestHelperMethods:
             ),
             Formula(
                 name="Test2",
-                formula="C=D",
+                expression="C=D",
                 latex="C=D",
                 description="Test",
                 variables={},
@@ -704,7 +704,7 @@ class TestHelperMethods:
             ),
             Formula(
                 name="Test3",
-                formula="E=F",
+                expression="E=F",
                 latex="E=F",
                 description="Test",
                 variables={},
@@ -726,7 +726,7 @@ class TestHelperMethods:
         formulas = [
             Formula(
                 name="Test",
-                formula="A=B",
+                expression="A=B",
                 latex="A=B",
                 description="Test",
                 variables={},

@@ -174,6 +174,7 @@ class AssetRelationshipGraph:
     ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
         """Return positions, asset_ids, colors, hover_texts for visualization."""
         all_ids = set(self.assets.keys())
+        all_ids.update(self.relationships.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
                 all_ids.add(target_id)

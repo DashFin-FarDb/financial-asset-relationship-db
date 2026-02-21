@@ -33,10 +33,6 @@ class TestDependencyMatrix:
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
         """
-    @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
-        """
         Load the dependency matrix markdown content from disk.
 
         Returns:

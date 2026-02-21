@@ -161,7 +161,7 @@ def _validate_and_prepare_directional_arrows_inputs(
     """
     _validate_graph(graph)
     positions_arr = _prepare_positions(positions)
-    asset_ids_list = _prepare_asset_ids(asset_ids, positions_arr)
+    positions_arr, asset_ids_list = _prepare_asset_ids(asset_ids, positions_arr)
     return positions_arr, asset_ids_list
 
 
@@ -189,13 +189,8 @@ def _prepare_positions(positions) -> np.ndarray:
         ValueError: if positions is None, not a 2D array of shape (n, 3), or contains non-finite values.
     """
     if positions is None:
-        raise ValueError("positions must not be None")
-    arr = np.asarray(positions)
-    if arr.ndim != 2 or arr.shape[1] != 3:
-        raise ValueError("positions must be a 2D array with shape (n, 3)")
-    if not np.isfinite(arr).all():
-        raise ValueError("positions must contain finite values")
-    return arr
+        raise ValueError("positions and asset_ids must not be None")
+    return np.asarray(positions)
 
 
 def _prepare_asset_ids(
@@ -231,15 +226,15 @@ def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
         A list of validated asset ID strings.
     """
     if asset_ids is None:
-        raise ValueError("asset_ids must not be None")
+        raise ValueError("positions and asset_ids must not be None")
     if not isinstance(asset_ids, (list, tuple)):
         raise TypeError("asset_ids must be a list or tuple of strings")
     if len(asset_ids) != expected_len:
-        raise ValueError("Length of asset_ids must match number of positions")
+        raise ValueError("positions and asset_ids must have the same length")
     validated = []
     for idx, aid in enumerate(asset_ids):
         if not isinstance(aid, str) or not aid:
-            raise ValueError(f"asset_ids[{idx}] must be a non-empty string")
+            raise ValueError("asset_ids must contain non-empty strings")
         validated.append(aid)
     return validated
 

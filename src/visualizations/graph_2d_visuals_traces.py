@@ -120,6 +120,8 @@ def _create_2d_relationship_traces(
             )
         )
 
+    return traces
+
 
 def _create_node_trace(
     graph: AssetRelationshipGraph,
