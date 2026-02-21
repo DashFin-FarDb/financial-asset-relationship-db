@@ -402,7 +402,7 @@ class FormulaicVisualizer:
         return fig
 
     # ------------------------------------------------------------------
-    # Correlation network (stubbed safely)
+f"{formula.expression}<br><br>"
     # ------------------------------------------------------------------
 
     @staticmethod
