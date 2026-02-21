@@ -72,7 +72,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _plot_category_distribution(fig: go.Figure, formulas: Any) -> None:
-        """Plot the distribution of formula categories as a pie chart in the dashboard."""
         if not formulas:
             return
         categories: Dict[str, int] = {}
@@ -91,7 +90,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _plot_reliability(fig: go.Figure, formulas: Any) -> None:
-        """Plot average R-squared reliability per category as a bar chart."""
         if not formulas:
             return
         categories: Dict[str, List[float]] = {}
@@ -138,7 +136,6 @@ class FormulaicVisualizer:
     def _plot_empirical_correlation(
         fig: go.Figure, empirical_relationships: Mapping[str, Any]
     ) -> None:
-        """Plot an empirical correlation heatmap of asset pairs."""
         correlation_matrix = empirical_relationships.get("correlation_matrix", {})
         if not correlation_matrix or not isinstance(correlation_matrix, dict):
             return
@@ -153,7 +150,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _plot_asset_class_relationships(fig: go.Figure, formulas: Any) -> None:
-        """Plot the number of formulas per asset class as a bar chart."""
         if not formulas:
             return
         categories: Dict[str, int] = {}
@@ -172,7 +168,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _plot_sector_analysis(fig: go.Figure, formulas: Any) -> None:
-        """Plot average sector performance (R-squared) as a bar chart."""
         if not formulas:
             return
         categories: Dict[str, Dict[str, Any]] = {}
@@ -197,7 +192,6 @@ class FormulaicVisualizer:
         )
 
     def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
-        """Plot a table of key formula examples with category and R-squared values."""
         if not formulas:
             return
         top = self._get_sorted_formulas(formulas)[:10]
@@ -279,7 +273,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _create_empty_correlation_figure() -> go.Figure:
-        """Return an empty figure with a message indicating no correlation data is available."""
         fig = go.Figure()
         fig.add_annotation(text="No correlation data available", showarrow=False)
         return fig
@@ -289,7 +282,6 @@ class FormulaicVisualizer:
         strongest_correlations: Any,
         correlation_matrix: Any,
     ) -> go.Figure:
-        """Build and render a correlation network graph using the given correlations and matrix."""
         assets = FormulaicVisualizer._extract_assets_from_correlations(
             strongest_correlations
         )
@@ -316,7 +308,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _extract_assets_from_correlations(correlations: Any) -> List[str]:
-        """Extract unique asset names from the list of correlation items."""
         assets: set = set()
         for corr in correlations:
             a1, a2, _ = FormulaicVisualizer._parse_correlation_item(corr)
@@ -328,7 +319,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _parse_correlation_item(corr: Any) -> Tuple[str, str, float]:
-        """Parse a correlation item (dict or sequence) into two asset names and a correlation value."""
         if isinstance(corr, dict):
             return (
                 corr.get("asset1", ""),
@@ -343,7 +333,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _create_circular_positions(assets: List[str]) -> Dict[str, Tuple[float, float]]:
-        """Compute positions for assets evenly spaced around a circle."""
         n = len(assets)
         return {
             asset: (math.cos(2 * math.pi * i / n), math.sin(2 * math.pi * i / n))
@@ -354,7 +343,6 @@ class FormulaicVisualizer:
     def _create_edge_traces(
         correlations: Any, positions: Dict[str, Tuple[float, float]]
     ) -> List[go.Scatter]:
-        """Create Scatter traces for each correlation edge based on positions."""
         traces = []
         for corr in correlations:
             a1, a2, val = FormulaicVisualizer._parse_correlation_item(corr)
@@ -373,7 +361,6 @@ class FormulaicVisualizer:
         value: float,
         positions: Dict[str, Tuple[float, float]],
     ) -> go.Scatter:
-        """Create a single Scatter edge trace between two assets with style based on correlation value."""
         x0, y0 = positions[asset1]
         x1, y1 = positions[asset2]
         color = "red" if value > 0.7 else ("orange" if value > 0.4 else "lightgray")
@@ -391,7 +378,6 @@ class FormulaicVisualizer:
     def _create_node_trace(
         assets: List[str], positions: Dict[str, Tuple[float, float]]
     ) -> go.Scatter:
-        """Create a Scatter trace for nodes representing assets positioned in space."""
         return go.Scatter(
             x=[positions[a][0] for a in assets],
             y=[positions[a][1] for a in assets],
@@ -451,10 +437,6 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _get_sorted_formulas(formulas: Any) -> List[Any]:
-        """
-        Return a list of formulas sorted by their r_squared attribute in descending order.
-        If sorting fails due to incompatible types, return the original list of formulas.
-        """
         try:
             return sorted(
                 formulas,
@@ -466,20 +448,12 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _format_name(name: Any, max_length: int = 30) -> str:
-        """
-        Format the formula name by truncating it with an ellipsis if it exceeds max_length.
-        Return 'N/A' if the name is not a valid non-empty string.
-        """
         if not isinstance(name, str) or not name:
             return "N/A"
         return name if len(name) <= max_length else f"{name[: max_length - 3]}..."
 
     @staticmethod
     def _format_r_squared(r_value: Any) -> str:
-        """
-        Format the r_squared value as a string with four decimal places.
-        Return 'N/A' if the value is not an int or float.
-        """
         if isinstance(r_value, (int, float)):
             return f"{r_value:.4f}"
         return "N/A"
@@ -488,12 +462,6 @@ class FormulaicVisualizer:
     def _extract_formula_table_data(
         formulas: Any,
     ) -> Tuple[List[str], List[str], List[str]]:
-        """
-        Extract table data for formulas, returning three lists:
-        - names: formatted formula names
-        - categories: formula categories or 'N/A'
-        - r2_values: formatted r_squared values as strings
-        """
         names = [
             FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas
         ]
