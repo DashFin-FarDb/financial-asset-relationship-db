@@ -33,14 +33,18 @@ class TestFormula:
     """Test the Formula dataclass."""
 
     @staticmethod
-    def test_formula_creation():
+    def test_formula_creation() -> None:
         """Test creating a Formula instance with all fields."""
         formula = Formula(
             name="Test Formula",
             formula="A = B + C",
             latex=r"A = B + C",
             description="A test formula",
-            variables={"A": "Result", "B": "Input 1", "C": "Input 2"},
+            variables={
+                "A": "Result",
+                "B": "Input 1",
+                "C": "Input 2",
+            },
             example_calculation="A = 1 + 2 = 3",
             category="Test",
             r_squared=0.95,
@@ -50,13 +54,17 @@ class TestFormula:
         assert formula.formula == "A = B + C"
         assert formula.latex == r"A = B + C"
         assert formula.description == "A test formula"
-        assert formula.variables == {"A": "Result", "B": "Input 1", "C": "Input 2"}
+        assert formula.variables == {
+            "A": "Result",
+            "B": "Input 1",
+            "C": "Input 2",
+        }
         assert formula.example_calculation == "A = 1 + 2 = 3"
         assert formula.category == "Test"
         assert formula.r_squared == 0.95
 
     @staticmethod
-    def test_formula_default_r_squared():
+    def test_formula_default_r_squared() -> None:
         """Test that r_squared defaults to 0.0."""
         formula = Formula(
             name="Test",
@@ -761,17 +769,23 @@ class TestHelperMethods:
     def test_calculate_avg_correlation_strength_from_empirical():
         """Test _calculate_avg_correlation_strength_from_empirical."""
         # Empty empirical data
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical({})
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            {}
+        )
         assert result == 0.5
 
         # With correlation matrix
         empirical = {"correlation_matrix": {"pair1": 0.8, "pair2": 0.6}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            empirical
+        )
         assert 0 <= result <= 1
 
         # With perfect correlation (should filter out)
         empirical = {"correlation_matrix": {"pair1": 1.0, "pair2": 0.8}}
-        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(empirical)
+        result = FormulaicAnalyzer._calculate_avg_correlation_strength_from_empirical(
+            empirical
+        )
         assert 0 <= result <= 1
 
 
@@ -966,7 +980,9 @@ class TestRegressionCases:
         result = analyzer.analyze_graph(graph)
 
         for formula in result["formulas"]:
-            assert 0 <= formula.r_squared <= 1, f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
+            assert 0 <= formula.r_squared <= 1, (
+                f"r_squared out of bounds for {formula.name}: {formula.r_squared}"
+            )
 
     @staticmethod
     def test_summary_consistency():
@@ -1186,7 +1202,9 @@ class TestIntegrationScenarios:
         graph = AssetRelationshipGraph()
 
         # Add multiple tech stocks
-        for i, (symbol, name) in enumerate([("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]):
+        for i, (symbol, name) in enumerate(
+            [("AAPL", "Apple"), ("MSFT", "Microsoft"), ("GOOGL", "Google")]
+        ):
             equity = Equity(
                 id=symbol,
                 symbol=symbol,
@@ -1203,7 +1221,9 @@ class TestIntegrationScenarios:
 
         # Should identify correlations
         formulas = result["formulas"]
-        correlation_formulas = [f for f in formulas if "Correlation" in f.name or "Beta" in f.name]
+        correlation_formulas = [
+            f for f in formulas if "Correlation" in f.name or "Beta" in f.name
+        ]
         assert len(correlation_formulas) > 0
 
     @staticmethod
