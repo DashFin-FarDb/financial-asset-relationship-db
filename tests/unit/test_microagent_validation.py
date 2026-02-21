@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 """Unit tests for validating .openhands/microagents configuration files.
 
 This module tests microagent markdown files to ensure:
@@ -9,6 +7,8 @@ This module tests microagent markdown files to ensure:
 - Semantic consistency and correctness
 - Compatibility with OpenHands agent framework
 """
+
+from __future__ import annotations
 
 import re
 from pathlib import Path
@@ -63,7 +63,6 @@ class TestMicroagentValidation:
             raise ValueError(msg) from exc
 
         return frontmatter, body
-
 
 @pytest.mark.unit
 class TestRepoEngineerLead(TestMicroagentValidation):
@@ -120,9 +119,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         """Test that frontmatter contains all required fields."""
         required_fields = ["name", "type", "version", "agent"]
         for field in required_fields:
-            assert field in repo_engineer_frontmatter, (
-                f"Missing required field: {field}"
-            )
+            assert field in repo_engineer_frontmatter, f"Missing required field: {field}"
 
     @staticmethod
     def test_frontmatter_name_field(
@@ -145,9 +142,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert isinstance(agent_type, str)
         valid_types = ["knowledge", "action", "hybrid"]
         assert agent_type in valid_types, "Type must be valid microagent type"
-        assert agent_type == "knowledge", (
-            "Expected knowledge type for repo_engineer_lead"
-        )
+        assert agent_type == "knowledge", "Expected knowledge type for repo_engineer_lead"
 
     @staticmethod
     def test_frontmatter_version_field(
@@ -157,9 +152,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         assert "version" in repo_engineer_frontmatter
         version = repo_engineer_frontmatter["version"]
         assert isinstance(version, str)
-        assert re.match(r"^\d+\.\d+\.\d+$", version), (
-            "Version should follow semver format (x.y.z)"
-        )
+        assert re.match(r"^\d+\.\d+\.\d+$", version), "Version should follow semver format (x.y.z)"
 
     @staticmethod
     def test_frontmatter_agent_field(
@@ -190,18 +183,16 @@ class TestRepoEngineerLead(TestMicroagentValidation):
 
         assert isinstance(triggers, list), "triggers should be a list when present"
         for trigger in triggers:
-            assert isinstance(trigger, str) and trigger.strip(), (
-                "each trigger should be a non-empty string"
-            )
+            assert isinstance(trigger, str) and trigger.strip(), "each trigger should be a non-empty string"
 
     @staticmethod
     def test_body_describes_microagent_purpose(repo_engineer_body: str) -> None:
         """Body should describe repository engineering responsibilities."""
         body_lower = repo_engineer_body.lower()
         keywords = ["repository engineer", "issues", "prs", "pull requests"]
-        assert any(keyword in body_lower for keyword in keywords), (
-            "Body should describe repository engineering responsibilities"
-        )
+        assert any(
+            keyword in body_lower for keyword in keywords
+        ), "Body should describe repository engineering responsibilities"
 
     @staticmethod
     def test_body_mentions_issue_review(repo_engineer_body: str) -> None:
@@ -214,9 +205,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_pr_handling(repo_engineer_body: str) -> None:
         """Check that the body text mentions pull request handling."""
         body_lower = repo_engineer_body.lower()
-        assert any(term in body_lower for term in ["pr", "pull request"]), (
-            "Should mention PR handling"
-        )
+        assert any(term in body_lower for term in ["pr", "pull request"]), "Should mention PR handling"
 
     @staticmethod
     def test_body_mentions_code_changes(repo_engineer_body: str) -> None:
@@ -229,9 +218,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_documentation(repo_engineer_body: str) -> None:
         """Test that body mentions documentation responsibilities."""
         body_lower = repo_engineer_body.lower()
-        assert "documentation" in body_lower, (
-            "Should mention documentation responsibilities"
-        )
+        assert "documentation" in body_lower, "Should mention documentation responsibilities"
 
     @staticmethod
     def test_body_mentions_merge_conflicts(repo_engineer_body: str) -> None:
@@ -330,9 +317,7 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
 
             for field in required_fields:
-                assert field in frontmatter, (
-                    f"{file_path.name} is missing required field: {field}"
-                )
+                assert field in frontmatter, f"{file_path.name} is missing required field: {field}"
 
     def test_all_microagents_have_unique_names(
         self,
@@ -357,9 +342,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             version = frontmatter["version"]
 
-            assert re.match(r"^\d+\.\d+\.\d+$", version), (
-                f"{file_path.name} should have valid semver version, got: {version}"
-            )
+            assert re.match(
+                r"^\d+\.\d+\.\d+$", version
+            ), f"{file_path.name} should have valid semver version, got: {version}"
 
     def test_all_microagents_valid_types(
         self,
@@ -374,8 +359,7 @@ class TestAllMicroagents(TestMicroagentValidation):
             agent_type = frontmatter["type"]
 
             assert agent_type in valid_types, (
-                f"{file_path.name} has invalid type: {agent_type}, "
-                f"must be one of {valid_types}"
+                f"{file_path.name} has invalid type: {agent_type}, " f"must be one of {valid_types}"
             )
 
     def test_all_microagents_valid_agents(
@@ -391,8 +375,7 @@ class TestAllMicroagents(TestMicroagentValidation):
             agent = frontmatter["agent"]
 
             assert agent in valid_agents, (
-                f"{file_path.name} has invalid agent: {agent}, "
-                f"must be one of {valid_agents}"
+                f"{file_path.name} has invalid agent: {agent}, " f"must be one of {valid_agents}"
             )
 
     def test_triggers_field_is_optional(
@@ -411,16 +394,10 @@ class TestAllMicroagents(TestMicroagentValidation):
             if not triggers:
                 continue
 
-            assert isinstance(triggers, list), (
-                f"{file_path.name} triggers should be a list"
-            )
+            assert isinstance(triggers, list), f"{file_path.name} triggers should be a list"
             for trigger in triggers:
-                assert isinstance(trigger, str), (
-                    f"{file_path.name} each trigger should be a string"
-                )
-                assert trigger.strip(), (
-                    f"{file_path.name} triggers should not be empty strings"
-                )
+                assert isinstance(trigger, str), f"{file_path.name} each trigger should be a string"
+                assert trigger.strip(), f"{file_path.name} triggers should not be empty strings"
 
 
 @pytest.mark.unit
@@ -458,9 +435,7 @@ class TestMicroagentSemantic:
         """Verify the body describes interaction with reviewers or contributors."""
         body_lower = repo_engineer_content.lower()
         terms = ["reviewer", "contributor", "comment"]
-        assert any(term in body_lower for term in terms), (
-            "Should describe interaction with reviewers and contributors"
-        )
+        assert any(term in body_lower for term in terms), "Should describe interaction with reviewers and contributors"
 
     @staticmethod
     def test_describes_commit_process(repo_engineer_content: str) -> None:
@@ -468,9 +443,7 @@ class TestMicroagentSemantic:
         body_lower = repo_engineer_content.lower()
         assert "commit" in body_lower, "Should describe commit process"
         terms = ["commit any changes", "commit changes"]
-        assert any(term in body_lower for term in terms), (
-            "Should explain committing changes"
-        )
+        assert any(term in body_lower for term in terms), "Should explain committing changes"
 
     @staticmethod
     def test_describes_post_explanation(repo_engineer_content: str) -> None:
@@ -548,9 +521,7 @@ class TestMicroagentEdgeCases:
         for char in content:
             code = ord(char)
             if code < 32:
-                assert char in ["\n", "\t", "\r"], (
-                    f"File should not contain control character: {repr(char)}"
-                )
+                assert char in ["\n", "\t", "\r"], f"File should not contain control character: {repr(char)}"
 
     @staticmethod
     def test_consistent_newlines(repo_engineer_path: Path) -> None:
@@ -575,9 +546,7 @@ class TestMicroagentPerformance(TestMicroagentValidation):
         """Test that all microagent files are reasonably sized."""
         for file_path in microagent_files:
             file_size = file_path.stat().st_size
-            assert file_size < 100_000, (
-                f"{file_path.name} is too large ({file_size} bytes)"
-            )
+            assert file_size < 100_000, f"{file_path.name} is too large ({file_size} bytes)"
             assert file_size > 50, f"{file_path.name} is too small ({file_size} bytes)"
 
     @staticmethod
@@ -612,10 +581,7 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
                 pytest.skip(f"{file_path.name} has unparseable frontmatter: {exc}")
             else:
                 word_count = len(body.split())
-                assert word_count >= 20, (
-                    f"{file_path.name} has insufficient body content "
-                    f"({word_count} words)"
-                )
+                assert word_count >= 20, f"{file_path.name} has insufficient body content " f"({word_count} words)"
 
     def test_all_microagents_use_markdown_formatting(
         self,
@@ -630,9 +596,7 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
             except ValueError as exc:
                 pytest.skip(f"{file_path.name} has unparseable frontmatter: {exc}")
             else:
-                has_markdown = any(
-                    token in body for token in ("**", "*", "#", "-", "`")
-                )
+                has_markdown = any(token in body for token in ("**", "*", "#", "-", "`"))
                 assert has_markdown, f"{file_path.name} should use markdown formatting"
 
 
