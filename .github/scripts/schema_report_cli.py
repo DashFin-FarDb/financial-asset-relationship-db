@@ -134,7 +134,9 @@ def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
                 return report
 
     except Exception as e:
-        logger.error(f"Failed to generate report: {type(e).__name__}: {e}", exc_info=True)
+        logger.error(
+            f"Failed to generate report: {type(e).__name__}: {e}", exc_info=True
+        )
         raise ValueError("Report generation failed") from e
 
 
@@ -164,9 +166,13 @@ Examples:
         help=f"Output format (default: {OutputFormat.MARKDOWN.value})",
     )
 
-    parser.add_argument("--output", "-o", type=str, help="Output file path (default: stdout)")
+    parser.add_argument(
+        "--output", "-o", type=str, help="Output file path (default: stdout)"
+    )
 
-    parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
+    parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Enable verbose logging"
+    )
 
     return parser.parse_args()
 
