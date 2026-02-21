@@ -103,9 +103,16 @@ def generate_report(fmt: str, output: Optional[Path]) -> None:
         graph = create_sample_database()
         report = generate_schema_report(graph)
 
-        # Format conversion (currently only markdown is supported)
-        if fmt != OutputFormat.MARKDOWN.value:
-            logger.warning(f"Format '{fmt}' not yet implemented, using markdown")
+        # Validate and implement format conversion
+        if fmt == OutputFormat.MARKDOWN.value:
+            formatted = report  # Already markdown
+        elif fmt == OutputFormat.TEXT.value:
+            formatted = convert_markdown_to_plain_text(report)
+        elif fmt == OutputFormat.JSON.value:
+            formatted = convert_markdown_to_json(report)
+        else:
+            # Should never reach here due to enum validation
+            raise ValueError(f"Unsupported format: {fmt}")    
 
         # Output report
         if output:
