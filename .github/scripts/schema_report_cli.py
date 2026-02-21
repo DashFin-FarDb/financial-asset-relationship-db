@@ -16,13 +16,14 @@ import logging
 import sys
 from pathlib import Path
 
+from src.data.sample_data import create_sample_database
+from src.reports.schema_report import generate_schema_report
+
 # Ensure project root is on sys.path before importing src.*
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.data.sample_data import create_sample_database
-from src.reports.schema_report import generate_schema_report
 
 # Configure logging for detailed diagnostics
 LOG_PATH = Path(".github/scripts/schema_report_cli.log")
@@ -172,7 +173,7 @@ def main() -> int:
         except ValueError:
             logger.error("Invalid format value: %s", args.fmt)
             print(
-                "Error: Invalid output format. Please use one of: " "markdown, text, json",
+                "Error: Invalid output format. Please use one of: markdown, text, json",
                 file=sys.stderr,
             )
             return 1
