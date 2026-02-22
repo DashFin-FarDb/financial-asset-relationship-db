@@ -73,18 +73,27 @@ def visualize_2d_graph(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> go.Figure:
-    """
-    Visualize the asset relationship graph in 2D.
+    """Visualise the asset relationship graph in 2D.
 
     Creates an interactive Plotly figure displaying nodes and relationships between assets.
 
-    Parameters:
-        graph: AssetRelationshipGraph
-        layout_type: str: layout type ('spring', 'circular', 'grid').
-        show_same_sector: bool: whether to display relationships within the same sector.
+    Args:
+        graph: The asset relationship graph to visualise.
+        layout_type: Layout algorithm — one of ``'spring'``, ``'circular'``, or ``'grid'``.
+        show_same_sector: Include same-sector relationships.
+        show_market_cap: Include market-cap relationships.
+        show_correlation: Include correlation relationships.
+        show_corporate_bond: Include corporate-bond relationships.
+        show_commodity_currency: Include commodity-currency relationships.
+        show_income_comparison: Include income-comparison relationships.
+        show_regulatory: Include regulatory relationships.
+        show_all_relationships: Override individual filters and show all relationship types.
 
     Returns:
-        plotly.graph_objects.Figure: The constructed 2D graph figure.
+        go.Figure: The constructed 2D Plotly figure.
+
+    Raises:
+        ValueError: If ``graph`` is not an ``AssetRelationshipGraph`` instance.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")
