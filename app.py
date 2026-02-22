@@ -428,7 +428,7 @@ class FinancialAssetApp:
         Creates the Gradio interface for the Financial Asset Relationship Database.
 
         """
-        with gr.Blocks(title=AppConstants.TITLE):
+        with gr.Blocks(title=AppConstants.TITLE) as demo:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
