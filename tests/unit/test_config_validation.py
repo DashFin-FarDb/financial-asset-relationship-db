@@ -18,9 +18,8 @@ import pytest
 class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
-    @staticmethod
     @pytest.fixture
-    def vercel_config():
+    def vercel_config(self):
         """Load vercel.json configuration."""
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
