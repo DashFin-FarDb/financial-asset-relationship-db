@@ -166,17 +166,12 @@ Examples:
 
 
 def main() -> int:
-    # Parse arguments (argparse will handle --help and validation errors)
-    """def main() -> int:
+    """Run the schema report command-line interface.
 
-    Main CLI entry point.  This function serves as the main entry point for the
-    command-line interface (CLI) of the schema report generator.  It handles
-    argument parsing, logging setup, and the generation of the report based on the
-    specified output format.  The function also manages output writing, either to a
-    specified file or to standard output, and includes error handling  for invalid
-    formats and I/O operations. Additionally, it gracefully handles user
-    interruptions and unexpected errors.
+    Returns:
+        int: Process exit code where 0 indicates success and non-zero indicates failure.
     """
+    # Parse arguments (argparse will handle --help and validation errors)
     args = parse_arguments()
 
     # Setup logging
