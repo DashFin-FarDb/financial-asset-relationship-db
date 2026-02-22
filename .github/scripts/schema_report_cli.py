@@ -1,143 +1,96 @@
 #!/usr/bin/env python3
 """
-Schema Report CLI
+Schema Report CLI - generate financial asset relationship schema reports.
 
-A command-line interface for generating schema reports from the financial asset relationship database.
-Validates inputs early and provides user-friendly error messages with detailed logging.
+This CLI tool generates schema reports with validated input options and
+proper error handling. User-facing errors stay generic while logs contain
+detailed diagnostics.
 """
 
+from __future__ import annotations
+
 import argparse
+import enum
 import json
 import logging
+import os
 import sys
-from enum import Enum
+import tempfile
 from pathlib import Path
-from typing import Any, Dict
 
-# Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Ensure project root is on sys.path before importing src.*
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.sample_data import create_sample_database  # noqa: E402
 from src.reports.schema_report import generate_schema_report  # noqa: E402
 
+# ---------------------------------------------------------------------------
+# Logging configuration
+# ---------------------------------------------------------------------------
 
-class OutputFormat(str, Enum):
-    """Supported output formats for schema reports."""
+# Allow override via SCHEMA_REPORT_LOG env var; fall back to repo path or temp.
+_env_log = os.getenv("SCHEMA_REPORT_LOG")
+_default_log_path = Path(__file__).resolve().parent / "schema_report_cli.log"
+
+if _env_log:
+    LOG_PATH = Path(_env_log)
+else:
+    # Prefer repo location if writable; otherwise use system temp.
+    try:
+        _default_log_path.parent.mkdir(parents=True, exist_ok=True)
+        test_file = _default_log_path.parent / ".write_test"
+        test_file.write_text("ok", encoding="utf-8")
+        test_file.unlink()
+        LOG_PATH = _default_log_path
+    except Exception:
+        LOG_PATH = Path(tempfile.gettempdir()) / "schema_report_cli.log"
+
+# Ensure parent directory for LOG_PATH exists; if not, fallback to temp.
+try:
+    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+except Exception:
+    LOG_PATH = Path(tempfile.gettempdir()) / "schema_report_cli.log"
+    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+file_handler = logging.FileHandler(LOG_PATH)
+file_handler.setLevel(logging.DEBUG)
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_handler.setFormatter(file_formatter)
+
+stream_handler = logging.StreamHandler(sys.stderr)
+stream_formatter = logging.Formatter("%(levelname)s: %(message)s")
+stream_handler.setFormatter(stream_formatter)
+
+logger = logging.getLogger(__name__)
+logger.addHandler(file_handler)
+logger.addHandler(stream_handler)
+logger.setLevel(logging.INFO)  # Default; adjusted in main().
+
+# ---------------------------------------------------------------------------
+# CLI types and errors
+# ---------------------------------------------------------------------------
+
+
+class OutputFormat(enum.Enum):
+    """Constrained enum for valid output formats."""
 
     MARKDOWN = "markdown"
-    JSON = "json"
     TEXT = "text"
+    JSON = "json"
 
-    @classmethod
-    def choices(cls):
-        """Return list of valid format choices."""
-        return [fmt.value for fmt in cls]
-
-
-def setup_logging(verbose: bool = False) -> logging.Logger:
-    """
-    Configure logging for the CLI.
-
-    Args:
-        verbose: If True, set log level to DEBUG; otherwise INFO
-
-    Returns:
-        Configured logger instance
-    """
-    log_level = logging.DEBUG if verbose else logging.INFO
-    # Use absolute path relative to script location
-    log_file = Path(__file__).parent / "schema_report_cli.log"
-    handlers = [logging.FileHandler(log_file)]
-
-    # Only add stderr handler in verbose mode
-    if verbose:
-        handlers.append(logging.StreamHandler(sys.stderr))
-
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        handlers=handlers,
-    )
-    return logging.getLogger(__name__)
+    def __str__(self) -> str:
+        return self.value
 
 
-def format_as_json(metrics: Dict[str, Any]) -> str:
-    """
-    Format metrics as JSON output.
-
-    Args:
-        metrics: Dictionary of calculated metrics
-
-    Returns:
-        JSON-formatted string
-    """
-    return json.dumps(metrics, indent=2, default=str)
+class CLIError(Exception):
+    """Base exception for CLI errors with user-friendly messages."""
 
 
-def format_as_text(report: str) -> str:
-    """
-    Format report as plain text (strip markdown formatting).
-
-    Args:
-        report: Markdown-formatted report
-
-    Returns:
-        Plain text version of report
-    """
-    import re
-
-    # Remove markdown headers
-    text = re.sub(r"^#+\s+", "", report, flags=re.MULTILINE)
-    # Remove bold formatting
-    text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
-    # Remove list markers
-    text = re.sub(r"^\d+\.\s+", "", text, flags=re.MULTILINE)
-    text = re.sub(r"^[-*]\s+", "", text, flags=re.MULTILINE)
-    return text
-
-
-def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
-    """
-    Generate schema report in the specified format.
-
-    Args:
-        fmt: Output format (markdown, json, or text)
-        logger: Logger instance for diagnostics
-
-    Returns:
-        Formatted report string
-
-    Raises:
-        ValueError: If format is invalid or report generation fails
-    """
-    logger.info(f"Generating schema report in {fmt.value} format")
-
-    try:
-        # Create sample database
-        logger.debug("Creating sample database")
-        graph = create_sample_database()
-
-        if fmt == OutputFormat.JSON:
-            # For JSON, return metrics directly
-            logger.debug("Calculating metrics for JSON output")
-            metrics = graph.calculate_metrics()
-            return format_as_json(metrics)
-        else:
-            # Generate markdown report
-            logger.debug("Generating markdown report")
-            report = generate_schema_report(graph)
-
-            if fmt == OutputFormat.TEXT:
-                logger.debug("Converting markdown to plain text")
-                return format_as_text(report)
-            else:  # OutputFormat.MARKDOWN
-                return report
-
-    except Exception as e:
-        logger.error(
-            f"Failed to generate report: {type(e).__name__}: {e}", exc_info=True
-        )
-        raise ValueError("Report generation failed") from e
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 
 def parse_arguments() -> argparse.Namespace:
@@ -145,104 +98,187 @@ def parse_arguments() -> argparse.Namespace:
     Parse and validate command-line arguments.
 
     Returns:
-        Parsed arguments namespace
+        argparse.Namespace: Validated argument namespace.
     """
     parser = argparse.ArgumentParser(
-        description="Generate schema reports from financial asset relationship database",
+        description="Generate schema reports for financial asset relationships.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  %(prog)s --fmt markdown
-  %(prog)s --fmt json --output report.json
-  %(prog)s --fmt text --verbose
-        """,
     )
 
     parser.add_argument(
         "--fmt",
         type=str,
-        choices=OutputFormat.choices(),
+        choices=[f.value for f in OutputFormat],
         default=OutputFormat.MARKDOWN.value,
-        help=f"Output format (default: {OutputFormat.MARKDOWN.value})",
+        help="Output format (default: %(default)s).",
     )
-
     parser.add_argument(
-        "--output", "-o", type=str, help="Output file path (default: stdout)"
+        "--output",
+        "-o",
+        type=Path,
+        help="Output file path (default: stdout).",
     )
-
     parser.add_argument(
-        "--verbose", "-v", action="store_true", help="Enable verbose logging"
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Enable verbose logging.",
     )
 
     return parser.parse_args()
 
 
-def main() -> int:
+def convert_markdown_to_plain_text(markdown: str) -> str:
     """
-    Main CLI entry point.
+    Convert Markdown to a simple plain-text representation.
 
-    Returns:
-        Exit code (0 for success, 1 for error)
+    Strips common Markdown markers but keeps content intact.
     """
-    # Parse arguments (argparse will handle --help and validation errors)
-    args = parse_arguments()
+    lines: list[str] = []
+    for line in markdown.splitlines():
+        stripped = line.lstrip("# ").lstrip("- ").lstrip("* ")
+        lines.append(stripped)
+    return "\n".join(lines)
 
-    # Setup logging
-    logger = setup_logging(args.verbose)
-    logger.info("Schema Report CLI started")
+
+def convert_markdown_to_json(markdown: str) -> str:
+    """
+    Wrap the Markdown schema report in a simple JSON object.
+
+    This minimal payload can be extended or versioned in future.
+    """
+    payload = {"schema_report": markdown}
+    return json.dumps(payload, indent=2)
+
+
+def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
+    """
+    Atomically write text data to a file path.
+
+    Writes to a temporary file in the same directory and then renames it.
+    """
+    parent = path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+
+    fd, tmp_path_str = tempfile.mkstemp(dir=str(parent))
+    tmp_path = Path(tmp_path_str)
 
     try:
-        # Validate and convert format
+        with os.fdopen(fd, "w", encoding=encoding) as fh:
+            fh.write(data)
+            fh.flush()
+            os.fsync(fh.fileno())
+        tmp_path.replace(path)
+    except Exception:
         try:
-            fmt = OutputFormat(args.fmt)
+            tmp_path.unlink()
+        except Exception:
+            pass
+        raise
+
+
+def generate_report(fmt: OutputFormat, output: Path | None) -> None:
+    """
+    Generate a schema report and write it to stdout or a file.
+
+    Args:
+        fmt: Selected output format.
+        output: Optional output file path. If None, print to stdout.
+
+    Raises:
+        CLIError: If report generation or formatting fails.
+    """
+    logger.info("Generating schema report with format: %s", fmt.value)
+    try:
+        graph = create_sample_database()
+        report = generate_schema_report(graph)
+
+        if fmt is OutputFormat.MARKDOWN:
+            formatted = report
+        elif fmt is OutputFormat.TEXT:
+            formatted = convert_markdown_to_plain_text(report)
+        elif fmt is OutputFormat.JSON:
+            formatted = convert_markdown_to_json(report)
+        else:
+            raise ValueError(f"Unsupported format: {fmt!r}")
+
+        if output:
+            write_atomic(output, formatted)
+            logger.info("Report written to: %s", output)
+        else:
+            # Ensure trailing newline for clean CLI output.
+            sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Failed to generate schema report.")
+        raise CLIError("Report generation failed. Check logs for details.") from exc
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+
+def main() -> int:
+    """
+    Main entry point for the Schema Report CLI.
+
+    Returns:
+        int: Exit code (0 for success, non-zero for errors).
+    """
+    try:
+        args = parse_arguments()
+
+        # Adjust handler levels depending on verbose flag.
+        if args.verbose:
+            logger.setLevel(logging.DEBUG)
+            stream_handler.setLevel(logging.DEBUG)
+            logger.debug("Verbose logging enabled.")
+        else:
+            # Keep DEBUG and traces in the log file only.
+            stream_handler.setLevel(logging.WARNING)
+            logger.setLevel(logging.INFO)
+
+        try:
+            output_format = OutputFormat(args.fmt)
+            logger.debug("Using output format: %s", output_format)
         except ValueError:
-            # This should not happen due to argparse choices, but defensive programming
-            logger.error(f"Invalid format specified: {args.fmt}")
+            logger.error("Invalid format value: %s", args.fmt)
             print(
-                f"Error: Invalid output format. Supported formats: {', '.join(OutputFormat.choices())}",
+                "Error: Invalid output format. " "Please use one of: markdown, text, json.",
                 file=sys.stderr,
             )
             return 1
 
-        # Generate report
-        report = generate_report(fmt, logger)
-
-        # Write output
-        if args.output:
-            logger.info(f"Writing report to {args.output}")
-            try:
-                output_path = Path(args.output)
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                output_path.write_text(report, encoding="utf-8")
-                logger.info(f"Report successfully written to {args.output}")
-            except IOError as e:
-                logger.error(f"Failed to write output file: {e}", exc_info=True)
-                print(
-                    "Error: Failed to write output file. Check logs for details.",
-                    file=sys.stderr,
-                )
-                return 1
-        else:
-            # Write to stdout
-            print(report)
-
-        logger.info("Schema report generation completed successfully")
+        generate_report(output_format, args.output)
+        logger.info("Schema report generation completed successfully.")
         return 0
 
-    except KeyboardInterrupt:
-        logger.warning("Operation cancelled by user")
-        print("\nOperation cancelled by user", file=sys.stderr)
-        return 130  # Standard exit code for SIGINT
+    except CLIError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
 
-    except Exception as e:
-        # Catch-all for unexpected errors
-        logger.critical(f"Unexpected error: {type(e).__name__}: {e}", exc_info=True)
+    except KeyboardInterrupt:
+        logger.info("Operation cancelled by user.")
+        # Attempt to remove any partial output file being written.
+        if "args" in locals() and getattr(args, "output", None):
+            output_path = Path(args.output)
+            try:
+                if output_path.exists():
+                    output_path.unlink()
+                    logger.debug("Removed partial output file: %s", output_path)
+            except Exception:
+                logger.debug("Failed to remove partial file: %s", output_path)
+        print("\nOperation cancelled.", file=sys.stderr)
+        return 130
+
+    except Exception:  # noqa: BLE001
+        logger.exception("Unexpected error occurred.")
         print(
-            "Error: An unexpected error occurred. Check logs at .github/scripts/schema_report_cli.log for details.",
+            "Error: An unexpected error occurred. Please check the logs for details.",
             file=sys.stderr,
         )
         return 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

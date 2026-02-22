@@ -19,7 +19,7 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
-    """Build a (source, target, rel_type) → strength index for the given asset IDs.
+    """Build a (source, target, rel_type) 1 strength index for the given asset IDs.
 
     Only relationships where both endpoints are in *asset_ids* are included.
 
@@ -28,42 +28,27 @@ def _build_relationship_index(
         ValueError: If relationship data is malformed.
     """
     if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(
-            f"graph must be an AssetRelationshipGraph instance, "
-            f"got {type(graph).__name__}"
-        )
+        raise TypeError(f"graph must be an AssetRelationshipGraph instance, " f"got {type(graph).__name__}")
     if not hasattr(graph, "relationships"):
         raise ValueError("graph is missing 'relationships' attribute")
     if not isinstance(graph.relationships, dict):
-        raise TypeError(
-            f"graph.relationships must be a dictionary, "
-            f"got {type(graph.relationships).__name__}"
-        )
+        raise TypeError(f"graph.relationships must be a dictionary, " f"got {type(graph.relationships).__name__}")
 
     try:
         asset_ids_set: Set[str] = set(asset_ids)
     except TypeError as exc:
-        raise TypeError(
-            f"asset_ids must be an iterable, got {type(asset_ids).__name__}"
-        ) from exc
+        raise TypeError(f"asset_ids must be an iterable, got {type(asset_ids).__name__}") from exc
 
     if not all(isinstance(aid, str) for aid in asset_ids_set):
         raise ValueError("asset_ids must contain only string values")
 
     with _graph_access_lock:
-        relevant_relationships = {
-            src: list(rels)
-            for src, rels in graph.relationships.items()
-            if src in asset_ids_set
-        }
+        relevant_relationships = {src: list(rels) for src, rels in graph.relationships.items() if src in asset_ids_set}
 
     relationship_index: Dict[Tuple[str, str, str], float] = {}
     for source_id, rels in relevant_relationships.items():
         if not isinstance(rels, (list, tuple)):
-            raise TypeError(
-                f"relationships for '{source_id}' must be a list or tuple, "
-                f"got {type(rels).__name__}"
-            )
+            raise TypeError(f"relationships for '{source_id}' must be a list or tuple, " f"got {type(rels).__name__}")
         for idx, rel in enumerate(rels):
             if not isinstance(rel, (list, tuple)) or len(rel) != 3:
                 raise ValueError(
@@ -72,19 +57,13 @@ def _build_relationship_index(
                 )
             target_id, rel_type, strength = rel
             if not isinstance(target_id, str):
-                raise TypeError(
-                    f"target_id at index {idx} for '{source_id}' must be a string"
-                )
+                raise TypeError(f"target_id at index {idx} for '{source_id}' must be a string")
             if not isinstance(rel_type, str):
-                raise TypeError(
-                    f"rel_type at index {idx} for '{source_id}' must be a string"
-                )
+                raise TypeError(f"rel_type at index {idx} for '{source_id}' must be a string")
             try:
                 strength_float = float(strength)
             except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"strength at index {idx} for '{source_id}' must be numeric"
-                ) from exc
+                raise ValueError(f"strength at index {idx} for '{source_id}' must be numeric") from exc
             if target_id in asset_ids_set:
                 relationship_index[(source_id, target_id, rel_type)] = strength_float
 
@@ -103,17 +82,11 @@ def _collect_and_group_relationships(
     relationship_groups: Dict[Tuple[str, bool], List[dict]] = defaultdict(list)
 
     for (source_id, target_id, rel_type), strength in relationship_index.items():
-        if (
-            relationship_filters
-            and rel_type in relationship_filters
-            and not relationship_filters[rel_type]
-        ):
+        if relationship_filters and rel_type in relationship_filters and not relationship_filters[rel_type]:
             continue
 
         pair_key: Tuple[str, str, str] = (
-            (source_id, target_id, rel_type)
-            if source_id <= target_id
-            else (target_id, source_id, rel_type)
+            (source_id, target_id, rel_type) if source_id <= target_id else (target_id, source_id, rel_type)
         )
         is_bidirectional = (target_id, source_id, rel_type) in relationship_index
 
@@ -155,9 +128,7 @@ def _build_edge_coordinates_optimized(
     return edges_x, edges_y, edges_z
 
 
-def _build_hover_texts(
-    relationships: List[dict], rel_type: str, is_bidirectional: bool
-) -> List[Optional[str]]:
+def _build_hover_texts(relationships: List[dict], rel_type: str, is_bidirectional: bool) -> List[Optional[str]]:
     """Build pre-allocated hover text list for a relationship group."""
     direction = "↔" if is_bidirectional else "→"
     n = len(relationships)

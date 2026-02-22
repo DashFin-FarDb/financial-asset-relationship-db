@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Generator
-from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -21,33 +19,13 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
+from .database import session_scope  # noqa: F401
 from .db_models import (
     AssetORM,
     AssetRelationshipORM,
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
-
-
-@contextmanager
-def session_scope(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
-    """
-    Provide a transactional scope around a series of operations.
-
-    Tech spec alignment: session_scope is defined in repository.py to provide a
-    standard transaction boundary for repository interactions.
-    """
-    session = session_factory()
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
 
 
 @dataclass
@@ -80,9 +58,7 @@ class AssetGraphRepository:
 
     def list_assets(self) -> List[Asset]:
         """Return all assets as dataclass instances ordered by id."""
-        result = (
-            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
-        )
+        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -271,9 +247,7 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = (
-            float(asset.market_cap) if asset.market_cap is not None else None
-        )
+        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)

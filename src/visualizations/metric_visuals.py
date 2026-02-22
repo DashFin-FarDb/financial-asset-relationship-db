@@ -12,10 +12,12 @@ def _asset_class_distribution(distribution: dict) -> go.Figure:
     """Creates a bar chart for asset class distribution.
 
     Args:
-        distribution (dict): A dictionary with asset classes as keys and their counts as values.
+        distribution (dict): A dictionary with asset classes as keys
+            and their counts as values.
 
     Returns:
-        go.Figure: A Plotly figure object representing the asset class distribution.
+        go.Figure: A Plotly figure object representing the asset
+            class distribution.
     """
     classes = list(distribution.keys())
     counts = list(distribution.values())
@@ -34,7 +36,8 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
     """Creates a bar chart for relationship types distribution.
 
     Args:
-        distribution (dict): A dictionary with relationship types as keys and their counts as values.
+        distribution (dict): A dictionary with relationship types as keys
+            and their counts as values.
 
     Returns:
         go.Figure: A Plotly figure object representing the bar chart.

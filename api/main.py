@@ -1,38 +1,45 @@
-"""
-Comprehensive YAML schema validation tests for GitHub workflows.
+# Comprehensive test coverage available in tests/unit/test_api_main.py
+"""FastAPI backend for Financial Asset Relationship Database"""
 
-Tests validate YAML structure, syntax, and GitHub Actions schema compliance
-for all workflow files in .github/workflows/
-"""
+import logging
+import os
+import re
+import threading
+from contextlib import asynccontextmanager
+from datetime import timedelta
+from typing import Any, Callable, Dict, List, Optional
 
-import warnings as GLOBAL_WARNINGS
-from pathlib import Path
-from typing import Any, Dict, List
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
-import pytest
-import yaml
+from src.data.real_data_fetcher import RealDataFetcher
+from src.logic.asset_graph import AssetRelationshipGraph
+from src.models.financial_models import AssetClass
 
-from .auth import Token, User, authenticate_user, create_access_token, get_current_active_user
+from .auth import (
+    Token,
+    User,
+    authenticate_user,
+    create_access_token,
+    get_current_active_user,
+)
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-class TestWorkflowYAMLSyntax:
-    """Test YAML syntax and structure validity."""
+# Authentication settings
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-    @pytest.fixture
-    def workflow_files(self):
-        """Get all workflow YAML files."""
-        workflow_dir = Path(".github/workflows")
-        return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
-
-    def test_all_workflows_are_valid_yaml(self, workflow_files):
-        """All workflow files should be valid YAML."""
-        assert len(workflow_files) > 0, "No workflow files found"
-
-        for workflow_file in workflow_files:
-            try:
-                with open(workflow_file, "r") as f:
-
-                    data = yaml.safe_load(f)
+# Global graph instance with thread-safe initialization and configurable factory
+graph: Optional[AssetRelationshipGraph] = None
+graph_factory: Optional[Callable[[], AssetRelationshipGraph]] = None
+graph_lock = threading.Lock()
 
 
 def get_graph() -> AssetRelationshipGraph:
@@ -129,14 +136,14 @@ def _should_use_real_data_fetcher() -> bool:
 
 
 @asynccontextmanager
-async def lifespan(_fastapi_app: FastAPI):
+async def lifespan(app: FastAPI):
     """
     Manage the application's lifespan by initialising the global graph on startup and logging shutdown.
 
     Initialises the global asset relationship graph before the application begins handling requests; if initialisation fails the exception is re-raised to abort startup. Yields control for the application's running lifetime and logs on shutdown.
 
     Parameters:
-        fastapi_app (FastAPI): The FastAPI application instance.
+        app (FastAPI): The FastAPI application instance.
     """
     # Startup
     try:
@@ -177,9 +184,7 @@ ENV = os.getenv("ENV", "development").lower()
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
-):
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Create a JWT access token for a user authenticated with a username and password.
 
@@ -200,17 +205,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_active_user)
-):
+async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
     """
     Retrieve the currently authenticated user.
 
@@ -228,17 +229,14 @@ async def read_users_me(
     return current_user
 
 
-def validate_origin(origin_url: str) -> bool:
+def validate_origin(origin: str) -> bool:
     """
     Determine whether an HTTP origin is permitted by the application's CORS rules.
 
-    Allows explicitly configured origins, HTTPS origins with a valid domain,
-    Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment,
-    and HTTP localhost/127.0.0.1 when ENV is "development".
+    Allows explicitly configured origins, HTTPS origins with a valid domain, Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment, and HTTP localhost/127.0.0.1 when ENV is "development".
 
     Parameters:
-        origin_url (str): Origin URL to validate (for example
-            "https://example.com" or "http://localhost:3000").
+        origin (str): Origin URL to validate (for example "https://example.com" or "http://localhost:3000").
 
     Returns:
         True if the origin is allowed, False otherwise.
@@ -247,39 +245,47 @@ def validate_origin(origin_url: str) -> bool:
     current_env = os.getenv("ENV", "development").lower()
 
     # Get allowed origins from environment variable or use default
-    env_allowed_origins = [o for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o]
+    allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
 
     # If origin is in explicitly allowed list, return True
-    if origin_url in env_allowed_origins and origin_url:
+    if origin in allowed_origins and origin:
         return True
 
     # Allow HTTP localhost only in development
-    if current_env == "development" and re.match(
-        r"^http://(localhost|127\\.0\\.0\\.1)(:\\d+)?$",
-        origin_url,
-    ):
+    if current_env == "development" and re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
         return True
     # Allow HTTPS localhost in any environment
+    if re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
+        return True
+    # Allow Vercel preview deployment URLs (e.g., https://project-git-branch-user.vercel.app)
+    if re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin):
+        return True
+    # Allow valid HTTPS URLs with proper domains (ASCII and IDN)
     if re.match(
-        r"^https://(localhost|127\\.0\\.0\\.1)(:\\d+)?$",
-        origin_url,
+        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$",
+        origin,
     ):
         return True
-    # Allow Vercel preview deployment URLs
-    # (e.g., https://project-git-branch-user.vercel.app)
-    if re.match(
-        r"^https://[a-zA-Z0-9\\-\\.]+\\.vercel\\.app$",
-        origin_url,
-    ):
-        return True
-    # Allow valid HTTPS URLs with proper domains
-    if re.match(
-        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?"
-        r"(\\.[a-zA-Z0-9]([a-zA-Z0-9\\-]{0,61}[a-zA-Z0-9])?)*"
-        r"\\.[a-zA-Z]{2,}$",
-        origin_url,
-    ):
-        return True
+    # Support IDN (Internationalized Domain Names) — encode host to ASCII and re-validate
+    from urllib.parse import urlparse as _urlparse
+
+    parsed = _urlparse(origin)
+    if parsed.scheme == "https" and parsed.netloc:
+        try:
+            ascii_host = parsed.hostname.encode("idna").decode("ascii")
+            ascii_origin = f"https://{ascii_host}"
+            if parsed.port:
+                ascii_origin += f":{parsed.port}"
+            if re.match(
+                r"^https://[a-zA-Z0-9]"
+                r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+                r"\.[a-zA-Z]{2,}$",
+                ascii_origin,
+            ):
+                return True
+        except UnicodeError:
+            pass
     return False
 
 
@@ -311,7 +317,7 @@ if os.getenv("ALLOWED_ORIGINS"):
         if validate_origin(stripped_origin):
             allowed_origins.append(stripped_origin)
         else:
-            logger.warning("Skipping invalid CORS origin: %s", stripped_origin)
+            logger.warning(f"Skipping invalid CORS origin: {stripped_origin}")
 
 app.add_middleware(
     CORSMiddleware,
@@ -379,9 +385,10 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
 
     # Add asset-specific fields
     for field in fields:
-        value = getattr(asset, field, None)
-        if value is not None:
-            asset_dict["additional_fields"][field] = value
+        if hasattr(asset, field):
+            value = getattr(asset, field)
+            if value is not None:
+                asset_dict["additional_fields"][field] = value
 
     return asset_dict
 
@@ -430,7 +437,8 @@ async def root():
         Dict[str, Union[str, Dict[str, str]]]: A mapping containing:
             - "message": short API description string.
             - "version": API version string.
-            - "endpoints": dict mapping endpoint keys to their URL paths (e.g., "assets": "/api/assets").
+            - "endpoints": dict mapping endpoint keys to their URL paths
+              (e.g., "assets": "/api/assets").
     """
     return {
         "message": "Financial Asset Relationship API",
@@ -447,27 +455,46 @@ async def root():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint."""
     return {"status": "healthy", "graph_initialized": True}
 
 
-@app.get("/api/assets", response_model=List[AssetResponse])
-async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = None):
+@app.get(
+    "/api/assets",
+    response_model=List[AssetResponse],
+    responses={
+        500: {
+            "description": "Internal server error while listing assets.",
+            "content": {
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+            },
+        },
+    },
+)
+async def get_assets(
+    asset_class: Optional[str] = None,
+    sector: Optional[str] = None,
+):
     """
     List assets, optionally filtered by asset class and sector.
 
     Parameters:
-        asset_class (Optional[str]): Filter to include only assets whose `asset_class.value` equals this string.
-        sector (Optional[str]): Filter to include only assets whose `sector` equals this string.
+        asset_class (Optional[str]): Filter to include only assets whose
+            `asset_class.value` equals this string.
+        sector (Optional[str]): Filter to include only assets whose
+            `sector` equals this string.
 
     Returns:
-        List[AssetResponse]: AssetResponse objects matching the filters. Each object's `additional_fields` contains any non-null, asset-type-specific attributes as defined in the respective asset model classes.
+        List[AssetResponse]: AssetResponse objects matching the filters.
+        Each object's `additional_fields` contains any non-null,
+        asset-type-specific attributes as defined in the respective asset
+        model classes.
     """
     try:
         g = get_graph()
-        assets = []
+        assets: List[AssetResponse] = []
 
-        for _, asset in g.assets.items():
+        for asset_id, asset in g.assets.items():
             # Apply filters
             if asset_class and asset.asset_class.value != asset_class:
                 continue
@@ -477,13 +504,32 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
             # Build response using serialization utility
             asset_dict = serialize_asset(asset)
             assets.append(AssetResponse(**asset_dict))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Error getting assets:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
-    return assets
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
+    else:
+        return assets
 
 
-@app.get("/api/assets/{asset_id}", response_model=AssetResponse)
+@app.get(
+    "/api/assets/{asset_id}",
+    response_model=AssetResponse,
+    responses={
+        404: {
+            "description": "Asset not found.",
+            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+        },
+        500: {
+            "description": "Internal server error while retrieving asset.",
+            "content": {
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+            },
+        },
+    },
+)
 async def get_asset_detail(asset_id: str):
     """
     Retrieve detailed information for the asset identified by `asset_id`.
@@ -492,7 +538,10 @@ async def get_asset_detail(asset_id: str):
         asset_id (str): Identifier of the asset whose details are requested.
 
     Returns:
-        AssetResponse: Detailed asset information as defined in the AssetResponse model, including core fields and an `additional_fields` map containing any asset-specific attributes that are present and non-null.
+        AssetResponse: Detailed asset information as defined in the
+        AssetResponse model, including core fields and an `additional_fields`
+        map containing any asset-specific attributes that are present and
+        non-null.
 
     Raises:
         HTTPException: 404 if the asset is not found.
@@ -508,7 +557,7 @@ async def get_asset_detail(asset_id: str):
         # Build response using serialization utility with issuer_id included
         asset_dict = serialize_asset(asset, include_issuer=True)
         return AssetResponse(**asset_dict)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset detail:")
@@ -516,27 +565,44 @@ async def get_asset_detail(asset_id: str):
 
 
 @app.get(
-    "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
+    "/api/assets/{asset_id}/relationships",
+    response_model=List[RelationshipResponse],
+    responses={
+        404: {
+            "description": "Asset not found.",
+            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+        },
+        500: {
+            "description": ("Internal server error while retrieving asset relationships."),
+            "content": {
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+            },
+        },
+    },
 )
 async def get_asset_relationships(asset_id: str):
     """
     List outgoing relationships for the specified asset.
 
     Parameters:
-        asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+        asset_id (str): Identifier of the asset whose outgoing relationships
+            are requested.
 
     Returns:
-        List[RelationshipResponse]: Outgoing relationship records for the asset (each with source_id, target_id, relationship_type, and strength).
+        List[RelationshipResponse]: Outgoing relationship records for the
+        asset (each with source_id, target_id, relationship_type, and
+        strength).
 
     Raises:
-        HTTPException: 404 if the asset is not found; 500 for unexpected errors.
+        HTTPException: 404 if the asset is not found; 500 for unexpected
+        errors.
     """
     try:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
 
-        relationships = []
+        relationships: List[RelationshipResponse] = []
 
         # Outgoing relationships
         if asset_id in g.relationships:
@@ -549,25 +615,39 @@ async def get_asset_relationships(asset_id: str):
                         strength=strength,
                     )
                 )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset relationships:")
         raise HTTPException(status_code=500, detail=str(e)) from e
-    return relationships
+    else:
+        return relationships
 
 
-@app.get("/api/relationships", response_model=List[RelationshipResponse])
+@app.get(
+    "/api/relationships",
+    response_model=List[RelationshipResponse],
+    responses={
+        500: {
+            "description": "Internal server error while listing relationships.",
+            "content": {
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+            },
+        },
+    },
+)
 async def get_all_relationships():
     """
     List all directed relationships in the initialized asset graph.
 
     Returns:
-        List[RelationshipResponse]: List of relationships where each item contains `source_id`, `target_id`, `relationship_type`, and `strength`.
+        List[RelationshipResponse]: List of relationships where each item
+        contains `source_id`, `target_id`, `relationship_type`, and
+        `strength`.
     """
     try:
         g = get_graph()
-        relationships = []
+        relationships: List[RelationshipResponse] = []
 
         for source_id, rels in g.relationships.items():
             for target_id, rel_type, strength in rels:
@@ -579,483 +659,208 @@ async def get_all_relationships():
                         strength=strength,
                     )
                 )
-
-    def test_workflows_use_consistent_indentation(self, workflow_files):
-        """Workflow files should use consistent indentation (2 spaces)."""
-        for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
-                lines = f.readlines()
-
-            for i, line in enumerate(lines, 1):
-                if line.strip() and not line.strip().startswith("#"):
-                    # Count leading spaces
-                    leading_spaces = len(line) - len(line.lstrip(" "))
-                    if leading_spaces > 0:
-                        if leading_spaces % 2 != 0:
-                            raise AssertionError(
-                                f"{workflow_file.name}:{i} has odd indentation "
-                                f"({leading_spaces} spaces)"
-                            )
-
-    def test_workflows_have_no_trailing_whitespace(self, workflow_files):
-        """Workflow files should not have trailing whitespace."""
-        for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
-                lines = f.readlines()
-
-            for i, line in enumerate(lines, 1):
-                if line.rstrip("\n").endswith((" ", "\t")):
-                    pytest.fail(f"{workflow_file.name}:{i} has trailing whitespace")
+    except Exception as e:  # noqa: BLE001
+        logger.exception("Error getting relationships:")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    else:
+        return relationships
 
 
-class TestWorkflowGitHubActionsSchema:
-    """Test GitHub Actions schema compliance."""
+@app.get(
+    "/api/metrics",
+    response_model=MetricsResponse,
+    responses={
+        500: {
+            "description": "Internal server error while computing metrics.",
+            "content": {
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+            },
+        },
+    },
+)
+async def get_metrics():
+    """
+    Aggregate network metrics and counts of assets by asset class.
 
-    @pytest.fixture
-    def workflow_data(self):
-        """Load all workflow files as structured data."""
-        workflow_dir = Path(".github/workflows")
-        workflows = {}
+    Returns:
+        MetricsResponse: Aggregated metrics including:
+            - total_assets: total number of assets.
+            - total_relationships: total number of directed relationships.
+            - asset_classes: dict mapping asset class name (str) to asset
+              count (int).
+            - avg_degree: average node degree (float).
+            - max_degree: maximum node degree (int).
+            - network_density: network density (float).
+            - relationship_density: relationship density (float).
 
-        for workflow_file in list(workflow_dir.glob("*.yml")) + list(
-            workflow_dir.glob("*.yaml")
-        ):
-            with open(workflow_file, "r") as f:
-                workflows[workflow_file.name] = yaml.safe_load(f)
+    Raises:
+        HTTPException: with status code 500 if metrics cannot be obtained.
+    """
+    try:
+        g = get_graph()
+        metrics = g.calculate_metrics()
 
-        return workflows
+        # Count assets by class
+        asset_classes: Dict[str, int] = {}
+        for asset in g.assets.values():
+            class_name = asset.asset_class.value
+            asset_classes[class_name] = asset_classes.get(class_name, 0) + 1
 
-    def test_workflows_have_name(self, workflow_data):
-        """All workflows should have a name field."""
-        for filename, data in workflow_data.items():
-            if "name" not in data:
-                raise AssertionError(f"{filename} missing 'name' field")
-            if not isinstance(data["name"], str):
-                raise AssertionError(f"{filename} name should be string")
-            if not len(data["name"]) > 0:
-                raise AssertionError(f"{filename} name is empty")
+        total_assets = metrics.get("total_assets", 0)
+        total_relationships = metrics.get("total_relationships", 0)
+        relationship_density = metrics.get("relationship_density", 0.0)
 
-    def test_workflows_have_trigger(self, workflow_data):
-        """All workflows should have at least one trigger."""
-        valid_triggers = {
-            "on",
-            "push",
-            "pull_request",
-            "workflow_dispatch",
-            "schedule",
-            "issues",
-            "issue_comment",
-            "pull_request_review",
-            "pull_request_review_comment",
-            "workflow_run",
-            "repository_dispatch",
-        }
+        # Compute degree metrics from graph data directly
+        degrees = {src: len(rels) for src, rels in g.relationships.items()}
+        avg_degree = total_relationships / total_assets if total_assets > 0 else 0.0
+        max_degree = max(degrees.values()) if degrees else 0
 
-        for filename, data in workflow_data.items():
-            if "on" not in data:
-                raise AssertionError(f"{filename} missing 'on' trigger")
+        return MetricsResponse(
+            total_assets=total_assets,
+            total_relationships=total_relationships,
+            asset_classes=asset_classes,
+            avg_degree=avg_degree,
+            max_degree=max_degree,
+            network_density=relationship_density,
+            relationship_density=relationship_density,
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.exception("Error getting metrics:")
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
-            # 'on' can be string, list, or dict
-            trigger = data["on"]
-            if isinstance(trigger, str):
-                if trigger not in valid_triggers:
-                    raise AssertionError(f"{filename} has invalid trigger: {trigger}")
-            elif isinstance(trigger, list):
-                if not all(t in valid_triggers for t in trigger):
-                    raise AssertionError(f"{filename} has invalid triggers in list")
-            elif isinstance(trigger, dict):
-                if not any(k in valid_triggers for k in trigger.keys()):
-                    raise AssertionError(f"{filename} has no valid triggers in dict")
 
-    def test_workflows_have_jobs(self, workflow_data):
-        """All workflows should define at least one job."""
-        for filename, data in workflow_data.items():
-            if "jobs" not in data:
-                raise AssertionError(f"{filename} missing 'jobs' section")
-            if not isinstance(data["jobs"], dict):
-                raise AssertionError(f"{filename} jobs should be dict")
-            if not len(data["jobs"]) > 0:
-                raise AssertionError(f"{filename} has no jobs defined")
+@app.get(
+    "/api/visualization",
+    response_model=VisualizationDataResponse,
+    responses={
+        500: {
+            "description": ("Internal server error while building visualization data."),
+            "content": {
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+            },
+        },
+    },
+)
+async def get_visualization_data():
+    """
+    Provide nodes and edges prepared for 3D visualization of the asset graph.
 
-    def test_jobs_have_runs_on(self, workflow_data):
-        """All jobs should specify runs-on."""
-        for filename, data in workflow_data.items():
-            jobs = data.get("jobs", {})
+    Builds a list of node dictionaries (each with id, name, symbol,
+    asset_class, x, y, z, color, size) and a list of edge dictionaries
+    (each with source, target, relationship_type, strength) suitable for
+    the API response.
 
-            for job_name, job_data in jobs.items():
-                if "runs-on" not in job_data:
-                    raise AssertionError(
-                        "{} job '{}' missing 'runs-on'".format(
-                            filename,
-                            job_name,
-                        )
+    Returns:
+        VisualizationDataResponse: An object with `nodes` (list of node
+        dicts) and `edges` (list of edge dicts).
+
+    Raises:
+        HTTPException: If visualization data cannot be retrieved or
+        processed; results in a 500 status with the error detail.
+    """
+    try:
+        g = get_graph()
+        # get_3d_visualization_data_enhanced returns:
+        # (positions, asset_ids, colors, hover_texts)
+        positions, asset_ids, asset_colors, _ = g.get_3d_visualization_data_enhanced()
+        nodes: List[Dict[str, Any]] = []
+        for i, asset_id in enumerate(asset_ids):
+            asset = g.assets[asset_id]
+            nodes.append(
+                {
+                    "id": asset_id,
+                    "name": asset.name,
+                    "symbol": asset.symbol,
+                    "asset_class": asset.asset_class.value,
+                    "x": float(positions[i, 0]),
+                    "y": float(positions[i, 1]),
+                    "z": float(positions[i, 2]),
+                    "color": asset_colors[i],
+                    "size": 5,
+                }
+            )
+
+        edges: List[Dict[str, Any]] = []
+        # Build edges directly from graph.relationships to avoid rebuilding
+        # from intermediate data structures. Only include edges where both
+        # source and target are in the asset_ids list.
+        asset_id_set = set(asset_ids)
+        for source_id in g.relationships:
+            if source_id not in asset_id_set:
+                continue
+            for target_id, rel_type, strength in g.relationships[source_id]:
+                if target_id in asset_id_set:
+                    edges.append(
+                        {
+                            "source": source_id,
+                            "target": target_id,
+                            "relationship_type": rel_type,
+                            "strength": float(strength),
+                        }
                     )
 
-                runs_on = job_data["runs-on"]
-                valid_runners = [
-                    "ubuntu-latest",
-                    "ubuntu-20.04",
-                    "ubuntu-18.04",
-                    "windows-latest",
-                    "windows-2022",
-                    "windows-2019",
-                    "macos-latest",
-                    "macos-12",
-                    "macos-11",
-                ]
-
-                if isinstance(runs_on, str):
-                    # Can be expression or literal
-                    if not runs_on.startswith("${{"):
-                        if not any(runner in runs_on for runner in valid_runners):
-                            raise AssertionError(
-                                "{} job '{}' has invalid runs-on: {}".format(
-                                    filename,
-                                    job_name,
-                                    runs_on,
-                                )
-                            )
-
-    def test_jobs_have_steps_or_uses(self, workflow_data):
-        """Jobs should have either steps or uses (for reusable workflows)."""
-        for filename, data in workflow_data.items():
-            jobs = data.get("jobs", {})
-
-            for job_name, job_data in jobs.items():
-                has_steps = "steps" in job_data
-                has_uses = "uses" in job_data
-
-                if not (has_steps or has_uses):
-                    raise AssertionError(
-                        f"{filename} job '{job_name}' has neither 'steps' nor 'uses'"
-                    )
-
-                if has_steps:
-                    if not isinstance(job_data["steps"], list):
-                        raise AssertionError(
-                            f"{filename} job '{job_name}' steps should be a list"
-                        )
-                    if not len(job_data["steps"]) > 0:
-                        raise AssertionError(
-                            f"{filename} job '{job_name}' has empty steps"
-                        )
+        return VisualizationDataResponse(nodes=nodes, edges=edges)
+    except Exception as e:  # noqa: BLE001
+        logger.exception("Error getting visualization data:")
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-class TestWorkflowSecurity:
-    """Security-focused tests for GitHub workflows."""
+@app.get(
+    "/api/asset-classes",
+    responses={
+        200: {
+            "description": "List of available asset classes.",
+        },
+    },
+)
+async def get_asset_classes():
+    """
+    List available asset classes.
 
-    @pytest.fixture
-    def workflow_files(self):
-        """Get all workflow files."""
-        workflow_dir = Path(".github/workflows")
-        return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
-
-    def test_no_hardcoded_secrets(self, workflow_files):
-        """Workflows should not contain hardcoded secrets."""
-        dangerous_patterns = [
-            "ghp_",
-            "github_pat_",
-            "gho_",
-            "ghu_",
-            "ghs_",
-            "ghr_",  # GitHub tokens
-            "AKIA",
-            "ASIA",  # AWS keys
-            "-----BEGIN",
-            "-----BEGIN RSA PRIVATE KEY",  # Private keys
-        ]
-
-        import re
-
-        secret_ref_re = re.compile(r"\$\{\{\s*secrets\.[A-Za-z0-9_]+\s*\}\}")
-
-        for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
-                content = f.read()
-
-            lines = content.splitlines()
-            for i, line in enumerate(lines, start=1):
-                stripped = line.strip()
-                # Skip commented lines
-                if stripped.startswith("#"):
-                    continue
-                for pattern in dangerous_patterns:
-                    if pattern in line:
-                        valid_refs = list(secret_ref_re.finditer(line))
-                        if valid_refs:
-                            # Mask valid secret reference spans, then check remaining text for dangerous patterns
-                            masked = list(line)
-                            for m in valid_refs:
-                                for idx in range(m.start(), m.end()):
-                                    masked[idx] = " "
-                            remaining = "".join(masked)
-                            if pattern in remaining:
-                                raise AssertionError(
-                                    f"{workflow_file.name}:{i} may contain hardcoded secret "
-                                    f"outside secrets.* reference: {pattern}"
-                                )
-                        else:
-                            pytest.fail(
-                                f"{workflow_file.name}:{i} may contain hardcoded secret "
-                                f"without secrets.* reference: {pattern}"
-                            )
-
-    def test_pull_request_safe_checkout(self, workflow_files):
-        """PR workflows should checkout safely (not HEAD of PR)."""
-        for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
-                data = yaml.safe_load(f)
-
-            # Check if triggered by pull_request
-            triggers = data.get("on", {})
-            if "pull_request" in triggers or (
-                isinstance(triggers, list) and "pull_request" in triggers
-            ):
-                # Look for checkout actions
-                jobs = data.get("jobs", {})
-                for _, job_data in jobs.items():
-                    steps = job_data.get("steps", [])
-
-                    for step in steps:
-                        if step.get("uses", "").startswith("actions/checkout"):
-                            # Should specify ref or not checkout HEAD
-                            # If no ref specified, it's okay (checks out merge commit)
-                            # If ref specified, shouldn't be dangerous
-                            with_data = step.get("with", {})
-                            ref = with_data.get("ref", "")
-                            if (
-                                ref
-                                and "head" in ref.lower()
-                                and "sha" not in ref.lower()
-                            ):
-                                warnings.warn(
-                                    f"{workflow_file.name} checks out PR HEAD "
-                                    f"(potential security risk)"
-                                )
-
-    def test_restricted_permissions(self, workflow_files):
-        """Workflows should use minimal required permissions."""
-        for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
-                data = yaml.safe_load(f)
-
-            # Check top-level permissions
-            permissions = data.get("permissions", {})
-
-            # If permissions defined, shouldn't be 'write-all'
-            if permissions:
-                if isinstance(permissions, str):
-                    if permissions == "write-all":
-                        raise AssertionError(
-                            f"{workflow_file.name} uses write-all permissions (too broad)"
-                        )
-                elif isinstance(permissions, dict):
-                    # Check individual permissions
-                    for perm, level in permissions.items():
-                        if level == "write":
-                            # Write permissions should have justification in comments
-                            warnings.warn(
-                                f"{workflow_file.name} uses write permission for '{perm}' (too broad)",
-                                UserWarning,
-                            )
+    Returns:
+        Dict[str, List[str]]: A mapping with key "asset_classes" whose
+        value is a list of asset class string values.
+    """
+    return {"asset_classes": [ac.value for ac in AssetClass]}
 
 
-class TestWorkflowBestPractices:
-    """Test adherence to GitHub Actions best practices."""
+@app.get(
+    "/api/sectors",
+    responses={
+        200: {
+            "description": "List of unique sector names.",
+        },
+        500: {
+            "description": ("Internal server error while retrieving sectors."),
+            "content": {
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+            },
+        },
+    },
+)
+async def get_sectors():
+    """
+    List unique sector names present in the global asset graph in sorted
+    order.
 
-    @pytest.fixture
-    def workflow_data(self):
-        """Load all workflow files."""
-        workflow_dir = Path(".github/workflows")
-        workflows = {}
+    Returns:
+        Dict[str, List[str]]: Mapping with key "sectors" to a sorted list
+        of unique sector names.
 
-        for workflow_file in list(workflow_dir.glob("*.yml")) + list(
-            workflow_dir.glob("*.yaml")
-        ):
-            with open(workflow_file, "r") as f:
-                workflows[workflow_file.name] = yaml.safe_load(f)
-
-        return workflows
-
-    def test_actions_use_specific_versions(self, workflow_data):
-        """Actions should use specific versions (not latest/master)."""
-        for filename, data in workflow_data.items():
-            jobs = data.get("jobs", {})
-
-            for job_name, job_data in jobs.items():
-                steps = job_data.get("steps", [])
-
-                for i, step in enumerate(steps):
-                    uses = step.get("uses", "")
-                    if uses:
-                        # Should not use @main or @master
-                        if "@main" in uses or "@master" in uses:
-                            warnings.warn(
-                                f"{filename} job '{job_name}' step {i} "
-                                f"uses unstable version: {uses}"
-                            )
-
-    def test_steps_have_names(self, workflow_data):
-        """Steps should have descriptive names."""
-        for filename, data in workflow_data.items():
-            jobs = data.get("jobs", {})
-
-            for job_name, job_data in jobs.items():
-                steps = job_data.get("steps", [])
-
-                unnamed_steps = [
-                    i for i, step in enumerate(steps) if "name" not in step
-                ]
-
-                # Allow a few unnamed steps, but not too many
-                unnamed_ratio = len(unnamed_steps) / len(steps) if steps else 0
-                if not unnamed_ratio < 0.5:
-                    raise AssertionError(
-                        f"{filename} job '{job_name}' has too many unnamed steps"
-                    )
-
-    def test_timeouts_defined(self, workflow_data):
-        """Long-running jobs should have timeouts."""
-        for filename, data in workflow_data.items():
-            jobs = data.get("jobs", {})
-
-            for job_name, job_data in jobs.items():
-                steps = job_data.get("steps", [])
-
-                # If job has many steps or installs dependencies, should have timeout
-                if len(steps) > 5:
-                    # Check for timeout-minutes
-                    if "timeout-minutes" not in job_data:
-                        warnings.warn(
-                            f"{filename} job '{job_name}' has many steps "
-                            f"but no timeout defined"
-                        )
+    Raises:
+        HTTPException: Raised with status code 500 if an unexpected error
+        occurs while retrieving sectors.
+    """
+    try:
+        g = get_graph()
+        sectors = {asset.sector for asset in g.assets.values() if asset.sector}
+        return {"sectors": sorted(sectors)}
+    except Exception as e:  # noqa: BLE001
+        logger.exception("Error getting sectors:")
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-class TestWorkflowCrossPlatform:
-    """Test cross-platform compatibility issues."""
+if __name__ == "__main__":
+    import uvicorn
 
-    @pytest.fixture
-    def workflow_data(self):
-        """Load workflow data."""
-        workflow_dir = Path(".github/workflows")
-        workflows = {}
-
-        for workflow_file in list(workflow_dir.glob("*.yml")) + list(
-            workflow_dir.glob("*.yaml")
-        ):
-            with open(workflow_file, "r") as f:
-                workflows[workflow_file.name] = yaml.safe_load(f)
-
-        return workflows
-
-    def test_shell_script_compatibility(self, workflow_data):
-        """Shell scripts should be compatible with runner OS."""
-        for filename, data in workflow_data.items():
-            jobs = data.get("jobs", {})
-
-            for job_name, job_data in jobs.items():
-                runs_on = job_data.get("runs-on", "")
-                steps = job_data.get("steps", [])
-
-                is_windows = "windows" in str(runs_on).lower()
-
-                for step in steps:
-                    run_command = step.get("run", "")
-                    shell = step.get("shell", "bash" if not is_windows else "pwsh")
-
-                    if run_command:
-                        # Check for Unix-specific commands on Windows
-                        if is_windows and shell in ["bash", "sh"]:
-                            unix_commands = ["grep", "sed", "awk", "find"]
-                            for cmd in unix_commands:
-                                if cmd in run_command:
-                                    warnings.warn(
-                                        f"{filename} job '{job_name}' uses "
-                                        f"Unix command '{cmd}' on Windows"
-                                    )
-
-    def test_path_separators(self, workflow_data):
-        """File paths should use forward slashes for cross-platform compatibility."""
-        for _, data in workflow_data.items():
-            jobs = data.get("jobs", {})
-
-            for _, job_data in jobs.items():
-                steps = job_data.get("steps", [])
-
-                for step in steps:
-                    run_command = step.get("run", "")
-
-                    # Check for Windows-style paths (backslashes)
-                    if (
-                        "\\" in run_command
-                        and "windows" not in str(job_data.get("runs-on", "")).lower()
-                    ):
-                        # Might be legitimate (escaped chars), so just warn
-                        self.fail(
-                            f"Windows-style path (backslashes) found in run command: {run_command}"
-                        )
-
-
-class TestWorkflowMaintainability:
-    """Test workflow maintainability and documentation."""
-
-    @staticmethod
-    def test_workflows_have_comments():
-        """Workflows should have explanatory comments."""
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in list(workflow_dir.glob("*.yml")) + list(
-            workflow_dir.glob("*.yaml")
-        ):
-            with open(workflow_file, "r") as f:
-                content = f.read()
-
-            lines = content.split("\n")
-            comment_lines = [line for line in lines if line.strip().startswith("#")]
-            code_lines = [
-                line
-                for line in lines
-                if line.strip() and not line.strip().startswith("#")
-            ]
-
-            if len(code_lines) > 20:
-                # Large workflows should have comments
-                comment_ratio = len(comment_lines) / len(code_lines)
-                if comment_ratio < 0.05:
-                    raise AssertionError(
-                        f"{workflow_file.name} is large but has few comments"
-                    )
-
-    @staticmethod
-    def test_complex_expressions_explained():
-        """Complex expressions should have explanatory comments."""
-        workflow_dir = Path(".github/workflows")
-
-        for workflow_file in list(workflow_dir.glob("*.yml")) + list(
-            workflow_dir.glob("*.yaml")
-        ):
-            with open(workflow_file, "r") as f:
-                content = f.read()
-
-            # Look for complex expressions
-            import re
-
-            complex_patterns = [
-                r"\$\{\{.*\&\&.*\}\}",  # Multiple conditions
-                r"\$\{\{.*\|\|.*\}\}",  # OR conditions
-                r"\$\{\{.*\(.*\).*\\}\}",  # Grouping expressions
-            ]
-
-            for pattern in complex_patterns:
-                for match_item in re.finditer(pattern, content):
-                    context = match_item.group()
-
-                    # Should have explanation
-                    lines = context.split("\n")
-                    if len(lines) < 2 or "#" not in lines[-2]:
-                        line_num = content[: match_item.start()].count("\n") + 1
-                        GLOBAL_WARNINGS.warn(
-                            f"{workflow_file.name}: complex expression at line {line_num} "
-                            f"lacks explanation: {match_item.group()}"
-                        )
+    uvicorn.run(app, host="127.0.0.1", port=8000)

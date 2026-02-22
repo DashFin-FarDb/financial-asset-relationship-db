@@ -5,8 +5,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import yfinance as yf
-
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
@@ -22,6 +20,17 @@ from src.models.financial_models import (
 logger = logging.getLogger(__name__)
 
 
+def _get_yfinance():
+    """Import yfinance lazily to avoid import-time dependency failures."""
+    try:
+        import yfinance as yf
+    except ModuleNotFoundError as exc:
+        raise ModuleNotFoundError(
+            "yfinance is required to fetch real market data. " "Install it with the project requirements."
+        ) from exc
+    return yf
+
+
 class RealDataFetcher:
     """Fetches real financial data from Yahoo Finance and other sources."""
 
@@ -33,8 +42,8 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Initialise the RealDataFetcher with optional cache, fallback and
-        network controls.
+        Initialise the RealDataFetcher with optional cache, fallback,
+        and network controls.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -69,9 +78,7 @@ class RealDataFetcher:
                 )
 
         if not self.enable_network:
-            logger.info(
-                "Network fetching disabled. Using fallback dataset if available."
-            )
+            logger.info("Network fetching disabled. Using fallback dataset if available.")
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -153,6 +160,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """Fetches current market data for major equities and returns Equity objects."""
+        yf = _get_yfinance()
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -217,6 +225,7 @@ class RealDataFetcher:
                 symbol, name, asset_class, sector, price, yield_to_maturity,
                 coupon_rate, maturity_date, credit_rating, and issuer_id.
         """
+        yf = _get_yfinance()
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
@@ -248,9 +257,7 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(
-                        info.get("yield", 0.03)
-                    ),  # Default 3% if not available
+                    yield_to_maturity=(info.get("yield", 0.03)),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
@@ -267,6 +274,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity futures data."""
+        yf = _get_yfinance()
         # Define key commodity futures and their characteristics.
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
@@ -320,6 +328,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
+        yf = _get_yfinance()
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
@@ -404,9 +413,7 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=(
-                "10-K Filing - Increased oil reserves and sustainability initiatives"
-            ),
+            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -503,9 +510,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [
-            _serialize_dataclass(event) for event in graph.regulatory_events
-        ],
+        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
         "relationships": {
             source: [
                 {
