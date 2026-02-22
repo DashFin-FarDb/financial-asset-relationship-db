@@ -116,8 +116,14 @@ def generate_html_report(graph: AssetRelationshipGraph) -> str:
     """
     Generate a schema report for the provided asset relationship graph and return it as sanitized HTML.
 
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to report on.
+
     Returns:
         str: Sanitized HTML string containing the generated report.
+
+    Raises:
+        ValueError: Propagated from report generation if the graph is invalid.
     """
     md = generate_markdown_report(graph)
     return markdown_to_html(md)
@@ -128,7 +134,15 @@ def make_gradio_report_fn(
     html: bool = False,
 ) -> Callable[[], str]:
     """
-    Create a no-argument function that returns a schema report as Markdown or HTML.
+    Create a no-argument callable that returns a schema report as Markdown or HTML.
+
+    Parameters:
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument factory
+            returning the current graph.
+        html (bool): If ``True``, returns sanitized HTML; otherwise returns Markdown.
+
+    Returns:
+        Callable[[], str]: Zero-argument function producing the report string.
     """
 
     def _fn() -> str:
@@ -145,7 +159,18 @@ def attach_to_gradio_interface(
     html: bool = False,
 ) -> Any:
     """
-    Attach a report-generating component to a Gradio interface.
+    Create and return a Gradio component pre-populated with a schema report.
+
+    Parameters:
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument factory
+            returning the current graph.
+        html (bool): If ``True``, returns a ``gr.HTML`` component; otherwise ``gr.Markdown``.
+
+    Returns:
+        Any: A ``gr.HTML`` or ``gr.Markdown`` Gradio component.
+
+    Raises:
+        RuntimeError: If Gradio is not installed.
     """
     try:
         import gradio as gr
