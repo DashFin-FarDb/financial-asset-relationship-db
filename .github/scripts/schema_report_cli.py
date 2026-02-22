@@ -84,7 +84,26 @@ def format_as_text(report: str) -> str:
 
 
 def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
-    """Generate schema report in the specified format."""
+    """Generate a schema report in the specified format.
+
+    Args:
+        fmt (OutputFormat): Desired output format for the report. Supported values
+            are ``OutputFormat.MARKDOWN``, ``OutputFormat.JSON``, and
+            ``OutputFormat.TEXT``.
+        logger (logging.Logger): Logger instance used for progress and error
+            reporting during report generation.
+
+    Returns:
+        str: The generated report content. For ``OutputFormat.JSON`` this is a
+        JSON-formatted string of the calculated metrics. For
+        ``OutputFormat.MARKDOWN`` this is a Markdown-formatted schema report.
+        For ``OutputFormat.TEXT`` this is a plain-text version of the Markdown
+        report with formatting removed.
+
+    Raises:
+        ValueError: If report generation fails for any reason. The original
+        exception is attached as the cause.
+    """
     logger.info(f"Generating schema report in {fmt.value} format")
 
     try:
