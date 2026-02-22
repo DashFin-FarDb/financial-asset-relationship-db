@@ -200,7 +200,8 @@ def _connect() -> sqlite3.Connection:
     global _MEMORY_CONNECTION
     conn = _db_manager.connect()
     if _is_memory_db():
-        _MEMORY_CONNECTION = conn
+        with _MEMORY_CONNECTION_LOCK:
+            _MEMORY_CONNECTION = conn
     return conn
 
 
@@ -246,6 +247,10 @@ def _close_shared_memory_connection() -> None:
         if conn is not None:
             conn.close()
             _db_manager._memory_connection = None  # type: ignore[attr-defined]
+
+    global _MEMORY_CONNECTION
+    with _MEMORY_CONNECTION_LOCK:
+        _MEMORY_CONNECTION = None
 
 
 # Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
