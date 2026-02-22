@@ -26,7 +26,15 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 
 
 def _validate_asset_ids_list(asset_ids: List[str]) -> None:
-    """Validate that asset_ids is a list or tuple of non-empty strings."""
+    """
+    Validate that `asset_ids` is a list or tuple of non-empty strings.
+    
+    Parameters:
+        asset_ids (List[str] | Tuple[str, ...]): Sequence of asset identifier strings.
+    
+    Raises:
+        ValueError: If `asset_ids` is not a list or tuple, or if any element is not a non-empty string.
+    """
     if not isinstance(asset_ids, (list, tuple)):
         raise ValueError(f"asset_ids must be a list or tuple, got {type(asset_ids).__name__}")
     if not all(isinstance(a, str) and a for a in asset_ids):
@@ -34,7 +42,16 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 
 
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
-    """Validate that colors is a list or tuple of non-empty strings of the expected length."""
+    """
+    Validate that colors is a list or tuple of non-empty strings with length equal to expected_length.
+    
+    Parameters:
+        colors (List[str] | Tuple[str, ...]): Sequence of color values.
+        expected_length (int): Required number of color entries.
+    
+    Raises:
+        ValueError: If colors is not a list/tuple of length expected_length, or if any element is not a non-empty string.
+    """
     if not isinstance(colors, (list, tuple)) or len(colors) != expected_length:
         colors_len = len(colors) if isinstance(colors, (list, tuple)) else "N/A"
         raise ValueError(
@@ -46,7 +63,16 @@ def _validate_colors_list(colors: List[str], expected_length: int) -> None:
 
 
 def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> None:
-    """Validate that hover_texts is a list or tuple of non-empty strings of the expected length."""
+    """
+    Validate that hover_texts is a sequence of non-empty strings with the expected length.
+    
+    Parameters:
+        hover_texts (List[str] | Tuple[str, ...]): Sequence of hover text strings to validate.
+        expected_length (int): Required number of items in hover_texts.
+    
+    Raises:
+        ValueError: If hover_texts is not a list/tuple of length expected_length, or if any element is not a non-empty string.
+    """
     if not isinstance(hover_texts, (list, tuple)) or len(hover_texts) != expected_length:
         raise ValueError(f"hover_texts must be a list/tuple of length {expected_length}")
     if not all(isinstance(h, str) and h for h in hover_texts):
@@ -54,7 +80,15 @@ def _validate_hover_texts_list(hover_texts: List[str], expected_length: int) -> 
 
 
 def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
-    """Validate that asset_ids contains unique values and raise an error if duplicates are found."""
+    """
+    Ensure all asset IDs are unique.
+    
+    Parameters:
+    	asset_ids (List[str]): Sequence of asset identifier strings to validate.
+    
+    Raises:
+    	ValueError: If duplicate asset IDs are found. The error message lists the duplicated IDs.
+    """
     if len(set(asset_ids)) == len(asset_ids):
         return
     seen: Set[str] = set()
@@ -72,7 +106,17 @@ def _validate_visualization_data(
     colors: List[str],
     hover_texts: List[str],
 ) -> None:
-    """Validate consistency of visualization data: positions, asset_ids, colors, and hover_texts, and ensure asset_ids uniqueness."""
+    """
+    Validate that visualization inputs are coherent and mutually consistent.
+    
+    Checks that `positions` is a (n, 3) numeric array, `asset_ids` is a sequence of n non-empty strings,
+    `colors` and `hover_texts` are sequences of length n, and all `asset_ids` are unique.
+    
+    Raises:
+        ValueError: If the number of position rows does not equal the number of asset IDs,
+                    or if any inputs contain invalid values (e.g., empty strings or duplicate IDs).
+        TypeError: If any input has an unexpected type.
+    """
     _validate_positions_array(positions)
     _validate_asset_ids_list(asset_ids)
     n = len(asset_ids)
@@ -84,7 +128,16 @@ def _validate_visualization_data(
 
 
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
-    """Validate that filter_params is a dictionary with boolean values for each key."""
+    """
+    Validate that filter_params maps parameter names to boolean values.
+    
+    Parameters:
+        filter_params (dict): Mapping from parameter name to its boolean state.
+    
+    Raises:
+        TypeError: If `filter_params` is not a dict, or if any value in the mapping is not a `bool`
+            (the error message lists the offending keys).
+    """
     if not isinstance(filter_params, dict):
         raise TypeError(f"filter_params must be a dictionary, got {type(filter_params).__name__}")
     invalid = [name for name, val in filter_params.items() if not isinstance(val, bool)]
@@ -95,7 +148,14 @@ def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
 def _validate_relationship_filters(
     relationship_filters: Optional[Dict[str, bool]],
 ) -> None:
-    """Validate that relationship_filters is None or a dictionary with string keys and boolean values."""
+    """
+    Ensure relationship filter input is None or a mapping of filter names to enabled flags.
+    
+    If `relationship_filters` is None the function returns without error. If not None, the function raises a TypeError when the value is not a dictionary; raises a ValueError listing keys whose values are not boolean; and raises a ValueError listing keys that are not strings.
+    
+    Parameters:
+        relationship_filters (Optional[Dict[str, bool]]): Mapping from relationship filter names to their enabled state, or None.
+    """
     if relationship_filters is None:
         return
     if not isinstance(relationship_filters, dict):

@@ -8,8 +8,13 @@ from typing import Dict, List, Tuple
 
 
 def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
-    """Creates a circular layout mapping asset IDs to coordinates on a unit circle.
-    Assets are evenly distributed around the circle.
+    """
+    Map asset IDs to evenly spaced (x, y) coordinates on the unit circle.
+    
+    If `asset_ids` is empty, returns an empty dictionary.
+    
+    Returns:
+        positions (Dict[str, Tuple[float, float]]): Mapping from each asset ID to its (x, y) coordinates on the unit circle.
     """
     if not asset_ids:
         return {}

@@ -22,12 +22,12 @@ class TestWorkflowConsistency:
     @pytest.fixture
     def all_workflows(self) -> Dict[str, Dict]:
         """
-        Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
-
-        Only files from the internal list are considered; files that are not present are omitted from the result.
-
+        Load a fixed set of GitHub Actions workflow files and parse their YAML content.
+        
+        Only workflows from the internal list are considered; files that do not exist are omitted. Malformed YAML files are skipped and a warning is printed.
+        
         Returns:
-            dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
+            workflows (Dict[str, Dict]): Mapping from workflow file path to the parsed YAML content (an empty dict if the file parsed to a non-dict).
         """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
@@ -171,7 +171,11 @@ class TestRemovedFilesIntegration:
     """Test that removed files do not break functionality."""
 
     def test_workflows_dont_reference_removed_scripts(self):
-        """Verify workflows do not reference deleted files."""
+        """
+        Ensure workflows do not reference files that were removed.
+        
+        Asserts that the targeted workflow files do not contain references to these removed paths: `context_chunker.py`, `.github/scripts/README.md`, and `.github/labeler.yml`.
+        """
         removed_files = [
             "context_chunker.py",
             ".github/scripts/README.md",
@@ -275,11 +279,10 @@ class TestWorkflowSecurityConsistency:
     @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
         """
-        Verify workflows triggered by pull_request_target specify a safe checkout reference.
-
-        For .github / workflows / pr - agent.yml and .github / workflows / apisec - scan.yml, if the workflow's triggers include
-        `pull_request_target` this test asserts every `actions / checkout` step supplies either a `ref` or a `fetch - depth`
-        in its `with ` configuration; failure indicates an unsafe checkout configuration.
+        Ensure workflows triggered by pull_request_target use a safe actions/checkout configuration.
+        
+        For .github/workflows/pr-agent.yml and .github/workflows/apisec-scan.yml, if a workflow is triggered by `pull_request_target`,
+        assert that every `actions/checkout` step provides either a `ref` or `fetch-depth` entry in its `with` configuration.
         """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
@@ -366,9 +369,9 @@ class TestBranchCoherence:
 
     def test_branch_reduces_dependencies_on_external_config(self):
         """
-        Verify the branch no longer depends on removed external configuration and limits workflow references to external files.
-
-        Asserts that .github / labeler.yml and .github / scripts / context_chunker.py do not exist, and that each workflow file under .github / workflows contains at most one run step referencing paths that include ".github/" or "scripts/.".
+        Ensure the branch removes external workflow configuration and limits external file references in workflows.
+        
+        Asserts that .github/labeler.yml and .github/scripts/context_chunker.py do not exist. For each YAML file under .github/workflows, asserts that at most one step's `run` command references a path containing ".github/" or "scripts/".
         """
         # labeler.yml was removed - workflows should work without it
         assert not Path(".github/labeler.yml").exists()
@@ -400,9 +403,9 @@ class TestBranchQuality:
 
     def test_all_modified_workflows_parse_successfully(self):
         """
-        Assert at least one workflow exists and each YAML file in .github / workflows parses to a mapping containing a 'jobs' key.
-
-        Raises an assertion failure if no workflow files are found, if a file fails to parse into a mapping, or if the parsed workflow does not contain a 'jobs' entry.
+        Verify at least one workflow YAML exists and that each workflow parses as a mapping containing a 'jobs' key.
+        
+        This test fails if no workflow files are found, if any file cannot be parsed into a mapping, or if a parsed workflow does not include a top-level 'jobs' entry. Failure messages include the offending file path and parser error when applicable.
         """
         workflow_dir = Path(".github/workflows")
         workflow_files = list(workflow_dir.glob("*.yml"))

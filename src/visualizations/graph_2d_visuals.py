@@ -29,20 +29,20 @@ def _resolve_positions(
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
     """
-    Resolve positions of assets based on the layout type.
-
-    Calculates x and y positions for each asset ID according to the specified layout type.
-    - 'circular': positions assets on a circle.
-    - 'grid': positions assets in a grid.
-    - 'spring': uses 3D data (if available) projected to 2D with a spring layout.
-
+    Compute 2D coordinates for each asset according to the requested layout.
+    
+    If layout_type is "circular" or "grid" the corresponding layout is used. For other values (default "spring"),
+    the function will attempt to obtain enhanced 3D visualization data from the graph and project it to 2D;
+    if 3D data is not available it falls back to the circular layout.
+    
     Parameters:
-        graph: AssetRelationshipGraph
-        layout_type: str
-        asset_ids: List[str]
-
+        graph: AssetRelationshipGraph containing the assets and optionally a
+            get_3d_visualization_data_enhanced method used for 3D-to-2D projection.
+        layout_type: Layout selector ("circular", "grid", or other for spring/projection).
+        asset_ids: Ordered list of asset IDs to place and return positions for.
+    
     Returns:
-        Dict[str, Tuple[float, float]]: Mapping from asset ID to its (x, y) position.
+        dict: Mapping from asset ID to an (x, y) coordinate tuple.
     """
     if layout_type == "circular":
         return _create_circular_layout(asset_ids)
@@ -68,27 +68,30 @@ def visualize_2d_graph(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> go.Figure:
-    """Visualise the asset relationship graph in 2D.
-
-    Creates an interactive Plotly figure displaying nodes and relationships between assets.
-
-    Args:
-        graph: The asset relationship graph to visualise.
-        layout_type: Layout algorithm — one of ``'spring'``, ``'circular'``, or ``'grid'``.
-        show_same_sector: Include same-sector relationships.
-        show_market_cap: Include market-cap relationships.
-        show_correlation: Include correlation relationships.
-        show_corporate_bond: Include corporate-bond relationships.
-        show_commodity_currency: Include commodity-currency relationships.
-        show_income_comparison: Include income-comparison relationships.
-        show_regulatory: Include regulatory relationships.
-        show_all_relationships: Override individual filters and show all relationship types.
-
+    """
+    Visualize an AssetRelationshipGraph as an interactive 2D Plotly figure.
+    
+    Render nodes and selected relationship-type traces using the requested layout algorithm.
+    Layout options: "spring" (force-directed / default), "circular", or "grid".
+    Individual boolean flags control which relationship types are included; setting show_all_relationships=True overrides the individual flags and includes every relationship type.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to visualize.
+        layout_type (str): One of "spring", "circular", or "grid" to choose node placement.
+        show_same_sector (bool): Include same-sector relationships.
+        show_market_cap (bool): Include market-cap relationships.
+        show_correlation (bool): Include correlation relationships.
+        show_corporate_bond (bool): Include corporate-bond relationships.
+        show_commodity_currency (bool): Include commodity-currency relationships.
+        show_income_comparison (bool): Include income-comparison relationships.
+        show_regulatory (bool): Include regulatory relationships.
+        show_all_relationships (bool): If True, include all relationship types regardless of the other flags.
+    
     Returns:
-        go.Figure: The constructed 2D Plotly figure.
-
+        go.Figure: A Plotly Figure containing node and relationship traces for the provided graph.
+    
     Raises:
-        ValueError: If ``graph`` is not an ``AssetRelationshipGraph`` instance.
+        ValueError: If `graph` is not an AssetRelationshipGraph instance.
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")

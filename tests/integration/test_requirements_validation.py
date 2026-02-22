@@ -18,10 +18,10 @@ class TestRequirementsDevChanges:
     @pytest.fixture
     def requirements_dev_content(self):
         """
-        Return the full text of requirements-dev.txt from the project root.
-
+        Read and return the contents of requirements-dev.txt from the project root.
+        
         Returns:
-            str: Contents of requirements-dev.txt.
+            str: The full contents of requirements-dev.txt.
         """
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:
@@ -29,21 +29,21 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_added(self, requirements_dev_content):
         """
-        Verify that requirements-dev.txt includes a PyYAML package entry.
-
-        Performs a case-insensitive check of the provided requirements content to ensure PyYAML is present.
+        Verify that requirements-dev.txt contains a PyYAML package entry.
+        
+        Parameters:
+            requirements_dev_content (str): Full text of requirements-dev.txt to search.
         """
         assert "pyyaml" in requirements_dev_content.lower() or "PyYAML" in requirements_dev_content
 
     def test_pyyaml_has_version_specifier(self, requirements_dev_content):
         """
-        Ensure the active PyYAML requirement in requirements-dev.txt includes a version operator.
-
-        Checks the provided requirements file content for exactly one non-comment line mentioning PyYAML and
-        verifies that that line contains one of the version operators: >=, ==, ~=, <=, >, or <.
-
+        Verify the active PyYAML requirement in requirements-dev.txt specifies a version operator.
+        
+        Checks that there is exactly one active (non-comment) PyYAML requirement line and that this line contains one of the version operators: >=, ==, ~=, <=, >, or <.
+        
         Parameters:
-            requirements_dev_content(str): Full text content of requirements-dev.txt.
+            requirements_dev_content (str): Full text content of requirements-dev.txt.
         """
         lines = requirements_dev_content.split("\n")
         # Ignore commented lines so we don't pick up commented-out examples
@@ -66,13 +66,11 @@ class TestRequirementsDevChanges:
     def test_no_duplicate_packages(self, requirements_dev_content):
         """
         Ensure requirements-dev.txt contains no duplicate package entries.
-
-        This test treats each non-empty, non-comment line as a package specification and compares
-        package names case-insensitively while ignoring common version specifiers, asserting
-        that no package appears more than once.
-
+        
+        Parses the file content, ignores blank lines and comments, and compares package names case-insensitively while excluding version specifiers to assert each package appears only once.
+        
         Parameters:
-            requirements_dev_content(str): Contents of requirements-dev.txt.
+            requirements_dev_content (str): Full text content of requirements-dev.txt.
         """
         lines = [l.strip() for l in requirements_dev_content.split("\n") if l.strip() and not l.strip().startswith("#")]
 
@@ -85,13 +83,12 @@ class TestRequirementsDevChanges:
 
     def test_requirements_format_valid(self, requirements_dev_content):
         """
-        Validate that each active (non-empty, non-comment) line in requirements-dev.txt has no
-        leading or trailing whitespace.
-
+        Validate that each active (non-empty, non-comment) line in requirements-dev.txt contains no leading or trailing whitespace.
+        
         Ignores blank lines and lines beginning with '#' when performing checks.
-
+        
         Parameters:
-            requirements_dev_content(str): Full text of requirements-dev.txt to validate.
+            requirements_dev_content (str): Full text of requirements-dev.txt to validate.
         """
         lines = requirements_dev_content.split("\n")
 
@@ -110,10 +107,9 @@ class TestRequirementsDependencyCompatibility:
     @staticmethod
     def test_pyyaml_compatible_with_python_version():
         """
-        Assert that if PyYAML is listed in requirements-dev.txt the current Python interpreter is at least 3.6.
-
-        Checks requirements-dev.txt case-insensitively and fails the test if PyYAML is present while
-        sys.version_info is less than (3, 6).
+        Ensure that if PyYAML is listed in requirements-dev.txt, the running Python interpreter is at least 3.6.
+        
+        Reads requirements-dev.txt case-insensitively and fails the test if a PyYAML entry is present while sys.version_info is less than (3, 6).
         """
         # Check Python version
         import sys
@@ -207,7 +203,9 @@ class TestRequirementsDocumentation:
     @staticmethod
     def test_pyyaml_purpose_documented():
         """
-        Verify PyYAML addition has comment explaining purpose.
+        Ensure the PyYAML entry in requirements-dev.txt includes an explanatory comment.
+        
+        Reads requirements-dev.txt, locates the first active line containing "pyyaml" (case-insensitive), and checks the line plus up to three preceding lines for at least one of the keywords "yaml", "workflow", "config", or "parse". Fails with the assertion message "PyYAML should have explanatory comment" if no explanatory context is found.
         """
         req_dev_path = Path("requirements-dev.txt")
         with open(req_dev_path, "r") as f:

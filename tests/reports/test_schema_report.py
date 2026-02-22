@@ -20,6 +20,21 @@ class MockGraph:
     """
 
     def calculate_metrics(self) -> Dict[str, Any]:
+        """
+        Provide deterministic mock metrics for testing schema report generation.
+        
+        Returns:
+            dict: Fixed schema metrics including:
+                - relationship_distribution: mapping of relationship type to instance count (e.g., {"correlation": 4, "hedge": 2})
+                - total_assets: total number of assets
+                - total_relationships: total number of relationships
+                - average_relationship_strength: average strength value across relationships
+                - relationship_density: density metric used for recommendations
+                - regulatory_event_count: count of regulatory events
+                - asset_class_distribution: mapping of asset class to count
+                - top_relationships: list of tuples (source, target, type, strength) for top relationships
+                - quality_score: overall data quality score (0.0–1.0)
+        """
         return {
             "relationship_distribution": {
                 "correlation": 4,

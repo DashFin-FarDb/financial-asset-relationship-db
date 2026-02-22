@@ -837,7 +837,11 @@ class TestRelationshipTypeVariations:
 
     @staticmethod
     def test_relationship_type_case_sensitivity(repository):
-        """Test that relationship types are case-sensitive."""
+        """
+        Verify relationship types are treated as distinct based on case.
+        
+        Creates two assets, adds two relationships between them using type names that differ only by letter case, commits, and asserts both relationships are stored separately with their respective strength values.
+        """
         asset1 = Equity(
             id="CASE1",
             symbol="C1",

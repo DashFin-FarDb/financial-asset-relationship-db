@@ -162,7 +162,17 @@ class AssetRelationshipGraph:
     def get_3d_visualization_data_enhanced(
         self,
     ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
-        """Return positions, asset_ids, colors, hover_texts for visualization."""
+        """
+        Compute 3D node positions and associated visualization metadata for all known assets and relationships.
+        
+        Positions are arranged on a unit circle in the XY plane (Z coordinates are zero). If no asset or relationship identifiers are available, returns a single default position and metadata for an "A" placeholder.
+        
+        Returns:
+            positions (numpy.ndarray): Array of shape (n, 3) containing X, Y, Z coordinates for each asset.
+            asset_ids (List[str]): Sorted list of asset identifiers corresponding to rows in `positions`.
+            colors (List[str]): List of hex color strings for each asset (default palette used for all assets).
+            hover_texts (List[str]): List of hover text strings for each asset, formatted as "Asset: {id}".
+        """
         all_ids = set(self.assets.keys())
         all_ids.update(self.relationships.keys())
         for rels in self.relationships.values():

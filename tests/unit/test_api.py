@@ -124,13 +124,13 @@ def mock_graph():
 
 def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRelationshipGraph) -> None:
     """
-    Configure a patched graph mock with attributes copied from a real AssetRelationshipGraph.
-
-    Sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data_enhanced attributes to match the provided graph so tests can reuse a consistent mocked graph surface.
-
+    Mirror key attributes from a real AssetRelationshipGraph onto a mock graph instance.
+    
+    Copies the `assets`, `relationships`, `calculate_metrics`, and `get_3d_visualization_data_enhanced` attributes from `graph` to `mock_graph_instance` so tests can use the mock with the same public surface as the concrete graph.
+    
     Parameters:
-        mock_graph_instance (object): A unittest.mock.Mock instance that represents the patched api.main.graph.
-        graph (AssetRelationshipGraph): The concrete graph whose attributes should be mirrored on the mock.
+        mock_graph_instance (object): The mock object representing the patched api.main.graph.
+        graph (AssetRelationshipGraph): The concrete graph whose attributes will be mirrored.
     """
     # The patched object is a Mock from unittest.mock; we set attributes dynamically.
     mock_graph_instance.assets = graph.assets
@@ -141,7 +141,14 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
 
 @pytest.fixture
 def apply_mock_graph():
-    """Return a helper callable that wires the patched graph to a concrete graph."""
+    """
+    Provide a helper that attaches a concrete AssetRelationshipGraph's data and behavior onto a patched mock graph.
+    
+    The returned callable expects two arguments (mock_graph_instance, source_graph) and copies the source graph's assets, relationships, and key methods (e.g., calculate_metrics and get_3d_visualization_data_enhanced) onto the mock graph so tests can use the mocked graph as if it were the real graph.
+    
+    Returns:
+        callable: A function accepting (mock_graph_instance, source_graph) that mutates mock_graph_instance to mirror source_graph.
+    """
     return _apply_mock_graph_configuration
 
 
@@ -809,9 +816,9 @@ class TestCacheCorruptionRegression:
 
         def load_from_cache():
             """
-            Load a cached real-data graph and record the outcome.
-
-            Attempts to instantiate RealDataFetcher with network disabled and create the cached graph. On success appends the resulting graph to the outer-scope `results` list; on failure appends the caught exception to the outer-scope `errors` list.
+            Attempt to load a cached real-data graph and record the outcome.
+            
+            On success, appends the loaded graph to the outer-scope list `results`. On failure, appends the raised exception to the outer-scope list `errors`. The load is performed without network access.
             """
             try:
                 from src.data.real_data_fetcher import RealDataFetcher
@@ -905,7 +912,11 @@ class TestAPIBoundaryConditions:
     @staticmethod
     @patch("api.main.graph")
     def test_api_handles_extremely_large_graph(mock_graph_instance, client):
-        """Boundary: API should handle graphs with many assets."""
+        """
+        Ensure the /api/assets endpoint returns all assets when the backend graph contains a large number of assets.
+        
+        Creates 1000 Equity assets, attaches them to the mocked graph, requests /api/assets, and asserts a 200 status and that 1000 assets are returned.
+        """
         large_graph = AssetRelationshipGraph()
 
         # Create 1000 assets

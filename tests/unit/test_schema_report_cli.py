@@ -15,11 +15,17 @@ def _load_module_for_test(
     extra_env: Mapping[str, str] | None = None,
 ):
     """
-    Load a fresh copy of the CLI module with env and paths redirected.
-
-    The CLI file is copied into tmp_path and imported so that:
-    - SCHEMA_REPORT_LOG points into tmp_path
-    - no writes occur in the real repo tree
+    Prepare and import a fresh copy of the CLI module with environment and import path redirected to a temporary directory.
+    
+    Copies the repository CLI script into tmp_path, sets SCHEMA_REPORT_LOG to a file inside tmp_path, prepends tmp_path to sys.path, and imports (then reloads) the copied module so its top-level code runs under the patched environment.
+    
+    Parameters:
+        monkeypatch (pytest.MonkeyPatch): Test fixture used to modify environment and sys.path.
+        tmp_path (Path): Temporary directory where the CLI copy and log file will be placed.
+        extra_env (Mapping[str, str] | None): Additional environment variables to apply (merged with the default SCHEMA_REPORT_LOG).
+    
+    Returns:
+        module: The imported CLI module object corresponding to the copied script.
     """
     # Ensure env log path goes to tmp_path
     env: dict[str, str] = dict(extra_env or {})
@@ -100,6 +106,15 @@ def test_generate_report_failure_does_not_leave_file(
     mod = _load_module_for_test(monkeypatch, tmp_path)
 
     def fail_generate(graph):  # noqa: ARG001
+        """
+        Test helper that simulates a generation failure by always raising a RuntimeError.
+        
+        Parameters:
+        	graph: Ignored. Present to match the signature of the real generator.
+        
+        Raises:
+        	RuntimeError: Always raised with the message "boom".
+        """
         raise RuntimeError("boom")
 
     # Patch the imported generate_schema_report inside the CLI module

@@ -129,7 +129,9 @@ class TestDocumentationFiles:
 
     @staticmethod
     def test_readme_has_quick_start():
-        """Test README contains quick start section."""
+        """
+        Verify README.md contains a Quick Start (or Getting Started) section and an Installation (or Setup) section.
+        """
         with open("README.md") as f:
             content = f.read()
 

@@ -142,6 +142,11 @@ class FinancialAssetApp:
     """
 
     def __init__(self):
+        """
+        Create a FinancialAssetApp instance and initialize its asset relationship graph.
+        
+        The instance starts with `graph` set to None and then attempts to populate `graph` by calling the internal `_initialize_graph()` method. Any exception raised during graph creation is propagated.
+        """
         self.graph: Optional[AssetRelationshipGraph] = None
         self._initialize_graph()
 
@@ -227,7 +232,23 @@ class FinancialAssetApp:
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
-        """Refreshes all visualizations and reports in the Gradio interface."""
+        """
+        Refresh all visualizations, metrics, and reports shown in the Gradio UI.
+        
+        Parameters:
+            graph_state (AssetRelationshipGraph): Current graph state passed from the UI (may be ignored in favor of the internally ensured graph).
+        
+        Returns:
+            tuple: A sequence of values to update Gradio outputs in the following order:
+                - 3D visualization figure for the main graph view.
+                - First metrics chart figure.
+                - Second metrics chart figure.
+                - Third metrics chart figure.
+                - Text summary of network metrics.
+                - Generated schema report (string).
+                - A gr.update() object to refresh the asset selector choices and reset its value.
+                - A gr.update() object to clear and hide any visible error message.
+        """
         graph = self.ensure_graph()  # Use self.ensure_graph to get the latest graph state
         logger.info("Refreshing all visualization outputs")
         viz_3d = visualize_3d_graph(graph)
@@ -270,7 +291,28 @@ class FinancialAssetApp:
         show_all_relationships,
         toggle_arrows,
     ):
-        """Refresh visualization with 2D/3D mode support and relationship filtering."""
+        """
+        Refresh the network visualization according to the selected view mode and relationship filters.
+        
+        Generates either a 2D or 3D Plotly figure filtered by the provided relationship toggles and returns it along with a Gradio update for the error message visibility. On error, returns an empty Plotly figure and a Gradio update containing a visible error message.
+        
+        Parameters:
+            graph_state: Current Gradio state holding the AssetRelationshipGraph (used to determine which graph to visualize).
+            view_mode (str): "2D" to produce a 2D visualization; any other value produces a 3D visualization.
+            layout_type (str): Layout algorithm for 2D rendering (e.g., "spring", "circular", "grid").
+            show_same_sector (bool): Include same-sector relationships.
+            show_market_cap (bool): Include market-cap-based relationships.
+            show_correlation (bool): Include correlation-based relationships.
+            show_corporate_bond (bool): Include corporate bond relationships.
+            show_commodity_currency (bool): Include commodity/currency relationships.
+            show_income_comparison (bool): Include income-comparison relationships.
+            show_regulatory (bool): Include regulatory event relationships.
+            show_all_relationships (bool): If true, ignore individual filters and include all relationships.
+            toggle_arrows (bool): For 3D visualizations, toggle directional arrows on relationships.
+        
+        Returns:
+            tuple: (plotly.graph_objects.Figure, gr.update) — the rendered figure and a Gradio update controlling the error message (hidden on success, visible with text on failure).
+        """
         try:
             graph = self.ensure_graph()
 
@@ -416,8 +458,12 @@ class FinancialAssetApp:
 
     def create_interface(self):
         """
-        Creates the Gradio interface for the Financial Asset Relationship Database.
-
+        Create the Gradio Blocks UI for the Financial Asset Relationship Database.
+        
+        Builds and returns the complete Gradio interface with tabs for Network Visualization (2D/3D), Metrics Analytics, Schema Rules, Asset Explorer, Documentation, and Formulaic Analysis, and wires all event handlers to the application's methods.
+        
+        Returns:
+            demo (gr.Blocks): The assembled Gradio Blocks object ready to be launched.
         """
         with gr.Blocks(title=AppConstants.TITLE) as demo:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)

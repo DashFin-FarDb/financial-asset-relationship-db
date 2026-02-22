@@ -25,7 +25,14 @@ class TestDocumentationFilesValidation:
 
     @staticmethod
     def _markdown_files() -> List[Path]:
-        """Return markdown files to validate (docs/ plus top-level *.md)."""
+        """
+        Collect markdown files from the docs directory and top-level project root.
+        
+        Searches docs/ recursively for files ending with `.md` (if docs/ exists) and also includes top-level `*.md` files in the repository root. Duplicate paths are removed while preserving the discovery order.
+        
+        Returns:
+            List[Path]: Ordered list of unique Path objects pointing to markdown files to validate.
+        """
         docs_dir = Path("docs")
         files: List[Path] = []
 
@@ -47,7 +54,12 @@ class TestDocumentationFilesValidation:
 
     @pytest.fixture(scope="class")
     def markdown_files(self) -> List[Path]:
-        """Collect markdown files or skip the suite if none exist."""
+        """
+        Provide the list of Markdown file paths used by the test class, skipping the entire test suite if none are found.
+        
+        Returns:
+            List[Path]: Collected Markdown file paths. If no Markdown files are discovered, the fixture will call pytest.skip and not return.
+        """
         files = self._markdown_files()
         if not files:
             pytest.skip("No markdown documentation files found.")
@@ -57,7 +69,11 @@ class TestDocumentationFilesValidation:
         self,
         markdown_files: List[Path],
     ) -> None:
-        """All markdown files should be readable and non-empty."""
+        """
+        Verify that each Markdown file can be read with UTF-8 encoding and contains non-whitespace content.
+        
+        Reads every Path in `markdown_files`, records files that raise I/O errors and files whose content is empty after stripping whitespace, and fails the test with a consolidated list of problematic files and reasons if any issues are found.
+        """
         unreadable: List[Tuple[Path, str]] = []
         empty: List[Path] = []
 
@@ -83,7 +99,14 @@ class TestDocumentationFilesValidation:
         self,
         markdown_files: List[Path],
     ) -> None:
-        """Markdown should be parseable if the markdown lib is available."""
+        """
+        Verify that each Markdown file can be parsed by the installed `markdown` package.
+        
+        Skips the test if the `markdown` package is not available. Attempts to parse the UTF-8 content of each provided file and fails the test with an aggregated message if any file raises a parsing exception.
+        
+        Parameters:
+            markdown_files (List[Path]): Paths to Markdown files to validate.
+        """
         try:
             import markdown  # type: ignore[import-not-found]
         except ImportError:
@@ -106,7 +129,20 @@ class TestDocumentationFilesValidation:
         self,
         markdown_files: List[Path],
     ) -> None:
-        """Links should use basic [text](url) structure without obvious issues."""
+        """
+        Validate that inline Markdown links use the basic [text](url) form and have no obvious formatting issues.
+        
+        Checks each provided Markdown file for inline links and flags:
+        - empty link text,
+        - empty link URL,
+        - URLs containing space characters.
+        
+        Parameters:
+            markdown_files (List[Path]): Paths of Markdown files to scan.
+        
+        Raises:
+            AssertionError: If any malformed links are found; the assertion message lists each file and issue.
+        """
         import re
 
         bad_links: List[Tuple[Path, str]] = []
@@ -160,7 +196,11 @@ class TestDocumentationFilesValidation:
         self,
         markdown_files: List[Path],
     ) -> None:
-        """Markdown tables should have consistent column counts within a table."""
+        """
+        Validate that every Markdown table has the same number of columns on each row within that table.
+        
+        Scans the provided Markdown files for contiguous table blocks (lines containing '|') and asserts that all rows in a table have an identical column count. On failure, reports the file path and line number for each mismatched row.
+        """
         table_errors: List[Tuple[Path, str]] = []
 
         for md_file in markdown_files:
@@ -201,7 +241,11 @@ class TestDocumentationFilesValidation:
         self,
         markdown_files: List[Path],
     ) -> None:
-        """Heading levels should not jump by more than one level."""
+        """
+        Ensure Markdown heading levels do not increase by more than one level at a time.
+        
+        When a heading level jumps by more than one from the previous heading, record the file and line and fail the test with a summary of offending locations.
+        """
         import re
 
         heading_pattern = re.compile(r"^(#{1,6})\s+.+$")

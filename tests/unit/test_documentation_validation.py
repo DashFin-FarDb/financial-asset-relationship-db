@@ -33,11 +33,14 @@ class TestDependencyMatrix:
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
         """
-        Load the dependency matrix markdown content from disk.
-
+        Load and return the contents of the dependencyMatrix.md file at the given path.
+        
+        Parameters:
+            dependency_matrix_path (Path): Path to the dependencyMatrix.md file.
+        
         Returns:
-            The contents of the dependencyMatrix.md file as a string.
-
+            content (str): The file contents as a string.
+        
         Raises:
             AssertionError: If `dependency_matrix_path` does not exist.
         """
@@ -214,14 +217,13 @@ class TestDependencyMatrix:
 
     def test_dependency_matrix_markdown_formatting(self, dependency_matrix_lines):
         """
-        Verify that markdown headings use a space after the hash characters.
-
+        Ensure Markdown headings have a space after the leading '#' characters.
+        
         Parameters:
-            dependency_matrix_lines(list[str]): Lines of the dependency matrix markdown file to validate.
-
+            dependency_matrix_lines (list[str]): Lines of the dependency matrix Markdown file to validate.
+        
         Raises:
-            AssertionError: If a heading line(one or more '#' characters followed by content) does not have a space after the hashes
-            message includes the offending line number and content.
+            AssertionError: If a heading line (one or more '#' characters followed by content) does not have a space after the hashes; the assertion message includes the offending line number and content.
         """
         for i, line in enumerate(dependency_matrix_lines):
             # Check heading formatting
@@ -291,7 +293,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top-level title '  # System Manifest'.
+        Verify the manifest's first line is the top-level title "# System Manifest".
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -315,7 +317,14 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
+        Assert the system manifest includes a non-empty project description and a valid Created timestamp.
+        
+        This test:
+        - Verifies a "- Description: <text>" line is present and that <text> is not empty.
+        - Verifies a "- Created: YYYY-MM-DDTHH:MM:SS.sssZ" line is present and that the timestamp parses as ISO 8601 (checked by converting the trailing "Z" to "+00:00" and using datetime.fromisoformat).
+        
+        Parameters:
+            system_manifest_content (str): Contents of the systemManifest.md file to validate.
         """
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
@@ -410,7 +419,11 @@ class TestSystemManifest:
             assert "📄" in structure_section, "File entries should include the 📄 emoji"
 
     def test_system_manifest_has_language_dependency_sections(self, system_manifest_content):
-        """Test that systemManifest.md has language - specific dependency sections."""
+        """
+        Verify the system manifest contains at least one language-specific Dependencies section.
+        
+        Checks for the presence of any of the following section headers: "## PY Dependencies", "## JS Dependencies", "## TS Dependencies", or "## TSX Dependencies".
+        """
         expected_sections = [
             "## PY Dependencies",
             "## JS Dependencies",
@@ -463,7 +476,15 @@ class TestSystemManifest:
                     ), "File section should have dependency information"
 
     def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
-        """Test that there are no duplicate major sections."""
+        """
+        Verify major sections in the system manifest appear at least once and fewer than ten times.
+        
+        Parameters:
+            system_manifest_content (str): Full text content of the system manifest to inspect.
+        
+        Raises:
+            AssertionError: If any major section is missing or appears ten or more times.
+        """
         major_sections = [
             "## Project Overview",
             "## Current Status",
@@ -480,9 +501,9 @@ class TestSystemManifest:
 
     def test_system_manifest_markdown_formatting(self, system_manifest_lines):
         """
-        Verify markdown heading formatting in the System Manifest.
-
-        Asserts that, within the first 500 lines, any Markdown heading that begins with one or more `  # ` characters has a space immediately following the leading hash sequence (e.g. `# Title`, `## Section`). The test raises an assertion identifying the line number and content when a heading is missing the required space.
+        Ensure Markdown headings in the System Manifest have a space after the leading hash characters within the first 500 lines.
+        
+        If a heading (a line starting with one or more `#`) lacks a space immediately after the hash sequence, the test fails with an assertion that includes the offending line number and content.
         """
         for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines
             # Check heading formatting

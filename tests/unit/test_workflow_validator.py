@@ -809,7 +809,11 @@ class TestWorkflowValidatorSecurityScenarios:
 
     @staticmethod
     def test_workflow_with_yaml_injection_attempts():
-        """Test workflow with potential YAML injection patterns"""
+        """
+        Ensures YAML parsing treats injection-like command strings as plain scalars and the workflow is considered valid.
+        
+        Writes a temporary workflow file containing steps with values that resemble shell injection or command substitutions and asserts that validate_workflow returns a valid ValidationResult (i.e., parser does not execute or interpret those patterns).
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: Test
@@ -881,7 +885,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_minimal_memory_footprint():
-        """Test that validation doesn't consume excessive memory"""
+        """
+        Ensure validate_workflow handles a moderately sized workflow without excessive memory usage.
+        
+        Creates a temporary YAML workflow file containing 100 jobs and asserts the validator reports it as valid.
+        """
         # Create a workflow with moderate size
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("name: Test\non: push\njobs:\n")

@@ -21,12 +21,28 @@ class TestSnykWorkflowStructure:
 
     @pytest.fixture
     def snyk_workflow_path(self):
-        """Provide path to Snyk workflow file."""
+        """
+        Path to the Snyk Infrastructure as Code workflow file.
+        
+        Returns:
+            pathlib.Path: Path object pointing to ".github/workflows/snyk-infrastructure.yml".
+        """
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     @pytest.fixture
     def snyk_workflow(self, snyk_workflow_path):
-        """Load and parse Snyk workflow YAML."""
+        """
+        Load and parse the Snyk workflow YAML file.
+        
+        Parameters:
+            snyk_workflow_path (Path): Path to the Snyk workflow YAML file.
+        
+        Returns:
+            dict: Parsed YAML mapping representing the workflow.
+        
+        Raises:
+            AssertionError: If the workflow file does not exist.
+        """
         assert snyk_workflow_path.exists(), "Snyk workflow file not found"
         with open(snyk_workflow_path) as f:
             return yaml.safe_load(f)
@@ -44,7 +60,12 @@ class TestSnykWorkflowStructure:
         assert isinstance(data, dict)
 
     def test_workflow_has_name(self, snyk_workflow):
-        """Test that workflow has a name."""
+        """
+        Check that the workflow defines a non-empty string at the top-level "name" key.
+        
+        Parameters:
+            snyk_workflow (dict): Parsed workflow YAML as a dictionary.
+        """
         assert "name" in snyk_workflow
         assert isinstance(snyk_workflow["name"], str)
         assert len(snyk_workflow["name"]) > 0
@@ -75,7 +96,12 @@ class TestSnykWorkflowTriggers:
 
     @pytest.fixture
     def snyk_workflow(self):
-        """Load Snyk workflow."""
+        """
+        Load and parse the Snyk GitHub Actions workflow YAML from .github/workflows/snyk-infrastructure.yml.
+        
+        Returns:
+            dict | None: Parsed workflow mapping if the file contains YAML, or `None` if the file is empty.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             return yaml.safe_load(f)
@@ -91,14 +117,22 @@ class TestSnykWorkflowTriggers:
         assert "pull_request" in triggers
 
     def test_workflow_has_schedule(self, snyk_workflow):
-        """Test that workflow has scheduled execution."""
+        """
+        Verify the workflow defines at least one scheduled trigger.
+        
+        Asserts that the workflow's triggers include a top-level "schedule" key whose value is a non-empty list.
+        """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         assert "schedule" in triggers
         assert isinstance(triggers["schedule"], list)
         assert len(triggers["schedule"]) > 0
 
     def test_schedule_cron_format_valid(self, snyk_workflow):
-        """Test that schedule uses valid cron format."""
+        """
+        Verify the workflow's schedule trigger contains a cron expression with five space-separated fields.
+        
+        Checks that a 'schedule' trigger exists, that its first entry includes a 'cron' key, and that the cron expression consists of exactly five space-separated parts.
+        """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         schedule = triggers["schedule"][0]
         assert "cron" in schedule
@@ -130,7 +164,12 @@ class TestSnykWorkflowPermissions:
 
     @pytest.fixture
     def snyk_workflow(self):
-        """Load Snyk workflow."""
+        """
+        Load and parse the Snyk GitHub Actions workflow YAML from .github/workflows/snyk-infrastructure.yml.
+        
+        Returns:
+            dict | None: Parsed workflow mapping if the file contains YAML, or `None` if the file is empty.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             return yaml.safe_load(f)
@@ -176,7 +215,14 @@ class TestSnykJobConfiguration:
 
     @pytest.fixture
     def snyk_job(self):
-        """Load Snyk job configuration."""
+        """
+        Retrieve the 'snyk' job configuration from the Snyk workflow file.
+        
+        Reads .github/workflows/snyk-infrastructure.yml and returns the mapping under `jobs` for the `snyk` job.
+        
+        Returns:
+            snyk_job (dict): The dictionary representing the `snyk` job configuration from the workflow YAML.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             workflow = yaml.safe_load(f)
@@ -283,7 +329,10 @@ class TestSnykJobConfiguration:
 
     def test_sarif_upload_has_file_input(self, snyk_job):
         """
-        Asserts the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
+        Verifies the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
+        
+        Parameters:
+            snyk_job (dict): Parsed workflow job mapping for the `snyk` job under test.
         """
         steps = snyk_job["steps"]
         sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
@@ -300,7 +349,12 @@ class TestSnykWorkflowSecurity:
 
     @pytest.fixture
     def snyk_workflow(self):
-        """Load Snyk workflow."""
+        """
+        Load and parse the Snyk GitHub Actions workflow YAML from .github/workflows/snyk-infrastructure.yml.
+        
+        Returns:
+            dict | None: Parsed workflow mapping if the file contains YAML, or `None` if the file is empty.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             return yaml.safe_load(f)
@@ -346,7 +400,12 @@ class TestSnykWorkflowEdgeCases:
 
     @pytest.fixture
     def snyk_workflow_path(self):
-        """Provide path to Snyk workflow file."""
+        """
+        Path to the Snyk Infrastructure as Code workflow file.
+        
+        Returns:
+            pathlib.Path: Path object pointing to ".github/workflows/snyk-infrastructure.yml".
+        """
         return Path(".github/workflows/snyk-infrastructure.yml")
 
     def test_workflow_file_not_empty(self, snyk_workflow_path):
@@ -355,22 +414,30 @@ class TestSnykWorkflowEdgeCases:
         assert len(content.strip()) > 0
 
     def test_workflow_has_no_syntax_errors(self, snyk_workflow_path):
-        """Test that YAML has no syntax errors."""
+        """
+        Ensure the Snyk workflow file parses as valid YAML.
+        
+        Attempts to load the workflow file with yaml.safe_load and asserts the parsed document is not None, indicating the file contains valid YAML syntax.
+        """
         with open(snyk_workflow_path) as f:
             data = yaml.safe_load(f)
         assert data is not None
 
     def test_workflow_not_disabled(self, snyk_workflow_path):
-        """Test that workflow is not commented out or disabled."""
+        """
+        Ensure the workflow file is not entirely commented out or blank.
+        
+        Reads the workflow YAML file and asserts there is at least one non-empty, non-comment line.
+        """
         content = snyk_workflow_path.read_text()
         lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
         """
-        Ensure workflow job names contain only ASCII letters, digits, hyphens, or underscores.
-
-        Fails if any job name includes characters outside the set [A-Za-z0-9-_].
+        Ensure each job name in the workflow consists only of ASCII letters, digits, hyphens, or underscores.
+        
+        Raises an assertion error if any job name contains characters outside the set A-Z, a-z, 0-9, '-', or '_'.
         """
         with open(snyk_workflow_path) as f:
             workflow = yaml.safe_load(f)
@@ -386,7 +453,12 @@ class TestSnykWorkflowComments:
 
     @pytest.fixture
     def snyk_workflow_content(self):
-        """Load Snyk workflow file content."""
+        """
+        Read the raw text content of the Snyk workflow YAML file at .github/workflows/snyk-infrastructure.yml.
+        
+        Returns:
+            content (str): The workflow file's text content.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         return workflow_path.read_text()
 
@@ -395,14 +467,24 @@ class TestSnykWorkflowComments:
         assert "#" in snyk_workflow_content
 
     def test_workflow_documents_third_party_actions(self, snyk_workflow_content):
-        """Test that third-party action usage is documented."""
+        """
+        Asserts the workflow file contains at least one comment documenting third-party (non-GitHub-certified) actions.
+        
+        Parameters:
+            snyk_workflow_content (str): Raw text content of the workflow YAML file used to extract comment lines.
+        """
         # Should mention that actions are not certified by GitHub
         lines = snyk_workflow_content.split("\n")
         comment_lines = [l for l in lines if l.strip().startswith("#")]
         assert len(comment_lines) > 0
 
     def test_workflow_provides_context(self, snyk_workflow_content):
-        """Test that workflow provides context about its purpose."""
+        """
+        Asserts the workflow's comment lines mention scanning or security to ensure the file provides contextual purpose.
+        
+        Parameters:
+            snyk_workflow_content (str): Raw text content of the workflow YAML file, including comment lines.
+        """
         comments = " ".join(
             l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
         )

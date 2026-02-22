@@ -6,20 +6,13 @@ from src.reports.schema_report_generator import SchemaReportGenerator
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """
-    Produce a Markdown-formatted schema + metrics report for an
-    AssetRelationshipGraph.
-
-    This is a thin wrapper that instantiates SchemaReportGenerator and
-    delegates full report construction to it. This maintains a stable
-    function-level API while allowing the underlying report generation
-    system to evolve independently.
-
+    Generate a Markdown-formatted report describing an asset relationship graph's schema, metrics, rules, and optimization recommendations.
+    
     Parameters:
-        graph (AssetRelationshipGraph): The initialized asset graph.
-
+        graph (AssetRelationshipGraph): The initialized asset relationship graph to analyze.
+    
     Returns:
-        str: Markdown report describing schema, metrics, rules, and
-            optimization recommendations.
+        str: Markdown-formatted report summarizing schema, metrics, rules, and recommendations.
     """
     generator = SchemaReportGenerator(graph)
     return generator.generate()

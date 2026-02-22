@@ -18,7 +18,10 @@ router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 # ----------------------------------------------------------------------
 def get_graph() -> AssetRelationshipGraph:
     """
-    Replace this with your production graph loader.
+    Load and return an AssetRelationshipGraph populated from the configured asset source.
+    
+    Returns:
+        AssetRelationshipGraph: Graph instance with assets initialized from the configured source.
     """
     graph = AssetRelationshipGraph()
     graph.initialize_assets_from_source()
@@ -35,7 +38,16 @@ def schema_report(
     report_format: str = Query("md", pattern="^(md|html)$"),
 ) -> str:
     """
-    Return the schema report in Markdown or HTML format.
+    Produce a schema report for the current asset relationship graph in either Markdown or HTML.
+    
+    Parameters:
+        report_format (str): Format of the report; must be "md" for Markdown or "html" for HTML.
+    
+    Returns:
+        When `report_format` is "md", a `str` containing the Markdown report; when `report_format` is "html", an `HTMLResponse` containing the rendered HTML.
+    
+    Raises:
+        HTTPException: If an unsupported `report_format` is provided.
     """
     graph = get_graph()
 
@@ -54,7 +66,15 @@ def schema_report_raw(
     fmt: str = Query("md", pattern="^(md|html)$"),
 ) -> dict[str, str]:
     """
-    Return the schema report as a downloadable file payload.
+    Produce a raw export payload of the schema report in the requested format.
+    
+    Parameters:
+    	fmt (str): Output format, either "md" for Markdown or "html" for HTML.
+    
+    Returns:
+    	dict[str, str]: A payload containing:
+    		- "filename": suggested filename for download (e.g., "schema_report.md" or "schema_report.html")
+    		- "content": the report content as a string in the requested format
     """
     graph = get_graph()
     content = export_report(graph, fmt=fmt)

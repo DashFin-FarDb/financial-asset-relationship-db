@@ -14,7 +14,12 @@ def _repo_root() -> Path:
 
 
 def _cli_path() -> Path:
-    """Return the path to the schema_report_cli script."""
+    """
+    Get the filesystem path to the repository's schema_report_cli.py script.
+    
+    Returns:
+        Path: Path pointing to .github/scripts/schema_report_cli.py located under the repository root.
+    """
     return _repo_root() / ".github" / "scripts" / "schema_report_cli.py"
 
 
@@ -23,10 +28,16 @@ def _load_cli_module_for_unit(
     tmp_path: Path,
 ) -> ModuleType:
     """
-    Load the CLI module directly from its file path for unit testing.
-
-    SCHEMA_REPORT_LOG is redirected into tmp_path so logging does not
-    touch the repository tree.
+    Load the CLI script from its on-disk location and return it as an imported module.
+    
+    Sets the SCHEMA_REPORT_LOG environment variable to a log file under tmp_path to prevent test logging from touching the repository tree.
+    
+    Parameters:
+        monkeypatch (pytest.MonkeyPatch): pytest monkeypatch fixture used to modify environment variables.
+        tmp_path (Path): Temporary directory in which the redirected log file will be created.
+    
+    Returns:
+        module (ModuleType): The imported CLI module.
     """
     monkeypatch.setenv(
         "SCHEMA_REPORT_LOG",
@@ -50,7 +61,12 @@ def cli_module(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> ModuleType:
-    """Provide a freshly loaded CLI module for unit tests."""
+    """
+    Provide a freshly loaded CLI module for unit tests.
+    
+    Returns:
+        cli_module (ModuleType): The loaded CLI module object.
+    """
     return _load_cli_module_for_unit(monkeypatch, tmp_path)
 
 
@@ -159,7 +175,12 @@ class TestWriteAtomic:
         initial_entries = set(tmp_path.iterdir())
 
         def failing_replace(self, *args, **kwargs):  # noqa: D401, ARG002
-            """Simulated failure in Path.replace."""
+            """
+            Simulate a failing Path.replace by always raising a RuntimeError.
+            
+            Raises:
+                RuntimeError: with message "simulated replace failure".
+            """
             raise RuntimeError("simulated replace failure")
 
         monkeypatch.setattr(_Path, "replace", failing_replace, raising=True)

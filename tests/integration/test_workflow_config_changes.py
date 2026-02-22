@@ -298,7 +298,9 @@ class TestLabelWorkflowChanges:
         assert "actions/labeler" in uses_value, f"expected actions/labeler step, got uses={uses_value!r}"
 
     def test_no_conditional_execution(self, label_workflow):
-        """Verify no conditional if statements in steps."""
+        """
+        Assert that no step in the label job defines an "if" conditional.
+        """
         jobs = label_workflow.get("jobs", {})
         label_job = jobs.get("label", {})
         steps = label_job.get("steps", [])
