@@ -31,18 +31,12 @@ def markdown_to_html(md: str) -> str:
 # ---------------------------------------------------------------------------
 
 
+from src.reports.schema_report import generate_schema_report
+
+
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
-    """
-    Generate a Markdown-formatted schema and metrics report for the provided asset relationship graph.
-
-    Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to analyze.
-
-    Returns:
-        str: Markdown string containing the generated schema and metrics report.
-    """
-    generator = SchemaReportGenerator(graph)
-    return generator.generate()
+    """Thin wrapper around generate_schema_report for naming consistency."""
+    return generate_schema_report(graph)
 
 
 def generate_html_report(graph: AssetRelationshipGraph) -> str:
