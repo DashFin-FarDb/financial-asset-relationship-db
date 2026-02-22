@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-import markdown
 import bleach
+import markdown
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
