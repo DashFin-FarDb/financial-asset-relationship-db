@@ -12,7 +12,6 @@ from src.visualizations.graph_visuals_data import _build_edge_coordinates_optimi
 from src.visualizations.graph_visuals_data import _build_hover_texts  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_relationship_index  # noqa: F401
 from src.visualizations.graph_visuals_data import _collect_and_group_relationships  # noqa: F401
-from src.visualizations.graph_visuals_layout import _calculate_visible_relationships  # noqa: F401
 from src.visualizations.graph_visuals_layout import _generate_dynamic_title  # noqa: F401
 from src.visualizations.graph_visuals_layout import (
     _configure_3d_layout,
