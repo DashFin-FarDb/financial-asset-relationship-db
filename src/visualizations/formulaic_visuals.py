@@ -68,7 +68,14 @@ class FormulaicVisualizer:
             plot_bgcolor="white",
             paper_bgcolor="#F8F9FA",
         )
-        return fig
+        # Preserve established dashboard layout expectations
+        fig.update_layout(
+            title="📊 Financial Formulaic Analysis Dashboard",
+            height=1000,
+            showlegend=False,
+            plot_bgcolor="white",
+            paper_bgcolor="#F8F9FA",
+        )
 
     @staticmethod
     def _plot_category_distribution(fig: go.Figure, formulas: Any) -> None:
