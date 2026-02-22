@@ -43,7 +43,9 @@ class TestGet3DVisualizationDataEnhanced:
         """Test that empty graph returns a single placeholder node."""
         graph = AssetRelationshipGraph()
 
-        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+        positions, asset_ids, colors, hover_texts = (
+            graph.get_3d_visualization_data_enhanced()
+        )
 
         assert positions.shape == (1, 3)
         assert np.allclose(positions, np.zeros((1, 3)))
@@ -57,7 +59,9 @@ class TestGet3DVisualizationDataEnhanced:
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
 
-        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+        positions, asset_ids, colors, hover_texts = (
+            graph.get_3d_visualization_data_enhanced()
+        )
 
         assert positions.shape == (2, 3)
         assert len(asset_ids) == 2
@@ -65,7 +69,6 @@ class TestGet3DVisualizationDataEnhanced:
         assert len(colors) == 2
         assert len(hover_texts) == 2
 
-    @staticmethod
     @staticmethod
     def test_multiple_relationships_circular_layout():
         """Test that multiple assets are laid out in a circle."""
@@ -88,7 +91,6 @@ class TestGet3DVisualizationDataEnhanced:
         assert np.allclose(radii, 1.0)
 
     @staticmethod
-    @staticmethod
     def test_positions_are_numpy_array():
         """Test that positions are returned as numpy array."""
         graph = AssetRelationshipGraph()
@@ -101,7 +103,6 @@ class TestGet3DVisualizationDataEnhanced:
         assert positions.shape[1] == 3
 
     @staticmethod
-    @staticmethod
     def test_colors_are_consistent():
         """Test that all nodes get the same color."""
         graph = AssetRelationshipGraph()
@@ -112,7 +113,6 @@ class TestGet3DVisualizationDataEnhanced:
 
         assert all(color == "#4ECDC4" for color in colors)
 
-    @staticmethod
     @staticmethod
     def test_hover_texts_format():
         """Test that hover texts are properly formatted."""
@@ -125,7 +125,6 @@ class TestGet3DVisualizationDataEnhanced:
             assert hover_text == f"Asset: {asset_id}"
 
     @staticmethod
-    @staticmethod
     def test_asset_ids_are_sorted():
         """Test that asset IDs are returned in sorted order."""
         graph = AssetRelationshipGraph()
@@ -136,7 +135,6 @@ class TestGet3DVisualizationDataEnhanced:
 
         assert asset_ids == sorted(asset_ids)
 
-    @staticmethod
     @staticmethod
     def test_bidirectional_relationships_single_nodes():
         """Test that bidirectional relationships don't duplicate nodes."""
@@ -149,7 +147,6 @@ class TestGet3DVisualizationDataEnhanced:
         assert len(asset_ids) == 2
         assert set(asset_ids) == {"asset1", "asset2"}
 
-    @staticmethod
     @staticmethod
     def test_complex_graph_with_multiple_targets():
         """Test graph where one source has multiple targets."""
@@ -187,7 +184,9 @@ class TestGet3DVisualizationDataEnhanced:
         graph = AssetRelationshipGraph()
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
 
-        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+        positions, asset_ids, colors, hover_texts = (
+            graph.get_3d_visualization_data_enhanced()
+        )
 
         assert isinstance(positions, np.ndarray)
         assert isinstance(asset_ids, list)
@@ -204,9 +203,27 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
         graph.relationships["asset2"] = [("asset3", "correlation", 0.7)]
 
-        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+        positions, asset_ids, colors, hover_texts = (
+            graph.get_3d_visualization_data_enhanced()
+        )
 
         n = len(asset_ids)
         assert positions.shape[0] == n
         assert len(colors) == n
         assert len(hover_texts) == n
+
+    @staticmethod
+    def test_asset_ids_sorted():
+        """Test that asset IDs are returned in sorted order."""
+        graph = AssetRelationshipGraph()
+        # Add relationships in non-sorted order
+        graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
+        graph.relationships["mango"] = [("banana", "correlation", 0.7)]
+
+        _positions, asset_ids, _colors, _hover_texts = (
+            graph.get_3d_visualization_data_enhanced()
+        )
+
+        # Verify they are returned as a sorted list of all unique assets
+        expected_asset_ids = ["apple", "banana", "mango", "zebra"]
+        assert asset_ids == expected_asset_ids

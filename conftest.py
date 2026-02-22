@@ -72,9 +72,11 @@ def db_session(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
     """
-    Provide a transaction-scoped SQLAlchemy Session.
+    Provide a transaction-scoped SQLAlchemy Session for a test.
 
-    Uses the project's session_scope helper to ensure commit/rollback/close semantics.
+    The yielded session is managed by the project's transaction scope: it will be
+    committed if the test completes successfully, rolled back on failure, and
+    closed afterwards.
     """
     with session_scope(session_factory) as session:
         yield session
@@ -102,8 +104,8 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
         Returns:
             None
         """
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
+        for k, v in kwargs.items():
+            monkeypatch.setenv(k, v)
 
     return _setter
 

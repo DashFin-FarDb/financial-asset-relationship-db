@@ -49,7 +49,14 @@ class AssetGraphRepository:
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
-        """Create or update an asset record."""
+        """
+        Create or update a database record for the given domain Asset.
+
+        If a row with the asset's id exists, its fields are updated;
+        otherwise a new ORM instance is created with that id.
+        The ORM is populated from the provided domain Asset
+        and added to the active session for persistence.
+        """
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -58,7 +65,9 @@ class AssetGraphRepository:
 
     def list_assets(self) -> List[Asset]:
         """Return all assets as dataclass instances ordered by id."""
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -247,7 +256,9 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)

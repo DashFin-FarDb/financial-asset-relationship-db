@@ -26,7 +26,8 @@ def _get_yfinance():
         import yfinance as yf
     except ModuleNotFoundError as exc:
         raise ModuleNotFoundError(
-            "yfinance is required to fetch real market data. " "Install it with the project requirements."
+            "yfinance is required to fetch real market data. "
+            "Install it with the project requirements."
         ) from exc
     return yf
 
@@ -52,18 +53,18 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """
-        Constructs and returns an AssetRelationshipGraph populated with
-        current market data or a fallback dataset.
+        Builds an AssetRelationshipGraph populated with current market data or
+        a fallback dataset.
 
-        If a cache file exists it will be loaded and returned. If network
-        access is disabled or real-data fetching fails, a fallback/sample
-        graph is returned. When fetching succeeds and a cache path is
-        configured, the populated graph is persisted to cache.
+        If a configured cache file exists, the graph is loaded from that cache.
+        If network access is disabled or fetching real data fails, a
+        fallback/sample graph is returned.
+        When fetching succeeds and a cache path is configured,
+        the populated graph is persisted to the cache.
 
         Returns:
-            AssetRelationshipGraph: Populated graph built from real financial
-                data; if loading or fetching fails (or network is disabled),
-                a fallback/sample AssetRelationshipGraph is returned.
+            AssetRelationshipGraph: Graph built from cache, fetched real data,
+                or fallback/sample data.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -78,7 +79,9 @@ class RealDataFetcher:
                 )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            logger.info(
+                "Network fetching disabled. Using fallback dataset if available."
+            )
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -257,7 +260,9 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(info.get("yield", 0.03)),  # Default 3% if not available
+                    yield_to_maturity=(
+                        info.get("yield", 0.03)
+                    ),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
@@ -413,7 +418,9 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
+            description=(
+                "10-K Filing - Increased oil reserves and sustainability initiatives"
+            ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -479,9 +486,9 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
-    Create a JSON-serializable dictionary representation of an AssetRelationshipGraph.
+    Serialize an AssetRelationshipGraph to a JSON-friendly dictionary.
 
-    The returned mapping includes serialized assets and regulatory events,
+    The returned payload contains serialized assets, regulatory events,
     outgoing relationships keyed by source asset id, and computed incoming
     relationships keyed by target asset id.
 
@@ -489,15 +496,15 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
         graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:
-        Dict[str, Any]: Dictionary with keys:
-            - "assets": list of serialized asset objects.
-            - "regulatory_events": list of serialized regulatory event objects.
-            - "relationships": mapping from source id to a list of
-              outgoing relationships,
-              each item containing "target", "relationship_type", and "strength".
-            - "incoming_relationships": mapping from target id to a list of
-              incoming relationships,
-              each item containing "source", "relationship_type", and "strength".
+        payload (dict): Dictionary with keys:
+                - "assets": list of serialized asset objects.
+                - "regulatory_events": list of serialized regulatory event objects.
+                - "relationships": mapping from source id to a list of outgoing
+                  relationships;
+                  each item contains "target", "relationship_type", and "strength".
+                - "incoming_relationships": mapping from target id to a list of incoming
+                  relationships;
+                  each item contains "source", "relationship_type", and "strength".
     """
     # Compute incoming_relationships from relationships
 
@@ -510,7 +517,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "regulatory_events": [
+            _serialize_dataclass(event) for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
                 {
