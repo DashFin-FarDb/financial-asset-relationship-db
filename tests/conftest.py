@@ -2,6 +2,32 @@
 database tests.
 """
 
+import os
+from pathlib import Path
+import shutil
+from uuid import uuid4
+
+# Ensure required API environment variables are set before any imports that
+# initialize the database/auth layers.
+REPO_ROOT = Path(__file__).resolve().parent.parent
+TMP_ROOT = REPO_ROOT / "repo-temp-base"
+CACHE_ROOT = REPO_ROOT / "pytest_cache"
+TMP_ROOT.mkdir(parents=True, exist_ok=True)
+CACHE_ROOT.mkdir(parents=True, exist_ok=True)
+
+os.environ.setdefault("TMP", str(TMP_ROOT))
+os.environ.setdefault("TEMP", str(TMP_ROOT))
+os.environ.setdefault("TMPDIR", str(TMP_ROOT))
+os.environ.setdefault("PYTEST_BASETEMP", str(TMP_ROOT))
+os.environ.setdefault("PYTEST_CACHE_DIR", str(CACHE_ROOT))
+
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["SECRET_KEY"] = "test-secret-key-for-ci"
+os.environ["ADMIN_USERNAME"] = "admin"
+os.environ["ADMIN_PASSWORD"] = "adminpass"
+os.environ["ADMIN_EMAIL"] = "admin@example.com"
+os.environ["ADMIN_FULL_NAME"] = "Admin User"
+
 from typing import TYPE_CHECKING
 
 import pytest
@@ -139,6 +165,24 @@ def pytest_addoption(parser: "Parser") -> None:
         _register_dummy_cov_options(parser)
 
 
+def pytest_configure(config: pytest.Config) -> None:
+    """Configure pytest temp and cache directories for restricted environments."""
+    if config.option.basetemp is None:
+        config.option.basetemp = os.environ["PYTEST_BASETEMP"]
+
+    cache_dir = Path(os.environ["PYTEST_CACHE_DIR"]).resolve()
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    config.cache._cachedir = cache_dir
+
+
+@pytest.hookimpl(hookwrapper=True, tryfirst=True)
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int):
+    """Avoid hard failures when temp cleanup lacks permissions."""
+    outcome = yield
+    if outcome.excinfo and isinstance(outcome.excinfo[1], PermissionError):
+        outcome.force_result(None)
+
+
 def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
     """Register dummy --cov and --cov-report options."""
     group = parser.getgroup("cov")
@@ -191,3 +235,14 @@ def dividend_stock():
         dividend_yield=0.04,
         earnings_per_share=6.67,
     )
+
+
+@pytest.fixture
+def tmp_path():
+    """Provide a writable temp path without relying on pytest's tmpdir cleanup."""
+    temp_dir = TMP_ROOT / f"codex-tmp-{uuid4().hex}"
+    temp_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        yield temp_dir
+    finally:
+        shutil.rmtree(temp_dir, ignore_errors=True)

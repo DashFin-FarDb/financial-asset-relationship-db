@@ -167,9 +167,10 @@ jobs:
 
       - name: Read welcome message from config
         id: config
+        working-directory: .github
         run: |
           # Read welcome message from config file
-          if [ -f .github/pr-copilot-config.yml ]; then
+          if [ -f pr-copilot-config.yml ]; then
             # Extract welcome message (simplified - in production use yq or python)
             echo "config_exists=true" >> $GITHUB_OUTPUT
           else
@@ -311,8 +312,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
+        working-directory: .github/pr-copilot/scripts
         run: |
-          pip install -r .github/pr-copilot/scripts/requirements.txt
+          pip install -r requirements.txt
 
       - name: Generate status report
         id: status
@@ -321,8 +323,9 @@ jobs:
           PR_NUMBER: ${{ needs.detect-trigger.outputs.pr_number }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
+        working-directory: .github/pr-copilot/scripts
         run: |
-          python .github/pr-copilot/scripts/generate_status.py
+          python generate_status.py
 
       - name: Post status update
         uses: actions/github-script@v7
@@ -360,30 +363,32 @@ jobs:
               const passedChecks = checks.check_runs.filter(c => c.conclusion === 'success').length;
               const failedChecks = checks.check_runs.filter(c => c.conclusion === 'failure').length;
 
-              statusReport = `📊 **PR Status Report**
+              statusReport = `
+              📊 **PR Status Report**
 
-**PR Information:**
-- **Author:** @${pr.user.login}
-- **Title:** ${pr.title}
-- **Commits:** ${pr.commits}
-- **Files Changed:** ${pr.changed_files}
-- **Additions:** +${pr.additions} / **Deletions:** -${pr.deletions}
+              **PR Information:**
+              - **Author:** @${pr.user.login}
+              - **Title:** ${pr.title}
+              - **Commits:** ${pr.commits}
+              - **Files Changed:** ${pr.changed_files}
+              - **Additions:** +${pr.additions} / **Deletions:** -${pr.deletions}
 
-**Review Status:**
-- ✅ Approved: ${approvedReviews}
-- 🔄 Changes Requested: ${changesRequestedReviews}
-- 📋 Total Reviews: ${reviews.length}
+              **Review Status:**
+              - ✅ Approved: ${approvedReviews}
+              - 🔄 Changes Requested: ${changesRequestedReviews}
+              - 📋 Total Reviews: ${reviews.length}
 
-**CI/Check Status:**
-- ✅ Passed: ${passedChecks}
-- ❌ Failed: ${failedChecks}
-- 📊 Total Checks: ${checks.check_runs.length}
+              **CI/Check Status:**
+              - ✅ Passed: ${passedChecks}
+              - ❌ Failed: ${failedChecks}
+              - 📊 Total Checks: ${checks.check_runs.length}
 
-**Merge Status:**
-- Mergeable: ${pr.mergeable ? '✅ Yes' : '❌ No'}
-- Draft: ${pr.draft ? '📝 Yes' : '✅ No'}
+              **Merge Status:**
+              - Mergeable: ${pr.mergeable ? '✅ Yes' : '❌ No'}
+              - Draft: ${pr.draft ? '📝 Yes' : '✅ No'}
 
-*Last updated: ${new Date().toISOString()}*`;
+              *Last updated: ${new Date().toISOString()}*`
+                .replace(/^[ \t]+/gm, "");
             }
 
             await github.rest.issues.createComment({
@@ -663,17 +668,17 @@ jobs:
 
             **Resolution Steps:**
             1. Update your local branch:
-               \`\`\`bash
-               git checkout ${pr.head.ref}
-               git pull origin ${pr.base.ref}
-               \`\`\`
+              \`\`\`bash
+              git checkout ${pr.head.ref}
+              git pull origin ${pr.base.ref}
+              \`\`\`
             2. Resolve conflicts in the affected files
             3. Commit the resolution:
-               \`\`\`bash
-               git add .
-               git commit -m "Resolve merge conflicts"
-               git push
-               \`\`\`
+              \`\`\`bash
+              git add .
+              git commit -m "Resolve merge conflicts"
+              git push
+              \`\`\`
 
             Need help? Ask \`@pr-copilot help conflicts\` for more guidance.`;
 

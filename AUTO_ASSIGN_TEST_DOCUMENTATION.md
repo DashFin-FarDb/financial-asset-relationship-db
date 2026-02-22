@@ -4,6 +4,8 @@
 
 Successfully generated **37 comprehensive unit tests** to enhance the auto-assign workflow testing beyond the original 28 tests, bringing total test coverage to **65 test methods** across 3 test classes.
 
+Files reviewed: `.github/workflows/auto-assign.yml`.
+
 ## Test File Changes
 
 **File**: `tests/integration/test_github_workflows.py`

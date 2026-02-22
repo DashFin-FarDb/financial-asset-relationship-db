@@ -17,6 +17,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tests.integration.test_github_workflows import GitHubActionsYamlLoader
+
 
 @pytest.fixture
 def bearer_workflow_path():
@@ -28,7 +30,7 @@ def bearer_workflow_path():
 def bearer_workflow_content(bearer_workflow_path):
     """Load and parse the bearer workflow YAML content."""
     with open(bearer_workflow_path, "r", encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        return yaml.load(f, Loader=GitHubActionsYamlLoader)
 
 
 @pytest.fixture

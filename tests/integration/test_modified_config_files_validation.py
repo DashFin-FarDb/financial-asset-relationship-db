@@ -41,7 +41,7 @@ class TestPRAgentConfigChanges:
         Returns:
             config (Dict[str, Any]): Mapping representing the parsed YAML configuration.
         """
-        with open(config_path, "r") as f:
+        with open(config_path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_version_is_correct(self, config_data: Dict[str, Any]):
@@ -140,7 +140,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "pr-agent.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain context chunking references
@@ -160,7 +160,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "apisec-scan.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not have "if: secrets.apisec_username != ''" type conditions
@@ -176,7 +176,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "label.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should be simple and not check for config existence
@@ -188,7 +188,7 @@ class TestWorkflowSimplifications:
         workflow_file = workflows_dir / "greetings.yml"
         assert workflow_file.exists()
 
-        with open(workflow_file, "r") as f:
+        with open(workflow_file, "r", encoding="utf-8") as f:
             workflow_data = yaml.safe_load(f)
 
         # Check for simple messages (not elaborate multi-line messages)
@@ -255,7 +255,7 @@ class TestDeletedFilesImpact:
         ]
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
+            with open(workflow_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             for deleted_ref in deleted_refs:
@@ -277,7 +277,7 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_added(self, req_dev_path: Path):
         """Verify PyYAML has been added to requirements-dev.txt."""
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         assert "pyyaml" in content or "yaml" in content, "PyYAML should be in requirements-dev.txt"
@@ -288,7 +288,7 @@ class TestRequirementsDevChanges:
 
         Reads the file at the provided path and checks case-insensitively that the string `tiktoken` is not present.
         """
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         # tiktoken should not be required anymore
@@ -296,7 +296,7 @@ class TestRequirementsDevChanges:
 
     def test_essential_dev_dependencies_present(self, req_dev_path: Path):
         """Verify essential development dependencies are present."""
-        with open(req_dev_path, "r") as f:
+        with open(req_dev_path, "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         essential_deps = ["pytest", "pyyaml"]
@@ -325,7 +325,7 @@ class TestGitignoreChanges:
 
         Checks the repository .gitignore content for the presence of the filename 'codacy.instructions.md' and fails the test if it is missing.
         """
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         assert "codacy.instructions.md" in content, "codacy.instructions.md should be in .gitignore"
@@ -337,7 +337,7 @@ class TestGitignoreChanges:
 
         Asserts that the pattern 'test_*.db' is not present in the .gitignore file located at gitignore_path.
         """
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # junit.xml should not be specifically ignored (removed from gitignore)
@@ -347,7 +347,7 @@ class TestGitignoreChanges:
     @staticmethod
     def test_standard_ignores_present(gitignore_path: Path):
         """Verify standard ignore patterns are present."""
-        with open(gitignore_path, "r") as f:
+        with open(gitignore_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         standard_patterns = [
@@ -388,7 +388,7 @@ class TestCodacyInstructionsChanges:
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r") as f:
+        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
@@ -406,7 +406,7 @@ class TestCodacyInstructionsChanges:
         if not codacy_instructions_path.exists():
             pytest.skip("Codacy instructions file not present")
 
-        with open(codacy_instructions_path, "r") as f:
+        with open(codacy_instructions_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Critical rules should be preserved

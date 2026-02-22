@@ -1,80 +1,20 @@
-# PR Agent Configuration
-# Defines behavior and settings for the automated PR management agent
+# PR Agent Configuration (simplified)
 
 agent:
-  name: "Financial DB PR Agent"
+  name: "PR Agent"
   version: "1.0.0"
   enabled: true
 
-  # Context length management
-  context:
-    max_tokens: 32000  # Maximum context length before chunking
-    chunk_size: 28000  # Size of each chunk (leave room for system prompts)
-    overlap_tokens: 2000  # Overlap between chunks for continuity
-    summarization_threshold: 30000  # Start summarizing at this token count
-
-    # Chunking strategy
-    chunking:
-      enabled: true
-      strategy: "smart"  # Options: smart, sequential, priority
-      preserve_structure: true  # Maintain code structure across chunks
-
-    # Summarization settings
-    summarization:
-      enabled: true
-      model: "gpt-3.5-turbo"  # Use faster model for summaries
-      max_summary_tokens: 2000  # Maximum tokens per summary
-      focus_on:
-        - "review_comments"
-        - "code_changes"
-        - "test_failures"
-        - "action_items"
-      preserve_context:
-        - "file_names"
-        - "function_signatures"
-        - "error_messages"
-        - "reviewer_names"
-
-# Monitoring settings
 monitoring:
-  check_interval: 1800  # 30 minutes in seconds
+  check_interval: 1800
   max_retries: 3
-  timeout: 300  # 5 minutes
+  timeout: 300
 
-# Comment parsing configuration
-comment_parsing:
-  triggers:
-    - "@copilot"
-    - "@pr-agent"
-    - "fix this"
-    - "address review"
-    - "update tests"
-    - "check ci"
+limits:
+  max_execution_time: 1800
+  max_concurrent_prs: 5
+  rate_limit_requests: 500
 
-  ignore_patterns:
-    - "<!-- "
-    - "```"
-    - "http://"
-    - "https://"
-
-  priority_keywords:
-    high:
-      - "breaking"
-      - "security"
-      - "critical"
-      - "urgent"
-    medium:
-      - "bug"
-      - "error"
-      - "fix"
-      - "issue"
-    low:
-      - "style"
-      - "format"
-      - "typo"
-      - "suggestion"
-
-# Automated actions configuration
 actions:
   auto_acknowledge: true
   auto_implement: true
@@ -82,20 +22,6 @@ actions:
   auto_commit: true
   auto_request_review: true
 
-  # Safety limits
-  max_changes_per_pr: 10
-  max_files_per_commit: 5
-  require_approval_for:
-    - "package.json"
-    - "requirements.txt"
-    - "pyproject.toml"
-    - "Dockerfile"
-    - ".github/workflows/"
-    - ".github/pr-agent-config.yml"
-    - "database/"
-    - "*.env*"
-
-# Code quality standards
 quality:
   python:
     linter: "flake8"
@@ -103,175 +29,18 @@ quality:
     type_checker: "mypy"
     test_runner: "pytest"
     min_coverage: 80
-
   typescript:
     linter: "eslint"
     formatter: "prettier"
     type_checker: "tsc"
     test_runner: "jest"
     min_coverage: 75
-
   general:
     max_line_length: 88
     require_tests: true
     require_docs: false
     conventional_commits: true
 
-# Git workflow settings
-git:
-  branch_strategy: "update_existing"
-  commit_style: "conventional"
-  squash_commits: false
-  auto_rebase: true
-
-  commit_templates:
-    fix: "fix: {description}"
-    feat: "feat: {description}"
-    docs: "docs: {description}"
-    test: "test: {description}"
-    refactor: "refactor: {description}"
-    style: "style: {description}"
-
-# CI/CD integration
-ci:
-  wait_for_checks: true
-  retry_failed_checks: true
-  max_check_retries: 2
-
-  required_checks:
-    - "frontend-lint"
-    - "frontend-build"
-    - "python-lint"
-    - "python-test"
-    - "ci/circleci"
-
-  optional_checks:
-    - "netlify"
-    - "vercel"
-    - "CodeRabbit"
-
-# Notification settings
-notifications:
-  slack_webhook: null  # Configure if needed
-  email_alerts: false
-  github_comments: true
-
-  templates:
-    acknowledgment: |
-      👋 Thanks for the review! I'm analyzing the feedback and will implement the requested changes.
-
-      **Action Items Identified:**
-      {action_items}
-
-      I'll update this PR shortly with the changes and request a re-review.
-
-    completion: |
-      ✅ **Changes Implemented**
-
-      I've addressed the review feedback with the following changes:
-      {changes_summary}
-
-      **Files Modified:**
-      {modified_files}
-
-      Please re-review when convenient. All CI checks should pass shortly.
-
-    error: |
-      ⚠️ **Issue Encountered**
-
-      I encountered an issue while implementing the requested changes:
-      {error_message}
-
-      This may require human intervention. Please review and assist.
-
-# Learning and improvement
-learning:
-  track_success_rate: true
-  save_failed_attempts: true
-  analyze_patterns: true
-
-  feedback_sources:
-    - reviewer_comments
-    - ci_results
-    - merge_success
-    - post_merge_issues
-
-# Security and permissions
 security:
-  allowed_file_patterns:
-    - "src/**/*.py"
-    - "api/**/*.py"
-    - "frontend/**/*.ts"
-    - "frontend/**/*.tsx"
-    - "frontend/**/*.js"
-    - "frontend/**/*.jsx"
-    - "tests/**/*"
-    - "**/*.md"
-    - "**/*.yml"
-    - "**/*.yaml"
-    - "**/*.json"
-
-  forbidden_patterns:
-    - "**/*.env"
-    - "**/secrets/**"
-    - "**/private/**"
-    - "**/*.key"
-    - "**/*.pem"
-
-  require_human_approval:
-    - security_related: true
-    - breaking_changes: true
-    - dependency_updates: false
-    - config_changes: true
-
-# Repository-specific settings
-repository:
-  name: "financial-asset-relationship-db"
-  primary_language: "python"
-  framework: "fastapi"
-  frontend_framework: "nextjs"
-
-  key_files:
-    - "main.py"
-    - "api/main.py"
-    - "src/logic/asset_graph.py"
-    - "src/data/database.py"
-    - "frontend/app/page.tsx"
-
-  test_directories:
-    - "tests/"
-    - "frontend/__tests__/"
-
-  documentation:
-    - "README.md"
-    - "ARCHITECTURE.md"
-    - "API_DOCS.md"
-
-# Performance and resource limits
-limits:
-  max_execution_time: 600  # 10 minutes
-  max_memory_usage: "1GB"
-  max_concurrent_prs: 5
-  rate_limit_requests: 100  # per hour
-
-  # Context processing limits
-  max_files_per_chunk: 10
-  max_diff_lines: 5000  # Maximum diff lines before chunking
-  max_comment_length: 10000  # Maximum comment length to process
-
-  # Fallback strategies when context exceeds limits
-  fallback:
-    on_context_overflow: "chunk_and_summarize"  # Options: chunk_and_summarize, summarize_only, prioritize, fail
-    priority_order:
-      - "review_comments"  # Always include review feedback
-      - "test_failures"    # Include test results
-      - "changed_files"    # Include actual code changes
-      - "ci_logs"          # Include CI logs (summarized)
-      - "full_diff"        # Full diff (lowest priority)
-
-# Debugging and logging
-debug:
-  enabled: false
-  log_level: "INFO"
-  save_logs: true
-  log_retention_days: 30
+  enforce_review: true
+  require_ci_pass: true

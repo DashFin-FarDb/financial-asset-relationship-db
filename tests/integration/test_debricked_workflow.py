@@ -17,6 +17,8 @@ from typing import Any, Dict, List
 import pytest
 import yaml
 
+from tests.integration.test_github_workflows import GitHubActionsYamlLoader
+
 # Constants
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 # Ensure we test the actual workflow file, not a root copy
@@ -38,7 +40,7 @@ def workflow_content() -> str:
 def workflow_config(workflow_content: str) -> Dict[str, Any]:
     """Parse YAML content once for the module."""
     try:
-        return yaml.safe_load(workflow_content)
+        return yaml.load(workflow_content, Loader=GitHubActionsYamlLoader)
     except yaml.YAMLError as e:
         pytest.fail(f"Invalid YAML syntax in debricked.yml: {e}")
 

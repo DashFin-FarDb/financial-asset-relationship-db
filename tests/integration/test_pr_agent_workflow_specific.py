@@ -15,7 +15,8 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
     """Regression tests for the duplicate Setup Python key fix."""
 
     @pytest.fixture
-    def workflow_file(self) -> Path:
+    @staticmethod
+    def workflow_file() -> Path:
         """
         Get the path to the GitHub Actions workflow file for the PR agent.
 
@@ -25,7 +26,6 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         return Path(".github/workflows/pr-agent.yml")
 
     @pytest.fixture
-    @staticmethod
     @staticmethod
     def workflow_content(workflow_file: Path) -> Dict[str, Any]:
         """

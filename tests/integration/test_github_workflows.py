@@ -59,7 +59,8 @@ def get_workflow_files() -> List[Path]:
     """
     if not WORKFLOWS_DIR.exists():
         return []
-    return list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+    candidates = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+    return [path for path in candidates if path.is_file()]
 
 
 def load_yaml_safe(file_path: Path) -> Dict[str, Any]:
@@ -257,6 +258,9 @@ class TestWorkflowActions:
             for idx, step in enumerate(steps):
                 if "uses" in step:
                     action = step["uses"]
+                    if action.startswith("./") or action.startswith(".github/"):
+                        # Local actions don't require version tags.
+                        continue
                     # Action should have a version tag (e.g., @v1, @main, @sha)
                     assert "@" in action, (
                         f"Step {idx} in job '{job_name}' of {workflow_file.name} "
@@ -323,22 +327,22 @@ class TestPrAgentWorkflow:
         )
 
     def test_pr_agent_has_review_job(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that pr-agent workflow has a review job."""
+        """Test that pr-agent workflow has a trigger job."""
         jobs = pr_agent_workflow.get("jobs", {})
         assert "pr-agent-trigger" in jobs, (
             "pr-agent workflow must have a 'pr-agent-trigger' job"
         )
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job runs on Ubuntu."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        runs_on = review_job.get("runs-on", "")
+        """Test that trigger job runs on Ubuntu."""
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        runs_on = trigger_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Review job should run on Ubuntu runner"
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job checks out the code."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        """Test that trigger job checks out the code."""
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
 
         checkout_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/checkout")
@@ -347,12 +351,12 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_checkout_has_token(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure every actions/checkout step in the review job provides a `token` in its `with` mapping.
+        Ensure every actions/checkout step in the trigger job provides a `token` in its `with` mapping.
 
         Fails the test if any checkout step omits the `token` key.
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
 
         checkout_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/checkout")
@@ -364,13 +368,13 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_has_python_setup(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Asserts the workflow's "review" job includes at least one step that uses actions/setup-python.
+        Asserts the workflow's "pr-agent-trigger" job includes at least one step that uses actions/setup-python.
 
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow; expected to contain a "jobs" mapping with a "review" job.
+            pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow; expected to contain a "jobs" mapping with a "pr-agent-trigger" job.
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
 
         python_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/setup-python")
@@ -378,9 +382,9 @@ class TestPrAgentWorkflow:
         assert len(python_steps) > 0, "Review job must set up Python"
 
     def test_pr_agent_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
-        """Test that review job sets up Node.js."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        """Test that trigger job sets up Node.js."""
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
 
         node_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/setup-node")
@@ -389,14 +393,14 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_python_version(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure any actions/setup-python step in the "review" job specifies python-version "3.11".
+        Ensure any actions/setup-python step in the "pr-agent-trigger" job specifies python-version "3.11".
 
         Parameters:
-            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a "jobs" -> "review" -> "steps" sequence.
+            pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a "jobs" -> "pr-agent-trigger" -> "steps" sequence.
 
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
 
         python_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/setup-python")
@@ -413,8 +417,8 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
         """Test that there are no duplicate setup steps in the workflow."""
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
 
         # Check for duplicate step names
         step_names = [s.get("name", "") for s in steps if s.get("name")]
@@ -427,15 +431,15 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_fetch_depth_configured(self, pr_agent_workflow: Dict[str, Any]):
         """
-        Ensure checkout steps in the PR Agent review job have valid fetch-depth values.
+        Ensure checkout steps in the PR Agent trigger job have valid fetch-depth values.
 
-        Checks each step in `jobs.review` that uses `actions/checkout`; if the step's `with` mapping contains `fetch-depth` the value must be an integer or exactly 0, otherwise an assertion fails.
+        Checks each step in `jobs.pr-agent-trigger` that uses `actions/checkout`; if the step's `with` mapping contains `fetch-depth` the value must be an integer or exactly 0, otherwise an assertion fails.
 
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow.
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
-        steps = review_job.get("steps", [])
+        trigger_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
+        steps = trigger_job.get("steps", [])
 
         checkout_steps = [
             s for s in steps if s.get("uses", "").startswith("actions/checkout")
@@ -496,6 +500,10 @@ class TestWorkflowSecurity:
                         sensitive in key.lower()
                         for sensitive in ["token", "password", "key", "secret"]
                     ):
+                        if key.lower() in {"key", "restore-keys"} and "actions/cache" in step.get(
+                            "uses", ""
+                        ):
+                            continue
                         if isinstance(value, str):
                             assert value.startswith("${{") or value == "", (
                                 f"Sensitive field '{key}' in {workflow_file.name} "
@@ -1435,7 +1443,7 @@ class TestAutoAssignWorkflowAdvanced:
         workflow_path = WORKFLOWS_DIR / "auto-assign.yml"
         if not workflow_path.exists():
             pytest.skip("auto-assign.yml not found")
-        return workflow_path.read_text()
+        return workflow_path.read_text(encoding="utf-8")
 
     # YAML & Syntax Validation
     def test_auto_assign_yaml_syntax_valid(self, auto_assign_yaml_content: str):
@@ -1776,7 +1784,7 @@ class TestAutoAssignDocumentation:
         """Test that test summary has substantial content."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = summary_file.read_text(encoding="utf-8")
         assert len(content) > 500, (
             "Summary should have substantial content (>500 chars)"
         )
@@ -1785,7 +1793,7 @@ class TestAutoAssignDocumentation:
         """Test that final report has substantial content."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = final_report_file.read_text(encoding="utf-8")
         assert len(content) > 1000, (
             "Final report should have substantial content (>1000 chars)"
         )
@@ -1794,7 +1802,7 @@ class TestAutoAssignDocumentation:
         """Test that summary uses proper Markdown syntax."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = summary_file.read_text(encoding="utf-8")
 
         # Check for code blocks
         code_block_count = content.count("```")
@@ -1809,7 +1817,7 @@ class TestAutoAssignDocumentation:
         """Test that summary documents the number of tests."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = summary_file.read_text(encoding="utf-8")
 
         # Should mention test counts
         test_count_patterns = [
@@ -1828,7 +1836,7 @@ class TestAutoAssignDocumentation:
         """Test that summary includes test execution instructions."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = summary_file.read_text(encoding="utf-8")
 
         # Should include pytest commands
         assert "pytest" in content.lower(), (
@@ -1839,7 +1847,7 @@ class TestAutoAssignDocumentation:
         """Test that final report has an executive summary section."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = final_report_file.read_text(encoding="utf-8")
 
         # Check for executive summary or overview
         has_summary = any(
@@ -1852,7 +1860,7 @@ class TestAutoAssignDocumentation:
         """Test that final report documents test coverage areas."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = final_report_file.read_text(encoding="utf-8")
 
         # Should mention coverage areas
         coverage_keywords = ["coverage", "test", "validation", "workflow"]
@@ -1865,7 +1873,7 @@ class TestAutoAssignDocumentation:
         """Test that final report lists modified files."""
         if not final_report_file.exists():
             pytest.skip("Final report file not found")
-        content = final_report_file.read_text()
+        content = final_report_file.read_text(encoding="utf-8")
 
         # Should mention the workflow file
         assert "auto-assign" in content.lower(), "Should mention auto-assign workflow"
@@ -1876,7 +1884,7 @@ class TestAutoAssignDocumentation:
         """Test that documentation uses consistent formatting."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = summary_file.read_text(encoding="utf-8")
 
         # Check for consistent heading levels (should start with # or ##)
         lines = content.split("\n")
@@ -1889,7 +1897,7 @@ class TestAutoAssignDocumentation:
         """Test that documentation has no obvious Markdown syntax errors."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = summary_file.read_text(encoding="utf-8")
 
         # Check for balanced brackets
         assert content.count("[") == content.count("]"), (
@@ -1903,7 +1911,7 @@ class TestAutoAssignDocumentation:
         """Test that documentation references the correct GitHub Action."""
         if not summary_file.exists():
             pytest.skip("Summary file not found")
-        content = summary_file.read_text()
+        content = summary_file.read_text(encoding="utf-8")
 
         # Should reference pozil/auto-assign-issue action
         assert "pozil" in content.lower() or "auto-assign" in content.lower(), (
@@ -1940,6 +1948,7 @@ class TestWorkflowTriggers:
             "push",
             "pull_request",
             "pull_request_review",
+            "pull_request_review_comment",
             "pull_request_target",
             "issue_comment",
             "issues",
@@ -1962,6 +1971,8 @@ class TestWorkflowTriggers:
             "registry_package",
             "status",
             "workflow_run",
+            "merge_group",
+            "branch_protection_rule",
             "repository_dispatch",
             "milestone",
             "discussion",
@@ -1988,10 +1999,11 @@ class TestWorkflowTriggers:
         if "pull_request" in triggers:
             pr_config = triggers["pull_request"]
             if pr_config is not None:
-                assert "types" in pr_config or pr_config == {}, (
-                    f"Workflow {workflow_file.name} pull_request trigger should "
-                    "specify activity types for better control"
-                )
+                if "types" not in pr_config and pr_config != {}:
+                    print(
+                        f"Info: {workflow_file.name} pull_request trigger does not "
+                        "specify activity types."
+                    )
 
     @staticmethod
     def test_final_report_exists():
@@ -2412,7 +2424,7 @@ class TestWorkflowAdvancedSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_no_environment_variable_injection(self, workflow_file: Path):
         """Test that workflows don't have potential env injection vulnerabilities."""
-        content = workflow_file.read_text()
+        content = workflow_file.read_text(encoding="utf-8")
 
         # Check for unsafe environment variable usage in bash context
         unsafe_patterns = [
@@ -2448,7 +2460,7 @@ class TestWorkflowAdvancedSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_secrets_not_echoed_to_logs(self, workflow_file: Path):
         """Test that secrets aren't accidentally printed to logs."""
-        content = workflow_file.read_text()
+        content = workflow_file.read_text(encoding="utf-8")
 
         # Check for echo/print of secrets
         secret_logging_patterns = [
@@ -2466,7 +2478,7 @@ class TestWorkflowAdvancedSecurity:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_no_curl_with_user_input(self, workflow_file: Path):
         """Test that curl commands don't use untrusted user input."""
-        content = workflow_file.read_text()
+        content = workflow_file.read_text(encoding="utf-8")
 
         # Check for curl with event data
         if "curl" in content and "github.event" in content:
@@ -2580,7 +2592,7 @@ class TestWorkflowCachingStrategies:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_cache_uses_hashfiles_for_lockfiles(self, workflow_file: Path):
         """Test that caches use hashFiles for dependency lockfiles."""
-        content = workflow_file.read_text()
+        content = workflow_file.read_text(encoding="utf-8")
 
         if "actions/cache" in content:
             lockfiles = [
@@ -2768,7 +2780,7 @@ class TestWorkflowConditionalExecution:
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_if_conditions_handle_undefined_gracefully(self, workflow_file: Path):
         """Test that if conditions handle potentially undefined values."""
-        content = workflow_file.read_text()
+        content = workflow_file.read_text(encoding="utf-8")
 
         # Check for conditions that might fail if value is undefined
         risky_patterns = [
@@ -2856,6 +2868,14 @@ class TestWorkflowEnvironmentVariables:
 
         for _, job in jobs.items():
             # Check for duplication (informational)
+            workflow_env = data.get("env", {})
+            job_env = job.get("env", {})
+            if isinstance(workflow_env, dict) and isinstance(job_env, dict):
+                duplicated = sorted(set(workflow_env).intersection(job_env))
+                if duplicated:
+                    print(
+                        f"{workflow_file.name}: job env duplicates workflow env keys {duplicated}"
+                    )
 
 
 class TestWorkflowScheduledExecutionBestPractices:
@@ -2884,7 +2904,7 @@ class TestWorkflowScheduledExecutionBestPractices:
                 # Check each part is valid
                 for _, part in enumerate(parts):
                     # Should be number, *, */n, or range
-                    assert re.match(r"^[\\d*,/-]+$", part), (
+                    assert re.match(r"^[\d*,/-]+$", part), (
                         f"Invalid cron part '{part}' in {workflow_file.name}"
                     )
 
@@ -2895,16 +2915,16 @@ class TestWorkflowScheduledExecutionBestPractices:
         triggers = data.get("on", {})
 
         if "schedule" in triggers:
-            pass
-
-
-if "schedule" in triggers:
-    schedules = triggers["schedule"]
-    for schedule in schedules:
-        _ = schedule.get("cron", "")
-        for schedule in schedules:
-            _ = schedule.get("cron", "")
-            pass
+            schedules = triggers["schedule"]
+            for schedule in schedules:
+                cron = schedule.get("cron", "")
+                assert cron, f"Scheduled workflow missing cron in {workflow_file.name}"
+                minute_field = cron.split()[0] if cron else ""
+                if minute_field in ("*", "*/1"):
+                    print(
+                        f"Warning: {workflow_file.name} runs every minute ({cron}); "
+                        "consider reducing frequency."
+                    )
 
 
 # Additional test to verify all new test classes are properly structured

@@ -15,6 +15,8 @@ from typing import Dict, List, Set
 import pytest
 import yaml
 
+from tests.integration.test_github_workflows import GitHubActionsYamlLoader
+
 
 class TestWorkflowConsistency:
     """Test consistency across all modified workflows."""
@@ -25,12 +27,6 @@ class TestWorkflowConsistency:
         Load a fixed set of GitHub Actions workflow files and parse each existing file's YAML content.
 
         Only files from the internal list are considered; files that are not present are omitted from the result.
-
-    @staticmethod
-    def all_workflows():
-        """
-        Returns:
-            dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
         """
         workflow_files = [
             ".github/workflows/pr-agent.yml",
@@ -43,8 +39,8 @@ class TestWorkflowConsistency:
             path = Path(wf_file)
             if path.exists():
                 try:
-                    with open(path, "r") as f:
-                        loaded = yaml.safe_load(f)
+                    with open(path, "r", encoding="utf-8") as f:
+                        loaded = yaml.load(f, Loader=GitHubActionsYamlLoader)
                         # Ensure we always store a dict to avoid NoneType errors in tests
                         workflows[wf_file] = loaded if isinstance(loaded, dict) else {}
                 except yaml.YAMLError as e:
@@ -146,8 +142,8 @@ class TestDependencyWorkflowIntegration:
 
         for wf_file in workflow_files:
             try:
-                with open(wf_file, "r") as f:
-                    workflow = yaml.safe_load(f)
+                with open(wf_file, "r", encoding="utf-8") as f:
+                    workflow = yaml.load(f, Loader=GitHubActionsYamlLoader)
 
                 assert workflow is not None, f"Failed to parse {wf_file}"
                 assert isinstance(workflow, dict), f"{wf_file} should parse to dict"
@@ -160,7 +156,7 @@ class TestDependencyWorkflowIntegration:
 
         Checks that requirements - dev.txt(case-insensitive) contains both 'pytest' and 'PyYAML'.
         """
-        with open("requirements-dev.txt", "r") as f:
+        with open("requirements-dev.txt", "r", encoding="utf-8") as f:
             content = f.read().lower()
 
         # Should have pytest for running these tests
@@ -191,7 +187,7 @@ class TestRemovedFilesIntegration:
             if not path.exists():
                 # If workflow file is not present, it cannot reference removed scripts
                 continue
-            with open(path, "r") as f:
+            with open(path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             for removed in removed_files:
@@ -208,8 +204,8 @@ class TestRemovedFilesIntegration:
         label_path = Path(".github/workflows/label.yml")
         if not label_path.exists():
             pytest.skip("label.yml not present; skipping label workflow checks")
-        with open(label_path, "r") as f:
-            workflow = yaml.safe_load(f)
+        with open(label_path, "r", encoding="utf-8") as f:
+            workflow = yaml.load(f, Loader=GitHubActionsYamlLoader)
 
         # Should use actions/labeler which has default config
         steps = workflow["jobs"]["label"]["steps"]
@@ -223,7 +219,7 @@ class TestRemovedFilesIntegration:
 
     def test_pr_agent_workflow_self_contained(self):
         """Verify PR agent workflow doesn't depend on removed components."""
-        with open(".github/workflows/pr-agent.yml", "r") as f:
+        with open(".github/workflows/pr-agent.yml", "r", encoding="utf-8") as f:
             content = f.read()
 
         # Should not reference chunking components
@@ -251,7 +247,7 @@ class TestWorkflowSecurityConsistency:
             r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$\(",
         ]
         for wf_file in workflow_files:
-            content = wf_file.read_text()
+            content = wf_file.read_text(encoding="utf-8")
             for pattern in dangerous:
                 matches = re.findall(pattern, content)
                 if matches:
@@ -260,7 +256,7 @@ class TestWorkflowSecurityConsistency:
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
 
         for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
+            with open(wf_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Look for potentially dangerous patterns
@@ -290,8 +286,8 @@ class TestWorkflowSecurityConsistency:
         ]
 
         for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
-                workflow = yaml.safe_load(f)
+            with open(wf_file, "r", encoding="utf-8") as f:
+                workflow = yaml.load(f, Loader=GitHubActionsYamlLoader)
 
             trigger = workflow.get("on", {})
             uses_pr_target = "pull_request_target" in trigger
@@ -328,7 +324,7 @@ class TestBranchCoherence:
         for wf_file, max_lines in workflows_to_check:
             path = Path(wf_file)
             if path.exists():
-                with open(wf_file, "r") as f:
+                with open(wf_file, "r", encoding="utf-8") as f:
                     line_count = len(f.readlines())
 
                 assert (
@@ -356,7 +352,7 @@ class TestBranchCoherence:
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
 
         for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
+            with open(wf_file, "r", encoding="utf-8") as f:
                 content = f.read().lower()
 
             for feature in complex_features:
@@ -383,8 +379,8 @@ class TestBranchCoherence:
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
 
         for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
-                workflow = yaml.safe_load(f)
+            with open(wf_file, "r", encoding="utf-8") as f:
+                workflow = yaml.load(f, Loader=GitHubActionsYamlLoader)
 
             # Count steps that reference external files
             external_refs = 0
@@ -413,8 +409,8 @@ class TestBranchQuality:
 
         for wf_file in workflow_files:
             try:
-                with open(wf_file, "r") as f:
-                    workflow = yaml.safe_load(f)
+                with open(wf_file, "r", encoding="utf-8") as f:
+                    workflow = yaml.load(f, Loader=GitHubActionsYamlLoader)
 
                 assert workflow is not None
                 assert isinstance(workflow, dict)
@@ -443,7 +439,7 @@ class TestBranchQuality:
         for file_path in files_to_check:
             path = Path(file_path)
             if path.exists():
-                with open(path, "r") as f:
+                with open(path, "r", encoding="utf-8") as f:
                     content = f.read()
 
                 for marker in conflict_markers:
@@ -459,7 +455,7 @@ class TestBranchQuality:
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
 
         for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
+            with open(wf_file, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             for i, line in enumerate(lines, 1):

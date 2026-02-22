@@ -30,8 +30,6 @@ class TestRequirementsDevChanges:
     def test_pyyaml_added(self, requirements_dev_content):
         """
         Verify that requirements - dev.txt includes a PyYAML package entry.
-        """
-        pass
 
         Performs a case-insensitive check of the provided requirements content to ensure PyYAML is present.
         """
@@ -47,18 +45,18 @@ class TestRequirementsDevChanges:
                 requirements_dev_content(str): Full text content of requirements - dev.txt.
         """
         lines = requirements_dev_content.split("\n")
-        # Ignore commented lines so we don't pick up commented-out examples
-        pyyaml_line = next((l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")), None)
-
-        assert pyyaml_line is not None
         # Find all non-comment lines containing 'pyyaml'
-        pyyaml_lines = [l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")]
+        pyyaml_lines = [
+            l
+            for l in lines
+            if l.strip()
+            and not l.strip().startswith("#")
+            and l.strip().lower().startswith("pyyaml")
+        ]
         # Assert exactly one active PyYAML requirement exists
         assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         pyyaml_line = pyyaml_lines[0]
         # Strip inline comments and whitespace before checking version specifier
-        pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
-        assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
         pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
         assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
 
@@ -174,10 +172,10 @@ class TestRequirementsInstallability:
         """Verify requirements - dev.txt has valid pip syntax."""
         # Use pip to check syntax without installing
         result = subprocess.run(
-        result=subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
             capture_output=True,
             text=True
+        )
         # Should not have syntax errors
         assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
 
@@ -195,12 +193,12 @@ class TestRequirementsDocumentation:
         Asserts the file has at least one line, which after trimming leading whitespace,
         begins with "#", indicating an explanatory comment for the dependency list.
         """
-        req_dev_path=Path("requirements-dev.txt")
+        req_dev_path = Path("requirements-dev.txt")
         with open(req_dev_path, "r") as f:
-            lines=f.readlines()
+            lines = f.readlines()
 
         # Should have at least some comments explaining purpose
-        comment_lines=[l for l in lines if l.strip().startswith("#")]
+        comment_lines = [l for l in lines if l.strip().startswith("#")]
         assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
 
     @staticmethod
@@ -208,16 +206,16 @@ class TestRequirementsDocumentation:
         """
         Verify PyYAML addition has comment explaining purpose.
         """
-        req_dev_path=Path("requirements-dev.txt")
+        req_dev_path = Path("requirements-dev.txt")
         with open(req_dev_path, "r") as f:
-            content=f.read()
+            content = f.read()
 
         # Check if there's a comment near PyYAML explaining its purpose
-        lines=content.split("\n")
+        lines = content.split("\n")
         for i, line in enumerate(lines):
             if "pyyaml" in line.lower():
                 # Check previous lines for comments
-                context="\n".join(lines[max(0, i - 3): i + 1])
+                context = "\n".join(lines[max(0, i - 3): i + 1])
                 # Should have some context about YAML parsing or workflows
                 assert any(
                     keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]

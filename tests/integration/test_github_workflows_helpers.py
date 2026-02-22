@@ -1,6 +1,5 @@
-"""
-Unit tests for helper functions in test_github_workflows.py module.
-"""
+"""Unit tests for helper functions in test_github_workflows.py module.
+
 This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
@@ -73,29 +72,6 @@ class TestGetWorkflowFiles:
         workflows_dir.mkdir()
 
         yaml_file = workflows_dir / "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-yaml_file.write_text("name: Test")
-
-with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    result = get_workflow_files()
-    assert len(result) == 1
-    assert result[0].name == "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
         yaml_file.write_text("name: Test")
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
@@ -436,9 +412,9 @@ name: Valid Workflow
 on: push
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions / checkout @ v4
+      - uses: actions/checkout@v4
 """
         )
 
@@ -450,7 +426,7 @@ name: Another Name
 on: push
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
 """
         )
 
@@ -479,32 +455,30 @@ jobs:
         complex_workflow = workflows_dir / "complex.yml"
         complex_workflow.write_text(
             """
-name: Complex CI / CD
+name: Complex CI/CD
 on:
   push:
     branches: [main, develop]
   pull_request:
     types: [opened, synchronize]
 env:
-  NODE_VERSION: '18'
-  PYTHON_VERSION: '3.11'
+  NODE_VERSION: "18"
+  PYTHON_VERSION: "3.11"
 jobs:
   test:
-    runs - on: ubuntu - latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        python - version: ['3.9', '3.10', '3.11']
+        python-version: ["3.9", "3.10", "3.11"]
     steps:
-      - uses: actions / checkout @ v4
+      - uses: actions/checkout@v4
         with:
-"""
-        )
-            fetch - depth: 0
+          fetch-depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+          cache: "pip"
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
