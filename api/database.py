@@ -197,11 +197,7 @@ def _connect() -> sqlite3.Connection:
         sqlite3.Connection: A sqlite3 connection to the configured
             DATABASE_PATH (shared for in-memory, new per call for file-backed).
     """
-    global _MEMORY_CONNECTION
     conn = _db_manager.connect()
-    if _is_memory_db():
-        with _MEMORY_CONNECTION_LOCK:
-            _MEMORY_CONNECTION = conn
     return conn
 
 
