@@ -1,16 +1,7 @@
 runtimes:
-  # Frontend: Next.js, JS, Tailwind, HTML
-  - node@22.2.0
-
-  # Backend: Python + Gradio
-  - python@3.11.11
-
+    - node@22.2.0
+    - python@3.11.11
 tools:
-  # JavaScript / TypeScript / Next.js / frontend
-  - eslint@8.57.0
-
-  # Python backend static analysis (complements ruff/flake8 in CI)
-  - pylint@3.3.6
-
-  # Multi-language security/SAST for frontend + backend
-  - semgrep@1.78.0
+    - eslint@8.57.0
+    - pylint@3.3.6
+    - semgrep@1.78.0
