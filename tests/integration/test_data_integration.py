@@ -567,4 +567,3 @@ class TestDataConsistency:
 
         session.close()
         engine.dispose()
-
