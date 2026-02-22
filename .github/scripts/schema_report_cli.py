@@ -56,9 +56,7 @@ except Exception:
 
 file_handler = logging.FileHandler(LOG_PATH)
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(file_formatter)
 
 stream_handler = logging.StreamHandler(sys.stderr)
@@ -209,9 +207,7 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
             logger.info("Report written to: %s", output)
         else:
             # Ensure trailing newline for clean CLI output.
-            sys.stdout.write(
-                formatted + ("\n" if not formatted.endswith("\n") else "")
-            )
+            sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
     except Exception as exc:  # noqa: BLE001
         logger.exception("Failed to generate schema report.")
         raise CLIError("Report generation failed. Check logs for details.") from exc
@@ -248,8 +244,7 @@ def main() -> int:
         except ValueError:
             logger.error("Invalid format value: %s", args.fmt)
             print(
-                "Error: Invalid output format. "
-                "Please use one of: markdown, text, json.",
+                "Error: Invalid output format. " "Please use one of: markdown, text, json.",
                 file=sys.stderr,
             )
             return 1
@@ -279,8 +274,7 @@ def main() -> int:
     except Exception:  # noqa: BLE001
         logger.exception("Unexpected error occurred.")
         print(
-            "Error: An unexpected error occurred. "
-            "Please check the logs for details.",
+            "Error: An unexpected error occurred. " "Please check the logs for details.",
             file=sys.stderr,
         )
         return 1
