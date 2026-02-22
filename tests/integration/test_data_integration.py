@@ -29,7 +29,7 @@ pytestmark = pytest.mark.integration
             create_engine_from_url,
             create_session_factory,
             init_db,
-            )
+        )
 
         db_path = tmp_path / "test_integration.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
