@@ -29,6 +29,9 @@ def schema_report(
         html = generate_html_report(graph)
         return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
 
+    # This should be unreachable due to Query pattern validation, but ensures all paths are explicit.
+    raise HTTPException(status_code=400, detail=f"Unsupported report format: {report_format!r}")
+
 
 @router.get("/raw", summary="Raw export of schema report")
 def schema_report_raw(
