@@ -132,7 +132,6 @@ def _resolve_positions(
             )
             hover_texts.extend([hover_text, hover_text, None])
 
-        color = REL_TYPE_COLORS.get(rel_type, "#888888")
         trace_name = rel_type.replace("_", " ").title()
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
