@@ -2,6 +2,7 @@ name: Codeflash
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     paths:
       # So that this workflow only runs when code within the target module is modified
       - '**'

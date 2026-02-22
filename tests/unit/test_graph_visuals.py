@@ -13,6 +13,8 @@ from src.visualizations.graph_visuals import (
 
 
 class DummyGraph(AssetRelationshipGraph):
+    """A dummy graph for testing, extending AssetRelationshipGraph to provide controllable relationships."""
+
     def __init__(self, relationships):
         # relationships: Dict[str, List[Tuple[str, str, float]]]
         """

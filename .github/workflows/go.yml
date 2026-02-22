@@ -12,6 +12,7 @@ on:
       - 'go.sum'
       - '.github/workflows/go.yml'
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ "main" ]
     paths:
       - '**/*.go'

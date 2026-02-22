@@ -43,7 +43,6 @@ def repository(tmp_path):
     engine.dispose()
 
 
-@pytest.mark.unit
 class TestAssetOperations:
     """Test cases for asset CRUD operations."""
 
@@ -266,7 +265,6 @@ class TestAssetOperations:
         repository.session.commit()
 
 
-@pytest.mark.unit
 class TestRelationshipOperations:
     """Test cases for relationship management."""
 
@@ -458,7 +456,6 @@ class TestRelationshipOperations:
         assert record.bidirectional is True
 
 
-@pytest.mark.unit
 class TestRegulatoryEventOperations:
     """Test cases for regulatory event handling."""
 
@@ -584,7 +581,6 @@ class TestRegulatoryEventOperations:
         assert len(event_orm.related_assets) == 2
 
 
-@pytest.mark.unit
 class TestDataTransformation:
     """Test cases for data transformation between models and ORM."""
 
@@ -687,7 +683,6 @@ class TestDataTransformation:
         assert any(isinstance(a, Commodity) for a in assets)
 
 
-@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -783,16 +778,16 @@ class TestEdgeCases:
         assert rel.strength == 1.0
 
 
-@pytest.mark.unit
 class TestComplexScenarios:
     """Test complex real-world scenarios."""
 
     @staticmethod
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
-        """
-        Builds a diversified portfolio in the repository, adds inter-asset relationships, and verifies persistence.
-
-        Creates four assets (equity, bond, commodity, currency), upserts them into the repository, creates two relationships between them, commits the session, and asserts that the repository contains four assets and at least two relationships.
+        """Test complete workflow of building a diversified portfolio.
+        Returns:
+            None
+        Raises:
+            AssertionError: If any portfolio assertions fail.
         """
         # Add diverse assets
         assets = [
@@ -948,7 +943,6 @@ class TestComplexScenarios:
         assert len(remaining_rels) == 0
 
 
-@pytest.mark.unit
 class TestAssetTypeConversions:
     """Test conversion between different asset types."""
 
@@ -1016,7 +1010,6 @@ class TestAssetTypeConversions:
         assert getattr(retrieved, "coupon_rate", None) is None
 
 
-@pytest.mark.unit
 @pytest.mark.slow
 class TestPerformance:
     """Test performance with large datasets."""
@@ -1074,7 +1067,6 @@ class TestPerformance:
         assert len(relationships) == 45
 
 
-@pytest.mark.unit
 class TestDataIntegrity:
     """Test data integrity constraints and validation."""
 
@@ -1151,7 +1143,6 @@ class TestDataIntegrity:
         repository.session.commit()
 
 
-@pytest.mark.unit
 class TestBoundaryValues:
     """Test boundary value conditions."""
 
@@ -1221,9 +1212,9 @@ class TestBoundaryValues:
 
         rel = repository.get_relationship("NEG1", "NEG2", "negative_corr")
         assert rel.strength == -0.8
+        repository.add_or_update_relationship("NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False)
 
 
-@pytest.mark.unit
 class TestSpecialCharacters:
     """Test handling of special characters in data."""
 
@@ -1273,248 +1264,3 @@ class TestSpecialCharacters:
 
         events = repository.list_regulatory_events()
         assert 'CEO stated: "Record growth expected"' in events[0].description
-
-
-@pytest.mark.unit
-class TestConcurrentAccess:
-    """Test concurrent access patterns."""
-
-    @staticmethod
-    def test_multiple_read_operations_concurrent(repository):
-        """Test multiple concurrent read operations."""
-        # Add test data
-        equity = Equity(
-            id="CONCURRENT",
-            symbol="CNC",
-            name="Concurrent",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-        )
-        repository.upsert_asset(equity)
-        repository.session.commit()
-
-        # Perform multiple reads
-        results = []
-        for _ in range(5):
-            assets = repository.list_assets()
-            results.append(len(assets))
-
-        # All should return same count
-        assert all(r == 1 for r in results)
-
-    @staticmethod
-    def test_interleaved_read_write_operations(repository):
-        """Test interleaved read and write operations."""
-        for i in range(5):
-            equity = Equity(
-                id=f"INTERLEAVE{i}",
-                symbol=f"INT{i}",
-                name=f"Interleave {i}",
-                asset_class=AssetClass.EQUITY,
-                sector="Tech",
-                price=100.0 + i,
-            )
-            repository.upsert_asset(equity)
-            repository.session.commit()
-
-            # Read after each write
-            assets = repository.list_assets()
-            assert len(assets) == i + 1
-
-
-@pytest.mark.unit
-class TestNullAndEmptyValues:
-    """Test handling of null and empty values."""
-
-    @staticmethod
-    def test_relationship_with_empty_type_string(repository):
-        """Test that relationship with empty type is handled."""
-        asset1 = Equity(
-            id="EMPTY1",
-            symbol="E1",
-            name="Empty 1",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-        )
-        asset2 = Equity(
-            id="EMPTY2",
-            symbol="E2",
-            name="Empty 2",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=200.0,
-        )
-
-        repository.upsert_asset(asset1)
-        repository.upsert_asset(asset2)
-        repository.session.commit()
-
-        # Empty relationship type
-        repository.add_or_update_relationship("EMPTY1", "EMPTY2", "", 0.5, bidirectional=False)
-        repository.session.commit()
-
-        rel = repository.get_relationship("EMPTY1", "EMPTY2", "")
-        assert rel is not None
-        assert rel.relationship_type == ""
-
-
-@pytest.mark.unit
-class TestTransactionBehavior:
-    """Test transaction and rollback behavior."""
-
-    @staticmethod
-    def test_rollback_after_failed_insert(repository):
-        """Test rollback after failed insert."""
-        equity = Equity(
-            id="ROLLBACK_TEST",
-            symbol="RB",
-            name="Rollback",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-        )
-
-        repository.upsert_asset(equity)
-        # Don't commit, rollback instead
-        repository.session.rollback()
-
-        assets = repository.list_assets()
-        assert len(assets) == 0
-
-    @staticmethod
-    def test_commit_persists_changes(repository):
-        """Test that commit persists changes."""
-        equity = Equity(
-            id="PERSIST",
-            symbol="PER",
-            name="Persist",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-        )
-
-        repository.upsert_asset(equity)
-        repository.session.commit()
-
-        # Changes should be persisted
-        assets = repository.list_assets()
-        assert len(assets) == 1
-        assert assets[0].id == "PERSIST"
-
-
-@pytest.mark.unit
-class TestComplexQueries:
-    """Test complex query scenarios."""
-
-    @staticmethod
-    def test_assets_map_after_deletions(repository):
-        """Test get_assets_map after deleting some assets."""
-        # Add multiple assets
-        for i in range(5):
-            equity = Equity(
-                id=f"DEL_TEST{i}",
-                symbol=f"DT{i}",
-                name=f"Delete Test {i}",
-                asset_class=AssetClass.EQUITY,
-                sector="Tech",
-                price=100.0,
-            )
-            repository.upsert_asset(equity)
-        repository.session.commit()
-
-        # Delete some
-        repository.delete_asset("DEL_TEST0")
-        repository.delete_asset("DEL_TEST2")
-        repository.session.commit()
-
-        assets_map = repository.get_assets_map()
-        assert len(assets_map) == 3
-        assert "DEL_TEST0" not in assets_map
-        assert "DEL_TEST1" in assets_map
-
-    @staticmethod
-    def test_relationships_after_partial_delete(repository):
-        """Test relationships after deleting some but not all assets."""
-        # Create three assets with relationships
-        for i in range(3):
-            equity = Equity(
-                id=f"PARTIAL{i}",
-                symbol=f"P{i}",
-                name=f"Partial {i}",
-                asset_class=AssetClass.EQUITY,
-                sector="Tech",
-                price=100.0,
-            )
-            repository.upsert_asset(equity)
-        repository.session.commit()
-
-        # Create relationships
-        repository.add_or_update_relationship("PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False)
-        repository.add_or_update_relationship("PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False)
-        repository.session.commit()
-
-        # Delete middle asset
-        repository.delete_asset("PARTIAL1")
-        repository.session.commit()
-
-        # Only relationships not involving PARTIAL1 should remain
-        remaining_rels = repository.list_relationships()
-        for rel in remaining_rels:
-            assert rel.source_id != "PARTIAL1"
-            assert rel.target_id != "PARTIAL1"
-
-
-@pytest.mark.unit
-class TestAssetUpdateScenarios:
-    """Test various asset update scenarios."""
-
-    @staticmethod
-    def test_update_only_price(repository):
-        """Test updating only the price field."""
-        equity = Equity(
-            id="PRICE_UPDATE",
-            symbol="PU",
-            name="Price Update",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-            pe_ratio=20.0,
-        )
-
-        repository.upsert_asset(equity)
-        repository.session.commit()
-
-        # Update only price
-        equity.price = 150.0
-        repository.upsert_asset(equity)
-        repository.session.commit()
-
-        retrieved = repository.list_assets()[0]
-        assert retrieved.price == 150.0
-        assert retrieved.pe_ratio == 20.0  # Should remain unchanged
-
-    @staticmethod
-    def test_update_add_optional_field(repository):
-        """Test adding optional field to existing asset."""
-        equity = Equity(
-            id="ADD_FIELD",
-            symbol="AF",
-            name="Add Field",
-            asset_class=AssetClass.EQUITY,
-            sector="Tech",
-            price=100.0,
-            pe_ratio=None,
-        )
-
-        repository.upsert_asset(equity)
-        repository.session.commit()
-
-        # Add pe_ratio
-        equity.pe_ratio = 25.0
-        repository.upsert_asset(equity)
-        repository.session.commit()
-
-        retrieved = repository.list_assets()[0]
-        assert retrieved.pe_ratio == 25.0

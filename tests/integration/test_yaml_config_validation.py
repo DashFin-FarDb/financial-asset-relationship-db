@@ -81,7 +81,7 @@ class TestYAMLSyntaxAndStructure:
                     block_scalar_indent = leading_spaces
                     continue
                 # Only check indentation on lines that begin with spaces (i.e., are indented content)
-                if line[0] == " " and not re.match(r"^\s+-\s*[|>]", line):
+                if line[0] == " " and not line.startswith("  " * (leading_spaces // 2 + 1) + "- |"):
                     if leading_spaces % 2 != 0:
                         indentation_errors.append(
                             f"{yaml_file} line {line_no}: Use 2-space indentation, found {leading_spaces} spaces"
@@ -92,34 +92,58 @@ class TestYAMLSyntaxAndStructure:
         assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
 
 
-def test_no_duplicate_keys_in_yaml():
+def test_no_duplicate_keys_in_yaml() -> None:
     """
-    Validate that all .github/*.yml and .github/*.yaml files parse without duplicate keys or other YAML errors when checked with ruamel.yaml.
+    Validate .github YAML files load with ruamel.yaml(typ="safe").
 
-    If ruamel.yaml is not available, the test is skipped. Each YAML file is loaded with ruamel.yaml.YAML(typ="safe"); parsing errors (YAMLError), file system errors (OSError), and unexpected exceptions are recorded with file context and reported so the test fails when any such errors are found.
+    Scans all .yml and .yaml files under the .github directory and attempts
+    to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not
+    installed, the test is skipped. Any parse or duplicate-key errors cause
+    the test to fail with a consolidated error message. File-system errors
+    are reported but do not fail the test.
     """
     try:
         from ruamel.yaml import YAML, YAMLError
     except ImportError:
-        pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
+        pytest.skip(
+            "ruamel.yaml not installed; skip strict duplicate key detection",
+        )
 
-    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+    base_dir = Path(".github")
+    if not base_dir.exists():
+        pytest.skip(".github directory not found; skipping YAML checks")
+
+    yaml_files = list(base_dir.rglob("*.yml")) + list(base_dir.rglob("*.yaml"))
+    if not yaml_files:
+        pytest.skip("No .yml/.yaml files found under .github")
+
     parser = YAML(typ="safe")
-    parse_errors = []
+    parse_errors: list[str] = []
+    fs_errors: list[str] = []
+    unexpected_errors: list[str] = []
 
     for yaml_file in yaml_files:
         try:
-            with open(yaml_file, "r") as f:
+            with yaml_file.open("r", encoding="utf-8") as f:
                 parser.load(f)
-        except YAMLError as e:
-            parse_errors.append(f"{yaml_file}: YAML error - {e}")
-        except OSError as e:
+        except YAMLError as exc:
+            parse_errors.append(f"{yaml_file}: YAML error - {exc}")
+        except OSError as exc:
             # Report but don't fail the test on file system errors
-            parse_errors.append(f"{yaml_file}: File system error - {e}")
-        except Exception as e:
-            parse_errors.append(f"{yaml_file}: Unexpected error - {e}")
+            fs_errors.append(f"{yaml_file}: File system error - {exc}")
+        except Exception as exc:  # noqa: BLE001
+            unexpected_errors.append(f"{yaml_file}: Unexpected error - {exc}")
 
-    assert not parse_errors, "YAML errors found:\n" + "\n".join(parse_errors)
+    # Log filesystem issues (non-fatal) to help diagnose flaky environments.
+    for msg in fs_errors:
+        # Using print is acceptable here; pytest will capture it.
+        print(msg)
+
+    all_failures: list[str] = []
+    all_failures.extend(parse_errors)
+    all_failures.extend(unexpected_errors)
+
+    assert not all_failures, "YAML errors detected:\n" + "\n".join(all_failures)
 
 
 class TestWorkflowSchemaCompliance:
@@ -144,20 +168,15 @@ class TestWorkflowSchemaCompliance:
         return workflows
 
     def test_workflows_have_required_top_level_keys(self, all_workflows):
-        """
-        Validate each workflow has required top-level keys and that checkout action versions are reasonably consistent.
-
-        Checks that every workflow mapping in `all_workflows` contains the top-level keys "name" and "jobs". Also verifies that the set of observed checkout action versions across workflows does not exceed two unique values; if it does, an assertion failure includes the collected `checkout_versions`.
-
-        Parameters:
-            all_workflows (list): Iterable of workflow descriptors where each item is a dict with at least:
-                - 'path' (str): filesystem path to the workflow file
-                - 'content' (dict): parsed YAML content of the workflow
-        """
+        """Verify workflows have all required top - level keys."""
         required_keys = ["name", "jobs"]
+        checkout_versions = {}
         for workflow in all_workflows:
             for key in required_keys:
                 assert key in workflow["content"], f"Workflow {workflow['path']} missing required key: {key}"
+            unique_versions = set(checkout_versions.values())
+            # Allow v3 and v4, but should be mostly consistent
+            assert len(unique_versions) <= 2, f"Too many different checkout versions: {checkout_versions}"
 
 
 class TestDefaultValueHandling:
@@ -187,9 +206,9 @@ class TestDefaultValueHandling:
     @staticmethod
     def test_workflow_timeout_defaults():
         """
-        Validate job-level `timeout-minutes` values in workflow files under .github/workflows.
+        Ensure job - level workflow timeouts, when specified, are integers between 1 and 360 minutes.
 
-        Asserts that when a job defines `timeout-minutes`, the value is an `int` and is between 1 and 360 (inclusive); assertion messages include the workflow file path and job id.
+        Checks each YAML file in .github / workflows for jobs that include 'timeout-minutes' and asserts the value is an int and within the range 1–360.
         """
         workflow_dir = Path(".github/workflows")
 

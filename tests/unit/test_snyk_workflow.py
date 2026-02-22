@@ -322,15 +322,27 @@ class TestSnykJobConfiguration:
         assert "with" in snyk_step
         assert "file" in snyk_step["with"]
 
-    @staticmethod
-    def test_job_uploads_sarif(sarif_upload_steps):
-        """Assert that the job includes a SARIF upload step using codeql-action/upload-sarif."""
-        assert len(sarif_upload_steps) > 0
+    def test_job_uploads_sarif(self, snyk_job):
+        """Test that job uploads SARIF results."""
+        steps = snyk_job["steps"]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        assert len(sarif_steps) > 0
 
     @staticmethod
     def test_sarif_upload_uses_v4(sarif_upload_steps):
         """Test that SARIF upload uses CodeQL action v4."""
-        assert "@v4" in sarif_upload_steps[0]["uses"]
+        steps = snyk_job["steps"]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_action = sarif_steps[0]["uses"]
+        assert "@v4" in sarif_action
+
+    def test_sarif_upload_has_file_input(self, snyk_job):
+        """
+        Asserts the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
+        """
+        steps = snyk_job["steps"]
+        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_step = sarif_steps[0]
 
     @staticmethod
     def test_sarif_upload_has_file_input(sarif_upload_steps):
@@ -396,7 +408,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(snyk_workflow_path):
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
-        lines = [line for line in content.split("\n") if line.strip() and not line.strip().startswith("#")]
+        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
         assert len(lines) > 0
 
     @staticmethod
@@ -426,7 +438,7 @@ class TestSnykWorkflowComments:
     def test_workflow_provides_context(snyk_workflow_content):
         """Test that workflow provides context about its purpose."""
         comments = " ".join(
-            line.strip("# ").lower() for line in snyk_workflow_content.split("\n") if line.strip().startswith("#")
+            l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments
