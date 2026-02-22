@@ -33,10 +33,13 @@ def get_graph() -> AssetRelationshipGraph:
 # ----------------------------------------------------------------------
 
 
+from fastapi.responses import HTMLResponse, Response
+from typing import Union
+
 @router.get("/", summary="Get schema report")
 def schema_report(
     report_format: str = Query("md", pattern="^(md|html)$"),
-) -> str:
+) -> Response:
     """
     Produce a schema report for the current asset relationship graph in either Markdown or HTML.
 
@@ -59,6 +62,7 @@ def schema_report(
 
     # Should never be reached due to validator above
     raise HTTPException(status_code=400, detail="Unsupported format")
+
 
 
 @router.get("/raw", summary="Raw export of schema report")
