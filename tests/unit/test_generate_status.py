@@ -7,7 +7,6 @@ Tests cover all functions, dataclasses, API interactions, and output formatting.
 
 from __future__ import annotations
 
-import os
 import sys
 import tempfile
 from datetime import datetime, timezone
