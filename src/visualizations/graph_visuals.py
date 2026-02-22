@@ -9,10 +9,8 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.visualizations.graph_visuals_constants import REL_TYPE_COLORS  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_asset_id_index  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_edge_coordinates_optimized  # noqa: F401
-from src.visualizations.graph_visuals_data import _build_hover_texts  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_relationship_index  # noqa: F401
 from src.visualizations.graph_visuals_data import _collect_and_group_relationships  # noqa: F401
-from src.visualizations.graph_visuals_layout import _calculate_visible_relationships  # noqa: F401
 from src.visualizations.graph_visuals_layout import _generate_dynamic_title  # noqa: F401
 from src.visualizations.graph_visuals_layout import (
     _configure_3d_layout,
@@ -35,15 +33,25 @@ logger = logging.getLogger(__name__)
 
 
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
-    """Create a 3D visualization of the asset relationship graph."""
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-        graph, "get_3d_visualization_data_enhanced"
-    ):
+    """
+    Create a 3D visualization of an asset relationship graph.
+
+    Parameters:
+        graph (AssetRelationshipGraph): The graph to visualize; must implement
+            `get_3d_visualization_data_enhanced()` to provide node positions,
+            asset identifiers, colors, and hover texts.
+
+    Returns:
+        go.Figure: A Plotly 3D figure containing node markers and relationship traces.
+
+    Raises:
+        ValueError: If `graph` is not an AssetRelationshipGraph instance or does
+            not provide the required `get_3d_visualization_data_enhanced` method.
+    """
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
         raise ValueError("Invalid graph data provided")
 
-    positions, asset_ids, colors, hover_texts = (
-        graph.get_3d_visualization_data_enhanced()
-    )
+    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
     fig = go.Figure()
@@ -76,34 +84,29 @@ def visualize_3d_graph_with_filters(
     show_all_relationships: bool = True,
     toggle_arrows: bool = True,
 ) -> go.Figure:
-    """Create a 3D visualization with selective relationship filtering.
+    """
+    Create a 3D visualization of an AssetRelationshipGraph with selective relationship-type filters.
 
-    Args:
-        graph: Asset relationship graph to visualize.
-        show_same_sector: Show same-sector relationships.
-        show_market_cap: Show market-cap-similar relationships.
-        show_correlation: Show correlation relationships.
-        show_corporate_bond: Show corporate-bond-to-equity relationships.
-        show_commodity_currency: Show commodity-currency relationships.
-        show_income_comparison: Show income-comparison relationships.
-        show_regulatory: Show regulatory-impact relationships.
-        show_all_relationships: Master toggle; when True, per-type filters are ignored.
-        toggle_arrows: Show directional arrows for unidirectional relationships.
+    Parameters:
+        graph (AssetRelationshipGraph): Asset relationship graph to visualize.
+        show_same_sector (bool): Include same-sector relationships.
+        show_market_cap (bool): Include market-cap-similar relationships.
+        show_correlation (bool): Include correlation relationships.
+        show_corporate_bond (bool): Include corporate-bond-to-equity relationships.
+        show_commodity_currency (bool): Include commodity-currency relationships.
+        show_income_comparison (bool): Include income-comparison relationships.
+        show_regulatory (bool): Include regulatory-impact relationships.
+        show_all_relationships (bool): If True, ignore per-type filters and show all relationships.
+        toggle_arrows (bool): Show directional arrows for unidirectional relationships.
 
     Returns:
-        Plotly Figure with 3D visualization.
+        fig (plotly.graph_objs.Figure): Configured 3D Plotly figure representing the graph.
 
     Raises:
-        ValueError: If graph is invalid.
-        TypeError: If any filter parameter is not boolean.
+        ValueError: If `graph` is not an AssetRelationshipGraph instance or lacks required visualization data.
     """
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
-        graph, "get_3d_visualization_data_enhanced"
-    ):
-        raise ValueError(
-            "graph must be an AssetRelationshipGraph instance "
-            "with get_3d_visualization_data_enhanced"
-        )
+    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
+        raise ValueError("graph must be an AssetRelationshipGraph instance " "with get_3d_visualization_data_enhanced")
 
     filter_params = {
         "show_same_sector": show_same_sector,
@@ -132,21 +135,14 @@ def visualize_3d_graph_with_filters(
         }
         _validate_relationship_filters(relationship_filters)
         if not any(relationship_filters.values()):
-            logger.warning(
-                "All relationship filters are disabled. "
-                "Visualization will show no relationships."
-            )
+            logger.warning("All relationship filters are disabled. " "Visualization will show no relationships.")
 
-    positions, asset_ids, colors, hover_texts = (
-        graph.get_3d_visualization_data_enhanced()
-    )
+    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
     fig = go.Figure()
 
-    relationship_traces = _create_relationship_traces(
-        graph, positions, asset_ids, relationship_filters
-    )
+    relationship_traces = _create_relationship_traces(graph, positions, asset_ids, relationship_filters)
     if relationship_traces:
         fig.add_traces(relationship_traces)
 

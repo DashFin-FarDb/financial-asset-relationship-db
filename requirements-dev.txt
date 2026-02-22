@@ -10,5 +10,6 @@ isort>=5.12.0
 typer>=0.9.0
 pre-commit>=3.0.0
 Markdown>=3.4,<4.0
-PyYAML>=6.0
+PyYAML==6.0
 types-PyYAML
+ruamel.yaml==0.18

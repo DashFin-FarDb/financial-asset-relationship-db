@@ -26,7 +26,12 @@ def empty_graph():
 
 @pytest.fixture
 def sample_equity():
-    """Provide a sample Equity asset."""
+    """
+    Create a sample Equity asset configured for tests.
+
+    Returns:
+        Equity: An Equity instance with id "AAPL", symbol "AAPL", name "Apple Inc.", asset_class AssetClass.EQUITY, sector "Technology", price 150.0, pe_ratio 25.5, and dividend_yield 0.005.
+    """
     return Equity(
         id="AAPL",
         symbol="AAPL",
@@ -34,12 +39,21 @@ def sample_equity():
         asset_class=AssetClass.EQUITY,
         sector="Technology",
         price=150.0,
+        pe_ratio=25.5,
+        dividend_yield=0.005,
     )
 
 
 @pytest.fixture
 def sample_bond():
-    """Provide a sample Bond asset."""
+    """
+    Create a sample Bond asset for tests.
+
+    The returned Bond is pre-populated with the following values: id "AAPL_BOND", symbol "AAPL_B", name "Apple Bond", asset_class FIXED_INCOME, sector "Technology", price 100.0, issuer_id "AAPL", yield_to_maturity 0.03, and credit_rating "AAA".
+
+    Returns:
+        Bond: A Bond instance configured with the sample Apple bond values.
+    """
     return Bond(
         id="AAPL_BOND",
         symbol="AAPL_B",
@@ -48,12 +62,19 @@ def sample_bond():
         sector="Technology",
         price=100.0,
         issuer_id="AAPL",
+        yield_to_maturity=0.03,
+        credit_rating="AAA",
     )
 
 
 @pytest.fixture
 def sample_commodity():
-    """Provide a sample Commodity asset."""
+    """
+    Create a sample Commodity asset for tests.
+
+    Returns:
+        Commodity: A Commodity representing gold with id "GOLD", symbol "GC", sector "Metals", price 2000.0, contract_size 100.0, and volatility 0.15.
+    """
     return Commodity(
         id="GOLD",
         symbol="GC",
@@ -61,12 +82,19 @@ def sample_commodity():
         asset_class=AssetClass.COMMODITY,
         sector="Metals",
         price=2000.0,
+        contract_size=100.0,
+        volatility=0.15,
     )
 
 
 @pytest.fixture
 def sample_currency():
-    """Provide a sample Currency asset."""
+    """
+    Create a sample Currency asset configured for tests.
+
+    Returns:
+        Currency: A Currency instance with id "EUR", symbol "EUR", name "Euro", asset_class AssetClass.CURRENCY, sector "Currency", price 1.1, exchange_rate 1.1, and country "Eurozone".
+    """
     return Currency(
         id="EUR",
         symbol="EUR",
@@ -74,19 +102,26 @@ def sample_currency():
         asset_class=AssetClass.CURRENCY,
         sector="Currency",
         price=1.1,
+        exchange_rate=1.1,
+        country="Eurozone",
     )
 
 
 @pytest.fixture
 def sample_regulatory_event():
-    """Provide a sample RegulatoryEvent."""
+    """
+    Create a sample RegulatoryEvent representing an earnings report for TEST_AAPL.
+
+    Returns:
+        RegulatoryEvent: Instance with id "EVENT_001", asset_id "TEST_AAPL", event_type RegulatoryActivity.EARNINGS_REPORT, date "2024-01-01", description "Earnings report", impact_score 0.8, and related_assets ["AAPL_BOND"].
+    """
     return RegulatoryEvent(
-        id="EVENT1",
-        asset_id="AAPL",
+        id="EVENT_001",
+        asset_id="TEST_AAPL",
         event_type=RegulatoryActivity.EARNINGS_REPORT,
         date="2024-01-01",
         description="Earnings report",
-        impact_score=0.5,
+        impact_score=0.8,
         related_assets=["AAPL_BOND"],
     )
 

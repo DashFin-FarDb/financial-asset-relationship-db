@@ -1,3 +1,9 @@
+"""
+Graph 2D visualization utilities.
+
+This module provides functions to compute layouts and render asset relationship graphs in 2D using Plotly.
+"""
+
 from typing import Dict, List, Tuple
 
 import plotly.graph_objects as go
@@ -22,19 +28,30 @@ def _resolve_positions(
     layout_type: str,
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
+    """
+    Compute 2D coordinates for each asset according to the requested layout.
+
+    If layout_type is "circular" or "grid" the corresponding layout is used. For other values (default "spring"),
+    the function will attempt to obtain enhanced 3D visualization data from the graph and project it to 2D;
+    if 3D data is not available it falls back to the circular layout.
+
+    Parameters:
+        graph: AssetRelationshipGraph containing the assets and optionally a
+            get_3d_visualization_data_enhanced method used for 3D-to-2D projection.
+        layout_type: Layout selector ("circular", "grid", or other for spring/projection).
+        asset_ids: Ordered list of asset IDs to place and return positions for.
+
+    Returns:
+        dict: Mapping from asset ID to an (x, y) coordinate tuple.
+    """
     if layout_type == "circular":
         return _create_circular_layout(asset_ids)
     if layout_type == "grid":
         return _create_grid_layout(asset_ids)
     # Default: spring — project 3D positions to 2D
     if hasattr(graph, "get_3d_visualization_data_enhanced"):
-        positions_3d_array, asset_ids_ordered, _, _ = (
-            graph.get_3d_visualization_data_enhanced()
-        )
-        positions_3d = {
-            asset_ids_ordered[i]: tuple(positions_3d_array[i])
-            for i in range(len(asset_ids_ordered))
-        }
+        positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
+        positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
@@ -51,7 +68,31 @@ def visualize_2d_graph(
     show_regulatory: bool = True,
     show_all_relationships: bool = False,
 ) -> go.Figure:
-    """Create a 2D visualization of the asset relationship graph."""
+    """
+    Visualize an AssetRelationshipGraph as an interactive 2D Plotly figure.
+
+    Render nodes and selected relationship-type traces using the requested layout algorithm.
+    Layout options: "spring" (force-directed / default), "circular", or "grid".
+    Individual boolean flags control which relationship types are included; setting show_all_relationships=True overrides the individual flags and includes every relationship type.
+
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to visualize.
+        layout_type (str): One of "spring", "circular", or "grid" to choose node placement.
+        show_same_sector (bool): Include same-sector relationships.
+        show_market_cap (bool): Include market-cap relationships.
+        show_correlation (bool): Include correlation relationships.
+        show_corporate_bond (bool): Include corporate-bond relationships.
+        show_commodity_currency (bool): Include commodity-currency relationships.
+        show_income_comparison (bool): Include income-comparison relationships.
+        show_regulatory (bool): Include regulatory relationships.
+        show_all_relationships (bool): If True, include all relationship types regardless of the other flags.
+
+    Returns:
+        go.Figure: A Plotly Figure containing node and relationship traces for the provided graph.
+
+    Raises:
+        ValueError: If `graph` is not an AssetRelationshipGraph instance.
+    """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("Invalid graph data provided")
 

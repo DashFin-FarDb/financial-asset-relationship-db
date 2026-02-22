@@ -8,9 +8,12 @@ This module contains comprehensive unit tests for schema report generation inclu
 - Edge cases and empty graphs
 """
 
+import pytest
+
 from src.reports.schema_report import generate_schema_report
 
 
+@pytest.mark.unit
 class TestSchemaReportGeneration:
     """Test cases for schema report generation."""
 
@@ -117,6 +120,7 @@ class TestSchemaReportGeneration:
         assert "## Implementation Notes" in report
 
 
+@pytest.mark.unit
 class TestReportMetrics:
     """Test cases for metrics included in report."""
 
@@ -174,6 +178,7 @@ class TestReportMetrics:
         assert "## Top Relationships" in report
 
 
+@pytest.mark.unit
 class TestReportFormatting:
     """Test cases for report formatting."""
 
@@ -211,6 +216,7 @@ class TestReportFormatting:
         assert "%" in report
 
 
+@pytest.mark.unit
 class TestDataQualityScore:
     """Test cases for data quality score calculation."""
 
@@ -238,6 +244,7 @@ class TestDataQualityScore:
         assert "Data Quality Score:" in report
 
 
+@pytest.mark.unit
 class TestRecommendations:
     """Test cases for recommendations in report."""
 
@@ -279,6 +286,7 @@ class TestRecommendations:
             assert "Sparse" in report or "adding more relationships" in report
 
 
+@pytest.mark.unit
 class TestBusinessRules:
     """Test cases for business rules documentation."""
 
@@ -313,6 +321,7 @@ class TestBusinessRules:
         assert "Impact Scoring" in report or "impact score" in report.lower()
 
 
+@pytest.mark.unit
 class TestImplementationNotes:
     """Test cases for implementation notes."""
 
@@ -341,6 +350,7 @@ class TestImplementationNotes:
         assert "bidirectional" in report.lower()
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases in report generation."""
 
@@ -394,6 +404,7 @@ class TestEdgeCases:
         assert "Relationship Density" in report
 
 
+@pytest.mark.unit
 class TestReportConsistency:
     """Test cases for report consistency."""
 
@@ -434,6 +445,7 @@ class TestReportConsistency:
             assert 0 <= score <= 100
 
 
+@pytest.mark.unit
 class TestMultipleGenerations:
     """Test cases for multiple report generations."""
 

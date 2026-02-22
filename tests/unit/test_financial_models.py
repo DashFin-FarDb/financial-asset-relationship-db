@@ -29,6 +29,7 @@ from src.models.financial_models import (
 )
 
 
+@pytest.mark.unit
 class TestAsset:
     """Test cases for the Asset base class."""
 
@@ -106,6 +107,7 @@ class TestAsset:
             )
 
 
+@pytest.mark.unit
 class TestEquity:
     """Test cases for the Equity class."""
 
@@ -131,6 +133,7 @@ class TestEquity:
         assert sample_equity.dividend_yield == 0.005
 
 
+@pytest.mark.unit
 class TestBond:
     """Test cases for the Bond class."""
 
@@ -158,6 +161,7 @@ class TestBond:
         assert bond.issuer_id is None
 
 
+@pytest.mark.unit
 class TestCommodity:
     """Test cases for the Commodity class."""
 
@@ -169,6 +173,7 @@ class TestCommodity:
         assert sample_commodity.volatility == 0.15
 
 
+@pytest.mark.unit
 class TestCurrency:
     """Test cases for the Currency class."""
 
@@ -180,6 +185,7 @@ class TestCurrency:
         assert sample_currency.country == "Eurozone"
 
 
+@pytest.mark.unit
 class TestRegulatoryEvent:
     """Test cases for the RegulatoryEvent class."""
 
@@ -229,3 +235,29 @@ class TestRegulatoryEvent:
                 description="",
                 impact_score=0.5,
             )
+
+    @staticmethod
+    def test_event_boundary_impact_score_negative_one():
+        """Test that impact score of exactly -1.0 is accepted (boundary case)."""
+        event = RegulatoryEvent(
+            id="EVENT_BOUNDARY_NEG",
+            asset_id="TEST_001",
+            event_type=RegulatoryActivity.SEC_FILING,
+            date="2024-01-15",
+            description="Boundary test with -1.0 impact",
+            impact_score=-1.0,
+        )
+        assert event.impact_score == pytest.approx(-1.0)
+
+    @staticmethod
+    def test_event_boundary_impact_score_positive_one():
+        """Test that impact score of exactly 1.0 is accepted (boundary case)."""
+        event = RegulatoryEvent(
+            id="EVENT_BOUNDARY_POS",
+            asset_id="TEST_001",
+            event_type=RegulatoryActivity.EARNINGS_REPORT,
+            date="2024-01-15",
+            description="Boundary test with 1.0 impact",
+            impact_score=1.0,
+        )
+        assert event.impact_score == pytest.approx(1.0)

@@ -18,7 +18,6 @@
 - 12 ts files
 - 10 tsx files
 
-
 ## Dependencies
 
 ## Project Directory Structure
@@ -31,7 +30,7 @@
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -73,7 +72,7 @@
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -95,7 +94,7 @@
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -122,7 +121,7 @@
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -148,7 +147,7 @@
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -184,11 +183,12 @@
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
+
 - __future__
 - annotations
 - os
@@ -199,8 +199,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -211,13 +213,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -225,8 +231,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -235,50 +243,68 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
 ## TSX Dependencies
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -286,7 +312,9 @@ Dependencies:
 - ../../app/lib/api
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -294,8 +322,10 @@ Dependencies:
 - ./components/AssetList
 - ./types/api
 
-### \frontend\__tests__\components\NetworkVisualization.test.tsx
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -303,16 +333,20 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\app\page.test.tsx
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
 
-### \frontend\__tests__\components\MetricsDashboard.test.tsx
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -320,19 +354,17 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-
-
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -374,7 +406,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -396,7 +428,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -423,7 +455,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -449,7 +481,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -485,12 +517,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -501,7 +534,9 @@ Dependencies:
 - env
 
 ### \mcp_server.py
+
 Dependencies:
+
 - argparse
 - copy
 - json
@@ -516,7 +551,9 @@ Dependencies:
 - e
 
 ### \main.py
+
 Dependencies:
+
 - os
 - socket
 - psycopg2
@@ -528,7 +565,9 @@ Dependencies:
 - DATABASE_URL
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -537,8 +576,10 @@ Dependencies:
 - traceback
 
 ### \conftest.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - collections.abc
 - Callable,
@@ -556,26 +597,35 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ## TSX Dependencies
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -584,25 +634,33 @@ Dependencies:
 - ./types/api
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
 ### \frontend\app\components\NetworkVisualization.tsx
+
 Dependencies:
+
 - react
 - next/dynamic
 - ../types/api
 - plotly.js
 
 ### \frontend\app\components\MetricsDashboard.tsx
+
 Dependencies:
+
 - react
 - ../types/api
 
 ### \frontend\app\components\AssetList.tsx
+
 Dependencies:
+
 - react
 - next/navigation
 - ../types/api
@@ -610,37 +668,43 @@ Dependencies:
 ## TS Dependencies
 
 ### \frontend\app\types\api.ts
+
 No dependencies found
 
 ### \frontend\app\lib\api.ts
+
 Dependencies:
+
 - axios
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
-
-
 
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -682,7 +746,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -704,7 +768,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -731,7 +795,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -757,7 +821,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -793,12 +857,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -808,8 +873,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -820,13 +887,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -834,8 +905,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -843,59 +916,79 @@ Dependencies:
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
 
 ## JS Dependencies
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ## TSX Dependencies
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
 
-### \frontend\__tests__\components\AssetList.test.tsx
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -903,8 +996,10 @@ Dependencies:
 - ../../app/lib/api
 - ../test-utils
 
-### \frontend\__tests__\app\page.test.tsx
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -912,13 +1007,17 @@ Dependencies:
 - ../../app/lib/api
 
 ### \frontend\app\components\AssetList.tsx
+
 Dependencies:
+
 - react
 - next/navigation
 - ../types/api
 
-### \frontend\__tests__\components\NetworkVisualization.test.tsx
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -926,19 +1025,17 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-
-
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -980,7 +1077,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -1002,7 +1099,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -1029,7 +1126,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -1055,7 +1152,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -1091,12 +1188,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -1106,8 +1204,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -1118,13 +1218,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -1132,8 +1236,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -1142,26 +1248,35 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ## TSX Dependencies
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -1169,16 +1284,20 @@ Dependencies:
 - ./components/AssetList
 - ./types/api
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
 
-### \frontend\__tests__\components\MetricsDashboard.test.tsx
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -1186,8 +1305,10 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\components\AssetList.test.tsx
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -1196,48 +1317,57 @@ Dependencies:
 - ../test-utils
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
-
-
 
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -1279,7 +1409,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -1301,7 +1431,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -1328,7 +1458,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -1354,7 +1484,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -1390,12 +1520,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -1405,8 +1536,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -1417,13 +1550,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -1431,8 +1568,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -1441,32 +1580,43 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ## TSX Dependencies
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -1474,60 +1624,73 @@ Dependencies:
 - ../../app/lib/api
 
 ### \frontend\app\components\NetworkVisualization.tsx
+
 Dependencies:
+
 - react
 - next/dynamic
 - ../types/api
 - plotly.js
 
 ### \frontend\app\components\MetricsDashboard.tsx
+
 Dependencies:
+
 - react
 - ../types/api
 
 ### \frontend\app\components\AssetList.tsx
+
 Dependencies:
+
 - react
 - next/navigation
 - ../types/api
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
-
-
 
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -1569,7 +1732,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -1591,7 +1754,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -1618,7 +1781,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -1644,7 +1807,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -1680,11 +1843,12 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \mcp_server.py
+
 Dependencies:
+
 - argparse
 - copy
 - json
@@ -1699,7 +1863,9 @@ Dependencies:
 - e
 
 ### \main.py
+
 Dependencies:
+
 - os
 - socket
 - psycopg2
@@ -1711,13 +1877,17 @@ Dependencies:
 - DATABASE_URL
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -1726,8 +1896,10 @@ Dependencies:
 - traceback
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -1739,48 +1911,65 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
 ### \frontend\app\types\api.ts
+
 No dependencies found
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
 ## TSX Dependencies
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -1788,8 +1977,10 @@ Dependencies:
 - ./components/AssetList
 - ./types/api
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -1797,13 +1988,17 @@ Dependencies:
 - ../../app/lib/api
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
-### \frontend\__tests__\components\NetworkVisualization.test.tsx
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -1811,8 +2006,10 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\components\MetricsDashboard.test.tsx
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -1820,19 +2017,17 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-
-
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -1874,7 +2069,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -1896,7 +2091,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -1923,7 +2118,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -1949,7 +2144,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -1985,12 +2180,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2000,8 +2196,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2012,13 +2210,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -2026,8 +2228,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -2036,26 +2240,35 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ## TSX Dependencies
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -2064,25 +2277,33 @@ Dependencies:
 - ./types/api
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
 ### \frontend\app\components\NetworkVisualization.tsx
+
 Dependencies:
+
 - react
 - next/dynamic
 - ../types/api
 - plotly.js
 
 ### \frontend\app\components\MetricsDashboard.tsx
+
 Dependencies:
+
 - react
 - ../types/api
 
 ### \frontend\app\components\AssetList.tsx
+
 Dependencies:
+
 - react
 - next/navigation
 - ../types/api
@@ -2090,36 +2311,41 @@ Dependencies:
 ## TS Dependencies
 
 ### \frontend\app\types\api.ts
+
 No dependencies found
 
 ### \frontend\app\lib\api.ts
+
 Dependencies:
+
 - axios
 
 ### \frontend\app\lib\assetHelpers.ts
+
 Dependencies:
+
 - ./api
 - ../types/api
 
 ### \frontend\app\lib\index.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
-
-
 
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -2161,7 +2387,7 @@ No dependencies found
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -2183,7 +2409,7 @@ No dependencies found
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -2210,7 +2436,7 @@ No dependencies found
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -2236,7 +2462,7 @@ No dependencies found
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -2272,12 +2498,13 @@ No dependencies found
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2287,8 +2514,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2299,13 +2528,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -2313,8 +2546,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -2323,58 +2558,78 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
 
 ## TSX Dependencies
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
 
-### \frontend\__tests__\components\NetworkVisualization.test.tsx
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -2382,8 +2637,10 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\components\MetricsDashboard.test.tsx
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -2391,8 +2648,10 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\components\AssetList.test.tsx
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -2400,27 +2659,27 @@ Dependencies:
 - ../../app/lib/api
 - ../test-utils
 
-### \frontend\__tests__\app\page.test.tsx
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
 
-
-
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -2462,7 +2721,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -2484,7 +2743,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -2511,7 +2770,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -2537,7 +2796,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -2573,12 +2832,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2588,8 +2848,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2600,13 +2862,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -2614,8 +2880,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -2624,58 +2892,78 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
 
 ## TSX Dependencies
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
 
-### \frontend\__tests__\components\NetworkVisualization.test.tsx
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -2683,8 +2971,10 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\components\MetricsDashboard.test.tsx
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -2692,8 +2982,10 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
-### \frontend\__tests__\components\AssetList.test.tsx
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -2701,27 +2993,27 @@ Dependencies:
 - ../../app/lib/api
 - ../test-utils
 
-### \frontend\__tests__\app\page.test.tsx
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
 
-
-
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -2763,7 +3055,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -2785,7 +3077,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -2812,7 +3104,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -2838,7 +3130,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -2874,12 +3166,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2889,8 +3182,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -2901,13 +3196,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -2915,8 +3214,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -2925,26 +3226,35 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ## TSX Dependencies
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -2953,25 +3263,33 @@ Dependencies:
 - ./types/api
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
 ### \frontend\app\components\NetworkVisualization.tsx
+
 Dependencies:
+
 - react
 - next/dynamic
 - ../types/api
 - plotly.js
 
 ### \frontend\app\components\MetricsDashboard.tsx
+
 Dependencies:
+
 - react
 - ../types/api
 
 ### \frontend\app\components\AssetList.tsx
+
 Dependencies:
+
 - react
 - next/navigation
 - ../types/api
@@ -2979,37 +3297,43 @@ Dependencies:
 ## TS Dependencies
 
 ### \frontend\app\lib\assetHelpers.ts
+
 Dependencies:
+
 - ./api
 - ../types/api
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
 ### \frontend\app\lib\index.ts
+
 No dependencies found
 
 ### \frontend\app\lib\api.ts
+
 Dependencies:
+
 - axios
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
-
-
 
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -3051,7 +3375,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -3073,7 +3397,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -3100,7 +3424,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -3126,7 +3450,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -3162,12 +3486,13 @@ Dependencies:
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
 
-
 ## PY Dependencies
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -3177,8 +3502,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -3189,13 +3516,17 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
 
 ### \test_api.py
+
 Dependencies:
+
 - sys
 - fastapi.testclient
 - TestClient
@@ -3203,8 +3534,10 @@ Dependencies:
 - app
 - traceback
 
-### \tests\__init__.py
+### \tests\_\_init\_\_.py
+
 Dependencies:
+
 - os
 - pathlib
 - Path
@@ -3213,46 +3546,62 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ## TS Dependencies
 
 ### \frontend\app\types\api.ts
+
 No dependencies found
 
 ### \frontend\app\lib\index.ts
+
 No dependencies found
 
 ### \frontend\app\lib\assetHelpers.ts
+
 Dependencies:
+
 - ./api
 - ../types/api
 
 ### \frontend\app\lib\api.ts
+
 Dependencies:
+
 - axios
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
 ## TSX Dependencies
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -3261,42 +3610,48 @@ Dependencies:
 - ./types/api
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
 ### \frontend\app\components\AssetList.tsx
+
 Dependencies:
+
 - react
 - next/navigation
 - ../types/api
 
 ### \frontend\app\components\NetworkVisualization.tsx
+
 Dependencies:
+
 - react
 - next/dynamic
 - ../types/api
 - plotly.js
 
 ### \frontend\app\components\MetricsDashboard.tsx
+
 Dependencies:
+
 - react
 - ../types/api
-
-
 
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 __tests__/
+  - 📂 **tests**/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -3338,7 +3693,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -3360,7 +3715,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -3387,7 +3742,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 __init__.py
+    - 📄 **init**.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -3413,7 +3768,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 __init__.py
+  - 📄 **init**.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -3448,12 +3803,13 @@ Dependencies:
 - 📄 test_scripts.sh
 - 📄 test_supabase.py
 - 📄 validate_new_tests.sh
-
 
 ## PY Dependencies
 
 ### \app.py
+
 Dependencies:
+
 - json
 - logging
 - dataclasses
@@ -3483,7 +3839,9 @@ Dependencies:
 - the
 
 ### \main.py
+
 Dependencies:
+
 - os
 - socket
 - psycopg2
@@ -3495,8 +3853,10 @@ Dependencies:
 - DATABASE_URL
 
 ### \test_supabase.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -3506,8 +3866,10 @@ Dependencies:
 - Client,
 
 ### \test_postgres.py
+
 Dependencies:
-- __future__
+
+- **future**
 - annotations
 - os
 - typing
@@ -3518,7 +3880,9 @@ Dependencies:
 - env
 
 ### \test_db_module.py
+
 Dependencies:
+
 - logging
 - src.data.database
 - get_db
@@ -3526,50 +3890,68 @@ Dependencies:
 ## JS Dependencies
 
 ### \frontend\tailwind.config.js
+
 No dependencies found
 
 ### \frontend\postcss.config.js
+
 No dependencies found
 
 ### \frontend\next.config.js
+
 No dependencies found
 
 ### \frontend\jest.setup.js
+
 Dependencies:
+
 - @testing-library/jest-dom
 
 ### \frontend\jest.config.js
+
 Dependencies:
+
 - next/jest
 
 ## TS Dependencies
 
-### \frontend\__tests__\test-utils.ts
+### \frontend\_\_tests\_\_\test-utils.ts
+
 No dependencies found
 
-### \frontend\__tests__\test-utils.test.ts
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
 Dependencies:
+
 - ../app/types/api
 
-### \frontend\__tests__\lib\api.test.ts
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
 Dependencies:
+
 - axios
 - ../../app/types/api
 
-### \frontend\__tests__\lib\api-upgrade-integration.test.ts
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
 Dependencies:
+
 - axios
 - ../test-utils
 
-### \frontend\__tests__\lib\api-axios-compatibility.test.ts
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
 Dependencies:
+
 - ../../app/types/api
 - ../test-utils
 
 ## TSX Dependencies
 
 ### \frontend\app\page.tsx
+
 Dependencies:
+
 - react
 - ./lib/api
 - ./components/NetworkVisualization
@@ -3578,32 +3960,38 @@ Dependencies:
 - ./types/api
 
 ### \frontend\app\layout.tsx
+
 Dependencies:
+
 - ./globals.css
 - next
 - @vercel/speed-insights/next
 
 ### \frontend\app\components\NetworkVisualization.tsx
+
 Dependencies:
+
 - react
 - next/dynamic
 - ../types/api
 - plotly.js
 
 ### \frontend\app\components\MetricsDashboard.tsx
+
 Dependencies:
+
 - react
 - ../types/api
 
-### \frontend\__tests__\integration\component-integration.test.tsx
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
 Dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
-
-
 
 ## Project Directory Structure
 

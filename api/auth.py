@@ -31,15 +31,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # Models
 class Token(BaseModel):
+    """Represents an access token and its type returned to the client."""
+
     access_token: str
     token_type: str
 
 
 class TokenData(BaseModel):
+    """Carries optional token payload data, such as the extracted username."""
+
     username: Optional[str] = None
 
 
 class User(BaseModel):
+    """Schema for user details including authentication credentials and profile information."""
+
     username: str
     email: Optional[str] = None
     full_name: Optional[str] = None
@@ -179,13 +185,13 @@ def get_password_hash(password):
 
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
-    Seed an administrative user into the repository from environment variables.
+    Seed an administrative user from environment variables into the given repository.
 
-    If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that
-    user in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME and
-    ADMIN_DISABLED (interpreted as a truthy flag). The provided password is
-    stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no
-    changes are made.
+    If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that user
+    in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and
+    ADMIN_DISABLED (interpreted as a truthy flag). The provided password is stored
+    hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, the repository is
+    not modified.
     """
     username = os.getenv("ADMIN_USERNAME")
     password = os.getenv("ADMIN_PASSWORD")
@@ -200,9 +206,9 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
-        email=admin_email,
-        full_name=admin_full_name,
-        disabled=admin_disabled,
+        user_email=admin_email,
+        user_full_name=admin_full_name,
+        is_disabled=admin_disabled,
     )
 
 

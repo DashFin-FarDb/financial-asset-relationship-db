@@ -87,16 +87,24 @@ class FormulaicAnalyzer:
         }
 
     def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Extract fundamental financial formulas based on asset types"""
+        """
+        Collects fundamental financial formulas inferred from the assets present in the graph.
+
+        Parameters:
+            graph (AssetRelationshipGraph): Asset and relationship data used to determine which fundamental formulas apply (e.g., equities, dividend-paying stocks, bonds).
+
+        Returns:
+            List[Formula]: A list of Formula objects representing fundamental valuation and income formulas (for example: Price-to-Earnings, Dividend Yield, Bond YTM approximation, Market Capitalization). Each Formula is included only when relevant asset types are detected in the graph.
+        """
         formulas = []
 
         # Price-to-Earnings Ratio
         if self._has_equities(graph):
             pe_formula = Formula(
                 name="Price-to-Earnings Ratio",
-                formula="PE = P / EPS",
+                expression="PE = P / EPS",
                 latex=r"PE = \frac{P}{EPS}",
-                description="Valuation metric comparing stock price to earnings per share",
+                description=("Valuation metric comparing stock price to earnings per share"),
                 variables={
                     "PE": "Price-to-Earnings Ratio",
                     "P": "Current Stock Price ($)",
@@ -112,7 +120,7 @@ class FormulaicAnalyzer:
         if self._has_dividend_stocks(graph):
             div_yield_formula = Formula(
                 name="Dividend Yield",
-                formula=("Div_Yield = (Annual_Dividends / Price) × 100%"),
+                expression=("Div_Yield = (Annual_Dividends / Price) × 100%"),
                 latex=(r"DivYield = \frac{D_{annual}}{P}" r" \times 100%"),
                 description=("Percentage return from dividends relative to stock price"),
                 variables={
@@ -130,7 +138,7 @@ class FormulaicAnalyzer:
         if self._has_bonds(graph):
             ytm_formula = Formula(
                 name=("Bond Yield-to-Maturity (Approximation)"),
-                formula=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
+                expression=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
                 latex=(r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"),
                 description="Approximate yield-to-maturity for bonds",
                 variables={
@@ -150,7 +158,7 @@ class FormulaicAnalyzer:
         if self._has_equities(graph):
             market_cap_formula = Formula(
                 name="Market Capitalization",
-                formula="Market_Cap = Price × Shares_Outstanding",
+                expression="Market_Cap = Price × Shares_Outstanding",
                 latex=r"MarketCap = P \times N_{shares}",
                 description="Total market value of a company's shares",
                 variables={
@@ -167,13 +175,23 @@ class FormulaicAnalyzer:
         return formulas
 
     def _analyze_correlation_patterns(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Analyze and formulate correlation patterns between assets"""
+        """
+        Constructs Formula objects representing correlation- and risk-related relationships between assets.
+
+        Creates formulas (for example, Beta and the Pearson correlation coefficient) populated with expression, LaTeX, descriptive metadata, example calculations derived from the provided AssetRelationshipGraph, category tags, and r_squared estimates.
+
+        Parameters:
+            graph (AssetRelationshipGraph): Asset relationship graph used to populate example calculations and to estimate correlation strength.
+
+        Returns:
+            List[Formula]: A list of Formula instances describing correlation patterns and systematic risk (e.g., Beta and Correlation Coefficient).
+        """
         formulas = []
 
         # Beta relationship (systematic risk)
         beta_formula = Formula(
             name="Beta (Systematic Risk)",
-            formula="β = Cov(R_asset, R_market) / Var(R_market)",
+            expression="β = Cov(R_asset, R_market) / Var(R_market)",
             latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
             description=("Measure of an asset's sensitivity to market movements"),
             variables={
@@ -192,7 +210,7 @@ class FormulaicAnalyzer:
         # Correlation coefficient
         correlation_formula = Formula(
             name="Correlation Coefficient",
-            formula="ρ = Cov(X, Y) / (σ_X × σ_Y)",
+            expression="ρ = Cov(X, Y) / (σ_X × σ_Y)",
             latex=(r"\rho = \frac{Cov(X, Y)}{\sigma_X " r"\times \sigma_Y}"),
             description=("Measure of linear relationship between two variables"),
             variables={
@@ -210,14 +228,24 @@ class FormulaicAnalyzer:
         return formulas
 
     def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Extract valuation model relationships"""
+        """
+        Extracts valuation-related formulas available or derivable from the provided asset relationship graph.
+
+        Builds Formula objects for common valuation metrics (for example, Price-to-Book and Enterprise Value), including expression, LaTeX, descriptive text, variable mappings, example calculations where available, category, and an r_squared estimate. The presence of some formulas is conditional on asset types found in the graph (e.g., equity-specific metrics are only created when equities are present).
+
+        Parameters:
+            graph (AssetRelationshipGraph): Graph of assets and relationships used to detect asset classes and to populate example calculations.
+
+        Returns:
+            List[Formula]: A list of valuation Formula objects discovered or constructed from the graph.
+        """
         formulas = []
 
         # Price-to-Book Ratio
         if self._has_equities(graph):
             pb_formula = Formula(
                 name="Price-to-Book Ratio",
-                formula="P/B = Market_Price / Book_Value_per_Share",
+                expression="P/B = Market_Price / Book_Value_per_Share",
                 latex=r"P/B = \frac{P}{BV_{per\_share}}",
                 description=("Valuation metric comparing market price to book value"),
                 variables={
@@ -234,7 +262,7 @@ class FormulaicAnalyzer:
         # Enterprise Value
         enterprise_value_formula = Formula(
             name="Enterprise Value",
-            formula="EV = Market_Cap + Total_Debt - Cash",
+            expression="EV = Market_Cap + Total_Debt - Cash",
             latex=r"EV = MarketCap + Debt - Cash",
             description="Total value of a company including debt",
             variables={
@@ -252,13 +280,23 @@ class FormulaicAnalyzer:
         return formulas
 
     def _analyze_risk_return_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Analyze risk-return mathematical relationships"""
+        """
+        Assembles risk–return formulas relevant to the provided asset graph.
+
+        Builds common risk-management formulas (e.g., Sharpe Ratio and portfolio volatility) and populates their example_calculation fields using data derived from the given AssetRelationshipGraph.
+
+        Parameters:
+                graph (AssetRelationshipGraph): Graph of assets and relationships used to generate example calculations and contextual details for each formula.
+
+        Returns:
+                List[Formula]: A list of Formula objects representing risk-return relationships.
+        """
         formulas = []
 
         # Sharpe Ratio
         sharpe_formula = Formula(
             name="Sharpe Ratio",
-            formula="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
+            expression="Sharpe = (R_portfolio - R_risk_free) / σ_portfolio",
             latex=r"Sharpe = \frac{R_p - R_f}{\sigma_p}",
             description="Risk-adjusted return metric",
             variables={
@@ -276,7 +314,7 @@ class FormulaicAnalyzer:
         # Volatility (Standard Deviation)
         volatility_formula = Formula(
             name="Volatility (Standard Deviation)",
-            formula="σ = √(Σ(R_i - μ)² / (n-1))",
+            expression="σ = √(Σ(R_i - μ)² / (n-1))",
             latex=(r"\sigma = \sqrt{\frac{\sum_{i=1}^{n}(R_i - \mu)^2}" r"{n-1}}"),
             description="Measure of price variability and risk",
             variables={
@@ -294,13 +332,23 @@ class FormulaicAnalyzer:
         return formulas
 
     def _extract_portfolio_theory_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Extract Modern Portfolio Theory formulas"""
+        """
+        Generate standard Modern Portfolio Theory formulas using data from the asset graph.
+
+        Creates formulas for portfolio expected return and the two-asset portfolio variance, including expressions, LaTeX, variable mappings, example calculations, category, and r_squared estimates.
+
+        Parameters:
+            graph (AssetRelationshipGraph): Asset graph used to populate example calculations and extract relevant asset data.
+
+        Returns:
+            List[Formula]: A list containing the Portfolio Expected Return and Portfolio Variance (2-Asset) Formula objects.
+        """
         formulas = []
 
         # Portfolio Expected Return
         portfolio_return_formula = Formula(
             name="Portfolio Expected Return",
-            formula="E(R_p) = Σ(w_i × E(R_i))",
+            expression="E(R_p) = Σ(w_i × E(R_i))",
             latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
             description="Weighted average of individual asset expected returns",
             variables={
@@ -318,7 +366,7 @@ class FormulaicAnalyzer:
         # Portfolio Variance (2-asset case)
         portfolio_variance_formula = Formula(
             name="Portfolio Variance (2-Asset)",
-            formula="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
+            expression="σ²_p = w₁²σ₁² + w₂²σ₂² + 2w₁w₂σ₁σ₂ρ₁₂",
             latex=(r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + " r"2w_1w_2\sigma_1\sigma_2\rho_{12}"),
             description="Portfolio risk considering correlation between assets",
             variables={
@@ -336,14 +384,24 @@ class FormulaicAnalyzer:
         return formulas
 
     def _analyze_cross_asset_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Analyze relationships between different asset classes"""
+        """
+        Builds formulaic representations of relationships between different asset classes present in the given graph.
+
+        Detects applicable cross-asset relationships (for example, triangular currency exchange relationships when multiple currencies are present, and inverse commodity–currency relationships when both commodities and currencies are present) and returns a list of corresponding Formula objects populated with expression, LaTeX, descriptive text, variable mappings, example calculations, category, and an r_squared estimate.
+
+        Parameters:
+            graph (AssetRelationshipGraph): Asset relationship graph to inspect for cross-asset relationships.
+
+        Returns:
+            List[Formula]: A list of Formula objects for each detected cross-asset relationship; an empty list if none are applicable.
+        """
         formulas = []
 
         # Currency exchange relationships
         if self._has_currencies(graph):
             exchange_rate_formula = Formula(
                 name="Exchange Rate Relationships",
-                formula="USD/EUR × EUR/GBP = USD/GBP",
+                expression="USD/EUR × EUR/GBP = USD/GBP",
                 latex=r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = \frac{USD}{GBP}",
                 description=("Triangular arbitrage relationship between currencies"),
                 variables={
@@ -361,7 +419,7 @@ class FormulaicAnalyzer:
         if self._has_commodities(graph) and self._has_currencies(graph):
             commodity_currency_formula = Formula(
                 name="Commodity-Currency Relationship",
-                formula=("Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"),
+                expression=("Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"),
                 latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
                 description=("Inverse relationship between commodity prices and currency values"),
                 variables={
