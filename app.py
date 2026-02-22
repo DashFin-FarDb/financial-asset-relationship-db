@@ -228,57 +228,32 @@ class FinancialAssetApp:
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """Refreshes all visualizations and reports in the Gradio interface."""
-        try:
-            graph = (
-                self.ensure_graph()
-            )  # Use self.ensure_graph to get the latest graph state
-            logger.info("Refreshing all visualization outputs")
-            viz_3d = visualize_3d_graph(graph)
-            f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
-            schema_rpt = generate_schema_report(graph)
-            asset_choices = list(graph.assets.keys())
-            logger.info(
-                "Successfully refreshed outputs for %s assets",
-                len(asset_choices),
-            )
-            return (
-                viz_3d,
-                f1,
-                f2,
-                f3,
-                metrics_txt,
-                schema_rpt,
-                gr.update(
-                    choices=asset_choices,
-                    value=None,
-                ),
-                gr.update(
-                    value="",
-                    visible=False,
-                ),
-            )
-        except Exception as e:
-            logger.error(
-                "%s: %s",
-                AppConstants.REFRESH_OUTPUTS_ERROR,
-                e,
-            )
-            return (
-                gr.update(),
-                gr.update(),
-                gr.update(),
-                gr.update(),
-                gr.update(),
-                gr.update(),
-                gr.update(
-                    choices=[],
-                    value=None,
-                ),
-                gr.update(
-                    value=f"Error: {str(e)}",
-                    visible=True,
-                ),
-            )
+        graph = self.ensure_graph()  # Use self.ensure_graph to get the latest graph state
+        logger.info("Refreshing all visualization outputs")
+        viz_3d = visualize_3d_graph(graph)
+        f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
+        schema_rpt = generate_schema_report(graph)
+        asset_choices = list(graph.assets.keys())
+        logger.info(
+            "Successfully refreshed outputs for %s assets",
+            len(asset_choices),
+        )
+        return (
+            viz_3d,
+            f1,
+            f2,
+            f3,
+            metrics_txt,
+            schema_rpt,
+            gr.update(
+                choices=asset_choices,
+                value=None,
+            ),
+            gr.update(
+                value="",
+                visible=False,
+            ),
+        )
 
     def refresh_visualization(
         self,
