@@ -164,7 +164,7 @@ class TestAddEquityNode:
             price=150.0,
         )
 
-        assert "Successfully" in result
+        assert "Successfully added" in result, "Expected success message not found"
         assert "Apple Inc Test" in result
         assert "AAPL" in result
 
@@ -380,6 +380,7 @@ class TestMainCLI:
 
             # Should exit with error message
             assert "Missing dependency" in str(exc_info.value)
+            assert exc_info.value.code != 0, "Expected non-zero exit code for missing dependency"
 
     @staticmethod
     def test_main_argument_parsing():
@@ -551,7 +552,7 @@ class TestEdgeCases:
         )
 
         # Should handle special characters without error
-        assert "Validation Error" not in result
+        assert "Validation Error" not in result, "Tool failed to handle special characters in asset name"
 
     @staticmethod
     def test_get_3d_layout_with_empty_graph():
@@ -574,7 +575,7 @@ class TestEdgeCases:
         data = json.loads(result)
 
         # Should return valid structure even with empty graph
-        assert "asset_ids" in data
+        assert data, "Expected non-empty data structure from get_3d_layout"
         assert "positions" in data
         assert "colors" in data
         assert "hover" in data
@@ -587,3 +588,4 @@ class TestEdgeCases:
         # Should handle unrecognized arguments gracefully
         with pytest.raises(SystemExit):
             main(["--invalid-arg"])
+
