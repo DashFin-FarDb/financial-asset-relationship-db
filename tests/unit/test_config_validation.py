@@ -18,9 +18,8 @@ import pytest
 class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
-    @staticmethod
     @pytest.fixture
-    def vercel_config():
+    def vercel_config(self):
         """Load vercel.json configuration."""
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
@@ -105,9 +104,8 @@ class TestVercelConfig:
 class TestNextConfig:
     """Test cases for Next.js configuration."""
 
-    @staticmethod
     @pytest.fixture
-    def next_config_content():
+    def next_config_content(self):
         """Load Next.js configuration file content."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists(), "next.config.js not found"
@@ -280,8 +278,7 @@ class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
     @pytest.fixture
-    @staticmethod
-    def tailwind_config_content():
+    def tailwind_config_content(self):
         """Load Tailwind configuration content."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists(), "tailwind.config.js not found"
@@ -383,9 +380,8 @@ class TestGitignore:
 
     @staticmethod
     @pytest.fixture
-    def gitignore_content():
-        """Load .gitignore content."""
-        config_path = Path(".gitignore")
+    @pytest.fixture
+    def gitignore_content(self):
         assert config_path.exists(), ".gitignore not found"
 
         with open(config_path) as f:
