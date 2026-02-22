@@ -1,29 +1,19 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, Response
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import generate_html_report, generate_markdown_report
+from src.api.dependencies import get_graph
 
 router = APIRouter(prefix="/schema-report", tags=["schema-report"])
-
-
-def get_graph() -> AssetRelationshipGraph:
-    """
-    Load and return an AssetRelationshipGraph populated from the configured asset source.
-
-    Returns:
-        AssetRelationshipGraph: Graph instance with assets initialized from the configured source.
-    """
-    graph = AssetRelationshipGraph()
-    graph.initialize_assets_from_source()
-    return graph
 
 
 @router.get("/", summary="Get schema report")
 def schema_report(
     report_format: str = Query("md", pattern="^(md|html)$"),
+    graph: AssetRelationshipGraph = Depends(get_graph),
 ) -> Response:
     """
     Produce a schema report for the current asset relationship graph in either Markdown or HTML.
@@ -64,3 +54,4 @@ def schema_report_raw(
         "filename": f"schema_report.{fmt}",
         "content": content,
     }
+
