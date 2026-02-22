@@ -28,9 +28,7 @@ def _load_module_for_test(
 
     # Copy the real CLI script into tmp_path under a throwaway name
     cli_src = (
-        Path(__file__)
-        .resolve()
-        .parents[2]
+        Path(__file__).resolve().parents[2]
         / ".github"
         / "scripts"
         / "schema_report_cli.py"
@@ -128,7 +126,4 @@ def test_generate_report_failure_does_not_leave_file(
     # User-facing message should be generic
     captured = capsys.readouterr()
     err_lower = captured.err.lower()
-    assert (
-        "report generation failed" in err_lower
-        or "unexpected error" in err_lower
-    )
+    assert "report generation failed" in err_lower or "unexpected error" in err_lower
