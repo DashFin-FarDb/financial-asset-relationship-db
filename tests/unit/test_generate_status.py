@@ -748,17 +748,20 @@ class TestWriteOutput:
 
     def test_write_output_handles_github_summary_error(self, monkeypatch, capsys, tmp_path):
         """write_output handles errors writing to GITHUB_STEP_SUMMARY gracefully."""
-        # Point to a non-writable location
         bad_path = tmp_path / "nonexistent_dir" / "summary.md"
         monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(bad_path))
-
+    
         content = "Test content"
         write_output(content)  # Should not raise
-
-        # Check warning was printed
+    
         captured = capsys.readouterr()
-        assert "Warning" in captured.err or content in captured.out
-
+    
+        warned = "Warning" in captured.err
+        fell_back = content in captured.out
+    
+        assert warned or fell_back, (
+            "write_output should either warn on stderr or fall back to stdout on error"
+        )
 
 class TestMainFunction:
     """Test main() entry point."""
