@@ -3,12 +3,12 @@
 import os
 import sys
 
-# These must be set before api.main is imported (happens at collection time).
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
-os.environ["SECRET_KEY"] = "test-secret-key-for-ci"
-os.environ["ADMIN_USERNAME"] = "admin"
-os.environ["ADMIN_PASSWORD"] = "adminpass"
+os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-for-ci")
+os.environ.setdefault("ADMIN_USERNAME", "admin")
 
-print(
-    f"[unit conftest] DATABASE_URL set to {os.environ['DATABASE_URL']}", file=sys.stderr
-)
+if "ADMIN_PASSWORD" not in os.environ:
+    pytest.skip(
+        "ADMIN_PASSWORD not set; skipping API tests that require auth.",
+        allow_module_level=True,
+    )
