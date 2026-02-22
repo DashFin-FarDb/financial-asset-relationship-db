@@ -30,7 +30,6 @@ def schema_report(
         return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
 
 
-
 @router.get("/raw", summary="Raw export of schema report")
 def schema_report_raw(
     fmt: str = Query("md", pattern="^(md|html)$"),
