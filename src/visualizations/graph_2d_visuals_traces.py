@@ -43,6 +43,8 @@ def _create_2d_relationship_traces(
     relationship_groups: Dict[str, list[dict[str, object]]] = {}
 
     for source_id in asset_ids:
+        if source_id not in positions:
+            continue
         rels = graph.relationships.get(source_id)
         if not rels:
             continue
