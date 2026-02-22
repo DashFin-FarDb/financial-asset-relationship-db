@@ -14,59 +14,47 @@ import enum
 import json
 import logging
 import os
+import re
 import sys
 import tempfile
 from pathlib import Path
+from typing import Optional
 
-# Ensure project root is on sys.path before importing src.*
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+# ---------------------------------------------------------------------------
+# Import path bootstrapping
+# ---------------------------------------------------------------------------
+
+
+def _find_project_root(start: Path) -> Path:
+    """
+    Resolve the project root directory for running this script directly.
+
+    The function walks up from `start` looking for a directory containing
+    either `pyproject.toml` or a `src/` package directory.
+
+    Args:
+        start: Starting path, typically this file path.
+
+    Returns:
+        The resolved project root path.
+
+    Raises:
+        RuntimeError: If no suitable root directory can be found.
+    """
+    for parent in (start, *start.parents):
+        if (parent / "pyproject.toml").exists() or (parent / "src").is_dir():
+            return parent
+    raise RuntimeError(
+        "Could not locate project root. Expected pyproject.toml or src/ directory."
+    )
+
+
+PROJECT_ROOT = _find_project_root(Path(__file__).resolve())
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.data.sample_data import create_sample_database  # noqa: E402
 from src.reports.schema_report import generate_schema_report  # noqa: E402
-
-# ---------------------------------------------------------------------------
-# Logging configuration
-# ---------------------------------------------------------------------------
-
-# Allow override via SCHEMA_REPORT_LOG env var; fall back to repo path or temp.
-_env_log = os.getenv("SCHEMA_REPORT_LOG")
-_default_log_path = Path(__file__).resolve().parent / "schema_report_cli.log"
-
-if _env_log:
-    LOG_PATH = Path(_env_log)
-else:
-    # Prefer repo location if writable; otherwise use system temp.
-    try:
-        _default_log_path.parent.mkdir(parents=True, exist_ok=True)
-        test_file = _default_log_path.parent / ".write_test"
-        test_file.write_text("ok", encoding="utf-8")
-        test_file.unlink()
-        LOG_PATH = _default_log_path
-    except Exception:
-        LOG_PATH = Path(tempfile.gettempdir()) / "schema_report_cli.log"
-
-# Ensure parent directory for LOG_PATH exists; if not, fallback to temp.
-try:
-    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-except Exception:
-    LOG_PATH = Path(tempfile.gettempdir()) / "schema_report_cli.log"
-    LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
-
-file_handler = logging.FileHandler(LOG_PATH)
-file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-file_handler.setFormatter(file_formatter)
-
-stream_handler = logging.StreamHandler(sys.stderr)
-stream_formatter = logging.Formatter("%(levelname)s: %(message)s")
-stream_handler.setFormatter(stream_formatter)
-
-logger = logging.getLogger(__name__)
-logger.addHandler(file_handler)
-logger.addHandler(stream_handler)
-logger.setLevel(logging.INFO)  # Default; adjusted in main().
 
 # ---------------------------------------------------------------------------
 # CLI types and errors
@@ -81,12 +69,7 @@ class OutputFormat(enum.Enum):
     JSON = "json"
 
     def __str__(self) -> str:
-        """
-        Get the enum member's underlying string value.
-
-        Returns:
-            The string value associated with this enum member.
-        """
+        """Return the enum member's underlying string value."""
         return self.value
 
 
@@ -95,21 +78,117 @@ class CLIError(Exception):
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Logging configuration
 # ---------------------------------------------------------------------------
 
 
-def parse_arguments() -> argparse.Namespace:
+def _resolve_log_path() -> Path:
+    """
+    Resolve the log file path.
+
+    Order of preference:
+    1) SCHEMA_REPORT_LOG env var
+    2) Script directory (if writable)
+    3) System temporary directory
+
+    Returns:
+        Path to the log file.
+    """
+    env_log = os.getenv("SCHEMA_REPORT_LOG")
+    if env_log:
+        return Path(env_log)
+
+    default_log_path = Path(__file__).resolve().parent / "schema_report_cli.log"
+    try:
+        default_log_path.parent.mkdir(parents=True, exist_ok=True)
+        test_file = default_log_path.parent / ".write_test"
+        test_file.write_text("ok", encoding="utf-8")
+        test_file.unlink()
+        return default_log_path
+    except Exception:
+        return Path(tempfile.gettempdir()) / "schema_report_cli.log"
+
+
+def configure_logging(verbose: bool) -> logging.Logger:
+    """
+    Configure CLI logging (file + stderr) in an idempotent way.
+
+    File logs always include DEBUG. Stderr logs are WARNING by default and
+    DEBUG when --verbose is set.
+
+    Args:
+        verbose: Whether to emit verbose diagnostics to stderr.
+
+    Returns:
+        A configured logger for this module.
+    """
+    log_path = _resolve_log_path()
+    try:
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        log_path = Path(tempfile.gettempdir()) / "schema_report_cli.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)  # keep file logs detailed
+    logger.propagate = False
+
+    # Avoid duplicate handlers if imported or invoked multiple times.
+    if logger.handlers:
+        # Update existing stream handler levels based on verbosity.
+        for h in logger.handlers:
+            if isinstance(h, logging.StreamHandler):
+                h.setLevel(logging.DEBUG if verbose else logging.WARNING)
+        return logger
+
+    file_handler = logging.FileHandler(log_path)
+    file_handler.setLevel(logging.DEBUG)
+    file_formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    file_handler.setFormatter(file_formatter)
+
+    stream_handler = logging.StreamHandler(sys.stderr)
+    stream_handler.setLevel(logging.DEBUG if verbose else logging.WARNING)
+    stream_formatter = logging.Formatter("%(levelname)s: %(message)s")
+    stream_handler.setFormatter(stream_formatter)
+
+    logger.addHandler(file_handler)
+    logger.addHandler(stream_handler)
+    return logger
+
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+
+
+def _as_output_format(value: str) -> OutputFormat:
+    """Parse --fmt into OutputFormat and raise argparse-friendly errors."""
+    try:
+        return OutputFormat(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(
+            "Invalid output format. Use one of: markdown, text, json."
+        ) from exc
+
+
+def parse_arguments(argv: Optional[list[str]] = None) -> argparse.Namespace:
     """
     Parse command-line arguments for the Schema Report CLI.
 
     Recognizes:
-    - --fmt: output format, one of 'markdown', 'text', or 'json' (default: 'markdown').
-    - --output / -o: optional filesystem path to write the report; if omitted, stdout is used.
-    - --verbose / -v: enable verbose logging.
+    - --fmt: output format, one of 'markdown', 'text', or 'json'
+      (default: 'markdown').
+    - --output / -o: optional filesystem path to write the report;
+      if omitted, stdout is used.
+    - --verbose / -v: enable verbose logging to stderr.
+
+    Args:
+        argv: Optional argument list (defaults to sys.argv parsing).
 
     Returns:
-        argparse.Namespace: Parsed arguments with attributes `fmt` (str), `output` (Path | None), and `verbose` (bool).
+        Parsed arguments.
     """
     parser = argparse.ArgumentParser(
         description="Generate schema reports for financial asset relationships.",
@@ -118,9 +197,8 @@ def parse_arguments() -> argparse.Namespace:
 
     parser.add_argument(
         "--fmt",
-        type=str,
-        choices=[f.value for f in OutputFormat],
-        default=OutputFormat.MARKDOWN.value,
+        type=_as_output_format,
+        default=OutputFormat.MARKDOWN,
         help="Output format (default: %(default)s).",
     )
     parser.add_argument(
@@ -136,25 +214,33 @@ def parse_arguments() -> argparse.Namespace:
         help="Enable verbose logging.",
     )
 
-    return parser.parse_args()
+    return parser.parse_args(argv)
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+_MD_LINE_PREFIX = re.compile(r"^(?:[#]+\s*|[-*]\s+)")
 
 
 def convert_markdown_to_plain_text(markdown: str) -> str:
     """
     Produce a plain-text version of a Markdown string.
 
-    Removes common leading Markdown markers (heading hashes '#' and list markers '-' or '*') from each line while preserving the original line breaks and content.
+    The conversion removes common leading Markdown markers from each line:
+    heading hashes ('#') and list markers ('-' or '*'). Original line breaks
+    are preserved.
 
-    Parameters:
-        markdown (str): Input Markdown text.
+    Args:
+        markdown: Input Markdown text.
 
     Returns:
-        str: Plain-text string with leading Markdown markers removed and lines joined by newline characters.
+        Plain-text string with leading Markdown markers removed.
     """
     lines: list[str] = []
     for line in markdown.splitlines():
-        stripped = line.lstrip("# ").lstrip("- ").lstrip("* ")
-        lines.append(stripped)
+        lines.append(_MD_LINE_PREFIX.sub("", line))
     return "\n".join(lines)
 
 
@@ -162,11 +248,11 @@ def convert_markdown_to_json(markdown: str) -> str:
     """
     Create a JSON payload containing the provided Markdown schema report.
 
-    Parameters:
-        markdown (str): The Markdown schema report to include in the payload.
+    Args:
+        markdown: The Markdown schema report to include in the payload.
 
     Returns:
-        json_str (str): Pretty-printed JSON string with a top-level `schema_report` field holding the original Markdown.
+        Pretty-printed JSON string with a top-level `schema_report` field.
     """
     payload = {"schema_report": markdown}
     return json.dumps(payload, indent=2)
@@ -176,17 +262,17 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
     """
     Write text to `path` atomically.
 
-    Creates parent directories if needed, writes `data` to a temporary file in the same directory, flushes and syncs contents to disk, then atomically replaces the destination with the temporary file. On failure the temporary file is removed when possible and the original exception is propagated.
+    The function writes `data` to a temporary file in the same directory,
+    flushes and fsyncs it, then atomically replaces the destination path.
 
-    Parameters:
-        path (Path): Destination file path.
-        data (str): Text content to write.
-        encoding (str): File encoding to use (default "utf-8").
+    Args:
+        path: Destination file path.
+        data: Text content to write.
+        encoding: File encoding to use (default "utf-8").
     """
-    parent = path.parent
-    parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(parents=True, exist_ok=True)
 
-    fd, tmp_path_str = tempfile.mkstemp(dir=str(parent))
+    fd, tmp_path_str = tempfile.mkstemp(dir=str(path.parent))
     tmp_path = Path(tmp_path_str)
 
     try:
@@ -194,7 +280,7 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
             fh.write(data)
             fh.flush()
             os.fsync(fh.fileno())
-        tmp_path.replace(path)
+        os.replace(tmp_path, path)
     except Exception:
         try:
             tmp_path.unlink()
@@ -203,16 +289,17 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
         raise
 
 
-def generate_report(fmt: OutputFormat, output: Path | None) -> None:
+def generate_report(logger: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
     """
     Generate a schema report and write it to the given file path or stdout.
 
-    Parameters:
-        fmt (OutputFormat): Desired output format (MARKDOWN, TEXT, or JSON).
-        output (Path | None): Destination file path. If None, writes to stdout.
+    Args:
+        logger: Logger instance to record diagnostics.
+        fmt: Desired output format.
+        output: Destination file path. If None, writes to stdout.
 
     Raises:
-        CLIError: If report generation, formatting, or writing fails.
+        CLIError: If generation, formatting, or writing fails.
     """
     logger.info("Generating schema report with format: %s", fmt.value)
     try:
@@ -232,8 +319,9 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
             write_atomic(output, formatted)
             logger.info("Report written to: %s", output)
         else:
-            # Ensure trailing newline for clean CLI output.
-            sys.stdout.write(formatted + ("\n" if not formatted.endswith("\n") else ""))
+            sys.stdout.write(formatted)
+            if not formatted.endswith("\n"):
+                sys.stdout.write("\n")
     except Exception as exc:  # noqa: BLE001
         logger.exception("Failed to generate schema report.")
         raise CLIError("Report generation failed. Check logs for details.") from exc
@@ -244,56 +332,37 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
 # ---------------------------------------------------------------------------
 
 
-def main() -> int:
+def main(argv: Optional[list[str]] = None) -> int:
     """
-    Run the Schema Report CLI: parse arguments, configure logging, validate options, generate the report, and handle errors.
+    Run the Schema Report CLI.
 
-    Parses CLI options, adjusts logging verbosity, validates the requested output format, invokes report generation, and prints user-facing error or cancellation messages when appropriate.
+    The function parses CLI options, configures logging, invokes report
+    generation, and handles user-facing errors.
+
+    Args:
+        argv: Optional argument list (defaults to sys.argv parsing).
 
     Returns:
-        int: Process exit code — `0` for success, `1` for general errors (invalid options, CLIError, or unexpected failures), `130` if cancelled by the user (KeyboardInterrupt).
+        Exit code: 0 on success, 1 on failure, 130 on KeyboardInterrupt.
     """
     try:
-        args = parse_arguments()
+        args = parse_arguments(argv)
+        logger = configure_logging(args.verbose)
 
-        # Adjust handler levels depending on verbose flag.
         if args.verbose:
-            logger.setLevel(logging.DEBUG)
-            stream_handler.setLevel(logging.DEBUG)
             logger.debug("Verbose logging enabled.")
-        else:
-            # Keep DEBUG and traces in the log file only.
-            stream_handler.setLevel(logging.WARNING)
-            logger.setLevel(logging.INFO)
 
-        try:
-            output_format = OutputFormat(args.fmt)
-            logger.debug("Using output format: %s", output_format)
-        except ValueError:
-            logger.error("Invalid format value: %s", args.fmt)
-            print(
-                "Error: Invalid output format. " "Please use one of: markdown, text, json.",
-                file=sys.stderr,
-            )
-            return 1
-
-        generate_report(output_format, args.output)
+        generate_report(logger, args.fmt, args.output)
         logger.info("Schema report generation completed successfully.")
         return 0
-
     except CLIError as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1
-
     except KeyboardInterrupt:
-        logger.info("Operation cancelled by user.")
-        # Attempt to remove any partial output file being written.
-        # Atomic writes avoid partial target files; do not delete existing outputs here.
         print("\nOperation cancelled.", file=sys.stderr)
         return 130
-
     except Exception:  # noqa: BLE001
-        logger.exception("Unexpected error occurred.")
+        logging.getLogger(__name__).exception("Unexpected error occurred.")
         print(
             "Error: An unexpected error occurred. Please check the logs for details.",
             file=sys.stderr,
