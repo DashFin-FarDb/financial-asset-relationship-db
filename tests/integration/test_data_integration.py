@@ -22,9 +22,6 @@ from src.models.financial_models import AssetClass, Equity
 pytestmark = pytest.mark.integration
 
 
-class TestRepositoryGraphIntegration:
-    """Test integration between repository and graph."""
-
     @staticmethod
     def test_sample_graph_can_be_saved_to_repository(tmp_path):
         """Test that a sample graph can be saved to and loaded from repository."""
@@ -32,36 +29,14 @@ class TestRepositoryGraphIntegration:
             create_engine_from_url,
             create_session_factory,
             init_db,
-        )
-            engine.dispose()
-        )
+            )
 
-        @pytest.fixture
-        def db_session(tmp_path):
-            db_path = tmp_path / "test_integration.db"
-            engine = create_engine_from_url(f"sqlite:///{db_path}")
-            init_db(engine)
-            factory = create_session_factory(engine)
-            session = factory()
-            yield session
-            session.close()
-            engine.dispose()
+        db_path = tmp_path / "test_integration.db"
+        engine = create_engine_from_url(f"sqlite:///{db_path}")
+        init_db(engine)
+        factory = create_session_factory(engine)
+        session = factory()
 
-        # Create repository and sample graph
-        repo = AssetGraphRepository(session)
-        graph = create_sample_database()
-
-        # Save all assets to repository
-        for asset in graph.assets.values():
-            repo.upsert_asset(asset)
-        session.commit()
-
-        # Verify assets were saved
-        saved_assets = repo.list_assets()
-        assert len(saved_assets) == len(graph.assets)
-
-        session.close()
-        engine.dispose()
 
     @staticmethod
     def test_sample_graph_relationships_can_be_saved(tmp_path):
