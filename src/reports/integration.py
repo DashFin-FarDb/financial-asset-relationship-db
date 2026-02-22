@@ -85,11 +85,18 @@ def markdown_to_html(md: str) -> str:
         strip=True,
     )
 
-    # Add rel="nofollow noopener" to links defensively.
+    # Add rel="nofollow noopener" to links and open in new tab defensively.
+    def _add_noopener(attrs, new=False):
+        rel = attrs.get((None, "rel"), "")
+        if "noopener" not in rel:
+            attrs[(None, "rel")] = (rel + " noopener").strip()
+        return attrs
+
     sanitized = bleach.linkify(
         sanitized,
-        callbacks=[bleach.callbacks.nofollow, bleach.callbacks.target_blank],
+        callbacks=[bleach.callbacks.nofollow, bleach.callbacks.target_blank, _add_noopener],
         skip_tags=["pre", "code"],
+    )
     )
     return sanitized
 
