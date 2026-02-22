@@ -368,8 +368,8 @@ class TestTailwindConfig:
             return f.read()
 
     @staticmethod
-    @staticmethod
     def test_tailwind_config_exists():
+
         """Test that tailwind.config.js exists."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists()
