@@ -375,16 +375,19 @@ class TestEnvExample:
 
 
 @pytest.mark.unit
+"""Module containing unit tests for .gitignore configuration validation."""
+
 class TestGitignore:
     """Unit tests for .gitignore configuration validation."""
 
     @staticmethod
     @pytest.fixture
     @pytest.fixture
-    def gitignore_content(self):
-        assert config_path.exists(), ".gitignore not found"
+    def gitignore_content(origin):
+        """Fixture that reads and returns the contents of the .gitignore file."""
+        assert origin.exists(), ".gitignore not found"
 
-        with open(config_path) as f:
+        with open(origin) as f:
             return f.read()
 
     def test_gitignore_exists(self):

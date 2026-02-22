@@ -339,7 +339,6 @@ class TestSnykJobConfiguration:
             if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
         ]
         assert len(sarif_steps) > 0
-
     @staticmethod
     def test_sarif_upload_uses_v4(sarif_upload_steps):
         """Test that SARIF upload uses CodeQL action v4."""
@@ -352,7 +351,7 @@ class TestSnykJobConfiguration:
         sarif_action = sarif_steps[0]["uses"]
         assert "@v4" in sarif_action
 
-    def test_sarif_upload_has_file_input(self, snyk_job):
+    def test_sarif_upload_collects_sarif_steps(self, snyk_job):
         """
         Asserts the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
         """
@@ -362,7 +361,6 @@ class TestSnykJobConfiguration:
             for s in steps
             if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
         ]
-        sarif_step = sarif_steps[0]
 
     @staticmethod
     def test_sarif_upload_has_file_input(sarif_upload_steps):
@@ -382,9 +380,9 @@ class TestSnykWorkflowSecurity:
         """Test that workflow contains no hardcoded secrets."""
         workflow_str = str(snyk_workflow).lower()
         forbidden_patterns = [
-            "password=",
-            "api_key=",
-            "access_token=",
+            "password=",  # noqa: S105
+            "api_key=",  # noqa: S105
+            "access_token=",  # noqa: S105
             "private_key",
         ]
         for pattern in forbidden_patterns:
