@@ -1,7 +1,6 @@
 """Unit test configuration — sets required environment variables before collection."""
 
 import os
-import sys
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-ci")
