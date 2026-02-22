@@ -136,6 +136,7 @@ def _resolve_positions(
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
+
 def visualize_2d_graph(
     graph: AssetRelationshipGraph,
     layout_type: str = "spring",
