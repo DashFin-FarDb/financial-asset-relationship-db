@@ -56,7 +56,9 @@ except Exception:
 
 file_handler = logging.FileHandler(LOG_PATH)
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 file_handler.setFormatter(file_formatter)
 
 stream_handler = logging.StreamHandler(sys.stderr)
@@ -244,7 +246,8 @@ def main() -> int:
         except ValueError:
             logger.error("Invalid format value: %s", args.fmt)
             print(
-                "Error: Invalid output format. " "Please use one of: markdown, text, json.",
+                "Error: Invalid output format. "
+                "Please use one of: markdown, text, json.",
                 file=sys.stderr,
             )
             return 1
@@ -274,7 +277,7 @@ def main() -> int:
     except Exception:  # noqa: BLE001
         logger.exception("Unexpected error occurred.")
         print(
-            "Error: An unexpected error occurred. " "Please check the logs for details.",
+            "Error: An unexpected error occurred. Please check the logs for details.",
             file=sys.stderr,
         )
         return 1
