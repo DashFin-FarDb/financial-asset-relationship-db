@@ -184,9 +184,7 @@ ENV = os.getenv("ENV", "development").lower()
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
-):
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Create a JWT access token for a user authenticated with a username and password.
 
@@ -207,17 +205,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_active_user)
-):
+async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
     """
     Retrieve the currently authenticated user.
 
@@ -251,18 +245,14 @@ def validate_origin(origin: str) -> bool:
     current_env = os.getenv("ENV", "development").lower()
 
     # Get allowed origins from environment variable or use default
-    allowed_origins = [
-        origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin
-    ]
+    allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
 
     # If origin is in explicitly allowed list, return True
     if origin in allowed_origins and origin:
         return True
 
     # Allow HTTP localhost only in development
-    if current_env == "development" and re.match(
-        r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin
-    ):
+    if current_env == "development" and re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
         return True
     # Allow HTTPS localhost in any environment
     if re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
@@ -533,9 +523,7 @@ async def get_asset_detail(asset_id: str):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get(
-    "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
-)
+@app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
 async def get_asset_relationships(asset_id: str):
     """
     List outgoing relationships for the specified asset.
@@ -672,9 +660,7 @@ async def get_visualization_data():
     try:
         g = get_graph()
         # get_3d_visualization_data_enhanced returns: (positions, asset_ids, colors, hover_texts)
-        positions, asset_ids, asset_colors, asset_text = (
-            g.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, asset_colors, asset_text = g.get_3d_visualization_data_enhanced()
 
         nodes = []
         for i, asset_id in enumerate(asset_ids):

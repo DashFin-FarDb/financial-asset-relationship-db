@@ -304,6 +304,7 @@ class TestWorkflowSecurityConsistency:
                                 "ref" in with_config or "fetch-depth" in with_config
                             ), f"{wf_file}: Checkout in pull_request_target should specify safe ref"
 
+
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
@@ -393,6 +394,7 @@ class TestBranchCoherence:
 
             # Should have minimal external references
             assert external_refs <= 1, f"{wf_file} has {external_refs} external file references (should be <=1)"
+
 
 class TestBranchQuality:
     """Test overall quality of branch changes."""
