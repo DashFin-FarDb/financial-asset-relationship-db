@@ -276,6 +276,7 @@ class TestParseReviewComments:
         # Mock file-level comment
         comment1 = Mock()
         comment1.id = 1
+        comment1.id = 1
         comment1.user = Mock(login="reviewer1")
         comment1.body = "Please fix this typo."
         comment1.path = "src/file.py"
