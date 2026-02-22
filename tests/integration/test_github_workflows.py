@@ -258,7 +258,7 @@ class TestWorkflowActions:
             for idx, step in enumerate(steps):
                 if "uses" in step:
                     action = step["uses"]
-                    if action.startswith(("./", ".github/", "../")):
+                    if action.startswith(("./", "../")):
                         continue
                     # Action should have a version tag (e.g., @v1, @main, @sha)
                     assert "@" in action, (
