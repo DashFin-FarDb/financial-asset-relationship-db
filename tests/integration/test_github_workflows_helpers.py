@@ -407,8 +407,7 @@ class TestIntegrationScenarios:
         workflows_dir.mkdir()
 
         valid_workflow = workflows_dir / "valid.yml"
-        valid_workflow.write_text(
-            """
+        valid_workflow.write_text("""
 name: Valid Workflow
 on: push
 jobs:
@@ -416,20 +415,17 @@ jobs:
     runs - on: ubuntu - latest
     steps:
       - uses: actions / checkout @ v4
-"""
-        )
+""")
 
         dup_workflow = workflows_dir / "duplicate.yml"
-        dup_workflow.write_text(
-            """
+        dup_workflow.write_text("""
 name: Duplicate Workflow
 name: Another Name
 on: push
 jobs:
   test:
     runs - on: ubuntu - latest
-"""
-        )
+""")
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
             workflows = get_workflow_files()
@@ -454,8 +450,7 @@ jobs:
         workflows_dir.mkdir()
 
         complex_workflow = workflows_dir / "complex.yml"
-        complex_workflow.write_text(
-            """
+        complex_workflow.write_text("""
 name: Complex CI/CD
 on:
   push:
@@ -486,8 +481,7 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Run tests
         run: pytest tests/ --cov
-"""
-        )
+""")
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
             workflows = get_workflow_files()
