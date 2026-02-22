@@ -98,10 +98,10 @@ def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
 
     Returns:
         str: The generated report content. For ``OutputFormat.JSON`` this is a
-        JSON-formatted string of the calculated metrics. For
-        ``OutputFormat.MARKDOWN`` this is a Markdown-formatted schema report.
-        For ``OutputFormat.TEXT`` this is a plain-text version of the Markdown
-        report with formatting removed.
+            JSON-formatted string of the calculated metrics. For
+            ``OutputFormat.MARKDOWN`` this is a Markdown-formatted schema report.
+            For ``OutputFormat.TEXT`` this is a plain-text version of the Markdown
+            report with formatting removed.
 
     Raises:
         ValueError: If report generation fails for any reason. The original
