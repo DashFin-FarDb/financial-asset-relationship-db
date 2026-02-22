@@ -104,9 +104,8 @@ class TestVercelConfig:
 class TestNextConfig:
     """Test cases for Next.js configuration."""
 
-    @staticmethod
     @pytest.fixture
-    def next_config_content():
+    def next_config_content(self):
         """Load Next.js configuration file content."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists(), "next.config.js not found"
