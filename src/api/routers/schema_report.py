@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse, Response
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.reports.integration import export_report, generate_html_report, generate_markdown_report
+from src.reports.integration import generate_html_report, generate_markdown_report
 
 router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 
