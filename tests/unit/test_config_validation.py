@@ -382,9 +382,8 @@ class TestGitignore:
 
     @staticmethod
     @pytest.fixture
-    def gitignore_content():
-        """Load .gitignore content."""
-        config_path = Path(".gitignore")
+    @pytest.fixture
+    def gitignore_content(self):
         assert config_path.exists(), ".gitignore not found"
 
         with open(config_path) as f:
