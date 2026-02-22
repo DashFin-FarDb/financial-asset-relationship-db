@@ -377,6 +377,7 @@ class TestEnvExample:
 @pytest.mark.unit
 """Module containing unit tests for .gitignore configuration validation."""
 
+
 class TestGitignore:
     """Unit tests for .gitignore configuration validation."""
 
