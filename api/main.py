@@ -287,14 +287,16 @@ def validate_origin(origin: str) -> bool:
             if parsed.port:
                 ascii_origin += f":{parsed.port}"
             if re.match(
-                r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$",
+                r"^https://[a-zA-Z0-9]"
+                r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+                r"\.[a-zA-Z]{2,}$",
                 ascii_origin,
             ):
                 return True
-        except (UnicodeError, UnicodeDecodeError):
+        except UnicodeError:
             pass
     return False
-
 
 # Set allowed_origins based on environment
 allowed_origins = []
@@ -444,7 +446,8 @@ async def root():
         Dict[str, Union[str, Dict[str, str]]]: A mapping containing:
             - "message": short API description string.
             - "version": API version string.
-            - "endpoints": dict mapping endpoint keys to their URL paths (e.g., "assets": "/api/assets").
+            - "endpoints": dict mapping endpoint keys to their URL paths
+              (e.g., "assets": "/api/assets").
     """
     return {
         "message": "Financial Asset Relationship API",
@@ -461,25 +464,51 @@ async def root():
 
 @app.get("/api/health")
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint."""
     return {"status": "healthy", "graph_initialized": True}
 
 
-@app.get("/api/assets", response_model=List[AssetResponse])
-async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = None):
+@app.get(
+    "/api/assets",
+    response_model=List[AssetResponse],
+    responses={
+        500: {
+            "description": "Internal server error while listing assets.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
+            },
+        },
+    },
+)
+async def get_assets(
+    asset_class: Optional[str] = None,
+    sector: Optional[str] = None,
+):
     """
     List assets, optionally filtered by asset class and sector.
 
     Parameters:
-        asset_class (Optional[str]): Filter to include only assets whose `asset_class.value` equals this string.
-        sector (Optional[str]): Filter to include only assets whose `sector` equals this string.
+        asset_class (Optional[str]): Filter to include only assets whose
+            `asset_class.value` equals this string.
+        sector (Optional[str]): Filter to include only assets whose
+            `sector` equals this string.
 
     Returns:
-        List[AssetResponse]: AssetResponse objects matching the filters. Each object's `additional_fields` contains any non-null, asset-type-specific attributes as defined in the respective asset model classes.
+        List[AssetResponse]: AssetResponse objects matching the filters.
+        Each object's `additional_fields` contains any non-null,
+        asset-type-specific attributes as defined in the respective asset
+        model classes.
     """
     try:
         g = get_graph()
-        assets = []
+        assets: List[AssetResponse] = []
 
         for asset_id, asset in g.assets.items():
             # Apply filters
@@ -491,7 +520,7 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
             # Build response using serialization utility
             asset_dict = serialize_asset(asset)
             assets.append(AssetResponse(**asset_dict))
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Error getting assets:")
         raise HTTPException(
             status_code=500,
@@ -501,7 +530,33 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
         return assets
 
 
-@app.get("/api/assets/{asset_id}", response_model=AssetResponse)
+@app.get(
+    "/api/assets/{asset_id}",
+    response_model=AssetResponse,
+    responses={
+        404: {
+            "description": "Asset not found.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Asset not found."}
+                }
+            },
+        },
+        500: {
+            "description": "Internal server error while retrieving asset.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
+            },
+        },
+    },
+)
 async def get_asset_detail(asset_id: str):
     """
     Retrieve detailed information for the asset identified by `asset_id`.
@@ -510,7 +565,10 @@ async def get_asset_detail(asset_id: str):
         asset_id (str): Identifier of the asset whose details are requested.
 
     Returns:
-        AssetResponse: Detailed asset information as defined in the AssetResponse model, including core fields and an `additional_fields` map containing any asset-specific attributes that are present and non-null.
+        AssetResponse: Detailed asset information as defined in the
+        AssetResponse model, including core fields and an `additional_fields`
+        map containing any asset-specific attributes that are present and
+        non-null.
 
     Raises:
         HTTPException: 404 if the asset is not found.
@@ -526,7 +584,7 @@ async def get_asset_detail(asset_id: str):
         # Build response using serialization utility with issuer_id included
         asset_dict = serialize_asset(asset, include_issuer=True)
         return AssetResponse(**asset_dict)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset detail:")
@@ -534,27 +592,57 @@ async def get_asset_detail(asset_id: str):
 
 
 @app.get(
-    "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
+    "/api/assets/{asset_id}/relationships",
+    response_model=List[RelationshipResponse],
+    responses={
+        404: {
+            "description": "Asset not found.",
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Asset not found."}
+                }
+            },
+        },
+        500: {
+            "description": (
+                "Internal server error while retrieving asset relationships."
+            ),
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
+            },
+        },
+    },
 )
 async def get_asset_relationships(asset_id: str):
     """
     List outgoing relationships for the specified asset.
 
     Parameters:
-        asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+        asset_id (str): Identifier of the asset whose outgoing relationships
+            are requested.
 
     Returns:
-        List[RelationshipResponse]: Outgoing relationship records for the asset (each with source_id, target_id, relationship_type, and strength).
+        List[RelationshipResponse]: Outgoing relationship records for the
+        asset (each with source_id, target_id, relationship_type, and
+        strength).
 
     Raises:
-        HTTPException: 404 if the asset is not found; 500 for unexpected errors.
+        HTTPException: 404 if the asset is not found; 500 for unexpected
+        errors.
     """
     try:
         g = get_graph()
         if asset_id not in g.assets:
             raise_asset_not_found(asset_id)
 
-        relationships = []
+        relationships: List[RelationshipResponse] = []
 
         # Outgoing relationships
         if asset_id in g.relationships:
@@ -567,7 +655,7 @@ async def get_asset_relationships(asset_id: str):
                         strength=strength,
                     )
                 )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset relationships:")
@@ -576,17 +664,37 @@ async def get_asset_relationships(asset_id: str):
         return relationships
 
 
-@app.get("/api/relationships", response_model=List[RelationshipResponse])
+@app.get(
+    "/api/relationships",
+    response_model=List[RelationshipResponse],
+    responses={
+        500: {
+            "description": "Internal server error while listing relationships.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
+            },
+        },
+    },
+)
 async def get_all_relationships():
     """
     List all directed relationships in the initialized asset graph.
 
     Returns:
-        List[RelationshipResponse]: List of relationships where each item contains `source_id`, `target_id`, `relationship_type`, and `strength`.
+        List[RelationshipResponse]: List of relationships where each item
+        contains `source_id`, `target_id`, `relationship_type`, and
+        `strength`.
     """
     try:
         g = get_graph()
-        relationships = []
+        relationships: List[RelationshipResponse] = []
 
         for source_id, rels in g.relationships.items():
             for target_id, rel_type, strength in rels:
@@ -598,14 +706,32 @@ async def get_all_relationships():
                         strength=strength,
                     )
                 )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Error getting relationships:")
         raise HTTPException(status_code=500, detail=str(e)) from e
     else:
         return relationships
 
 
-@app.get("/api/metrics", response_model=MetricsResponse)
+@app.get(
+    "/api/metrics",
+    response_model=MetricsResponse,
+    responses={
+        500: {
+            "description": "Internal server error while computing metrics.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
+            },
+        },
+    },
+)
 async def get_metrics():
     """
     Aggregate network metrics and counts of assets by asset class.
@@ -614,7 +740,8 @@ async def get_metrics():
         MetricsResponse: Aggregated metrics including:
             - total_assets: total number of assets.
             - total_relationships: total number of directed relationships.
-            - asset_classes: dict mapping asset class name (str) to asset count (int).
+            - asset_classes: dict mapping asset class name (str) to asset
+              count (int).
             - avg_degree: average node degree (float).
             - max_degree: maximum node degree (int).
             - network_density: network density (float).
@@ -628,7 +755,7 @@ async def get_metrics():
         metrics = g.calculate_metrics()
 
         # Count assets by class
-        asset_classes = {}
+        asset_classes: Dict[str, int] = {}
         for asset in g.assets.values():
             class_name = asset.asset_class.value
             asset_classes[class_name] = asset_classes.get(class_name, 0) + 1
@@ -651,32 +778,57 @@ async def get_metrics():
             network_density=relationship_density,
             relationship_density=relationship_density,
         )
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Error getting metrics:")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get("/api/visualization", response_model=VisualizationDataResponse)
+@app.get(
+    "/api/visualization",
+    response_model=VisualizationDataResponse,
+    responses={
+        500: {
+            "description": (
+                "Internal server error while building visualization data."
+            ),
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
+            },
+        },
+    },
+)
 async def get_visualization_data():
     """
     Provide nodes and edges prepared for 3D visualization of the asset graph.
 
-    Builds a list of node dictionaries (each with id, name, symbol, asset_class, x, y, z, color, size) and a list of edge dictionaries (each with source, target, relationship_type, strength) suitable for the API response.
+    Builds a list of node dictionaries (each with id, name, symbol,
+    asset_class, x, y, z, color, size) and a list of edge dictionaries
+    (each with source, target, relationship_type, strength) suitable for
+    the API response.
 
     Returns:
-        VisualizationDataResponse: An object with `nodes` (list of node dicts) and `edges` (list of edge dicts).
+        VisualizationDataResponse: An object with `nodes` (list of node
+        dicts) and `edges` (list of edge dicts).
 
     Raises:
-        HTTPException: If visualization data cannot be retrieved or processed; results in a 500 status with the error detail.
+        HTTPException: If visualization data cannot be retrieved or
+        processed; results in a 500 status with the error detail.
     """
     try:
         g = get_graph()
-        # get_3d_visualization_data_enhanced returns: (positions, asset_ids, colors, hover_texts)
-        positions, asset_ids, asset_colors, asset_text = (
+        # get_3d_visualization_data_enhanced returns:
+        # (positions, asset_ids, colors, hover_texts)
+        positions, asset_ids, asset_colors, _ = (
             g.get_3d_visualization_data_enhanced()
         )
-
-        nodes = []
+        nodes: List[Dict[str, Any]] = []
         for i, asset_id in enumerate(asset_ids):
             asset = g.assets[asset_id]
             nodes.append(
@@ -693,9 +845,10 @@ async def get_visualization_data():
                 }
             )
 
-        edges = []
-        # Build edges directly from graph.relationships to avoid rebuilding from intermediate data structures
-        # Only include edges where both source and target are in the asset_ids list
+        edges: List[Dict[str, Any]] = []
+        # Build edges directly from graph.relationships to avoid rebuilding
+        # from intermediate data structures. Only include edges where both
+        # source and target are in the asset_ids list.
         asset_id_set = set(asset_ids)
         for source_id in g.relationships:
             if source_id not in asset_id_set:
@@ -712,41 +865,74 @@ async def get_visualization_data():
                     )
 
         return VisualizationDataResponse(nodes=nodes, edges=edges)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Error getting visualization data:")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get("/api/asset-classes")
+@app.get(
+    "/api/asset-classes",
+    responses={
+        200: {
+            "description": "List of available asset classes.",
+        },
+    },
+)
 async def get_asset_classes():
     """
     List available asset classes.
 
     Returns:
-        Dict[str, List[str]]: A mapping with key "asset_classes" whose value is a list of asset class string values.
+        Dict[str, List[str]]: A mapping with key "asset_classes" whose
+        value is a list of asset class string values.
     """
     return {"asset_classes": [ac.value for ac in AssetClass]}
 
 
-@app.get("/api/sectors")
+@app.get(
+    "/api/sectors",
+    responses={
+        200: {
+            "description": "List of unique sector names.",
+        },
+        500: {
+            "description": (
+                "Internal server error while retrieving sectors."
+            ),
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
+            },
+        },
+    },
+)
 async def get_sectors():
     """
-    List unique sector names present in the global asset graph in sorted order.
+    List unique sector names present in the global asset graph in sorted
+    order.
 
     Returns:
-        Dict[str, List[str]]: Mapping with key "sectors" to a sorted list of unique sector names.
+        Dict[str, List[str]]: Mapping with key "sectors" to a sorted list
+        of unique sector names.
 
     Raises:
-        HTTPException: Raised with status code 500 if an unexpected error occurs while retrieving sectors.
+        HTTPException: Raised with status code 500 if an unexpected error
+        occurs while retrieving sectors.
     """
     try:
         g = get_graph()
-        sectors = set()
+        sectors: set[str] = set()
         for asset in g.assets.values():
             if asset.sector:
                 sectors.add(asset.sector)
         return {"sectors": sorted(list(sectors))}
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         logger.exception("Error getting sectors:")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
@@ -755,3 +941,4 @@ if __name__ == "__main__":
     import uvicorn
 
     uvicorn.run(app, host="127.0.0.1", port=8000)
+
