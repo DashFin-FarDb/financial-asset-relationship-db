@@ -734,15 +734,15 @@ class TestWriteOutput:
         assert summary_file.exists()
         assert summary_file.read_text() == content
 
-    def test_write_output_to_temp_file(self, monkeypatch):
+    def test_write_output_to_temp_file(self, monkeypatch, tmp_path):
         """write_output writes to standard temp file location."""
-        # Unset GITHUB_STEP_SUMMARY to test temp file path
         monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        monkeypatch.setattr("tempfile.gettempdir", lambda: str(tmp_path))
 
         content = "Test temp content"
         write_output(content)
 
-        temp_file = Path(tempfile.gettempdir()) / "pr_status_report.md"
+        temp_file = tmp_path / "pr_status_report.md"
         assert temp_file.exists()
         assert content in temp_file.read_text()
 
