@@ -135,6 +135,7 @@ class TestCompleteAPIFlow:
             assert all(a["sector"] == sector for a in filtered)
             assert len(filtered) <= len(all_assets)
 
+
 class TestDataIntegrity:
     """Test data integrity across endpoints."""
 
@@ -226,6 +227,7 @@ class TestAuthenticationFlow:
             "username": os.environ["ADMIN_USERNAME"],
             "password": os.environ["ADMIN_PASSWORD"],
         }
+
         async def override_form_data():
             return OAuth2PasswordRequestForm(
                 username=credentials["username"],
@@ -257,6 +259,7 @@ class TestAuthenticationFlow:
         # Test authentication with incorrect password
         invalid_credentials = credentials.copy()
         invalid_credentials["password"] = "wrongpassword"
+
         async def override_invalid_form_data():
             return OAuth2PasswordRequestForm(
                 username=invalid_credentials["username"],
