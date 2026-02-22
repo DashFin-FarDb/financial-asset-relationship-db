@@ -3,9 +3,9 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse, Response
 
+from src.api.dependencies import get_graph
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import generate_html_report, generate_markdown_report
-from src.api.dependencies import get_graph
 
 router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 
@@ -54,4 +54,3 @@ def schema_report_raw(
         "filename": f"schema_report.{fmt}",
         "content": content,
     }
-
