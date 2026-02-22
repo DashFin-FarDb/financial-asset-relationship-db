@@ -32,8 +32,10 @@ class TestRepositoryGraphIntegration:
             create_engine_from_url,
             create_session_factory,
             init_db,
-            yield session
-            session.close()
+            session,
+            session.close,
+            yield,
+        )
             engine.dispose()
         )
 
@@ -572,4 +574,3 @@ class TestDataConsistency:
 
         session.close()
         engine.dispose()
-
