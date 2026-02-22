@@ -282,22 +282,20 @@ class TestLabelWorkflowChanges:
     def test_simplified_to_single_step(self, label_workflow) -> None:
         """
         Assert the label workflow has been simplified to a single actions/labeler step.
-    
+
         The workflow is expected to define a `label` job whose steps list contains
         exactly one step, and that step must use the `actions/labeler` GitHub Action.
         """
         jobs = label_workflow.get("jobs", {})
         assert "label" in jobs, "label job must be present in the workflow"
-    
+
         label_job = jobs["label"]
         steps = label_job.get("steps", [])
         assert steps, "label job must define at least one step"
         assert len(steps) == 1, f"expected 1 step in label job, found {len(steps)}"
-    
+
         uses_value = steps[0].get("uses", "")
-        assert "actions/labeler" in uses_value, (
-            f"expected actions/labeler step, got uses={uses_value!r}"
-        )
+        assert "actions/labeler" in uses_value, f"expected actions/labeler step, got uses={uses_value!r}"
 
     def test_no_conditional_execution(self, label_workflow):
         """Verify no conditional if statements in steps."""
