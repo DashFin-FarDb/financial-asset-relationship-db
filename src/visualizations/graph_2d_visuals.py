@@ -50,13 +50,8 @@ def _resolve_positions(
         return _create_grid_layout(asset_ids)
     # Default: spring — project 3D positions to 2D
     if hasattr(graph, "get_3d_visualization_data_enhanced"):
-        positions_3d_array, asset_ids_ordered, _, _ = (
-            graph.get_3d_visualization_data_enhanced()
-        )
-        positions_3d = {
-            asset_ids_ordered[i]: tuple(positions_3d_array[i])
-            for i in range(len(asset_ids_ordered))
-        }
+        positions_3d_array, asset_ids_ordered, _, _ = graph.get_3d_visualization_data_enhanced()
+        positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
         return _create_spring_layout_2d(positions_3d, asset_ids)
     return _create_circular_layout(asset_ids)
 
