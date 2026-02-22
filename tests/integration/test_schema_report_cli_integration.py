@@ -237,7 +237,9 @@ class TestCLIFormatConversion:
             str(output_file),
         )
         content = output_file.read_text(encoding="utf-8")
-        lines_with_headers = [line for line in content.splitlines() if line.startswith("#")]
+        lines_with_headers = [
+            line for line in content.splitlines() if line.startswith("#")
+        ]
         assert len(lines_with_headers) == 0
 
     def test_json_contains_valid_structure(self, tmp_path: Path) -> None:
