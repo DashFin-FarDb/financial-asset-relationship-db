@@ -210,9 +210,7 @@ class TestParseArguments:
     ) -> None:
         """parse_arguments should accept output path."""
         output = tmp_path / "output.txt"
-        monkeypatch.setattr(
-            sys, "argv", ["schema_report_cli", "--output", str(output)]
-        )
+        monkeypatch.setattr(sys, "argv", ["schema_report_cli", "--output", str(output)])
 
         args = cli_module.parse_arguments()
 
@@ -238,9 +236,7 @@ class TestParseArguments:
     ) -> None:
         """parse_arguments should accept short flag versions."""
         output = tmp_path / "output.txt"
-        monkeypatch.setattr(
-            sys, "argv", ["schema_report_cli", "-o", str(output), "-v"]
-        )
+        monkeypatch.setattr(sys, "argv", ["schema_report_cli", "-o", str(output), "-v"])
 
         args = cli_module.parse_arguments()
 
@@ -392,9 +388,7 @@ class TestMainFunction:
     ) -> None:
         """main with --output should write to specified file."""
         output = tmp_path / "report.md"
-        monkeypatch.setattr(
-            sys, "argv", ["schema_report_cli", "--output", str(output)]
-        )
+        monkeypatch.setattr(sys, "argv", ["schema_report_cli", "--output", str(output)])
 
         result = cli_module.main()
 
@@ -493,9 +487,7 @@ class TestEdgeCases:
         def mock_create_sample_database():
             return None  # Invalid return
 
-        monkeypatch.setattr(
-            cli_module, "create_sample_database", mock_create_sample_database
-        )
+        monkeypatch.setattr(cli_module, "create_sample_database", mock_create_sample_database)
 
         fmt = cli_module.OutputFormat.MARKDOWN
 

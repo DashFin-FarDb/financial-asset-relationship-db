@@ -97,7 +97,7 @@ This is better.
 
         assert len(suggestions) == 1
         assert suggestions[0]["type"] == "code_suggestion"
-        assert 'def new_function()' in suggestions[0]["content"]
+        assert "def new_function()" in suggestions[0]["content"]
         assert 'return "fixed"' in suggestions[0]["content"]
 
     def test_extract_code_suggestions_with_inline_suggestions(self):

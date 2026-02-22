@@ -51,11 +51,7 @@ def _create_2d_relationship_traces(
             if target_id not in positions or target_id not in asset_id_set:
                 continue
 
-            if (
-                not show_all_relationships
-                and rel_type in relationship_filters
-                and not relationship_filters[rel_type]
-            ):
+            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
                 continue
 
             relationship_groups.setdefault(rel_type, []).append(
@@ -79,11 +75,7 @@ def _create_2d_relationship_traces(
             edges_x.extend([sx, tx, None])
             edges_y.extend([sy, ty, None])
 
-            hover = (
-                f"{source_id} → {target_id}<br>"
-                f"Type: {rel_type}<br>"
-                f"Strength: {strength:.2f}"
-            )
+            hover = f"{source_id} → {target_id}<br>" f"Type: {rel_type}<br>" f"Strength: {strength:.2f}"
             hover_texts.extend([hover, hover, None])
 
         traces.append(

@@ -15,7 +15,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -205,25 +204,27 @@ class TestCodacyConfig:
 class TestGitHubWorkflows:
     """Test GitHub workflow files."""
 
-    @pytest.fixture(params=[
-        "apisec-scan.yml",
-        "bandit.yml",
-        "bearer.yml",
-        "ci.yml",
-        "codacy.yml",
-        "codeflash.yaml",
-        "codeql.yml",
-        "codescan.yml",
-        "contrast-scan.yml",
-        "debricked.yml",
-        "dependency-review.yml",
-        "devskim.yml",
-        "docker-image.yml",
-        "docker-publish.yml",
-        "docker.yml",
-        "dotnet-desktop.yml",
-        "eslint.yml",
-    ])
+    @pytest.fixture(
+        params=[
+            "apisec-scan.yml",
+            "bandit.yml",
+            "bearer.yml",
+            "ci.yml",
+            "codacy.yml",
+            "codeflash.yaml",
+            "codeql.yml",
+            "codescan.yml",
+            "contrast-scan.yml",
+            "debricked.yml",
+            "dependency-review.yml",
+            "devskim.yml",
+            "docker-image.yml",
+            "docker-publish.yml",
+            "docker.yml",
+            "dotnet-desktop.yml",
+            "eslint.yml",
+        ]
+    )
     def workflow_file(self, request):
         """Parameterized fixture for all workflow files."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / request.param
@@ -417,9 +418,8 @@ class TestWorkflowSecurity:
             # If workflow uses secrets, check for permissions
             if "secrets." in content:
                 # Should have top-level permissions or job-level permissions
-                has_permissions = (
-                    "permissions" in config or
-                    any("permissions" in job for job in config.get("jobs", {}).values())
+                has_permissions = "permissions" in config or any(
+                    "permissions" in job for job in config.get("jobs", {}).values()
                 )
 
                 # This is a best practice, not a hard requirement
