@@ -32,14 +32,21 @@ class TestRepositoryGraphIntegration:
             create_engine_from_url,
             create_session_factory,
             init_db,
+            yield session
+            session.close()
+            engine.dispose()
         )
 
-        # Create in-memory database
-        db_path = tmp_path / "test_integration.db"
-        engine = create_engine_from_url(f"sqlite:///{db_path}")
-        init_db(engine)
-        factory = create_session_factory(engine)
-        session = factory()
+        @pytest.fixture
+        def db_session(tmp_path):
+            db_path = tmp_path / "test_integration.db"
+            engine = create_engine_from_url(f"sqlite:///{db_path}")
+            init_db(engine)
+            factory = create_session_factory(engine)
+            session = factory()
+            yield session
+            session.close()
+            engine.dispose()
 
         # Create repository and sample graph
         repo = AssetGraphRepository(session)
@@ -70,7 +77,7 @@ class TestRepositoryGraphIntegration:
         engine = create_engine_from_url(f"sqlite:///{db_path}")
         init_db(engine)
         factory = create_session_factory(engine)
-        session = factory()
+        with factory() as session:
 
         repo = AssetGraphRepository(session)
         graph = create_sample_database()
@@ -89,6 +96,9 @@ class TestRepositoryGraphIntegration:
         # Verify relationships were saved
         saved_rels = repo.list_relationships()
         assert len(saved_rels) > 0
+        for rel in saved_rels:
+            assert rel.source_id in graph.relationships
+            assert rel.target_id in graph.relationships[rel.source_id]
 
         session.close()
         engine.dispose()
@@ -184,6 +194,7 @@ class TestDataFetcherWithFallback:
 
         # Should have fallback data
         assert len(graph.assets) > 0
+        assert all(asset.id.startswith("TEST_") for asset in graph.assets)
 
     @staticmethod
     def test_fetcher_with_custom_fallback():
@@ -561,3 +572,4 @@ class TestDataConsistency:
 
         session.close()
         engine.dispose()
+
