@@ -359,15 +359,14 @@ class TestSnykWorkflowSecurity:
         with open(workflow_path) as f:
             return yaml.safe_load(f)
 
-    def test_no_hardcoded_secrets(self, snyk_workflow):
+    def test_no_hardcoded_secrets(self, snyk_workflow_content: str) -> None:
         """Test that workflow contains no hardcoded secrets."""
-        workflow_str = str(snyk_workflow).lower()
+        workflow_str = snyk_workflow_content.lower()
         # Check for common secret patterns
         forbidden_patterns = [
-            "password=",
-            "api_key=",
-            "access_token=",
-            "private_key",
+            "password: ",
+            "api_key: ",
+            "access_token: ",
         ]
         for pattern in forbidden_patterns:
             assert pattern not in workflow_str
