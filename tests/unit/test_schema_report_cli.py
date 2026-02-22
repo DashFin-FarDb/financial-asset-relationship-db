@@ -368,8 +368,8 @@ class TestCLILogging:
         assert log_file.exists()
 
     def test_errors_logged_to_file(self):
-        # Trigger an error
         """Test that errors are logged to the log file."""
+        # Trigger an error
         result = subprocess.run(
             [
                 sys.executable,
