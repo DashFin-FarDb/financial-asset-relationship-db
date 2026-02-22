@@ -105,7 +105,11 @@ def sarif_upload_steps(snyk_job_steps):
     Returns:
         list: Steps using codeql-action/upload-sarif.
     """
-    return [s for s in snyk_job_steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+    return [
+        s
+        for s in snyk_job_steps
+        if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+    ]
 
 
 @pytest.mark.unit
@@ -265,13 +269,17 @@ class TestSnykJobConfiguration:
     @staticmethod
     def test_job_checks_out_code(snyk_job_steps):
         """Test that job checks out repository code."""
-        checkout_steps = [s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]]
+        checkout_steps = [
+            s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]
+        ]
         assert len(checkout_steps) > 0
 
     @staticmethod
     def test_checkout_uses_v4(snyk_job_steps):
         """Test that checkout action uses v4."""
-        checkout_steps = [s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]]
+        checkout_steps = [
+            s for s in snyk_job_steps if "uses" in s and "checkout" in s["uses"]
+        ]
         assert len(checkout_steps) > 0
         assert "@v4" in checkout_steps[0]["uses"]
 
@@ -325,14 +333,22 @@ class TestSnykJobConfiguration:
     def test_job_uploads_sarif(self, snyk_job):
         """Test that job uploads SARIF results."""
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         assert len(sarif_steps) > 0
 
     @staticmethod
     def test_sarif_upload_uses_v4(sarif_upload_steps):
         """Test that SARIF upload uses CodeQL action v4."""
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         sarif_action = sarif_steps[0]["uses"]
         assert "@v4" in sarif_action
 
@@ -341,7 +357,11 @@ class TestSnykJobConfiguration:
         Asserts the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
         """
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         sarif_step = sarif_steps[0]
 
     @staticmethod
@@ -408,7 +428,11 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(snyk_workflow_path):
         """Test that workflow is not commented out or disabled."""
         content = snyk_workflow_path.read_text()
-        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [
+            l
+            for l in content.split("\n")
+            if l.strip() and not l.strip().startswith("#")
+        ]
         assert len(lines) > 0
 
     @staticmethod
@@ -438,7 +462,9 @@ class TestSnykWorkflowComments:
     def test_workflow_provides_context(snyk_workflow_content):
         """Test that workflow provides context about its purpose."""
         comments = " ".join(
-            l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
+            l.strip("# ").lower()
+            for l in snyk_workflow_content.split("\n")
+            if l.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments
