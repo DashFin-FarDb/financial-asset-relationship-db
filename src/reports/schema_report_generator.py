@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.helpers import (
