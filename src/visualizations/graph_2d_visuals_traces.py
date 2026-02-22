@@ -41,6 +41,7 @@ def _create_2d_relationship_traces(
 
     asset_id_set = set(asset_ids)
     relationship_groups: Dict[str, list[dict[str, object]]] = {}
+    seen_edges: set[tuple[str, str, str]] = set()
 
     for source_id in asset_ids:
         if source_id not in positions:
@@ -53,8 +54,16 @@ def _create_2d_relationship_traces(
             if target_id not in positions or target_id not in asset_id_set:
                 continue
 
-            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
+            if not show_all_relationships:
+                # Exclude the edge if its type is explicitly turned off, OR if it is
+                # a type not known to the filter map (opt-in behaviour).
+                if not relationship_filters.get(rel_type, False):
+                    continue
+
+            edge_key = (min(source_id, target_id), max(source_id, target_id), rel_type)
+            if edge_key in seen_edges:
                 continue
+            seen_edges.add(edge_key)
 
             relationship_groups.setdefault(rel_type, []).append(
                 {"source_id": source_id, "target_id": target_id, "strength": strength}
