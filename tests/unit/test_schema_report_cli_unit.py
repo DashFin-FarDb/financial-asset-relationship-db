@@ -16,7 +16,7 @@ def _repo_root() -> Path:
 def _cli_path() -> Path:
     """
     Get the filesystem path to the repository's schema_report_cli.py script.
-    
+
     Returns:
         Path: Path pointing to .github/scripts/schema_report_cli.py located under the repository root.
     """
@@ -29,13 +29,13 @@ def _load_cli_module_for_unit(
 ) -> ModuleType:
     """
     Load the CLI script from its on-disk location and return it as an imported module.
-    
+
     Sets the SCHEMA_REPORT_LOG environment variable to a log file under tmp_path to prevent test logging from touching the repository tree.
-    
+
     Parameters:
         monkeypatch (pytest.MonkeyPatch): pytest monkeypatch fixture used to modify environment variables.
         tmp_path (Path): Temporary directory in which the redirected log file will be created.
-    
+
     Returns:
         module (ModuleType): The imported CLI module.
     """
@@ -63,7 +63,7 @@ def cli_module(
 ) -> ModuleType:
     """
     Provide a freshly loaded CLI module for unit tests.
-    
+
     Returns:
         cli_module (ModuleType): The loaded CLI module object.
     """
@@ -177,7 +177,7 @@ class TestWriteAtomic:
         def failing_replace(self, *args, **kwargs):  # noqa: D401, ARG002
             """
             Simulate a failing Path.replace by always raising a RuntimeError.
-            
+
             Raises:
                 RuntimeError: with message "simulated replace failure".
             """

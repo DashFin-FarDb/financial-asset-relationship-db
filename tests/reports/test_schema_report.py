@@ -22,7 +22,7 @@ class MockGraph:
     def calculate_metrics(self) -> Dict[str, Any]:
         """
         Provide deterministic mock metrics for testing schema report generation.
-        
+
         Returns:
             dict: Fixed schema metrics including:
                 - relationship_distribution: mapping of relationship type to instance count (e.g., {"correlation": 4, "hedge": 2})

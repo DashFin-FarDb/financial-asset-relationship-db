@@ -25,12 +25,12 @@ def session_scope(
 ) -> Generator[Session, None, None]:
     """
     Provide a transactional SQLAlchemy session scope for repository operations.
-    
+
     Yields a Session obtained from session_factory, commits the transaction if the block exits normally, rolls back if an exception occurs, and always closes the session.
-    
+
     Parameters:
         session_factory (Callable[[], Session]): Factory callable that produces a SQLAlchemy Session to use within the scope.
-    
+
     Returns:
         Session: The session instance yielded to the caller for use within the transactional context.
     """
@@ -48,16 +48,16 @@ def session_scope(
 def create_engine_from_url(url: str | None = None) -> Engine:
     """
     Create a SQLAlchemy Engine configured for the asset graph database URL.
-    
+
     If `url` is provided it is used verbatim; otherwise the `ASSET_GRAPH_DATABASE_URL`
     environment variable is read at call time and falls back to the module default.
     When the resolved URL refers to an in-memory SQLite database (scheme starts with
     "sqlite" and contains ":memory:"), the engine is created with connection args
     suitable for shared access across threads and an in-memory-safe pool.
-    
+
     Parameters:
         url (str | None): Optional database URL to use instead of the environment variable.
-    
+
     Returns:
         Engine: A configured SQLAlchemy Engine for the resolved database URL.
     """

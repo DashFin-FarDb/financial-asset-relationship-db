@@ -11,10 +11,10 @@ _BASE_COLORS = ["blue", "green", "orange", "red", "purple"]
 def _asset_class_distribution(distribution: dict) -> go.Figure:
     """
     Create a bar chart showing counts for each asset class.
-    
+
     Parameters:
         distribution (dict): Mapping of asset class names to their integer counts.
-    
+
     Returns:
         go.Figure: Plotly Figure representing the asset class distribution.
     """
@@ -34,10 +34,10 @@ def _asset_class_distribution(distribution: dict) -> go.Figure:
 def _relationship_distribution(distribution: dict) -> go.Figure:
     """
     Create a bar chart showing counts for each relationship type.
-    
+
     Parameters:
         distribution (dict): Mapping of relationship type (str) to its count (int).
-    
+
     Returns:
         go.Figure: Plotly Figure containing a bar chart with relationship types on the x-axis and their counts on the y-axis.
     """

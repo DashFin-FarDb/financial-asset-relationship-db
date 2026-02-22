@@ -20,9 +20,9 @@ from pathlib import Path
 def _repo_root() -> Path:
     """
     Locate the repository root by ascending two directory levels from this file.
-    
+
     Assumes this module is placed under a tests/ subtree (i.e., two levels below the repo root).
-    
+
     Returns:
         Path: Path object pointing to the repository root directory.
     """
@@ -32,7 +32,7 @@ def _repo_root() -> Path:
 def _cli_path() -> Path:
     """
     Locate the repository's schema_report_cli.py script under .github/scripts.
-    
+
     Returns:
         Path: Path to the CLI script file (repo_root/.github/scripts/schema_report_cli.py).
     """
@@ -42,13 +42,13 @@ def _cli_path() -> Path:
 def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
     """
     Run the CLI script in a subprocess while forcing the CLI log to a temporary location.
-    
+
     The environment variable SCHEMA_REPORT_LOG is set to a file under tmp_path so tests do not write logs into the repository tree.
-    
+
     Parameters:
         tmp_path (Path): Directory used to place the temporary log file (schema_report_cli.log).
         *args (str): Additional command-line arguments forwarded to the CLI.
-    
+
     Returns:
         subprocess.CompletedProcess[str]: The completed subprocess result with captured `stdout` and `stderr`.
     """
@@ -304,7 +304,7 @@ class TestCLIArgumentParsing:
     def test_combined_flags(self, tmp_path: Path) -> None:
         """
         Verify multiple CLI flags can be combined and produce a successful JSON report file.
-        
+
         Runs the CLI with --fmt json, --output <file>, and --verbose, and asserts the process exits with code 0 and that the output file is created.
         """
         output_file = tmp_path / "report.json"

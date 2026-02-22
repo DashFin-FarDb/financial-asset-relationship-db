@@ -186,7 +186,7 @@ def get_password_hash(password):
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
     Seed an administrative user from environment variables into the given repository.
-    
+
     If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that user
     in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and
     ADMIN_DISABLED (interpreted as a truthy flag). The provided password is stored

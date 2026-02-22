@@ -17,7 +17,7 @@ pytestmark = pytest.mark.unit
 def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
     Preserve and later restore api.database state and the DATABASE_URL environment variable for a test.
-    
+
     Yields control to the test; on teardown closes any in-memory connection stored at api.database._MEMORY_CONNECTION (if present), restores or clears the original DATABASE_URL environment variable, and reloads the api.database module to reset its state.
     """
     original_url = os.environ.get("DATABASE_URL")

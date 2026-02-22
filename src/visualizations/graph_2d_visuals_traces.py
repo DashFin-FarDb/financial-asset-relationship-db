@@ -24,12 +24,12 @@ def _create_2d_relationship_traces(
 ) -> List[go.Scatter]:
     """
     Create 2D line traces representing relationships between assets for visualization.
-    
+
     Filters relationships between the given asset_ids using the provided boolean flags
     (unless show_all_relationships is True), ignores relationships where either asset
     lacks a position or is not in asset_ids, groups edges by relationship type, and
     returns one go.Scatter line trace per relationship type (colors taken from REL_TYPE_COLORS).
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing assets and their relationships.
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to (x, y) coordinates.
@@ -40,7 +40,7 @@ def _create_2d_relationship_traces(
             Flags to enable or disable the corresponding relationship types.
         show_all_relationships (bool):
             If True, include all relationship types regardless of the individual flags.
-    
+
     Returns:
         List[go.Scatter]: A list of Scatter traces (one per relationship type) drawing lines
         between asset positions; each trace's hover text lists "source → target", the
@@ -108,14 +108,14 @@ def _create_node_trace(
 ) -> go.Scatter:
     """
     Create a Scatter trace representing asset nodes for visualization.
-    
+
     Each node is colored by its asset class (fallback to gray if unknown) and sized based on the asset's number of relationships (base size 20, increasing up to an additional 30). Hover text shows the asset ID and its class; node labels are the asset IDs.
-    
+
     Parameters:
         graph: AssetRelationshipGraph containing assets and their relationships.
         positions: Mapping of asset ID to (x, y) coordinates.
         asset_ids: Ordered list of asset IDs to include in the trace.
-    
+
     Returns:
         go.Scatter: A scatter trace named "Assets" with per-node colors, sizes, hover text, and labels.
     """

@@ -164,9 +164,9 @@ class AssetRelationshipGraph:
     ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
         """
         Compute 3D node positions and associated visualization metadata for all known assets and relationships.
-        
+
         Positions are arranged on a unit circle in the XY plane (Z coordinates are zero). If no asset or relationship identifiers are available, returns a single default position and metadata for an "A" placeholder.
-        
+
         Returns:
             positions (numpy.ndarray): Array of shape (n, 3) containing X, Y, Z coordinates for each asset.
             asset_ids (List[str]): Sorted list of asset identifiers corresponding to rows in `positions`.

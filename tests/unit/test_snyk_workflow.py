@@ -23,7 +23,7 @@ class TestSnykWorkflowStructure:
     def snyk_workflow_path(self):
         """
         Path to the Snyk Infrastructure as Code workflow file.
-        
+
         Returns:
             pathlib.Path: Path object pointing to ".github/workflows/snyk-infrastructure.yml".
         """
@@ -33,13 +33,13 @@ class TestSnykWorkflowStructure:
     def snyk_workflow(self, snyk_workflow_path):
         """
         Load and parse the Snyk workflow YAML file.
-        
+
         Parameters:
             snyk_workflow_path (Path): Path to the Snyk workflow YAML file.
-        
+
         Returns:
             dict: Parsed YAML mapping representing the workflow.
-        
+
         Raises:
             AssertionError: If the workflow file does not exist.
         """
@@ -62,7 +62,7 @@ class TestSnykWorkflowStructure:
     def test_workflow_has_name(self, snyk_workflow):
         """
         Check that the workflow defines a non-empty string at the top-level "name" key.
-        
+
         Parameters:
             snyk_workflow (dict): Parsed workflow YAML as a dictionary.
         """
@@ -98,7 +98,7 @@ class TestSnykWorkflowTriggers:
     def snyk_workflow(self):
         """
         Load and parse the Snyk GitHub Actions workflow YAML from .github/workflows/snyk-infrastructure.yml.
-        
+
         Returns:
             dict | None: Parsed workflow mapping if the file contains YAML, or `None` if the file is empty.
         """
@@ -119,7 +119,7 @@ class TestSnykWorkflowTriggers:
     def test_workflow_has_schedule(self, snyk_workflow):
         """
         Verify the workflow defines at least one scheduled trigger.
-        
+
         Asserts that the workflow's triggers include a top-level "schedule" key whose value is a non-empty list.
         """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
@@ -130,7 +130,7 @@ class TestSnykWorkflowTriggers:
     def test_schedule_cron_format_valid(self, snyk_workflow):
         """
         Verify the workflow's schedule trigger contains a cron expression with five space-separated fields.
-        
+
         Checks that a 'schedule' trigger exists, that its first entry includes a 'cron' key, and that the cron expression consists of exactly five space-separated parts.
         """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
@@ -166,7 +166,7 @@ class TestSnykWorkflowPermissions:
     def snyk_workflow(self):
         """
         Load and parse the Snyk GitHub Actions workflow YAML from .github/workflows/snyk-infrastructure.yml.
-        
+
         Returns:
             dict | None: Parsed workflow mapping if the file contains YAML, or `None` if the file is empty.
         """
@@ -217,9 +217,9 @@ class TestSnykJobConfiguration:
     def snyk_job(self):
         """
         Retrieve the 'snyk' job configuration from the Snyk workflow file.
-        
+
         Reads .github/workflows/snyk-infrastructure.yml and returns the mapping under `jobs` for the `snyk` job.
-        
+
         Returns:
             snyk_job (dict): The dictionary representing the `snyk` job configuration from the workflow YAML.
         """
@@ -330,7 +330,7 @@ class TestSnykJobConfiguration:
     def test_sarif_upload_has_file_input(self, snyk_job):
         """
         Verifies the SARIF upload step includes a `sarif_file` input set to "snyk.sarif".
-        
+
         Parameters:
             snyk_job (dict): Parsed workflow job mapping for the `snyk` job under test.
         """
@@ -351,7 +351,7 @@ class TestSnykWorkflowSecurity:
     def snyk_workflow(self):
         """
         Load and parse the Snyk GitHub Actions workflow YAML from .github/workflows/snyk-infrastructure.yml.
-        
+
         Returns:
             dict | None: Parsed workflow mapping if the file contains YAML, or `None` if the file is empty.
         """
@@ -402,7 +402,7 @@ class TestSnykWorkflowEdgeCases:
     def snyk_workflow_path(self):
         """
         Path to the Snyk Infrastructure as Code workflow file.
-        
+
         Returns:
             pathlib.Path: Path object pointing to ".github/workflows/snyk-infrastructure.yml".
         """
@@ -416,7 +416,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_has_no_syntax_errors(self, snyk_workflow_path):
         """
         Ensure the Snyk workflow file parses as valid YAML.
-        
+
         Attempts to load the workflow file with yaml.safe_load and asserts the parsed document is not None, indicating the file contains valid YAML syntax.
         """
         with open(snyk_workflow_path) as f:
@@ -426,7 +426,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_not_disabled(self, snyk_workflow_path):
         """
         Ensure the workflow file is not entirely commented out or blank.
-        
+
         Reads the workflow YAML file and asserts there is at least one non-empty, non-comment line.
         """
         content = snyk_workflow_path.read_text()
@@ -436,7 +436,7 @@ class TestSnykWorkflowEdgeCases:
     def test_workflow_job_names_valid(self, snyk_workflow_path):
         """
         Ensure each job name in the workflow consists only of ASCII letters, digits, hyphens, or underscores.
-        
+
         Raises an assertion error if any job name contains characters outside the set A-Z, a-z, 0-9, '-', or '_'.
         """
         with open(snyk_workflow_path) as f:
@@ -455,7 +455,7 @@ class TestSnykWorkflowComments:
     def snyk_workflow_content(self):
         """
         Read the raw text content of the Snyk workflow YAML file at .github/workflows/snyk-infrastructure.yml.
-        
+
         Returns:
             content (str): The workflow file's text content.
         """
@@ -469,7 +469,7 @@ class TestSnykWorkflowComments:
     def test_workflow_documents_third_party_actions(self, snyk_workflow_content):
         """
         Asserts the workflow file contains at least one comment documenting third-party (non-GitHub-certified) actions.
-        
+
         Parameters:
             snyk_workflow_content (str): Raw text content of the workflow YAML file used to extract comment lines.
         """
@@ -481,7 +481,7 @@ class TestSnykWorkflowComments:
     def test_workflow_provides_context(self, snyk_workflow_content):
         """
         Asserts the workflow's comment lines mention scanning or security to ensure the file provides contextual purpose.
-        
+
         Parameters:
             snyk_workflow_content (str): Raw text content of the workflow YAML file, including comment lines.
         """

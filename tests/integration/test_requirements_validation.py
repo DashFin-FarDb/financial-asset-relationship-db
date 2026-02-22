@@ -40,9 +40,7 @@ class TestRequirementsDevChanges:
             try:
                 Requirement(line)
             except InvalidRequirement as exc:
-                raise AssertionError(
-                    f"Invalid requirement in requirements-dev.txt at line {i}: '{raw}'"
-                ) from exc
+                raise AssertionError(f"Invalid requirement in requirements-dev.txt at line {i}: '{raw}'") from exc
 
     def test_pyyaml_added(self, requirements_dev_content: str) -> None:
         """
@@ -75,9 +73,7 @@ class TestRequirementsDevChanges:
             if req.name.lower() == "pyyaml":
                 pyyaml_lines.append(line)
 
-        assert len(pyyaml_lines) == 1, (
-            f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
-        )
+        assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
 
         pyyaml_line_no_comment = pyyaml_lines[0].split("#", 1)[0].strip()
         assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
@@ -101,9 +97,7 @@ class TestRequirementsDevChanges:
             except InvalidRequirement as exc:
                 raise AssertionError(f"Invalid requirement line: '{raw}'") from exc
 
-        assert len(package_names) == len(set(package_names)), (
-            "Duplicate packages found in requirements-dev.txt"
-        )
+        assert len(package_names) == len(set(package_names)), "Duplicate packages found in requirements-dev.txt"
 
     def test_requirements_format_valid(self, requirements_dev_content: str) -> None:
         """
@@ -170,9 +164,7 @@ class TestRequirementsDependencyCompatibility:
                 try:
                     out.add(Requirement(line).name.lower())
                 except InvalidRequirement as exc:
-                    raise AssertionError(
-                        f"Invalid requirement in {filename} at line {i}: '{raw}'"
-                    ) from exc
+                    raise AssertionError(f"Invalid requirement in {filename} at line {i}: '{raw}'") from exc
             return out
 
         req_packages = _names(req_lines, "requirements.txt")
@@ -201,8 +193,7 @@ class TestRequirementsInstallability:
             check=False,
         )
         assert result.returncode == 0, (
-            "pip dry-run failed for requirements-dev.txt:\n"
-            f"stdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
+            "pip dry-run failed for requirements-dev.txt:\n" f"stdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
         )
 
 

@@ -83,7 +83,7 @@ class OutputFormat(enum.Enum):
     def __str__(self) -> str:
         """
         Get the enum member's underlying string value.
-        
+
         Returns:
             The string value associated with this enum member.
         """
@@ -102,12 +102,12 @@ class CLIError(Exception):
 def parse_arguments() -> argparse.Namespace:
     """
     Parse command-line arguments for the Schema Report CLI.
-    
+
     Recognizes:
     - --fmt: output format, one of 'markdown', 'text', or 'json' (default: 'markdown').
     - --output / -o: optional filesystem path to write the report; if omitted, stdout is used.
     - --verbose / -v: enable verbose logging.
-    
+
     Returns:
         argparse.Namespace: Parsed arguments with attributes `fmt` (str), `output` (Path | None), and `verbose` (bool).
     """
@@ -142,12 +142,12 @@ def parse_arguments() -> argparse.Namespace:
 def convert_markdown_to_plain_text(markdown: str) -> str:
     """
     Produce a plain-text version of a Markdown string.
-    
+
     Removes common leading Markdown markers (heading hashes '#' and list markers '-' or '*') from each line while preserving the original line breaks and content.
-    
+
     Parameters:
         markdown (str): Input Markdown text.
-    
+
     Returns:
         str: Plain-text string with leading Markdown markers removed and lines joined by newline characters.
     """
@@ -161,10 +161,10 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
 def convert_markdown_to_json(markdown: str) -> str:
     """
     Create a JSON payload containing the provided Markdown schema report.
-    
+
     Parameters:
         markdown (str): The Markdown schema report to include in the payload.
-    
+
     Returns:
         json_str (str): Pretty-printed JSON string with a top-level `schema_report` field holding the original Markdown.
     """
@@ -175,9 +175,9 @@ def convert_markdown_to_json(markdown: str) -> str:
 def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
     """
     Write text to `path` atomically.
-    
+
     Creates parent directories if needed, writes `data` to a temporary file in the same directory, flushes and syncs contents to disk, then atomically replaces the destination with the temporary file. On failure the temporary file is removed when possible and the original exception is propagated.
-    
+
     Parameters:
         path (Path): Destination file path.
         data (str): Text content to write.
@@ -206,11 +206,11 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
 def generate_report(fmt: OutputFormat, output: Path | None) -> None:
     """
     Generate a schema report and write it to the given file path or stdout.
-    
+
     Parameters:
         fmt (OutputFormat): Desired output format (MARKDOWN, TEXT, or JSON).
         output (Path | None): Destination file path. If None, writes to stdout.
-    
+
     Raises:
         CLIError: If report generation, formatting, or writing fails.
     """
@@ -247,9 +247,9 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
 def main() -> int:
     """
     Run the Schema Report CLI: parse arguments, configure logging, validate options, generate the report, and handle errors.
-    
+
     Parses CLI options, adjusts logging verbosity, validates the requested output format, invokes report generation, and prints user-facing error or cancellation messages when appropriate.
-    
+
     Returns:
         int: Process exit code — `0` for success, `1` for general errors (invalid options, CLIError, or unexpected failures), `130` if cancelled by the user (KeyboardInterrupt).
     """

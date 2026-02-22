@@ -42,15 +42,15 @@ class TestMicroagentValidation:
     def parse_frontmatter(content: str) -> tuple[Dict[str, Any], str]:
         """
         Extracts YAML frontmatter and the markdown body from a markdown file string.
-        
+
         Parses the leading YAML frontmatter delimited by '---' and returns the parsed frontmatter and the remaining document body.
-        
+
         Parameters:
             content (str): Complete markdown file content to parse.
-        
+
         Returns:
             tuple[Dict[str, Any], str]: A tuple where the first element is the parsed frontmatter (typically a dict as returned by yaml.safe_load) and the second element is the body string that follows the frontmatter.
-        
+
         Raises:
             ValueError: If no YAML frontmatter is found or if the frontmatter contains invalid YAML.
         """
@@ -140,7 +140,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_frontmatter_type_field(repo_engineer_frontmatter: Dict[str, Any]):
         """
         Verify the frontmatter's `type` field is one of "knowledge", "action", or "hybrid" and equals "knowledge" for repo_engineer_lead.
-        
+
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for the microagent markdown file.
         """
@@ -156,7 +156,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     ) -> None:
         """
         Ensure the frontmatter contains a `version` field formatted as a semantic version `x.y.z`.
-        
+
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for the microagent.
         """
@@ -224,7 +224,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_pr_handling(repo_engineer_body: str):
         """
         Verify the body mentions pull request handling.
-        
+
         Parameters:
             repo_engineer_body (str): Markdown body content to inspect; matching is case-insensitive and looks for the terms "pr" or "pull request".
         """
@@ -265,9 +265,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_no_malformed_sentences(repo_engineer_body: str):
         """
         Ensure the body contains no occurrences of multiple consecutive spaces except when directly following a period.
-        
+
         Parameters:
-        	repo_engineer_body (str): The markdown body text of the microagent file to validate.
+                repo_engineer_body (str): The markdown body text of the microagent file to validate.
         """
         # Check for multiple spaces in a row (except after periods)
         assert not re.search(
@@ -278,10 +278,10 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_content_appropriate_length(repo_engineer_body: str) -> None:
         """
         Assert that the microagent body contains between 30 and 1000 words.
-        
+
         Parameters:
             repo_engineer_body (str): Markdown body text to check.
-        
+
         Raises:
             AssertionError: If the word count is less than 30 or greater than 1000.
         """
@@ -349,7 +349,7 @@ class TestAllMicroagents(TestMicroagentValidation):
     def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
         """
         Validate that every microagent markdown file includes the required YAML frontmatter fields.
-        
+
         Asserts that each file's parsed frontmatter contains the keys "name", "type", "version", and "agent"; the assertion message includes the filename when a field is missing.
         """
         required_fields = ["name", "type", "version", "agent"]
@@ -420,7 +420,7 @@ class TestAllMicroagents(TestMicroagentValidation):
     def test_triggers_field_is_optional(self, microagent_files: List[Path]):
         """
         Verify that for each microagent file, the YAML frontmatter's `triggers` field is optional and, if present, is either empty/None or a list of non-empty strings.
-        
+
         Parameters:
             microagent_files (List[Path]): Paths to microagent markdown files to validate.
         """
@@ -462,7 +462,7 @@ class TestMicroagentSemantic:
     def test_autonomous_nature_described(repo_engineer_content: str):
         """
         Ensure the microagent body states that it operates autonomously or is automated.
-        
+
         Parameters:
             repo_engineer_content (str): Full markdown content of the microagent file to inspect.
         """
@@ -479,7 +479,7 @@ class TestMicroagentSemantic:
     def test_describes_reviewer_interaction(repo_engineer_content: str):
         """
         Checks that the microagent body mentions interaction with reviewers, contributors, or comments.
-        
+
         Parameters:
             repo_engineer_content (str): Full markdown content of the repo_engineer_lead microagent.
         """
@@ -502,7 +502,7 @@ class TestMicroagentSemantic:
     def test_describes_post_explanation(repo_engineer_content: str):
         """
         Asserts the microagent markdown mentions posting explanations or explaining.
-        
+
         Parameters:
             repo_engineer_content (str): Full markdown content of the microagent (frontmatter and body); check is case-insensitive.
         """
@@ -597,7 +597,7 @@ class TestMicroagentEdgeCases:
     def test_consistent_newlines(repo_engineer_path: Path):
         """
         Ensure the file uses consistent line endings (either all CRLF or all LF).
-        
+
         Asserts that if any CRLF sequences are present, every newline is CRLF; otherwise all newlines are LF.
         """
         with open(repo_engineer_path, "rb") as f:
@@ -647,7 +647,7 @@ class TestMicroagentDocumentation(TestMicroagentValidation):
     def test_all_microagents_have_body_content(self, microagent_files: List[Path]) -> None:
         """
         Ensure each microagent markdown file has at least 20 words in its body.
-        
+
         Skips files whose YAML frontmatter cannot be parsed; for parsed files asserts the body contains 20 or more words.
         """
         for file_path in microagent_files:

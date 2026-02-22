@@ -202,7 +202,7 @@ class TestDataFetcherWithFallback:
         def custom_factory():
             """
             Provide a preconfigured AssetRelationshipGraph to use as a fallback.
-            
+
             Returns:
                 AssetRelationshipGraph: The prepared graph instance to be used when real data fetching is unavailable.
             """
@@ -489,7 +489,7 @@ class TestDataConsistency:
     def test_graph_clone_independence():
         """
         Verify that two separately created sample graphs are independent.
-        
+
         Adds an asset to one sample graph and asserts the new asset exists in that graph but not in the other.
         """
         graph1 = create_sample_database()

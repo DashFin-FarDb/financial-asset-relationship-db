@@ -137,7 +137,7 @@ class TestWorkflowPermissionsHardening:
     def test_workflows_define_explicit_permissions(all_workflows):
         """
         Require that each workflow defines a top-level "permissions" key.
-        
+
         Parameters:
             all_workflows (Iterable[Mapping]): An iterable of workflow objects where each object contains a 'content' mapping (the parsed workflow YAML) and a 'path' string used in failure messages.
         """
@@ -148,12 +148,12 @@ class TestWorkflowPermissionsHardening:
     def test_default_permissions_are_restrictive(all_workflows):
         """
         Ensure each workflow defines least-privilege default permissions.
-        
+
         For each workflow in `all_workflows`:
         - If `permissions` is a string, it must be "read-all" or "none".
         - If `permissions` is a dict, no permission key may have the value "write" except for the allowed set {"contents", "pull-requests", "issues", "checks"}.
         - On violation, an assertion is raised identifying the workflow path and offending permission(s).
-        
+
         Parameters:
             all_workflows (iterable): Iterable of workflow mappings; each mapping must include:
                 - "path" (str): filesystem path or identifier for the workflow (used in assertion messages).
@@ -179,10 +179,10 @@ class TestWorkflowPermissionsHardening:
     def test_no_workflows_with_write_all_permission(all_workflows):
         """
         Ensure no workflow sets the top-level permissions string to "write-all".
-        
+
         Parameters:
             all_workflows (Iterable[dict]): Iterable of workflow objects where each workflow contains at least "path" (str) and "content" (dict).
-        
+
         Raises:
             AssertionError: If any workflow's top-level `permissions` is the string "write-all".
         """

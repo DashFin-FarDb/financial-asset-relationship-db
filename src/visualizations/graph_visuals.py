@@ -37,15 +37,15 @@ logger = logging.getLogger(__name__)
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
     """
     Create a 3D visualization of an asset relationship graph.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The graph to visualize; must implement
             `get_3d_visualization_data_enhanced()` to provide node positions,
             asset identifiers, colors, and hover texts.
-    
+
     Returns:
         go.Figure: A Plotly 3D figure containing node markers and relationship traces.
-    
+
     Raises:
         ValueError: If `graph` is not an AssetRelationshipGraph instance or does
             not provide the required `get_3d_visualization_data_enhanced` method.
@@ -88,7 +88,7 @@ def visualize_3d_graph_with_filters(
 ) -> go.Figure:
     """
     Create a 3D visualization of an AssetRelationshipGraph with selective relationship-type filters.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
         show_same_sector (bool): Include same-sector relationships.
@@ -100,10 +100,10 @@ def visualize_3d_graph_with_filters(
         show_regulatory (bool): Include regulatory-impact relationships.
         show_all_relationships (bool): If True, ignore per-type filters and show all relationships.
         toggle_arrows (bool): Show directional arrows for unidirectional relationships.
-    
+
     Returns:
         fig (plotly.graph_objs.Figure): Configured 3D Plotly figure representing the graph.
-    
+
     Raises:
         ValueError: If `graph` is not an AssetRelationshipGraph instance or lacks required visualization data.
     """

@@ -232,7 +232,7 @@ class TestConftestHelpers:
     def test_pytest_load_initial_conftests_args_with_equals_in_value():
         """
         Verifies that an inline `--cov-report` argument whose value contains '=' is removed from the args list while non-coverage arguments are preserved when pytest-cov is unavailable.
-        
+
         The test ensures `--cov-report=html:dir=coverage_html` is stripped and that unrelated entries (e.g., "tests/", "-v") remain.
         """
         with patch("conftest.importlib.util.find_spec", return_value=None):

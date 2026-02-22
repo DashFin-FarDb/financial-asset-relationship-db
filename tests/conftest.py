@@ -28,7 +28,7 @@ def empty_graph():
 def sample_equity():
     """
     Create a sample Equity asset configured for tests.
-    
+
     Returns:
         Equity: An Equity instance with id "AAPL", symbol "AAPL", name "Apple Inc.", asset_class AssetClass.EQUITY, sector "Technology", price 150.0, pe_ratio 25.5, and dividend_yield 0.005.
     """
@@ -48,9 +48,9 @@ def sample_equity():
 def sample_bond():
     """
     Create a sample Bond asset for tests.
-    
+
     The returned Bond is pre-populated with the following values: id "AAPL_BOND", symbol "AAPL_B", name "Apple Bond", asset_class FIXED_INCOME, sector "Technology", price 100.0, issuer_id "AAPL", yield_to_maturity 0.03, and credit_rating "AAA".
-    
+
     Returns:
         Bond: A Bond instance configured with the sample Apple bond values.
     """
@@ -71,7 +71,7 @@ def sample_bond():
 def sample_commodity():
     """
     Create a sample Commodity asset for tests.
-    
+
     Returns:
         Commodity: A Commodity representing gold with id "GOLD", symbol "GC", sector "Metals", price 2000.0, contract_size 100.0, and volatility 0.15.
     """
@@ -91,7 +91,7 @@ def sample_commodity():
 def sample_currency():
     """
     Create a sample Currency asset configured for tests.
-    
+
     Returns:
         Currency: A Currency instance with id "EUR", symbol "EUR", name "Euro", asset_class AssetClass.CURRENCY, sector "Currency", price 1.1, exchange_rate 1.1, and country "Eurozone".
     """
@@ -111,7 +111,7 @@ def sample_currency():
 def sample_regulatory_event():
     """
     Create a sample RegulatoryEvent representing an earnings report for TEST_AAPL.
-    
+
     Returns:
         RegulatoryEvent: Instance with id "EVENT_001", asset_id "TEST_AAPL", event_type RegulatoryActivity.EARNINGS_REPORT, date "2024-01-01", description "Earnings report", impact_score 0.8, and related_assets ["AAPL_BOND"].
     """

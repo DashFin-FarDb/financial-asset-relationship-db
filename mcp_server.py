@@ -52,13 +52,13 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 def _build_mcp_app():
     """
     Create and configure the FastMCP application used by the relationship manager.
-    
+
     Performs a local (lazy) import of the optional FastMCP dependency so the module can
     be imported or inspected without requiring the MCP package to be installed. Registers
     an `add_equity_node` tool that validates (and, if supported by the module-level
     graph, adds) an Equity asset, and a `graph://data/3d-layout` resource that returns
     the current 3D visualization data as a JSON string.
-    
+
     Returns:
         mcp (FastMCP): Configured FastMCP application instance.
     """

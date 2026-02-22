@@ -125,9 +125,9 @@ def mock_graph():
 def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRelationshipGraph) -> None:
     """
     Mirror key attributes from a real AssetRelationshipGraph onto a mock graph instance.
-    
+
     Copies the `assets`, `relationships`, `calculate_metrics`, and `get_3d_visualization_data_enhanced` attributes from `graph` to `mock_graph_instance` so tests can use the mock with the same public surface as the concrete graph.
-    
+
     Parameters:
         mock_graph_instance (object): The mock object representing the patched api.main.graph.
         graph (AssetRelationshipGraph): The concrete graph whose attributes will be mirrored.
@@ -143,9 +143,9 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
 def apply_mock_graph():
     """
     Provide a helper that attaches a concrete AssetRelationshipGraph's data and behavior onto a patched mock graph.
-    
+
     The returned callable expects two arguments (mock_graph_instance, source_graph) and copies the source graph's assets, relationships, and key methods (e.g., calculate_metrics and get_3d_visualization_data_enhanced) onto the mock graph so tests can use the mocked graph as if it were the real graph.
-    
+
     Returns:
         callable: A function accepting (mock_graph_instance, source_graph) that mutates mock_graph_instance to mirror source_graph.
     """
@@ -817,7 +817,7 @@ class TestCacheCorruptionRegression:
         def load_from_cache():
             """
             Attempt to load a cached real-data graph and record the outcome.
-            
+
             On success, appends the loaded graph to the outer-scope list `results`. On failure, appends the raised exception to the outer-scope list `errors`. The load is performed without network access.
             """
             try:
@@ -914,7 +914,7 @@ class TestAPIBoundaryConditions:
     def test_api_handles_extremely_large_graph(mock_graph_instance, client):
         """
         Ensure the /api/assets endpoint returns all assets when the backend graph contains a large number of assets.
-        
+
         Creates 1000 Equity assets, attaches them to the mocked graph, requests /api/assets, and asserts a 200 status and that 1000 assets are returned.
         """
         large_graph = AssetRelationshipGraph()
