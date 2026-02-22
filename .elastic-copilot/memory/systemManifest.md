@@ -23,7 +23,7 @@
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 __init__.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
