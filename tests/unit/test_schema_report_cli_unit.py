@@ -158,7 +158,6 @@ class TestWriteAtomic:
         target = tmp_path / "out.txt"
         initial_entries = set(tmp_path.iterdir())
 
-        original_replace = _Path.replace
 
         def failing_replace(self, *args, **kwargs):  # noqa: D401, ARG002
             """Simulated failure in Path.replace."""
