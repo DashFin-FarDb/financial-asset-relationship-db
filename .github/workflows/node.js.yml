@@ -18,6 +18,7 @@ on:
       - '**/*.md'
       - 'docs/**'
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ "main" ]
     paths:
       - 'frontend/**'

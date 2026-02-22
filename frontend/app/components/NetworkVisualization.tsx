@@ -32,7 +32,7 @@ type EdgeTrace = {
 
 type NodeTrace = {
   type: "scatter3d";
-  mode: "markers+text";
+  mode: "markers" | "text" | "lines" | "markers+text";
   x: number[];
   y: number[];
   z: number[];
@@ -176,7 +176,7 @@ export default function NetworkVisualization({
   return (
     <div className="w-full h-[800px]">
       <Plot
-        data={plotData}
+        data={plotData as any}
         layout={{
           title: "3D Asset Relationship Network",
           showlegend: false,

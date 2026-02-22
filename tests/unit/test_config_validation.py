@@ -18,9 +18,8 @@ import pytest
 class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
-    @staticmethod
     @pytest.fixture
-    def vercel_config():
+    def vercel_config(self):
         """Load vercel.json configuration."""
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
@@ -105,9 +104,8 @@ class TestVercelConfig:
 class TestNextConfig:
     """Test cases for Next.js configuration."""
 
-    @staticmethod
     @pytest.fixture
-    def next_config_content():
+    def next_config_content(self):
         """Load Next.js configuration file content."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists(), "next.config.js not found"
@@ -208,17 +206,17 @@ class TestPackageJson:
             assert dep in dev_deps, f"Missing TypeScript dependency: {dep}"
 
     def test_package_json_version_format(self, package_json):
-        """Test that version follows semantic versioning.
+        """
+        Verify the package.json version follows semantic versioning, allowing optional pre-release identifiers.
 
-        Supports standard semantic versions(e.g., 1.0.0) and pre - release versions
-        (e.g., 1.0.0 - beta, 1.0.0 - rc.1, 1.0.0 - alpha.1).
+        Accepts versions in the form major.minor.patch (e.g., 1.0.0) and with a pre-release suffix (e.g., 1.0.0-beta, 1.0.0-rc.1, 1.0.0-alpha.1).
         """
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(semver_pattern, version), (
-            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
-        )
+        assert re.match(
+            semver_pattern, version
+        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
 
 
 @pytest.mark.unit
@@ -280,8 +278,7 @@ class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
     @pytest.fixture
-    @staticmethod
-    def tailwind_config_content():
+    def tailwind_config_content(self):
         """Load Tailwind configuration content."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists(), "tailwind.config.js not found"
@@ -313,20 +310,27 @@ class TestTailwindConfig:
 
 
 @pytest.mark.unit
-class TestEnvExample:
+class TestEnvExampleFixture:
     """Test cases for .env.example file."""
 
     @pytest.fixture
     def env_example_content(self):
-        """Load .env.example content."""
+        """
+        Load and return the contents of the .env.example file.
+
+        Returns:
+            str: The contents of `.env.example`.
+
+        Raises:
+            AssertionError: If `.env.example` does not exist.
+        """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
         with open(config_path) as f:
             return f.read()
 
 
-
-
+@pytest.mark.unit
 class TestEnvExample:
     """Test cases for .env.example file."""
 
@@ -365,9 +369,7 @@ class TestEnvExample:
         ]
 
         for pattern in suspicious_patterns:
-            assert pattern not in env_example_content.lower(), (
-                f"Potential real secret found: {pattern}"
-            )
+            assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
 
 
 @pytest.mark.unit
@@ -376,9 +378,8 @@ class TestGitignore:
 
     @staticmethod
     @pytest.fixture
-    def gitignore_content():
-        """Load .gitignore content."""
-        config_path = Path(".gitignore")
+    @pytest.fixture
+    def gitignore_content(self):
         assert config_path.exists(), ".gitignore not found"
 
         with open(config_path) as f:
@@ -428,14 +429,19 @@ class TestRequirementsTxt:
     @staticmethod
     @pytest.fixture
     def requirements():
-        """Load requirements.txt content."""
+        """
+        Load and return non-empty, non-comment lines from requirements.txt.
+
+        Each returned item is a stripped string from the file; lines that are empty or start with `#` are excluded.
+
+        Returns:
+            list[str]: Requirement lines with whitespace removed (comments and blank lines omitted).
+        """
         config_path = Path("requirements.txt")
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
-            return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+            return [line.strip() for line in f if line.strip() and not line.strip().startswith("#")]
 
     @staticmethod
     def test_requirements_exists():
@@ -459,16 +465,23 @@ class TestRequirementsTxt:
         assert any("pydantic" in req.lower() for req in requirements)
 
     def test_requirements_has_version_constraints(self, requirements):
-        """Test that packages have version constraints(if project policy requires)."""
+        """
+        Ensure each non-option requirement includes a version constraint when version pinning is enabled.
+
+        If the test runner's `require_version_pinning` flag is False, this test will be skipped.
+
+        Parameters:
+            requirements (list[str]): Filtered lines from requirements.txt (non-empty, non-comment).
+        """
         # Skip this test if project doesn't require version pinning
         if not self.require_version_pinning:
             pytest.skip("Version pinning not required for this project")
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(op in req for op in [">=", "==", "~=", "<="]), (
-                    f"Package should have version constraint: {req}"
-                )
+                assert any(
+                    op in req for op in [">=", "==", "~=", "<="]
+                ), f"Package should have version constraint: {req}"
 
 
 @pytest.mark.unit
@@ -542,7 +555,11 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_frontend_build_configuration_matches():
-        """Test that frontend configurations are aligned."""
+        """
+        Ensure frontend package.json scripts invoke Next.js commands for dev, build, and start.
+
+        Asserts that the `dev`, `build`, and `start` entries in frontend/package.json's `scripts` contain Next.js commands (for example `next`, `next dev`, `next build`, `next start`).
+        """
         # Verify package.json scripts match expected Next.js commands
         with open("frontend/package.json") as f:
             package = json.load(f)
@@ -551,16 +568,8 @@ class TestConfigurationConsistency:
 
         # Next.js standard scripts
         assert "next dev" in scripts.get("dev", "") or "next" in scripts.get("dev", "")
-        assert "next build" in scripts.get("build", "") or "next" in scripts.get(
-            "build", ""
-        )
-        assert "next start" in scripts.get("start", "") or "next" in scripts.get(
-            "start", ""
-        )
-
-        assert "next start" in scripts.get("start", "") or "next" in scripts.get(
-            "start", ""
-        )
+        assert "next build" in scripts.get("build", "") or "next" in scripts.get("build", "")
+        assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
 
 
 @pytest.mark.unit
@@ -610,7 +619,11 @@ class TestConfigurationSecurityNegative:
 
     @staticmethod
     def test_package_json_no_vulnerable_scripts():
-        """Negative: package.json scripts should not have dangerous patterns."""
+        """
+        Ensure frontend/package.json scripts do not contain dangerous shell commands.
+
+        Skips the test if frontend/package.json is missing. Fails if any script command contains patterns such as "rm -rf /", "rm -rf /*", or "sudo rm".
+        """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -623,9 +636,7 @@ class TestConfigurationSecurityNegative:
             # Should not have rm -rf / or similar dangerous commands
             dangerous_patterns = ["rm -rf /", "rm -rf /*", "sudo rm"]
             for pattern in dangerous_patterns:
-                assert pattern not in script_cmd, (
-                    f"Dangerous pattern '{pattern}' found in script '{script_name}'"
-                )
+                assert pattern not in script_cmd, f"Dangerous pattern '{pattern}' found in script '{script_name}'"
 
 
 @pytest.mark.unit
@@ -722,7 +733,11 @@ class TestConfigurationBoundaryValues:
 
     @staticmethod
     def test_no_excessively_long_script_names():
-        """Boundary: Script names should be reasonably short."""
+        """
+        Ensure package.json script names are shorter than 50 characters.
+
+        Skips the test when frontend/package.json is missing. Fails the test if any script name has length greater than or equal to 50 characters.
+        """
         package_path = Path("frontend/package.json")
         if not package_path.exists():
             pytest.skip("frontend/package.json not found")
@@ -732,9 +747,7 @@ class TestConfigurationBoundaryValues:
 
         scripts = package.get("scripts", {})
         for script_name in scripts.keys():
-            assert len(script_name) < 50, (
-                f"Script name '{script_name}' is excessively long"
-            )
+            assert len(script_name) < 50, f"Script name '{script_name}' is excessively long"
 
 
 @pytest.mark.unit
@@ -766,22 +779,14 @@ class TestConfigurationRobustness:
             pytest.skip("requirements.txt not found")
 
         with open(requirements_path) as f:
-            lines = [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+            lines = [line.strip() for line in f if line.strip() and not line.strip().startswith("#")]
 
         # Extract package names (before ==, >=, etc.)
         packages = []
         for line in lines:
             if not line.startswith("-"):
                 # Extract package name
-                package_name = (
-                    line.split("==")[0]
-                    .split(">=")[0]
-                    .split("~=")[0]
-                    .split("<=")[0]
-                    .strip()
-                )
+                package_name = line.split("==")[0].split(">=")[0].split("~=")[0].split("<=")[0].strip()
                 packages.append(package_name.lower())
 
         # Check for duplicates

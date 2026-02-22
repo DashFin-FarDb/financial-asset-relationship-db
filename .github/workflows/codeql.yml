@@ -27,6 +27,7 @@ on:
       - '**/*.png'
       - '**/*.jpg'
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ "main", "Default" ]
     paths:
       - '**/*.py'

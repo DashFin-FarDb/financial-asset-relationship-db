@@ -13,13 +13,16 @@ import re
 import sys
 import tempfile
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 try:
     import yaml
     from github import Github, GithubException
 except ImportError:
-    print("Error: Required packages not installed. Run: pip install PyGithub pyyaml", file=sys.stderr)
+    print(
+        "Error: Required packages not installed. Run: pip install PyGithub pyyaml",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
@@ -84,7 +87,11 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 
     # Define category keywords with their priorities
     categories = [
-        ("critical", 1, ["security", "vulnerability", "exploit", "critical", "breaking"]),
+        (
+            "critical",
+            1,
+            ["security", "vulnerability", "exploit", "critical", "breaking"],
+        ),
         ("bug", 1, ["bug", "error", "fails", "broken", "incorrect", "wrong"]),
         ("question", 3, ["why", "what", "how", "?", "clarify", "explain"]),
         ("style", 3, ["style", "format", "lint", "naming", "convention"]),
@@ -228,7 +235,13 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 
     # Order of presentation
     priority_order = ["critical", "bug", "improvement", "style", "question"]
-    emoji_map = {"critical": "🚨", "bug": "🐛", "improvement": "💡", "style": "🎨", "question": "❓"}
+    emoji_map = {
+        "critical": "🚨",
+        "bug": "🐛",
+        "improvement": "💡",
+        "style": "🎨",
+        "question": "❓",
+    }
 
     for category in priority_order:
         items = categorized.get(category, [])
@@ -261,7 +274,11 @@ def write_output(report: str) -> None:
     # 2. Secure Temp File
     try:
         with tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", delete=False, suffix=".md", prefix="fix_proposals_"
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+            suffix=".md",
+            prefix="fix_proposals_",
         ) as tmp:
             tmp.write(report)
             print(f"Fix proposals generated: {tmp.name}", file=sys.stderr)
@@ -288,7 +305,8 @@ def main():
 
     config = load_config()
     keywords = config.get("review_handling", {}).get(
-        "actionable_keywords", ["please", "should", "fix", "refactor", "change", "update", "add", "remove"]
+        "actionable_keywords",
+        ["please", "should", "fix", "refactor", "change", "update", "add", "remove"],
     )
 
     try:

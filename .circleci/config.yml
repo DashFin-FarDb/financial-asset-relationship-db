@@ -13,7 +13,7 @@ executors:
 
   node-executor:
     docker:
-      - image: cimg/node:25.3.0
+      - image: cimg/node:25.6.1
     working_directory: ~/project
 
 jobs:
@@ -44,7 +44,6 @@ jobs:
 
   python-test:
     executor: python-executor
-    parallelism: 4
     steps:
       - checkout
       - restore_cache:
@@ -65,7 +64,15 @@ jobs:
       - run:
           name: Run tests with pytest
           command: |
-            pytest --cov=src --cov=tests --cov-report=xml --cov-report=html --cov-report=term-missing -v --junitxml=test-results/pytest/results.xml
+            mkdir -p test-results/pytest
+            pytest \
+              --cov=src \
+              --cov=tests \
+              --cov-report=xml \
+              --cov-report=html \
+              --cov-report=term-missing \
+              -v \
+              --junitxml=test-results/pytest/results.xml
       - codecov/upload:
           file: coverage.xml
       - store_test_results:
@@ -192,7 +199,7 @@ workflows:
           requires:
             - frontend-lint
 
-      # Docker build (only on main branch)
+      # Docker build (only on main and develop branches)
       - docker-build:
           requires:
             - python-test

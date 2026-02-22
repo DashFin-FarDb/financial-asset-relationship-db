@@ -101,19 +101,13 @@ class AssetRelationshipGraph:
             self.relationships[source_id] = []
 
         # Avoid duplicates
-        if not any(
-            r[0] == target_id and r[1] == rel_type
-            for r in self.relationships[source_id]
-        ):
+        if not any(r[0] == target_id and r[1] == rel_type for r in self.relationships[source_id]):
             self.relationships[source_id].append((target_id, rel_type, strength))
 
         if bidirectional:
             if target_id not in self.relationships:
                 self.relationships[target_id] = []
-            if not any(
-                r[0] == source_id and r[1] == rel_type
-                for r in self.relationships[target_id]
-            ):
+            if not any(r[0] == source_id and r[1] == rel_type for r in self.relationships[target_id]):
                 self.relationships[target_id].append((source_id, rel_type, strength))
 
     def calculate_metrics(self) -> Dict[str, Any]:
@@ -134,11 +128,7 @@ class AssetRelationshipGraph:
         avg_strength = sum(strengths) / len(strengths) if strengths else 0.0
 
         density = (
-            (
-                total_relationships
-                / (effective_assets_count * (effective_assets_count - 1))
-                * 100
-            )
+            (total_relationships / (effective_assets_count * (effective_assets_count - 1)) * 100)
             if effective_assets_count > 1
             else 0.0
         )
@@ -174,6 +164,7 @@ class AssetRelationshipGraph:
     ) -> Tuple[np.ndarray, List[str], List[str], List[str]]:
         """Return positions, asset_ids, colors, hover_texts for visualization."""
         all_ids = set(self.assets.keys())
+        all_ids.update(self.relationships.keys())
         for rels in self.relationships.values():
             for target_id, _, _ in rels:
                 all_ids.add(target_id)
