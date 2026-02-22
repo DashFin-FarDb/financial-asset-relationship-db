@@ -32,9 +32,6 @@ class TestRepositoryGraphIntegration:
             create_engine_from_url,
             create_session_factory,
             init_db,
-            session,
-            session.close,
-            yield,
         )
             engine.dispose()
         )
