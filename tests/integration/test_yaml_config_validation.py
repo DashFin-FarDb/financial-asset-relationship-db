@@ -112,8 +112,7 @@ def test_no_duplicate_keys_in_yaml() -> None:
         from ruamel.yaml import YAML, YAMLError
     except ImportError:
         pytest.skip(
-            "ruamel.yaml not installed; "
-            "skip strict duplicate key detection",
+            "ruamel.yaml not installed; skip strict duplicate key detection",
         )
 
     base_dir = Path(".github")
