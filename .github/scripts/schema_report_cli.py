@@ -260,14 +260,7 @@ def main() -> int:
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user.")
         # Attempt to remove any partial output file being written.
-        if "args" in locals() and getattr(args, "output", None):
-            output_path = Path(args.output)
-            try:
-                if output_path.exists():
-                    output_path.unlink()
-                    logger.debug("Removed partial output file: %s", output_path)
-            except Exception:
-                logger.debug("Failed to remove partial file: %s", output_path)
+        # Atomic writes avoid partial target files; do not delete existing outputs here.
         print("\nOperation cancelled.", file=sys.stderr)
         return 130
 
