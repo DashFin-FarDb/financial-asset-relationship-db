@@ -189,7 +189,7 @@
 
 Dependencies:
 
-- **future**
+- __future__
 - annotations
 - os
 - typing
