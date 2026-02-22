@@ -35,7 +35,30 @@ pytestmark = pytest.mark.integration
         engine = create_engine_from_url(f"sqlite:///{db_path}")
         init_db(engine)
         factory = create_session_factory(engine)
-        session = factory()
+        with factory() as session:
+            repo = AssetGraphRepository(session)
+            graph = create_sample_database()
+
+            # Save assets
+            for asset in graph.assets.values():
+                repo.upsert_asset(asset)
+
+            # Optionally save relationships as part of the round-trip
+            for source_id, rels in graph.relationships.items():
+                for target_id, rel_type, strength in rels:
+                    repo.add_or_update_relationship(
+                        source_id,
+                        target_id,
+                        rel_type,
+                        strength,
+                        bidirectional=False,
+                    )
+
+            session.commit()
+
+            # Verify that at least one asset was saved
+            saved_assets = list(repo.list_assets())
+            assert len(saved_assets) > 0
 
 
     @staticmethod
@@ -74,10 +97,6 @@ pytestmark = pytest.mark.integration
                 assert rel.source_id in graph.relationships
                 assert rel.target_id in graph.relationships[rel.source_id]
                 assert rel.target_id in target_ids
-
-
-        session.close()
-        engine.dispose()
 
 
 class TestSerializationRoundTrip:
@@ -548,3 +567,4 @@ class TestDataConsistency:
 
         session.close()
         engine.dispose()
+
