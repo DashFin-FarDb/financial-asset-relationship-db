@@ -9,4 +9,6 @@ os.environ["SECRET_KEY"] = "test-secret-key-for-ci"
 os.environ["ADMIN_USERNAME"] = "admin"
 os.environ["ADMIN_PASSWORD"] = "adminpass"
 
-print(f"[unit conftest] DATABASE_URL set to {os.environ['DATABASE_URL']}", file=sys.stderr)
+print(
+    f"[unit conftest] DATABASE_URL set to {os.environ['DATABASE_URL']}", file=sys.stderr
+)
