@@ -55,7 +55,7 @@ _ALLOWED_ATTRIBUTES: dict[str, list[str]] = {
     "span": ["class"],
 }
 
-_ALLOWED_PROTOCOLS: list[str] = ["http", "https", "mailto"]
+_ALLOWED_PROTOCOLS: frozenset[str] = frozenset({"http", "https", "mailto"})
 
 
 def markdown_to_html(md: str) -> str:
@@ -79,7 +79,7 @@ def markdown_to_html(md: str) -> str:
 
     sanitized = bleach.clean(
         rendered,
-        tags=list(_ALLOWED_TAGS),
+        tags=_ALLOWED_TAGS,
         attributes=_ALLOWED_ATTRIBUTES,
         protocols=_ALLOWED_PROTOCOLS,
         strip=True,
@@ -95,8 +95,7 @@ def markdown_to_html(md: str) -> str:
     sanitized = bleach.linkify(
         sanitized,
         callbacks=[bleach.callbacks.nofollow, bleach.callbacks.target_blank, _add_noopener],
-        skip_tags=["pre", "code"],
-    )
+        skip_tags={"pre", "code"},
     )
     return sanitized
 
