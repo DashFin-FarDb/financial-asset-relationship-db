@@ -53,26 +53,28 @@ pytestmark = pytest.mark.integration
         factory = create_session_factory(engine)
         with factory() as session:
 
-        repo = AssetGraphRepository(session)
-        graph = create_sample_database()
+            repo = AssetGraphRepository(session)
+            graph = create_sample_database()
 
-        # Save assets first
-        for asset in graph.assets.values():
-            repo.upsert_asset(asset)
+            # Save assets first
+            for asset in graph.assets.values():
+                repo.upsert_asset(asset)
 
-        # Save relationships
-        for source_id, rels in graph.relationships.items():
-            for target_id, rel_type, strength in rels:
-                repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
+            # Save relationships
+            for source_id, rels in graph.relationships.items():
+                for target_id, rel_type, strength in rels:
+                    repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
 
-        session.commit()
+            session.commit()
 
-        # Verify relationships were saved
-        saved_rels = repo.list_relationships()
-        assert len(saved_rels) > 0
-        for rel in saved_rels:
-            assert rel.source_id in graph.relationships
-            assert rel.target_id in graph.relationships[rel.source_id]
+            # Verify relationships were saved
+            saved_rels = repo.list_relationships()
+            assert len(saved_rels) > 0
+            for rel in saved_rels:
+                assert rel.source_id in graph.relationships
+                assert rel.target_id in graph.relationships[rel.source_id]
+                assert rel.target_id in target_ids
+
 
         session.close()
         engine.dispose()
