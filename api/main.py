@@ -776,7 +776,9 @@ async def get_visualization_data():
         positions, asset_ids, asset_colors, _ = g.get_3d_visualization_data_enhanced()
         nodes: List[Dict[str, Any]] = []
         for i, asset_id in enumerate(asset_ids):
-            asset = g.assets[asset_id]
+            asset = g.assets.get(asset_id)
+            if asset is None:
+                continue
             nodes.append(
                 {
                     "id": asset_id,
@@ -795,7 +797,7 @@ async def get_visualization_data():
         # Build edges directly from graph.relationships to avoid rebuilding
         # from intermediate data structures. Only include edges where both
         # source and target are in the asset_ids list.
-        asset_id_set = set(asset_ids)
+        asset_id_set = set(g.assets.keys())
         for source_id in g.relationships:
             if source_id not in asset_id_set:
                 continue
