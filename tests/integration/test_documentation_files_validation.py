@@ -100,10 +100,7 @@ class TestDocumentationFilesValidation:
             except Exception as exc:  # noqa: BLE001
                 parse_errors.append((md_file, str(exc)))
 
-        assert not parse_errors, (
-            "Markdown parse errors:\n"
-            + "\n".join(f"{path}: {err}" for path, err in parse_errors)
-        )
+        assert not parse_errors, "Markdown parse errors:\n" + "\n".join(f"{path}: {err}" for path, err in parse_errors)
 
     def test_links_are_well_formed(
         self,
@@ -128,10 +125,7 @@ class TestDocumentationFilesValidation:
                         (md_file, f"URL contains spaces: {match.group(0)}"),
                     )
 
-        assert not bad_links, (
-            "Malformed markdown links:\n"
-            + "\n".join(f"{path}: {msg}" for path, msg in bad_links)
-        )
+        assert not bad_links, "Malformed markdown links:\n" + "\n".join(f"{path}: {msg}" for path, msg in bad_links)
 
     def test_code_blocks_have_language_identifiers_where_expected(
         self,
@@ -158,9 +152,8 @@ class TestDocumentationFilesValidation:
                         ),
                     )
 
-        assert not fence_issues, (
-            "Code block language issues:\n"
-            + "\n".join(f"{path}: {msg}" for path, msg in fence_issues)
+        assert not fence_issues, "Code block language issues:\n" + "\n".join(
+            f"{path}: {msg}" for path, msg in fence_issues
         )
 
     def test_tables_have_consistent_column_counts(
@@ -196,16 +189,12 @@ class TestDocumentationFilesValidation:
                         table_errors.append(
                             (
                                 md_file,
-                                (
-                                    f"Line {idx + 1}: expected {expected_cols} "
-                                    f"columns, found {col_count}"
-                                ),
+                                (f"Line {idx + 1}: expected {expected_cols} " f"columns, found {col_count}"),
                             ),
                         )
 
-        assert not table_errors, (
-            "Markdown table formatting issues:\n"
-            + "\n".join(f"{path}: {msg}" for path, msg in table_errors)
+        assert not table_errors, "Markdown table formatting issues:\n" + "\n".join(
+            f"{path}: {msg}" for path, msg in table_errors
         )
 
     def test_heading_hierarchy_is_logical(
@@ -238,15 +227,11 @@ class TestDocumentationFilesValidation:
                     hierarchy_errors.append(
                         (
                             md_file,
-                            (
-                                f"Line {idx + 1}: heading level jumps from "
-                                f"H{last_level} to H{level}"
-                            ),
+                            (f"Line {idx + 1}: heading level jumps from " f"H{last_level} to H{level}"),
                         ),
                     )
                 last_level = level
 
-        assert not hierarchy_errors, (
-            "Markdown heading hierarchy issues:\n"
-            + "\n".join(f"{path}: {msg}" for path, msg in hierarchy_errors)
+        assert not hierarchy_errors, "Markdown heading hierarchy issues:\n" + "\n".join(
+            f"{path}: {msg}" for path, msg in hierarchy_errors
         )
