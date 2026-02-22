@@ -228,7 +228,9 @@ class FinancialAssetApp:
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """Refreshes all visualizations and reports in the Gradio interface."""
-        graph = self.ensure_graph()  # Use self.ensure_graph to get the latest graph state
+        graph = (
+            self.ensure_graph()
+        )  # Use self.ensure_graph to get the latest graph state
         logger.info("Refreshing all visualization outputs")
         viz_3d = visualize_3d_graph(graph)
         f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
