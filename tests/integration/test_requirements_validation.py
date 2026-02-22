@@ -38,17 +38,9 @@ class TestRequirementsDevChanges:
         """
         lines = requirements_dev_content.splitlines()
 
-        pyyaml_lines = [
-            line
-            for line in lines
-            if "pyyaml" in line.lower() and not line.lstrip().startswith("#")
-        ]
-        assert pyyaml_lines, (
-            "No active PyYAML requirement found in requirements-dev.txt"
-        )
-        assert len(pyyaml_lines) == 1, (
-            f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
-        )
+        pyyaml_lines = [line for line in lines if "pyyaml" in line.lower() and not line.lstrip().startswith("#")]
+        assert pyyaml_lines, "No active PyYAML requirement found in requirements-dev.txt"
+        assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
 
         pyyaml_line = pyyaml_lines[0]
         pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
@@ -70,9 +62,7 @@ class TestRequirementsDevChanges:
             if line.strip() and not line.lstrip().startswith("#")
         ]
         package_names = [Requirement(line).name.lower() for line in lines]
-        assert len(package_names) == len(set(package_names)), (
-            "Duplicate packages found in requirements-dev.txt"
-        )
+        assert len(package_names) == len(set(package_names)), "Duplicate packages found in requirements-dev.txt"
 
     def test_requirements_format_valid(self, requirements_dev_content: str) -> None:
         """
@@ -83,12 +73,8 @@ class TestRequirementsDevChanges:
             if not raw_line.strip() or raw_line.lstrip().startswith("#"):
                 continue
 
-            assert raw_line == raw_line.rstrip(), (
-                f"Line {line_num} has trailing whitespace"
-            )
-            assert raw_line == raw_line.lstrip(), (
-                f"Line {line_num} has leading whitespace"
-            )
+            assert raw_line == raw_line.rstrip(), f"Line {line_num} has trailing whitespace"
+            assert raw_line == raw_line.lstrip(), f"Line {line_num} has leading whitespace"
 
 
 class TestRequirementsDependencyCompatibility:
@@ -157,9 +143,7 @@ class TestRequirementsInstallability:
             check=False,
         )
 
-        assert result.returncode == 0, (
-            f"pip dry-run failed.\nstdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
-        )
+        assert result.returncode == 0, f"pip dry-run failed.\nstdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
 
 
 class TestRequirementsDocumentation:
@@ -188,11 +172,8 @@ class TestRequirementsDocumentation:
             if "pyyaml" in line.lower() and not line.lstrip().startswith("#"):
                 context = "\n".join(lines[max(0, i - 3) : i + 1]).lower()
                 assert any(
-                    keyword in context
-                    for keyword in ("yaml", "workflow", "config", "parse")
+                    keyword in context for keyword in ("yaml", "workflow", "config", "parse")
                 ), "PyYAML should have an explanatory comment nearby"
                 break
         else:
-            pytest.skip(
-                "No active PyYAML entry found to validate documentation context"
-            )
+            pytest.skip("No active PyYAML entry found to validate documentation context")
