@@ -278,8 +278,7 @@ class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
     @pytest.fixture
-    @staticmethod
-    def tailwind_config_content():
+    def tailwind_config_content(self):
         """Load Tailwind configuration content."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists(), "tailwind.config.js not found"
