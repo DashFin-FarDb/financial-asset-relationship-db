@@ -174,7 +174,7 @@ def attach_to_gradio_interface(
     """
     try:
         import gradio as gr
-    except Exception as exc:  # pragma: no cover
+    except ImportError as exc:  # pragma: no cover
         raise RuntimeError("Gradio is not installed.") from exc
 
     report_fn = make_gradio_report_fn(graph_provider, html=html)
