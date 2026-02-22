@@ -253,14 +253,14 @@ class FinancialAssetApp:
         try:
             graph = self.ensure_graph()
             logger.info("Refreshing all visualization outputs")
-    
+
             viz_3d = visualize_3d_graph(graph)
             f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
             schema_rpt = generate_schema_report(graph)
-    
+
             asset_choices = list(graph.assets.keys())
             logger.info("Successfully refreshed outputs for %s assets", len(asset_choices))
-    
+
             return (
                 viz_3d,
                 f1,
@@ -271,19 +271,19 @@ class FinancialAssetApp:
                 gr.update(choices=asset_choices, value=None),
                 gr.update(value="", visible=False),
             )
-    
+
         except Exception:
             # Full traceback in logs; generic message in UI.
             logger.exception("Error refreshing outputs")
-    
+
             empty_fig = go.Figure()
             return (
                 empty_fig,  # 3D viz
                 empty_fig,  # metrics fig 1
                 empty_fig,  # metrics fig 2
                 empty_fig,  # metrics fig 3
-                "",         # metrics text
-                "",         # schema report
+                "",  # metrics text
+                "",  # schema report
                 gr.update(choices=[], value=None),  # asset selector
                 gr.update(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
             )
