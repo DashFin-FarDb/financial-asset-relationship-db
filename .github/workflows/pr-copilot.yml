@@ -361,29 +361,29 @@ jobs:
               const failedChecks = checks.check_runs.filter(c => c.conclusion === 'failure').length;
 
               statusReport = `📊 **PR Status Report**
-
-**PR Information:**
-- **Author:** @${pr.user.login}
-- **Title:** ${pr.title}
-- **Commits:** ${pr.commits}
-- **Files Changed:** ${pr.changed_files}
-- **Additions:** +${pr.additions} / **Deletions:** -${pr.deletions}
-
-**Review Status:**
-- ✅ Approved: ${approvedReviews}
-- 🔄 Changes Requested: ${changesRequestedReviews}
-- 📋 Total Reviews: ${reviews.length}
-
-**CI/Check Status:**
-- ✅ Passed: ${passedChecks}
-- ❌ Failed: ${failedChecks}
-- 📊 Total Checks: ${checks.check_runs.length}
-
-**Merge Status:**
-- Mergeable: ${pr.mergeable ? '✅ Yes' : '❌ No'}
-- Draft: ${pr.draft ? '📝 Yes' : '✅ No'}
-
-*Last updated: ${new Date().toISOString()}*`;
+              
+              **PR Information:**
+              - **Author:** @${pr.user.login}
+              - **Title:** ${pr.title}
+              - **Commits:** ${pr.commits}
+              - **Files Changed:** ${pr.changed_files}
+              - **Additions:** +${pr.additions} / **Deletions:** -${pr.deletions}
+              
+              **Review Status:**
+              - ✅ Approved: ${approvedReviews}
+              - 🔄 Changes Requested: ${changesRequestedReviews}
+              - 📋 Total Reviews: ${reviews.length}
+              
+              **CI/Check Status:**
+              - ✅ Passed: ${passedChecks}
+              - ❌ Failed: ${failedChecks}
+              - 📊 Total Checks: ${checks.check_runs.length}
+              
+              **Merge Status:**
+              - Mergeable: ${pr.mergeable ? '✅ Yes' : '❌ No'}
+              - Draft: ${pr.draft ? '📝 Yes' : '✅ No'}
+              
+              *Last updated: ${new Date().toISOString()}*`;
             }
 
             await github.rest.issues.createComment({
@@ -663,17 +663,17 @@ jobs:
 
             **Resolution Steps:**
             1. Update your local branch:
-               \`\`\`bash
-               git checkout ${pr.head.ref}
-               git pull origin ${pr.base.ref}
-               \`\`\`
+                \`\`\`bash
+                git checkout ${pr.head.ref}
+                git pull origin ${pr.base.ref}
+                \`\`\`
             2. Resolve conflicts in the affected files
             3. Commit the resolution:
-               \`\`\`bash
-               git add .
-               git commit -m "Resolve merge conflicts"
-               git push
-               \`\`\`
+                \`\`\`bash
+                git add .
+                git commit -m "Resolve merge conflicts"
+                git push
+                \`\`\`
 
             Need help? Ask \`@pr-copilot help conflicts\` for more guidance.`;
 

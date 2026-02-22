@@ -22,6 +22,7 @@ on:
   push:
     branches: ["main", "Default"]
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: ["main"]
 
 permissions:

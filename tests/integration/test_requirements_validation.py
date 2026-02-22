@@ -18,10 +18,10 @@ class TestRequirementsDevChanges:
     @pytest.fixture
     def requirements_dev_content(self):
         """
-        Return the full text of requirements - dev.txt from the project root.
+        Return the full text of requirements-dev.txt from the project root.
 
         Returns:
-            str: Contents of requirements - dev.txt.
+            str: Contents of requirements-dev.txt.
         """
         req_path = Path("requirements-dev.txt")
         with open(req_path, "r") as f:
@@ -29,9 +29,7 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_added(self, requirements_dev_content):
         """
-        Verify that requirements - dev.txt includes a PyYAML package entry.
-        """
-        pass
+        Verify that requirements-dev.txt includes a PyYAML package entry.
 
         Performs a case-insensitive check of the provided requirements content to ensure PyYAML is present.
         """
@@ -39,39 +37,44 @@ class TestRequirementsDevChanges:
 
     def test_pyyaml_has_version_specifier(self, requirements_dev_content):
         """
-        Ensure the active PyYAML requirement in requirements - dev.txt includes a version operator.
+        Ensure the active PyYAML requirement in requirements-dev.txt includes a version operator.
 
-        Checks the provided requirements file content for exactly one non - comment line mentioning PyYAML and verifies that that line contains one of the version operators: >= , == , ~ = , <= , > , or <.
+        Checks the provided requirements file content for exactly one non-comment line mentioning PyYAML and
+        verifies that that line contains one of the version operators: >=, ==, ~=, <=, >, or <.
 
         Parameters:
-                requirements_dev_content(str): Full text content of requirements - dev.txt.
+            requirements_dev_content(str): Full text content of requirements-dev.txt.
         """
         lines = requirements_dev_content.split("\n")
         # Ignore commented lines so we don't pick up commented-out examples
         pyyaml_line = next((l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")), None)
 
         assert pyyaml_line is not None
-        # Find all non-comment lines containing 'pyyaml'
-        pyyaml_lines = [l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")]
+        from packaging.requirements import Requirement
+
+        # Find all non-comment lines explicitly declaring PyYAML (ignore types-PyYAML)
+        pyyaml_lines = [
+            l
+            for l in lines
+            if l.strip() and not l.strip().startswith("#") and Requirement(l).name.lower() == "pyyaml"
+        ]
         # Assert exactly one active PyYAML requirement exists
         assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         pyyaml_line = pyyaml_lines[0]
         # Strip inline comments and whitespace before checking version specifier
         pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
         assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
-        pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
-        assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
 
     def test_no_duplicate_packages(self, requirements_dev_content):
         """
-        Ensure requirements - dev.txt contains no duplicate package entries.
+        Ensure requirements-dev.txt contains no duplicate package entries.
 
-        This test treats each non - empty, non - comment line as a package specification and compares
+        This test treats each non-empty, non-comment line as a package specification and compares
         package names case-insensitively while ignoring common version specifiers, asserting
         that no package appears more than once.
 
         Parameters:
-            requirements_dev_content(str): Contents of requirements - dev.txt.
+            requirements_dev_content(str): Contents of requirements-dev.txt.
         """
         lines = [l.strip() for l in requirements_dev_content.split("\n") if l.strip() and not l.strip().startswith("#")]
 
@@ -84,12 +87,13 @@ class TestRequirementsDevChanges:
 
     def test_requirements_format_valid(self, requirements_dev_content):
         """
-        Validate that each active(non - empty, non - comment) line in requirements - dev.txt has no leading or trailing whitespace.
+        Validate that each active (non-empty, non-comment) line in requirements-dev.txt has no
+        leading or trailing whitespace.
 
         Ignores blank lines and lines beginning with '#' when performing checks.
 
         Parameters:
-            requirements_dev_content(str): Full text of requirements - dev.txt to validate.
+            requirements_dev_content(str): Full text of requirements-dev.txt to validate.
         """
         lines = requirements_dev_content.split("\n")
 
@@ -108,9 +112,10 @@ class TestRequirementsDependencyCompatibility:
     @staticmethod
     def test_pyyaml_compatible_with_python_version():
         """
-        Assert that if PyYAML is listed in requirements - dev.txt the current Python interpreter is at least 3.6.
+        Assert that if PyYAML is listed in requirements-dev.txt the current Python interpreter is at least 3.6.
 
-        Checks requirements - dev.txt case-insensitively and fails the test if PyYAML is present while sys.version_info is less than(3, 6).
+        Checks requirements-dev.txt case-insensitively and fails the test if PyYAML is present while
+        sys.version_info is less than (3, 6).
         """
         # Check Python version
         import sys
@@ -171,13 +176,13 @@ class TestRequirementsInstallability:
 
     @pytest.mark.skipif(not Path("requirements-dev.txt").exists(), reason="requirements-dev.txt not found")
     def test_requirements_dev_syntax_valid(self):
-        """Verify requirements - dev.txt has valid pip syntax."""
+        """Verify requirements-dev.txt has valid pip syntax."""
         # Use pip to check syntax without installing
         result = subprocess.run(
-        result=subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
             capture_output=True,
-            text=True
+            text=True,
+        )
         # Should not have syntax errors
         assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
 

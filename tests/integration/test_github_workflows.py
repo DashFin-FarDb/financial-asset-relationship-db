@@ -59,7 +59,8 @@ def get_workflow_files() -> List[Path]:
     """
     if not WORKFLOWS_DIR.exists():
         return []
-    return list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+    files = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+    return [f for f in files if f.is_file()]
 
 
 def load_yaml_safe(file_path: Path) -> Dict[str, Any]:
@@ -257,6 +258,8 @@ class TestWorkflowActions:
             for idx, step in enumerate(steps):
                 if "uses" in step:
                     action = step["uses"]
+                    if action.startswith(("./", ".github/", "../")):
+                        continue
                     # Action should have a version tag (e.g., @v1, @main, @sha)
                     assert "@" in action, (
                         f"Step {idx} in job '{job_name}' of {workflow_file.name} "
@@ -331,13 +334,13 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job runs on Ubuntu."""
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         runs_on = review_job.get("runs-on", "")
         assert "ubuntu" in runs_on.lower(), "Review job should run on Ubuntu runner"
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job checks out the code."""
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         checkout_steps = [
@@ -351,7 +354,7 @@ class TestPrAgentWorkflow:
 
         Fails the test if any checkout step omits the `token` key.
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         checkout_steps = [
@@ -369,7 +372,7 @@ class TestPrAgentWorkflow:
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed YAML mapping for the pr-agent workflow; expected to contain a "jobs" mapping with a "review" job.
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         python_steps = [
@@ -379,7 +382,7 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_has_node_setup(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job sets up Node.js."""
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         node_steps = [
@@ -395,7 +398,7 @@ class TestPrAgentWorkflow:
             pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow; expected to contain a "jobs" -> "review" -> "steps" sequence.
 
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         python_steps = [
@@ -413,7 +416,7 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_no_duplicate_setup_steps(self, pr_agent_workflow: Dict[str, Any]):
         """Test that there are no duplicate setup steps in the workflow."""
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         # Check for duplicate step names
@@ -434,7 +437,7 @@ class TestPrAgentWorkflow:
         Parameters:
             pr_agent_workflow (Dict[str, Any]): Parsed workflow mapping for the PR Agent workflow.
         """
-        review_job = pr_agent_workflow["jobs"]["review"]
+        review_job = pr_agent_workflow["jobs"]["pr-agent-trigger"]
         steps = review_job.get("steps", [])
 
         checkout_steps = [
@@ -497,6 +500,10 @@ class TestWorkflowSecurity:
                         for sensitive in ["token", "password", "key", "secret"]
                     ):
                         if isinstance(value, str):
+                            if key.lower() in {"key", "restore-keys"} and (
+                                "hashFiles" in value or "runner.os" in value
+                            ):
+                                continue
                             assert value.startswith("${{") or value == "", (
                                 f"Sensitive field '{key}' in {workflow_file.name} "
                                 "should use secrets context (e.g., ${{ secrets.TOKEN }})"
@@ -1940,10 +1947,12 @@ class TestWorkflowTriggers:
             "push",
             "pull_request",
             "pull_request_review",
+            "pull_request_review_comment",
             "pull_request_target",
             "issue_comment",
             "issues",
             "workflow_dispatch",
+            "workflow_call",
             "schedule",
             "release",
             "create",
@@ -1963,6 +1972,8 @@ class TestWorkflowTriggers:
             "status",
             "workflow_run",
             "repository_dispatch",
+            "merge_group",
+            "branch_protection_rule",
             "milestone",
             "discussion",
             "discussion_comment",
@@ -2856,6 +2867,7 @@ class TestWorkflowEnvironmentVariables:
 
         for _, job in jobs.items():
             # Check for duplication (informational)
+            _ = job.get("env")
 
 
 class TestWorkflowScheduledExecutionBestPractices:
@@ -2884,7 +2896,7 @@ class TestWorkflowScheduledExecutionBestPractices:
                 # Check each part is valid
                 for _, part in enumerate(parts):
                     # Should be number, *, */n, or range
-                    assert re.match(r"^[\\d*,/-]+$", part), (
+                    assert re.match(r"^[\d*,/-]+$", part), (
                         f"Invalid cron part '{part}' in {workflow_file.name}"
                     )
 
@@ -2895,16 +2907,9 @@ class TestWorkflowScheduledExecutionBestPractices:
         triggers = data.get("on", {})
 
         if "schedule" in triggers:
-            pass
-
-
-if "schedule" in triggers:
-    schedules = triggers["schedule"]
-    for schedule in schedules:
-        _ = schedule.get("cron", "")
-        for schedule in schedules:
-            _ = schedule.get("cron", "")
-            pass
+            schedules = triggers["schedule"]
+            for schedule in schedules:
+                _ = schedule.get("cron", "")
 
 
 # Additional test to verify all new test classes are properly structured

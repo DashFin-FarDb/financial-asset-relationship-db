@@ -8,6 +8,8 @@ Successfully generated **37 comprehensive unit tests** to enhance the auto-assig
 
 **File**: `tests/integration/test_github_workflows.py`
 
+**Workflow Target**: `.github/workflows/auto-assign.yml` (auto-assign workflow)
+
 - **Total Lines**: 2,645 lines
 - **Lines Added**: 483 lines of new test code
 - **Test Classes**: 3
