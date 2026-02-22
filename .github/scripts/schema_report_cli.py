@@ -65,6 +65,9 @@ def format_as_json(metrics: Dict[str, Any]) -> str:
 
     Args:
         metrics: Dictionary of calculated metrics.
+
+    Returns:
+        str: JSON-formatted string representation of the metrics.
     """
     return json.dumps(metrics, indent=2, default=str)
 
