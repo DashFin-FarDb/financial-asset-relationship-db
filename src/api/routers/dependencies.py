@@ -1,8 +1,10 @@
-from src.logic.asset_graph import AssetRelationshipGraph
 import threading
+
+from src.logic.asset_graph import AssetRelationshipGraph
 
 _graph: AssetRelationshipGraph | None = None
 _graph_lock = threading.Lock()
+
 
 def get_graph() -> AssetRelationshipGraph:
     global _graph
