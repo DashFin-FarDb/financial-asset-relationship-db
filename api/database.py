@@ -228,6 +228,7 @@ def _close_shared_memory_connection() -> None:
             conn.close()
             _db_manager._memory_connection = None  # type: ignore[attr-defined]
 
+
 # Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
 _ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False)
 if not _ATEXIT_DB_CLOSE_REGISTERED:
