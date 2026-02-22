@@ -483,7 +483,10 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
             assets.append(AssetResponse(**asset_dict))
     except Exception as e:
         logger.exception("Error getting assets:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
     else:
         return assets
 
