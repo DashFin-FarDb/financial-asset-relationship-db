@@ -90,6 +90,8 @@ class TestYAMLSyntaxAndStructure:
             # Reset flags per file (handled by reinitialization each loop)
 
         assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
+
+
 def test_no_duplicate_keys_in_yaml():
     """
     Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate - key errors are collected and cause the test to fail with a consolidated error message.
@@ -99,9 +101,7 @@ def test_no_duplicate_keys_in_yaml():
     except ImportError:
         pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
 
-    yaml_files = list(Path(".github").rglob("*.yml")) + list(
-        Path(".github").rglob("*.yaml")
-    )
+    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
     parser = YAML(typ="safe")
     parse_errors = []
 
@@ -116,6 +116,7 @@ def test_no_duplicate_keys_in_yaml():
             parse_errors.append(f"{yaml_file}: File system error - {e}")
         except Exception as e:
             parse_errors.append(f"{yaml_file}: Unexpected error - {e}")
+
 
 assert not parse_errors, "YAML errors detected:\n" + "\n".join(parse_errors)
 
