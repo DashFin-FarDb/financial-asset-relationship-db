@@ -142,19 +142,19 @@ class TestDocumentationFilesValidation:
             content = md_file.read_text(encoding="utf-8")
             lines = content.splitlines()
 
+            in_fence = False
             for idx, line in enumerate(lines):
                 stripped = line.strip()
-                if stripped.startswith("```") and stripped != "```":
-                    # Has at least one char after ```; treat it as having a language
+                if stripped.startswith("```"):
+                    if not in_fence and stripped == "```":
+                        fence_issues.append(
+                            (
+                                md_file,
+                                f"Line {idx + 1}: code fence has no language identifier",
+                            ),
+                        )
+                    in_fence = not in_fence
                     continue
-                if stripped == "```":
-                    # Plain ``` with no language; this is what we want to flag.
-                    fence_issues.append(
-                        (
-                            md_file,
-                            f"Line {idx + 1}: code fence has no language identifier",
-                        ),
-                    )
 
         assert not fence_issues, "Code block language issues:\n" + "\n".join(
             f"{path}: {msg}" for path, msg in fence_issues
