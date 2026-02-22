@@ -427,6 +427,32 @@ class TestFormatChecklist:
 
         assert "- [ ] Resolve merge conflicts" in result
 
+    def test_format_checklist_unknown_mergeable_state(self):
+        """format_checklist shows 'Check for merge conflicts' when mergeable state is unknown."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=None,
+            mergeable_state="unknown",
+            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = format_checklist(status)
+
+        assert "- [ ] Check for merge conflicts" in result
+
     def test_format_checklist_changes_requested(self):
         """format_checklist shows pending change requests."""
         status = PRStatus(
