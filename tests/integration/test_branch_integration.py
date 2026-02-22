@@ -315,7 +315,6 @@ class TestBranchCoherence:
         Checks that each workflow in the predefined list does not exceed its maximum allowed line count and fails the test if any file is longer than its threshold.
         """
         # This branch should simplify, not add complexity
-
         # Check workflow line counts decreased
         workflows_to_check = [
             (".github/workflows/pr-agent.yml", 200),  # Should be under 200 lines
@@ -409,7 +408,6 @@ class TestBranchQuality:
         workflow_files = list(workflow_dir.glob("*.yml"))
 
         assert len(workflow_files) > 0, "No workflow files found"
-
         for wf_file in workflow_files:
             try:
                 with open(wf_file, "r") as f:
