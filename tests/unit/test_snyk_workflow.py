@@ -79,7 +79,7 @@ class TestSnykWorkflowStructure:
     def test_workflow_has_trigger(self, snyk_workflow):
         """Test that workflow has trigger configuration."""
         # YAML parses 'on' as boolean True
-        assert True in snyk_workflow or "on" in snyk_workflow
+        assert "on" in snyk_workflow and isinstance(snyk_workflow["on"], dict)
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         assert triggers is not None
 
@@ -109,7 +109,7 @@ class TestSnykWorkflowTriggers:
     def test_workflow_triggers_on_push(self, snyk_workflow):
         """Test that workflow triggers on push."""
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
-        assert "push" in triggers
+        assert isinstance(triggers, dict) and "push" in triggers
 
     def test_workflow_triggers_on_pull_request(self, snyk_workflow):
         """Test that workflow triggers on pull requests."""
@@ -139,7 +139,7 @@ class TestSnykWorkflowTriggers:
         cron_expr = schedule["cron"]
         # Basic cron validation: should have 5 parts
         parts = cron_expr.split()
-        assert len(parts) == 5, "Cron expression should have 5 parts"
+        assert len(parts) == 5 and all(part.isdigit() for part in parts), "Cron expression should have 5 numeric parts"
 
     def test_push_triggers_on_main_branch(self, snyk_workflow):
         """Test that push trigger includes main branch."""
@@ -338,8 +338,7 @@ class TestSnykJobConfiguration:
         sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         sarif_step = sarif_steps[0]
 
-        assert "with" in sarif_step
-        assert "sarif_file" in sarif_step["with"]
+        assert "with" in sarif_step and "sarif_file" in sarif_step["with"]
         assert sarif_step["with"]["sarif_file"] == "snyk.sarif"
 
 
