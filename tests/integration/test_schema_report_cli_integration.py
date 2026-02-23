@@ -343,6 +343,19 @@ class TestCLIArgumentParsing:
 class TestCLILogging:
     """Test cases for CLI logging behavior."""
 
+    def _assert_cli_success(result, output_file: Path) -> None:
+        assert result.returncode == 0, (
+            "CLI returned non-zero exit code.\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}\n"
+        )        
+        assert output_file.exists(), (
+            "CLI reported success but did not create output file.\n"
+            f"Expected: {output_file}\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}\n"
+        )
+
     def test_log_file_created(self, tmp_path: Path) -> None:
         """Log file should be created in the path given by SCHEMA_REPORT_LOG."""
         result = _run_cli(tmp_path)
