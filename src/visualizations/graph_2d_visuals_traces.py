@@ -81,6 +81,8 @@ def _create_2d_relationship_traces(
             strength = float(rel["strength"])
 
             sx, sy = positions[source_id]
+
+
 from typing import Dict, List, Tuple
 
 import plotly.graph_objects as go
