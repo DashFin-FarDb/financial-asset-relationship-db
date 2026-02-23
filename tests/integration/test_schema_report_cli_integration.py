@@ -18,6 +18,7 @@ from pathlib import Path
 
 import pytest
 
+
 def _repo_root() -> Path:
     """
     Locate the repository root by ascending two directory levels from this file.
