@@ -186,7 +186,7 @@ class TestParseArguments:
 
         args = cli_module.parse_arguments()
 
-        assert args.fmt == "markdown"
+        assert args.fmt == cli_module.OutputFormat.MARKDOWN
         assert args.output is None
         assert args.verbose is False
 
@@ -200,7 +200,7 @@ class TestParseArguments:
 
         args = cli_module.parse_arguments()
 
-        assert args.fmt == "json"
+        assert args.fmt == cli_module.OutputFormat.JSON
 
     def test_parse_arguments_output_path(
         self,
