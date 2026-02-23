@@ -147,7 +147,6 @@ def visualize_3d_graph_with_filters(
         if arrow_traces:
             fig.add_traces(arrow_traces)
 
-
     fig.add_trace(_create_node_trace(positions, asset_ids, colors, hover_texts))
 
     dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
