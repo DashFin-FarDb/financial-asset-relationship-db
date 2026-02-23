@@ -237,9 +237,9 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
     return "\n".join(lines)
 
 
-def convert_markdown_to_json(markdown: str) -> str:
+def format_as_json(metrics: Dict[str, Any]) -> str:
     """
-    Create a JSON payload containing the provided Markdown schema report.
+    Format a JSON payload containing the provided Markdown schema report.
 
     Args:
         markdown: The Markdown schema report to include in the payload.
@@ -248,7 +248,7 @@ def convert_markdown_to_json(markdown: str) -> str:
         Pretty-printed JSON string with a top-level `schema_report` field.
     """
     payload = {"schema_report": markdown}
-    return json.dumps(payload, indent=2)
+    return json.dumps(metrics, indent=2, default=str)
 
 
 def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
