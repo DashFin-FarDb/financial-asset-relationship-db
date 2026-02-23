@@ -239,5 +239,5 @@ def attach_to_gradio_interface(
     report_fn = make_gradio_report_fn(graph_provider, html=html)
 
     if html:
-        return gr.HTML(report_fn())
-    return gr.Markdown(report_fn())
+        return gr.HTML(value=report_fn)
+    return gr.Markdown(value=report_fn)
