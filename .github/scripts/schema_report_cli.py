@@ -44,7 +44,14 @@ def _find_project_root(start: Path) -> Path:
     for parent in (start, *start.parents):
         if (parent / "pyproject.toml").exists() or (parent / "src").is_dir():
             return parent
-    raise RuntimeError("Could not locate project root. Expected pyproject.toml or src/ directory.")
+
+    # Fallback to the current working directory for environments where the
+    # script is copied or relocated (e.g., tests) but the project root is
+    # still the CWD.
+    cwd = Path.cwd()
+    if (cwd / "pyproject.toml").exists() or (cwd / "src").is_dir():
+        return cwd
+
 
 
 PROJECT_ROOT = _find_project_root(Path(__file__).resolve())
