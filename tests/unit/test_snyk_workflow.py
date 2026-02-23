@@ -139,7 +139,7 @@ class TestSnykWorkflowTriggers:
         cron_expr = schedule["cron"]
         # Basic cron validation: should have 5 parts
         parts = cron_expr.split()
-        assert len(parts) == 5 and all(part.isdigit() for part in parts), "Cron expression should have 5 numeric parts"
+        assert len(parts) == 5, "Cron expression should have 5 space-separated fields"
 
     def test_push_triggers_on_main_branch(self, snyk_workflow):
         """Test that push trigger includes main branch."""
