@@ -354,7 +354,9 @@ Dependencies:
 - ../../app/types/api
 - ../test-utils
 
+<!-- BEGIN SECTION: Project Directory Structure -->
 ## Project Directory Structure
+<!-- END SECTION: Project Directory Structure -->
 
 - 📂 api/
   - 📄 init.py
