@@ -254,8 +254,9 @@ class TestGenerateReport:
     ) -> None:
         """generate_report with markdown format should output to stdout."""
         fmt = cli_module.OutputFormat.MARKDOWN
+        logger = cli_module.configure_logging(verbose=False)
 
-        cli_module.generate_report(fmt, None)
+        cli_module.generate_report(logger, fmt, None)
 
         captured = capsys.readouterr()
         assert len(captured.out) > 0
@@ -270,8 +271,9 @@ class TestGenerateReport:
         """generate_report with text format should convert markdown."""
         fmt = cli_module.OutputFormat.TEXT
         output = tmp_path / "output.txt"
+        logger = cli_module.configure_logging(verbose=False)
 
-        cli_module.generate_report(fmt, output)
+        cli_module.generate_report(logger, fmt, output)
 
         assert output.exists()
         content = output.read_text(encoding="utf-8")
@@ -288,8 +290,9 @@ class TestGenerateReport:
 
         fmt = cli_module.OutputFormat.JSON
         output = tmp_path / "output.json"
+        logger = cli_module.configure_logging(verbose=False)
 
-        cli_module.generate_report(fmt, output)
+        cli_module.generate_report(logger, fmt, output)
 
         assert output.exists()
         content = output.read_text(encoding="utf-8")
@@ -304,8 +307,9 @@ class TestGenerateReport:
         """generate_report should create parent directories if needed."""
         fmt = cli_module.OutputFormat.MARKDOWN
         output = tmp_path / "nested" / "dir" / "output.md"
+        logger = cli_module.configure_logging(verbose=False)
 
-        cli_module.generate_report(fmt, output)
+        cli_module.generate_report(logger, fmt, output)
 
         assert output.exists()
         assert output.parent.exists()
