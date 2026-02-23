@@ -210,11 +210,10 @@ class TestAddEquityNode:
 
         # Create a minimal graph mock without add_asset method
         with patch("mcp_server.graph") as mock_graph:
-            # Make getattr return None for add_asset
-            mock_graph.__getattr__ = Mock(return_value=None)
-
+            # Remove add_asset so callable() returns False, triggering the fallback.
+            mock_graph.add_asset = None  # non-callable
+ 
             mcp_app = _build_mcp_app()
-
             tool_func = None
             for tool in mcp_app.list_tools():
                 if tool.name == "add_equity_node":
@@ -230,7 +229,7 @@ class TestAddEquityNode:
             )
 
             # Should indicate validation-only mode
-            assert "validation" in result.lower() or "Successfully" in result
+            assert "Graph mutation not supported" in result
 
 
 @pytest.mark.unit
