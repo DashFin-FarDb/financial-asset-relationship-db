@@ -297,7 +297,7 @@ class TestAssetsEndpoint:
         assert equity["additional_fields"]["pe_ratio"] == 25.5
 
     @patch("api.main.graph")
-    def test_assets_error_handling(self, mock_graph_instance, client, apply_mock_graph):
+    def test_assets_error_handling(self, mock_graph_instance, client):
         """Test error handling in assets endpoint."""
         # Make graph.assets raise an exception when accessed
         type(mock_graph_instance).assets = PropertyMock(side_effect=Exception("Database error"))
@@ -541,7 +541,6 @@ class TestEdgeCases:
         """Test handling of empty graph."""
         empty_graph = AssetRelationshipGraph()
         apply_mock_graph(mock_graph_instance, empty_graph)
-        mock_graph_instance.get_3d_visualization_data_enhanced = empty_graph.get_3d_visualization_data_enhanced
 
         response = client.get("/api/assets")
         assert response.status_code == 200
@@ -769,9 +768,7 @@ class TestRealDataFetcherFallback:
         graph = fetcher.create_real_database()
 
         assert len(graph.assets) == len(reference_graph.assets)
-        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
-
-        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
+        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys()
 
 
 @pytest.mark.unit
@@ -781,7 +778,7 @@ class TestCacheCorruptionRegression:
     @staticmethod
     @patch("src.data.real_data_fetcher.yf.Ticker")
     @patch("src.data.real_data_fetcher._get_yfinance")
-    def test_real_data_fetcher_handles_corrupted_cache_gracefully(mock_get_yfinance):
+    def test_real_data_fetcher_handles_corrupted_cache_gracefully(mock_get_yfinance, _mock_ticker):
         """Regression: RealDataFetcher should handle corrupted cache without crashing."""
         from src.data.real_data_fetcher import RealDataFetcher
 
