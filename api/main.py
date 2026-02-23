@@ -249,10 +249,10 @@ def validate_origin(origin: str) -> bool:
     current_env = os.getenv("ENV", "development").lower()
 
     # Get allowed origins from environment variable or use default
-    allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
+    allowed_origins = [o for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o]
 
     # If origin is in explicitly allowed list, return True
-    if origin in allowed_origins and origin:
+    if origin in allowed_origins:
         return True
 
     # Allow HTTP localhost only in development
