@@ -92,7 +92,8 @@ class TestThreadSafeGraph:
         mock_lock.release.side_effect = lambda *a, **kw: (
             lock_acquired.append("released") or real_lock.release(*a, **kw)
         )
-        lock = mock_lock
+        # Ensure the ThreadSafeGraph uses the instrumented lock
+        safe_graph._lock = mock_lock
 
         # Call a method
         equity = Equity(
