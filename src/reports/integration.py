@@ -89,7 +89,7 @@ def markdown_to_html(md: str) -> str:
     )
 
     # Add rel="nofollow noopener" to links and open in new tab defensively.
-    def _add_noopener(attrs, new=False):
+    def _add_noopener(attrs: dict, new: bool = False) -> dict:
         rel = attrs.get((None, "rel"), "")
         if "noopener" not in rel:
             attrs[(None, "rel")] = (rel + " noopener").strip()
