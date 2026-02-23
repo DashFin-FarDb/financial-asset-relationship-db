@@ -54,9 +54,8 @@ class TestConftestHelpers:
 
             # Coverage args should be removed, other args preserved
             assert "--cov=src" not in args and "--cov-report=html" not in args
-            assert "--cov-report=html" not in args
             assert "tests/" in args
-            assert "-v" in args
+            assert "-v" in `args`
 
     @staticmethod
     def test_pytest_load_initial_conftests_removes_standalone_cov_arg():
