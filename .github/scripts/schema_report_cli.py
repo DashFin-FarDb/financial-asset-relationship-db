@@ -278,7 +278,12 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
     except Exception:
         try:
             tmp_path.unlink()
-        except Exception:
+        except Exception as cleanup_exc:
+            logging.getLogger(__name__).debug(
+                "Failed to remove temporary file %s during atomic write cleanup: %s",
+                tmp_path,
+                cleanup_exc,
+            )
             pass
         raise
 
