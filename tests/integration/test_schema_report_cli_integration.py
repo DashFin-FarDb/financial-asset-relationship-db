@@ -348,7 +348,7 @@ class TestCLILogging:
             "CLI returned non-zero exit code.\n"
             f"stdout:\n{result.stdout}\n"
             f"stderr:\n{result.stderr}\n"
-        )        
+        )
         assert output_file.exists(), (
             "CLI reported success but did not create output file.\n"
             f"Expected: {output_file}\n"
