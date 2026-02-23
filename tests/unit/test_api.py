@@ -139,8 +139,9 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
     mock_graph_instance.get_3d_visualization_data_enhanced = graph.get_3d_visualization_data_enhanced
 
 
+from typing import Callable
 @pytest.fixture
-def apply_mock_graph():
+def apply_mock_graph() -> Callable[[object, AssetRelationshipGraph], None]:
     """
     Provide a helper that attaches a concrete AssetRelationshipGraph's data and behavior onto a patched mock graph.
 
@@ -148,6 +149,9 @@ def apply_mock_graph():
 
     Returns:
         callable: A function accepting (mock_graph_instance, source_graph) that mutates mock_graph_instance to mirror source_graph.
+
+    Raises:
+        Exception: Propagates any exception raised while copying attributes.
     """
     return _apply_mock_graph_configuration
 
