@@ -244,9 +244,12 @@ class TestRequirementsDocumentation:
         lines = content.splitlines()
         for i, line in enumerate(lines):
             if "pyyaml" in line.lower() and not line.strip().startswith("#"):
-                context = "\n".join(lines[max(0, i - 3) : i + 1])
+                window_start = max(0, i - 3)
+                comment_context = "\n".join(
+                    l for l in lines[window_start:i] if l.strip().startswith("#")
+                )
                 assert any(
-                    keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]
+                    keyword in comment_context.lower() for keyword in ["yaml", "workflow", "config", "parse"]
                 ), "PyYAML should have explanatory comment"
                 break
         else:
