@@ -25,6 +25,8 @@ class TestRequirementsDevChanges:
         with open(req_path, "r", encoding="utf-8") as f:
             return f.read()
 
+    @pytest.mark.unit
+    @pytest.mark.integration
     def test_all_active_lines_parse_as_requirements(self, requirements_dev_content: str) -> None:
         """
         Ensure every active (non-empty, non-comment) line parses as a Requirement.
@@ -40,8 +42,11 @@ class TestRequirementsDevChanges:
             try:
                 Requirement(line)
             except InvalidRequirement as exc:
-                raise AssertionError(f"Invalid requirement in requirements-dev.txt at line {i}: '{raw}'") from exc
+                raise AssertionError(
+                    f"Invalid requirement in requirements-dev.txt at line {i}: '{raw}'"
+                ) from exc
 
+    @pytest.mark.unit
     def test_pyyaml_added(self, requirements_dev_content: str) -> None:
         """
         Verify that requirements-dev.txt includes a PyYAML package entry.
@@ -51,6 +56,7 @@ class TestRequirementsDevChanges:
         """
         assert "pyyaml" in requirements_dev_content.lower()
 
+    @pytest.mark.unit
     def test_pyyaml_has_version_specifier(self, requirements_dev_content: str) -> None:
         """
         Ensure the active PyYAML requirement includes a version operator.
@@ -78,6 +84,8 @@ class TestRequirementsDevChanges:
         pyyaml_line_no_comment = pyyaml_lines[0].split("#", 1)[0].strip()
         assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
 
+    @pytest.mark.unit
+    @pytest.mark.integration
     def test_no_duplicate_packages(self, requirements_dev_content: str) -> None:
         """
         Ensure requirements-dev.txt contains no duplicate package entries.
@@ -99,6 +107,7 @@ class TestRequirementsDevChanges:
 
         assert len(package_names) == len(set(package_names)), "Duplicate packages found in requirements-dev.txt"
 
+    @pytest.mark.unit
     def test_requirements_format_valid(self, requirements_dev_content: str) -> None:
         """
         Validate that each active line has no leading/trailing whitespace.
@@ -116,6 +125,7 @@ class TestRequirementsDependencyCompatibility:
     """Test dependency compatibility."""
 
     @staticmethod
+    @pytest.mark.unit
     def test_pyyaml_compatible_with_python_version() -> None:
         """
         Assert that if PyYAML is listed, Python is at least 3.6.
@@ -134,6 +144,7 @@ class TestRequirementsDependencyCompatibility:
             assert python_version >= (3, 6), "PyYAML requires Python 3.6 or higher"
 
     @staticmethod
+    @pytest.mark.integration
     def test_no_conflicting_versions() -> None:
         """
         Ensure at most two package name overlaps exist between requirements files.
@@ -165,7 +176,9 @@ class TestRequirementsDependencyCompatibility:
                 try:
                     out.add(Requirement(line).name.lower())
                 except InvalidRequirement as exc:
-                    raise AssertionError(f"Invalid requirement in {filename} at line {i}: '{raw}'") from exc
+                    raise AssertionError(
+                        f"Invalid requirement in {filename} at line {i}: '{raw}'"
+                    ) from exc
             return out
 
         req_packages = _names(req_lines, "requirements.txt")
@@ -179,6 +192,8 @@ class TestRequirementsInstallability:
     """Test that requirements can be installed."""
 
     @pytest.mark.skipif(not Path("requirements-dev.txt").exists(), reason="requirements-dev.txt not found")
+    @pytest.mark.slow
+    @pytest.mark.integration
     def test_requirements_dev_syntax_valid(self) -> None:
         """
         Verify requirements-dev.txt has valid pip syntax (dry run).
@@ -195,7 +210,8 @@ class TestRequirementsInstallability:
             check=False,
         )
         assert result.returncode == 0, (
-            "pip dry-run failed for requirements-dev.txt:\n" f"stdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
+            "pip dry-run failed for requirements-dev.txt:\n"
+            f"stdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
         )
 
 
@@ -203,6 +219,7 @@ class TestRequirementsDocumentation:
     """Test requirements documentation and comments."""
 
     @staticmethod
+    @pytest.mark.unit
     def test_requirements_has_helpful_comments() -> None:
         """
         Verify that requirements-dev.txt contains at least one comment line.
@@ -217,6 +234,7 @@ class TestRequirementsDocumentation:
         assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
 
     @staticmethod
+    @pytest.mark.unit
     def test_pyyaml_purpose_documented() -> None:
         """
         Verify the PyYAML addition has a nearby comment explaining purpose.
