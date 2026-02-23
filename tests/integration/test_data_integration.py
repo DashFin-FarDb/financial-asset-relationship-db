@@ -111,7 +111,7 @@ class TestSerializationRoundTrip:
     """Test serialization and deserialization round-trips."""
 
     @staticmethod
-    def test_sample_graph_serialization_roundtrip():
+    def test_sample_graph_serialization_roundtrip() -> None:
         """Test that a sample graph can be serialized and deserialized."""
         # Create a simple graph for testing (sample database may have events that complicate deserialization)
         original_graph = AssetRelationshipGraph()
