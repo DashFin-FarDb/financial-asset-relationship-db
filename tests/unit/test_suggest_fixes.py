@@ -9,7 +9,6 @@ formatting, and report generation.
 from __future__ import annotations
 
 import sys
-import tempfile
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
