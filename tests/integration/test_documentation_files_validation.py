@@ -217,9 +217,14 @@ class TestDocumentationFilesValidation:
                     expected_cols = 0
                     continue
 
-                # Count columns: ignore leading/trailing pipe empties
-                cols = [c for c in line.split("|") if c.strip()]
-                col_count = len(cols)
+                # Count columns: ignore leading/trailing pipe empties but keep empty cells
+                parts = line.split("|")
+                # Drop a leading or trailing empty segment caused by outer pipes
+                if parts and not parts[0].strip():
+                    parts = parts[1:]
+                if parts and not parts[-1].strip():
+                    parts = parts[:-1]
+                col_count = len(parts)
 
                 if not in_table:
                     in_table = True
