@@ -170,9 +170,7 @@ def export_report(graph: AssetRelationshipGraph, fmt: ReportFormat = "md") -> st
         ValueError: If `fmt` is unsupported.
     """
     if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(
-            f"export_report() expected AssetRelationshipGraph, got {type(graph)!r}"
-        )
+        raise TypeError(f"export_report() expected AssetRelationshipGraph, got {type(graph)!r}")
 
     fmt_norm = fmt.lower()
 
