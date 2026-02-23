@@ -134,7 +134,7 @@ def configure_logging(verbose: bool) -> logging.Logger:
     if logger.handlers:
         # Update existing stream handler levels based on verbosity.
         for h in logger.handlers:
-            if isinstance(h, logging.StreamHandler):
+            if isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler):
                 h.setLevel(logging.DEBUG if verbose else logging.WARNING)
         return logger
 
