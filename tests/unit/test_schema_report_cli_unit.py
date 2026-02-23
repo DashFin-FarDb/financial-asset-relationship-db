@@ -494,9 +494,10 @@ class TestEdgeCases:
         monkeypatch.setattr(cli_module, "create_sample_database", mock_create_sample_database)
 
         fmt = cli_module.OutputFormat.MARKDOWN
+        logger = cli_module.configure_logging(verbose=False)
 
         with pytest.raises(cli_module.CLIError):
-            cli_module.generate_report(fmt, None)
+            cli_module.generate_report(logger, fmt, None)
 
     def test_json_output_is_valid_and_pretty(
         self,
