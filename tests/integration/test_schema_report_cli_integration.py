@@ -258,9 +258,9 @@ class TestCLIFormatConversion:
     def test_text_removes_markdown_formatting(self, tmp_path: Path) -> None:
         """Text format should remove markdown headers."""
         output_file = tmp_path / "report.txt"
-    
+
         result = _run_cli(tmp_path, "--fmt", "text", "--output", str(output_file))
-    
+
         assert result.returncode == 0, (
             "CLI returned non-zero exit code.\n"
             f"stdout:\n{result.stdout}\n"
@@ -272,7 +272,7 @@ class TestCLIFormatConversion:
             f"stdout:\n{result.stdout}\n"
             f"stderr:\n{result.stderr}\n"
         )
-    
+
         content = output_file.read_text(encoding="utf-8")
         lines_with_headers = [line for line in content.splitlines() if line.startswith("#")]
         assert len(lines_with_headers) == 0
