@@ -158,7 +158,8 @@ class TestRequirementsDependencyCompatibility:
         def _names(lines: list[str], filename: str) -> set[str]:
             out: set[str] = set()
             for i, raw in enumerate(lines, 1):
-                line = raw.strip()
+                # Strip inline comments before parsing as a Requirement
+                line = raw.split("#", 1)[0].strip()
                 if not line or line.startswith("#"):
                     continue
                 try:
