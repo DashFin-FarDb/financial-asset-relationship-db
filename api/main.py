@@ -714,10 +714,13 @@ async def get_metrics():
             relationship_density=relationship_density,
         )
     except Exception as e:  # noqa: BLE001
+        if isinstance(e, HTTPException):
+            # Preserve any HTTPExceptions raised downstream
+            raise
         logger.exception("Error getting metrics:")
         raise HTTPException(
             status_code=500,
-            detail="An internal error occurred. Please try again later.",
+            detail=str(e),
         ) from e
 
 
