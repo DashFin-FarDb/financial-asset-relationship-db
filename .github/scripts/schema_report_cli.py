@@ -18,7 +18,7 @@ import re
 import sys
 import tempfile
 from pathlib import Path
-from typing import Optional
+from typing import Any, Dict, Optional
 
 # ---------------------------------------------------------------------------
 # Import path bootstrapping
@@ -246,32 +246,19 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
 
 def convert_markdown_to_json(metrics: Dict[str, Any]) -> str:
     """
-    Format a JSON payload containing the provided Markdown schema report.
-    fd, tmp_path_str = tempfile.mkstemp(dir=str(path.parent))
-    tmp_path = Path(tmp_path_str)
+    Format a JSON payload containing the provided metrics for the schema report.
 
-    try:
-        try:
-            fh = os.fdopen(fd, "w", encoding=encoding)
-        except Exception:
-            os.close(fd)
-            raise
-        with fh:
-            fh.write(data)
-            fh.flush()
-            os.fsync(fh.fileno())
-        os.replace(tmp_path, path)
-    except Exception:
-        try:
-            tmp_path.unlink()
-        except Exception:
-            pass
-        raise
+    Args:
+         metrics: Mapping of metric names to their values.
 
+    Returns:
+         A JSON-formatted string representation of the metrics.
+     """
+     return json.dumps(metrics, indent=2, sort_keys=True)
 
 def generate_report(logger: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
-    """
-    Generate a schema report and write it to the given file path or stdout.
+     """
+     Generate a schema report and write it to the given file path or stdout.
 
     Args:
         logger: Logger instance to record diagnostics.
