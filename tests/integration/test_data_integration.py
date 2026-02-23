@@ -24,7 +24,6 @@ pytestmark = pytest.mark.integration
 
 class TestRepositoryIntegration:
     """Test interactions between repository and sample data."""
-    
 
     @staticmethod
     def test_sample_graph_can_be_saved_to_repository(tmp_path):
@@ -575,4 +574,3 @@ class TestDataConsistency:
 
         session.close()
         engine.dispose()
-
