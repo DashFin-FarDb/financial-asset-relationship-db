@@ -90,13 +90,13 @@ pytestmark = pytest.mark.integration
 
             session.commit()
 
-            # Verify relationships were saved
+            # Verify relationships were saved and match the in-memory graph
             saved_rels = repo.list_relationships()
             assert len(saved_rels) > 0
             for rel in saved_rels:
                 assert rel.source_id in graph.relationships
-                assert rel.target_id in graph.relationships[rel.source_id]
-                assert rel.target_id in target_ids
+                expected_targets = {t for t, _, _ in graph.relationships[rel.source_id]}
+                assert rel.target_id in expected_targets
 
 
 class TestSerializationRoundTrip:
