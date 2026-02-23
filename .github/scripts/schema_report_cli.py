@@ -237,7 +237,7 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
     return "\n".join(lines)
 
 
-def format_as_json(metrics: Dict[str, Any]) -> str:
+def convert_markdown_to_json(metrics: Dict[str, Any]) -> str:
     """
     Format a JSON payload containing the provided Markdown schema report.
 
