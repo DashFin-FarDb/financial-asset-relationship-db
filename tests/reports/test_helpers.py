@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-
 from src.reports.helpers import (
     _as_float,
     _as_int,
