@@ -36,13 +36,22 @@ def _load_module_for_test(
     cli_src = Path(__file__).resolve().parents[2] / ".github" / "scripts" / "schema_report_cli.py"
     assert cli_src.exists(), f"CLI source not found: {cli_src}"
 
+
+    # Copy the real CLI script into tmp_path under a throwaway name
+    cli_src = Path(__file__).resolve().parents[2] / ".github" / "scripts" / "schema_report_cli.py"
+    assert cli_src.exists(), f"CLI source not found: {cli_src}"
+    
+    
     cli_copy = tmp_path / "schema_report_cli_copy.py"
     cli_copy.write_text(cli_src.read_text(encoding="utf-8"), encoding="utf-8")
 
     # Import the copy so the module's top-level code runs with the patched env
     monkeypatch.syspath_prepend(str(tmp_path))
+    # Evict any cached module so import_module loads from this test's tmp_path.
+    sys.modules.pop("schema_report_cli_copy", None)
+    importlib.invalidate_caches()  # ensure the new tmp_path file is found
     module = importlib.import_module("schema_report_cli_copy")
-    importlib.reload(module)
+    return module
     return module
 
 
