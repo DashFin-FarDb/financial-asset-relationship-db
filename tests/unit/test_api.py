@@ -140,6 +140,8 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
 
 
 from typing import Callable
+
+
 @pytest.fixture
 def apply_mock_graph() -> Callable[[object, AssetRelationshipGraph], None]:
     """
