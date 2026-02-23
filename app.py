@@ -255,7 +255,11 @@ class FinancialAssetApp:
             logger.info("Refreshing all visualization outputs")
 
             viz_3d = visualize_3d_graph(graph)
-            f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
+            # Generate metrics text and placeholder figures without relying on a missing method.
+            metrics_txt = self._update_metrics_text(graph)
+            f1 = go.Figure()
+            f2 = go.Figure()
+            f3 = go.Figure()
             schema_rpt = generate_schema_report(graph)
 
             asset_choices = list(graph.assets.keys())
