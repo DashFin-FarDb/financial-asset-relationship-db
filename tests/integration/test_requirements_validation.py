@@ -190,6 +190,7 @@ class TestRequirementsInstallability:
         result = subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
             capture_output=True,
+            timeout=120,
             text=True,
             check=False,
         )
