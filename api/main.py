@@ -571,7 +571,10 @@ async def get_asset_detail(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset detail:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @app.get(
