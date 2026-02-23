@@ -40,7 +40,7 @@ def _load_cli_module_for_unit(
     assert spec is not None and spec.loader is not None
 
     module = importlib.util.module_from_spec(spec)
-    monkeypatch.setitem(sys.modules, spec.name, module
+    monkeypatch.setitem(sys.modules, spec.name, module)
     spec.loader.exec_module(module)
     return module
 
