@@ -284,7 +284,6 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
                 tmp_path,
                 cleanup_exc,
             )
-            pass
         raise
 
 
