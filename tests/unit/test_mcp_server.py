@@ -564,4 +564,3 @@ class TestEdgeCases:
         # Should handle unrecognized arguments gracefully
         with pytest.raises(SystemExit):
             main(["--invalid-arg"])
-
