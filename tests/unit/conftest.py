@@ -14,7 +14,6 @@ if "ADMIN_PASSWORD" not in os.environ:
 """Unit test configuration — sets required environment variables before collection."""
 
 import os
-import sys  # noqa: F401 — retained if used by downstream imports; remove if not
 
 import pytest
 
