@@ -1,7 +1,8 @@
 import threading
 
-from src.logic.asset_graph import AssetRelationshipGraph
 from api.main import _initialize_graph
+
+from src.logic.asset_graph import AssetRelationshipGraph
 
 _graph: AssetRelationshipGraph | None = None
 _graph_lock = threading.Lock()
