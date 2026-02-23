@@ -120,8 +120,14 @@ class TestAddEquityNode:
         from mcp_server import _build_mcp_app, graph
 
         # Reset graph state
-        graph._graph.assets.clear()
-        graph._graph.relationships.clear()
+    @pytest.fixture(autouse=True)
+    def _reset_global_graph():
+        """Ensure each test starts with a clean graph."""
+        _global_graph._graph.assets.clear()
+        _global_graph._graph.relationships.clear()
+        yield
+        _global_graph._graph.assets.clear()
+        _global_graph._graph.relationships.clear()
 
         mcp_app = _build_mcp_app()
 
