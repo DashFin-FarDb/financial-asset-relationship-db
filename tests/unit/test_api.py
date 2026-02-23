@@ -780,12 +780,14 @@ class TestCacheCorruptionRegression:
 
     @staticmethod
     @patch("src.data.real_data_fetcher.yf.Ticker")
-    def test_real_data_fetcher_handles_corrupted_cache_gracefully(mock_ticker):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_real_data_fetcher_handles_corrupted_cache_gracefully(mock_get_yfinance):
         """Regression: RealDataFetcher should handle corrupted cache without crashing."""
         from src.data.real_data_fetcher import RealDataFetcher
 
         # Mock ticker to ensure network calls fail
-        mock_ticker.side_effect = Exception("Network unavailable")
+        mock_yf = mock_get_yfinance.return_value
+        mock_yf.Ticker.side_effect = Exception("Network unavailable")
 
         # This tests the scenario where cache exists but is corrupted
         fetcher = RealDataFetcher(cache_path="/nonexistent/corrupted.cache")
