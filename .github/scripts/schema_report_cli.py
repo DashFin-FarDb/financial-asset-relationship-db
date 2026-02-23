@@ -240,36 +240,16 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
 def convert_markdown_to_json(metrics: Dict[str, Any]) -> str:
     """
     Format a JSON payload containing the provided Markdown schema report.
-
-    Args:
-        markdown: The Markdown schema report to include in the payload.
-
-    Returns:
-        Pretty-printed JSON string with a top-level `schema_report` field.
-    """
-    payload = {"schema_report": markdown}
-    return json.dumps(metrics, indent=2, default=str)
-
-
-def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
-    """
-    Write text to `path` atomically.
-
-    The function writes `data` to a temporary file in the same directory,
-    flushes and fsyncs it, then atomically replaces the destination path.
-
-    Args:
-        path: Destination file path.
-        data: Text content to write.
-        encoding: File encoding to use (default "utf-8").
-    """
-    path.parent.mkdir(parents=True, exist_ok=True)
-
     fd, tmp_path_str = tempfile.mkstemp(dir=str(path.parent))
     tmp_path = Path(tmp_path_str)
 
     try:
-        with os.fdopen(fd, "w", encoding=encoding) as fh:
+        try:
+            fh = os.fdopen(fd, "w", encoding=encoding)
+        except Exception:
+            os.close(fd)
+            raise
+        with fh:
             fh.write(data)
             fh.flush()
             os.fsync(fh.fileno())
@@ -277,12 +257,8 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
     except Exception:
         try:
             tmp_path.unlink()
-        except Exception as cleanup_exc:
-            logging.getLogger(__name__).debug(
-                "Failed to remove temporary file %s during atomic write cleanup: %s",
-                tmp_path,
-                cleanup_exc,
-            )
+        except Exception:
+            pass
         raise
 
 
