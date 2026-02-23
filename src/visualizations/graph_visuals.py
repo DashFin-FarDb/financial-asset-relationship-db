@@ -89,7 +89,7 @@ def visualize_3d_graph_with_filters(
         show_same_sector (bool): Include same-sector relationships.
         show_market_cap (bool): Include market-cap-similar relationships.
         show_correlation (bool): Include correlation relationships.
-        show_corporate_bond (bool): Include corporate-bond-to-equity relationships.
+        show_corporate_bond (bool): Include corporate-bond-to-equity and corporate-link relationships.
         show_commodity_currency (bool): Include commodity-currency relationships.
         show_income_comparison (bool): Include income-comparison relationships.
         show_regulatory (bool): Include regulatory-impact relationships.
