@@ -8,7 +8,6 @@ Tests cover all functions, dataclasses, API interactions, and output formatting.
 from __future__ import annotations
 
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
 
