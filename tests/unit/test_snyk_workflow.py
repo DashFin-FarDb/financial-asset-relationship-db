@@ -79,7 +79,7 @@ class TestSnykWorkflowStructure:
     def test_workflow_has_trigger(self, snyk_workflow):
         """Test that workflow has trigger configuration."""
         # YAML parses 'on' as boolean True
-        assert "on" in snyk_workflow and isinstance(snyk_workflow["on"], dict)
+        assert True in snyk_workflow or "on" in snyk_workflow
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         assert triggers is not None
 
