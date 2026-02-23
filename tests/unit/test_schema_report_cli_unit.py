@@ -451,6 +451,25 @@ class TestMainFunction:
 class TestEdgeCases:
     """Additional edge case tests."""
 
+    def test_convert_markdown_to_plain_text_empty_string(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """convert_markdown_to_plain_text with empty input should return empty string."""
+        result = cli_module.convert_markdown_to_plain_text("")
+        assert result == ""
+
+    def test_convert_markdown_to_json_empty_string(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """convert_markdown_to_json with empty input should produce valid JSON."""
+        import json as _json
+
+    json_str = cli_module.convert_markdown_to_json("")
+    data = _json.loads(json_str)
+    assert data["schema_report"] == ""
+    
     def test_convert_markdown_with_multiple_list_markers(
         self,
         cli_module: ModuleType,
