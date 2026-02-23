@@ -15,8 +15,8 @@ if "ADMIN_PASSWORD" not in os.environ:
 
 import os
 import sys  # noqa: F401 — retained if used by downstream imports; remove if not
-import pytest
 
+import pytest
 
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("SECRET_KEY", "test-secret-key-for-ci")
