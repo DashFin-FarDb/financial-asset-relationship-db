@@ -444,7 +444,7 @@ async def health_check():
             - "status" (str): "healthy" when the service is operational.
             - "graph_initialized" (bool): `True` if the asset relationship graph has been initialized, `False` otherwise.
     """
-    return {"status": "healthy", "graph_initialized": True}
+    return {"status": "healthy", "graph_initialized": graph is not None}
 
 
 @app.get(
