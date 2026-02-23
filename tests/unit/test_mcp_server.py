@@ -530,7 +530,6 @@ class TestEdgeCases:
             lock.release()
         assert acquired, "Lock was not released after exception"
 
-
     @staticmethod
     def test_add_equity_node_with_special_characters():
         """Test add_equity_node with special characters in name."""
