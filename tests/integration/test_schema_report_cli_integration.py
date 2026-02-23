@@ -63,6 +63,7 @@ def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
         text=True,
         cwd=str(_repo_root()),
         env=env,
+        timeout=60,
     )
 
 
