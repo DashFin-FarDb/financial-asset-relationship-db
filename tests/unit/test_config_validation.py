@@ -121,7 +121,7 @@ class TestVercelConfig:
         if python_build and "config" in python_build:
             max_size = python_build["config"].get("maxLambdaSize", "50mb")
             # Parse size (e.g., "50mb")
-            size_value = int(max_size.replace("mb", ""))
+            size_value = int(max_size.lower().replace("mb", ""))
             assert 1 <= size_value <= 250, "Lambda size should be between 1MB and 250MB"
 
 
