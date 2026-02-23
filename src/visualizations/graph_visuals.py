@@ -9,7 +9,6 @@ from src.logic.asset_graph import AssetRelationshipGraph
 from src.visualizations.graph_visuals_constants import REL_TYPE_COLORS  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_relationship_index  # noqa: F401
 from src.visualizations.graph_visuals_data import _collect_and_group_relationships  # noqa: F401
-from src.visualizations.graph_visuals_layout import _generate_dynamic_title  # noqa: F401
 from src.visualizations.graph_visuals_layout import (
     _configure_3d_layout,
     _prepare_layout_config,
