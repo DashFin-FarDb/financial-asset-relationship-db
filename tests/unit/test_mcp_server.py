@@ -84,39 +84,15 @@ class TestThreadSafeGraph:
         # Track lock acquisition
         lock_acquired = []
 
-        original_acquire = lock.acquire
-        original_release = lock.release
-
-        def tracked_acquire(*args, **kwargs):
-            """
-            Record a lock acquire event and call the original acquire method.
-
-            Appends the string "acquired" to the surrounding `lock_acquired` list as a side effect before delegating to the original acquire implementation.
-
-            Returns:
-                The value returned by the underlying lock's `acquire` call.
-            """
-            lock_acquired.append("acquired")
-            return original_acquire(*args, **kwargs)
-
-        def tracked_release(*args, **kwargs):
-            """
-            Wrapper for a lock's release method that records each release event.
-
-            Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
-
-            Parameters:
-                *args: Positional arguments forwarded to the original release callable.
-                **kwargs: Keyword arguments forwarded to the original release callable.
-
-            Returns:
-                The value returned by the original release callable.
-            """
-            lock_acquired.append("released")
-            return original_release(*args, **kwargs)
-
-        lock.acquire = tracked_acquire
-        lock.release = tracked_release
+        real_lock = threading.Lock()
+        mock_lock = MagicMock(wraps=real_lock)
+        mock_lock.acquire.side_effect = lambda *a, **kw: (
+            lock_acquired.append("acquired") or real_lock.acquire(*a, **kw)
+        )
+        mock_lock.release.side_effect = lambda *a, **kw: (
+            lock_acquired.append("released") or real_lock.release(*a, **kw)
+        )
+        lock = mock_lock
 
         # Call a method
         equity = Equity(
@@ -588,3 +564,4 @@ class TestEdgeCases:
         # Should handle unrecognized arguments gracefully
         with pytest.raises(SystemExit):
             main(["--invalid-arg"])
+
