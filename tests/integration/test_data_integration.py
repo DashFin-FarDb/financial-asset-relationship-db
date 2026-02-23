@@ -22,6 +22,10 @@ from src.models.financial_models import AssetClass, Equity
 pytestmark = pytest.mark.integration
 
 
+class TestRepositoryIntegration:
+    """Test interactions between repository and sample data."""
+    
+
     @staticmethod
     def test_sample_graph_can_be_saved_to_repository(tmp_path):
         """Test that a sample graph can be saved to and loaded from repository."""
@@ -60,6 +64,8 @@ pytestmark = pytest.mark.integration
             saved_assets = list(repo.list_assets())
             assert len(saved_assets) > 0
 
+            session.close()
+            engine.dispose()
 
     @staticmethod
     def test_sample_graph_relationships_can_be_saved(tmp_path):
@@ -97,6 +103,9 @@ pytestmark = pytest.mark.integration
                 assert rel.source_id in graph.relationships
                 expected_targets = {t for t, _, _ in graph.relationships[rel.source_id]}
                 assert rel.target_id in expected_targets
+
+            session.close()
+            engine.dispose()
 
 
 class TestSerializationRoundTrip:
@@ -566,3 +575,4 @@ class TestDataConsistency:
 
         session.close()
         engine.dispose()
+
