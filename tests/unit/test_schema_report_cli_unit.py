@@ -469,7 +469,6 @@ class TestEdgeCases:
     json_str = cli_module.convert_markdown_to_json("")
     data = _json.loads(json_str)
     assert data["schema_report"] == ""
-
     def test_convert_markdown_with_multiple_list_markers(
         self,
         cli_module: ModuleType,
