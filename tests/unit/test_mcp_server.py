@@ -212,7 +212,7 @@ class TestAddEquityNode:
         with patch("mcp_server.graph") as mock_graph:
             # Remove add_asset so callable() returns False, triggering the fallback.
             mock_graph.add_asset = None  # non-callable
- 
+
             mcp_app = _build_mcp_app()
             tool_func = None
             for tool in mcp_app.list_tools():
