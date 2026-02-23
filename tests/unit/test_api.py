@@ -768,7 +768,7 @@ class TestRealDataFetcherFallback:
         graph = fetcher.create_real_database()
 
         assert len(graph.assets) == len(reference_graph.assets)
-        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys()
+        assert set(graph.relationships.keys()) == set(reference_graph.relationships.keys())
 
 
 @pytest.mark.unit
