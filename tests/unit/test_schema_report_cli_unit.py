@@ -54,6 +54,7 @@ def cli_module(
     return _load_cli_module_for_unit(monkeypatch, tmp_path)
 
 
+@pytest.mark.unit
 class TestConvertMarkdownToPlainText:
     """Unit tests for convert_markdown_to_plain_text."""
 
@@ -78,6 +79,7 @@ class TestConvertMarkdownToPlainText:
         assert result == markdown
 
 
+@pytest.mark.unit
 class TestConvertMarkdownToJSON:
     """Unit tests for convert_markdown_to_json."""
 
@@ -108,6 +110,7 @@ class TestConvertMarkdownToJSON:
         assert "  " in json_str  # at least one indented line
 
 
+@pytest.mark.unit
 class TestWriteAtomic:
     """Unit tests for write_atomic."""
 
@@ -173,6 +176,7 @@ class TestWriteAtomic:
         assert final_entries == initial_entries
 
 
+@pytest.mark.unit
 class TestParseArguments:
     """Unit tests for parse_arguments function."""
 
@@ -244,6 +248,7 @@ class TestParseArguments:
         assert args.verbose is True
 
 
+@pytest.mark.unit
 class TestGenerateReport:
     """Unit tests for generate_report function."""
 
@@ -315,6 +320,7 @@ class TestGenerateReport:
         assert output.parent.exists()
 
 
+@pytest.mark.unit
 class TestOutputFormat:
     """Unit tests for OutputFormat enum."""
 
@@ -355,6 +361,7 @@ class TestCLIError:
         assert issubclass(cli_module.CLIError, Exception)
 
 
+@pytest.mark.unit
 class TestMainFunction:
     """Integration tests for main function."""
 
@@ -440,6 +447,7 @@ class TestMainFunction:
         assert "error" in captured.err.lower()
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Additional edge case tests."""
 
