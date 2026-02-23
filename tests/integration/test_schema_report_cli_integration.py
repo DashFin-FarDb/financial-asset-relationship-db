@@ -18,8 +18,6 @@ from pathlib import Path
 
 import pytest
 
-import pytest
-
 
 def _repo_root() -> Path:
     """
