@@ -938,8 +938,6 @@ class TestConfigurationRobustness:
                 package_name = re.split(r"[><=!~;\[]", line)[0].strip()
                 packages.append(package_name.lower())
 
-                packages.append(package_name.lower())
-
         # Check for duplicates
         from collections import Counter
 
