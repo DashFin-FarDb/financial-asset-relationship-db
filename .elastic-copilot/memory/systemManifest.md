@@ -30,7 +30,7 @@
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -72,7 +72,7 @@
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -94,7 +94,7 @@
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -121,7 +121,7 @@
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -147,7 +147,7 @@
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -202,7 +202,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -357,14 +357,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -406,7 +406,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -428,7 +428,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -455,7 +455,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -481,7 +481,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -523,7 +523,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -579,7 +579,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - collections.abc
 - Callable,
@@ -697,14 +697,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -746,7 +746,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -768,7 +768,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -795,7 +795,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -821,7 +821,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -863,7 +863,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -876,7 +876,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -1028,14 +1028,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -1077,7 +1077,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -1099,7 +1099,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -1126,7 +1126,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -1152,7 +1152,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -1194,7 +1194,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -1207,7 +1207,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -1360,14 +1360,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -1409,7 +1409,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -1431,7 +1431,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -1458,7 +1458,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -1484,7 +1484,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -1526,7 +1526,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -1539,7 +1539,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -1683,14 +1683,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -1732,7 +1732,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -1754,7 +1754,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -1781,7 +1781,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -1807,7 +1807,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -1899,7 +1899,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -2020,14 +2020,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -2069,7 +2069,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -2091,7 +2091,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -2118,7 +2118,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -2144,7 +2144,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -2186,7 +2186,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -2199,7 +2199,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -2338,14 +2338,14 @@ No dependencies found
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -2387,7 +2387,7 @@ No dependencies found
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -2409,7 +2409,7 @@ No dependencies found
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -2436,7 +2436,7 @@ No dependencies found
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -2462,7 +2462,7 @@ No dependencies found
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -2504,7 +2504,7 @@ No dependencies found
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -2517,7 +2517,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -2592,340 +2592,6 @@ Dependencies:
 ### \frontend\_\_tests\_\_\test-utils.ts
 
 No dependencies found
-
-### \frontend\_\_tests\_\_\lib\api.test.ts
-
-Dependencies:
-
-- axios
-- ../../app/types/api
-
-### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
-
-Dependencies:
-
-- axios
-- ../test-utils
-
-### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
-
-Dependencies:
-
-- ../../app/types/api
-- ../test-utils
-
-## TSX Dependencies
-
-### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
-
-Dependencies:
-
-- react
-- @testing-library/react
-- @testing-library/jest-dom
-- ../../app/page
-- ../../app/lib/api
-
-### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
-
-Dependencies:
-
-- react
-- @testing-library/react
-- @testing-library/jest-dom
-- ../../app/components/NetworkVisualization
-- ../../app/types/api
-- ../test-utils
-
-### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
-
-Dependencies:
-
-- react
-- @testing-library/react
-- @testing-library/jest-dom
-- ../../app/components/MetricsDashboard
-- ../../app/types/api
-- ../test-utils
-
-### \frontend\_\_tests\_\_\components\AssetList.test.tsx
-
-Dependencies:
-
-- react
-- @testing-library/react
-- @testing-library/jest-dom
-- ../../app/components/AssetList
-- ../../app/lib/api
-- ../test-utils
-
-### \frontend\_\_tests\_\_\app\page.test.tsx
-
-Dependencies:
-
-- react
-- @testing-library/react
-- @testing-library/jest-dom
-- ../../app/page
-- ../../app/lib/api
-
-## Project Directory Structure
-
-- 📂 api/
-  - 📄 **init**.py
-  - 📄 auth.py
-  - 📄 database.py
-  - 📄 main.py
-- 📂 branch_reviews/
-- 📂 docs/
-- 📂 frontend/
-  - 📂 **tests**/
-    - 📂 app/
-      - 📄 page.test.tsx
-    - 📂 components/
-      - 📄 AssetList.test.tsx
-      - 📄 MetricsDashboard.test.tsx
-      - 📄 NetworkVisualization.test.tsx
-    - 📂 config/
-      - 📄 package-integration.test.ts
-      - 📄 package-lock-validation.test.ts
-      - 📄 package-validation.test.ts
-    - 📂 integration/
-      - 📄 component-integration.test.tsx
-    - 📂 lib/
-      - 📄 api-axios-compatibility.test.ts
-      - 📄 api-upgrade-integration.test.ts
-      - 📄 api.test.ts
-    - 📄 test-utils.test.ts
-    - 📄 test-utils.ts
-  - 📂 app/
-    - 📂 components/
-      - 📄 AssetList.tsx
-      - 📄 MetricsDashboard.tsx
-      - 📄 NetworkVisualization.tsx
-    - 📂 lib/
-      - 📄 api.ts
-      - 📄 assetHelpers.ts
-      - 📄 index.ts
-    - 📂 types/
-      - 📄 api.ts
-    - 📄 globals.css
-    - 📄 layout.tsx
-    - 📄 page.tsx
-  - 📄 jest.config.js
-  - 📄 jest.setup.js
-  - 📄 next.config.js
-  - 📄 postcss.config.js
-  - 📄 tailwind.config.js
-- 📂 migrations/
-  - 📄 001_initial.sql
-- 📂 src/
-  - 📂 analysis/
-    - 📄 **init**.py
-    - 📄 formulaic_analysis.py
-  - 📂 data/
-    - 📄 database.py
-    - 📄 db_models.py
-    - 📄 real_data_fetcher.py
-    - 📄 repository.py
-    - 📄 sample_data.py
-  - 📂 logic/
-    - 📄 asset_graph.py
-  - 📂 models/
-    - 📄 financial_models.py
-  - 📂 reports/
-    - 📄 schema_report.py
-  - 📂 visualizations/
-    - 📄 formulaic_visuals.py
-    - 📄 graph_2d_visuals.py
-    - 📄 graph_visuals.py
-    - 📄 metric_visuals.py
-  - 📄 workflow_validator.py
-- 📂 tests/
-  - 📂 integration/
-    - 📄 **init**.py
-    - 📄 conftest.py
-    - 📄 test_api_integration.py
-    - 📄 test_bearer_workflow.py
-    - 📄 test_branch_integration.py
-    - 📄 test_debricked_workflow.py
-    - 📄 test_documentation_files_validation.py
-    - 📄 test_documentation_validation.py
-    - 📄 test_github_workflows_helpers.py
-    - 📄 test_github_workflows.py
-    - 📄 test_github_workflows.py.backup
-    - 📄 test_modified_config_files_validation.py
-    - 📄 test_pr_agent_config_validation.py
-    - 📄 test_pr_agent_workflow_specific.py
-    - 📄 test_repository.py
-    - 📄 test_requirements_dev.py
-    - 📄 test_requirements_pyyaml.py
-    - 📄 test_requirements_validation.py
-    - 📄 test_requirements.py
-    - 📄 test_workflow_changes_validation.py
-    - 📄 test_workflow_config_changes.py
-    - 📄 test_workflow_documentation.py
-    - 📄 test_workflow_requirements_integration.py
-    - 📄 test_workflow_security_advanced.py
-    - 📄 test_workflow_yaml_validation.py
-    - 📄 test_yaml_config_validation.py
-  - 📂 unit/
-    - 📄 **init**.py
-    - 📄 test_api_main.py
-    - 📄 test_api.py
-    - 📄 test_asset_graph.py
-    - 📄 test_config_validation.py
-    - 📄 test_database_memory.py
-    - 📄 test_database.py
-    - 📄 test_db_models.py
-    - 📄 test_dev_scripts.py
-    - 📄 test_documentation_validation.py
-    - 📄 test_financial_models.py
-    - 📄 test_formulaic_analysis.py
-    - 📄 test_formulaic_visuals.py
-    - 📄 test_graph_2d_visuals.py
-    - 📄 test_graph_visuals.py
-    - 📄 test_metric_visuals.py
-    - 📄 test_microagent_validation.py
-    - 📄 test_real_data_fetcher.py
-    - 📄 test_repository_comprehensive.py
-    - 📄 test_repository.py
-    - 📄 test_root_conftest_comprehensive.py
-    - 📄 test_root_conftest.py
-    - 📄 test_sample_data.py
-    - 📄 test_schema_report.py
-    - 📄 test_summary_documentation.py
-    - 📄 test_workflow_validator.py
-  - 📄 **init**.py
-  - 📄 conftest.py
-- 📄 =2.8.0
-- 📄 add_test_files.sh
-- 📄 analyze_pr_mergeability.sh
-- 📄 app.py
-- 📄 asset_graph.db
-- 📄 cleanup-branches.sh
-- 📄 close_unmergeable_prs_script.sh
-- 📄 close_unmergeable_prs.sh
-- 📄 CNAME
-- 📄 compass.yml
-- 📄 conftest.py
-- 📄 docker-compose.yml
-- 📄 Dockerfile
-- 📄 latest_ci_logs.zip
-- 📄 LICENSE
-- 📄 main.py
-- 📄 Makefile
-- 📄 mcp_server.py
-- 📄 prod-ca-2021.crt
-- 📄 pyproject.toml
-- 📄 python_ci_logs.zip
-- 📄 python38_logs.txt
-- 📄 requirements-dev.txt
-- 📄 requirements.txt
-- 📄 run-dev.bat
-- 📄 run-dev.sh
-- 📄 s
-- 📄 test_api.py
-- 📄 test_db_module.py
-- 📄 test_postgres.py
-- 📄 test_scripts.sh
-- 📄 test_supabase.py
-- 📄 validate_new_tests.sh
-
-## PY Dependencies
-
-### \test_supabase.py
-
-Dependencies:
-
-- **future**
-- annotations
-- os
-- typing
-- Final,
-- pytest
-- supabase
-- Client,
-
-### \test_postgres.py
-
-Dependencies:
-
-- **future**
-- annotations
-- os
-- typing
-- Final,
-- pytest
-- psycopg2
-- connect
-- env
-
-### \test_db_module.py
-
-Dependencies:
-
-- logging
-- src.data.database
-- get_db
-
-### \test_api.py
-
-Dependencies:
-
-- sys
-- fastapi.testclient
-- TestClient
-- api.main
-- app
-- traceback
-
-### \tests\_\_init\_\_.py
-
-Dependencies:
-
-- os
-- pathlib
-- Path
-- it.
-
-## JS Dependencies
-
-### \frontend\tailwind.config.js
-
-No dependencies found
-
-### \frontend\postcss.config.js
-
-No dependencies found
-
-### \frontend\next.config.js
-
-No dependencies found
-
-### \frontend\jest.setup.js
-
-Dependencies:
-
-- @testing-library/jest-dom
-
-### \frontend\jest.config.js
-
-Dependencies:
-
-- next/jest
-
-## TS Dependencies
-
-### \frontend\_\_tests\_\_\test-utils.ts
-
-No dependencies found
-
-### \frontend\_\_tests\_\_\test-utils.test.ts
-
-Dependencies:
-
-- ../app/types/api
 
 ### \frontend\_\_tests\_\_\lib\api.test.ts
 
@@ -3006,14 +2672,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -3055,7 +2721,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -3077,7 +2743,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -3104,7 +2770,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -3130,7 +2796,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -3172,7 +2838,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -3185,7 +2851,341 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- psycopg2
+- connect
+- env
+
+### \test_db_module.py
+
+Dependencies:
+
+- logging
+- src.data.database
+- get_db
+
+### \test_api.py
+
+Dependencies:
+
+- sys
+- fastapi.testclient
+- TestClient
+- api.main
+- app
+- traceback
+
+### \tests\_\_init\_\_.py
+
+Dependencies:
+
+- os
+- pathlib
+- Path
+- it.
+
+## JS Dependencies
+
+### \frontend\tailwind.config.js
+
+No dependencies found
+
+### \frontend\postcss.config.js
+
+No dependencies found
+
+### \frontend\next.config.js
+
+No dependencies found
+
+### \frontend\jest.setup.js
+
+Dependencies:
+
+- @testing-library/jest-dom
+
+### \frontend\jest.config.js
+
+Dependencies:
+
+- next/jest
+
+## TS Dependencies
+
+### \frontend\_\_tests\_\_\test-utils.ts
+
+No dependencies found
+
+### \frontend\_\_tests\_\_\test-utils.test.ts
+
+Dependencies:
+
+- ../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api.test.ts
+
+Dependencies:
+
+- axios
+- ../../app/types/api
+
+### \frontend\_\_tests\_\_\lib\api-upgrade-integration.test.ts
+
+Dependencies:
+
+- axios
+- ../test-utils
+
+### \frontend\_\_tests\_\_\lib\api-axios-compatibility.test.ts
+
+Dependencies:
+
+- ../../app/types/api
+- ../test-utils
+
+## TSX Dependencies
+
+### \frontend\_\_tests\_\_\integration\component-integration.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+### \frontend\_\_tests\_\_\components\NetworkVisualization.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/NetworkVisualization
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\MetricsDashboard.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/MetricsDashboard
+- ../../app/types/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\components\AssetList.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/components/AssetList
+- ../../app/lib/api
+- ../test-utils
+
+### \frontend\_\_tests\_\_\app\page.test.tsx
+
+Dependencies:
+
+- react
+- @testing-library/react
+- @testing-library/jest-dom
+- ../../app/page
+- ../../app/lib/api
+
+## Project Directory Structure
+
+- 📂 api/
+  - 📄 init.py
+  - 📄 auth.py
+  - 📄 database.py
+  - 📄 main.py
+- 📂 branch_reviews/
+- 📂 docs/
+- 📂 frontend/
+  - 📂 tests/
+    - 📂 app/
+      - 📄 page.test.tsx
+    - 📂 components/
+      - 📄 AssetList.test.tsx
+      - 📄 MetricsDashboard.test.tsx
+      - 📄 NetworkVisualization.test.tsx
+    - 📂 config/
+      - 📄 package-integration.test.ts
+      - 📄 package-lock-validation.test.ts
+      - 📄 package-validation.test.ts
+    - 📂 integration/
+      - 📄 component-integration.test.tsx
+    - 📂 lib/
+      - 📄 api-axios-compatibility.test.ts
+      - 📄 api-upgrade-integration.test.ts
+      - 📄 api.test.ts
+    - 📄 test-utils.test.ts
+    - 📄 test-utils.ts
+  - 📂 app/
+    - 📂 components/
+      - 📄 AssetList.tsx
+      - 📄 MetricsDashboard.tsx
+      - 📄 NetworkVisualization.tsx
+    - 📂 lib/
+      - 📄 api.ts
+      - 📄 assetHelpers.ts
+      - 📄 index.ts
+    - 📂 types/
+      - 📄 api.ts
+    - 📄 globals.css
+    - 📄 layout.tsx
+    - 📄 page.tsx
+  - 📄 jest.config.js
+  - 📄 jest.setup.js
+  - 📄 next.config.js
+  - 📄 postcss.config.js
+  - 📄 tailwind.config.js
+- 📂 migrations/
+  - 📄 001_initial.sql
+- 📂 src/
+  - 📂 analysis/
+    - 📄 init.py
+    - 📄 formulaic_analysis.py
+  - 📂 data/
+    - 📄 database.py
+    - 📄 db_models.py
+    - 📄 real_data_fetcher.py
+    - 📄 repository.py
+    - 📄 sample_data.py
+  - 📂 logic/
+    - 📄 asset_graph.py
+  - 📂 models/
+    - 📄 financial_models.py
+  - 📂 reports/
+    - 📄 schema_report.py
+  - 📂 visualizations/
+    - 📄 formulaic_visuals.py
+    - 📄 graph_2d_visuals.py
+    - 📄 graph_visuals.py
+    - 📄 metric_visuals.py
+  - 📄 workflow_validator.py
+- 📂 tests/
+  - 📂 integration/
+    - 📄 init.py
+    - 📄 conftest.py
+    - 📄 test_api_integration.py
+    - 📄 test_bearer_workflow.py
+    - 📄 test_branch_integration.py
+    - 📄 test_debricked_workflow.py
+    - 📄 test_documentation_files_validation.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_github_workflows_helpers.py
+    - 📄 test_github_workflows.py
+    - 📄 test_github_workflows.py.backup
+    - 📄 test_modified_config_files_validation.py
+    - 📄 test_pr_agent_config_validation.py
+    - 📄 test_pr_agent_workflow_specific.py
+    - 📄 test_repository.py
+    - 📄 test_requirements_dev.py
+    - 📄 test_requirements_pyyaml.py
+    - 📄 test_requirements_validation.py
+    - 📄 test_requirements.py
+    - 📄 test_workflow_changes_validation.py
+    - 📄 test_workflow_config_changes.py
+    - 📄 test_workflow_documentation.py
+    - 📄 test_workflow_requirements_integration.py
+    - 📄 test_workflow_security_advanced.py
+    - 📄 test_workflow_yaml_validation.py
+    - 📄 test_yaml_config_validation.py
+  - 📂 unit/
+    - 📄 init.py
+    - 📄 test_api_main.py
+    - 📄 test_api.py
+    - 📄 test_asset_graph.py
+    - 📄 test_config_validation.py
+    - 📄 test_database_memory.py
+    - 📄 test_database.py
+    - 📄 test_db_models.py
+    - 📄 test_dev_scripts.py
+    - 📄 test_documentation_validation.py
+    - 📄 test_financial_models.py
+    - 📄 test_formulaic_analysis.py
+    - 📄 test_formulaic_visuals.py
+    - 📄 test_graph_2d_visuals.py
+    - 📄 test_graph_visuals.py
+    - 📄 test_metric_visuals.py
+    - 📄 test_microagent_validation.py
+    - 📄 test_real_data_fetcher.py
+    - 📄 test_repository_comprehensive.py
+    - 📄 test_repository.py
+    - 📄 test_root_conftest_comprehensive.py
+    - 📄 test_root_conftest.py
+    - 📄 test_sample_data.py
+    - 📄 test_schema_report.py
+    - 📄 test_summary_documentation.py
+    - 📄 test_workflow_validator.py
+  - 📄 init.py
+  - 📄 conftest.py
+- 📄 =2.8.0
+- 📄 add_test_files.sh
+- 📄 analyze_pr_mergeability.sh
+- 📄 app.py
+- 📄 asset_graph.db
+- 📄 cleanup-branches.sh
+- 📄 close_unmergeable_prs_script.sh
+- 📄 close_unmergeable_prs.sh
+- 📄 CNAME
+- 📄 compass.yml
+- 📄 conftest.py
+- 📄 docker-compose.yml
+- 📄 Dockerfile
+- 📄 latest_ci_logs.zip
+- 📄 LICENSE
+- 📄 main.py
+- 📄 Makefile
+- 📄 mcp_server.py
+- 📄 prod-ca-2021.crt
+- 📄 pyproject.toml
+- 📄 python_ci_logs.zip
+- 📄 python38_logs.txt
+- 📄 requirements-dev.txt
+- 📄 requirements.txt
+- 📄 run-dev.bat
+- 📄 run-dev.sh
+- 📄 s
+- 📄 test_api.py
+- 📄 test_db_module.py
+- 📄 test_postgres.py
+- 📄 test_scripts.sh
+- 📄 test_supabase.py
+- 📄 validate_new_tests.sh
+
+## PY Dependencies
+
+### \test_supabase.py
+
+Dependencies:
+
+- future
+- annotations
+- os
+- typing
+- Final,
+- pytest
+- supabase
+- Client,
+
+### \test_postgres.py
+
+Dependencies:
+
+- future
 - annotations
 - os
 - typing
@@ -3326,14 +3326,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -3375,7 +3375,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -3397,7 +3397,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -3424,7 +3424,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -3450,7 +3450,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -3492,7 +3492,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -3505,7 +3505,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -3644,14 +3644,14 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 database.py
   - 📄 main.py
 - 📂 branch_reviews/
 - 📂 docs/
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -3693,7 +3693,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -3715,7 +3715,7 @@ Dependencies:
   - 📄 workflow_validator.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 conftest.py
     - 📄 test_api_integration.py
     - 📄 test_bearer_workflow.py
@@ -3742,7 +3742,7 @@ Dependencies:
     - 📄 test_workflow_yaml_validation.py
     - 📄 test_yaml_config_validation.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
@@ -3768,7 +3768,7 @@ Dependencies:
     - 📄 test_schema_report.py
     - 📄 test_summary_documentation.py
     - 📄 test_workflow_validator.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 add_test_files.sh
@@ -3856,7 +3856,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -3869,7 +3869,7 @@ Dependencies:
 
 Dependencies:
 
-- **future**
+- future
 - annotations
 - os
 - typing
@@ -3996,11 +3996,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -4045,7 +4045,7 @@ Dependencies:
   - 📄 001_initial.sql
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -4066,18 +4066,18 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
     - 📄 test_repository.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 =2.8.0
 - 📄 app.py
@@ -4273,11 +4273,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -4288,13 +4288,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -4324,7 +4324,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -4343,17 +4343,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -4532,11 +4532,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -4547,13 +4547,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -4583,7 +4583,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -4602,17 +4602,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -4784,11 +4784,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -4799,13 +4799,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -4835,7 +4835,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -4854,17 +4854,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -5046,11 +5046,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -5061,13 +5061,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -5097,7 +5097,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -5116,17 +5116,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -5301,11 +5301,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -5316,13 +5316,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -5352,7 +5352,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -5371,17 +5371,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -5563,11 +5563,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -5578,13 +5578,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -5614,7 +5614,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -5633,17 +5633,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -5825,11 +5825,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -5840,13 +5840,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -5876,7 +5876,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -5895,17 +5895,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -6153,11 +6153,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -6168,13 +6168,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -6204,7 +6204,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -6223,17 +6223,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
@@ -6482,11 +6482,11 @@ Dependencies:
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -6497,13 +6497,13 @@ Dependencies:
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -6533,7 +6533,7 @@ Dependencies:
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -6552,17 +6552,17 @@ Dependencies:
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml
