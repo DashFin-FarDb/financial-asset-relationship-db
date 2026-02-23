@@ -363,7 +363,7 @@ class TestCLIError:
 
 @pytest.mark.unit
 class TestMainFunction:
-    """Integration tests for main function."""
+    """Unit tests for the main() entry-point function."""
 
     def test_main_returns_zero_on_success(
         self,
