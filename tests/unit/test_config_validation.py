@@ -349,8 +349,8 @@ class TestTSConfig:
 class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
-    @pytest.fixture
     @staticmethod
+    @pytest.fixture
     def tailwind_config_content():
         """
         Load the frontend/tailwind.config.js file and return its text content.
