@@ -70,6 +70,9 @@ def markdown_to_html(md: str) -> str:
 
     Returns:
         str: Sanitized HTML string rendered from the provided Markdown.
+
+    Raises:
+        ValueError: If Markdown rendering or sanitisation fails.
     """
     rendered = markdown.markdown(
         md,
@@ -108,7 +111,18 @@ from src.reports.schema_report import generate_schema_report
 
 
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
-    """Thin wrapper around generate_schema_report for naming consistency."""
+    """
+    Generate a Markdown schema report for the provided graph.
+
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to report on.
+
+    Returns:
+        str: Markdown-formatted schema report.
+
+    Raises:
+        ValueError: Propagated from report generation if the graph is invalid.
+    """
     return generate_schema_report(graph)
 
 
