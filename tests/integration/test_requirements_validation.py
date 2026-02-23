@@ -42,9 +42,7 @@ class TestRequirementsDevChanges:
             try:
                 Requirement(line)
             except InvalidRequirement as exc:
-                raise AssertionError(
-                    f"Invalid requirement in requirements-dev.txt at line {i}: '{raw}'"
-                ) from exc
+                raise AssertionError(f"Invalid requirement in requirements-dev.txt at line {i}: '{raw}'") from exc
 
     @pytest.mark.unit
     def test_pyyaml_added(self, requirements_dev_content: str) -> None:
@@ -176,9 +174,7 @@ class TestRequirementsDependencyCompatibility:
                 try:
                     out.add(Requirement(line).name.lower())
                 except InvalidRequirement as exc:
-                    raise AssertionError(
-                        f"Invalid requirement in {filename} at line {i}: '{raw}'"
-                    ) from exc
+                    raise AssertionError(f"Invalid requirement in {filename} at line {i}: '{raw}'") from exc
             return out
 
         req_packages = _names(req_lines, "requirements.txt")
@@ -210,8 +206,7 @@ class TestRequirementsInstallability:
             check=False,
         )
         assert result.returncode == 0, (
-            "pip dry-run failed for requirements-dev.txt:\n"
-            f"stdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
+            "pip dry-run failed for requirements-dev.txt:\n" f"stdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
         )
 
 
