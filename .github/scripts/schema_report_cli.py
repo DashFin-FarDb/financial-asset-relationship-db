@@ -250,17 +250,22 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
     return "\n".join(lines)
 
 
-def convert_markdown_to_json(metrics: Dict[str, Any]) -> str:
+def convert_markdown_to_json(markdown: str) -> str:
     """
-    Format a JSON payload containing the provided metrics for the schema report.
+    Wrap the Markdown schema report in a JSON object.
+
+    The JSON payload uses a single top-level key "schema_report" whose value
+    is the original Markdown string.
 
     Args:
-         metrics: Mapping of metric names to their values.
+        markdown: The Markdown-formatted schema report text.
 
     Returns:
-         A JSON-formatted string representation of the metrics.
-     """
-     return json.dumps(metrics, indent=2, sort_keys=True)
+        A pretty-printed JSON string containing the schema report under the
+        "schema_report" key.
+    """
+    payload: Dict[str, Any] = {"schema_report": markdown}
+    return json.dumps(payload, indent=2, sort_keys=True)
 
 def generate_report(logger: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
      """
