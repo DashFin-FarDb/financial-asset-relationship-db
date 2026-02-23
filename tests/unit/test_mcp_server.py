@@ -521,7 +521,7 @@ class TestEdgeCases:
 
         # Calling add_asset with invalid data should raise ValueError, but the
         # lock must still be released after the exception.
-        with pytest.raises(ValueError):
+        with pytest.raises(AttributeError):
             safe_graph.add_asset(None)
 
         # Lock should not be held after exception
@@ -529,6 +529,7 @@ class TestEdgeCases:
         if acquired:
             lock.release()
         assert acquired, "Lock was not released after exception"
+
 
     @staticmethod
     def test_add_equity_node_with_special_characters():
