@@ -13,7 +13,6 @@ from src.visualizations.graph_visuals_layout import (
     _configure_3d_layout,
     _prepare_layout_config,
 )
-from src.visualizations.graph_visuals_traces import _create_trace_for_group  # noqa: F401
 from src.visualizations.graph_visuals_traces import (
     _create_directional_arrows,
     _create_node_trace,
