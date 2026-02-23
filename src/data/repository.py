@@ -19,7 +19,6 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
-from .database import session_scope  # noqa: F401
 from .db_models import (
     AssetORM,
     AssetRelationshipORM,
