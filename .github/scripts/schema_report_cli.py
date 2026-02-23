@@ -52,6 +52,12 @@ def _find_project_root(start: Path) -> Path:
     if (cwd / "pyproject.toml").exists() or (cwd / "src").is_dir():
         return cwd
 
+    # If no project root could be determined, fail explicitly rather than
+    # returning None implicitly. This matches the documented contract.
+    raise RuntimeError(
+        f"Could not determine project root starting from {start} or current working directory {cwd}"
+    )
+
 
 
 PROJECT_ROOT = _find_project_root(Path(__file__).resolve())
