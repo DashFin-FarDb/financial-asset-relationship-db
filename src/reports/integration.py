@@ -194,10 +194,14 @@ def make_gradio_report_fn(
     Parameters:
         graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument factory
             returning the current graph.
-        html (bool): If True, returns sanitized HTML; otherwise returns Markdown.
+        html (bool): If ``True``, returns sanitized HTML; otherwise returns Markdown.
 
     Returns:
         Callable[[], str]: Zero-argument function producing the report string.
+
+    Raises:
+        Any exception propagated from ``graph_provider()``, ``generate_html_report()``,
+        or ``generate_markdown_report()`` when the returned callable is invoked.
     """
 
     def _fn() -> str:
