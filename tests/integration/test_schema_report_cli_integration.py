@@ -338,6 +338,7 @@ class TestCLIArgumentParsing:
 class TestCLILogging:
     """Test cases for CLI logging behavior."""
 
+    @staticmethod
     def _assert_cli_success(result, output_file: Path) -> None:
         assert result.returncode == 0, (
             "CLI returned non-zero exit code.\n" f"stdout:\n{result.stdout}\n" f"stderr:\n{result.stderr}\n"
