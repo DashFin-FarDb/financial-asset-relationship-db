@@ -264,37 +264,9 @@ def validate_origin(origin: str) -> bool:
     # Allow Vercel preview deployment URLs (e.g., https://project-git-branch-user.vercel.app)
     if re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin):
         return True
-    # Allow valid HTTPS URLs with proper domains (ASCII and IDN)
-    if re.match(
-        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$",
-        origin,
-    ):
-        return True
-    # Support IDN (Internationalized Domain Names) — encode host to ASCII and re-validate
-    from urllib.parse import urlparse as _urlparse
-
-    parsed = _urlparse(origin)
-    if parsed.scheme == "https" and parsed.netloc:
-        try:
-            ascii_host = parsed.hostname.encode("idna").decode("ascii")
-            ascii_origin = f"https://{ascii_host}"
-            if parsed.port:
-                ascii_origin += f":{parsed.port}"
-            if re.match(
-                r"^https://[a-zA-Z0-9]"
-                r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
-                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
-                r"\.[a-zA-Z]{2,}$",
-                ascii_origin,
-            ):
-                return True
-        except UnicodeError:
-             logger.debug(
-                 "Origin %r has a hostname that cannot be IDNA-encoded; treating as invalid.",
-                 origin
-             )
-     return False
-            pass
+    # NOTE: do NOT add a broad "any HTTPS domain" catch-all here.
+    # Only explicitly listed origins (ALLOWED_ORIGINS env-var or the
+    # known localhost/Vercel entries above) should be accepted.
     return False
 
 
