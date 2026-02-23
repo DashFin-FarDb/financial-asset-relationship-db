@@ -218,7 +218,7 @@ class TestDocumentationFilesValidation:
                     continue
 
                 # Count columns: ignore leading/trailing pipe empties
-                cols = [c for c in line.split("|")]
+                cols = [c for c in line.split("|") if c.strip()]
                 col_count = len(cols)
 
                 if not in_table:
