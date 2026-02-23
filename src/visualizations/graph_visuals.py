@@ -143,9 +143,10 @@ def visualize_3d_graph_with_filters(
         fig.add_traces(relationship_traces)
 
     if toggle_arrows:
-        arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
+        arrow_traces = _create_directional_arrows(graph, positions, asset_ids, relationship_filters)
         if arrow_traces:
             fig.add_traces(arrow_traces)
+
 
     fig.add_trace(_create_node_trace(positions, asset_ids, colors, hover_texts))
 
