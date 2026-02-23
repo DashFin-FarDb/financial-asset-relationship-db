@@ -240,9 +240,7 @@ class TestCLIFormatConversion:
         result = _run_cli(tmp_path, "--fmt", "markdown", "--output", str(output_file))
 
         assert result.returncode == 0, (
-            "CLI returned non-zero exit code.\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}\n"
+            "CLI returned non-zero exit code.\n" f"stdout:\n{result.stdout}\n" f"stderr:\n{result.stderr}\n"
         )
         assert output_file.exists(), (
             "CLI reported success but did not create output file.\n"
@@ -254,7 +252,6 @@ class TestCLIFormatConversion:
         content = output_file.read_text(encoding="utf-8")
         assert "##" in content or "# " in content
 
-
     def test_text_removes_markdown_formatting(self, tmp_path: Path) -> None:
         """Text format should remove markdown headers."""
         output_file = tmp_path / "report.txt"
@@ -262,9 +259,7 @@ class TestCLIFormatConversion:
         result = _run_cli(tmp_path, "--fmt", "text", "--output", str(output_file))
 
         assert result.returncode == 0, (
-            "CLI returned non-zero exit code.\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}\n"
+            "CLI returned non-zero exit code.\n" f"stdout:\n{result.stdout}\n" f"stderr:\n{result.stderr}\n"
         )
         assert output_file.exists(), (
             "CLI reported success but did not create output file.\n"
@@ -345,9 +340,7 @@ class TestCLILogging:
 
     def _assert_cli_success(result, output_file: Path) -> None:
         assert result.returncode == 0, (
-            "CLI returned non-zero exit code.\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}\n"
+            "CLI returned non-zero exit code.\n" f"stdout:\n{result.stdout}\n" f"stderr:\n{result.stderr}\n"
         )
         assert output_file.exists(), (
             "CLI reported success but did not create output file.\n"
