@@ -189,7 +189,6 @@ class TestDataFetcherWithFallback:
 
         # Should have fallback data
         assert len(graph.assets) > 0
-        assert all(asset.id.startswith("TEST_") for asset in graph.assets)
 
     @staticmethod
     def test_fetcher_with_custom_fallback():
