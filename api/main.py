@@ -605,7 +605,10 @@ async def get_asset_relationships(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
     else:
         return relationships
 
@@ -645,7 +648,10 @@ async def get_all_relationships():
                 )
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
     else:
         return relationships
 
@@ -709,7 +715,10 @@ async def get_metrics():
         )
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting metrics:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @app.get(
@@ -795,7 +804,10 @@ async def get_visualization_data():
         return VisualizationDataResponse(nodes=nodes, edges=edges)
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting visualization data:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @app.get(
@@ -846,7 +858,10 @@ async def get_sectors():
         return {"sectors": sorted(sectors)}
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting sectors:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 if __name__ == "__main__":
