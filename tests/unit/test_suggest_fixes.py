@@ -723,7 +723,7 @@ class TestMainFunction:
 
         # main() may not raise SystemExit on success, just return normally
         try:
-            result = main()
+            main()
             # If it returns normally, that's success (no exception)
             captured = capsys.readouterr()
             # Should show "no actionable items" message
