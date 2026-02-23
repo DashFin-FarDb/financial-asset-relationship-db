@@ -934,8 +934,10 @@ class TestConfigurationRobustness:
         packages = []
         for line in lines:
             if not line.startswith("-"):
-                # Extract package name
-                package_name = line.split("==")[0].split(">=")[0].split("~=")[0].split("<=")[0].strip()
+                # Strip version specifier and optional extras
+                package_name = re.split(r"[><=!~;\[]", line)[0].strip()
+                packages.append(package_name.lower())
+
                 packages.append(package_name.lower())
 
         # Check for duplicates
