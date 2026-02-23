@@ -67,8 +67,8 @@ class OutputFormat(enum.Enum):
     JSON = "json"
 
     def __str__(self) -> str:
-        """Return the enum member's underlying string value."""
-        return self.value
+    def __str__(self) -> str:
+        return str(self.value)
 
 
 class CLIError(Exception):
