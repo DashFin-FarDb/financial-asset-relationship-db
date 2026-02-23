@@ -145,7 +145,11 @@ class FinancialAssetApp:
         """
         Create a FinancialAssetApp instance and initialize its asset relationship graph.
 
-        The instance starts with `graph` set to None and then attempts to populate `graph` by calling the internal `_initialize_graph()` method. Any exception raised during graph creation is propagated.
+        `graph` by calling the internal `_initialize_graph()` method.
+
+        Raises:
+            Exception: Any exception raised by `_initialize_graph()` during graph
+                creation is propagated to the caller.
         """
         self.graph: Optional[AssetRelationshipGraph] = None
         self._initialize_graph()
