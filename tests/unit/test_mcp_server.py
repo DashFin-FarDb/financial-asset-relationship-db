@@ -114,26 +114,30 @@ class TestThreadSafeGraph:
 class TestAddEquityNode:
     """Test cases for the add_equity_node MCP tool."""
 
+
 @pytest.fixture(autouse=True)
 def _reset_global_graph():
     """Ensure each test starts with a clean graph."""
     from mcp_server import graph
+
     graph._graph.assets.clear()
     graph._graph.relationships.clear()
     yield
     graph._graph.assets.clear()
     graph._graph.relationships.clear()
 
+
 @pytest.mark.unit
 class TestAddEquityNode:
     """Test cases for the add_equity_node MCP tool."""
+
     @staticmethod
     def test_add_equity_node_successful_addition():
         """Test successful equity node addition."""
         from mcp_server import _build_mcp_app, graph
 
         mcp_app = _build_mcp_app()
-        
+
         # Access the registered tool
         tool_func = next(
             (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
@@ -152,7 +156,6 @@ class TestAddEquityNode:
         assert "Successfully added" in result, "Expected success message not found"
         assert "Apple Inc Test" in result
         assert "AAPL" in result
-
 
     @staticmethod
     def test_add_equity_node_validation_error_negative_price():
