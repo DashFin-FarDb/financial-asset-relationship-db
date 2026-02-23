@@ -103,7 +103,7 @@ def _collect_and_group_relationships(
     relationship_groups: Dict[Tuple[str, bool], List[dict]] = defaultdict(list)
 
     for (source_id, target_id, rel_type), strength in relationship_index.items():
-        if relationship_filters and rel_type in relationship_filters and not relationship_filters[rel_type]:
+        if relationship_filters and not relationship_filters.get(rel_type, False):
             continue
 
         pair_key: Tuple[str, str, str] = (
