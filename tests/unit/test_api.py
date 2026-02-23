@@ -847,7 +847,7 @@ class TestCacheCorruptionRegression:
     @staticmethod
     @patch("src.data.real_data_fetcher.yf.Ticker")
     @patch("src.data.real_data_fetcher._get_yfinance")
-    def test_fallback_creates_valid_empty_graph_on_total_failure(mock_get_yfinance):
+    def test_fallback_creates_valid_empty_graph_on_total_failure(mock_get_yfinance, mock_ticker):
         """Regression: Total API failure should create a valid empty or sample graph."""
         from src.data.real_data_fetcher import RealDataFetcher
 
