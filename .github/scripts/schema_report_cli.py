@@ -301,9 +301,11 @@ def write_atomic(target: Path, content: str) -> None:
             tmp_path.unlink()
         finally:
             raise
+
+
 def generate_report(logger: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
-     """
-     Generate a schema report and write it to the given file path or stdout.
+    """
+    Generate a schema report and write it to the given file path or stdout.
 
     Args:
         logger: Logger instance to record diagnostics.
