@@ -250,12 +250,14 @@ class FinancialAssetApp:
         Ensure the number of outputs returned by refresh_all_outputs matches
         the number of Gradio components wired in the UI.
         """
+        
         expected_refresh_all_outputs = 8
         actual = len(outputs)
-        assert actual == expected_refresh_all_outputs, (
-            f"UI expects {expected_refresh_all_outputs} outputs, "
-            f"but refresh_all_outputs() returned {actual}"
-        )
+        if actual != expected_refresh_all_outputs:
+            raise AssertionError(
+                f"UI expects {expected_refresh_all_outputs} outputs, "
+                f"but refresh_all_outputs() returned {actual}"
+            )
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """
@@ -501,20 +503,6 @@ class FinancialAssetApp:
 
         summary_lines.extend(["", "🎯 **Key Insights:**"])
 
-        insights = summary.get("key_insights", [])
-        for insight in insights:
-            summary_lines.append(f"  • {insight}")
-
-        # Add correlation insights
-        correlations = empirical.get("strongest_correlations", [])
-        if correlations:
-            summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
-            for corr in correlations[:3]:
-                summary_lines.append(
-                    f"  • {corr['pair']}: {corr['correlation']:.3f} "
-                    f"({corr['strength']})"
-                )
-
         return "\n".join(summary_lines)
 
     def create_interface(self):
@@ -524,9 +512,9 @@ class FinancialAssetApp:
         Builds and returns the complete Gradio interface with tabs for Network Visualization (2D/3D), Metrics Analytics, Schema Rules, Asset Explorer, Documentation, and Formulaic Analysis, and wires all event handlers to the application's methods.
 
         Returns:
-            demo (gr.Blocks): The assembled Gradio Blocks object ready to be launched.
+            interface (gr.Blocks): The assembled Gradio Blocks object ready to be launched.
         """
-        with gr.Blocks(title=AppConstants.TITLE) as demo:
+        with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
