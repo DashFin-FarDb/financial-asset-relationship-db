@@ -1,7 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -228,79 +228,14 @@ class RealDataFetcher:
         return equities
 
     @staticmethod
-    def _fetch_bond_data() -> List[Bond]:
-        """
-        Fetch bond and treasury ETF data and construct Bond objects used as
-        fixed-income proxies.
-
-        Retrieves price and metadata for a small set of bond and treasury ETFs
-        (used as proxies for individual bonds). If yield information is missing,
-        `yield_to_maturity` defaults to 0.03 and `coupon_rate` is set to an
-        approximate value. Maturity dates and some fields are approximate for
-        ETF-based proxies.
-
-        Returns:
-            bonds (List[Bond]): List of Bond instances populated with id,
-                symbol, name, asset_class, sector, price, yield_to_maturity,
-                coupon_rate, maturity_date, credit_rating, and issuer_id.
-        """
-        yf = _get_yfinance()
-        # For bonds, we'll use Treasury ETFs and bond proxies since
-        # individual bonds are harder to access
-        bond_symbols = {
-            "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
-            "LQD": (
-                "iShares iBoxx $ Investment Grade Corporate Bond ETF",
-                "Corporate",
-                None,
-                None,
-            ),
-        }
-
-        bonds = []
-        for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
-            try:
-                ticker = yf.Ticker(symbol)
-                info = ticker.info
-                hist = ticker.history(period="1d")
-
-                if hist.empty:
-                    logger.warning("No price data for %s", symbol)
-                    continue
-
-                current_price = float(hist["Close"].iloc[-1])
-                bond = Bond(
-                    id=symbol,
-                    symbol=symbol,
-                    name=name,
-                    asset_class=AssetClass.FIXED_INCOME,
-                    sector=sector,
-                    price=current_price,
-                    yield_to_maturity=(
-                        info.get("yield", 0.03)
-                    ),  # Default 3% if not available
-                    coupon_rate=info.get("yield", 0.025),  # Approximate
-                    maturity_date="2035-01-01",  # Approximate for ETFs
-                    credit_rating=rating,
-                    issuer_id=issuer_id,
-                )
-                bonds.append(bond)
-                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
-            except Exception as e:
-                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
-                continue
-
-        return bonds
-
-    @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """
         Retrieve current commodity futures and convert them into Commodity instances.
-
+    
         Each available symbol produces a Commodity populated with price, contract_size,
         delivery_date (approximate), and volatility. Symbols with no recent price data
         are skipped.
-
+    
         Returns:
             List[Commodity]: List of Commodity objects for symbols with available price data.
         """
@@ -308,11 +243,10 @@ class RealDataFetcher:
         # Define key commodity futures and their characteristics.
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
-            # Example entries (adjust or extend as needed elsewhere in the file):
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
         }
-
+    
         commodities: List[Commodity] = []
         for symbol, (
             name,
@@ -323,18 +257,18 @@ class RealDataFetcher:
             try:
                 ticker = yf.Ticker(symbol)
                 hist = ticker.history(period="1d")
-
+    
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
-
+    
                 current_price = float(hist["Close"].iloc[-1])
-
-                # Calculate future delivery date (3 months from now)
-                delivery_date = (datetime.utcnow() + timedelta(days=90)).strftime(
+    
+                # Calculate future delivery date (3 months from now) using a TZ-aware datetime
+                delivery_date = (datetime.now(UTC) + timedelta(days=90)).strftime(
                     "%Y-%m-%d"
                 )
-
+    
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
                     symbol=symbol,
@@ -353,12 +287,13 @@ class RealDataFetcher:
                     name,
                     current_price,
                 )
-
+    
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
                 continue
-
+    
         return commodities
+
 
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
