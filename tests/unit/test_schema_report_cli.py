@@ -50,7 +50,6 @@ def _load_module_for_test(
     importlib.invalidate_caches()  # ensure the new tmp_path file is found
     module = importlib.import_module("schema_report_cli_copy")
     return module
-    return module
 
 
 def test_invalid_format_rejected(
