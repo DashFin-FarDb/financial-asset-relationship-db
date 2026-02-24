@@ -87,7 +87,6 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
     return deduplicated
 
 
-
 def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
     """
     Reconstruct the manifest content from sections.
@@ -114,7 +113,6 @@ def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
     return "\n".join(result)
 
 
-
 def main():
     """Main entry point for the deduplication script."""
     manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
@@ -129,6 +127,7 @@ def main():
 
     # Parse into preamble and sections
     preamble, sections = parse_manifest(content)
+
 
 def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
     """
@@ -200,9 +199,7 @@ def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
     reduction = old_lines - new_lines
     reduction_pct = (reduction / old_lines * 100) if old_lines > 0 else 0
 
-    print(
-        f"\nSize reduction: {old_lines} → {new_lines} lines ({reduction_pct:.1f}% reduction)"
-    )
+    print(f"\nSize reduction: {old_lines} → {new_lines} lines ({reduction_pct:.1f}% reduction)")
 
 
 if __name__ == "__main__":
