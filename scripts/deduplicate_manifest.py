@@ -67,6 +67,7 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     return "\n".join(preamble_lines), sections
 
 
+
 def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
     """
     Remove duplicate headings, keeping only the LAST occurrence of each heading,
@@ -76,22 +77,13 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
     out_reversed: List[Tuple[str, str]] = []
 
     for heading, content in reversed(sections):
-
-
-"""
-Module for deduplicating manifest sections and safely handling file paths.
-
-This module provides functions to deduplicate manifest sections,
-count duplicate sections, safely construct file paths to avoid
-path traversal, and a main entry point for command-line usage.
-"""
-
         if heading in seen:
             continue
         seen.add(heading)
         out_reversed.append((heading, content))
 
     return list(reversed(out_reversed))
+
 
 
 def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
