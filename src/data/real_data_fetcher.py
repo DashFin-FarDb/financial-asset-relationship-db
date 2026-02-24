@@ -68,12 +68,12 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """
-        Builds an AssetRelationshipGraph using cached data, live market data, or a fallback sample.
-
-        Attempts to load and return a cached graph if a cache file exists. If network access is disabled, returns the configured fallback graph. Otherwise, fetches equities, bonds, commodities, and currencies, adds them and generated regulatory events to a new graph, builds relationships, and persists the graph to cache when a cache path is configured. If any step of live data fetching or graph construction fails, a fallback/sample graph is returned.
-
+        Builds and returns an AssetRelationshipGraph populated from cache, live market data, or a fallback sample.
+        
+        Attempts to load a cached graph if available; if network access is disabled or live data collection fails, returns the configured fallback graph. When network access is enabled and fetching succeeds, the graph is populated with equities, commodities, currencies, generated regulatory events, and their relationships, and is persisted to cache if a cache path is configured.
+        
         Returns:
-            AssetRelationshipGraph: Graph populated from cache or live market data; if loading or fetching fails or network is disabled, a fallback/sample graph is returned.
+            AssetRelationshipGraph: Graph populated from cache or live data, or a fallback/sample graph on failure or when network is disabled.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -172,12 +172,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
-        Retrieve current market data for a predefined set of major equities and return them as Equity instances.
-
-        Symbols that have no recent price data or for which fetching fails are omitted from the result.
-
+        Fetch current market data for a fixed set of major equities.
+        
+        Fetches price and basic fundamentals for a predefined list of symbols and constructs Equity instances for symbols whose data is successfully retrieved. Symbols with no recent price data or for which fetching fails are omitted.
+        
         Returns:
-            List[Equity]: Equity objects for successfully fetched symbols; symbols with missing or failed data are excluded.
+            List[Equity]: Equity objects for symbols with successfully retrieved market data; symbols with missing or failed data are excluded.
         """
         yf = _get_yfinance()
         equity_symbols = {
@@ -230,14 +230,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """
-        Retrieve current commodity futures and convert them into Commodity instances.
-
-        Each available symbol produces a Commodity populated with price, contract_size,
-        delivery_date (approximate), and volatility. Symbols with no recent price data
-        are skipped.
-
+        Builds Commodity objects for a predefined set of commodity futures.
+        
+        Each returned Commodity includes current price, contract_size, delivery_date (UTC, 90 days from now), and volatility. Symbols without recent price data are excluded.
+        
         Returns:
-            List[Commodity]: List of Commodity objects for symbols with available price data.
+            List[Commodity]: Commodity objects for symbols with available price data.
         """
         yf = _get_yfinance()
         # Define key commodity futures and their characteristics.
@@ -347,12 +345,12 @@ class RealDataFetcher:
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
-        Produce a small list of recent sample regulatory events associated with fetched assets.
-
-        Each item is a RegulatoryEvent containing explicit fields: `id`, `asset_id`, `event_type` (RegulatoryActivity), `date` (ISO format YYYY-MM-DD), `description`, `impact_score` (float), and `related_assets` (list of asset ids).
-
+        Create a small list of sample regulatory events tied to specific assets.
+        
+        Each event includes `id`, `asset_id`, `event_type` (RegulatoryActivity), `date` (ISO format YYYY-MM-DD), `description`, `impact_score` (float), and `related_assets` (list of asset ids).
+        
         Returns:
-            List[RegulatoryEvent]: Three sample events: an Apple earnings report, a Microsoft dividend announcement, and an Exxon (XOM) SEC filing.
+            List[RegulatoryEvent]: Three sample events: an Apple earnings report, a Microsoft dividend announcement, and an Exxon SEC filing.
         """
         # Create some realistic recent events
         events = []
