@@ -30,7 +30,7 @@ def check_duplicate_headings(manifest_path: Path) -> int:
         return 1
 
     # Read the manifest
-    with open(manifest_path, 'r', encoding='utf-8') as f:
+    with open(manifest_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
     # Track headings and their line numbers
@@ -39,17 +39,22 @@ def check_duplicate_headings(manifest_path: Path) -> int:
     for line_num, line in enumerate(lines, start=1):
         # Check for level 2 headings (## but not ###)
         stripped = line.strip()
-        if stripped.startswith('## ') and not stripped.startswith('### '):
+        if stripped.startswith("## ") and not stripped.startswith("### "):
             heading = stripped[3:].strip()
             if heading not in heading_occurrences:
                 heading_occurrences[heading] = []
             heading_occurrences[heading].append(line_num)
 
     # Find duplicates
-    duplicates = {h: lines for h, lines in heading_occurrences.items() if len(lines) > 1}
+    duplicates = {
+        h: lines for h, lines in heading_occurrences.items() if len(lines) > 1
+    }
 
     if duplicates:
-        print("❌ MD024 violation: Duplicate headings found in systemManifest.md\n", file=sys.stderr)
+        print(
+            "❌ MD024 violation: Duplicate headings found in systemManifest.md\n",
+            file=sys.stderr,
+        )
         print(f"Found {len(duplicates)} heading(s) with duplicates:\n", file=sys.stderr)
 
         for heading, line_nums in sorted(duplicates.items()):
@@ -58,7 +63,10 @@ def check_duplicate_headings(manifest_path: Path) -> int:
                 print(f"    - Line {line_num}", file=sys.stderr)
             print(file=sys.stderr)
 
-        print("Run 'python scripts/deduplicate_manifest.py' to fix these issues.", file=sys.stderr)
+        print(
+            "Run 'python scripts/deduplicate_manifest.py' to fix these issues.",
+            file=sys.stderr,
+        )
         return 1
     else:
         print(f"✅ No duplicate headings found in {manifest_path}")

@@ -16,7 +16,6 @@
 - 12 ts files
 - 10 tsx files
 
-
 ## Dependencies
 
 ## Project Directory Structure
