@@ -394,25 +394,6 @@ class TestTailwindConfig:
         assert "app/" in tailwind_config_content or "./app/" in tailwind_config_content
 
 
-@pytest.mark.unit
-class TestEnvExampleFixture:
-    """Test cases for .env.example file."""
-
-    @pytest.fixture
-    def env_example_content(self):
-        """
-        Read the repository's .env.example file and return its contents as text.
-
-        Returns:
-            str: The contents of `.env.example`.
-
-        Raises:
-            AssertionError: If `.env.example` does not exist.
-        """
-        config_path = Path(".env.example")
-        assert config_path.exists(), ".env.example not found"
-        with open(config_path) as f:
-            return f.read()
 
 
 @pytest.mark.unit
