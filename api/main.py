@@ -499,7 +499,7 @@ async def get_assets(
         logger.exception("Error getting assets:")
         raise HTTPException(
             status_code=500,
-            detail=str(e),
+            detail="An internal error occurred. Please try again later.",
         ) from e
     else:
         return assets
