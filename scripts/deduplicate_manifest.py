@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""
+Deduplicate sections in .elastic-copilot/memory/systemManifest.md.
+
+This script removes duplicate section headings (## level 2 headings) from the
+manifest file, keeping only the LAST occurrence of each section. This ensures
+the manifest contains only the most recent version of each section.
+"""
+
+import re
+import sys
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+
+def parse_manifest(content: str) -> List[Tuple[str, str]]:
+    """
+    Parse the manifest content into sections.
+
+    Args:
+        content: The full content of the manifest file
+
+    Returns:
+        A list of (heading, content) tuples, where heading is the section title
+        (without the ## prefix) and content is everything between this heading
+        and the next ## heading
+    """
+    # Split by level 2 headings (##)
+    sections = []
+    lines = content.split('\n')
+    
+    current_heading = None
+    current_content = []
+    
+    for line in lines:
+        # Check if this is a level 2 heading (## but not ###)
+        if re.match(r'^## [^#]', line):
+            # Save previous section if exists
+            if current_heading is not None:
+                sections.append((current_heading, '\n'.join(current_content)))
+            
+            # Start new section
+            current_heading = line[3:].strip()  # Remove "## " prefix
+            current_content = []
+        else:
+            current_content.append(line)
+    
+    # Add the last section
+    if current_heading is not None:
+        sections.append((current_heading, '\n'.join(current_content)))
+    
+    return sections
+
+
+def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    """
+    Remove duplicate sections, keeping only the LAST occurrence of each.
+
+    Args:
+        sections: List of (heading, content) tuples
+
+    Returns:
+        Deduplicated list with only the last occurrence of each heading
+    """
+    # Use a dictionary to track the last occurrence of each heading
+    section_dict: Dict[str, str] = {}
+    section_order: List[str] = []
+    
+    for heading, content in sections:
+        if heading not in section_dict:
+            section_order.append(heading)
+        section_dict[heading] = content
+    
+    # Reconstruct sections in the order of their last appearance
+    deduplicated = []
+    for heading in section_order:
+        deduplicated.append((heading, section_dict[heading]))
+    
+    return deduplicated
+
+
+def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
+    """
+    Reconstruct the manifest content from sections.
+
+    Args:
+        sections: List of (heading, content) tuples
+
+    Returns:
+        The reconstructed manifest content as a string
+    """
+    result = []
+    
+    for heading, content in sections:
+        result.append(f"## {heading}")
+        result.append(content)
+    
+    return '\n'.join(result)
+
+
+def main():
+    """Main entry point for the deduplication script."""
+    manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
+    
+    if not manifest_path.exists():
+        print(f"Error: {manifest_path} not found", file=sys.stderr)
+        sys.exit(1)
+    
+    # Read the manifest
+    with open(manifest_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+    
+    # Parse into sections
+    sections = parse_manifest(content)
+    
+    print(f"Found {len(sections)} total sections")
+    
+    # Count duplicates
+    heading_counts: Dict[str, int] = {}
+    for heading, _ in sections:
+        heading_counts[heading] = heading_counts.get(heading, 0) + 1
+    
+    duplicates = {h: c for h, c in heading_counts.items() if c > 1}
+    if duplicates:
+        print(f"\nFound {len(duplicates)} section(s) with duplicates:")
+        for heading, count in sorted(duplicates.items()):
+            print(f"  - '{heading}': {count} occurrences")
+    else:
+        print("\nNo duplicates found!")
+        return
+    
+    # Deduplicate
+    deduplicated = deduplicate_sections(sections)
+    
+    print(f"\nAfter deduplication: {len(deduplicated)} sections")
+    
+    # Reconstruct manifest
+    new_content = reconstruct_manifest(deduplicated)
+    
+    # Save backup
+    backup_path = manifest_path.with_suffix('.md.backup')
+    with open(backup_path, 'w', encoding='utf-8') as f:
+        f.write(content)
+    print(f"\nBackup saved to: {backup_path}")
+    
+    # Write deduplicated version
+    with open(manifest_path, 'w', encoding='utf-8') as f:
+        f.write(new_content)
+    
+    print(f"Deduplicated manifest saved to: {manifest_path}")
+    
+    # Calculate size reduction
+    old_lines = len(content.split('\n'))
+    new_lines = len(new_content.split('\n'))
+    reduction = old_lines - new_lines
+    reduction_pct = (reduction / old_lines * 100) if old_lines > 0 else 0
+    
+    print(f"\nSize reduction: {old_lines} → {new_lines} lines ({reduction_pct:.1f}% reduction)")
+
+
+if __name__ == "__main__":
+    main()
