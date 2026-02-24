@@ -96,10 +96,7 @@ class TestCLIInputValidation:
         )
         assert result.returncode != 0
         # Should show error about invalid choice
-        assert (
-            "invalid choice" in result.stderr.lower()
-            or "error" in result.stderr.lower()
-        )
+        assert "invalid choice" in result.stderr.lower() or "error" in result.stderr.lower()
 
     def test_default_format_is_markdown(self, tmp_path):
         """Test default format is markdown when not specified."""
@@ -270,9 +267,7 @@ class TestCLIFormatConversion:
         )
         content = output_file.read_text()
         # Should have minimal markdown formatting
-        lines_with_headers = [
-            line for line in content.split("\n") if line.startswith("#")
-        ]
+        lines_with_headers = [line for line in content.split("\n") if line.startswith("#")]
         assert len(lines_with_headers) == 0  # No markdown headers
 
     def test_json_contains_valid_structure(self, tmp_path):
