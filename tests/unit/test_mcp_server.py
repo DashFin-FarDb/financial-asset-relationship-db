@@ -165,11 +165,11 @@ class TestAddEquityNode:
 
         mcp_app = _build_mcp_app()
 
-        tool_func = None
-        for tool in mcp_app.list_tools():
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
+        tool_func = next(
+            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+            None,
+        )
+        assert tool_func is not None, "add_equity_node tool not found"
 
         result = tool_func(
             asset_id="TEST",
@@ -179,8 +179,9 @@ class TestAddEquityNode:
             price=-100.0,  # Invalid negative price
         )
 
-        assert "Validation Error" in result if isinstance(result, str) else False
-        assert "price" in result.lower() if isinstance(result, str) else False
+        assert isinstance(result, str)
+        assert "Validation Error" in result
+        assert "price" in result.lower()
 
     @staticmethod
     def test_add_equity_node_validation_error_empty_id():
