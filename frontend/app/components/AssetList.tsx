@@ -272,18 +272,10 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    const controller = new AbortController();
-
     void fetchAssets().catch((err) => {
-      if (controller.signal.aborted) return;
-      if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Failed to load assets");
       setLoading(false);
     });
-
-    return () => {
-      controller.abort();
-    };
   }, [fetchAssets]);
 
   /**
