@@ -276,8 +276,8 @@ class FinancialAssetApp:
                 f3,
                 metrics_txt,
                 schema_rpt,
-                gr.update(choices=asset_choices, value=None),
-                gr.update(value="", visible=False),
+                gr.Dropdown(choices=asset_choices, value=None),
+                gr.Textbox(value="", visible=False),
             )
 
         except Exception:
@@ -292,8 +292,8 @@ class FinancialAssetApp:
                 empty_fig,  # metrics fig 3
                 "",  # metrics text
                 "",  # schema report
-                gr.update(choices=[], value=None),  # asset selector
-                gr.update(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
+                gr.Dropdown(choices=[], value=None),
+                gr.Textbox(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
             )
 
     def refresh_visualization(
