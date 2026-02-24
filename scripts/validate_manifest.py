@@ -16,7 +16,7 @@ from typing import Dict, List
 
 
 def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
-    """Return a mapping of level-2 headings to the line numbers where they appear."""
+    """Return a mapping of level-2 headings to their line numbers."""
     occurrences: Dict[str, List[int]] = {}
 
     for line_num, line in enumerate(lines, start=1):
@@ -29,7 +29,7 @@ def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
 
 
 def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) -> int:
-    """Print duplicate-heading report and return error exit code."""
+    """Prints a report of duplicate headings found in the manifest."""
     print(
         f"❌ MD024 violation: Duplicate headings found in {manifest_path}\n",
         file=sys.stderr,
@@ -50,15 +50,15 @@ def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) ->
 
 
 def check_duplicate_headings(manifest_path: Path) -> int:
-    """
-    Check for duplicate level 2 headings in the manifest.
-
+    """def check_duplicate_headings(manifest_path: Path) -> int:
+    Check for duplicate level 2 headings in the manifest.  This function verifies
+    the existence of the specified manifest file  and ensures it matches the
+    expected path within the repository. It  reads the content of the manifest,
+    collects level 2 headings, and  checks for duplicates. If duplicates are found,
+    it reports them;  otherwise, it confirms that no duplicates exist.
+    
     Args:
-        manifest_path: Path to the systemManifest.md file
-
-    Returns:
-        Exit code: 0 if no duplicates, 1 if duplicates found
-    """
+        manifest_path: Path to the systemManifest.md file."""
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
         return 1
