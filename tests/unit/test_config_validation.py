@@ -394,8 +394,6 @@ class TestTailwindConfig:
         assert "app/" in tailwind_config_content or "./app/" in tailwind_config_content
 
 
-
-
 @pytest.mark.unit
 class TestEnvExample:
     """Test cases for .env.example file."""
