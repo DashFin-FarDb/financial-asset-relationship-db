@@ -290,7 +290,22 @@ class FinancialAssetApp:
                 gr.update(value="", visible=False),
             )
 
-        except Exception:
+            # Keep the Gradio wiring and `refresh_all_outputs()` return tuple in sync.
+            # If you add/remove UI outputs, update both this list and the return values.
+            expected_refresh_all_outputs = 8
+            all_refresh_outputs = [
+                visualization_3d,
+                asset_dist_chart,
+                rel_types_chart,
+                events_timeline_chart,
+                metrics_text,
+                schema_report,
+                asset_selector,
+                error_message,
+            ]
+            assert (
+                len(all_refresh_outputs) == expected_refresh_all_outputs
+            ), f"UI expects {len(all_refresh_outputs)} outputs, but refresh_all_outputs() must return {expected_refresh_all_outputs}"
             # Full traceback in logs; generic message in UI.
             logger.exception("Error refreshing outputs")
 
