@@ -15,6 +15,40 @@ from pathlib import Path
 from typing import Dict, List
 
 
+def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
+    """Return a mapping of level-2 headings to the line numbers where they appear."""
+    occurrences: Dict[str, List[int]] = {}
+
+    for line_num, line in enumerate(lines, start=1):
+        stripped = line.strip()
+        if stripped.startswith("## ") and not stripped.startswith("### "):
+            heading = stripped[3:].strip()
+            occurrences.setdefault(heading, []).append(line_num)
+
+    return occurrences
+
+
+def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) -> int:
+    """Print duplicate-heading report and return error exit code."""
+    print(
+        "❌ MD024 violation: Duplicate headings found in systemManifest.md\n",
+        file=sys.stderr,
+    )
+    print(f"Found {len(duplicates)} heading(s) with duplicates:\n", file=sys.stderr)
+
+    for heading, line_nums in sorted(duplicates.items()):
+        print(f"  '{heading}' appears {len(line_nums)} times:", file=sys.stderr)
+        for line_num in line_nums:
+            print(f"    - Line {line_num}", file=sys.stderr)
+        print(file=sys.stderr)
+
+    print(
+        "Run 'python scripts/deduplicate_manifest.py' to fix these issues.",
+        file=sys.stderr,
+    )
+    return 1
+
+
 def check_duplicate_headings(manifest_path: Path) -> int:
     """
     Check for duplicate level 2 headings in the manifest.
@@ -45,47 +79,20 @@ def check_duplicate_headings(manifest_path: Path) -> int:
         return 1
 
     lines = manifest_path.read_text(encoding="utf-8").splitlines(keepends=True)
-    # (already read with read_text above; remove this line)
 
-    # Track headings and their line numbers
-    heading_occurrences: Dict[str, List[int]] = {}
-
-    for line_num, line in enumerate(lines, start=1):
-        # Check for level 2 headings (## but not ###)
-        stripped = line.strip()
-        if stripped.startswith("## ") and not stripped.startswith("### "):
-            heading = stripped[3:].strip()
-            if heading not in heading_occurrences:
-                heading_occurrences[heading] = []
-            heading_occurrences[heading].append(line_num)
-
-    # Find duplicates
+    heading_occurrences = _collect_headings(lines)
     duplicates = {
-        h: lines for h, lines in heading_occurrences.items() if len(lines) > 1
+        heading: nums
+        for heading, nums in heading_occurrences.items()
+        if len(nums) > 1
     }
 
     if duplicates:
-        print(
-            "❌ MD024 violation: Duplicate headings found in systemManifest.md\n",
-            file=sys.stderr,
-        )
-        print(f"Found {len(duplicates)} heading(s) with duplicates:\n", file=sys.stderr)
+        return _report_duplicates(duplicates, manifest_path)
 
-        for heading, line_nums in sorted(duplicates.items()):
-            print(f"  '{heading}' appears {len(line_nums)} times:", file=sys.stderr)
-            for line_num in line_nums:
-                print(f"    - Line {line_num}", file=sys.stderr)
-            print(file=sys.stderr)
-
-        print(
-            "Run 'python scripts/deduplicate_manifest.py' to fix these issues.",
-            file=sys.stderr,
-        )
-        return 1
-    else:
-        print(f"✅ No duplicate headings found in {manifest_path}")
-        print(f"   Total sections: {len(heading_occurrences)}")
-        return 0
+    print(f"✅ No duplicate headings found in {manifest_path}")
+    print(f"   Total sections: {len(heading_occurrences)}")
+    return 0
 
 
 def main():
