@@ -13,11 +13,13 @@ from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
+# Mark all tests in this module as unit tests
+pytestmark = pytest.mark.unit
+
 # Add the script to path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_DIR = PROJECT_ROOT / ".github" / "pr-copilot" / "scripts"
 sys.path.insert(0, str(SCRIPT_DIR))
-
 from generate_status import (  # noqa: E402
     CheckRunInfo,
     PRStatus,
