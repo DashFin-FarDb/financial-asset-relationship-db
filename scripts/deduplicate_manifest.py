@@ -13,17 +13,19 @@ from pathlib import Path
 from typing import Dict, List, Tuple
 
 
-def parse_manifest(content: str) -> List[Tuple[str, str]]:
+def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     """
-    Parse the manifest content into sections.
+    Parse the manifest content into preamble and sections.
 
     Args:
         content: The full content of the manifest file
 
     Returns:
-        A list of (heading, content) tuples, where heading is the section title
-        (without the ## prefix) and content is everything between this heading
-        and the next ## heading
+        A tuple of (preamble, sections) where:
+        - preamble is content before the first ## heading (e.g., "# System Manifest")
+        - sections is a list of (heading, content) tuples, where heading is the section title
+          (without the ## prefix) and content is everything between this heading
+          and the next ## heading
     """
     # Split by level 2 headings (##)
     sections = []
@@ -31,10 +33,13 @@ def parse_manifest(content: str) -> List[Tuple[str, str]]:
 
     current_heading = None
     current_content = []
+    preamble_lines = []
+    found_first_heading = False
 
     for line in lines:
         # Check if this is a level 2 heading (## but not ###)
         if re.match(r"^## [^#]", line):
+            found_first_heading = True
             # Save previous section if exists
             if current_heading is not None:
                 sections.append((current_heading, "\n".join(current_content)))
@@ -43,13 +48,18 @@ def parse_manifest(content: str) -> List[Tuple[str, str]]:
             current_heading = line[3:].strip()  # Remove "## " prefix
             current_content = []
         else:
-            current_content.append(line)
+            if not found_first_heading:
+                # This is preamble content before the first ## heading
+                preamble_lines.append(line)
+            else:
+                current_content.append(line)
 
     # Add the last section
     if current_heading is not None:
         sections.append((current_heading, "\n".join(current_content)))
 
-    return sections
+    preamble = "\n".join(preamble_lines)
+    return preamble, sections
 
 
 def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
@@ -79,11 +89,12 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
     return deduplicated
 
 
-def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
+def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
     """
-    Reconstruct the manifest content from sections.
+    Reconstruct the manifest content from preamble and sections.
 
     Args:
+        preamble: Content before the first ## heading (e.g., "# System Manifest")
         sections: List of (heading, content) tuples
 
     Returns:
@@ -91,6 +102,11 @@ def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
     """
     result = []
 
+    # Add preamble if it exists
+    if preamble.strip():
+        result.append(preamble)
+
+    # Add sections
     for heading, content in sections:
         result.append(f"## {heading}")
         result.append(content)
@@ -110,10 +126,12 @@ def main():
     with open(manifest_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Parse into sections
-    sections = parse_manifest(content)
+    # Parse into preamble and sections
+    preamble, sections = parse_manifest(content)
 
     print(f"Found {len(sections)} total sections")
+    if preamble.strip():
+        print(f"Preserved preamble content ({len(preamble.split(chr(10)))} lines)")
 
     # Count duplicates
     heading_counts: Dict[str, int] = {}
@@ -135,7 +153,7 @@ def main():
     print(f"\nAfter deduplication: {len(deduplicated)} sections")
 
     # Reconstruct manifest
-    new_content = reconstruct_manifest(deduplicated)
+    new_content = reconstruct_manifest(preamble, deduplicated)
 
     # Save backup
     backup_path = manifest_path.with_suffix(".md.backup")

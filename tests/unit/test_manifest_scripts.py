@@ -138,8 +138,11 @@ First and only occurrence of TS dependencies.
             reconstruct_manifest,
         )
 
-        # Parse sections
-        sections = parse_manifest(sample_manifest_with_duplicates)
+        # Parse preamble and sections
+        preamble, sections = parse_manifest(sample_manifest_with_duplicates)
+
+        # Verify preamble is preserved
+        assert "# System Manifest" in preamble
 
         # Count sections
         heading_counts = {}
@@ -170,6 +173,10 @@ First and only occurrence of TS dependencies.
         assert "Second occurrence" in content_dict["PY Dependencies"]
         assert "First occurrence" not in content_dict["PY Dependencies"]
 
+        # Reconstruct and verify preamble is included
+        reconstructed = reconstruct_manifest(preamble, deduplicated)
+        assert "# System Manifest" in reconstructed
+
     def test_deduplicate_preserves_order(self, sample_manifest_with_duplicates):
         """Test that deduplication preserves the order of first occurrence."""
         # Import here to avoid circular imports
@@ -179,7 +186,7 @@ First and only occurrence of TS dependencies.
         from deduplicate_manifest import deduplicate_sections, parse_manifest
 
         # Parse and deduplicate
-        sections = parse_manifest(sample_manifest_with_duplicates)
+        preamble, sections = parse_manifest(sample_manifest_with_duplicates)
         deduplicated = deduplicate_sections(sections)
 
         # Extract headings in order
@@ -192,6 +199,36 @@ First and only occurrence of TS dependencies.
             "PY Dependencies"
         )
         assert headings.index("PY Dependencies") < headings.index("TS Dependencies")
+
+    def test_preamble_preservation(self, sample_manifest_with_duplicates):
+        """Test that preamble content before first ## heading is preserved."""
+        # Import here to avoid circular imports
+        import sys
+
+        sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
+        from deduplicate_manifest import (
+            deduplicate_sections,
+            parse_manifest,
+            reconstruct_manifest,
+        )
+
+        # Parse
+        preamble, sections = parse_manifest(sample_manifest_with_duplicates)
+
+        # Verify preamble contains the # System Manifest header
+        assert "# System Manifest" in preamble
+        assert preamble.strip().startswith("# System Manifest")
+
+        # Deduplicate
+        deduplicated = deduplicate_sections(sections)
+
+        # Reconstruct
+        reconstructed = reconstruct_manifest(preamble, deduplicated)
+
+        # Verify preamble is at the beginning of reconstructed content
+        assert reconstructed.strip().startswith("# System Manifest")
+        # Verify sections follow the preamble
+        assert "## Project Overview" in reconstructed
 
     def test_system_manifest_is_clean(self):
         """Test that the actual systemManifest.md has no duplicates."""

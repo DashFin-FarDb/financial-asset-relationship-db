@@ -12,7 +12,7 @@ Exit codes:
 
 import sys
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List
 
 
 def check_duplicate_headings(manifest_path: Path) -> int:
@@ -34,7 +34,7 @@ def check_duplicate_headings(manifest_path: Path) -> int:
         lines = f.readlines()
 
     # Track headings and their line numbers
-    heading_occurrences: Dict[str, list] = {}
+    heading_occurrences: Dict[str, List[int]] = {}
 
     for line_num, line in enumerate(lines, start=1):
         # Check for level 2 headings (## but not ###)
