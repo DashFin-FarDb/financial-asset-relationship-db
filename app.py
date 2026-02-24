@@ -293,7 +293,8 @@ class FinancialAssetApp:
                 empty_fig,  # metrics fig 3
                 "",  # metrics text
                 "",  # schema report
-                gr.Dropdown(choices=[], value=None),
+                gr.update(choices=[], value=None),
+                gr.update(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
                 gr.Textbox(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
             )
 
