@@ -1,5 +1,6 @@
 import json
 import logging
+import threading
 from dataclasses import asdict
 from typing import Dict, Optional, Tuple
 
@@ -152,6 +153,7 @@ class FinancialAssetApp:
                 creation is propagated to the caller.
         """
         self.graph: Optional[AssetRelationshipGraph] = None
+        self._graph_lock = threading.Lock()
         self._initialize_graph()
 
     def _initialize_graph(self) -> None:
@@ -176,8 +178,10 @@ class FinancialAssetApp:
     def ensure_graph(self) -> AssetRelationshipGraph:
         """Ensures the graph is initialized, re-creating sample data if it's None."""
         if self.graph is None:
-            logger.warning("Graph is None, re-creating sample database.")
-            self._initialize_graph()
+            with self._graph_lock:
+                if self.graph is None:
+                    logger.warning("Graph is None, re-creating sample database.")
+                    self._initialize_graph()
         return self.graph
 
     @staticmethod
@@ -278,7 +282,6 @@ class FinancialAssetApp:
                 schema_rpt,
                 gr.update(choices=asset_choices, value=None),
                 gr.update(value="", visible=False),
-                gr.Textbox(value="", visible=False),
             )
 
         except Exception:
@@ -295,7 +298,6 @@ class FinancialAssetApp:
                 "",  # schema report
                 gr.update(choices=[], value=None),
                 gr.update(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
-                gr.Textbox(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
             )
 
     def refresh_visualization(

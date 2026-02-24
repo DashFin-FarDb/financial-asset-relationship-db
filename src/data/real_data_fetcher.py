@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -324,6 +325,9 @@ class RealDataFetcher:
 
                 current_price = float(hist["Close"].iloc[-1])
 
+                # Calculate future delivery date (3 months from now)
+                delivery_date = (datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d")
+
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
                     symbol=symbol,
@@ -332,7 +336,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date="2025-03-31",  # Approximate
+                    delivery_date=delivery_date,
                     volatility=volatility,
                 )
                 commodities.append(commodity)
