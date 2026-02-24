@@ -245,29 +245,32 @@ class TestCLIFormatConversion:
         assert output_file.exists(), (
             "CLI reported success but did not create output file.\n"
             f"Expected: {output_file}\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}\n"
+    def test_markdown_contains_headers(self, tmp_path: Path) -> None:
+        """Markdown format should contain typical markdown markers."""
+        output_file = tmp_path / "report.md"
+        _run_cli(
+            tmp_path,
+            "--fmt",
+            "markdown",
+            "--output",
+            str(output_file),
         )
-
+        result = _run_cli(tmp_path, "--fmt", "markdown", "--output", str(output_file))
+        assert result.returncode == 0
         content = output_file.read_text(encoding="utf-8")
         assert "##" in content or "# " in content
 
     def test_text_removes_markdown_formatting(self, tmp_path: Path) -> None:
         """Text format should remove markdown headers."""
         output_file = tmp_path / "report.txt"
-
-        result = _run_cli(tmp_path, "--fmt", "text", "--output", str(output_file))
-
-        assert result.returncode == 0, (
-            "CLI returned non-zero exit code.\n" f"stdout:\n{result.stdout}\n" f"stderr:\n{result.stderr}\n"
+        _run_cli(
+            tmp_path,
+            "--fmt",
+            "text",
+            "--output",
+            str(output_file),
         )
-        assert output_file.exists(), (
-            "CLI reported success but did not create output file.\n"
-            f"Expected: {output_file}\n"
-            f"stdout:\n{result.stdout}\n"
-            f"stderr:\n{result.stderr}\n"
-        )
-
+        assert result.returncode == 0
         content = output_file.read_text(encoding="utf-8")
         lines_with_headers = [line for line in content.splitlines() if line.startswith("#")]
         assert len(lines_with_headers) == 0
