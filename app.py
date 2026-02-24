@@ -276,7 +276,8 @@ class FinancialAssetApp:
                 f3,
                 metrics_txt,
                 schema_rpt,
-                gr.Dropdown(choices=asset_choices, value=None),
+                gr.update(choices=asset_choices, value=None),
+                gr.update(value="", visible=False),
                 gr.Textbox(value="", visible=False),
             )
 
