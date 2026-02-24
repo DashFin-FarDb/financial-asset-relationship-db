@@ -23,6 +23,7 @@ from typing import Dict, List, Tuple
 
 HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
+
 def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     """
     Parse the manifest content into preamble and sections.
@@ -158,4 +159,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
