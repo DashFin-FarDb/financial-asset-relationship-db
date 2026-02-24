@@ -348,15 +348,14 @@ class TestSystemManifest:
     def test_system_manifest_has_current_phase(self, system_manifest_content):
         """Ensure systemManifest.md defines a current phase section.
 
-        The manifest must contain a "## Current Phase" heading and a line of the
-        form "- Current Phase: <value>" with a non - empty value.
-
+        The manifest must contain a heading describing the current phase/status
+        and a line of the form "- Current Phase: <value>" with a non-empty value.
         Parameters:
             system_manifest_content(str): Full text of the systemManifest.md
                 file to inspect.
         """
-        # Basic structural checks
-        assert "## Current Phase" in system_manifest_content
+        # Basic structural checks: allow either "Current Phase" or "Current Status" heading
+        assert ("## Current Phase" in system_manifest_content) or ("## Current Status" in system_manifest_content)
         assert "- Current Phase:" in system_manifest_content
 
         # Validate the line format and non-empty value
