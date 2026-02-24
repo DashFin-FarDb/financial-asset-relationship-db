@@ -274,7 +274,7 @@ export default function AssetList() {
   useEffect(() => {
     const controller = new AbortController();
 
-    void fetchAssets(controller.signal).catch((err) => {
+    void fetchAssets().catch((err) => {
       if (controller.signal.aborted) return;
       if (err instanceof DOMException && err.name === "AbortError") return;
       setError(err instanceof Error ? err.message : "Failed to load assets");
@@ -284,6 +284,7 @@ export default function AssetList() {
     return () => {
       controller.abort();
     };
+  }, [fetchAssets]);
 
   /**
    * Creates an event handler for changing a filter field.
@@ -547,3 +548,4 @@ export default function AssetList() {
     </div>
   );
 }
+
