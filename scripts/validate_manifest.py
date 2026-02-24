@@ -45,7 +45,7 @@ def check_duplicate_headings(manifest_path: Path) -> int:
         return 1
 
     lines = manifest_path.read_text(encoding="utf-8").splitlines(keepends=True)
-    lines = f.readlines()
+    # (already read with read_text above; remove this line)
 
     # Track headings and their line numbers
     heading_occurrences: Dict[str, List[int]] = {}
