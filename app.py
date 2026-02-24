@@ -244,6 +244,21 @@ class FinancialAssetApp:
         }
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
+    @staticmethod
+    def _assert_refresh_output_count(outputs: Tuple) -> None:
+        """
+        Ensure the number of outputs returned by refresh_all_outputs matches
+        the number of Gradio components wired in the UI.
+        """
+        expected_refresh_all_outputs = 8
+        actual = len(outputs)
+        assert (
+            actual == expected_refresh_all_outputs
+        ), (
+            f"UI expects {expected_refresh_all_outputs} outputs, "
+            f"but refresh_all_outputs() returned {actual}"
+        )
+
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """
         Refresh all visualizations, metrics, and reports shown in the Gradio UI.
@@ -268,11 +283,12 @@ class FinancialAssetApp:
             logger.info("Refreshing all visualization outputs")
 
             viz_3d = visualize_3d_graph(graph)
-            # Generate metrics text and placeholder figures without relying on a missing method.
             metrics_txt = self._update_metrics_text(graph)
+
             f1 = go.Figure()
             f2 = go.Figure()
             f3 = go.Figure()
+
             schema_rpt = generate_schema_report(graph)
 
             asset_choices = list(graph.assets.keys())
@@ -280,7 +296,7 @@ class FinancialAssetApp:
                 "Successfully refreshed outputs for %s assets", len(asset_choices)
             )
 
-            return (
+            outputs = (
                 viz_3d,
                 f1,
                 f2,
@@ -291,27 +307,15 @@ class FinancialAssetApp:
                 gr.update(value="", visible=False),
             )
 
-            # Keep the Gradio wiring and `refresh_all_outputs()` return tuple in sync.
-            # If you add/remove UI outputs, update both this list and the return values.
-            expected_refresh_all_outputs = 8
-            all_refresh_outputs = [
-                visualization_3d,
-                asset_dist_chart,
-                rel_types_chart,
-                events_timeline_chart,
-                metrics_text,
-                schema_report,
-                asset_selector,
-                error_message,
-            ]
-            assert (
-                len(all_refresh_outputs) == expected_refresh_all_outputs
-            ), f"UI expects {len(all_refresh_outputs)} outputs, but refresh_all_outputs() must return {expected_refresh_all_outputs}"
+            self._assert_refresh_output_count(outputs)
+            return outputs
+
+        except Exception:
             # Full traceback in logs; generic message in UI.
             logger.exception("Error refreshing outputs")
 
             empty_fig = go.Figure()
-            return (
+            outputs = (
                 empty_fig,  # 3D viz
                 empty_fig,  # metrics fig 1
                 empty_fig,  # metrics fig 2
@@ -321,6 +325,9 @@ class FinancialAssetApp:
                 gr.update(choices=[], value=None),
                 gr.update(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
             )
+
+            self._assert_refresh_output_count(outputs)
+            return outputs
 
     def refresh_visualization(
         self,
@@ -340,10 +347,12 @@ class FinancialAssetApp:
         """
         Refresh the network visualization according to the selected view mode and relationship filters.
 
-        Generates either a 2D or 3D Plotly figure filtered by the provided relationship toggles and returns it along with a Gradio update for the error message visibility. On error, returns an empty Plotly figure and a Gradio update containing a visible error message.
+        Generates either a 2D or 3D Plotly figure filtered by the provided relationship toggles
+        and returns it along with a Gradio update for the error message visibility. On error,
+        returns an empty Plotly figure and a Gradio update containing a visible error message.
 
         Parameters:
-            graph_state: Current Gradio state holding the AssetRelationshipGraph (used to determine which graph to visualize).
+            graph_state: Current Gradio state holding the AssetRelationshipGraph.
             view_mode (str): "2D" to produce a 2D visualization; any other value produces a 3D visualization.
             layout_type (str): Layout algorithm for 2D rendering (e.g., "spring", "circular", "grid").
             show_same_sector (bool): Include same-sector relationships.
@@ -357,7 +366,8 @@ class FinancialAssetApp:
             toggle_arrows (bool): For 3D visualizations, toggle directional arrows on relationships.
 
         Returns:
-            tuple: (plotly.graph_objects.Figure, gr.update) — the rendered figure and a Gradio update controlling the error message (hidden on success, visible with text on failure).
+            tuple: (plotly.graph_objects.Figure, gr.update) — the rendered figure and a Gradio update
+                   controlling the error message (hidden on success, visible with text on failure).
         """
         try:
             graph = self.ensure_graph()
@@ -375,7 +385,7 @@ class FinancialAssetApp:
                     show_all_relationships=show_all_relationships,
                     layout_type=layout_type,
                 )
-            else:  # 3D mode
+            else:
                 graph_viz = visualize_3d_graph_with_filters(
                     graph,
                     show_same_sector=show_same_sector,
