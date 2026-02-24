@@ -275,7 +275,9 @@ class FinancialAssetApp:
             schema_rpt = generate_schema_report(graph)
 
             asset_choices = list(graph.assets.keys())
-            logger.info("Successfully refreshed outputs for %s assets", len(asset_choices))
+            logger.info(
+                "Successfully refreshed outputs for %s assets", len(asset_choices)
+            )
 
             return (
                 viz_3d,
@@ -393,11 +395,15 @@ class FinancialAssetApp:
             analysis_results = formulaic_analyzer.analyze_graph(graph)
 
             # Generate visualizations
-            dashboard_fig = formulaic_visualizer.create_formula_dashboard(analysis_results)
+            dashboard_fig = formulaic_visualizer.create_formula_dashboard(
+                analysis_results
+            )
             correlation_network_fig = formulaic_visualizer.create_correlation_network(
                 analysis_results.get("empirical_relationships", {})
             )
-            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
+            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
+                analysis_results
+            )
 
             # Generate formula selector options
             formulas = analysis_results.get("formulas", [])
@@ -480,7 +486,10 @@ class FinancialAssetApp:
         if correlations:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
-                summary_lines.append(f"  • {corr['pair']}: {corr['correlation']:.3f} " f"({corr['strength']})")
+                summary_lines.append(
+                    f"  • {corr['pair']}: {corr['correlation']:.3f} "
+                    f"({corr['strength']})"
+                )
 
         return "\n".join(summary_lines)
 
@@ -583,7 +592,9 @@ class FinancialAssetApp:
                                 variant="secondary",
                             )
                         with gr.Column(scale=2):
-                            gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
+                            gr.Markdown(
+                                "**Legend:** ↔ = Bidirectional, → = Unidirectional"
+                            )
 
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
@@ -634,7 +645,9 @@ class FinancialAssetApp:
                         asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
 
                     with gr.Row():
-                        asset_relationships = gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
+                        asset_relationships = gr.JSON(
+                            label=AppConstants.RELATED_ASSETS_LABEL
+                        )
 
                     with gr.Row():
                         refresh_explorer_btn = gr.Button(
@@ -659,7 +672,9 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=2):
-                            formulaic_dashboard = gr.Plot(label="Formulaic Analysis Dashboard")
+                            formulaic_dashboard = gr.Plot(
+                                label="Formulaic Analysis Dashboard"
+                            )
                         with gr.Column(scale=1):
                             formula_selector = gr.Dropdown(
                                 label="Select Formula for Details",
@@ -671,7 +686,9 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            correlation_network = gr.Plot(label="Asset Correlation Network")
+                            correlation_network = gr.Plot(
+                                label="Asset Correlation Network"
+                            )
                         with gr.Column(scale=1):
                             metric_comparison = gr.Plot(label="Metric Comparison Chart")
 
