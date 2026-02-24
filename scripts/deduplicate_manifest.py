@@ -76,6 +76,8 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
     out_reversed: List[Tuple[str, str]] = []
 
     for heading, content in reversed(sections):
+
+
 """
 Module for deduplicating manifest sections and safely handling file paths.
 
