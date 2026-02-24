@@ -250,7 +250,7 @@ class FinancialAssetApp:
         Ensure the number of outputs returned by refresh_all_outputs matches
         the number of Gradio components wired in the UI.
         """
-        
+
         expected_refresh_all_outputs = 8
         actual = len(outputs)
         if actual != expected_refresh_all_outputs:
