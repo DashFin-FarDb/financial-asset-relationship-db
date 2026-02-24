@@ -23,7 +23,6 @@ from typing import Dict, List, Tuple
 
 HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
-
 def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     """
     Parse the manifest content into preamble and sections.
@@ -173,7 +172,9 @@ def main() -> int:
     new_lines = len(new_content.splitlines())
     reduction = old_lines - new_lines
     reduction_pct = (reduction / old_lines * 100.0) if old_lines > 0 else 0.0
-    print(f"Size reduction: {old_lines} → {new_lines} lines ({reduction_pct:.1f}% reduction).")
+    print(
+        f"Size reduction: {old_lines} → {new_lines} lines ({reduction_pct:.1f}% reduction)."
+    )
 
     return 0
 
