@@ -82,9 +82,7 @@ class TestRepositoryGraphIntegration:
         # Save relationships
         for source_id, rels in graph.relationships.items():
             for target_id, rel_type, strength in rels:
-                repo.add_or_update_relationship(
-                    source_id, target_id, rel_type, strength, bidirectional=False
-                )
+                repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
 
         session.commit()
 
@@ -118,9 +116,7 @@ class TestSerializationRoundTrip:
             original_graph.add_asset(asset)
 
         # Add relationships
-        original_graph.add_relationship(
-            "TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False
-        )
+        original_graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False)
 
         # Serialize
         serialized = _serialize_graph(original_graph)
@@ -164,12 +160,8 @@ class TestSerializationRoundTrip:
             graph.add_asset(asset)
 
         # Add bidirectional relationships
-        graph.add_relationship(
-            "TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True
-        )
-        graph.add_relationship(
-            "TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True
-        )
+        graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True)
+        graph.add_relationship("TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True)
 
         # Serialize and deserialize
         serialized = _serialize_graph(graph)
@@ -208,7 +200,12 @@ class TestDataFetcherWithFallback:
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():
-            """Factory function returning a preconfigured AssetRelationshipGraph for fallback."""
+            """
+            Return a preconfigured AssetRelationshipGraph to be used as fallback data.
+
+            Returns:
+                AssetRelationshipGraph: A graph instance prepopulated with the custom fallback assets and relationships.
+            """
             return custom_graph
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
@@ -364,19 +361,13 @@ class TestEdgeCasesAndRegressions:
         session.commit()
 
         # Test with exact 0.0
-        repo.add_or_update_relationship(
-            "BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False)
 
         # Test with exact 1.0
-        repo.add_or_update_relationship(
-            "BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False)
 
         # Test with negative (allowed in some systems)
-        repo.add_or_update_relationship(
-            "BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False)
 
         session.commit()
 
@@ -496,7 +487,11 @@ class TestDataConsistency:
 
     @staticmethod
     def test_graph_clone_independence():
-        """Test that cloning a graph creates independent copy."""
+        """
+        Verifies that modifying one graph does not affect another independently created graph.
+
+        Creates two separate sample graphs, mutates the first by adding a new asset, and asserts the new asset appears only in the modified graph and not in the other.
+        """
         graph1 = create_sample_database()
         graph2 = create_sample_database()
 
@@ -552,9 +547,7 @@ class TestDataConsistency:
 
         repo.upsert_asset(a1)
         repo.upsert_asset(a2)
-        repo.add_or_update_relationship(
-            "DEL1", "DEL2", "test_rel", 0.5, bidirectional=False
-        )
+        repo.add_or_update_relationship("DEL1", "DEL2", "test_rel", 0.5, bidirectional=False)
         session.commit()
 
         # Delete one asset
@@ -563,9 +556,7 @@ class TestDataConsistency:
 
         # Relationship should be gone
         rels = repo.list_relationships()
-        matching_rels = [
-            r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"
-        ]
+        matching_rels = [r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"]
         assert len(matching_rels) == 0
 
         session.close()

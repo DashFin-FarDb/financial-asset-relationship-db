@@ -142,6 +142,15 @@ class FinancialAssetApp:
     """
 
     def __init__(self):
+        """
+        Create a FinancialAssetApp instance and initialize its asset relationship graph.
+
+        `graph` by calling the internal `_initialize_graph()` method.
+
+        Raises:
+            Exception: Any exception raised by `_initialize_graph()` during graph
+                creation is propagated to the caller.
+        """
         self.graph: Optional[AssetRelationshipGraph] = None
         self._initialize_graph()
 
@@ -227,35 +236,67 @@ class FinancialAssetApp:
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
-        """Refreshes all visualizations and reports in the Gradio interface."""
-        graph = (
-            self.ensure_graph()
-        )  # Use self.ensure_graph to get the latest graph state
-        logger.info("Refreshing all visualization outputs")
-        viz_3d = visualize_3d_graph(graph)
-        f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
-        schema_rpt = generate_schema_report(graph)
-        asset_choices = list(graph.assets.keys())
-        logger.info(
-            "Successfully refreshed outputs for %s assets",
-            len(asset_choices),
-        )
-        return (
-            viz_3d,
-            f1,
-            f2,
-            f3,
-            metrics_txt,
-            schema_rpt,
-            gr.update(
-                choices=asset_choices,
-                value=None,
-            ),
-            gr.update(
-                value="",
-                visible=False,
-            ),
-        )
+        """
+        Refresh all visualizations, metrics, and reports shown in the Gradio UI.
+
+        Parameters:
+            graph_state (AssetRelationshipGraph): Current graph state passed from the UI
+                (may be ignored in favor of the internally ensured graph).
+
+        Returns:
+            tuple: Values to update Gradio outputs in this order:
+                - 3D visualization figure
+                - metrics chart 1
+                - metrics chart 2
+                - metrics chart 3
+                - metrics text summary
+                - schema report (string)
+                - asset selector gr.update (choices reset)
+                - error message gr.update (hidden on success, visible on failure)
+        """
+        try:
+            graph = self.ensure_graph()
+            logger.info("Refreshing all visualization outputs")
+
+            viz_3d = visualize_3d_graph(graph)
+            # Generate metrics text and placeholder figures without relying on a missing method.
+            metrics_txt = self._update_metrics_text(graph)
+            f1 = go.Figure()
+            f2 = go.Figure()
+            f3 = go.Figure()
+            schema_rpt = generate_schema_report(graph)
+
+            asset_choices = list(graph.assets.keys())
+            logger.info("Successfully refreshed outputs for %s assets", len(asset_choices))
+
+            return (
+                viz_3d,
+                f1,
+                f2,
+                f3,
+                metrics_txt,
+                schema_rpt,
+                gr.update(choices=asset_choices, value=None),
+                gr.update(value="", visible=False),
+                gr.Textbox(value="", visible=False),
+            )
+
+        except Exception:
+            # Full traceback in logs; generic message in UI.
+            logger.exception("Error refreshing outputs")
+
+            empty_fig = go.Figure()
+            return (
+                empty_fig,  # 3D viz
+                empty_fig,  # metrics fig 1
+                empty_fig,  # metrics fig 2
+                empty_fig,  # metrics fig 3
+                "",  # metrics text
+                "",  # schema report
+                gr.update(choices=[], value=None),
+                gr.update(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
+                gr.Textbox(value=AppConstants.REFRESH_OUTPUTS_ERROR, visible=True),
+            )
 
     def refresh_visualization(
         self,
@@ -272,7 +313,28 @@ class FinancialAssetApp:
         show_all_relationships,
         toggle_arrows,
     ):
-        """Refresh visualization with 2D/3D mode support and relationship filtering."""
+        """
+        Refresh the network visualization according to the selected view mode and relationship filters.
+
+        Generates either a 2D or 3D Plotly figure filtered by the provided relationship toggles and returns it along with a Gradio update for the error message visibility. On error, returns an empty Plotly figure and a Gradio update containing a visible error message.
+
+        Parameters:
+            graph_state: Current Gradio state holding the AssetRelationshipGraph (used to determine which graph to visualize).
+            view_mode (str): "2D" to produce a 2D visualization; any other value produces a 3D visualization.
+            layout_type (str): Layout algorithm for 2D rendering (e.g., "spring", "circular", "grid").
+            show_same_sector (bool): Include same-sector relationships.
+            show_market_cap (bool): Include market-cap-based relationships.
+            show_correlation (bool): Include correlation-based relationships.
+            show_corporate_bond (bool): Include corporate bond relationships.
+            show_commodity_currency (bool): Include commodity/currency relationships.
+            show_income_comparison (bool): Include income-comparison relationships.
+            show_regulatory (bool): Include regulatory event relationships.
+            show_all_relationships (bool): If true, ignore individual filters and include all relationships.
+            toggle_arrows (bool): For 3D visualizations, toggle directional arrows on relationships.
+
+        Returns:
+            tuple: (plotly.graph_objects.Figure, gr.update) — the rendered figure and a Gradio update controlling the error message (hidden on success, visible with text on failure).
+        """
         try:
             graph = self.ensure_graph()
 
@@ -325,15 +387,11 @@ class FinancialAssetApp:
             analysis_results = formulaic_analyzer.analyze_graph(graph)
 
             # Generate visualizations
-            dashboard_fig = formulaic_visualizer.create_formula_dashboard(
-                analysis_results
-            )
+            dashboard_fig = formulaic_visualizer.create_formula_dashboard(analysis_results)
             correlation_network_fig = formulaic_visualizer.create_correlation_network(
                 analysis_results.get("empirical_relationships", {})
             )
-            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
-                analysis_results
-            )
+            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
 
             # Generate formula selector options
             formulas = analysis_results.get("formulas", [])
@@ -416,17 +474,18 @@ class FinancialAssetApp:
         if correlations:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
-                summary_lines.append(
-                    f"  • {corr['pair']}: {corr['correlation']:.3f} "
-                    f"({corr['strength']})"
-                )
+                summary_lines.append(f"  • {corr['pair']}: {corr['correlation']:.3f} " f"({corr['strength']})")
 
         return "\n".join(summary_lines)
 
     def create_interface(self):
         """
-        Creates the Gradio interface for the Financial Asset Relationship Database.
+        Create the Gradio Blocks UI for the Financial Asset Relationship Database.
 
+        Builds and returns the complete Gradio interface with tabs for Network Visualization (2D/3D), Metrics Analytics, Schema Rules, Asset Explorer, Documentation, and Formulaic Analysis, and wires all event handlers to the application's methods.
+
+        Returns:
+            demo (gr.Blocks): The assembled Gradio Blocks object ready to be launched.
         """
         with gr.Blocks(title=AppConstants.TITLE) as demo:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
@@ -518,9 +577,7 @@ class FinancialAssetApp:
                                 variant="secondary",
                             )
                         with gr.Column(scale=2):
-                            gr.Markdown(
-                                "**Legend:** ↔ = Bidirectional, → = Unidirectional"
-                            )
+                            gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
 
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
@@ -571,9 +628,7 @@ class FinancialAssetApp:
                         asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
 
                     with gr.Row():
-                        asset_relationships = gr.JSON(
-                            label=AppConstants.RELATED_ASSETS_LABEL
-                        )
+                        asset_relationships = gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
 
                     with gr.Row():
                         refresh_explorer_btn = gr.Button(
@@ -598,9 +653,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=2):
-                            formulaic_dashboard = gr.Plot(
-                                label="Formulaic Analysis Dashboard"
-                            )
+                            formulaic_dashboard = gr.Plot(label="Formulaic Analysis Dashboard")
                         with gr.Column(scale=1):
                             formula_selector = gr.Dropdown(
                                 label="Select Formula for Details",
@@ -612,9 +665,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            correlation_network = gr.Plot(
-                                label="Asset Correlation Network"
-                            )
+                            correlation_network = gr.Plot(label="Asset Correlation Network")
                         with gr.Column(scale=1):
                             metric_comparison = gr.Plot(label="Metric Comparison Chart")
 

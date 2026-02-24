@@ -19,9 +19,7 @@ from .models import UserInDB
 # Security configuration
 SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
-    raise ValueError(
-        "SECRET_KEY environment variable must be set before importing api.auth"
-    )
+    raise ValueError("SECRET_KEY environment variable must be set before importing api.auth")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -187,13 +185,13 @@ def get_password_hash(password):
 
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
-    Seed an administrative user into the repository from environment variables.
+    Seed an administrative user from environment variables into the given repository.
 
-    If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that
-    user in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME and
-    ADMIN_DISABLED (interpreted as a truthy flag). The provided password is
-    stored hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, no
-    changes are made.
+    If both ADMIN_USERNAME and ADMIN_PASSWORD are set, create or update that user
+    in the repository using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and
+    ADMIN_DISABLED (interpreted as a truthy flag). The provided password is stored
+    hashed. If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, the repository is
+    not modified.
     """
     username = os.getenv("ADMIN_USERNAME")
     password = os.getenv("ADMIN_PASSWORD")
@@ -218,8 +216,7 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME "
-        "and ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME " "and ADMIN_PASSWORD or pre-populate the database."
     )
 
 
@@ -284,9 +281,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """
     to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
