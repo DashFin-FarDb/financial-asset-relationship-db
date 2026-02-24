@@ -186,7 +186,7 @@ First and only occurrence of TS dependencies.
         from deduplicate_manifest import deduplicate_sections, parse_manifest
 
         # Parse and deduplicate
-        preamble, sections = parse_manifest(sample_manifest_with_duplicates)
+        _, sections = parse_manifest(sample_manifest_with_duplicates)
         deduplicated = deduplicate_sections(sections)
 
         # Extract headings in order
