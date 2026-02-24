@@ -188,6 +188,7 @@ class FinancialAssetApp:
                         # Optionally cache the exception for a cooldown period
                         raise
         return self.graph
+
     @staticmethod
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """Generates the formatted text for network statistics."""
