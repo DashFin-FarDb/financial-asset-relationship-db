@@ -130,6 +130,32 @@ def main():
     # Parse into preamble and sections
     preamble, sections = parse_manifest(content)
 
+def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
+    """
+    Reconstruct the manifest content from a preamble and list of sections.
+
+    Args:
+        preamble: Content before the first ## heading.
+        sections: List of (heading, content) tuples.
+
+    Returns:
+        The full manifest content as a single string.
+    """
+    parts: List[str] = []
+
+    if preamble:
+        parts.append(preamble.rstrip())
+
+    for heading, content in sections:
+        # Add a blank line before each section if there is already content
+        if parts:
+            parts.append("")
+        parts.append(f"## {heading}")
+        if content:
+            parts.append(content.rstrip())
+
+    return "\n".join(parts) + ("\n" if parts else "")
+
     print(f"Found {len(sections)} total sections")
     if preamble.strip():
         print(f"Preserved preamble content ({len(preamble.split(chr(10)))} lines)")
