@@ -28,10 +28,10 @@ def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
     return occurrences
 
 
-def _report_duplicates(duplicates: Dict[str, List[int]]) -> int:
+def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) -> int:
     """Print duplicate-heading report and return error exit code."""
     print(
-        "❌ MD024 violation: Duplicate headings found in systemManifest.md\n",
+        f"❌ MD024 violation: Duplicate headings found in {manifest_path}\n",
         file=sys.stderr,
     )
     print(f"Found {len(duplicates)} heading(s) with duplicates:\n", file=sys.stderr)
