@@ -46,7 +46,9 @@ def check_duplicate_headings(manifest_path: Path) -> int:
             heading_occurrences[heading].append(line_num)
 
     # Find duplicates
-    duplicates = {h: lines for h, lines in heading_occurrences.items() if len(lines) > 1}
+    duplicates = {
+        h: lines for h, lines in heading_occurrences.items() if len(lines) > 1
+    }
 
     if duplicates:
         print(
