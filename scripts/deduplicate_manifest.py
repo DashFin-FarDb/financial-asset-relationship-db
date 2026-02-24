@@ -68,10 +68,7 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
 
 
 def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
-    """
-    Remove duplicate headings, keeping only the LAST occurrence of each heading,
-    and preserving the order of those last occurrences.
-    """
+    """Remove duplicate headings, keeping only the last occurrence."""
     seen: set[str] = set()
     out_reversed: List[Tuple[str, str]] = []
 
@@ -102,12 +99,7 @@ def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
 
 
 def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
-    """
-    Count how many times each heading appears in the given sections.
-
-    Returns:
-        A dictionary mapping each heading to its occurrence count.
-    """
+    """Count occurrences of each heading in the given sections."""
     counts: Dict[str, int] = {}
     for heading, _ in sections:
         counts[heading] = counts.get(heading, 0) + 1
@@ -115,14 +107,15 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
 
 
 def safe_path(user_value: str, base_dir: Path) -> Path:
-    """
-    Ensure the provided user_value is a safe relative path under base_dir.
-
-    Raises:
-        ValueError: If the path contains invalid characters, is absolute,
-        or escapes the base directory.
-    """
     # Basic input hardening (avoid multiline / NUL path tricks)
+    """Ensure the provided user_value is a safe relative path under base_dir.
+    
+    This function performs several checks to validate the user_value as a  safe
+    path. It first checks for invalid characters and ensures that the  path is not
+    absolute. Then, it resolves the path against the base_dir  and verifies that
+    the resolved path does not escape the base directory.  If any of these
+    conditions are violated, a ValueError is raised.
+    """
     if "\x00" in user_value or "\n" in user_value or "\r" in user_value:
         raise ValueError("Invalid path characters")
 
