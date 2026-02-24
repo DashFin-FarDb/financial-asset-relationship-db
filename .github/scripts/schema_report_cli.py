@@ -286,6 +286,7 @@ def write_atomic(target: Path, content: str) -> None:
     try:
         tmp_path.unlink()
     except FileNotFoundError:
+        # Temp file does not exist; nothing to clean up
         pass
 
     # Write content to the temporary file
