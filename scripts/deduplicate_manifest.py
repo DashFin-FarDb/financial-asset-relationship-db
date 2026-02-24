@@ -180,9 +180,7 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     reduction = old_lines - new_lines
     reduction_pct = (reduction / old_lines * 100) if old_lines > 0 else 0
 
-    print(
-        f"\nSize reduction: {old_lines} → {new_lines} lines ({reduction_pct:.1f}% reduction)"
-    )
+    print(f"\nSize reduction: {old_lines} → {new_lines} lines ({reduction_pct:.1f}% reduction)")
 
 
 if __name__ == "__main__":
