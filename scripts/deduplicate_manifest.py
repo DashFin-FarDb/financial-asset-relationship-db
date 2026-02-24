@@ -41,83 +41,92 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
         if re.match(r"^## [^#]", line):
             found_first_heading = True
             # Save previous section if exists
-            if current_heading is not None:
+    # Split by level 2 headings (##)
+    sections = []
+    lines = content.split("\n")
+
+    # Preserve any content before the first "##" heading (e.g., "# System Manifest")
+    # as a special internal section that is re-emitted without a heading.
+    PREAMBLE_HEADING = "__PREAMBLE__"
+    current_heading = PREAMBLE_HEADING
+    current_content = []
+
+    for line in lines:
+        # Check if this is a level 2 heading (## but not ###)
+        if re.match(r"^## [^#]", line):
+            # Save previous section (including preamble) if it has content
+            if current_content:
                 sections.append((current_heading, "\n".join(current_content)))
 
             # Start new section
             current_heading = line[3:].strip()  # Remove "## " prefix
             current_content = []
         else:
-            if not found_first_heading:
-                # This is preamble content before the first ## heading
-                preamble_lines.append(line)
-            else:
-                current_content.append(line)
+            current_content.append(line)
 
-    # Add the last section
-    if current_heading is not None:
+    # Add the last section (including preamble-only manifests)
+    if current_content:
         sections.append((current_heading, "\n".join(current_content)))
 
-    preamble = "\n".join(preamble_lines)
-    return preamble, sections
+    return sections
 
 
-def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
-    """
-    Remove duplicate sections, keeping only the LAST occurrence of each.
+    def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+        """
+        Remove duplicate sections, keeping only the LAST occurrence of each.
 
-    Args:
-        sections: List of (heading, content) tuples
+        Args:
+            sections: List of (heading, content) tuples
 
-    Returns:
-        Deduplicated list with only the last occurrence of each heading
-    """
-    # Use a dictionary to track the last occurrence of each heading
-    section_dict: Dict[str, str] = {}
-    section_order: List[str] = []
+        Returns:
+            Deduplicated list with only the last occurrence of each heading
+        """
+        # Use a dictionary to track the last occurrence of each heading
+        section_dict: Dict[str, str] = {}
+        section_order: List[str] = []
 
-    for heading, content in sections:
-        if heading not in section_dict:
-            section_order.append(heading)
-        section_dict[heading] = content
+        for heading, content in sections:
+            if heading not in section_dict:
+                section_order.append(heading)
+            section_dict[heading] = content
 
-    # Reconstruct sections in the order of their last appearance
-    deduplicated = []
-    for heading in section_order:
-        deduplicated.append((heading, section_dict[heading]))
+        # Reconstruct sections in the order of their last appearance
+        deduplicated = []
+        for heading in section_order:
+            deduplicated.append((heading, section_dict[heading]))
 
-    return deduplicated
-
-
-def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
-    """
-    Reconstruct the manifest content from preamble and sections.
-
-    Args:
-        preamble: Content before the first ## heading (e.g., "# System Manifest")
-        sections: List of (heading, content) tuples
-
-    Returns:
-        The reconstructed manifest content as a string
-    """
-    result = []
-
-    # Add preamble if it exists
-    if preamble.strip():
-        result.append(preamble)
-
-    # Add sections
-    for heading, content in sections:
-        result.append(f"## {heading}")
-        result.append(content)
-
-    return "\n".join(result)
+        return deduplicated
 
 
-def main():
-    """Main entry point for the deduplication script."""
-    manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
+    def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
+        """
+        Reconstruct the manifest content from sections.
 
+        Args:
+            sections: List of (heading, content) tuples
+
+        Returns:
+            The reconstructed manifest content as a string
+        """
+        PREAMBLE_HEADING = "__PREAMBLE__"
+        result = []
+
+        for heading, content in sections:
+            if heading == PREAMBLE_HEADING:
+                # Emit preamble as-is (no "##" heading)
+                if content:
+                    result.append(content)
+                continue
+
+            result.append(f"## {heading}")
+            result.append(content)
+
+        return "\n".join(result)
+
+
+    def main():
+        """Main entry point for the deduplication script."""
+        manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
         sys.exit(1)
