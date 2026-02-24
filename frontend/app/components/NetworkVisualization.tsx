@@ -157,7 +157,7 @@ export default function NetworkVisualization({
       return acc;
     }, []);
 
-    setPlotData([...edgeTraces, nodeTrace]);
+    setPlotData([...edgeTraces, nodeTrace] as Data[]);
     setStatus("ready");
     setMessage("");
   }, [data]);
