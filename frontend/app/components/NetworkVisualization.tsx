@@ -61,6 +61,8 @@ import type { Data } from "plotly.js";
 /**
  * Display an interactive 3D network of assets from the provided visualization payload.
  *
+ * The function initializes state variables for plot data, status, and message. It uses an effect to process the input data, checking for validity and size constraints. If valid, it constructs node and edge traces for visualization, updating the state accordingly. If the data is invalid or too large, it sets appropriate status messages.
+ *
  * @param data - Visualization payload containing `nodes` and `edges`.
  *   Nodes are objects with at least: `id`, `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, `color`.
  *   Edges are objects with at least: `source`, `target`, `relationship_type`, `strength`.
