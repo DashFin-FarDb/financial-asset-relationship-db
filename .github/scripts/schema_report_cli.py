@@ -267,6 +267,39 @@ def convert_markdown_to_json(markdown: str) -> str:
     payload: Dict[str, Any] = {"schema_report": markdown}
     return json.dumps(payload, indent=2, sort_keys=True)
 
+
+def write_atomic(target: Path, content: str) -> None:
+    """
+    Atomically write text content to the given file path.
+
+    Creates parent directories as needed, writes to a temporary file
+    alongside the target, then renames it into place. On failure during
+    the final replace, the temporary file is removed and the exception is
+    propagated.
+    """
+    # Ensure parent directory exists
+    target.parent.mkdir(parents=True, exist_ok=True)
+
+    tmp_path = target.with_suffix(target.suffix + ".tmp")
+
+    # Best-effort cleanup of any pre-existing temp file
+    try:
+        tmp_path.unlink()
+    except FileNotFoundError:
+        pass
+
+    # Write content to the temporary file
+    tmp_path.write_text(content, encoding="utf-8")
+
+    # Atomically move the temp file into place
+    try:
+        tmp_path.replace(target)
+    except Exception:
+        # Clean up temp file on failure before re-raising
+        try:
+            tmp_path.unlink()
+        finally:
+            raise
 def generate_report(logger: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
      """
      Generate a schema report and write it to the given file path or stdout.
