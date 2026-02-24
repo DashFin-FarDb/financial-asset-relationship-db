@@ -518,7 +518,9 @@ class TestEdgeCases:
         def mock_create_sample_database():
             return None  # Invalid return
 
-        monkeypatch.setattr(cli_module, "create_sample_database", mock_create_sample_database)
+        monkeypatch.setattr(
+            cli_module, "create_sample_database", mock_create_sample_database
+        )
 
         fmt = cli_module.OutputFormat.MARKDOWN
         logger = cli_module.configure_logging(verbose=False)
@@ -618,7 +620,9 @@ class TestSecurityAndSafety:
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """parse_arguments rejects format values not in OutputFormat enum."""
-        monkeypatch.setattr(sys, "argv", ["schema_report_cli", "--fmt", "invalid_format"])
+        monkeypatch.setattr(
+            sys, "argv", ["schema_report_cli", "--fmt", "invalid_format"]
+        )
 
         with pytest.raises(SystemExit) as exc_info:
             cli_module.parse_arguments()
@@ -688,7 +692,9 @@ class TestSecurityAndSafety:
             # Return a very large report (10MB+)
             return "# Schema\n" + ("Line of content\n" * 1000000)
 
-        monkeypatch.setattr(cli_module, "generate_schema_report", mock_generate_schema_report)
+        monkeypatch.setattr(
+            cli_module, "generate_schema_report", mock_generate_schema_report
+        )
 
         output = tmp_path / "large_report.md"
         fmt = cli_module.OutputFormat.MARKDOWN
@@ -795,7 +801,9 @@ class TestSecurityAndSafety:
             # Return content without trailing newline
             return "Content without newline"
 
-        monkeypatch.setattr(cli_module, "generate_schema_report", mock_generate_schema_report)
+        monkeypatch.setattr(
+            cli_module, "generate_schema_report", mock_generate_schema_report
+        )
 
         fmt = cli_module.OutputFormat.MARKDOWN
         logger = cli_module.configure_logging(verbose=False)

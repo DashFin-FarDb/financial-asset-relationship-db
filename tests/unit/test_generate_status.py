@@ -36,7 +36,9 @@ class TestCheckRunInfo:
 
     def test_check_run_info_creation(self):
         """CheckRunInfo can be created with valid fields."""
-        check = CheckRunInfo(name="test-check", status="completed", conclusion="success")
+        check = CheckRunInfo(
+            name="test-check", status="completed", conclusion="success"
+        )
         assert check.name == "test-check"
         assert check.status == "completed"
         assert check.conclusion == "success"
@@ -49,7 +51,9 @@ class TestCheckRunInfo:
 
     def test_check_run_info_none_conclusion(self):
         """CheckRunInfo can have None conclusion for pending checks."""
-        check = CheckRunInfo(name="pending-check", status="in_progress", conclusion=None)
+        check = CheckRunInfo(
+            name="pending-check", status="in_progress", conclusion=None
+        )
         assert check.conclusion is None
 
 
@@ -73,7 +77,12 @@ class TestPRStatus:
             labels=["bug", "enhancement"],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=2,
             check_runs=[CheckRunInfo("test", "completed", "success")],
         )
@@ -279,7 +288,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,  # No conflicts
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[CheckRunInfo("test", "completed", "success")],  # All pass
         )
@@ -309,7 +323,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -335,7 +354,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 1, "total": 1},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 1,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -361,7 +385,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[
                 CheckRunInfo("test1", "completed", "success"),
@@ -391,7 +420,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -417,7 +451,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=False,
             mergeable_state="dirty",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -443,7 +482,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=None,
             mergeable_state="unknown",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -469,7 +513,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 2, "commented": 1, "total": 3},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 2,
+                "commented": 1,
+                "total": 3,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -563,7 +612,12 @@ class TestGenerateMarkdown:
             labels=["feature", "security"],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 2, "changes_requested": 0, "commented": 1, "total": 3},
+            review_stats={
+                "approved": 2,
+                "changes_requested": 0,
+                "commented": 1,
+                "total": 3,
+            },
             open_thread_count=4,
             check_runs=[CheckRunInfo("CI", "completed", "success")],
         )
@@ -606,7 +660,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -631,7 +690,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -657,7 +721,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -680,7 +749,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=False,
             mergeable_state="dirty",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -703,7 +777,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=None,
             mergeable_state="unknown",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -745,7 +824,9 @@ class TestWriteOutput:
         assert temp_file.exists()
         assert content in temp_file.read_text()
 
-    def test_write_output_handles_github_summary_error(self, monkeypatch, capsys, tmp_path):
+    def test_write_output_handles_github_summary_error(
+        self, monkeypatch, capsys, tmp_path
+    ):
         """write_output handles errors writing to GITHUB_STEP_SUMMARY gracefully."""
         bad_path = tmp_path / "nonexistent_dir" / "summary.md"
         monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(bad_path))
@@ -758,7 +839,9 @@ class TestWriteOutput:
         warned = "Warning" in captured.err
         fell_back = content in captured.out
 
-        assert warned or fell_back, "write_output should either warn on stderr or fall back to stdout on error"
+        assert warned or fell_back, (
+            "write_output should either warn on stderr or fall back to stdout on error"
+        )
 
 
 class TestMainFunction:
@@ -997,7 +1080,12 @@ class TestSecurityAndEdgeCases:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -1115,7 +1203,12 @@ class TestSecurityAndEdgeCases:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=checks,
         )
@@ -1144,7 +1237,12 @@ class TestSecurityAndEdgeCases:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )

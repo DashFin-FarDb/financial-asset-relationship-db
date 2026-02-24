@@ -702,7 +702,9 @@ class TestMainFunction:
         config_dir = tmp_path / ".github"
         config_dir.mkdir(parents=True)
         config_file = config_dir / "pr-copilot-config.yml"
-        config_file.write_text("review_handling:\n  actionable_keywords:\n    - please\n")
+        config_file.write_text(
+            "review_handling:\n  actionable_keywords:\n    - please\n"
+        )
         monkeypatch.chdir(tmp_path)
 
         # Mock GitHub API
@@ -726,7 +728,10 @@ class TestMainFunction:
             # If it returns normally, that's success (no exception)
             captured = capsys.readouterr()
             # Should show "no actionable items" message
-            assert "No actionable items" in captured.out or "Parsing review comments" in captured.err
+            assert (
+                "No actionable items" in captured.out
+                or "Parsing review comments" in captured.err
+            )
         except SystemExit as exc:
             # If it does exit, should be 0
             assert exc.code == 0
@@ -875,7 +880,9 @@ Also, change to `const value = 42` in JavaScript.
         config_file = config_dir / "pr-copilot-config.yml"
 
         # Write a valid but different YAML structure
-        config_file.write_text("review_handling:\n  actionable_keywords:\n    - custom_keyword")
+        config_file.write_text(
+            "review_handling:\n  actionable_keywords:\n    - custom_keyword"
+        )
 
         monkeypatch.chdir(tmp_path)
 
