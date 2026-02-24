@@ -164,10 +164,12 @@ First and only occurrence of TS dependencies.
         assert dedup_heading_counts["PY Dependencies"] == 1
         assert dedup_heading_counts["TS Dependencies"] == 1
 
-        # Verify content is from last occurrence
+        # Verify content is from last occurrence (not first)
         content_dict = {h: c for h, c in deduplicated}
         assert "Second occurrence" in content_dict["Project Directory Structure"]
+        assert "First occurrence" not in content_dict["Project Directory Structure"]
         assert "Second occurrence" in content_dict["PY Dependencies"]
+        assert "First occurrence" not in content_dict["PY Dependencies"]
 
     def test_deduplicate_preserves_order(self, sample_manifest_with_duplicates):
         """Test that deduplication preserves the order of first occurrence."""
