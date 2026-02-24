@@ -180,9 +180,15 @@ class FinancialAssetApp:
         if self.graph is None:
             with self._graph_lock:
                 if self.graph is None:
-                    logger.warning("Graph is None, re-creating sample database.")
-                    self._initialize_graph()
+                    try:
+                        logger.warning("Graph is None, re-creating sample database.")
+                        self._initialize_graph()
+                    except Exception as e:
+                        logger.error("Graph initialization failed: %s", e)
+                        # Optionally cache the exception for a cooldown period
+                        raise
         return self.graph
+
 
     @staticmethod
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
