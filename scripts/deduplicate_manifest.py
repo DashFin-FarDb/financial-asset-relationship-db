@@ -27,74 +27,64 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
           (without the ## prefix) and content is everything between this heading
           and the next ## heading
     """
-    # Split by level 2 headings (##)
-    sections = []
     lines = content.split("\n")
 
-    current_heading = None
-    current_content = []
-    preamble_lines = []
+    preamble_lines: List[str] = []
+    sections: List[Tuple[str, str]] = []
+    current_heading: str | None = None
+    current_content: List[str] = []
     found_first_heading = False
 
     for line in lines:
         # Check if this is a level 2 heading (## but not ###)
         if re.match(r"^## [^#]", line):
-            found_first_heading = True
-            # Save previous section if exists
-    # Split by level 2 headings (##)
-    sections = []
-    lines = content.split("\n")
-
-    # Preserve any content before the first "##" heading (e.g., "# System Manifest")
-    # as a special internal section that is re-emitted without a heading.
-    PREAMBLE_HEADING = "__PREAMBLE__"
-    current_heading = PREAMBLE_HEADING
-    current_content = []
-
-    for line in lines:
-        # Check if this is a level 2 heading (## but not ###)
-        if re.match(r"^## [^#]", line):
-            # Save previous section (including preamble) if it has content
-            if current_content:
-                sections.append((current_heading, "\n".join(current_content)))
-
+            if not found_first_heading:
+                found_first_heading = True
+            else:
+                # Save previous section if exists
+                sections.append((current_heading, "\n".join(current_content)))  # type: ignore[arg-type]
             # Start new section
             current_heading = line[3:].strip()  # Remove "## " prefix
             current_content = []
         else:
-            current_content.append(line)
+            if not found_first_heading:
+                preamble_lines.append(line)
+            else:
+                current_content.append(line)
 
-    # Add the last section (including preamble-only manifests)
-    if current_content:
+    # Add the last section if present
+    if found_first_heading and current_heading is not None:
         sections.append((current_heading, "\n".join(current_content)))
 
-    return sections
+    preamble = "\n".join(preamble_lines)
+    return preamble, sections
 
-    def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
-        """
-        Remove duplicate sections, keeping only the LAST occurrence of each.
 
-        Args:
-            sections: List of (heading, content) tuples
+def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    """
+    Remove duplicate sections, keeping only the LAST occurrence of each.
 
-        Returns:
-            Deduplicated list with only the last occurrence of each heading
-        """
-        # Use a dictionary to track the last occurrence of each heading
-        section_dict: Dict[str, str] = {}
-        section_order: List[str] = []
+    Args:
+        sections: List of (heading, content) tuples
 
-        for heading, content in sections:
-            if heading not in section_dict:
-                section_order.append(heading)
-            section_dict[heading] = content
+    Returns:
+        Deduplicated list with only the last occurrence of each heading
+    """
+    # Use a dictionary to track the last occurrence of each heading
+    section_dict: Dict[str, str] = {}
+    section_order: List[str] = []
 
-        # Reconstruct sections in the order of their last appearance
-        deduplicated = []
-        for heading in section_order:
-            deduplicated.append((heading, section_dict[heading]))
+    for heading, content in sections:
+        if heading not in section_dict:
+            section_order.append(heading)
+        section_dict[heading] = content
 
-        return deduplicated
+    # Reconstruct sections in the order of their last appearance
+    deduplicated: List[Tuple[str, str]] = []
+    for heading in section_order:
+        deduplicated.append((heading, section_dict[heading]))
+
+    return deduplicated
 
     def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
         """
