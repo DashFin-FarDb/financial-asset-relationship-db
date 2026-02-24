@@ -167,7 +167,7 @@ First and only occurrence of TS dependencies.
         assert dedup_heading_counts["TS Dependencies"] == 1
 
         # Verify content is from last occurrence (not first)
-        content_dict = {h: c for h, c in deduplicated}
+        content_dict = dict(deduplicated)
         assert "Second occurrence" in content_dict["Project Directory Structure"]
         assert "First occurrence" not in content_dict["Project Directory Structure"]
         assert "Second occurrence" in content_dict["PY Dependencies"]
