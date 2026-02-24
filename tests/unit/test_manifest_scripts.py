@@ -2,7 +2,6 @@
 Unit tests for manifest deduplication and validation scripts.
 """
 
-import tempfile
 from pathlib import Path
 
 import pytest
