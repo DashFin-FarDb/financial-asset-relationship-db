@@ -16,6 +16,7 @@ Verbose mode behavior:
 from __future__ import annotations
 
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
@@ -75,6 +76,14 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
     out_reversed: List[Tuple[str, str]] = []
 
     for heading, content in reversed(sections):
+"""
+Module for deduplicating manifest sections and safely handling file paths.
+
+This module provides functions to deduplicate manifest sections,
+count duplicate sections, safely construct file paths to avoid
+path traversal, and a main entry point for command-line usage.
+"""
+
         if heading in seen:
             continue
         seen.add(heading)
@@ -84,9 +93,7 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
 
 
 def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
-    """
-    Reconstruct the manifest content from preamble and sections.
-    """
+    """Reconstruct the manifest content from preamble and sections."""
     parts: List[str] = []
 
     if preamble:
@@ -103,6 +110,12 @@ def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
 
 
 def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
+    """
+    Count how many times each heading appears in the given sections.
+
+    Returns:
+        A dictionary mapping each heading to its occurrence count.
+    """
     counts: Dict[str, int] = {}
     for heading, _ in sections:
         counts[heading] = counts.get(heading, 0) + 1
@@ -110,6 +123,13 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
 
 
 def safe_path(user_value: str, base_dir: Path) -> Path:
+    """
+    Ensure the provided user_value is a safe relative path under base_dir.
+
+    Raises:
+        ValueError: If the path contains invalid characters, is absolute,
+        or escapes the base directory.
+    """
     # Basic input hardening (avoid multiline / NUL path tricks)
     if "\x00" in user_value or "\n" in user_value or "\r" in user_value:
         raise ValueError("Invalid path characters")
@@ -133,6 +153,12 @@ def safe_path(user_value: str, base_dir: Path) -> Path:
 
 
 def main() -> int:
+    """
+    Parse command-line arguments and process the manifest file.
+
+    Returns:
+        Exit code 0 on success, 1 if manifest not found, 2 for invalid path.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--path",
@@ -158,4 +184,5 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    main()
     raise SystemExit(main())

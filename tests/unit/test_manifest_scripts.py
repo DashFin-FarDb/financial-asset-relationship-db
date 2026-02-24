@@ -1,6 +1,4 @@
-"""
-Unit tests for manifest deduplication and validation scripts.
-"""
+"""Unit tests for manifest deduplication and validation scripts."""
 
 from pathlib import Path
 
