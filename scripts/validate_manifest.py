@@ -30,7 +30,19 @@ def check_duplicate_headings(manifest_path: Path) -> int:
         return 1
 
     # Read the manifest
-    with open(manifest_path, "r", encoding="utf-8") as f:
+    repo_root = Path(__file__).resolve().parents[1]
+    expected_manifest_path = (repo_root / ".elastic-copilot/memory/systemManifest.md").resolve()
+    manifest_path = manifest_path.resolve()
+
+    # Ensure we only ever read the expected manifest file within the repo.
+    if manifest_path != expected_manifest_path:
+        print(
+            f"Error: Refusing to read unexpected manifest path: {manifest_path}",
+            file=sys.stderr,
+        )
+        return 1
+
+    lines = manifest_path.read_text(encoding="utf-8").splitlines(keepends=True)
         lines = f.readlines()
 
     # Track headings and their line numbers
