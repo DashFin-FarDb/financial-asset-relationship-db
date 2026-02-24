@@ -14,6 +14,8 @@ from typing import List, Tuple
 
 import pytest
 
+pytestmark = pytest.mark.integration
+
 
 class TestDocumentationFilesValidation:
     """Validation suite for documentation markdown files.
@@ -65,6 +67,7 @@ class TestDocumentationFilesValidation:
             pytest.skip("No markdown documentation files found.")
         return files
 
+    @pytest.mark.integration
     def test_markdown_files_are_readable_and_non_empty(
         self,
         markdown_files: List[Path],
@@ -95,6 +98,8 @@ class TestDocumentationFilesValidation:
 
         assert not errors, "Markdown file issues:\n" + "\n".join(errors)
 
+    @pytest.mark.slow
+    @pytest.mark.integration
     def test_markdown_is_parseable_if_markdown_installed(
         self,
         markdown_files: List[Path],
@@ -125,6 +130,7 @@ class TestDocumentationFilesValidation:
 
         assert not parse_errors, "Markdown parse errors:\n" + "\n".join(f"{path}: {err}" for path, err in parse_errors)
 
+    @pytest.mark.integration
     def test_links_are_well_formed(
         self,
         markdown_files: List[Path],
@@ -163,6 +169,7 @@ class TestDocumentationFilesValidation:
 
         assert not bad_links, "Malformed markdown links:\n" + "\n".join(f"{path}: {msg}" for path, msg in bad_links)
 
+    @pytest.mark.integration
     def test_code_blocks_have_language_identifiers_where_expected(
         self,
         markdown_files: List[Path],
@@ -192,6 +199,7 @@ class TestDocumentationFilesValidation:
             f"{path}: {msg}" for path, msg in fence_issues
         )
 
+    @pytest.mark.integration
     def test_tables_have_consistent_column_counts(
         self,
         markdown_files: List[Path],
@@ -242,6 +250,7 @@ class TestDocumentationFilesValidation:
             f"{path}: {msg}" for path, msg in table_errors
         )
 
+    @pytest.mark.integration
     def test_heading_hierarchy_is_logical(
         self,
         markdown_files: List[Path],
