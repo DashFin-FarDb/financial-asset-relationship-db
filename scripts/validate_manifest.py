@@ -31,7 +31,9 @@ def check_duplicate_headings(manifest_path: Path) -> int:
 
     # Read the manifest
     repo_root = Path(__file__).resolve().parents[1]
-    expected_manifest_path = (repo_root / ".elastic-copilot/memory/systemManifest.md").resolve()
+    expected_manifest_path = (
+        repo_root / ".elastic-copilot/memory/systemManifest.md"
+    ).resolve()
     manifest_path = manifest_path.resolve()
 
     # Ensure we only ever read the expected manifest file within the repo.
@@ -58,7 +60,9 @@ def check_duplicate_headings(manifest_path: Path) -> int:
             heading_occurrences[heading].append(line_num)
 
     # Find duplicates
-    duplicates = {h: lines for h, lines in heading_occurrences.items() if len(lines) > 1}
+    duplicates = {
+        h: lines for h, lines in heading_occurrences.items() if len(lines) > 1
+    }
 
     if duplicates:
         print(
