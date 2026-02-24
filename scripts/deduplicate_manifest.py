@@ -86,6 +86,7 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
 
     return deduplicated
 
+
 def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
     """
     Reconstruct the manifest content from sections.
@@ -110,6 +111,7 @@ def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
         result.append(content)
 
     return "\n".join(result)
+
 
 def main():
     """Main entry point for the deduplication script."""
