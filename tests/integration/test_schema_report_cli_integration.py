@@ -236,18 +236,6 @@ class TestCLIFormatConversion:
     def test_markdown_contains_headers(self, tmp_path: Path) -> None:
         """Markdown format should contain typical markdown markers."""
         output_file = tmp_path / "report.md"
-
-        result = _run_cli(tmp_path, "--fmt", "markdown", "--output", str(output_file))
-
-        assert result.returncode == 0, (
-            "CLI returned non-zero exit code.\n" f"stdout:\n{result.stdout}\n" f"stderr:\n{result.stderr}\n"
-        )
-        assert output_file.exists(), (
-            "CLI reported success but did not create output file.\n"
-            f"Expected: {output_file}\n"
-    def test_markdown_contains_headers(self, tmp_path: Path) -> None:
-        """Markdown format should contain typical markdown markers."""
-        output_file = tmp_path / "report.md"
         _run_cli(
             tmp_path,
             "--fmt",
@@ -263,7 +251,7 @@ class TestCLIFormatConversion:
     def test_text_removes_markdown_formatting(self, tmp_path: Path) -> None:
         """Text format should remove markdown headers."""
         output_file = tmp_path / "report.txt"
-        _run_cli(
+        result = _run_cli(
             tmp_path,
             "--fmt",
             "text",
