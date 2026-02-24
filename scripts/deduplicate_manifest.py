@@ -21,7 +21,6 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-
 HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
 
@@ -111,9 +110,7 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Deduplicate ## sections in .elastic-copilot/memory/systemManifest.md"
-    )
+    parser = argparse.ArgumentParser(description="Deduplicate ## sections in .elastic-copilot/memory/systemManifest.md")
     parser.add_argument(
         "--path",
         default=".elastic-copilot/memory/systemManifest.md",
