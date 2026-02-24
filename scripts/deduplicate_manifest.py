@@ -70,7 +70,6 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
 
     return sections
 
-
     def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
         """
         Remove duplicate sections, keeping only the LAST occurrence of each.
@@ -97,7 +96,6 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
 
         return deduplicated
 
-
     def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
         """
         Reconstruct the manifest content from sections.
@@ -123,10 +121,10 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
 
         return "\n".join(result)
 
-
     def main():
         """Main entry point for the deduplication script."""
         manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
+
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
         sys.exit(1)
