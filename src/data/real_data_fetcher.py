@@ -331,7 +331,7 @@ class RealDataFetcher:
                 current_price = float(hist["Close"].iloc[-1])
 
                 # Calculate future delivery date (3 months from now)
-                delivery_date = (datetime.now() + timedelta(days=90)).strftime(
+                delivery_date = (datetime.utcnow() + timedelta(days=90)).strftime(
                     "%Y-%m-%d"
                 )
 
