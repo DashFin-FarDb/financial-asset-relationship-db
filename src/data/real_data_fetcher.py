@@ -231,11 +231,11 @@ class RealDataFetcher:
     def _fetch_commodity_data() -> List[Commodity]:
         """
         Retrieve current commodity futures and convert them into Commodity instances.
-    
+
         Each available symbol produces a Commodity populated with price, contract_size,
         delivery_date (approximate), and volatility. Symbols with no recent price data
         are skipped.
-    
+
         Returns:
             List[Commodity]: List of Commodity objects for symbols with available price data.
         """
@@ -246,7 +246,7 @@ class RealDataFetcher:
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
         }
-    
+
         commodities: List[Commodity] = []
         for symbol, (
             name,
@@ -257,18 +257,18 @@ class RealDataFetcher:
             try:
                 ticker = yf.Ticker(symbol)
                 hist = ticker.history(period="1d")
-    
+
                 if hist.empty:
                     logger.warning("No price data for %s", symbol)
                     continue
-    
+
                 current_price = float(hist["Close"].iloc[-1])
-    
+
                 # Calculate future delivery date (3 months from now) using a TZ-aware datetime
                 delivery_date = (datetime.now(UTC) + timedelta(days=90)).strftime(
                     "%Y-%m-%d"
                 )
-    
+
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
                     symbol=symbol,
@@ -287,13 +287,12 @@ class RealDataFetcher:
                     name,
                     current_price,
                 )
-    
+
             except Exception as e:
                 logger.error("Failed to fetch commodity data for %s: %s", symbol, e)
                 continue
-    
-        return commodities
 
+        return commodities
 
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
