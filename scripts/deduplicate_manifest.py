@@ -86,34 +86,34 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
 
     return deduplicated
 
-    def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
-        """
-        Reconstruct the manifest content from sections.
+def reconstruct_manifest(sections: List[Tuple[str, str]]) -> str:
+    """
+    Reconstruct the manifest content from sections.
 
-        Args:
-            sections: List of (heading, content) tuples
+    Args:
+        sections: List of (heading, content) tuples
 
-        Returns:
-            The reconstructed manifest content as a string
-        """
-        PREAMBLE_HEADING = "__PREAMBLE__"
-        result = []
+    Returns:
+        The reconstructed manifest content as a string
+    """
+    PREAMBLE_HEADING = "__PREAMBLE__"
+    result = []
 
-        for heading, content in sections:
-            if heading == PREAMBLE_HEADING:
-                # Emit preamble as-is (no "##" heading)
-                if content:
-                    result.append(content)
-                continue
+    for heading, content in sections:
+        if heading == PREAMBLE_HEADING:
+            # Emit preamble as-is (no "##" heading)
+            if content:
+                result.append(content)
+            continue
 
-            result.append(f"## {heading}")
-            result.append(content)
+        result.append(f"## {heading}")
+        result.append(content)
 
-        return "\n".join(result)
+    return "\n".join(result)
 
-    def main():
-        """Main entry point for the deduplication script."""
-        manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
+def main():
+    """Main entry point for the deduplication script."""
+    manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
 
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)
