@@ -56,7 +56,7 @@ def check_duplicate_headings(manifest_path: Path) -> int:
     expected path within the repository. It  reads the content of the manifest,
     collects level 2 headings, and  checks for duplicates. If duplicates are found,
     it reports them;  otherwise, it confirms that no duplicates exist.
-    
+
     Args:
         manifest_path: Path to the systemManifest.md file."""
     if not manifest_path.exists():

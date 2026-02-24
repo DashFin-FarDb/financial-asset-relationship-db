@@ -109,7 +109,7 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
 def safe_path(user_value: str, base_dir: Path) -> Path:
     # Basic input hardening (avoid multiline / NUL path tricks)
     """Ensure the provided user_value is a safe relative path under base_dir.
-    
+
     This function performs several checks to validate the user_value as a  safe
     path. It first checks for invalid characters and ensures that the  path is not
     absolute. Then, it resolves the path against the base_dir  and verifies that
