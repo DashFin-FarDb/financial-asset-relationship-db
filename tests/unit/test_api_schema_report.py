@@ -101,7 +101,9 @@ class TestSchemaReportEndpoint:
         """Test schema report endpoint with html format."""
         with (
             patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
-            patch("src.api.routers.schema_report.generate_html_report") as mock_gen_html,
+            patch(
+                "src.api.routers.schema_report.generate_html_report"
+            ) as mock_gen_html,
         ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
