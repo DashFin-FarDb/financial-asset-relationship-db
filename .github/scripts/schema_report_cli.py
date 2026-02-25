@@ -124,6 +124,12 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def convert_markdown_to_plain_text(markdown: str) -> str:
+    """Convert Markdown to a simple plain-text representation.
+
+    Strips common Markdown markers (like '# ', '- ', '* ') from the start of lines
+    but keeps the line content. This is a naive conversion and may not handle
+    complex Markdown formatting correctly.
+    """
     """Convert Markdown to plain text."""
     lines: list[str] = []
     for line in markdown.splitlines():
