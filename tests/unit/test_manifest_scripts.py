@@ -110,7 +110,11 @@ First and only occurrence of TS dependencies.
 
         lines = sample_manifest_clean.splitlines(keepends=True)
         heading_occurrences = _collect_headings(lines)
-        duplicates = {heading: positions for heading, positions in heading_occurrences.items() if len(positions) > 1}
+        duplicates = {
+            heading: positions
+            for heading, positions in heading_occurrences.items()
+            if len(positions) > 1
+        }
 
         assert duplicates == {}
 
@@ -232,6 +236,6 @@ First and only occurrence of TS dependencies.
 
         # Should return 0 (no duplicates)
         exit_code = check_duplicate_headings(manifest_path)
-        assert (
-            exit_code == 0
-        ), "systemManifest.md contains duplicate sections. Run 'python scripts/deduplicate_manifest.py' to fix."
+        assert exit_code == 0, (
+            "systemManifest.md contains duplicate sections. Run 'python scripts/deduplicate_manifest.py' to fix."
+        )
