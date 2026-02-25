@@ -67,5 +67,6 @@ def validate_origin(origin: str) -> bool:
             ):
                 return True
         except UnicodeError:
-            pass
+            # If the hostname cannot be IDNA-encoded, treat the origin as invalid.
+            return False
     return False
