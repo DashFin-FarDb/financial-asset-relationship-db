@@ -127,14 +127,16 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
 
 def format_checklist(status: PRStatus) -> str:
-    """
-    Builds a Markdown task checklist reflecting PR readiness, review approvals, CI check status, merge conflicts, and change requests.
-
-    Parameters:
-        status (PRStatus): Aggregated pull request data used to determine checklist state (draft status, review counts, check run results, and mergeability).
-
-    Returns:
-        markdown_checklist (str): A newline-separated Markdown task list where each line is a checklist item indicating the current PR status (e.g., ready for review, approval, CI passing, merge conflicts, change requests).
+    """Builds a Markdown task checklist reflecting PR readiness and status.
+    
+    This function generates a checklist based on the provided PRStatus,  indicating
+    whether the pull request is ready for review, if it has  received approval, the
+    status of CI checks, any merge conflicts,  and the presence of change requests.
+    Each item in the checklist  is marked accordingly to reflect the current state
+    of the pull request.
+    
+    Args:
+        status (PRStatus): Aggregated pull request data used to determine
     """
     tasks = []
 
@@ -264,15 +266,8 @@ def generate_markdown(status: PRStatus) -> str:
 
 
 def write_output(content: str) -> None:
-    """
-    Write the PR report content to the GitHub Actions step summary (when configured), a standard temp file, and stdout.
-
-    Appends `content` to the file path specified by the GITHUB_STEP_SUMMARY environment variable if present. Also overwrites a file named "pr_status_report.md" in the system temporary directory and prints that file path to stderr on successful write. Any I/O errors encountered while writing are caught and printed to stderr and will not raise. Finally, the function prints `content` to stdout.
-
-    Parameters:
-        content (str): The Markdown report content to write.
-    """
     # 1. GitHub Step Summary (Native integration)
+    """Write the Markdown report content to multiple outputs."""
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if gh_summary:
         try:
