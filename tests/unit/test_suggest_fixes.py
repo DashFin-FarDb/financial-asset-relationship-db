@@ -19,14 +19,15 @@ from io import StringIO
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
-
-# Add the script directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
-
-# Now we can import directly
 import suggest_fixes
 from github import GithubException
 
+# Add the script directory to path
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts")
+)
+
+# Now we can import directly
 
 # --- Fixtures ---
 
@@ -530,7 +531,9 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     assert len(items) == 3
     # Should be sorted: priority 1 (bug first by date, then critical), then priority 2
     assert items[0]["body"] == "Please fix this bug"  # Priority 1, earliest
-    assert items[1]["body"] == "Please fix this critical security issue"  # Priority 1, later
+    assert (
+        items[1]["body"] == "Please fix this critical security issue"
+    )  # Priority 1, later
     assert items[2]["body"] == "Please refactor this"  # Priority 2
 
 
@@ -560,10 +563,10 @@ def test_parse_review_comments_no_file_or_line(mock_pr, mock_review):
     """Test parsing review-level comments without file/line info."""
     # Review objects don't have path or original_line attributes
     # Remove these attributes if they exist on the mock
-    if hasattr(mock_review, 'path'):
-        delattr(mock_review, 'path')
-    if hasattr(mock_review, 'original_line'):
-        delattr(mock_review, 'original_line')
+    if hasattr(mock_review, "path"):
+        delattr(mock_review, "path")
+    if hasattr(mock_review, "original_line"):
+        delattr(mock_review, "original_line")
 
     mock_pr.get_review_comments.return_value = []
     mock_pr.get_reviews.return_value = [mock_review]
@@ -653,7 +656,9 @@ def test_format_item_long_body_truncation():
     # Should truncate to 200 chars + "..."
     assert "A" * 200 in result
     assert "..." in result
-    assert len(result.split("**Feedback:**")[1].split("\n")[0].strip()) <= 204  # 200 + "..."
+    assert (
+        len(result.split("**Feedback:**")[1].split("\n")[0].strip()) <= 204
+    )  # 200 + "..."
 
 
 def test_format_item_no_file_or_line():
@@ -712,7 +717,10 @@ def test_generate_summary_basic():
 
 def test_generate_summary_with_critical():
     """Test _generate_summary with critical items."""
-    items = [{"category": "critical", "priority": 1}, {"category": "bug", "priority": 1}]
+    items = [
+        {"category": "critical", "priority": 1},
+        {"category": "bug", "priority": 1},
+    ]
 
     result = suggest_fixes._generate_summary(items)
 
@@ -723,7 +731,10 @@ def test_generate_summary_with_critical():
 
 def test_generate_summary_no_critical_or_bugs():
     """Test _generate_summary without critical issues or bugs."""
-    items = [{"category": "improvement", "priority": 2}, {"category": "style", "priority": 3}]
+    items = [
+        {"category": "improvement", "priority": 2},
+        {"category": "style", "priority": 3},
+    ]
 
     result = suggest_fixes._generate_summary(items)
 
@@ -825,9 +836,36 @@ def test_generate_fix_proposals_multiple_categories():
 def test_generate_fix_proposals_maintains_order():
     """Test generate_fix_proposals maintains priority order."""
     items = [
-        {"category": "style", "priority": 3, "author": "u1", "body": "Style", "file": None, "line": None, "code_suggestions": [], "url": "url1"},
-        {"category": "critical", "priority": 1, "author": "u2", "body": "Critical", "file": None, "line": None, "code_suggestions": [], "url": "url2"},
-        {"category": "improvement", "priority": 2, "author": "u3", "body": "Improve", "file": None, "line": None, "code_suggestions": [], "url": "url3"},
+        {
+            "category": "style",
+            "priority": 3,
+            "author": "u1",
+            "body": "Style",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url1",
+        },
+        {
+            "category": "critical",
+            "priority": 1,
+            "author": "u2",
+            "body": "Critical",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url2",
+        },
+        {
+            "category": "improvement",
+            "priority": 2,
+            "author": "u3",
+            "body": "Improve",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url3",
+        },
     ]
 
     result = suggest_fixes.generate_fix_proposals(items)
@@ -843,7 +881,16 @@ def test_generate_fix_proposals_maintains_order():
 def test_generate_fix_proposals_includes_summary():
     """Test generate_fix_proposals includes summary."""
     items = [
-        {"category": "bug", "priority": 1, "author": "u1", "body": "Bug", "file": None, "line": None, "code_suggestions": [], "url": "url1"},
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "u1",
+            "body": "Bug",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url1",
+        },
     ]
 
     result = suggest_fixes.generate_fix_proposals(items)
@@ -856,7 +903,16 @@ def test_generate_fix_proposals_includes_summary():
 def test_generate_fix_proposals_skips_empty_categories():
     """Test generate_fix_proposals skips categories with no items."""
     items = [
-        {"category": "bug", "priority": 1, "author": "u1", "body": "Bug", "file": None, "line": None, "code_suggestions": [], "url": "url1"},
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "u1",
+            "body": "Bug",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url1",
+        },
     ]
 
     result = suggest_fixes.generate_fix_proposals(items)
@@ -979,7 +1035,12 @@ def test_main_missing_env_vars(capsys):
 
 def test_main_invalid_pr_number(capsys):
     """Test main exits with error when PR_NUMBER is not an integer."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "not-a-number", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "not-a-number",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
         with pytest.raises(SystemExit) as exc_info:
@@ -993,10 +1054,18 @@ def test_main_invalid_pr_number(capsys):
 
 def test_main_github_api_error(capsys):
     """Test main handles GitHub API errors."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
-        with patch("suggest_fixes.load_config", return_value={"review_handling": {"actionable_keywords": ["please"]}}):
+        with patch(
+            "suggest_fixes.load_config",
+            return_value={"review_handling": {"actionable_keywords": ["please"]}},
+        ):
             with patch("suggest_fixes.Github") as mock_github_class:
                 mock_github = Mock()
                 mock_github_class.return_value = mock_github
@@ -1015,11 +1084,18 @@ def test_main_github_api_error(capsys):
 
 def test_main_success_flow(mock_pr, mock_comment, capsys):
     """Test main executes successfully."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
         with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
+            mock_config.return_value = {
+                "review_handling": {"actionable_keywords": ["please"]}
+            }
 
             with patch("suggest_fixes.Github") as mock_github_class:
                 with patch("tempfile.NamedTemporaryFile") as mock_temp:
@@ -1047,14 +1123,23 @@ def test_main_success_flow(mock_pr, mock_comment, capsys):
 
 def test_main_generic_exception(capsys):
     """Test main handles generic exceptions."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
         # Patch load_config to return valid config, then patch Github to raise exception
         with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
+            mock_config.return_value = {
+                "review_handling": {"actionable_keywords": ["please"]}
+            }
 
-            with patch("suggest_fixes.Github", side_effect=Exception("Unexpected error")):
+            with patch(
+                "suggest_fixes.Github", side_effect=Exception("Unexpected error")
+            ):
                 with pytest.raises(SystemExit) as exc_info:
                     suggest_fixes.main()
 
@@ -1066,7 +1151,12 @@ def test_main_generic_exception(capsys):
 
 def test_main_with_no_actionable_items(mock_pr, capsys):
     """Test main when no actionable items are found."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     # Comment without actionable keywords
     non_actionable = Mock()
@@ -1077,7 +1167,9 @@ def test_main_with_no_actionable_items(mock_pr, capsys):
 
     with patch.dict(os.environ, env, clear=True):
         with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
+            mock_config.return_value = {
+                "review_handling": {"actionable_keywords": ["please"]}
+            }
 
             with patch("suggest_fixes.Github") as mock_github_class:
                 with patch("tempfile.NamedTemporaryFile") as mock_temp:
@@ -1155,11 +1247,56 @@ def test_format_item_all_priority_levels():
 def test_generate_fix_proposals_with_all_categories():
     """Test generate_fix_proposals with all category types."""
     items = [
-        {"category": "critical", "priority": 1, "author": "u1", "body": "Critical", "file": None, "line": None, "code_suggestions": [], "url": "u1"},
-        {"category": "bug", "priority": 1, "author": "u2", "body": "Bug", "file": None, "line": None, "code_suggestions": [], "url": "u2"},
-        {"category": "improvement", "priority": 2, "author": "u3", "body": "Improve", "file": None, "line": None, "code_suggestions": [], "url": "u3"},
-        {"category": "style", "priority": 3, "author": "u4", "body": "Style", "file": None, "line": None, "code_suggestions": [], "url": "u4"},
-        {"category": "question", "priority": 3, "author": "u5", "body": "Question", "file": None, "line": None, "code_suggestions": [], "url": "u5"},
+        {
+            "category": "critical",
+            "priority": 1,
+            "author": "u1",
+            "body": "Critical",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u1",
+        },
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "u2",
+            "body": "Bug",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u2",
+        },
+        {
+            "category": "improvement",
+            "priority": 2,
+            "author": "u3",
+            "body": "Improve",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u3",
+        },
+        {
+            "category": "style",
+            "priority": 3,
+            "author": "u4",
+            "body": "Style",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u4",
+        },
+        {
+            "category": "question",
+            "priority": 3,
+            "author": "u5",
+            "body": "Question",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u5",
+        },
     ]
 
     result = suggest_fixes.generate_fix_proposals(items)

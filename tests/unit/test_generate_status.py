@@ -17,15 +17,16 @@ from datetime import datetime, timezone
 from io import StringIO
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
-import pytest
-
-# Add the script directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
-
-# Now we can import directly
 import generate_status
+import pytest
 from github import GithubException
 
+# Add the script directory to path
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts")
+)
+
+# Now we can import directly
 
 # --- Fixtures ---
 
@@ -138,7 +139,12 @@ def sample_pr_status():
         labels=["bug", "enhancement"],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 1, "changes_requested": 0, "commented": 1, "total": 2},
+        review_stats={
+            "approved": 1,
+            "changes_requested": 0,
+            "commented": 1,
+            "total": 2,
+        },
         open_thread_count=3,
         check_runs=[
             generate_status.CheckRunInfo("test", "completed", "success"),
@@ -152,7 +158,9 @@ def sample_pr_status():
 
 def test_check_run_info_creation():
     """Test CheckRunInfo dataclass creation."""
-    check = generate_status.CheckRunInfo(name="test-check", status="completed", conclusion="success")
+    check = generate_status.CheckRunInfo(
+        name="test-check", status="completed", conclusion="success"
+    )
     assert check.name == "test-check"
     assert check.status == "completed"
     assert check.conclusion == "success"
@@ -262,7 +270,11 @@ def test_fetch_pr_status_with_multiple_reviews(
     mock_repo.get_commit.return_value = mock_commit
 
     # Multiple reviews
-    mock_pr.get_reviews.return_value = [mock_review_approved, mock_review_changes_requested, mock_review_commented]
+    mock_pr.get_reviews.return_value = [
+        mock_review_approved,
+        mock_review_changes_requested,
+        mock_review_commented,
+    ]
 
     mock_review_comments = Mock()
     mock_review_comments.totalCount = 5
@@ -364,7 +376,11 @@ def test_fetch_pr_status_with_multiple_check_runs(
 
     mock_pr.get_reviews.return_value = []
     mock_pr.get_review_comments.return_value = Mock(totalCount=0)
-    mock_commit.get_check_runs.return_value = [mock_check_run_success, mock_check_run_failure, mock_check_run_pending]
+    mock_commit.get_check_runs.return_value = [
+        mock_check_run_success,
+        mock_check_run_failure,
+        mock_check_run_pending,
+    ]
 
     status = generate_status.fetch_pr_status(mock_github, "owner/repo", 123)
 
@@ -394,7 +410,12 @@ def test_format_checklist_all_tasks_complete():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+        review_stats={
+            "approved": 1,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 1,
+        },
         open_thread_count=0,
         check_runs=[generate_status.CheckRunInfo("test", "completed", "success")],
     )
@@ -425,7 +446,12 @@ def test_format_checklist_draft_pr():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -452,7 +478,12 @@ def test_format_checklist_no_approval():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 1, "total": 1},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 1,
+            "total": 1,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -479,7 +510,12 @@ def test_format_checklist_partial_checks():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[
             generate_status.CheckRunInfo("test1", "completed", "success"),
@@ -509,7 +545,12 @@ def test_format_checklist_no_checks():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -536,7 +577,12 @@ def test_format_checklist_merge_conflicts():
         labels=[],
         mergeable=False,
         mergeable_state="dirty",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -563,7 +609,12 @@ def test_format_checklist_mergeable_unknown():
         labels=[],
         mergeable=None,
         mergeable_state="unknown",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -590,7 +641,12 @@ def test_format_checklist_with_change_requests():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 2, "commented": 0, "total": 2},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 2,
+            "commented": 0,
+            "total": 2,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -727,7 +783,12 @@ def test_generate_markdown_draft_pr():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -754,7 +815,12 @@ def test_generate_markdown_no_draft():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -781,7 +847,12 @@ def test_generate_markdown_no_labels():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -808,7 +879,12 @@ def test_generate_markdown_review_section():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 2, "changes_requested": 1, "commented": 3, "total": 6},
+        review_stats={
+            "approved": 2,
+            "changes_requested": 1,
+            "commented": 3,
+            "total": 6,
+        },
         open_thread_count=5,
         check_runs=[],
     )
@@ -840,7 +916,12 @@ def test_generate_markdown_mergeable_yes():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -867,7 +948,12 @@ def test_generate_markdown_mergeable_no():
         labels=[],
         mergeable=False,
         mergeable_state="dirty",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -894,7 +980,12 @@ def test_generate_markdown_mergeable_unknown():
         labels=[],
         mergeable=None,
         mergeable_state="unknown",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -921,7 +1012,12 @@ def test_generate_markdown_includes_timestamp():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -950,7 +1046,12 @@ def test_generate_markdown_includes_checklist():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -1051,7 +1152,12 @@ def test_main_missing_env_vars(capsys):
 
 def test_main_invalid_pr_number(capsys):
     """Test main exits with error when PR_NUMBER is not an integer."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "not-a-number", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "not-a-number",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
         with pytest.raises(SystemExit) as exc_info:
@@ -1065,7 +1171,12 @@ def test_main_invalid_pr_number(capsys):
 
 def test_main_github_api_error(capsys):
     """Test main handles GitHub API errors."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
         with patch("generate_status.Github") as mock_github_class:
@@ -1084,9 +1195,16 @@ def test_main_github_api_error(capsys):
     assert "GitHub API Error" in captured.err
 
 
-def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success, capsys):
+def test_main_success_flow(
+    mock_pr, mock_review_approved, mock_check_run_success, capsys
+):
     """Test main executes successfully."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
         with patch("generate_status.Github") as mock_github_class:
@@ -1118,7 +1236,12 @@ def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success
 
 def test_main_generic_exception(capsys):
     """Test main handles generic exceptions."""
-    env = {"GITHUB_TOKEN": "token", "PR_NUMBER": "123", "REPO_OWNER": "owner", "REPO_NAME": "repo"}
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
     with patch.dict(os.environ, env, clear=True):
         with patch("generate_status.Github", side_effect=Exception("Unexpected error")):
@@ -1152,7 +1275,12 @@ def test_format_checklist_edge_case_all_checks_passed_zero_total():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -1179,7 +1307,12 @@ def test_generate_markdown_with_special_characters():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
@@ -1258,7 +1391,12 @@ def test_large_diff_numbers():
         labels=[],
         mergeable=True,
         mergeable_state="clean",
-        review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+        review_stats={
+            "approved": 0,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 0,
+        },
         open_thread_count=0,
         check_runs=[],
     )
