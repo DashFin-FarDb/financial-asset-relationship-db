@@ -72,14 +72,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 
 
 def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -> None:
-    """
-    Set the callable used to construct the global AssetRelationshipGraph on demand.
-
-    If `factory` is a callable it will be used to build the graph the next time `get_graph()` is called. Passing `None` clears any configured factory. In all cases the current global graph instance is cleared so a new graph will be created on next access; this operation is performed in a thread-safe manner.
-
-    Parameters:
-        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns an `AssetRelationshipGraph`, or `None` to remove the factory and force recreation from defaults.
-    """
+    """Set the callable used to construct the global AssetRelationshipGraph."""
     global graph, graph_factory
     with graph_lock:
         graph_factory = factory
@@ -96,14 +89,7 @@ def reset_graph() -> None:
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
-    """
-    Construct the asset relationship graph using the configured factory or environment-backed data sources.
-
-    If a `graph_factory` is configured it is invoked. Otherwise, if `GRAPH_CACHE_PATH` is set a real-data graph is created (network access enabled when `USE_REAL_DATA_FETCHER` indicates real data should be used). If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true, `REAL_DATA_CACHE_PATH` is consulted to create a real-data graph. If neither real-data path nor real-data mode is available, a sample database graph is returned.
-
-    Returns:
-        AssetRelationshipGraph: The initialized graph instance.
-    """
+    """Initialize the asset relationship graph based on configuration."""
     if graph_factory is not None:
         return graph_factory()
 
@@ -137,15 +123,9 @@ def _should_use_real_data_fetcher() -> bool:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Manage the application's lifespan by initialising the global graph on startup and logging shutdown.
-
-    Initialises the global asset relationship graph before the application begins handling requests; if initialisation fails the exception is re-raised to abort startup. Yields control for the application's running lifetime and logs on shutdown.
-
-    Parameters:
-        app (FastAPI): The FastAPI application instance.
-    """
     # Startup
+    """Manage the application's lifespan by initializing the global graph and logging
+    shutdown."""
     try:
         get_graph()
         logger.info("Application startup complete - graph initialized")
@@ -212,18 +192,9 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
 async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
-    """
-    Retrieve the currently authenticated user.
-
-    Parameters:
-        request (Request): Included for slowapi limiter dependency injection; unused by the function.
-        current_user (User): Active user injected by the authentication dependency.
-
-    Returns:
-        The authenticated user.
-    """
 
     # The `request` parameter is required by slowapi's limiter for dependency injection.
+    """Retrieve the currently authenticated user."""
     _ = request
 
     return current_user
@@ -340,15 +311,18 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
 
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
-    """
-    Serialize an Asset object to a dictionary representation.
-
+    """Serialize an Asset object to a dictionary representation.
+    
+    This function converts an Asset object into a dictionary format, including
+    essential fields such as id, symbol, name, and asset_class. It also allows for
+    the inclusion of additional fields based on the asset's attributes and the
+    include_issuer flag, which determines if the issuer_id should be part of the
+    serialized output. The function dynamically checks for the presence of various
+    asset-specific fields and adds them to the dictionary if they are not None.
+    
     Args:
-        asset: Asset object to serialize
-        include_issuer: Whether to include issuer_id field (for detail views)
-
-    Returns:
-        Dictionary containing asset data with additional_fields
+        asset: Asset object to serialize.
+        include_issuer: Whether to include issuer_id field (for detail views).
     """
     asset_dict = {
         "id": asset.id,
@@ -430,16 +404,7 @@ class VisualizationDataResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    """
-    Provide basic API metadata and a listing of available endpoints.
-
-    Returns:
-        Dict[str, Union[str, Dict[str, str]]]: A mapping containing:
-            - "message": short API description string.
-            - "version": API version string.
-            - "endpoints": dict mapping endpoint keys to their URL paths
-              (e.g., "assets": "/api/assets").
-    """
+    """Return basic API metadata and a listing of available endpoints."""
     return {
         "message": "Financial Asset Relationship API",
         "version": "1.0.0",
@@ -533,18 +498,14 @@ async def get_assets(
     },
 )
 async def get_asset_detail(asset_id: str):
-    """
-    Retrieve detailed information for the asset identified by `asset_id`.
-
-    Parameters:
+    """Retrieve detailed information for the asset identified by `asset_id`.
+    
+    Args:
         asset_id (str): Identifier of the asset whose details are requested.
-
+    
     Returns:
-        AssetResponse: Detailed asset information as defined in the
-        AssetResponse model, including core fields and an `additional_fields`
-        map containing any asset-specific attributes that are present and
-        non-null.
-
+        AssetResponse: Detailed asset information including core fields and an
+    
     Raises:
         HTTPException: 404 if the asset is not found.
         HTTPException: 500 for unexpected errors while retrieving the asset.
@@ -586,21 +547,16 @@ async def get_asset_detail(asset_id: str):
     },
 )
 async def get_asset_relationships(asset_id: str):
-    """
-    List outgoing relationships for the specified asset.
-
-    Parameters:
-        asset_id (str): Identifier of the asset whose outgoing relationships
-            are requested.
-
-    Returns:
-        List[RelationshipResponse]: Outgoing relationship records for the
-        asset (each with source_id, target_id, relationship_type, and
-        strength).
-
-    Raises:
-        HTTPException: 404 if the asset is not found; 500 for unexpected
-        errors.
+    """List outgoing relationships for the specified asset.
+    
+    This function retrieves the outgoing relationships for a given asset identified
+    by  the asset_id. It first checks if the asset exists in the graph; if not, it
+    raises  an HTTPException. If the asset is found, it collects all outgoing
+    relationships  and returns them as a list of RelationshipResponse objects, each
+    containing  source_id, target_id, relationship_type, and strength.
+    
+    Args:
+        asset_id (str): Identifier of the asset whose outgoing relationships are requested.
     """
     try:
         g = get_graph()
@@ -758,21 +714,14 @@ async def get_metrics():
     },
 )
 async def get_visualization_data():
-    """
-    Provide nodes and edges prepared for 3D visualization of the asset graph.
-
-    Builds a list of node dictionaries (each with id, name, symbol,
-    asset_class, x, y, z, color, size) and a list of edge dictionaries
-    (each with source, target, relationship_type, strength) suitable for
-    the API response.
-
-    Returns:
-        VisualizationDataResponse: An object with `nodes` (list of node
-        dicts) and `edges` (list of edge dicts).
-
-    Raises:
-        HTTPException: If visualization data cannot be retrieved or
-        processed; results in a 500 status with the error detail.
+    """Provide nodes and edges prepared for 3D visualization of the asset graph.
+    
+    This function retrieves the asset graph and constructs a list of node
+    dictionaries, each containing attributes such as id, name, symbol,
+    asset_class, x, y, z, color, and size. It also builds a list of edge
+    dictionaries that represent relationships between nodes, including  source,
+    target, relationship_type, and strength. The data is formatted  for use in a
+    visualization API response.
     """
     try:
         g = get_graph()
@@ -858,18 +807,8 @@ async def get_asset_classes():
     },
 )
 async def get_sectors():
-    """
-    List unique sector names present in the global asset graph in sorted
-    order.
-
-    Returns:
-        Dict[str, List[str]]: Mapping with key "sectors" to a sorted list
-        of unique sector names.
-
-    Raises:
-        HTTPException: Raised with status code 500 if an unexpected error
-        occurs while retrieving sectors.
-    """
+    """Retrieve and return a sorted list of unique sector names from the global asset
+    graph."""
     try:
         g = get_graph()
         sectors = {asset.sector for asset in g.assets.values() if asset.sector}
