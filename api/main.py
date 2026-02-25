@@ -147,9 +147,9 @@ def _should_use_real_data_fetcher() -> bool:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
     """Manage the application's lifespan by initializing the global graph and logging
     shutdown."""
+    # Startup
     try:
         get_graph()
         logger.info("Application startup complete - graph initialized")
