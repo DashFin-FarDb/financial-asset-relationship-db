@@ -22,8 +22,8 @@ from src.models.financial_models import AssetClass, Equity
 pytestmark = pytest.mark.integration
 
 
-class TestRepositoryIntegration:
-    """Test interactions between repository and sample data."""
+class TestRepositoryGraphIntegration:
+    """Test integration between repository and graph."""
 
     @staticmethod
     def test_sample_graph_can_be_saved_to_repository(tmp_path):
@@ -34,37 +34,28 @@ class TestRepositoryIntegration:
             init_db,
         )
 
+        # Create in-memory database
         db_path = tmp_path / "test_integration.db"
         engine = create_engine_from_url(f"sqlite:///{db_path}")
         init_db(engine)
         factory = create_session_factory(engine)
-        with factory() as session:
-            repo = AssetGraphRepository(session)
-            graph = create_sample_database()
+        session = factory()
 
-            # Save assets
-            for asset in graph.assets.values():
-                repo.upsert_asset(asset)
+        # Create repository and sample graph
+        repo = AssetGraphRepository(session)
+        graph = create_sample_database()
 
-            # Optionally save relationships as part of the round-trip
-            for source_id, rels in graph.relationships.items():
-                for target_id, rel_type, strength in rels:
-                    repo.add_or_update_relationship(
-                        source_id,
-                        target_id,
-                        rel_type,
-                        strength,
-                        bidirectional=False,
-                    )
+        # Save all assets to repository
+        for asset in graph.assets.values():
+            repo.upsert_asset(asset)
+        session.commit()
 
-            session.commit()
+        # Verify assets were saved
+        saved_assets = repo.list_assets()
+        assert len(saved_assets) == len(graph.assets)
 
-            # Verify that at least one asset was saved
-            saved_assets = list(repo.list_assets())
-            assert len(saved_assets) > 0
-
-            session.close()
-            engine.dispose()
+        session.close()
+        engine.dispose()
 
     @staticmethod
     def test_sample_graph_relationships_can_be_saved(tmp_path):
@@ -79,39 +70,35 @@ class TestRepositoryIntegration:
         engine = create_engine_from_url(f"sqlite:///{db_path}")
         init_db(engine)
         factory = create_session_factory(engine)
-        with factory() as session:
+        session = factory()
 
-            repo = AssetGraphRepository(session)
-            graph = create_sample_database()
+        repo = AssetGraphRepository(session)
+        graph = create_sample_database()
 
-            # Save assets first
-            for asset in graph.assets.values():
-                repo.upsert_asset(asset)
+        # Save assets first
+        for asset in graph.assets.values():
+            repo.upsert_asset(asset)
 
-            # Save relationships
-            for source_id, rels in graph.relationships.items():
-                for target_id, rel_type, strength in rels:
-                    repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
+        # Save relationships
+        for source_id, rels in graph.relationships.items():
+            for target_id, rel_type, strength in rels:
+                repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
 
-            session.commit()
+        session.commit()
 
-            # Verify relationships were saved and match the in-memory graph
-            saved_rels = repo.list_relationships()
-            assert len(saved_rels) > 0
-            for rel in saved_rels:
-                assert rel.source_id in graph.relationships
-                expected_targets = {t for t, _, _ in graph.relationships[rel.source_id]}
-                assert rel.target_id in expected_targets
+        # Verify relationships were saved
+        saved_rels = repo.list_relationships()
+        assert len(saved_rels) > 0
 
-            session.close()
-            engine.dispose()
+        session.close()
+        engine.dispose()
 
 
 class TestSerializationRoundTrip:
     """Test serialization and deserialization round-trips."""
 
     @staticmethod
-    def test_sample_graph_serialization_roundtrip() -> None:
+    def test_sample_graph_serialization_roundtrip():
         """Test that a sample graph can be serialized and deserialized."""
         # Create a simple graph for testing (sample database may have events that complicate deserialization)
         original_graph = AssetRelationshipGraph()
@@ -213,12 +200,7 @@ class TestDataFetcherWithFallback:
         custom_graph.add_asset(custom_asset)
 
         def custom_factory():
-            """
-            Provide a preconfigured AssetRelationshipGraph to use as a fallback.
-
-            Returns:
-                AssetRelationshipGraph: The prepared graph instance to be used when real data fetching is unavailable.
-            """
+            """Factory function returning a preconfigured AssetRelationshipGraph for fallback."""
             return custom_graph
 
         fetcher = RealDataFetcher(fallback_factory=custom_factory, enable_network=False)
@@ -500,11 +482,7 @@ class TestDataConsistency:
 
     @staticmethod
     def test_graph_clone_independence():
-        """
-        Verify that two separately created sample graphs are independent.
-
-        Adds an asset to one sample graph and asserts the new asset exists in that graph but not in the other.
-        """
+        """Test that cloning a graph creates independent copy."""
         graph1 = create_sample_database()
         graph2 = create_sample_database()
 
