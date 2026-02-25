@@ -14,6 +14,8 @@ import pytest
 import pytest_asyncio
 from fastapi.security import OAuth2PasswordRequestForm
 
+from api.main import app
+
 # Ensure required env vars are set before importing the API module.
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
@@ -22,7 +24,6 @@ os.environ.setdefault("ADMIN_PASSWORD", "admin-password")
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_FULL_NAME", "Admin User")
 
-from api.main import app
 
 # Disable rate limiting to avoid slowapi interference in test runs.
 app.state.limiter.enabled = False
@@ -30,12 +31,7 @@ app.state.limiter.enabled = False
 
 @pytest_asyncio.fixture
 async def client():
-    """
-    Provide an HTTPX AsyncClient configured to send requests to the FastAPI app via ASGI transport.
-
-    Returns:
-        httpx.AsyncClient: An AsyncClient bound to the FastAPI application through ASGITransport with base_url "http://test".
-    """
+    """Create an async test client for integration tests."""
     transport = httpx.ASGITransport(app=app)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
@@ -66,7 +62,9 @@ class TestCompleteAPIFlow:
         assert detail["id"] == first_asset["id"]
 
         # Step 4: Get relationships for asset
-        rel_response = await client.get(f"/api/assets/{first_asset['id']}/relationships")
+        rel_response = await client.get(
+            f"/api/assets/{first_asset['id']}/relationships"
+        )
         assert rel_response.status_code == 200
         relationships = rel_response.json()
         assert isinstance(relationships, list)
@@ -125,8 +123,8 @@ class TestCompleteAPIFlow:
         all_assets = (await client.get("/api/assets")).json()
 
         # Get unique asset classes and sectors
-        asset_classes = set(a["asset_class"] for a in all_assets)
-        sectors = set(a["sector"] for a in all_assets)
+        asset_classes = {a["asset_class"] for a in all_assets}
+        sectors = {a["sector"] for a in all_assets}
 
         # Test each asset class filter
         for ac in asset_classes:
@@ -177,7 +175,9 @@ class TestDataIntegrity:
 
         # Verify relationships are accessible from both endpoints
         for source_id in graph:
-            asset_rels = (await client.get(f"/api/assets/{source_id}/relationships")).json()
+            asset_rels = (
+                await client.get(f"/api/assets/{source_id}/relationships")
+            ).json()
             assert len(asset_rels) > 0
 
 
@@ -187,11 +187,7 @@ class TestPerformance:
     @staticmethod
     @pytest.mark.asyncio
     async def test_response_times(client):
-        """
-        Verify selected API endpoints respond within 5.0 seconds.
-
-        Asserts that each endpoint returns HTTP 200 and that the measured round-trip duration is less than 5.0 seconds; raises an assertion with the observed duration on failure.
-        """
+        """Test that endpoints respond within reasonable time."""
         import time
 
         endpoints = [
@@ -216,12 +212,7 @@ class TestPerformance:
         import asyncio
 
         async def make_request():
-            """
-            Perform a GET request to the assets endpoint and report the HTTP status code.
-
-            Returns:
-                status_code (int): HTTP status code returned by GET /api/assets.
-            """
+            """Make a GET request to '/api/assets' and return the status code."""
             return (await client.get("/api/assets")).status_code
 
         results = await asyncio.gather(*(make_request() for _ in range(10)))
@@ -237,23 +228,13 @@ class TestAuthenticationFlow:
     @pytest.mark.asyncio
     async def test_token_issuance_and_validation(client):
         """A valid credential should yield a token that authorizes protected endpoints."""
-
         credentials = {
             "username": os.environ["ADMIN_USERNAME"],
             "password": os.environ["ADMIN_PASSWORD"],
         }
 
         async def override_form_data():
-            """
-            Provide an OAuth2PasswordRequestForm pre-filled with the test credentials.
-
-            This function constructs and returns an OAuth2PasswordRequestForm using the `username`
-            and `password` values from the surrounding test credentials mapping, suitable for
-            overriding the OAuth2 form dependency in tests.
-
-            Returns:
-                OAuth2PasswordRequestForm: Form populated with the test `username` and `password`.
-            """
+            """Provide valid OAuth2 form data override for testing successful token issuance."""
             return OAuth2PasswordRequestForm(
                 username=credentials["username"],
                 password=credentials["password"],
@@ -270,7 +251,9 @@ class TestAuthenticationFlow:
         assert token_response.status_code == 200
         token = token_response.json()["access_token"]
 
-        me_response = await client.get("/api/users/me", headers={"Authorization": f"Bearer {token}"})
+        me_response = await client.get(
+            "/api/users/me", headers={"Authorization": f"Bearer {token}"}
+        )
         assert me_response.status_code == 200
         payload = me_response.json()
         assert payload["username"] == credentials["username"]
@@ -278,7 +261,9 @@ class TestAuthenticationFlow:
         assert payload["full_name"] == os.environ["ADMIN_FULL_NAME"]
         assert payload["disabled"] is False
 
-        invalid_response = await client.get("/api/users/me", headers={"Authorization": "Bearer invalid-token"})
+        invalid_response = await client.get(
+            "/api/users/me", headers={"Authorization": "Bearer invalid-token"}
+        )
         assert invalid_response.status_code == 401
 
         # Test authentication with incorrect password
@@ -286,12 +271,7 @@ class TestAuthenticationFlow:
         invalid_credentials["password"] = "wrongpassword"
 
         async def override_invalid_form_data():
-            """
-            Provide an OAuth2PasswordRequestForm pre-filled with known-invalid credentials for testing.
-
-            Returns:
-                OAuth2PasswordRequestForm: form populated with `username` and `password` taken from the surrounding `invalid_credentials` mapping, with `scope` empty and `client_id`/`client_secret` set to None.
-            """
+            """Provide invalid OAuth2 form data override for testing authentication failure."""
             return OAuth2PasswordRequestForm(
                 username=invalid_credentials["username"],
                 password=invalid_credentials["password"],
@@ -328,11 +308,7 @@ class TestErrorRecovery:
     @staticmethod
     @pytest.mark.asyncio
     async def test_malformed_requests(client):
-        """
-        Verify the assets endpoint returns an empty list for malformed or invalid filter parameters.
-
-        When an invalid `asset_class` query value is provided, the endpoint should respond with HTTP 200 and an empty JSON list.
-        """
+        """Test handling of malformed requests."""
         # Test with invalid query parameters
         response = await client.get("/api/assets?asset_class=INVALID")
         assert response.status_code == 200
