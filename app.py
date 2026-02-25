@@ -329,21 +329,18 @@ class FinancialAssetApp:
             return empty_fig, gr.update(value=error_msg, visible=True)
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
+        """
+        Generate a detailed formulaic analysis of the provided asset graph.
 
-
-Args:
-            graph_state(AssetRelationshipGraph, optional): The asset graph to analyze.
-                If None, the current graph from the interface state is used.
-
-        This function generates a detailed formulaic analysis of the provided  asset
-        graph. It initializes the necessary analyzers and visualizers,  performs the
-        analysis on the graph, and creates various visualizations  such as a formula
-        dashboard, correlation network, and metric comparison  chart. Additionally, it
-        formats a summary of the analysis results and  handles any exceptions that may
+        This function initializes the necessary analyzers and visualizers, performs the
+        analysis on the graph, and creates various visualizations such as a formula
+        dashboard, correlation network, and metric comparison chart. Additionally, it
+        formats a summary of the analysis results and handles any exceptions that may
         occur during the process.
 
         Args:
-            graph_state (AssetRelationshipGraph): The state of the asset graph
+            graph_state (AssetRelationshipGraph, optional): The asset graph to analyze.
+                If None, the current graph from the interface state is used.
         """
         try:
             logger.info("Generating formulaic analysis")
