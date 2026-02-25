@@ -1,124 +1,352 @@
+"""Comprehensive tests for .github/scripts/schema_report_cli.py"""
+
 from __future__ import annotations
 
-import importlib
-import json
+# Import the module under test
 import sys
 from pathlib import Path
-from typing import Mapping
+from unittest.mock import MagicMock, patch
 
 import pytest
+from schema_report_cli import (
+    app,
+    generate_html,
+    generate_md,
+    load_graph,
+    main,
+    save_report,
+)
+from typer.testing import CliRunner
+
+scripts_path = Path(__file__).parent.parent.parent / ".github" / "scripts"
+sys.path.insert(0, str(scripts_path))
 
 
-def _load_module_for_test(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    extra_env: Mapping[str, str] | None = None,
-):
-    """
-    Load a fresh copy of the CLI module with env and paths redirected.
-
-    The CLI file is copied into tmp_path and imported so that:
-    - SCHEMA_REPORT_LOG points into tmp_path
-    - no writes occur in the real repo tree
-    """
-    # Ensure env log path goes to tmp_path
-    env: dict[str, str] = dict(extra_env or {})
-    env.setdefault("SCHEMA_REPORT_LOG", str(tmp_path / "cli.log"))
-    monkeypatch.setenv("SCHEMA_REPORT_LOG", env["SCHEMA_REPORT_LOG"])
-
-    # Copy the real CLI script into tmp_path under a throwaway name
-    cli_src = Path(__file__).resolve().parents[2] / ".github" / "scripts" / "schema_report_cli.py"
-    assert cli_src.exists(), f"CLI source not found: {cli_src}"
-
-    cli_copy = tmp_path / "schema_report_cli_copy.py"
-    cli_copy.write_text(cli_src.read_text(encoding="utf-8"), encoding="utf-8")
-
-    # Import the copy so the module's top-level code runs with the patched env
-    monkeypatch.syspath_prepend(str(tmp_path))
-    module = importlib.import_module("schema_report_cli_copy")
-    importlib.reload(module)
-    return module
+runner = CliRunner()
 
 
-def test_invalid_format_rejected(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """CLI should exit with code 1 and print a message on invalid format."""
-    mod = _load_module_for_test(monkeypatch, tmp_path)
+class TestLoadGraph:
+    """Test load_graph function."""
 
-    # Simulate CLI argv with invalid format
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["schema_report_cli", "--fmt", "not-a-format"],
-    )
+    @patch("schema_report_cli.AssetRelationshipGraph")
+    def test_load_graph_creates_empty_graph(self, mock_graph_class):
+        """Test that load_graph creates an AssetRelationshipGraph."""
+        mock_instance = MagicMock()
+        mock_graph_class.return_value = mock_instance
 
-    rc = mod.main()
-    assert rc == 1
+        result = load_graph()
 
-    captured = capsys.readouterr()
-    # Our CLI prints "Error: Invalid output format. Please use one of: ..."
-    assert "Invalid output format" in captured.err
+        assert result == mock_instance
+        mock_graph_class.assert_called_once()
 
 
-def test_json_output_writes_file(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    """--fmt json and --output should produce a JSON file with schema_report key."""
-    mod = _load_module_for_test(monkeypatch, tmp_path)
+class TestGenerateMd:
+    """Test generate_md command."""
 
-    out_file = tmp_path / "report.json"
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["schema_report_cli", "--fmt", "json", "--output", str(out_file)],
-    )
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.generate_markdown_report")
+    @patch("schema_report_cli.typer.echo")
+    def test_generate_md_success(self, mock_echo, mock_gen_md, mock_load):
+        """Test successful markdown generation."""
+        mock_graph = MagicMock()
+        mock_load.return_value = mock_graph
+        mock_gen_md.return_value = "# Test Report\n\nContent"
 
-    rc = mod.main()
-    assert rc == 0
-    assert out_file.exists()
+        result = runner.invoke(app, ["md"])
 
-    text = out_file.read_text(encoding="utf-8")
-    data = json.loads(text)
-    # JSON produced by convert_markdown_to_json wraps markdown under "schema_report"
-    assert "schema_report" in data
+        assert result.exit_code == 0
+        mock_load.assert_called_once()
+        mock_gen_md.assert_called_once_with(mock_graph)
+        mock_echo.assert_called_once_with("# Test Report\n\nContent")
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.generate_markdown_report")
+    def test_generate_md_with_graph_data(self, mock_gen_md, mock_load):
+        """Test markdown generation includes graph data."""
+        mock_graph = MagicMock()
+        mock_graph.assets = {"AAPL": MagicMock()}
+        mock_load.return_value = mock_graph
+        mock_gen_md.return_value = "# Report"
+
+        result = runner.invoke(app, ["md"])
+
+        assert result.exit_code == 0
+        # Verify graph was passed to report generator
+        mock_gen_md.assert_called_with(mock_graph)
 
 
-def test_generate_report_failure_does_not_leave_file(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-) -> None:
-    """
-    If report generation fails, CLI should not leave a partial output file.
+class TestGenerateHtml:
+    """Test generate_html command."""
 
-    The user-facing error should stay generic and not expose internals.
-    """
-    mod = _load_module_for_test(monkeypatch, tmp_path)
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.generate_html_report")
+    @patch("schema_report_cli.typer.echo")
+    def test_generate_html_success(self, mock_echo, mock_gen_html, mock_load):
+        """Test successful HTML generation."""
+        mock_graph = MagicMock()
+        mock_load.return_value = mock_graph
+        mock_gen_html.return_value = "<html><body>Test</body></html>"
 
-    def fail_generate(graph):  # noqa: ARG001
-        raise RuntimeError("boom")
+        result = runner.invoke(app, ["html"])
 
-    # Patch the imported generate_schema_report inside the CLI module
-    monkeypatch.setattr(mod, "generate_schema_report", fail_generate)
+        assert result.exit_code == 0
+        mock_load.assert_called_once()
+        mock_gen_html.assert_called_once_with(mock_graph)
+        mock_echo.assert_called_once()
 
-    out_file = tmp_path / "should_not_exist.txt"
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["schema_report_cli", "--fmt", "markdown", "--output", str(out_file)],
-    )
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.generate_html_report")
+    def test_generate_html_with_graph(self, mock_gen_html, mock_load):
+        """Test HTML generation with graph."""
+        mock_graph = MagicMock()
+        mock_load.return_value = mock_graph
+        mock_gen_html.return_value = "<html></html>"
 
-    rc = mod.main()
-    assert rc == 1
+        result = runner.invoke(app, ["html"])
 
-    # Ensure no partial file left on disk
-    assert not out_file.exists()
+        assert result.exit_code == 0
+        mock_gen_html.assert_called_with(mock_graph)
 
-    # User-facing message should be generic
-    captured = capsys.readouterr()
-    err_lower = captured.err.lower()
-    assert "report generation failed" in err_lower or "unexpected error" in err_lower
+
+class TestSaveReport:
+    """Test save_report command."""
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.export_report")
+    @patch("schema_report_cli.typer.echo")
+    def test_save_report_markdown_default(self, mock_echo, mock_export, mock_load, tmp_path):
+        """Test saving report in markdown format (default)."""
+        mock_graph = MagicMock()
+        mock_load.return_value = mock_graph
+        mock_export.return_value = "# Test Report"
+
+        output_file = tmp_path / "report.md"
+        result = runner.invoke(app, ["save", str(output_file)])
+
+        assert result.exit_code == 0
+        mock_load.assert_called_once()
+        mock_export.assert_called_once_with(mock_graph, fmt="md")
+
+        # Verify file was created
+        assert output_file.exists()
+        assert "Test Report" in output_file.read_text()
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.export_report")
+    def test_save_report_html_format(self, mock_export, mock_load, tmp_path):
+        """Test saving report in HTML format."""
+        mock_graph = MagicMock()
+        mock_load.return_value = mock_graph
+        mock_export.return_value = "<html><body>Test</body></html>"
+
+        output_file = tmp_path / "report.html"
+        result = runner.invoke(app, ["save", str(output_file), "--fmt", "html"])
+
+        assert result.exit_code == 0
+        mock_export.assert_called_once_with(mock_graph, fmt="html")
+
+        # Verify file content
+        assert output_file.exists()
+        content = output_file.read_text()
+        assert "<html>" in content
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.export_report")
+    @patch("schema_report_cli.typer.echo")
+    def test_save_report_outputs_message(self, mock_echo, mock_export, mock_load, tmp_path):
+        """Test that save command outputs success message."""
+        mock_graph = MagicMock()
+        mock_load.return_value = mock_graph
+        mock_export.return_value = "Report content"
+
+        output_file = tmp_path / "test.md"
+        result = runner.invoke(app, ["save", str(output_file)])
+
+        assert result.exit_code == 0
+        # Check that echo was called with a message containing the path
+        mock_echo.assert_called()
+        call_args = str(mock_echo.call_args)
+        assert "Report written" in call_args or str(output_file) in call_args
+
+
+class TestMain:
+    """Test main function."""
+
+    @patch("schema_report_cli.app")
+    def test_main_invokes_app(self, mock_app):
+        """Test that main invokes the typer app."""
+        main()
+        mock_app.assert_called_once()
+
+    @patch("schema_report_cli.app")
+    @patch("schema_report_cli.typer.echo")
+    @patch("schema_report_cli.sys.exit")
+    def test_main_handles_exception(self, mock_exit, mock_echo, mock_app):
+        """Test that main handles exceptions gracefully."""
+        mock_app.side_effect = ValueError("Test error")
+
+        main()
+
+        mock_exit.assert_called_once_with(1)
+        mock_echo.assert_called()
+
+
+class TestCLIIntegration:
+    """Integration tests for CLI commands."""
+
+    @patch("schema_report_cli.AssetRelationshipGraph")
+    @patch("schema_report_cli.generate_markdown_report")
+    def test_md_command_end_to_end(self, mock_gen_md, mock_graph_class):
+        """Test md command end-to-end."""
+        mock_graph_class.return_value = MagicMock()
+        mock_gen_md.return_value = "# Schema Report\n\n## Overview"
+
+        result = runner.invoke(app, ["md"])
+
+        assert result.exit_code == 0
+        assert "# Schema Report" in result.stdout
+
+    @patch("schema_report_cli.AssetRelationshipGraph")
+    @patch("schema_report_cli.generate_html_report")
+    def test_html_command_end_to_end(self, mock_gen_html, mock_graph_class):
+        """Test html command end-to-end."""
+        mock_graph_class.return_value = MagicMock()
+        mock_gen_html.return_value = "<html><body>Report</body></html>"
+
+        result = runner.invoke(app, ["html"])
+
+        assert result.exit_code == 0
+        assert "<html>" in result.stdout
+
+    @patch("schema_report_cli.AssetRelationshipGraph")
+    @patch("schema_report_cli.export_report")
+    def test_save_command_end_to_end(self, mock_export, mock_graph_class, tmp_path):
+        """Test save command end-to-end."""
+        mock_graph_class.return_value = MagicMock()
+        mock_export.return_value = "# Full Report Content"
+
+        output_file = tmp_path / "output.md"
+        result = runner.invoke(app, ["save", str(output_file)])
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+        assert "Full Report Content" in output_file.read_text()
+
+
+class TestErrorHandling:
+    """Test error handling scenarios."""
+
+    @patch("schema_report_cli.load_graph")
+    def test_md_command_handles_graph_error(self, mock_load):
+        """Test md command handles graph loading error."""
+        mock_load.side_effect = Exception("Graph error")
+
+        result = runner.invoke(app, ["md"])
+
+        # Should fail gracefully
+        assert result.exit_code != 0
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.generate_markdown_report")
+    def test_md_command_handles_generation_error(self, mock_gen, mock_load):
+        """Test md command handles report generation error."""
+        mock_load.return_value = MagicMock()
+        mock_gen.side_effect = Exception("Generation error")
+
+        result = runner.invoke(app, ["md"])
+
+        assert result.exit_code != 0
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.export_report")
+    def test_save_command_handles_write_error(self, mock_export, mock_load):
+        """Test save command handles file write error."""
+        mock_load.return_value = MagicMock()
+        mock_export.return_value = "content"
+
+        # Try to write to an invalid path
+        result = runner.invoke(app, ["save", "/invalid/path/file.md"])
+
+        # Should handle error gracefully
+        assert result.exit_code != 0
+
+
+class TestEdgeCases:
+    """Test edge cases and boundary conditions."""
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.export_report")
+    def test_save_with_empty_content(self, mock_export, mock_load, tmp_path):
+        """Test saving with empty content."""
+        mock_load.return_value = MagicMock()
+        mock_export.return_value = ""
+
+        output_file = tmp_path / "empty.md"
+        result = runner.invoke(app, ["save", str(output_file)])
+
+        assert result.exit_code == 0
+        assert output_file.exists()
+        assert output_file.read_text() == ""
+
+    @patch("schema_report_cli.AssetRelationshipGraph")
+    @patch("schema_report_cli.export_report")
+    def test_save_creates_parent_directories(self, mock_export, mock_graph_class, tmp_path):
+        """Test that save creates parent directories."""
+        mock_graph_class.return_value = MagicMock()
+        mock_export.return_value = "content"
+
+        nested_path = tmp_path / "deeply" / "nested" / "path" / "report.md"
+        result = runner.invoke(app, ["save", str(nested_path)])
+
+        assert result.exit_code == 0
+        assert nested_path.exists()
+        assert nested_path.parent.exists()
+
+    @patch("schema_report_cli.AssetRelationshipGraph")
+    @patch("schema_report_cli.generate_markdown_report")
+    def test_md_with_large_graph(self, mock_gen, mock_graph_class):
+        """Test md command with large graph."""
+        mock_graph = MagicMock()
+        # Simulate large graph
+        mock_graph.assets = {f"ASSET{i}": MagicMock() for i in range(1000)}
+        mock_graph_class.return_value = mock_graph
+        mock_gen.return_value = "# Large Report\n" + ("x" * 10000)
+
+        result = runner.invoke(app, ["md"])
+
+        assert result.exit_code == 0
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.export_report")
+    def test_save_overwrites_existing_file(self, mock_export, mock_load, tmp_path):
+        """Test that save overwrites existing file."""
+        mock_load.return_value = MagicMock()
+        mock_export.return_value = "new content"
+
+        output_file = tmp_path / "existing.md"
+        output_file.write_text("old content")
+
+        result = runner.invoke(app, ["save", str(output_file)])
+
+        assert result.exit_code == 0
+        assert output_file.read_text() == "new content"
+
+    def test_invalid_command(self):
+        """Test invoking invalid command."""
+        result = runner.invoke(app, ["invalid"])
+
+        assert result.exit_code != 0
+
+    @patch("schema_report_cli.load_graph")
+    @patch("schema_report_cli.export_report")
+    def test_save_with_special_characters_in_path(self, mock_export, mock_load, tmp_path):
+        """Test save with special characters in filename."""
+        mock_load.return_value = MagicMock()
+        mock_export.return_value = "content"
+
+        # Test with spaces and special chars (where allowed by OS)
+        output_file = tmp_path / "report with spaces.md"
+        result = runner.invoke(app, ["save", str(output_file)])
+
+        assert result.exit_code == 0
+        assert output_file.exists()

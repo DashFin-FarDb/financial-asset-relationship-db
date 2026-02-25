@@ -200,9 +200,8 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_content_not_empty(repo_engineer_body: str):
         """Test that body content is not empty."""
         assert len(repo_engineer_body.strip()) > 0
-
-    @staticmethod
-    def test_body_describes_purpose(repo_engineer_body: str):
+        # Trigger field structure is validated in dedicated tests; no additional
+        # trigger-specific assertions are needed here.
         """Test that body describes the microagent's purpose."""
         body_lower = repo_engineer_body.lower()
         # Should mention key responsibilities

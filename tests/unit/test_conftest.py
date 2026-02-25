@@ -106,8 +106,7 @@ class TestConftestHelpers:
             assert "tests/" in args
 
     @staticmethod
-    @pytest.mark.parametrize("args, expected", [([...], [...]), ([...], [...])])
-    def test_pytest_load_initial_conftests_preserves_non_cov_args(args, expected):
+    def test_pytest_load_initial_conftests_preserves_non_cov_args():
         """Test that non-coverage arguments are preserved."""
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests

@@ -78,38 +78,34 @@ class TestThreadSafeGraph:
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-        lock = threading.Lock()
+
+        # Use a wrapper class to track acquire/release without mutating the
+        # built-in lock (whose attributes are read-only in CPython).
+        lock_acquired: list = []
+        real_lock = threading.Lock()
+
+        class TrackingLock:
+            """Wrapper that delegates to a real lock and records calls."""
+
+            def acquire(self, *args, **kwargs):
+                """Record acquire and delegate."""
+                lock_acquired.append("acquired")
+                return real_lock.acquire(*args, **kwargs)
+
+            def release(self, *args, **kwargs):
+                """Record release and delegate."""
+                lock_acquired.append("released")
+                return real_lock.release(*args, **kwargs)
+
+            def __enter__(self):
+                self.acquire()
+                return self
+
+            def __exit__(self, *args):
+                self.release()
+
+        lock = TrackingLock()
         safe_graph = _ThreadSafeGraph(graph, lock)
-
-        # Track lock acquisition
-        lock_acquired = []
-
-        original_acquire = lock.acquire
-        original_release = lock.release
-
-        def tracked_acquire(*args, **kwargs):
-            """Record a lock acquire event and delegate to the original acquire call."""
-            lock_acquired.append("acquired")
-            return original_acquire(*args, **kwargs)
-
-        def tracked_release(*args, **kwargs):
-            """
-            Wrapper for a lock's release method that records each release event.
-
-            Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
-
-            Parameters:
-                *args: Positional arguments forwarded to the original release callable.
-                **kwargs: Keyword arguments forwarded to the original release callable.
-
-            Returns:
-                The value returned by the original release callable.
-            """
-            lock_acquired.append("released")
-            return original_release(*args, **kwargs)
-
-        lock.acquire = tracked_acquire
-        lock.release = tracked_release
 
         # Call a method
         equity = Equity(
