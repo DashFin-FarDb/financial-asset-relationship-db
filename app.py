@@ -327,7 +327,17 @@ class FinancialAssetApp:
             return empty_fig, gr.update(value=error_msg, visible=True)
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
-        """Generate comprehensive formulaic analysis of the asset graph."""
+        """Generate comprehensive formulaic analysis of the asset graph.
+        
+        This function generates a detailed formulaic analysis of the provided  asset
+        graph. It initializes the necessary analyzers and visualizers,  performs the
+        analysis on the graph, and creates various visualizations  such as a formula
+        dashboard and correlation network. Additionally, it  compiles a summary of the
+        analysis results and prepares formula selector  options for further use.
+        
+        Args:
+            graph_state (AssetRelationshipGraph): The state of the asset graph
+        """
         try:
             logger.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
@@ -398,7 +408,19 @@ class FinancialAssetApp:
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
-        """Format the formula analysis summary for display."""
+        """Format the formula analysis summary for display.
+        
+        This static method generates a formatted summary of the formulaic analysis
+        based on the provided summary and analysis results. It compiles key metrics
+        such as the total number of identified formulas, average reliability, and
+        empirical data points. Additionally, it categorizes formulas and highlights
+        key insights and strongest asset correlations, if available.
+        
+        Args:
+            summary (Dict): A dictionary containing summary statistics and insights.
+            analysis_results (Dict): A dictionary containing analysis results, including
+                formulas and empirical relationships.
+        """
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
