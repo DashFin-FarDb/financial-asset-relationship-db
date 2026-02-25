@@ -228,7 +228,9 @@ class TestDeletedFilesImpact:
             assert readme_file.exists(), "scripts/README.md should exist"
 
     def test_vscode_settings_removed(self, repo_root: Path) -> None:
-        """.vscode/settings.json should be removed if this branch deleted it."""
+        """
+        Ensure the repository does not contain a .vscode/settings.json file at the repository root.
+        """
         vscode_file = repo_root / ".vscode" / "settings.json"
         assert not vscode_file.exists(), ".vscode/settings.json should be deleted"
 
