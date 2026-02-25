@@ -88,11 +88,6 @@ def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -
     with graph_lock:
         graph_factory = factory
         graph = None
-    """Set the callable used to construct the global AssetRelationshipGraph."""
-    global graph, graph_factory
-    with graph_lock:
-        graph_factory = factory
-        graph = None
 
 
 def reset_graph() -> None:
