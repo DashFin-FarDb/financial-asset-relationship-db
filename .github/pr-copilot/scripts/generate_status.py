@@ -128,13 +128,13 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
 def format_checklist(status: PRStatus) -> str:
     """Builds a Markdown task checklist reflecting PR readiness and status.
-    
+
     This function generates a checklist based on the provided PRStatus,  indicating
     whether the pull request is ready for review, if it has  received approval, the
     status of CI checks, any merge conflicts,  and the presence of change requests.
     Each item in the checklist  is marked accordingly to reflect the current state
     of the pull request.
-    
+
     Args:
         status (PRStatus): Aggregated pull request data used to determine
     """

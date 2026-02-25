@@ -14,7 +14,7 @@ from urllib.parse import unquote, urlparse
 
 def _get_database_url() -> str:
     """Retrieve the DATABASE_URL environment variable.
-    
+
     Raises:
         ValueError: If the DATABASE_URL environment variable is not set.
     """
@@ -99,7 +99,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     The function ensures that the `:memory:` token is not part of a longer
     filesystem path  and does not consider the `mode=memory` URI parameter as in-
     memory.
-    
+
     Args:
         path (str | None): Database path or URI to evaluate. If omitted, the"""
     target = DATABASE_PATH if path is None else path
@@ -231,11 +231,11 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """Retrieve the first row from the executed SQL query.
-    
+
     Args:
         query (str): SQL statement to execute.
         parameters (tuple | list | None): Optional sequence of values to bind into the query; defaults to no parameters.
-    
+
     Returns:
         sqlite3.Row | None: The first result row as a `sqlite3.Row`, or `None` if no
             rows are returned.
@@ -247,12 +247,12 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
 
 def fetch_value(query: str, parameters: tuple | list | None = None):
     """Fetches the first column value from the first row of a query result.
-    
+
     Args:
         query (str): SQL query to execute; may include parameter placeholders.
         parameters (tuple | list | None): Sequence of parameters for the query
             placeholders.
-    
+
     Returns:
         The first column value if a row is returned, `None` otherwise.
     """

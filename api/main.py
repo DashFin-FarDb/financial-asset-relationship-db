@@ -352,9 +352,7 @@ class VisualizationDataResponse(BaseModel):
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
-):
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Create a JWT access token for authenticated users."""
     _ = request
@@ -367,17 +365,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_active_user)
-):
+async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Retrieve the currently authenticated user."""
     _ = request
@@ -410,7 +404,7 @@ async def health_check():
 @app.get("/api/assets", response_model=List[AssetResponse])
 async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = None):
     """Retrieve a list of assets, optionally filtered by asset class and sector.
-    
+
     This function queries the graph for assets and applies optional filters  based
     on the provided `asset_class` and `sector` parameters. It iterates  through the
     assets, checking each asset against the filters, and builds  a list of
@@ -469,12 +463,10 @@ async def get_asset_detail(asset_id: str):
         raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
-@app.get(
-    "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
-)
+@app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
 async def get_asset_relationships(asset_id: str):
     """List outgoing relationships for the specified asset.
-    
+
     This function retrieves the outgoing relationships for a given asset identified
     by the asset_id. It checks the existence of the asset in the graph and raises
     an asset not found error if the asset does not exist. If relationships are
@@ -482,7 +474,7 @@ async def get_asset_relationships(asset_id: str):
     asset IDs, relationship types, and strengths. Any exceptions encountered during
     the process are logged, and a 500 HTTPException is raised for unexpected
     errors.
-    
+
     Args:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
     """
@@ -538,7 +530,7 @@ async def get_all_relationships():
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics():
     """Return computed network metrics for the asset relationship graph.
-    
+
     This function retrieves the asset relationship graph using the get_graph()
     function and calculates various metrics, including total assets and
     relationships. It builds an asset class distribution map and computes  degree

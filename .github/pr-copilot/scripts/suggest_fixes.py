@@ -109,11 +109,11 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
     """Determine if a review comment contains any actionable keyword.
-    
+
     Args:
         comment_body (str): The raw text of the review comment.
         actionable_keywords (List[str]): Keywords to look for; matching is case-insensitive.
-    
+
     Returns:
         bool: True if at least one keyword is present, False otherwise.
     """
@@ -123,11 +123,11 @@ def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
 
 def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[str, Any]]:
     """Collect actionable review comments from a pull request.
-    
+
     Args:
         pr (Any): Pull request object providing get_review_comments() and get_reviews().
         actionable_keywords (List[str]): Keywords used to determine whether a comment is actionable.
-    
+
     Returns:
         List[Dict[str, Any]]: A list of actionable item dictionaries.
     """
