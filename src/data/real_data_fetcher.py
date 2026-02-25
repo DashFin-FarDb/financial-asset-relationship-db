@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -66,12 +67,12 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """
-        Builds an AssetRelationshipGraph using cached data, live market data, or a fallback sample.
+        Builds and returns an AssetRelationshipGraph populated from cache, live market data, or a fallback sample.
 
-        Attempts to load and return a cached graph if a cache file exists. If network access is disabled, returns the configured fallback graph. Otherwise, fetches equities, bonds, commodities, and currencies, adds them and generated regulatory events to a new graph, builds relationships, and persists the graph to cache when a cache path is configured. If any step of live data fetching or graph construction fails, a fallback/sample graph is returned.
+        Attempts to load a cached graph if available; if network access is disabled or live data collection fails, returns the configured fallback graph. When network access is enabled and fetching succeeds, the graph is populated with equities, commodities, currencies, generated regulatory events, and their relationships, and is persisted to cache if a cache path is configured.
 
         Returns:
-            AssetRelationshipGraph: Graph populated from cache or live market data; if loading or fetching fails or network is disabled, a fallback/sample graph is returned.
+            AssetRelationshipGraph: Graph populated from cache or live data, or a fallback/sample graph on failure or when network is disabled.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -168,12 +169,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
-        Retrieve current market data for a predefined set of major equities and return them as Equity instances.
+        Fetch current market data for a fixed set of major equities.
 
-        Symbols that have no recent price data or for which fetching fails are omitted from the result.
+        Fetches price and basic fundamentals for a predefined list of symbols and constructs Equity instances for symbols whose data is successfully retrieved. Symbols with no recent price data or for which fetching fails are omitted.
 
         Returns:
-            List[Equity]: Equity objects for successfully fetched symbols; symbols with missing or failed data are excluded.
+            List[Equity]: Equity objects for symbols with successfully retrieved market data; symbols with missing or failed data are excluded.
         """
         yf = _get_yfinance()
         equity_symbols = {
@@ -225,21 +226,7 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """
-        Fetch bond and treasury ETF data and construct Bond objects used as
-        fixed-income proxies.
-
-        Retrieves price and metadata for a small set of bond and treasury ETFs
-        (used as proxies for individual bonds). If yield information is missing,
-        `yield_to_maturity` defaults to 0.03 and `coupon_rate` is set to an
-        approximate value. Maturity dates and some fields are approximate for
-        ETF-based proxies.
-
-        Returns:
-            bonds (List[Bond]): List of Bond instances populated with id,
-                symbol, name, asset_class, sector, price, yield_to_maturity,
-                coupon_rate, maturity_date, credit_rating, and issuer_id.
-        """
+        """Fetch real bond and treasury data."""
         yf = _get_yfinance()
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
@@ -272,9 +259,9 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(info.get("yield", 0.03)),  # Default 3% if not available
-                    coupon_rate=info.get("yield", 0.025),  # Approximate
-                    maturity_date="2035-01-01",  # Approximate for ETFs
+                    yield_to_maturity=(info.get("yield", 0.03)),
+                    coupon_rate=info.get("yield", 0.025),
+                    maturity_date="2035-01-01",
                     credit_rating=rating,
                     issuer_id=issuer_id,
                 )
@@ -289,20 +276,17 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """
-        Retrieve current commodity futures and convert them into Commodity instances.
+        Builds Commodity objects for a predefined set of commodity futures.
 
-        Each available symbol produces a Commodity populated with price, contract_size,
-        delivery_date (approximate), and volatility. Symbols with no recent price data
-        are skipped.
+        Each returned Commodity includes current price, contract_size, delivery_date (UTC, 90 days from now), and volatility. Symbols without recent price data are excluded.
 
         Returns:
-            List[Commodity]: List of Commodity objects for symbols with available price data.
+            List[Commodity]: Commodity objects for symbols with available price data.
         """
         yf = _get_yfinance()
         # Define key commodity futures and their characteristics.
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
-            # Example entries (adjust or extend as needed elsewhere in the file):
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
         }
@@ -324,6 +308,9 @@ class RealDataFetcher:
 
                 current_price = float(hist["Close"].iloc[-1])
 
+                # Calculate future delivery date (3 months from now) using a TZ-aware datetime
+                delivery_date = (datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d")
+
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
                     symbol=symbol,
@@ -332,7 +319,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date="2025-03-31",  # Approximate
+                    delivery_date=delivery_date,
                     volatility=volatility,
                 )
                 commodities.append(commodity)
@@ -402,12 +389,12 @@ class RealDataFetcher:
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
-        Produce a small list of recent sample regulatory events associated with fetched assets.
+        Create a small list of sample regulatory events tied to specific assets.
 
-        Each item is a RegulatoryEvent containing explicit fields: `id`, `asset_id`, `event_type` (RegulatoryActivity), `date` (ISO format YYYY-MM-DD), `description`, `impact_score` (float), and `related_assets` (list of asset ids).
+        Each event includes `id`, `asset_id`, `event_type` (RegulatoryActivity), `date` (ISO format YYYY-MM-DD), `description`, `impact_score` (float), and `related_assets` (list of asset ids).
 
         Returns:
-            List[RegulatoryEvent]: Three sample events: an Apple earnings report, a Microsoft dividend announcement, and an Exxon (XOM) SEC filing.
+            List[RegulatoryEvent]: Three sample events: an Apple earnings report, a Microsoft dividend announcement, and an Exxon SEC filing.
         """
         # Create some realistic recent events
         events = []

@@ -797,3 +797,236 @@ class TestRegressionTests:
         assert "❓ **Questions:** 1" in result
         # Should not show priority warning (no critical/bugs)
         assert "Address critical issues and bugs first" not in result
+
+
+class TestComplexParsingScenarios:
+    """Test complex real-world parsing scenarios."""
+
+    def test_extract_code_suggestions_with_nested_code_blocks(self):
+        """extract_code_suggestions handles nested code blocks."""
+        comment = """
+```suggestion
+def outer():
+    ```
+    # This is inside a comment
+    ```
+    return "value"
+```
+"""
+        suggestions = extract_code_suggestions(comment)
+
+        assert len(suggestions) == 1
+        assert "def outer()" in suggestions[0]["content"]
+
+    def test_extract_code_suggestions_with_multiple_languages(self):
+        """extract_code_suggestions extracts suggestions with language specifiers."""
+        comment = """
+```suggestion
+# Python code
+print("hello")
+```
+
+Also, change to `const value = 42` in JavaScript.
+"""
+        suggestions = extract_code_suggestions(comment)
+
+        assert len(suggestions) == 2
+        assert "print" in suggestions[0]["content"]
+        assert "const value = 42" in suggestions[1]["content"]
+
+    def test_categorize_comment_with_multiple_keywords(self):
+        """categorize_comment prioritizes highest severity when multiple keywords present."""
+        comment = "This bug is a security vulnerability that needs style fixes"
+        category, priority = categorize_comment(comment)
+
+        # Security (critical) should win
+        assert category == "critical"
+        assert priority == 1
+
+    def test_parse_review_comments_with_very_long_comment(self):
+        """parse_review_comments handles extremely long comments."""
+        mock_pr = Mock()
+
+        # Create a comment with 10,000 characters
+        long_body = "Please fix this. " * 600  # ~10k characters
+
+        comment = Mock()
+        comment.id = 1
+        comment.user = Mock(login="reviewer")
+        comment.body = long_body
+        comment.path = "file.py"
+        comment.original_line = 1
+        comment.html_url = "https://test.com"
+        comment.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+
+        mock_pr.get_review_comments.return_value = [comment]
+        mock_pr.get_reviews.return_value = []
+
+        keywords = ["please", "fix"]
+        items = parse_review_comments(mock_pr, keywords)
+
+        assert len(items) == 1
+        assert items[0]["body"] == long_body  # Full body preserved
+
+    def test_load_config_with_empty_config_file(self, tmp_path, monkeypatch):
+        """load_config handles empty or minimal config files."""
+        config_dir = tmp_path / ".github"
+        config_dir.mkdir(parents=True)
+        config_file = config_dir / "pr-copilot-config.yml"
+
+        # Write a valid but different YAML structure
+        config_file.write_text("review_handling:\n  actionable_keywords:\n    - custom_keyword")
+
+        monkeypatch.chdir(tmp_path)
+
+        config = load_config()
+
+        # Should load the custom config successfully
+        assert "review_handling" in config
+        assert "actionable_keywords" in config["review_handling"]
+        assert "custom_keyword" in config["review_handling"]["actionable_keywords"]
+
+    def test_extract_code_suggestions_with_backticks_in_code(self):
+        """extract_code_suggestions handles code containing backticks."""
+        comment = "Replace with `value = `nested``.  More text."
+        suggestions = extract_code_suggestions(comment)
+
+        # Should extract despite nested backticks
+        assert len(suggestions) >= 1
+
+    def test_parse_review_comments_with_unicode_in_code_suggestions(self):
+        """parse_review_comments handles unicode in code suggestions."""
+        mock_pr = Mock()
+
+        comment = Mock()
+        comment.id = 1
+        comment.user = Mock(login="reviewer")
+        comment.body = """
+Please update:
+```suggestion
+print("Hello 世界! 🌍")
+```
+"""
+        comment.path = "file.py"
+        comment.original_line = 1
+        comment.html_url = "https://test.com"
+        comment.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
+
+        mock_pr.get_review_comments.return_value = [comment]
+        mock_pr.get_reviews.return_value = []
+
+        keywords = ["please"]
+        items = parse_review_comments(mock_pr, keywords)
+
+        assert len(items) == 1
+        assert len(items[0]["code_suggestions"]) == 1
+        assert "世界" in items[0]["code_suggestions"][0]["content"]
+        assert "🌍" in items[0]["code_suggestions"][0]["content"]
+
+    def test_generate_fix_proposals_with_no_file_or_line_info(self):
+        """generate_fix_proposals handles review-level comments without file/line."""
+        items = [
+            {
+                "id": 1,
+                "author": "reviewer",
+                "body": "Please update the overall approach.",
+                "category": "improvement",
+                "priority": 2,
+                "file": None,  # No file
+                "line": None,  # No line
+                "code_suggestions": [],
+                "url": "https://test.com",
+                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
+            }
+        ]
+
+        result = generate_fix_proposals(items)
+
+        # Should generate report without file/line info
+        assert "reviewer" in result
+        assert "update the overall approach" in result
+        # Should not show Location line if file/line are None
+        assert "Location:" not in result or "None" not in result
+
+    def test_is_actionable_with_special_characters_in_keywords(self):
+        """is_actionable handles keywords with special regex characters."""
+        keywords = ["should.", "could?", "fix*"]
+        comment = "You should. fix* this."
+
+        # Should match even with special chars (treated as literals)
+        assert is_actionable(comment, keywords) is True
+
+    def test_categorize_comment_with_html_tags(self):
+        """categorize_comment handles comments with HTML tags."""
+        comment = "<p>This is a <strong>critical</strong> <script>alert('xss')</script> bug</p>"
+        category, priority = categorize_comment(comment)
+
+        # Should still categorize based on keywords
+        assert category == "critical"
+        assert priority == 1
+
+    def test_parse_review_comments_sorts_same_priority_by_date(self):
+        """parse_review_comments sorts items with same priority by creation date."""
+        mock_pr = Mock()
+
+        comment1 = Mock()
+        comment1.id = 1
+        comment1.user = Mock(login="reviewer")
+        comment1.body = "Please fix issue 1."
+        comment1.path = "file.py"
+        comment1.original_line = 1
+        comment1.html_url = "https://test.com/1"
+        comment1.created_at = datetime(2024, 1, 3, tzinfo=timezone.utc)  # Latest
+
+        comment2 = Mock()
+        comment2.id = 2
+        comment2.user = Mock(login="reviewer")
+        comment2.body = "Please fix issue 2."
+        comment2.path = "file.py"
+        comment2.original_line = 2
+        comment2.html_url = "https://test.com/2"
+        comment2.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)  # Earliest
+
+        comment3 = Mock()
+        comment3.id = 3
+        comment3.user = Mock(login="reviewer")
+        comment3.body = "Please fix issue 3."
+        comment3.path = "file.py"
+        comment3.original_line = 3
+        comment3.html_url = "https://test.com/3"
+        comment3.created_at = datetime(2024, 1, 2, tzinfo=timezone.utc)  # Middle
+
+        mock_pr.get_review_comments.return_value = [comment1, comment2, comment3]
+        mock_pr.get_reviews.return_value = []
+
+        keywords = ["please", "fix"]
+        items = parse_review_comments(mock_pr, keywords)
+
+        # All have same priority (improvement=2), so should be sorted by date
+        assert len(items) == 3
+        assert items[0]["id"] == 2  # Earliest
+        assert items[1]["id"] == 3  # Middle
+        assert items[2]["id"] == 1  # Latest
+
+    def test_generate_fix_proposals_escapes_markdown_in_urls(self):
+        """generate_fix_proposals handles URLs with special markdown characters."""
+        items = [
+            {
+                "id": 1,
+                "author": "reviewer",
+                "body": "Please fix.",
+                "category": "improvement",
+                "priority": 2,
+                "file": "file.py",
+                "line": 1,
+                "code_suggestions": [],
+                "url": "https://github.com/repo/pull/1#comment-1_with_special-chars",
+                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
+            }
+        ]
+
+        result = generate_fix_proposals(items)
+
+        # URL should be present in markdown link format
+        assert "https://github.com/repo/pull/1#comment-1_with_special-chars" in result
+        assert "[View Comment]" in result

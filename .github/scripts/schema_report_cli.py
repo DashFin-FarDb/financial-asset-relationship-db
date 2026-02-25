@@ -54,10 +54,7 @@ def _find_project_root(start: Path) -> Path:
 
     # If no project root could be determined, fail explicitly rather than
     # returning None implicitly. This matches the documented contract.
-    raise RuntimeError(
-        f"Could not determine project root starting from {start} or current working directory {cwd}"
-    )
-
+    raise RuntimeError(f"Could not determine project root starting from {start} or current working directory {cwd}")
 
 
 PROJECT_ROOT = _find_project_root(Path(__file__).resolve())
@@ -301,9 +298,11 @@ def write_atomic(target: Path, content: str) -> None:
             tmp_path.unlink()
         finally:
             raise
+
+
 def generate_report(logger: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
-     """
-     Generate a schema report and write it to the given file path or stdout.
+    """
+    Generate a schema report and write it to the given file path or stdout.
 
     Args:
         logger: Logger instance to record diagnostics.

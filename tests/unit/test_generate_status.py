@@ -73,7 +73,12 @@ class TestPRStatus:
             labels=["bug", "enhancement"],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=2,
             check_runs=[CheckRunInfo("test", "completed", "success")],
         )
@@ -279,7 +284,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,  # No conflicts
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[CheckRunInfo("test", "completed", "success")],  # All pass
         )
@@ -309,7 +319,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -335,7 +350,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 1, "total": 1},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 1,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -361,7 +381,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[
                 CheckRunInfo("test1", "completed", "success"),
@@ -391,7 +416,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -417,7 +447,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=False,
             mergeable_state="dirty",
-            review_stats={"approved": 1, "changes_requested": 0, "commented": 0, "total": 1},
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -443,7 +478,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=None,
             mergeable_state="unknown",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -469,7 +509,12 @@ class TestFormatChecklist:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 2, "commented": 1, "total": 3},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 2,
+                "commented": 1,
+                "total": 3,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -563,7 +608,12 @@ class TestGenerateMarkdown:
             labels=["feature", "security"],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 2, "changes_requested": 0, "commented": 1, "total": 3},
+            review_stats={
+                "approved": 2,
+                "changes_requested": 0,
+                "commented": 1,
+                "total": 3,
+            },
             open_thread_count=4,
             check_runs=[CheckRunInfo("CI", "completed", "success")],
         )
@@ -606,7 +656,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -631,7 +686,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -657,7 +717,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=True,
             mergeable_state="clean",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -680,7 +745,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=False,
             mergeable_state="dirty",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -703,7 +773,12 @@ class TestGenerateMarkdown:
             labels=[],
             mergeable=None,
             mergeable_state="unknown",
-            review_stats={"approved": 0, "changes_requested": 0, "commented": 0, "total": 0},
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
             open_thread_count=0,
             check_runs=[],
         )
@@ -927,3 +1002,300 @@ class TestEndToEndScenarios:
         assert "Unit Tests" in markdown or "✅ **Passed:** 4" in markdown
         assert "[x] All CI checks passing" in markdown
         assert "[x] Get approval from reviewer" in markdown
+
+
+class TestSecurityAndEdgeCases:
+    """Additional tests for security concerns and edge cases."""
+
+    def test_fetch_pr_status_handles_special_characters_in_labels(self):
+        """fetch_pr_status correctly handles labels with special characters."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        # Configure PR with special characters in labels
+        mock_pr.number = 1
+        mock_pr.title = "Test PR"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 1
+        mock_pr.deletions = 1
+
+        # Labels with special chars: quotes, unicode, HTML-like content
+        label1 = Mock()
+        label1.name = 'label-with-"quotes"'
+        label2 = Mock()
+        label2.name = "unicode: 你好 🎉"
+        label3 = Mock()
+        label3.name = "<script>alert('xss')</script>"
+        mock_pr.labels = [label1, label2, label3]
+
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+        mock_pr.get_reviews.return_value = []
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = []
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        # All labels should be preserved exactly as-is
+        assert len(result.labels) == 3
+        assert 'label-with-"quotes"' in result.labels
+        assert "unicode: 你好 🎉" in result.labels
+        assert "<script>alert('xss')</script>" in result.labels
+
+    def test_generate_markdown_sanitizes_pr_title(self):
+        """generate_markdown handles PR titles with markdown/HTML characters."""
+        status = PRStatus(
+            number=1,
+            title="Fix <script>alert('xss')</script> issue with **bold** and `code`",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = generate_markdown(status)
+
+        # Title should be included verbatim (markdown format is expected)
+        assert "<script>alert('xss')</script>" in result
+        assert "**bold**" in result
+        assert "`code`" in result
+
+    def test_format_checks_section_handles_many_check_runs(self):
+        """format_checks_section handles PRs with large numbers of check runs."""
+        # Simulate PR with 100 check runs
+        checks = []
+        for i in range(50):
+            checks.append(CheckRunInfo(f"test-{i}", "completed", "success"))
+        for i in range(30):
+            checks.append(CheckRunInfo(f"build-{i}", "completed", "failure"))
+        for i in range(20):
+            checks.append(CheckRunInfo(f"lint-{i}", "in_progress", None))
+
+        result = format_checks_section(checks)
+
+        assert "✅ **Passed:** 50" in result
+        assert "❌ **Failed:** 30" in result
+        assert "⏳ **Pending:** 20" in result
+        assert "📊 **Total:** 100" in result
+        # Should list all failed checks
+        assert result.count("❌ build-") == 30
+
+    def test_fetch_pr_status_with_duplicate_check_run_names(self):
+        """fetch_pr_status handles multiple check runs with the same name."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        mock_pr.number = 1
+        mock_pr.title = "Test"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 1
+        mock_pr.deletions = 1
+        mock_pr.labels = []
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+        mock_pr.get_reviews.return_value = []
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        # Multiple check runs with same name (retry scenario)
+        check1 = Mock()
+        check1.name = "CI Test"
+        check1.status = "completed"
+        check1.conclusion = "failure"
+        check2 = Mock()
+        check2.name = "CI Test"  # Same name as check1
+        check2.status = "completed"
+        check2.conclusion = "success"
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = [check1, check2]
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        # Should include both check runs
+        assert len(result.check_runs) == 2
+        assert result.check_runs[0].name == "CI Test"
+        assert result.check_runs[1].name == "CI Test"
+
+    def test_write_output_handles_large_reports(self, capsys, tmp_path, monkeypatch):
+        """write_output handles very large report content."""
+        monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        monkeypatch.setattr("tempfile.gettempdir", lambda: str(tmp_path))
+
+        # Create a large report (1MB+)
+        large_content = "Test line\n" * 100000
+
+        write_output(large_content)
+
+        # Should successfully write to temp file
+        temp_file = tmp_path / "pr_status_report.md"
+        assert temp_file.exists()
+        assert temp_file.stat().st_size >= 900000  # Large file (900KB+)
+
+    def test_format_checklist_with_extremely_high_check_count(self):
+        """format_checklist handles PRs with many failing checks."""
+        # Create 500 check runs, 250 failing
+        checks = []
+        for i in range(250):
+            checks.append(CheckRunInfo(f"test-{i}", "completed", "success"))
+        for i in range(250):
+            checks.append(CheckRunInfo(f"failing-{i}", "completed", "failure"))
+
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
+            open_thread_count=0,
+            check_runs=checks,
+        )
+
+        result = format_checklist(status)
+
+        # Should show correct fraction
+        assert "- [ ] All CI checks passing (250/500 passed)" in result
+
+    def test_generate_markdown_with_very_long_pr_title(self):
+        """generate_markdown handles extremely long PR titles."""
+        long_title = "A" * 500  # 500 character title
+
+        status = PRStatus(
+            number=1,
+            title=long_title,
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = generate_markdown(status)
+
+        # Should include full title
+        assert long_title in result
+
+    def test_fetch_pr_status_with_none_review_states(self):
+        """fetch_pr_status handles reviews with None or unexpected states."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        mock_pr.number = 1
+        mock_pr.title = "Test"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 1
+        mock_pr.deletions = 1
+        mock_pr.labels = []
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+
+        # Reviews with unexpected states
+        review1 = Mock(state=None)
+        review2 = Mock(state="DISMISSED")
+        review3 = Mock(state="PENDING")
+        mock_pr.get_reviews.return_value = [review1, review2, review3]
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = []
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        # Should not count unexpected states in approved/changes_requested/commented
+        assert result.review_stats["approved"] == 0
+        assert result.review_stats["changes_requested"] == 0
+        assert result.review_stats["commented"] == 0
+        assert result.review_stats["total"] == 3  # But total should include them
+
+    def test_format_checks_section_with_null_conclusion(self):
+        """format_checks_section correctly handles checks with null conclusion."""
+        checks = [
+            CheckRunInfo("test1", "completed", None),  # Completed but no conclusion
+            CheckRunInfo("test2", "in_progress", None),
+        ]
+
+        result = format_checks_section(checks)
+
+        # Should categorize appropriately
+        assert "⏳ **Pending:** 1" in result  # in_progress
+        assert "⏭️ **Skipped:** 1" in result  # completed with None conclusion
