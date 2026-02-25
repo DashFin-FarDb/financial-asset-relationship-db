@@ -85,7 +85,13 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
         500: {
             "description": "Internal server error while listing assets.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
@@ -141,12 +147,20 @@ async def get_assets(
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+            "content": {
+                "application/json": {"example": {"detail": "Asset not found."}}
+            },
         },
         500: {
             "description": "Internal server error while retrieving asset.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
@@ -194,12 +208,22 @@ async def get_asset_detail(asset_id: str):
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+            "content": {
+                "application/json": {"example": {"detail": "Asset not found."}}
+            },
         },
         500: {
-            "description": ("Internal server error while retrieving asset relationships."),
+            "description": (
+                "Internal server error while retrieving asset relationships."
+            ),
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
