@@ -20,9 +20,9 @@ os.environ.setdefault("ADMIN_FULL_NAME", "Admin User")
 import httpx
 import pytest
 import pytest_asyncio
-from api.main import app
 from fastapi.security import OAuth2PasswordRequestForm
 
+from api.main import app
 
 # Disable rate limiting to avoid slowapi interference in test runs.
 app.state.limiter.enabled = False
