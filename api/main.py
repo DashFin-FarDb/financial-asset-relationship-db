@@ -105,7 +105,20 @@ def reset_graph() -> None:
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
-    """Initialize the asset relationship graph based on configuration."""
+    """Construct the asset relationship graph using the configured factory or environment-
+    backed data sources.
+
+    If a `graph_factory` is configured it is invoked. Otherwise, if `GRAPH_CACHE_PATH` is set
+    a real-data graph is created (network access enabled when `USE_REAL_DATA_FETCHER` 
+    indicates real data should be used). 
+    
+    If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true,
+    `REAL_DATA_CACHE_PATH` is consulted to create a real-data graph. If neither real-data path
+    nor real-data mode is available, a sample database graph is returned.
+
+    Returns:
+        AssetRelationshipGraph: The initialized graph instance.
+     """
     if graph_factory is not None:
         return graph_factory()
 
