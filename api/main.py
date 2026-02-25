@@ -144,7 +144,9 @@ app.include_router(graph.router)
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(
+    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
+):
     """
     Create a JWT access token for a user authenticated with a username and password.
 
@@ -165,13 +167,17 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
+async def read_users_me(
+    request: Request, current_user: User = Depends(get_current_active_user)
+):
     """
     Retrieve the currently authenticated user.
 
