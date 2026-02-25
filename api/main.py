@@ -164,7 +164,9 @@ ENV = os.getenv("ENV", "development").lower()
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(
+    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
+):
     """
     Create a JWT access token for a user authenticated with a username and password.
 
@@ -185,14 +187,17 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
-
+async def read_users_me(
+    request: Request, current_user: User = Depends(get_current_active_user)
+):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Retrieve the currently authenticated user."""
     _ = request
@@ -216,14 +221,18 @@ def validate_origin(origin: str) -> bool:
     current_env = os.getenv("ENV", "development").lower()
 
     # Get allowed origins from environment variable or use default
-    allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
+    allowed_origins = [
+        origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin
+    ]
 
     # If origin is in explicitly allowed list, return True
     if origin in allowed_origins and origin:
         return True
 
     # Allow HTTP localhost only in development
-    if current_env == "development" and re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
+    if current_env == "development" and re.match(
+        r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin
+    ):
         return True
     # Allow HTTPS localhost in any environment
     if re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
@@ -312,14 +321,14 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     """Serialize an Asset object to a dictionary representation.
-    
+
     This function converts an Asset object into a dictionary format, including
     essential fields such as id, symbol, name, and asset_class. It also allows for
     the inclusion of additional fields based on the asset's attributes and the
     include_issuer flag, which determines if the issuer_id should be part of the
     serialized output. The function dynamically checks for the presence of various
     asset-specific fields and adds them to the dictionary if they are not None.
-    
+
     Args:
         asset: Asset object to serialize.
         include_issuer: Whether to include issuer_id field (for detail views).
@@ -431,7 +440,13 @@ async def health_check():
         500: {
             "description": "Internal server error while listing assets.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
@@ -487,25 +502,33 @@ async def get_assets(
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+            "content": {
+                "application/json": {"example": {"detail": "Asset not found."}}
+            },
         },
         500: {
             "description": "Internal server error while retrieving asset.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
 )
 async def get_asset_detail(asset_id: str):
     """Retrieve detailed information for the asset identified by `asset_id`.
-    
+
     Args:
         asset_id (str): Identifier of the asset whose details are requested.
-    
+
     Returns:
         AssetResponse: Detailed asset information including core fields and an
-    
+
     Raises:
         HTTPException: 404 if the asset is not found.
         HTTPException: 500 for unexpected errors while retrieving the asset.
@@ -536,25 +559,35 @@ async def get_asset_detail(asset_id: str):
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+            "content": {
+                "application/json": {"example": {"detail": "Asset not found."}}
+            },
         },
         500: {
-            "description": ("Internal server error while retrieving asset relationships."),
+            "description": (
+                "Internal server error while retrieving asset relationships."
+            ),
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
 )
 async def get_asset_relationships(asset_id: str):
     """List outgoing relationships for the specified asset.
-    
+
     This function retrieves the outgoing relationships for a given asset identified
     by  the asset_id. It first checks if the asset exists in the graph; if not, it
     raises  an HTTPException. If the asset is found, it collects all outgoing
     relationships  and returns them as a list of RelationshipResponse objects, each
     containing  source_id, target_id, relationship_type, and strength.
-    
+
     Args:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
     """
@@ -595,7 +628,13 @@ async def get_asset_relationships(asset_id: str):
         500: {
             "description": "Internal server error while listing relationships.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
@@ -642,7 +681,13 @@ async def get_all_relationships():
         500: {
             "description": "Internal server error while computing metrics.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
@@ -708,14 +753,20 @@ async def get_metrics():
         500: {
             "description": ("Internal server error while building visualization data."),
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
 )
 async def get_visualization_data():
     """Provide nodes and edges prepared for 3D visualization of the asset graph.
-    
+
     This function retrieves the asset graph and constructs a list of node
     dictionaries, each containing attributes such as id, name, symbol,
     asset_class, x, y, z, color, and size. It also builds a list of edge
@@ -801,7 +852,13 @@ async def get_asset_classes():
         500: {
             "description": ("Internal server error while retrieving sectors."),
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
