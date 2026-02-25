@@ -228,34 +228,51 @@ class FinancialAssetApp:
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """Refreshes all visualizations and reports in the Gradio interface."""
-        graph = (
-            self.ensure_graph()
-        )  # Use self.ensure_graph to get the latest graph state
-        logger.info("Refreshing all visualization outputs")
-        viz_3d = visualize_3d_graph(graph)
-        f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
-        schema_rpt = generate_schema_report(graph)
-        asset_choices = list(graph.assets.keys())
-        logger.info(
-            "Successfully refreshed outputs for %s assets",
-            len(asset_choices),
-        )
-        return (
-            viz_3d,
-            f1,
-            f2,
-            f3,
-            metrics_txt,
-            schema_rpt,
-            gr.update(
-                choices=asset_choices,
-                value=None,
-            ),
-            gr.update(
-                value="",
-                visible=False,
-            ),
-        )
+        try:
+            graph = (
+                self.ensure_graph()
+            )  # Use self.ensure_graph to get the latest graph state
+            logger.info("Refreshing all visualization outputs")
+            viz_3d = visualize_3d_graph(graph)
+            f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
+            schema_rpt = generate_schema_report(graph)
+            asset_choices = list(graph.assets.keys())
+            logger.info(
+                "Successfully refreshed outputs for %s assets",
+                len(asset_choices),
+            )
+            return (
+                viz_3d,
+                f1,
+                f2,
+                f3,
+                metrics_txt,
+                schema_rpt,
+                gr.update(
+                    choices=asset_choices,
+                    value=None,
+                ),
+                gr.update(
+                    value="",
+                    visible=False,
+                ),
+            )
+        except Exception as e:
+            logger.exception("Error refreshing outputs: %s", e)
+            empty = gr.update()
+            return (
+                empty,
+                empty,
+                empty,
+                empty,
+                empty,
+                empty,
+                empty,
+                gr.update(
+                    value=f"Error refreshing outputs: {e}",
+                    visible=True,
+                ),
+            )
 
     def refresh_visualization(
         self,
@@ -398,7 +415,7 @@ class FinancialAssetApp:
             f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}",
             f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
             "",
-            "📋 **Formula Categories:",
+            "📋 **Formula Categories:**",
         ]
 
         categories = summary.get("formula_categories", {})

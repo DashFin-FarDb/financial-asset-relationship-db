@@ -466,7 +466,7 @@ async def root():
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "graph_initialized": True}
+    return {"status": "healthy", "graph_initialized": graph is not None}
 
 
 @app.get(
@@ -585,7 +585,7 @@ async def get_asset_detail(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset detail:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 @app.get(
@@ -653,7 +653,7 @@ async def get_asset_relationships(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
     else:
         return relationships
 
@@ -701,7 +701,7 @@ async def get_all_relationships():
                 )
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
     else:
         return relationships
 
@@ -767,12 +767,12 @@ async def get_metrics():
             asset_classes=asset_classes,
             avg_degree=avg_degree,
             max_degree=max_degree,
-            network_density=relationship_density,
+            network_density=relationship_density / 100.0,
             relationship_density=relationship_density,
         )
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting metrics:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 @app.get(
@@ -854,7 +854,7 @@ async def get_visualization_data():
         return VisualizationDataResponse(nodes=nodes, edges=edges)
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting visualization data:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 @app.get(
@@ -915,7 +915,7 @@ async def get_sectors():
         return {"sectors": sorted(sectors)}
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting sectors:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 if __name__ == "__main__":

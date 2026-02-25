@@ -133,14 +133,26 @@ def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
+    relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> list[go.Scatter3d]:
-    """Create diamond markers at 70% along each unidirectional edge."""
+    """Create diamond markers at 70% along each unidirectional edge.
+
+    Args:
+        graph: The asset relationship graph.
+        positions: 3-D positions array aligned with asset_ids.
+        asset_ids: Assets to include.
+        relationship_filters: Optional mapping of relationship type to
+            visibility flag.  When provided, arrow markers are only
+            rendered for relationship types whose flag is True.
+    """
     positions_arr, asset_ids_norm = _validate_and_prepare_directional_arrows_inputs(
         graph,
         positions,
         asset_ids,
     )
-    return _create_directional_arrows_traces(graph, positions_arr, asset_ids_norm)
+    return _create_directional_arrows_traces(
+        graph, positions_arr, asset_ids_norm, relationship_filters
+    )
 
 
 def _validate_and_prepare_directional_arrows_inputs(
@@ -267,9 +279,18 @@ def _create_directional_arrows_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
+    relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> list[go.Scatter3d]:
     """
     Build 3D directional arrow traces for asymmetric relationships.
+
+    Args:
+        graph: The asset relationship graph.
+        positions: 3-D positions array aligned with asset_ids.
+        asset_ids: Assets to include.
+        relationship_filters: Optional mapping of relationship type to
+            visibility flag.  When provided, only relationship types
+            whose flag is True receive arrow markers.
 
     Returns:
         A list with a single Scatter3d trace, or an empty list if no
@@ -283,6 +304,9 @@ def _create_directional_arrows_traces(
     hover_texts: list[str] = []
 
     for (source_id, target_id, rel_type), _ in relationship_index.items():
+        # Skip relationship types that the user has hidden via filters.
+        if relationship_filters is not None and not relationship_filters.get(rel_type, True):
+            continue
         # Only add an arrow if there is no reverse relationship of the same type
         if (target_id, source_id, rel_type) not in relationship_index:
             source_indices.append(asset_id_index[source_id])

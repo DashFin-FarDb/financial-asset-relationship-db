@@ -52,11 +52,21 @@ class TestRequirementsDevChanges:
         assert pyyaml_line is not None
         from packaging.requirements import Requirement
 
+        def _safe_req_name(line: str) -> str | None:
+            """Return the normalised package name, or None for pip directives / malformed lines."""
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith("-"):
+                return None
+            try:
+                return Requirement(stripped.split("#")[0].strip()).name.lower()
+            except Exception:
+                return None
+
         # Find all non-comment lines explicitly declaring PyYAML (ignore types-PyYAML)
         pyyaml_lines = [
             l
             for l in lines
-            if l.strip() and not l.strip().startswith("#") and Requirement(l).name.lower() == "pyyaml"
+            if _safe_req_name(l) == "pyyaml"
         ]
         # Assert exactly one active PyYAML requirement exists
         assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
@@ -152,17 +162,24 @@ class TestRequirementsDependencyCompatibility:
         with open(req_dev_path, "r") as f:
             req_dev_content = f.read()
 
+        def _extract_pkg_name(line: str) -> str | None:
+            """Return normalised package name from a requirement line, or None to skip."""
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith("-"):
+                return None
+            try:
+                from packaging.requirements import Requirement as _Req
+                return _Req(stripped.split("#")[0].strip()).name.lower()
+            except Exception:
+                return None
+
         # Check for packages in both files
         req_packages = {
-            l.split("==")[0].split(">=")[0].lower().strip()
-            for l in req_content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
+            n for l in req_content.split("\n") if (n := _extract_pkg_name(l)) is not None
         }
 
         req_dev_packages = {
-            l.split("==")[0].split(">=")[0].lower().strip()
-            for l in req_dev_content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
+            n for l in req_dev_content.split("\n") if (n := _extract_pkg_name(l)) is not None
         }
 
         overlap = req_packages & req_dev_packages

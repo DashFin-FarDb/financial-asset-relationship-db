@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from fastapi.responses import HTMLResponse
 
+from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
     export_report,
@@ -17,12 +18,8 @@ router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 # Graph loader (API version)
 # ----------------------------------------------------------------------
 def get_graph() -> AssetRelationshipGraph:
-    """
-    Replace this with your production graph loader.
-    """
-    graph = AssetRelationshipGraph()
-    graph.initialize_assets_from_source()
-    return graph
+    """Return an initialised graph using sample data."""
+    return create_sample_database()
 
 
 # ----------------------------------------------------------------------
@@ -41,12 +38,8 @@ def schema_report(
 
     if report_format == "md":
         return generate_markdown_report(graph)
-    if report_format == "html":
-        html = generate_html_report(graph)
-        return HTMLResponse(content=html)
-
-    # Should never be reached due to validator above
-    raise HTTPException(status_code=400, detail="Unsupported format")
+    html = generate_html_report(graph)
+    return HTMLResponse(content=html)
 
 
 @router.get("/raw", summary="Raw export of schema report")
