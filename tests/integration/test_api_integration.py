@@ -213,9 +213,7 @@ class TestAuthenticationFlow:
         assert token_response.status_code == 200
         token = token_response.json()["access_token"]
 
-        me_response = client.get(
-            "/api/users/me", headers={"Authorization": f"Bearer {token}"}
-        )
+        me_response = client.get("/api/users/me", headers={"Authorization": f"Bearer {token}"})
         assert me_response.status_code == 200
         payload = me_response.json()
         assert payload["username"] == credentials["username"]
@@ -223,9 +221,7 @@ class TestAuthenticationFlow:
         assert payload["full_name"] == os.environ["ADMIN_FULL_NAME"]
         assert payload["disabled"] is False
 
-        invalid_response = client.get(
-            "/api/users/me", headers={"Authorization": "Bearer invalid-token"}
-        )
+        invalid_response = client.get("/api/users/me", headers={"Authorization": "Bearer invalid-token"})
         assert invalid_response.status_code == 401
 
         # Test authentication with incorrect password
