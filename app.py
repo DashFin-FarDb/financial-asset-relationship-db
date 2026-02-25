@@ -226,8 +226,6 @@ class FinancialAssetApp:
         }
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
-
-
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """Refreshes all visualizations and reports in the Gradio interface."""
         try:
