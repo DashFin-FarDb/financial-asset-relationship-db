@@ -583,14 +583,14 @@ async def get_asset_detail(asset_id: str):
         return AssetResponse(**asset_dict)
     except Exception as e:  # noqa: BLE001
 except Exception as e:  # noqa: BLE001
-        if isinstance(e, HTTPException):
-            # Preserve existing HTTPExceptions (e.g., raised inside dependencies)
-            raise
-        logger.exception("Error getting assets:")
-        raise HTTPException(
-            status_code=500,
-            detail="An internal error occurred. Please try again later.",
-        ) from e
+    if isinstance(e, HTTPException):
+        # Preserve existing HTTPExceptions (e.g., raised inside dependencies)
+        raise
+    logger.exception("Error getting assets:")
+    raise HTTPException(
+        status_code=500,
+        detail="An internal error occurred. Please try again later.",
+    ) from e
 
 
 @app.get(
