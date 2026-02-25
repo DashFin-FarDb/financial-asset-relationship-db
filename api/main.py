@@ -159,17 +159,17 @@ ENV = os.getenv("ENV", "development").lower()
 def validate_origin(origin_url: str) -> bool:
     # Read environment dynamically to support runtime overrides (e.g., during tests)
     """Determine whether an HTTP origin is permitted by the application's CORS rules.
-    
+
     This function validates the provided origin URL against a set of rules defined
     by the application's CORS configuration. It checks for explicitly allowed
     origins, allows HTTPS origins with valid domains, permits Vercel preview
     hostnames, and allows localhost/127.0.0.1 under specific conditions based on
     the current environment.
-    
+
     Args:
         origin_url (str): Origin URL to validate (for example "https://example.com" or
             "http://localhost:3000").
-    
+
     Returns:
         bool: True if the origin is allowed, False otherwise.
     """
@@ -352,9 +352,7 @@ class VisualizationDataResponse(BaseModel):
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
-):
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Create a JWT access token for authenticated users."""
     _ = request
@@ -367,17 +365,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_active_user)
-):
+async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Retrieve the currently authenticated user."""
     _ = request
@@ -410,7 +404,7 @@ async def health_check():
 @app.get("/api/assets", response_model=List[AssetResponse])
 async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = None):
     """Retrieve a list of assets, optionally filtered by asset class and sector.
-    
+
     This function queries the graph for assets and applies optional filters  based
     on the provided `asset_class` and `sector` parameters. It iterates  through the
     assets, checking each asset against the filters, and builds  a list of
@@ -441,13 +435,13 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
 @app.get("/api/assets/{asset_id}", response_model=AssetResponse)
 async def get_asset_detail(asset_id: str):
     """Retrieve detailed information for the asset identified by `asset_id`.
-    
+
     Args:
         asset_id (str): Identifier of the asset whose details are requested.
-    
+
     Returns:
         AssetResponse: Detailed asset information including core fields and asset-specific attributes.
-    
+
     Raises:
         HTTPException: 404 if the asset is not found.
         HTTPException: 500 for unexpected errors while retrieving the asset.
@@ -469,19 +463,17 @@ async def get_asset_detail(asset_id: str):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get(
-    "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
-)
+@app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
 async def get_asset_relationships(asset_id: str):
     """List outgoing relationships for the specified asset.
-    
+
     This function retrieves the outgoing relationships for a given asset identified
     by  the asset_id. It first checks if the asset exists in the graph; if not, it
     raises  an asset not found error. If the asset has relationships, it constructs
     a list of  RelationshipResponse objects containing the target asset IDs,
     relationship types,  and strengths. Any exceptions encountered during the
     process are logged, and a  500 HTTPException is raised for unexpected errors.
-    
+
     Args:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
     """
@@ -537,7 +529,7 @@ async def get_all_relationships():
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics():
     """Return computed network metrics for the asset relationship graph.
-    
+
     This function retrieves the asset relationship graph using the get_graph()
     function and calculates various metrics, including total assets and
     relationships. It builds an asset class distribution map and computes  degree
@@ -577,7 +569,7 @@ async def get_metrics():
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data():
     """Retrieve graph nodes and edges for 3D visualization.
-    
+
     This function generates a structured dataset containing nodes and edges
     formatted for rendering in a frontend application. It computes 3D coordinates
     for each node using a Fibonacci lattice distribution, assigns colors based on

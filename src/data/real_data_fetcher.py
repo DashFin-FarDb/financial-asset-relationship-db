@@ -43,7 +43,7 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """Create an AssetRelationshipGraph populated with real financial data.
-        
+
         This function attempts to load an AssetRelationshipGraph from a cache if
         available. If the cache is not accessible or loading fails, it checks if
         network fetching is enabled. If network fetching is disabled, it falls back to
@@ -51,7 +51,7 @@ class RealDataFetcher:
         Finance, including equities, bonds, commodities, and currencies, and constructs
         the graph. It also creates regulatory events and builds relationships between
         assets. If successful, the graph is cached for future use.
-        
+
         Returns:
             AssetRelationshipGraph: The populated asset relationship graph.
         """
@@ -68,9 +68,7 @@ class RealDataFetcher:
                 )
 
         if not self.enable_network:
-            logger.info(
-                "Network fetching disabled. Using fallback dataset if available."
-            )
+            logger.info("Network fetching disabled. Using fallback dataset if available.")
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -233,9 +231,7 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(
-                        info.get("yield", 0.03)
-                    ),  # Default 3% if not available
+                    yield_to_maturity=(info.get("yield", 0.03)),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
@@ -285,9 +281,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date=(
-                        datetime.now(timezone.utc) + timedelta(days=90)
-                    ).strftime("%Y-%m-%d"),
+                    delivery_date=(datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)
@@ -382,9 +376,7 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=(
-                "10-K Filing - Increased oil reserves and sustainability initiatives"
-            ),
+            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -452,17 +444,17 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     # Compute incoming_relationships from relationships
 
     """Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
-    
+
     This function processes the given AssetRelationshipGraph to create a structured
     dictionary representation. It computes incoming relationships from the graph's
     relationships and serializes both assets and regulatory events using the
     _serialize_dataclass function. The resulting dictionary includes lists of
     serialized assets, regulatory events, and mappings of relationships, including
     incoming relationships for each target.
-    
+
     Args:
         graph (AssetRelationshipGraph): Graph to serialize.
-    
+
     Returns:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
@@ -481,9 +473,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [
-            _serialize_dataclass(event) for event in graph.regulatory_events
-        ],
+        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
         "relationships": {
             source: [
                 {
