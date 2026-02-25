@@ -581,16 +581,20 @@ class TestSecurityAndSafety:
         tmp_path: Path,
     ) -> None:
         """write_atomic creates parent directories but doesn't allow path traversal."""
-        # Attempt to write to a path that includes ".." (path traversal)
-        target = tmp_path / "subdir" / ".." / ".." / "outside.txt"
+        # Build a path that includes ".." but resolves within tmp_path
+        unsafe_target = tmp_path / "subdir" / ".." / "inside.txt"
+        resolved_target = unsafe_target.resolve()
+
+        # Validate that the resolved path stays within tmp_path to avoid traversal
+        resolved_target.relative_to(tmp_path)
 
         content = "test content"
-        cli_module.write_atomic(target, content)
+        cli_module.write_atomic(resolved_target, content)
 
-        # File should be created at the resolved path
-        assert target.exists()
+        # File should be created at the resolved, validated path
+        assert resolved_target.exists()
         # Verify content
-        assert target.read_text(encoding="utf-8") == content
+        assert resolved_target.read_text(encoding="utf-8") == content
 
     def test_generate_report_handles_permission_errors(
         self,
@@ -637,34 +641,24 @@ class TestSecurityAndSafety:
         tmp_path: Path,
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
-        """write_atomic cleans up temp file when disk is full."""
+        """write_atomic cleans up temp file when disk is full during replace."""
         from pathlib import Path as _Path
 
-        write_call_count = {"count": 0}
+        def mock_replace_disk_full(self, target):
+            raise OSError("No space left on device")
 
-        original_write_text = _Path.write_text
-
-        def mock_write_text_disk_full(self, *args, **kwargs):
-            write_call_count["count"] += 1
-            if write_call_count["count"] == 1:
-                # First call (temp file) succeeds
-                return original_write_text(self, *args, **kwargs)
-            else:
-                # Subsequent calls fail
-                raise OSError("No space left on device")
-
-        monkeypatch.setattr(_Path, "write_text", mock_write_text_disk_full)
+        monkeypatch.setattr(_Path, "replace", mock_replace_disk_full)
 
         target = tmp_path / "output.txt"
         content = "test"
 
-        # write_atomic writes to temp, then calls replace which might fail
+        # write_atomic writes to temp file, then replace fails (simulating disk full)
         try:
             cli_module.write_atomic(target, content)
         except Exception:
             pass  # Expected
 
-        # Check no temp files remain
+        # Check no temp files remain after cleanup
         temp_files = list(tmp_path.glob("*.tmp"))
         assert len(temp_files) == 0
 

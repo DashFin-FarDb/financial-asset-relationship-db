@@ -1,7 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -228,6 +228,55 @@ class RealDataFetcher:
         return equities
 
     @staticmethod
+    def _fetch_bond_data() -> List[Bond]:
+        """Fetch real bond and treasury data."""
+        yf = _get_yfinance()
+        # For bonds, we'll use Treasury ETFs and bond proxies since
+        # individual bonds are harder to access
+        bond_symbols = {
+            "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
+            "LQD": (
+                "iShares iBoxx $ Investment Grade Corporate Bond ETF",
+                "Corporate",
+                None,
+                None,
+            ),
+        }
+
+        bonds = []
+        for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
+            try:
+                ticker = yf.Ticker(symbol)
+                info = ticker.info
+                hist = ticker.history(period="1d")
+
+                if hist.empty:
+                    logger.warning("No price data for %s", symbol)
+                    continue
+
+                current_price = float(hist["Close"].iloc[-1])
+                bond = Bond(
+                    id=symbol,
+                    symbol=symbol,
+                    name=name,
+                    asset_class=AssetClass.FIXED_INCOME,
+                    sector=sector,
+                    price=current_price,
+                    yield_to_maturity=(info.get("yield", 0.03)),
+                    coupon_rate=info.get("yield", 0.025),
+                    maturity_date="2035-01-01",
+                    credit_rating=rating,
+                    issuer_id=issuer_id,
+                )
+                bonds.append(bond)
+                logger.info("Fetched %s: %s at $%.2f", symbol, name, current_price)
+            except Exception as e:
+                logger.error("Failed to fetch bond data for %s: %s", symbol, e)
+                continue
+
+        return bonds
+
+    @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """
         Builds Commodity objects for a predefined set of commodity futures.
@@ -263,7 +312,7 @@ class RealDataFetcher:
                 current_price = float(hist["Close"].iloc[-1])
 
                 # Calculate future delivery date (3 months from now) using a TZ-aware datetime
-                delivery_date = (datetime.now(UTC) + timedelta(days=90)).strftime(
+                delivery_date = (datetime.now(timezone.utc) + timedelta(days=90)).strftime(
                     "%Y-%m-%d"
                 )
 
