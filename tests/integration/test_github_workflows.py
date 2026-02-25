@@ -26,8 +26,6 @@ class GitHubActionsYamlLoader(yaml.SafeLoader):
     as booleans, which breaks parsing and validations.
     """
 
-    pass
-
 
 GitHubActionsYamlLoader.yaml_implicit_resolvers = copy.deepcopy(GitHubActionsYamlLoader.yaml_implicit_resolvers)
 
@@ -95,6 +93,10 @@ def check_duplicate_keys(file_path: Path) -> List[str]:
 
     # Parse with a custom constructor that detects duplicates
     class DuplicateKeySafeLoader(GitHubActionsYamlLoader):
+        """
+        YAML loader that detects duplicate mapping keys during parsing by using a
+        custom constructor to record any duplicates encountered.
+        """
         pass
 
     def constructor_with_dup_check(loader, node):
@@ -458,16 +460,13 @@ class TestWorkflowSecurity:
 
                 # Check if token/password fields use secrets context
                 for key, value in step_with.items():
-                    if any(sensitive in key.lower() for sensitive in ["token", "password", "key", "secret"]):
-                        if isinstance(value, str):
-                            if key.lower() in {"key", "restore-keys"} and (
-                                "hashFiles" in value or "runner.os" in value
-                            ):
-                                continue
-                            assert value.startswith("${{") or value == "", (
-                                f"Sensitive field '{key}' in {workflow_file.name} "
-                                "should use secrets context (e.g., ${{ secrets.TOKEN }})"
-                            )
+                    if any(sensitive in key.lower() for sensitive in ["token", "password", "key", "secret"]) and isinstance(value, str) and not (
+                        key.lower() in {"key", "restore-keys"} and ("hashFiles" in value or "runner.os" in value)
+                    ):
+                        assert value.startswith("${{") or value == "", (
+                            f"Sensitive field '{key}' in {workflow_file.name} "
+                            "should use secrets context (e.g., ${{ secrets.TOKEN }})"
+                        )
 
 
 class TestWorkflowMaintainability:
@@ -481,6 +480,9 @@ class TestWorkflowMaintainability:
         Scans the workflow YAML at `workflow_file` and for each job examines its `steps`. If a step uses an action and lacks a `name`, a warning is printed unless the action is one of a small set of common actions exempted from naming (for example `actions/checkout` and `actions/setup-*`).
 
         Parameters:
+"""
+Tests for GitHub workflows to check that files have reasonable size and follow naming conventions.
+"""
             workflow_file (Path): Path to the workflow YAML file being checked.
         """
         config = load_yaml_safe(workflow_file)
@@ -507,28 +509,23 @@ class TestWorkflowMaintainability:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_reasonable_size(self, workflow_file: Path):
-        @staticmethod
-        def assert_workflow_file_size(workflow_file: Path):
-            """
-            Assert the workflow file is within reasonable size limits.
+        """
+        Test that workflow files are within acceptable size limits, warning above 10KB and failing at 50KB.
+        """
+        file_size = workflow_file.stat().st_size
 
-            If the file is larger than 10,240 bytes (10 KB) a warning is printed to encourage splitting complex workflows.
-            If the file is 51,200 bytes (50 KB) or larger the test fails with an assertion instructing to split the workflow or use reusable workflows.
-            """
-            file_size = workflow_file.stat().st_size
-
-            # Warn if workflow file exceeds 10KB (reasonable limit)
-            if file_size > 10240:
-                print(
-                    f"\nWarning: {workflow_file.name} is {file_size} bytes. "
-                    "Consider splitting into multiple workflows if it gets too complex."
-                )
-
-            # Fail if exceeds 50KB (definitely too large)
-            assert file_size < 51200, (
-                f"Workflow {workflow_file.name} is too large ({file_size} bytes). "
-                "Consider splitting into multiple workflows or using reusable workflows."
+        # Warn if workflow file exceeds 10KB (reasonable limit)
+        if file_size > 10240:
+            print(
+                f"\nWarning: {workflow_file.name} is {file_size} bytes. "
+                "Consider splitting into multiple workflows if it gets too complex."
             )
+
+        # Fail if exceeds 50KB (definitely too large)
+        assert file_size < 51200, (
+            f"Workflow {workflow_file.name} is too large ({file_size} bytes). "
+            "Consider splitting into multiple workflows or using reusable workflows."
+        )
 
 
 class TestWorkflowEdgeCases:
@@ -1268,7 +1265,6 @@ class TestAutoAssignWorkflowAdvanced:
     # YAML & Syntax Validation
     def test_auto_assign_yaml_syntax_valid(self, auto_assign_yaml_content: str):
         """Test that auto-assign.yml has valid YAML syntax."""
-
         try:
             parsed = yaml.safe_load(auto_assign_yaml_content)
             assert parsed is not None, "YAML should parse to non-null value"
@@ -2215,6 +2211,7 @@ class TestWorkflowAdvancedValidation:
 
         # Check for cycles using DFS
         def has_cycle(node, visited, rec_stack):
+            """Check recursively for cycles in the dependency graph starting from the given node."""
             visited.add(node)
             rec_stack.add(node)
 
@@ -2321,11 +2318,10 @@ class TestWorkflowCachingStrategies:
                 steps = job.get("steps", [])
                 for step in steps:
                     if "uses" in step and "actions/cache" in step["uses"]:
-                        if "with" in step and "key" in step["with"]:
+                        if "with" in step and "key" in step["with"] and "os" in matrix:
                             # Should include runner.os in cache key
-                            if "os" in matrix:
-                                # Advisory: consider including OS in cache key
-                                assert True
+                            # Advisory: consider including OS in cache key
+                            assert True
 
 
 class TestWorkflowPermissionsBestPractices:
@@ -2354,13 +2350,14 @@ class TestWorkflowPermissionsBestPractices:
         data = load_yaml_safe(workflow_file)
 
         def check_perms(perms):
+            """Check permissions dict for write operations and verify justification."""
             if isinstance(perms, dict):
                 for _, value in perms.items():
                     if value == "write":
                         # Common justified write permissions
 
                         # Check workflow-level permissions
-                        pass
+                        raise NotImplementedError("Workflow-level permission checks are not implemented")
 
         if "permissions" in data:
             check_perms(data["permissions"])
@@ -2509,10 +2506,9 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
         for _, job in jobs.items():
             steps = job.get("steps", [])
             for step in steps:
-                if "uses" in step and "actions/upload-artifact" in step["uses"]:
-                    if "with" in step and "retention-days" in step["with"]:
-                        retention = step["with"]["retention-days"]
-                        assert 1 <= retention <= 90, f"Artifact retention should be 1-90 days in {workflow_file.name}"
+                if "uses" in step and "actions/upload-artifact" in step["uses"] and "with" in step and "retention-days" in step["with"]:
+                    retention = step["with"]["retention-days"]
+                    assert 1 <= retention <= 90, f"Artifact retention should be 1-90 days in {workflow_file.name}"
 
 
 class TestWorkflowEnvironmentVariables:
@@ -2524,6 +2520,7 @@ class TestWorkflowEnvironmentVariables:
         data = load_yaml_safe(workflow_file)
 
         def check_env_names(env_dict):
+            """Check that environment variable names are UPPER_CASE or contain underscores."""
             if isinstance(env_dict, dict):
                 for key in env_dict.keys():
                     # Env vars should be UPPER_CASE

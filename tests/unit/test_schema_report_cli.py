@@ -100,6 +100,7 @@ def test_generate_report_failure_does_not_leave_file(
     mod = _load_module_for_test(monkeypatch, tmp_path)
 
     def fail_generate(graph):  # noqa: ARG001
+        """Simulate a failure in report generation by raising a RuntimeError."""
         raise RuntimeError("boom")
 
     # Patch the imported generate_schema_report inside the CLI module

@@ -63,7 +63,7 @@ class TestWorkflowConsistency:
         action_versions = {}
 
         for wf_file, workflow in all_workflows.items():
-            for job_name, job in workflow.get("jobs", {}).items():
+            for _, job in workflow.get("jobs", {}).items():
                 for step in job.get("steps", []):
                     uses = step.get("uses", "")
                     if uses and "@" in uses:
@@ -130,11 +130,6 @@ class TestDependencyWorkflowIntegration:
 
     def test_pyyaml_supports_workflow_parsing(self):
         """Verify PyYAML can parse all workflow files."""
-        try:
-            import yaml
-        except ImportError:
-            pytest.skip("PyYAML not installed")
-
         workflow_dir = Path(".github/workflows")
         if not workflow_dir.exists():
             pytest.skip("Workflows directory not found")
@@ -258,23 +253,6 @@ class TestWorkflowSecurityConsistency:
                 if matches:
                     pytest.fail(f"Potential injection risk in {wf_file}: {matches}")
         return
-        workflow_files = list(Path(".github/workflows").glob("*.yml"))
-
-        for wf_file in workflow_files:
-            with open(wf_file, "r") as f:
-                content = f.read()
-
-            # Look for potentially dangerous patterns
-            dangerous = [
-                r"\$\{\{.*github\.event\.pull_request\.title.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.pull_request\.body.*\}\}.*\|",
-                r"\$\{\{.*github\.event\.issue\.title.*\}\}.*\$(",
-            ]
-
-            for pattern in dangerous:
-                matches = re.findall(pattern, content)
-                if matches:
-                    print(f"Potential injection risk in {wf_file}: {matches}")
 
     @staticmethod
     def test_workflows_use_appropriate_checkout_refs():
