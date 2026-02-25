@@ -6,6 +6,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import yfinance as yf
+
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
@@ -21,27 +23,6 @@ from src.models.financial_models import (
 logger = logging.getLogger(__name__)
 
 
-def _get_yfinance():
-    """
-    Lazily import and return the yfinance module.
-
-    Attempts to import and return the `yfinance` package, delaying the import until runtime to avoid import-time dependency failures.
-
-    Returns:
-        yf (module): The imported `yfinance` module.
-
-    Raises:
-        ModuleNotFoundError: If `yfinance` is not installed (error message advises installing project requirements).
-    """
-    try:
-        import yfinance as yf
-    except ModuleNotFoundError as exc:
-        raise ModuleNotFoundError(
-            "yfinance is required to fetch real market data. " "Install it with the project requirements."
-        ) from exc
-    return yf
-
-
 class RealDataFetcher:
     """Fetches real financial data from Yahoo Finance and other sources."""
 
@@ -53,12 +34,7 @@ class RealDataFetcher:
         enable_network: bool = True,
     ) -> None:
         """
-        Initialize the RealDataFetcher with optional caching, a fallback provider, and network control.
-
-        Parameters:
-            cache_path (Optional[str]): Filesystem path to a JSON cache file to load/persist the fetched graph; when provided, caching will be used.
-            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]): Callable that returns an AssetRelationshipGraph to use when network access is disabled or fetching fails.
-            enable_network (bool): Whether the fetcher is allowed to perform network requests; set to False to force using the fallback.
+        Initialise the RealDataFetcher with optional cache, fallback and network controls.
         """
         self.session = None
         self.cache_path = Path(cache_path) if cache_path else None
@@ -66,13 +42,18 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """
-        Builds and returns an AssetRelationshipGraph populated from cache, live market data, or a fallback sample.
+        """Create an AssetRelationshipGraph populated with real financial data.
 
-        Attempts to load a cached graph if available; if network access is disabled or live data collection fails, returns the configured fallback graph. When network access is enabled and fetching succeeds, the graph is populated with equities, commodities, currencies, generated regulatory events, and their relationships, and is persisted to cache if a cache path is configured.
+        This function attempts to load an AssetRelationshipGraph from a cache if
+        available. If the cache is not accessible or loading fails, it checks if
+        network fetching is enabled. If network fetching is disabled, it falls back to
+        a predefined dataset. Otherwise, it fetches real financial data from Yahoo
+        Finance, including equities, bonds, commodities, and currencies, and constructs
+        the graph. It also creates regulatory events and builds relationships between
+        assets. If successful, the graph is cached for future use.
 
         Returns:
-            AssetRelationshipGraph: Graph populated from cache or live data, or a fallback/sample graph on failure or when network is disabled.
+            AssetRelationshipGraph: The populated asset relationship graph.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -87,7 +68,9 @@ class RealDataFetcher:
                 )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            logger.info(
+                "Network fetching disabled. Using fallback dataset if available."
+            )
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -168,15 +151,7 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
-        """
-        Fetch current market data for a fixed set of major equities.
-
-        Fetches price and basic fundamentals for a predefined list of symbols and constructs Equity instances for symbols whose data is successfully retrieved. Symbols with no recent price data or for which fetching fails are omitted.
-
-        Returns:
-            List[Equity]: Equity objects for symbols with successfully retrieved market data; symbols with missing or failed data are excluded.
-        """
-        yf = _get_yfinance()
+        """Fetches current market data for major equities and returns Equity objects."""
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -227,7 +202,6 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """Fetch real bond and treasury data."""
-        yf = _get_yfinance()
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
@@ -259,9 +233,11 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(info.get("yield", 0.03)),
-                    coupon_rate=info.get("yield", 0.025),
-                    maturity_date="2035-01-01",
+                    yield_to_maturity=(
+                        info.get("yield", 0.03)
+                    ),  # Default 3% if not available
+                    coupon_rate=info.get("yield", 0.025),  # Approximate
+                    maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
                     issuer_id=issuer_id,
                 )
@@ -275,21 +251,13 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """
-        Builds Commodity objects for a predefined set of commodity futures.
-
-        Each returned Commodity includes current price, contract_size, delivery_date (UTC, 90 days from now), and volatility. Symbols without recent price data are excluded.
-
-        Returns:
-            List[Commodity]: Commodity objects for symbols with available price data.
-        """
-        yf = _get_yfinance()
         # Define key commodity futures and their characteristics.
+        """Fetch real commodity futures data."""
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
+            # Example entries (adjust or extend as needed elsewhere in the file):
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
-            "SI=F": ("Silver Futures", "Metals", 5000.0, 0.25),
         }
 
         commodities: List[Commodity] = []
@@ -309,9 +277,6 @@ class RealDataFetcher:
 
                 current_price = float(hist["Close"].iloc[-1])
 
-                # Calculate future delivery date (3 months from now) using a TZ-aware datetime
-                delivery_date = (datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d")
-
                 commodity = Commodity(
                     id=symbol.replace("=F", "_FUTURE"),
                     symbol=symbol,
@@ -320,7 +285,9 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date=delivery_date,
+                    delivery_date=(
+                        datetime.now(timezone.utc) + timedelta(days=90)
+                    ).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)
@@ -339,15 +306,7 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
-        """
-        Fetches exchange-rate Currency assets for a predefined set of currency pairs.
-
-        Constructs Currency instances for each configured pair using the latest available close price as the exchange rate and price; central_bank_rate is provided as an approximate placeholder.
-
-        Returns:
-            List[Currency]: Currency objects for each pair successfully retrieved.
-        """
-        yf = _get_yfinance()
+        """Fetch real currency exchange rate data"""
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
@@ -389,14 +348,7 @@ class RealDataFetcher:
 
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
-        """
-        Create a small list of sample regulatory events tied to specific assets.
-
-        Each event includes `id`, `asset_id`, `event_type` (RegulatoryActivity), `date` (ISO format YYYY-MM-DD), `description`, `impact_score` (float), and `related_assets` (list of asset ids).
-
-        Returns:
-            List[RegulatoryEvent]: Three sample events: an Apple earnings report, a Microsoft dividend announcement, and an Exxon SEC filing.
-        """
+        """Create realistic regulatory events for the fetched assets"""
         # Create some realistic recent events
         events = []
 
@@ -430,7 +382,9 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
+            description=(
+                "10-K Filing - Increased oil reserves and sustainability initiatives"
+            ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -495,29 +449,28 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """
-    Create a JSON-serializable dictionary representation of an AssetRelationshipGraph.
+    # Compute incoming_relationships from relationships
+    """Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
 
-    The returned mapping includes serialized assets and regulatory events,
-    outgoing relationships keyed by source asset id, and computed incoming
-    relationships keyed by target asset id.
+    This function processes the given AssetRelationshipGraph to create a structured
+    dictionary representation. It computes incoming relationships from the graph's
+    relationships and serializes both assets and regulatory events using the
+    _serialize_dataclass function. The resulting dictionary includes lists of
+    serialized assets, regulatory events, and mappings of relationships, including
+    incoming relationships for each target.
 
-    Parameters:
+    Args:
         graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:
-        Dict[str, Any]: Dictionary with keys:
-            - "assets": list of serialized asset objects.
-            - "regulatory_events": list of serialized regulatory event objects.
-            - "relationships": mapping from source id to a list of
-              outgoing relationships,
-              each item containing "target", "relationship_type", and "strength".
+        Dict[str, Any]: Dictionary containing:
+            - "assets": list of serialized asset objects
+            - "regulatory_events": list of serialized regulatory event objects
+            - "relationships": mapping from source id to a list of outgoing
+            relationships
             - "incoming_relationships": mapping from target id to a list of
-              incoming relationships,
-              each item containing "source", "relationship_type", and "strength".
+            incoming relationships
     """
-    # Compute incoming_relationships from relationships
-
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
     for source, rels in graph.relationships.items():
         for target, rel_type, strength in rels:
@@ -527,7 +480,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "regulatory_events": [
+            _serialize_dataclass(event) for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
                 {
