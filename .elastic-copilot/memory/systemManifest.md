@@ -18,16 +18,14 @@
 - 12 ts files
 - 10 tsx files
 
-## Dependencies
-
 ## Project Directory Structure
 
 - 📂 api/
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 auth.py
   - 📄 main.py
 - 📂 frontend/
-  - 📂 **tests**/
+  - 📂 tests/
     - 📂 app/
       - 📄 page.test.tsx
     - 📂 components/
@@ -38,13 +36,13 @@
       - 📄 api.test.ts
   - 📂 app/
     - 📂 components/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 AssetList.tsx
       - 📄 MetricsDashboard.tsx
       - 📄 NetworkVisualization.tsx
     - 📂 lib/
-      - 📂 **tests**/
+      - 📂 tests/
         ...
       - 📄 api.ts
       - 📄 index.ts
@@ -74,7 +72,7 @@
   - 📄 tailwind.config.js
 - 📂 src/
   - 📂 analysis/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 formulaic_analysis.py
   - 📂 data/
     - 📄 database.py
@@ -93,17 +91,17 @@
     - 📄 metric_visuals.py
 - 📂 tests/
   - 📂 integration/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_integration.py
   - 📂 unit/
-    - 📄 **init**.py
+    - 📄 init.py
     - 📄 test_api_main.py
     - 📄 test_api.py
     - 📄 test_asset_graph.py
     - 📄 test_config_validation.py
     - 📄 test_dev_scripts.py
     - 📄 test_financial_models.py
-  - 📄 **init**.py
+  - 📄 init.py
   - 📄 conftest.py
 - 📄 app.py
 - 📄 docker-compose.yml

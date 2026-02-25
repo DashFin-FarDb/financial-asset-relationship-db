@@ -11,6 +11,10 @@ uvicorn[standard]>=0.24.0
 pydantic==2.12.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 
+# YAML / configuration dependencies
+PyYAML==6.0
+ruamel.yaml==0.18
+
 # Serverless/Database dependencies
 mangum>=0.17.0
 psycopg2-binary>=2.9.9

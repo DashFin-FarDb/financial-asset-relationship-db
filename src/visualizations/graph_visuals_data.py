@@ -19,7 +19,7 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
-    """Build a (source, target, rel_type) → strength index for the given asset IDs.
+    """Build a (source, target, rel_type) 1 strength index for the given asset IDs.
 
     Only relationships where both endpoints are in *asset_ids* are included.
 

@@ -12,7 +12,7 @@ import os
 import sys
 import tempfile
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
 try:
@@ -65,8 +65,18 @@ class PRStatus:
 
 def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     """
-    Fetch and consolidate PR data.
-    Optimized to avoid unnecessary list iteration where attributes exist.
+    Fetch aggregated pull request data from GitHub and return a PRStatus describing metadata, stats, review and CI state.
+
+    Parameters:
+        g (Github): Authenticated PyGithub Github client.
+        repo_name (str): Repository name in "owner/name" form.
+        pr_num (int): Pull request number.
+
+    Returns:
+        PRStatus: Aggregated PR information including number, title, author, base/head refs, draft flag, URL,
+        commit/file/addition/deletion counts, label names, mergeable and mergeable_state (defaults to "unknown" if absent),
+        computed review statistics, a proxy count of review threads (total review comments), and a list of CheckRunInfo
+        entries describing check run name, status, and conclusion.
     """
     repo = g.get_repo(repo_name)
     pr = repo.get_pull(pr_num)
@@ -75,9 +85,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     reviews = list(pr.get_reviews())
     review_stats = {
         "approved": len([r for r in reviews if r.state == "APPROVED"]),
-        "changes_requested": len(
-            [r for r in reviews if r.state == "CHANGES_REQUESTED"]
-        ),
+        "changes_requested": len([r for r in reviews if r.state == "CHANGES_REQUESTED"]),
         "commented": len([r for r in reviews if r.state == "COMMENTED"]),
         "total": len(reviews),
     }
@@ -95,9 +103,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
     # We use list() here because we need to inspect properties
     for run in head_commit.get_check_runs():
-        check_runs_data.append(
-            CheckRunInfo(name=run.name, status=run.status, conclusion=run.conclusion)
-        )
+        check_runs_data.append(CheckRunInfo(name=run.name, status=run.status, conclusion=run.conclusion))
 
     return PRStatus(
         number=pr.number,
@@ -121,7 +127,15 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
 
 def format_checklist(status: PRStatus) -> str:
-    """Generate the Mark-down task list based on logic."""
+    """
+    Builds a Markdown task checklist reflecting PR readiness, review approvals, CI check status, merge conflicts, and change requests.
+
+    Parameters:
+        status (PRStatus): Aggregated pull request data used to determine checklist state (draft status, review counts, check run results, and mergeability).
+
+    Returns:
+        markdown_checklist (str): A newline-separated Markdown task list where each line is a checklist item indicating the current PR status (e.g., ready for review, approval, CI passing, merge conflicts, change requests).
+    """
     tasks = []
 
     # Ready for review
@@ -141,9 +155,7 @@ def format_checklist(status: PRStatus) -> str:
     elif passed_checks == total_checks:
         tasks.append("- [x] All CI checks passing")
     else:
-        tasks.append(
-            f"- [ ] All CI checks passing ({passed_checks}/{total_checks} passed)"
-        )
+        tasks.append(f"- [ ] All CI checks passing ({passed_checks}/{total_checks} passed)")
 
     # Conflicts
     clean_merge = status.mergeable is True
@@ -191,7 +203,17 @@ def format_checks_section(checks: List[CheckRunInfo]) -> str:
 
 
 def generate_markdown(status: PRStatus) -> str:
-    """Compose the final report."""
+    """
+    Builds a Markdown-formatted status report for the provided pull request.
+
+    Generate a complete PR report including PR metadata, review statistics, CI/check details, mergeability, a task checklist, and a UTC timestamp footer.
+
+    Parameters:
+        status (PRStatus): Aggregated data and metrics for the pull request used to populate the report.
+
+    Returns:
+        report (str): The Markdown document summarizing the PR status.
+    """
 
     # Review Section
     revs = status.review_stats
@@ -202,9 +224,7 @@ def generate_markdown(status: PRStatus) -> str:
         f"- 📋 **Total Reviews:** {revs['total']}"
     )
 
-    labels_str = (
-        ", ".join([f"`{l}`" for l in status.labels]) if status.labels else "None"
-    )
+    labels_str = ", ".join([f"`{l}`" for l in status.labels]) if status.labels else "None"
     draft_status = "📝 Yes" if status.is_draft else "✅ No"
 
     # Merge Status
@@ -244,7 +264,14 @@ def generate_markdown(status: PRStatus) -> str:
 
 
 def write_output(content: str) -> None:
-    """Write output to file and stdout, handling GitHub Actions summaries."""
+    """
+    Write the PR report content to the GitHub Actions step summary (when configured), a standard temp file, and stdout.
+
+    Appends `content` to the file path specified by the GITHUB_STEP_SUMMARY environment variable if present. Also overwrites a file named "pr_status_report.md" in the system temporary directory and prints that file path to stderr on successful write. Any I/O errors encountered while writing are caught and printed to stderr and will not raise. Finally, the function prints `content` to stdout.
+
+    Parameters:
+        content (str): The Markdown report content to write.
+    """
     # 1. GitHub Step Summary (Native integration)
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if gh_summary:
@@ -252,9 +279,7 @@ def write_output(content: str) -> None:
             with open(gh_summary, "a", encoding="utf-8") as f:
                 f.write(content)
         except IOError as e:
-            print(
-                f"Warning: Could not write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr
-            )
+            print(f"Warning: Could not write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
 
     # 2. Standard Temp File
     # We use a standard temp path. We DO NOT crash if it exists; we overwrite.
