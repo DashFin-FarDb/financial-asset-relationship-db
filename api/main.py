@@ -582,9 +582,11 @@ async def get_asset_detail(asset_id: str):
         asset_dict = serialize_asset(asset, include_issuer=True)
         return AssetResponse(**asset_dict)
     except Exception as e:  # noqa: BLE001
+except Exception as e:  # noqa: BLE001
         if isinstance(e, HTTPException):
+            # Preserve existing HTTPExceptions (e.g., raised inside dependencies)
             raise
-        logger.exception("Error getting asset detail:")
+        logger.exception("Error getting assets:")
         raise HTTPException(
             status_code=500,
             detail="An internal error occurred. Please try again later.",
