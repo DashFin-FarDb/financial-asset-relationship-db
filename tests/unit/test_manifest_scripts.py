@@ -100,17 +100,21 @@ First and only occurrence of TS dependencies.
         assert len(duplicates) > 0, "Expected duplicate headings to be detected"
 
     def test_validate_manifest_accepts_clean_file(self, sample_manifest_clean):
-        """Test that validation script accepts clean manifest."""
+        """Test that validation logic treats a clean manifest as having no duplicates."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
         from validate_manifest import _collect_headings
 
         lines = sample_manifest_clean.splitlines(keepends=True)
-        occurrences = _collect_headings(lines)
-        duplicates = {h: nums for h, nums in occurrences.items() if len(nums) > 1}
+        heading_occurrences = _collect_headings(lines)
+        duplicates = {
+            heading: positions
+            for heading, positions in heading_occurrences.items()
+            if len(positions) > 1
+        }
 
-        assert len(duplicates) == 0, "Expected no duplicate headings in clean manifest"
+        assert duplicates == {}
 
     def test_deduplicate_removes_duplicates(self, sample_manifest_with_duplicates, tmp_path):
         """Test that deduplication script removes duplicate sections."""
