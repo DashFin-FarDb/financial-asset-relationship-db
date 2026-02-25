@@ -109,3 +109,7 @@ docker-compose.override.yml
 
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+
+# Ignore accidental pip/command output artifacts
+=2.8.0
+s

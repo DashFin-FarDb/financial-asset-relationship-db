@@ -404,7 +404,7 @@ async def root():
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "graph_initialized": True}
+    return {"status": "healthy", "graph_initialized": graph is not None}
 
 
 @app.get("/api/assets", response_model=List[AssetResponse])
@@ -434,7 +434,7 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
             assets.append(AssetResponse(**asset_dict))
     except Exception as e:
         logger.exception("Error getting assets:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
     return assets
 
 
@@ -466,7 +466,7 @@ async def get_asset_detail(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset detail:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 @app.get(
@@ -507,7 +507,7 @@ async def get_asset_relationships(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
     return relationships
 
 
@@ -530,7 +530,7 @@ async def get_all_relationships():
                 )
     except Exception as e:
         logger.exception("Error getting all relationships:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
     return relationships
 
 
@@ -566,12 +566,12 @@ async def get_metrics():
             asset_classes=asset_classes,
             avg_degree=avg_degree,
             max_degree=max_degree,
-            network_density=metrics.get("relationship_density", 0.0),
+            network_density=metrics.get("relationship_density", 0.0) / 100.0,
             relationship_density=metrics.get("relationship_density", 0.0),
         )
     except Exception as e:
         logger.exception("Error getting metrics:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
@@ -657,7 +657,7 @@ async def get_visualization_data():
         return VisualizationDataResponse(nodes=nodes, edges=edges)
     except Exception as e:
         logger.exception("Error getting visualization data:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 @app.get("/api/asset-classes")
@@ -669,7 +669,7 @@ async def get_asset_classes():
         return {"asset_classes": classes}
     except Exception as e:
         logger.exception("Error getting asset classes:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
 
 
 @app.get("/api/sectors")
@@ -681,4 +681,4 @@ async def get_sectors():
         return {"sectors": sectors}
     except Exception as e:
         logger.exception("Error getting sectors:")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e

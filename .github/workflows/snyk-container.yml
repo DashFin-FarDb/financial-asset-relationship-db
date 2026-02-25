@@ -23,6 +23,7 @@ on:
       - '.docker/**'
       - '.github/workflows/snyk-container.yml'
   pull_request:
+    types: [opened, synchronize, reopened]
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
     paths:

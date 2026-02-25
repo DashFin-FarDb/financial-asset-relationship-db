@@ -8,10 +8,13 @@ This module contains comprehensive unit tests for sample data generation includi
 - Data consistency and completeness
 """
 
+import pytest
+
 from src.data.sample_data import create_sample_database
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
 
+@pytest.mark.unit
 class TestSampleDatabaseCreation:
     """Test cases for sample database creation."""
 
@@ -79,6 +82,7 @@ class TestSampleDatabaseCreation:
         assert len(currencies) > 0, "Sample database should include currencies"
 
 
+@pytest.mark.unit
 class TestSampleAssetProperties:
     """Test cases for sample asset properties."""
 
@@ -134,7 +138,9 @@ class TestSampleAssetProperties:
 
         for bond in bonds:
             if bond.credit_rating:
-                assert bond.credit_rating in [
+                # Allow various credit rating formats (AA+, AA-, etc.)
+                base_rating = bond.credit_rating.rstrip("+-")
+                assert base_rating in [
                     "AAA",
                     "AA",
                     "A",
@@ -167,6 +173,7 @@ class TestSampleAssetProperties:
             assert currency.exchange_rate > 0
 
 
+@pytest.mark.unit
 class TestSampleRelationships:
     """Test cases for sample database relationships."""
 
@@ -183,7 +190,9 @@ class TestSampleRelationships:
 
         for _source_id, rels in graph.relationships.items():
             for _target_id, _rel_type, strength in rels:
-                assert 0 <= strength <= 1, f"Relationship {_source_id} -> {_target_id} has invalid strength {strength}"
+                assert 0 <= strength <= 1, (
+                    f"Relationship {_source_id} -> {_target_id} " f"has invalid strength {strength}"
+                )
 
     @staticmethod
     def test_same_sector_relationships_exist():
@@ -204,26 +213,36 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_corporate_bond_relationships_exist():
-        """Test that corporate bond relationships are established."""
+        """
+        Check that a bond-related corporate link exists when bond assets are present.
+
+        If the sample database includes one or more Bond assets, the test asserts there
+        is at least one relationship of type "corporate_link" where either the source
+        or target asset is a Bond. The test is a no-op when no Bond assets exist.
+        """
         graph = create_sample_database()
 
-        # Look for corporate_bond relationships
+        bonds_exist = any(isinstance(asset, Bond) for asset in graph.assets.values())
+        if not bonds_exist:
+            return
+
         bond_rel_found = False
-        for _source_id, rels in graph.relationships.items():
-            for _target_id, rel_type, _strength in rels:
-                if rel_type == "corporate_bond":
+        for source_id, rels in graph.relationships.items():
+            source_is_bond = isinstance(graph.assets.get(source_id), Bond)
+            for target_id, rel_type, _strength in rels:
+                if rel_type != "corporate_link":
+                    continue
+                target_is_bond = isinstance(graph.assets.get(target_id), Bond)
+                if source_is_bond or target_is_bond:
                     bond_rel_found = True
                     break
             if bond_rel_found:
                 break
 
-        # Bonds may not always be in sample data, so this is optional
-        # Just verify the structure is there if bonds exist
-        bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
-        if len(bonds) > 0:
-            assert bond_rel_found or len(bonds) == 0, "If bonds exist, corporate_bond relationships should be present"
+        assert bond_rel_found, "If bonds exist, a bond-related 'corporate_link' relationship should be present"
 
 
+@pytest.mark.unit
 class TestSampleRegulatoryEvents:
     """Test cases for sample regulatory events."""
 
@@ -255,6 +274,7 @@ class TestSampleRegulatoryEvents:
                 ), f"Event {event.id} references non-existent asset {event.asset_id}"
 
 
+@pytest.mark.unit
 class TestSampleDataConsistency:
     """Test cases for data consistency in sample database."""
 
@@ -306,6 +326,7 @@ class TestSampleDataConsistency:
                 assert bond.issuer_id in graph.assets, f"Bond {bond.id} issuer {bond.issuer_id} should exist in assets"
 
 
+@pytest.mark.unit
 class TestSampleDatabaseMetrics:
     """Test cases for sample database metrics."""
 
@@ -351,6 +372,7 @@ class TestSampleDatabaseMetrics:
             assert actual_counts.get(asset_class, 0) == count
 
 
+@pytest.mark.unit
 class TestSampleDataReproducibility:
     """Test cases for sample data reproducibility."""
 
@@ -374,6 +396,7 @@ class TestSampleDataReproducibility:
         assert ids1 == ids2, "Sample database should produce consistent asset IDs"
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases in sample data generation."""
 

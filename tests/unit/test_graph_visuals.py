@@ -13,13 +13,32 @@ from src.visualizations.graph_visuals import (
 
 
 class DummyGraph(AssetRelationshipGraph):
+    """A dummy graph for testing, extending AssetRelationshipGraph to provide controllable relationships."""
+
     def __init__(self, relationships):
         # relationships: Dict[str, List[Tuple[str, str, float]]]
+        """
+        Initialize the DummyGraph with a predefined relationships mapping.
+
+        Parameters:
+            relationships (dict): Mapping from source asset ID (str) to a list of relationships. Each relationship is a tuple (target_id, relationship_type, weight) where `target_id` is a str, `relationship_type` is a str, and `weight` is a float.
+
+        Notes:
+            The provided mapping is stored on the instance as `self.relationships` for use by test helpers.
+        """
         super().__init__()
         self.relationships = relationships
 
     def get_3d_visualization_data_enhanced(self):
-        """Generate enhanced 3D visualization data including positions, sorted asset IDs, colors, and hover texts."""
+        """
+        Produce synthetic 3D visualization data for the graph's assets.
+
+        Returns:
+            positions (np.ndarray): Float array of shape (n, 3) containing sequential coordinates for n assets.
+            asset_ids (List[str]): Sorted list of unique asset IDs discovered from relationship sources and targets.
+            colors (List[str]): List of hex color strings for each asset (defaults to "#000000").
+            hover_texts (List[str]): List of hover text labels corresponding to each asset ID.
+        """
         # Return positions (n,3), asset_ids, colors, hover_texts
         asset_ids = sorted(set(self.relationships.keys()) | {t for v in self.relationships.values() for t, _, _ in v})
         n = len(asset_ids)

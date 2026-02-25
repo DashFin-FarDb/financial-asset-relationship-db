@@ -425,7 +425,7 @@ class FinancialAssetApp:
             f"📈 **Average Reliability (R²):** {summary.get('avg_r_squared', 0):.3f}",
             f"🔗 **Empirical Data Points:** {summary.get('empirical_data_points', 0)}",
             "",
-            "📋 **Formula Categories:",
+            "📋 **Formula Categories:**",
         ]
 
         categories = summary.get("formula_categories", {})

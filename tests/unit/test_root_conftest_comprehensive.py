@@ -19,6 +19,7 @@ pytestmark = pytest.mark.unit
 # Import the functions we want to test
 
 
+@pytest.mark.unit
 class TestCovPluginAvailable:
     """Test the _cov_plugin_available helper function."""
 
@@ -49,6 +50,7 @@ class TestCovPluginAvailable:
         mock_find_spec.assert_called_once_with("pytest_cov")
 
 
+@pytest.mark.unit
 class TestPytestLoadInitialConftests:
     """Test the pytest_load_initial_conftests hook."""
 
@@ -164,6 +166,7 @@ class TestPytestLoadInitialConftests:
         assert args == ["tests/"]
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
@@ -220,6 +223,7 @@ class TestEdgeCases:
         assert args == ["tests/"]
 
 
+@pytest.mark.unit
 class TestRealWorldScenarios:
     """Test real-world usage scenarios."""
 
@@ -279,6 +283,7 @@ class TestRealWorldScenarios:
         assert args == ["-k", "test_something", "-m", "unit", "tests/"]
 
 
+@pytest.mark.unit
 class TestRegression:
     """Regression tests for previously identified issues."""
 

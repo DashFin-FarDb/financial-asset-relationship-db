@@ -92,30 +92,58 @@ class TestYAMLSyntaxAndStructure:
         assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
 
 
-def test_no_duplicate_keys_in_yaml():
+def test_no_duplicate_keys_in_yaml() -> None:
     """
-    Scans all .yml and .yaml files under the .github directory and attempts to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not installed, the test is skipped. Any parse or duplicate - key errors are collected and cause the test to fail with a consolidated error message.
+    Validate .github YAML files load with ruamel.yaml(typ="safe").
+
+    Scans all .yml and .yaml files under the .github directory and attempts
+    to load each with ruamel.yaml(typ="safe"). If ruamel.yaml is not
+    installed, the test is skipped. Any parse or duplicate-key errors cause
+    the test to fail with a consolidated error message. File-system errors
+    are reported but do not fail the test.
     """
     try:
         from ruamel.yaml import YAML, YAMLError
     except ImportError:
-        pytest.skip("ruamel.yaml not installed; skip strict duplicate key detection")
+        pytest.skip(
+            "ruamel.yaml not installed; skip strict duplicate key detection",
+        )
 
-    yaml_files = list(Path(".github").rglob("*.yml")) + list(Path(".github").rglob("*.yaml"))
+    base_dir = Path(".github")
+    if not base_dir.exists():
+        pytest.skip(".github directory not found; skipping YAML checks")
+
+    yaml_files = list(base_dir.rglob("*.yml")) + list(base_dir.rglob("*.yaml"))
+    if not yaml_files:
+        pytest.skip("No .yml/.yaml files found under .github")
+
     parser = YAML(typ="safe")
-    parse_errors = []
+    parse_errors: list[str] = []
+    fs_errors: list[str] = []
+    unexpected_errors: list[str] = []
 
     for yaml_file in yaml_files:
         try:
-            with open(yaml_file, "r") as f:
+            with yaml_file.open("r", encoding="utf-8") as f:
                 parser.load(f)
-        except YAMLError as e:
-            parse_errors.append(f"{yaml_file}: YAML error - {e}")
-        except OSError as e:
+        except YAMLError as exc:
+            parse_errors.append(f"{yaml_file}: YAML error - {exc}")
+        except OSError as exc:
             # Report but don't fail the test on file system errors
-            parse_errors.append(f"{yaml_file}: File system error - {e}")
-        except Exception as e:
-            parse_errors.append(f"{yaml_file}: Unexpected error - {e}")
+            fs_errors.append(f"{yaml_file}: File system error - {exc}")
+        except Exception as exc:  # noqa: BLE001
+            unexpected_errors.append(f"{yaml_file}: Unexpected error - {exc}")
+
+    # Log filesystem issues (non-fatal) to help diagnose flaky environments.
+    for msg in fs_errors:
+        # Using print is acceptable here; pytest will capture it.
+        print(msg)
+
+    all_failures: list[str] = []
+    all_failures.extend(parse_errors)
+    all_failures.extend(unexpected_errors)
+
+    assert not all_failures, "YAML errors detected:\n" + "\n".join(all_failures)
 
 
 class TestWorkflowSchemaCompliance:
