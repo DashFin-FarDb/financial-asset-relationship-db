@@ -352,7 +352,9 @@ class VisualizationDataResponse(BaseModel):
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login_for_access_token(
+    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
+):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Create a JWT access token for authenticated users."""
     _ = request
@@ -365,13 +367,17 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
+    access_token = create_access_token(
+        data={"sub": user.username}, expires_delta=access_token_expires
+    )
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
+async def read_users_me(
+    request: Request, current_user: User = Depends(get_current_active_user)
+):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Retrieve the currently authenticated user."""
     _ = request
@@ -428,7 +434,10 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
             assets.append(AssetResponse(**asset_dict))
     except Exception as e:
         logger.exception("Error getting assets:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
     return assets
 
 
@@ -460,10 +469,15 @@ async def get_asset_detail(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset detail:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
-@app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
+@app.get(
+    "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
+)
 async def get_asset_relationships(asset_id: str):
     """List outgoing relationships for the specified asset.
 
@@ -500,7 +514,10 @@ async def get_asset_relationships(asset_id: str):
         if isinstance(e, HTTPException):
             raise
         logger.exception("Error getting asset relationships:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
     return relationships
 
 
@@ -523,7 +540,10 @@ async def get_all_relationships():
                 )
     except Exception as e:
         logger.exception("Error getting all relationships:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
     return relationships
 
 
@@ -564,7 +584,10 @@ async def get_metrics():
         )
     except Exception as e:
         logger.exception("Error getting metrics:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
@@ -650,7 +673,10 @@ async def get_visualization_data():
         return VisualizationDataResponse(nodes=nodes, edges=edges)
     except Exception as e:
         logger.exception("Error getting visualization data:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @app.get("/api/asset-classes")
@@ -662,7 +688,10 @@ async def get_asset_classes():
         return {"asset_classes": classes}
     except Exception as e:
         logger.exception("Error getting asset classes:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @app.get("/api/sectors")
@@ -674,4 +703,7 @@ async def get_sectors():
         return {"sectors": sectors}
     except Exception as e:
         logger.exception("Error getting sectors:")
-        raise HTTPException(status_code=500, detail="An internal error occurred. Please try again later.") from e
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
