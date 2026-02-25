@@ -66,17 +66,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 
 
 def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -> None:
-    """
-    Set the callable used to construct the global AssetRelationshipGraph on demand.
-
-    If `factory` is a callable it will be used to build the graph the next time `get_graph()` is called.
-    Passing `None` clears any configured factory. In all cases the current global graph instance is cleared
-    so a new graph will be created on next access; this operation is performed in a thread-safe manner.
-
-    Parameters:
-        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns an
-            `AssetRelationshipGraph`, or `None` to remove the factory and force recreation from defaults.
-    """
+    """Set the callable used to construct the global AssetRelationshipGraph."""
     global graph, graph_factory
     with graph_lock:
         graph_factory = factory
@@ -93,18 +83,7 @@ def reset_graph() -> None:
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
-    """
-    Construct the asset relationship graph using the configured factory or environment-backed data sources.
-
-    If a `graph_factory` is configured it is invoked. Otherwise, if `GRAPH_CACHE_PATH` is set a real-data
-    graph is created (network access enabled when `USE_REAL_DATA_FETCHER` indicates real data should be
-    used). If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true, `REAL_DATA_CACHE_PATH`
-    is consulted to create a real-data graph. If neither real-data path nor real-data mode is available,
-    a sample database graph is returned.
-
-    Returns:
-        AssetRelationshipGraph: The initialized graph instance.
-    """
+    """Constructs and returns the asset relationship graph."""
     if graph_factory is not None:
         return graph_factory()
 
@@ -126,14 +105,8 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 
 def _should_use_real_data_fetcher() -> bool:
-    """
-    Decides whether the application should use the real data fetcher based on the
-    `USE_REAL_DATA_FETCHER` environment variable.
-
-    Returns:
-        `True` if `USE_REAL_DATA_FETCHER` is set to a truthy value (`1`, `true`, `yes`, `on`),
-        `False` otherwise.
-    """
+    """Determine if the real data fetcher should be used based on the environment
+    variable."""
     flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
     return flag.strip().lower() in {"1", "true", "yes", "on"}
 
@@ -184,21 +157,22 @@ ENV = os.getenv("ENV", "development").lower()
 
 
 def validate_origin(origin_url: str) -> bool:
-    """
-    Determine whether an HTTP origin is permitted by the application's CORS rules.
+    # Read environment dynamically to support runtime overrides (e.g., during tests)
+    """Determine whether an HTTP origin is permitted by the application's CORS rules.
 
-    Allows explicitly configured origins, HTTPS origins with a valid domain,
-    Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment,
-    and HTTP localhost/127.0.0.1 when ENV is "development".
+    This function validates the provided origin URL against a set of rules defined
+    by the application's CORS configuration. It checks for explicitly allowed
+    origins, allows HTTPS origins with valid domains, permits Vercel preview
+    hostnames, and allows localhost/127.0.0.1 under specific conditions based on
+    the current environment.
 
-    Parameters:
-        origin_url (str): Origin URL to validate (for example
-            "https://example.com" or "http://localhost:3000").
+    Args:
+        origin_url (str): Origin URL to validate (for example "https://example.com" or
+            "http://localhost:3000").
 
     Returns:
-        True if the origin is allowed, False otherwise.
+        bool: True if the origin is allowed, False otherwise.
     """
-    # Read environment dynamically to support runtime overrides (e.g., during tests)
     current_env = os.getenv("ENV", "development").lower()
 
     # Get allowed origins from environment variable or use default
@@ -381,16 +355,8 @@ class VisualizationDataResponse(BaseModel):
 async def login_for_access_token(
     request: Request, form_data: OAuth2PasswordRequestForm = Depends()
 ):
-    """
-    Create a JWT access token for a user authenticated with a username and password.
-
-    Parameters:
-        form_data (OAuth2PasswordRequestForm): Client-submitted credentials (`username` and `password`).
-
-    Returns:
-        dict: Mapping with `access_token` (JWT string) and `token_type` set to `'bearer'`.
-    """
     # The `request` parameter is required by slowapi's limiter for dependency injection.
+    """Create a JWT access token for authenticated users."""
     _ = request
 
     user = authenticate_user(form_data.username, form_data.password)
@@ -412,17 +378,8 @@ async def login_for_access_token(
 async def read_users_me(
     request: Request, current_user: User = Depends(get_current_active_user)
 ):
-    """
-    Retrieve the currently authenticated user.
-
-    Parameters:
-        request (Request): Included for slowapi limiter dependency injection; unused by the function.
-        current_user (User): Active user injected by the authentication dependency.
-
-    Returns:
-        The authenticated user.
-    """
     # The `request` parameter is required by slowapi's limiter for dependency injection.
+    """Retrieve the currently authenticated user."""
     _ = request
 
     return current_user
@@ -430,15 +387,7 @@ async def read_users_me(
 
 @app.get("/")
 async def root():
-    """
-    Provide basic API metadata and a listing of available endpoints.
-
-    Returns:
-        Dict[str, Union[str, Dict[str, str]]]: A mapping containing:
-            - "message": short API description string.
-            - "version": API version string.
-            - "endpoints": dict mapping endpoint keys to their URL paths.
-    """
+    """Return basic API metadata and a listing of available endpoints."""
     return {
         "message": "Financial Asset Relationship API",
         "version": "1.0.0",
@@ -460,15 +409,14 @@ async def health_check():
 
 @app.get("/api/assets", response_model=List[AssetResponse])
 async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = None):
-    """
-    List assets, optionally filtered by asset class and sector.
+    """Retrieve a list of assets, optionally filtered by asset class and sector.
 
-    Parameters:
-        asset_class (Optional[str]): Filter to include only assets whose `asset_class.value` equals this string.
-        sector (Optional[str]): Filter to include only assets whose `sector` equals this string.
-
-    Returns:
-        List[AssetResponse]: AssetResponse objects matching the filters.
+    This function queries the graph for assets and applies optional filters  based
+    on the provided `asset_class` and `sector` parameters. It iterates  through the
+    assets, checking each asset against the filters, and builds  a list of
+    `AssetResponse` objects using a serialization utility. If an  error occurs
+    during the process, it logs the exception and raises an  HTTPException with a
+    500 status code.
     """
     try:
         g = get_graph()
@@ -492,10 +440,9 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
 
 @app.get("/api/assets/{asset_id}", response_model=AssetResponse)
 async def get_asset_detail(asset_id: str):
-    """
-    Retrieve detailed information for the asset identified by `asset_id`.
+    """Retrieve detailed information for the asset identified by `asset_id`.
 
-    Parameters:
+    Args:
         asset_id (str): Identifier of the asset whose details are requested.
 
     Returns:
@@ -526,17 +473,17 @@ async def get_asset_detail(asset_id: str):
     "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
 )
 async def get_asset_relationships(asset_id: str):
-    """
-    List outgoing relationships for the specified asset.
+    """List outgoing relationships for the specified asset.
 
-    Parameters:
+    This function retrieves the outgoing relationships for a given asset identified
+    by  the asset_id. It first checks if the asset exists in the graph; if not, it
+    raises  an asset not found error. If the asset has relationships, it constructs
+    a list of  RelationshipResponse objects containing the target asset IDs,
+    relationship types,  and strengths. Any exceptions encountered during the
+    process are logged, and a  500 HTTPException is raised for unexpected errors.
+
+    Args:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
-
-    Returns:
-        List[RelationshipResponse]: Outgoing relationship records for the asset.
-
-    Raises:
-        HTTPException: 404 if the asset is not found; 500 for unexpected errors.
     """
     try:
         g = get_graph()
@@ -566,13 +513,7 @@ async def get_asset_relationships(asset_id: str):
 
 @app.get("/api/relationships", response_model=List[RelationshipResponse])
 async def get_all_relationships():
-    """
-    List all directed relationships in the initialized asset graph.
-
-    Returns:
-        List[RelationshipResponse]: List of relationships where each item contains
-            `source_id`, `target_id`, `relationship_type`, and `strength`.
-    """
+    """Retrieve all directed relationships from the asset graph."""
     try:
         g = get_graph()
         relationships = []
@@ -595,12 +536,14 @@ async def get_all_relationships():
 
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics():
-    """
-    Return computed network metrics for the asset relationship graph.
+    """Return computed network metrics for the asset relationship graph.
 
-    Returns:
-        MetricsResponse: Metrics including total assets, relationships, asset class
-            distribution, degree statistics, and network/relationship density.
+    This function retrieves the asset relationship graph using the get_graph()
+    function and calculates various metrics, including total assets and
+    relationships. It builds an asset class distribution map and computes  degree
+    statistics such as average and maximum degree. Finally, it returns  a
+    MetricsResponse containing the computed metrics, including network density  and
+    relationship density.
     """
     try:
         g = get_graph()
@@ -633,15 +576,14 @@ async def get_metrics():
 
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data():
-    """
-    Return graph nodes and edges formatted for frontend 3D visualization.
+    """Retrieve graph nodes and edges for 3D visualization.
 
-    Nodes include 3D layout coordinates (x, y, z), color by asset class,
-    and size proportional to the node's degree in the graph.
-
-    Returns:
-        VisualizationDataResponse: Nodes (assets with 3D positions) and edges
-            (relationships) ready for rendering in the Next.js frontend.
+    This function generates a structured dataset containing nodes and edges
+    formatted for rendering in a frontend application. It computes 3D coordinates
+    for each node using a Fibonacci lattice distribution, assigns colors based on
+    asset classes, and sizes proportional to the node's degree in the graph.  The
+    edges represent relationships between the nodes, capturing their  interactions
+    and strengths.
     """
     import math
 
@@ -720,12 +662,7 @@ async def get_visualization_data():
 
 @app.get("/api/asset-classes")
 async def get_asset_classes():
-    """
-    Return the distinct asset class values present in the graph.
-
-    Returns:
-        dict: Mapping ``{"asset_classes": [...]}`` with sorted unique class names.
-    """
+    """Return distinct sorted asset class values from the graph."""
     try:
         g = get_graph()
         classes = sorted({asset.asset_class.value for asset in g.assets.values()})
@@ -737,12 +674,7 @@ async def get_asset_classes():
 
 @app.get("/api/sectors")
 async def get_sectors():
-    """
-    Return the distinct sector values present in the graph.
-
-    Returns:
-        dict: Mapping ``{"sectors": [...]}`` with sorted unique sector names.
-    """
+    """Return distinct sorted sector values from the graph."""
     try:
         g = get_graph()
         sectors = sorted({asset.sector for asset in g.assets.values() if asset.sector})
