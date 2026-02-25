@@ -99,7 +99,9 @@ class TestRequirementsDevChanges:
         lines = [
             l.strip()
             for l in requirements_dev_content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
+            if l.strip()
+            and not l.strip().startswith("#")
+            and not l.strip().startswith("-")
         ]
 
         # Split on any common version operator to reliably extract the package name
