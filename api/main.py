@@ -778,15 +778,15 @@ async def get_metrics():
             asset_classes=asset_classes,
             avg_degree=avg_degree,
             max_degree=max_degree,
-return MetricsResponse(
-      total_assets=total_assets,
-      total_relationships=total_relationships,
-      asset_classes=asset_classes,
-      avg_degree=avg_degree,
-      max_degree=max_degree,
-      network_density=relationship_density / 100.0,
-      relationship_density=relationship_density / 100.0,  # Also scale this field
-  )
+            return MetricsResponse(
+                total_assets=total_assets,
+                total_relationships=total_relationships,
+                asset_classes=asset_classes,
+                avg_degree=avg_degree,
+                max_degree=max_degree,
+                network_density=relationship_density / 100.0,
+                relationship_density=relationship_density / 100.0,  # Also scale this field
+            )
             relationship_density=relationship_density,
         )
     except Exception as e:  # noqa: BLE001
