@@ -42,8 +42,18 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """Create an AssetRelationshipGraph populated with real financial
-        data.
+        """Create an AssetRelationshipGraph populated with real financial data.
+        
+        This function attempts to load an AssetRelationshipGraph from a cache if
+        available. If the cache is not accessible or loading fails, it checks if
+        network fetching is enabled. If network fetching is disabled, it falls back to
+        a predefined dataset. Otherwise, it fetches real financial data from Yahoo
+        Finance, including equities, bonds, commodities, and currencies, and constructs
+        the graph. It also creates regulatory events and builds relationships between
+        assets. If successful, the graph is cached for future use.
+        
+        Returns:
+            AssetRelationshipGraph: The populated asset relationship graph.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -241,8 +251,8 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity futures data."""
         # Define key commodity futures and their characteristics.
+        """Fetch real commodity futures data."""
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
             # Example entries (adjust or extend as needed elsewhere in the file):
@@ -439,26 +449,29 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """Serialize an AssetRelationshipGraph into a JSON - serializable dictionary.
+    # Compute incoming_relationships from relationships
 
+    """Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
+    
     This function processes the given AssetRelationshipGraph to create a structured
-    dictionary representation. It computes the incoming relationships from the graph's
+    dictionary representation. It computes incoming relationships from the graph's
     relationships and serializes both assets and regulatory events using the
     _serialize_dataclass function. The resulting dictionary includes lists of
-    serialized assets, regulatory events, and mappings of relationships.
-
+    serialized assets, regulatory events, and mappings of relationships, including
+    incoming relationships for each target.
+    
     Args:
-        graph(AssetRelationshipGraph): Graph to serialize.
-
+        graph (AssetRelationshipGraph): Graph to serialize.
+    
     Returns:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
             - "relationships": mapping from source id to a list of outgoing
-              relationships
+            relationships
+            - "incoming_relationships": mapping from target id to a list of
+            incoming relationships
     """
-    # Compute incoming_relationships from relationships
-
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
     for source, rels in graph.relationships.items():
         for target, rel_type, strength in rels:
