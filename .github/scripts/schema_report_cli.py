@@ -30,19 +30,18 @@ class OutputFormat(str, Enum):
 
     @classmethod
     def choices(cls):
-        """Return list of valid format choices."""
+        """Return a list of valid format choices."""
         return [fmt.value for fmt in cls]
 
 
 def setup_logging(verbose: bool = False) -> logging.Logger:
-    """
-    Configure logging for the CLI.
+    """Configure logging for the CLI.
 
     Args:
-        verbose: If True, set log level to DEBUG; otherwise INFO
+        verbose (bool): If True, set log level to DEBUG; otherwise INFO.
 
     Returns:
-        Configured logger instance
+        logging.Logger: Configured logger instance.
     """
     log_level = logging.DEBUG if verbose else logging.INFO
     # Use absolute path relative to script location
@@ -62,28 +61,19 @@ def setup_logging(verbose: bool = False) -> logging.Logger:
 
 
 def format_as_json(metrics: Dict[str, Any]) -> str:
-    """
-    Format metrics as JSON output.
+    """Format metrics as a JSON string.
 
     Args:
-        metrics: Dictionary of calculated metrics
+        metrics: Dictionary of calculated metrics.
 
     Returns:
-        JSON-formatted string
+        str: JSON-formatted string representation of the metrics.
     """
     return json.dumps(metrics, indent=2, default=str)
 
 
 def format_as_text(report: str) -> str:
-    """
-    Format report as plain text (strip markdown formatting).
-
-    Args:
-        report: Markdown-formatted report
-
-    Returns:
-        Plain text version of report
-    """
+    """Format report as plain text by stripping markdown formatting."""
     import re
 
     # Remove markdown headers
@@ -97,18 +87,25 @@ def format_as_text(report: str) -> str:
 
 
 def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
-    """
-    Generate schema report in the specified format.
+    """Generate a schema report in the specified format.
 
     Args:
-        fmt: Output format (markdown, json, or text)
-        logger: Logger instance for diagnostics
+        fmt (OutputFormat): Desired output format for the report. Supported values
+            are ``OutputFormat.MARKDOWN``, ``OutputFormat.JSON``, and
+            ``OutputFormat.TEXT``.
+        logger (logging.Logger): Logger instance used for progress and error
+            reporting during report generation.
 
     Returns:
-        Formatted report string
+        str: The generated report content. For ``OutputFormat.JSON`` this is a
+            JSON-formatted string of the calculated metrics. For
+            ``OutputFormat.MARKDOWN`` this is a Markdown-formatted schema report.
+            For ``OutputFormat.TEXT`` this is a plain-text version of the Markdown
+            report with formatting removed.
 
     Raises:
-        ValueError: If format is invalid or report generation fails
+        ValueError: If report generation fails for any reason. The original
+        exception is attached as the cause.
     """
     logger.info(f"Generating schema report in {fmt.value} format")
 
@@ -178,11 +175,10 @@ Examples:
 
 
 def main() -> int:
-    """
-    Main CLI entry point.
+    """Run the schema report command-line interface.
 
     Returns:
-        Exit code (0 for success, 1 for error)
+        int: Process exit code where 0 indicates success and non-zero indicates failure.
     """
     # Parse arguments (argparse will handle --help and validation errors)
     args = parse_arguments()
