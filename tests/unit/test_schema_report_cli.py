@@ -27,7 +27,12 @@ def _load_module_for_test(
     monkeypatch.setenv("SCHEMA_REPORT_LOG", env["SCHEMA_REPORT_LOG"])
 
     # Copy the real CLI script into tmp_path under a throwaway name
-    cli_src = Path(__file__).resolve().parents[2] / ".github" / "scripts" / "schema_report_cli.py"
+    cli_src = (
+        Path(__file__).resolve().parents[2]
+        / ".github"
+        / "scripts"
+        / "schema_report_cli.py"
+    )
     assert cli_src.exists(), f"CLI source not found: {cli_src}"
 
     cli_copy = tmp_path / "schema_report_cli_copy.py"
