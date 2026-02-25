@@ -330,14 +330,14 @@ class FinancialAssetApp:
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
         """Generate comprehensive formulaic analysis of the asset graph.
-        
+
         This function generates a detailed formulaic analysis of the provided  asset
         graph. It initializes the necessary analyzers and visualizers,  performs the
         analysis on the graph, and creates various visualizations  such as a formula
         dashboard, correlation network, and metric comparison  chart. Additionally, it
         formats a summary of the analysis results and  handles any exceptions that may
         occur during the process.
-        
+
         Args:
             graph_state (AssetRelationshipGraph): The state of the asset graph
         """
