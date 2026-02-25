@@ -315,10 +315,10 @@ class TestTailwindConfig:
 def env_example_content():
     """
     Return the contents of the project's .env.example file.
-    
+
     Returns:
         str: The full text of .env.example.
-    
+
     Raises:
         AssertionError: If .env.example does not exist.
     """

@@ -2851,9 +2851,9 @@ class TestWorkflowEnvironmentVariables:
     def test_env_vars_not_duplicated_across_levels(self, workflow_file: Path):
         """
         Assert that workflow-level environment variables are not redundantly redefined with the same value at the job level.
-        
+
         For each job that defines an `env` mapping, this test compares its variable names against the workflow-level `env`. If a variable exists at both levels and has the identical value, the test fails with a message identifying the variable, job, and file.
-        
+
         Parameters:
             workflow_file (Path): Path to the workflow YAML file being validated.
         """
@@ -2918,7 +2918,7 @@ class TestWorkflowScheduledExecutionBestPractices:
     def test_scheduled_workflows_not_too_frequent(self, workflow_file: Path):
         """
         Ensure scheduled workflows do not run every minute.
-        
+
         If the workflow defines a `schedule` trigger, validate each `cron` expression has five space-separated fields and fail the test when a schedule equals '* * * * *' (runs every minute).
         """
         data = load_yaml_safe(workflow_file)
