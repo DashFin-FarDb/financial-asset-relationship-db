@@ -52,19 +52,20 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """
-        Constructs and returns an AssetRelationshipGraph populated with
-        current market data or a fallback dataset.
-
-        If a cache file exists it will be loaded and returned. If network
-        access is disabled or real-data fetching fails, a fallback/sample
-        graph is returned. When fetching succeeds and a cache path is
-        configured, the populated graph is persisted to cache.
-
+        """Construct and return an AssetRelationshipGraph populated with current market
+        data or a fallback dataset.
+        
+        The function first checks for an existing cache file and attempts to load the
+        asset graph from it. If the cache is unavailable or loading fails, it checks if
+        network access is enabled. If network access is disabled, it returns a fallback
+        dataset. When network access is enabled, it fetches real financial data from
+        various sources, constructs the graph, and persists it to cache if a cache path
+        is configured. In case of any errors during fetching or processing, it falls
+        back to a sample dataset.
+        
         Returns:
-            AssetRelationshipGraph: Populated graph built from real financial
-                data; if loading or fetching fails (or network is disabled),
-                a fallback/sample AssetRelationshipGraph is returned.
+            AssetRelationshipGraph: Populated graph built from real financial data; if loading or fetching fails
+                (or network is disabled), a fallback/sample AssetRelationshipGraph is returned.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -332,7 +333,7 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
-        """Fetch real currency exchange rate data"""
+        """Fetch real currency exchange rate data."""
         yf = _get_yfinance()
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
@@ -375,17 +376,8 @@ class RealDataFetcher:
 
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
-        """
-        Create a short list of recent regulatory events tied to fetched assets.
-
-        Returns:
-            List[RegulatoryEvent]: A list of RegulatoryEvent objects
-            representing sample recent events (AAPL earnings report, MSFT
-            dividend announcement, and an XOM SEC filing), each with an id,
-            asset_id, event_type, date,
-            description, impact_score, and related_assets.
-        """
         # Create some realistic recent events
+        """Create a list of recent regulatory events tied to fetched assets."""
         events = []
 
         # Apple earnings event
