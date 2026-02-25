@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -41,8 +42,18 @@ class RealDataFetcher:
         self.enable_network = enable_network
 
     def create_real_database(self) -> AssetRelationshipGraph:
-        """Create an AssetRelationshipGraph populated with real financial
-        data.
+        """Create an AssetRelationshipGraph populated with real financial data.
+
+        This function attempts to load an AssetRelationshipGraph from a cache if
+        available. If the cache is not accessible or loading fails, it checks if
+        network fetching is enabled. If network fetching is disabled, it falls back to
+        a predefined dataset. Otherwise, it fetches real financial data from Yahoo
+        Finance, including equities, bonds, commodities, and currencies, and constructs
+        the graph. It also creates regulatory events and builds relationships between
+        assets. If successful, the graph is cached for future use.
+
+        Returns:
+            AssetRelationshipGraph: The populated asset relationship graph.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -57,7 +68,9 @@ class RealDataFetcher:
                 )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            logger.info(
+                "Network fetching disabled. Using fallback dataset if available."
+            )
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -220,7 +233,9 @@ class RealDataFetcher:
                     asset_class=AssetClass.FIXED_INCOME,
                     sector=sector,
                     price=current_price,
-                    yield_to_maturity=(info.get("yield", 0.03)),  # Default 3% if not available
+                    yield_to_maturity=(
+                        info.get("yield", 0.03)
+                    ),  # Default 3% if not available
                     coupon_rate=info.get("yield", 0.025),  # Approximate
                     maturity_date="2035-01-01",  # Approximate for ETFs
                     credit_rating=rating,
@@ -236,8 +251,8 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity futures data."""
         # Define key commodity futures and their characteristics.
+        """Fetch real commodity futures data."""
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
             # Example entries (adjust or extend as needed elsewhere in the file):
@@ -270,7 +285,9 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date="2025-03-31",  # Approximate
+                    delivery_date=(
+                        datetime.now(timezone.utc) + timedelta(days=90)
+                    ).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)
@@ -365,7 +382,9 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
+            description=(
+                "10-K Filing - Increased oil reserves and sustainability initiatives"
+            ),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -430,26 +449,28 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
-    """Serialize an AssetRelationshipGraph into a JSON - serializable dictionary.
+    # Compute incoming_relationships from relationships
+    """Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
 
     This function processes the given AssetRelationshipGraph to create a structured
-    dictionary representation. It computes the incoming relationships from the graph's
+    dictionary representation. It computes incoming relationships from the graph's
     relationships and serializes both assets and regulatory events using the
     _serialize_dataclass function. The resulting dictionary includes lists of
-    serialized assets, regulatory events, and mappings of relationships.
+    serialized assets, regulatory events, and mappings of relationships, including
+    incoming relationships for each target.
 
     Args:
-        graph(AssetRelationshipGraph): Graph to serialize.
+        graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:
         Dict[str, Any]: Dictionary containing:
             - "assets": list of serialized asset objects
             - "regulatory_events": list of serialized regulatory event objects
             - "relationships": mapping from source id to a list of outgoing
-              relationships
+            relationships
+            - "incoming_relationships": mapping from target id to a list of
+            incoming relationships
     """
-    # Compute incoming_relationships from relationships
-
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
     for source, rels in graph.relationships.items():
         for target, rel_type, strength in rels:
@@ -459,7 +480,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "regulatory_events": [
+            _serialize_dataclass(event) for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
                 {
