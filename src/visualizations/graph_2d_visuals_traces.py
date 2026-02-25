@@ -23,13 +23,13 @@ def _create_2d_relationship_traces(
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
     """Create 2D relationship traces for a given asset relationship graph.
-
+    
     This function generates visual traces representing relationships between assets
     based on various filters. It processes the input `graph` to identify
     relationships between `asset_ids` and their corresponding `positions`, applying
     filters for different relationship types. The resulting traces are formatted
     for visualization, including hover information for each relationship.
-
+    
     Args:
         graph (AssetRelationshipGraph): The graph containing asset relationships.
         positions (Dict[str, Tuple[float, float]]): A dictionary mapping asset IDs to their 2D positions.
@@ -42,7 +42,7 @@ def _create_2d_relationship_traces(
         show_income_comparison (bool?): Flag to show income comparison relationships. Defaults to True.
         show_regulatory (bool?): Flag to show regulatory impact relationships. Defaults to True.
         show_all_relationships (bool?): Flag to show all relationships regardless of type. Defaults to False.
-
+    
     Returns:
         List[go.Scatter]: A list of scatter traces representing the relationships.
     """
