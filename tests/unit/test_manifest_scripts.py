@@ -100,7 +100,7 @@ First and only occurrence of TS dependencies.
         assert len(duplicates) > 0, "Expected duplicate headings to be detected"
 
     def test_validate_manifest_accepts_clean_file(self, sample_manifest_clean):
-        """Test that validation logic treats a clean manifest as having no duplicates."""
+        """Test that a clean manifest has no duplicate headings."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
@@ -117,7 +117,7 @@ First and only occurrence of TS dependencies.
         assert duplicates == {}
 
     def test_deduplicate_removes_duplicates(self, sample_manifest_with_duplicates, tmp_path):
-        """Test that deduplication script removes duplicate sections."""
+        """Test that the deduplication script removes duplicate sections."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
@@ -187,7 +187,7 @@ First and only occurrence of TS dependencies.
         assert headings.index("PY Dependencies") < headings.index("TS Dependencies")
 
     def test_preamble_preservation(self, sample_manifest_with_duplicates):
-        """Test that the preamble content is preserved in the reconstructed manifest."""
+        """Test that the preamble is preserved in the reconstructed manifest."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
