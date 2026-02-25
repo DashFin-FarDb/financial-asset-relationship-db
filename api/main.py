@@ -463,10 +463,8 @@ async def root():
     }
 
 
-# NOTE: do NOT add a broad "any HTTPS domain" catch-all here.
-    # Only explicitly listed origins (ALLOWED_ORIGINS env-var or the
-    # known localhost/Vercel entries above) should be accepted.
-    return False
+@app.get("/api/health")
+async def health_check():
 
 
 async def health_check():
