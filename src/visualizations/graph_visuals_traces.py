@@ -295,7 +295,9 @@ def _create_directional_arrows_traces(
 
     for (source_id, target_id, rel_type), _ in relationship_index.items():
         # Skip relationship types that the user has hidden via filters.
-        if relationship_filters is not None and not relationship_filters.get(rel_type, True):
+        if relationship_filters is not None and not relationship_filters.get(
+            rel_type, True
+        ):
             continue
         # Only add an arrow if there is no reverse relationship of the same type
         if (target_id, source_id, rel_type) not in relationship_index:
