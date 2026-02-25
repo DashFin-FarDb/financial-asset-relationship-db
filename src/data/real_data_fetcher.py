@@ -289,7 +289,7 @@ class RealDataFetcher:
             # symbol: (name, sector, contract_size, volatility)
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
-        }
+            "SI=F": ("Silver Futures", "Metals", 5000.0, 0.25),
 
         commodities: List[Commodity] = []
         for symbol, (
