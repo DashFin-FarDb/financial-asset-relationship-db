@@ -86,7 +86,9 @@ First occurrence of PY dependencies.
 First and only occurrence of TS dependencies.
 """
 
-    def test_validate_manifest_detects_duplicates(self, sample_manifest_with_duplicates):
+    def test_validate_manifest_detects_duplicates(
+        self, sample_manifest_with_duplicates
+    ):
         """Test that duplicate headings are detected in the manifest."""
         import sys
 
@@ -108,11 +110,17 @@ First and only occurrence of TS dependencies.
 
         lines = sample_manifest_clean.splitlines(keepends=True)
         heading_occurrences = _collect_headings(lines)
-        duplicates = {heading: positions for heading, positions in heading_occurrences.items() if len(positions) > 1}
+        duplicates = {
+            heading: positions
+            for heading, positions in heading_occurrences.items()
+            if len(positions) > 1
+        }
 
         assert duplicates == {}
 
-    def test_deduplicate_removes_duplicates(self, sample_manifest_with_duplicates, tmp_path):
+    def test_deduplicate_removes_duplicates(
+        self, sample_manifest_with_duplicates, tmp_path
+    ):
         """Test that the deduplication script removes duplicate sections."""
         import sys
 
@@ -179,7 +187,9 @@ First and only occurrence of TS dependencies.
         # Verify order: Project Overview should come before Project Structure, etc.
         assert headings.index("Project Overview") < headings.index("Current Status")
         assert headings.index("Current Status") < headings.index("Project Structure")
-        assert headings.index("Project Directory Structure") < headings.index("PY Dependencies")
+        assert headings.index("Project Directory Structure") < headings.index(
+            "PY Dependencies"
+        )
         assert headings.index("PY Dependencies") < headings.index("TS Dependencies")
 
     def test_preamble_preservation(self, sample_manifest_with_duplicates):
@@ -226,6 +236,6 @@ First and only occurrence of TS dependencies.
 
         # Should return 0 (no duplicates)
         exit_code = check_duplicate_headings(manifest_path)
-        assert (
-            exit_code == 0
-        ), "systemManifest.md contains duplicate sections. Run 'python scripts/deduplicate_manifest.py' to fix."
+        assert exit_code == 0, (
+            "systemManifest.md contains duplicate sections. Run 'python scripts/deduplicate_manifest.py' to fix."
+        )
