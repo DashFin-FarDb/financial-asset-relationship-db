@@ -12,7 +12,6 @@ import os
 import httpx
 import pytest
 import pytest_asyncio
-from api.main import app
 from fastapi.security import OAuth2PasswordRequestForm
 
 # Ensure required env vars are set before importing the API module.
@@ -23,6 +22,7 @@ os.environ.setdefault("ADMIN_PASSWORD", "admin-password")
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_FULL_NAME", "Admin User")
 
+from api.main import app
 
 # Disable rate limiting to avoid slowapi interference in test runs.
 app.state.limiter.enabled = False
