@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 # ------------- Constants -------------
 class AppConstants:
+    """Contains application-wide constant values for UI labels, messages, and configuration used by the Financial Asset Relationship Database Visualization application."""
+
     TITLE = "Financial Asset Relationship Database Visualization"
     MARKDOWN_HEADER = """
     # 🏦 Financial Asset Relationship Network
@@ -133,6 +135,12 @@ Top Relationships:
 
 
 class FinancialAssetApp:
+    """Main application class for managing financial asset relationships.
+
+    Initializes the asset relationship graph using real or sample data,
+    provides methods to ensure graph availability and perform analyses.
+    """
+
     def __init__(self):
         self.graph: Optional[AssetRelationshipGraph] = None
         self._initialize_graph()
@@ -221,9 +229,7 @@ class FinancialAssetApp:
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """Refreshes all visualizations and reports in the Gradio interface."""
         try:
-            graph = (
-                self.ensure_graph()
-            )  # Use self.ensure_graph to get the latest graph state
+            graph = self.ensure_graph()  # Use self.ensure_graph to get the latest graph state
             logger.info("Refreshing all visualization outputs")
             viz_3d = visualize_3d_graph(graph)
             f1, f2, f3, metrics_txt = self.update_all_metrics_outputs(graph)
@@ -250,24 +256,18 @@ class FinancialAssetApp:
                 ),
             )
         except Exception as e:
-            logger.error(
-                "%s: %s",
-                AppConstants.REFRESH_OUTPUTS_ERROR,
-                e,
-            )
+            logger.exception("Error refreshing outputs: %s", e)
+            empty_fig = go.Figure()
             return (
-                gr.update(),
-                gr.update(),
-                gr.update(),
-                gr.update(),
-                gr.update(),
-                gr.update(),
+                empty_fig,
+                empty_fig,
+                empty_fig,
+                empty_fig,
+                "",
+                "",
+                gr.update(choices=[], value=None),
                 gr.update(
-                    choices=[],
-                    value=None,
-                ),
-                gr.update(
-                    value=f"Error: {str(e)}",
+                    value="An unexpected error occurred. Please try again.",
                     visible=True,
                 ),
             )
@@ -340,15 +340,11 @@ class FinancialAssetApp:
             analysis_results = formulaic_analyzer.analyze_graph(graph)
 
             # Generate visualizations
-            dashboard_fig = formulaic_visualizer.create_formula_dashboard(
-                analysis_results
-            )
+            dashboard_fig = formulaic_visualizer.create_formula_dashboard(analysis_results)
             correlation_network_fig = formulaic_visualizer.create_correlation_network(
                 analysis_results.get("empirical_relationships", {})
             )
-            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(
-                analysis_results
-            )
+            metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
 
             # Generate formula selector options
             formulas = analysis_results.get("formulas", [])
@@ -402,19 +398,7 @@ class FinancialAssetApp:
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
-        """Format the formula analysis summary for display.
-
-        This static method generates a formatted summary of the formulaic analysis
-        based on the provided summary and analysis results. It compiles key metrics
-        such as the total number of identified formulas, average reliability, and
-        empirical data points. Additionally, it categorizes formulas and highlights
-        key insights and strongest asset correlations, if available.
-
-        Args:
-            summary (Dict): A dictionary containing summary statistics and insights.
-            analysis_results (Dict): A dictionary containing analysis results, including
-                formulas and empirical relationships.
-        """
+        """Format the formula analysis summary for display."""
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
@@ -443,16 +427,16 @@ class FinancialAssetApp:
         if correlations:
             summary_lines.extend(["", "🔗 **Strongest Asset Correlations:**"])
             for corr in correlations[:3]:
-                summary_lines.append(
-                    f"  • {corr['pair']}: {corr['correlation']:.3f} "
-                    f"({corr['strength']})"
-                )
+                summary_lines.append(f"  • {corr['pair']}: {corr['correlation']:.3f} " f"({corr['strength']})")
 
         return "\n".join(summary_lines)
 
     def create_interface(self):
-        """Creates the Gradio interface for the Financial Asset Relationship Database."""
-        with gr.Blocks(title=AppConstants.TITLE) as interface:
+        """
+        Creates the Gradio interface for the Financial Asset Relationship Database.
+
+        """
+        with gr.Blocks(title=AppConstants.TITLE) as demo:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
@@ -542,9 +526,7 @@ class FinancialAssetApp:
                                 variant="secondary",
                             )
                         with gr.Column(scale=2):
-                            gr.Markdown(
-                                "**Legend:** ↔ = Bidirectional, → = Unidirectional"
-                            )
+                            gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
 
                 with gr.Tab(AppConstants.TAB_METRICS_ANALYTICS):
                     gr.Markdown(AppConstants.NETWORK_METRICS_ANALYSIS_MD)
@@ -595,9 +577,7 @@ class FinancialAssetApp:
                         asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
 
                     with gr.Row():
-                        asset_relationships = gr.JSON(
-                            label=AppConstants.RELATED_ASSETS_LABEL
-                        )
+                        asset_relationships = gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
 
                     with gr.Row():
                         refresh_explorer_btn = gr.Button(
@@ -622,9 +602,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=2):
-                            formulaic_dashboard = gr.Plot(
-                                label="Formulaic Analysis Dashboard"
-                            )
+                            formulaic_dashboard = gr.Plot(label="Formulaic Analysis Dashboard")
                         with gr.Column(scale=1):
                             formula_selector = gr.Dropdown(
                                 label="Select Formula for Details",
@@ -636,9 +614,7 @@ class FinancialAssetApp:
 
                     with gr.Row():
                         with gr.Column(scale=1):
-                            correlation_network = gr.Plot(
-                                label="Asset Correlation Network"
-                            )
+                            correlation_network = gr.Plot(label="Asset Correlation Network")
                         with gr.Column(scale=1):
                             metric_comparison = gr.Plot(label="Metric Comparison Chart")
 
@@ -797,12 +773,12 @@ class FinancialAssetApp:
                 outputs=[asset_info, asset_relationships],
             )
 
-            interface.load(
+            demo.load(
                 self.refresh_all_outputs,
                 inputs=[graph_state],
                 outputs=all_refresh_outputs,
             )
-        return interface
+        return demo
 
 
 if __name__ == "__main__":
