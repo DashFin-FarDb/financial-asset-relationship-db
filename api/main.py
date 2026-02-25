@@ -467,6 +467,8 @@ async def root():
     # Only explicitly listed origins (ALLOWED_ORIGINS env-var or the
     # known localhost/Vercel entries above) should be accepted.
     return False
+
+
 async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "graph_initialized": graph is not None}
