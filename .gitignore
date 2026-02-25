@@ -104,7 +104,10 @@ dmypy.json
 .dockerignore
 docker-compose.override.yml
 
-# Ignore vscode AI rules
+# Elastic Copilot backups
+.elastic-copilot/memory/*.backup
+
+#Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 
 # Ignore accidental pip/command output artifacts
