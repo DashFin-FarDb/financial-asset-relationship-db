@@ -54,9 +54,7 @@ def _find_project_root(start: Path) -> Path:
 
     # If no project root could be determined, fail explicitly rather than
     # returning None implicitly. This matches the documented contract.
-    raise RuntimeError(
-        f"Could not determine project root starting from {start} or current working directory {cwd}"
-    )
+    raise RuntimeError(f"Could not determine project root starting from {start} or current working directory {cwd}")
 
 
 PROJECT_ROOT = _find_project_root(Path(__file__).resolve())
@@ -146,17 +144,13 @@ def configure_logging(verbose: bool) -> logging.Logger:
     if logger.handlers:
         # Update existing stream handler levels based on verbosity.
         for h in logger.handlers:
-            if isinstance(h, logging.StreamHandler) and not isinstance(
-                h, logging.FileHandler
-            ):
+            if isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler):
                 h.setLevel(logging.DEBUG if verbose else logging.WARNING)
         return logger
 
     file_handler = logging.FileHandler(log_path)
     file_handler.setLevel(logging.DEBUG)
-    file_formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     file_handler.setFormatter(file_formatter)
 
     stream_handler = logging.StreamHandler(sys.stderr)
@@ -179,9 +173,7 @@ def _as_output_format(value: str) -> OutputFormat:
     try:
         return OutputFormat(value)
     except ValueError as exc:
-        raise argparse.ArgumentTypeError(
-            "Invalid output format. Use one of: markdown, text, json."
-        ) from exc
+        raise argparse.ArgumentTypeError("Invalid output format. Use one of: markdown, text, json.") from exc
 
 
 def parse_arguments(argv: Optional[list[str]] = None) -> argparse.Namespace:
@@ -308,9 +300,7 @@ def write_atomic(target: Path, content: str) -> None:
             raise
 
 
-def generate_report(
-    logger: logging.Logger, fmt: OutputFormat, output: Path | None
-) -> None:
+def generate_report(logger: logging.Logger, fmt: OutputFormat, output: Path | None) -> None:
     """
     Generate a schema report and write it to the given file path or stdout.
 

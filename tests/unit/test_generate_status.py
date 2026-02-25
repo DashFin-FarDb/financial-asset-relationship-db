@@ -36,9 +36,7 @@ class TestCheckRunInfo:
 
     def test_check_run_info_creation(self):
         """CheckRunInfo can be created with valid fields."""
-        check = CheckRunInfo(
-            name="test-check", status="completed", conclusion="success"
-        )
+        check = CheckRunInfo(name="test-check", status="completed", conclusion="success")
         assert check.name == "test-check"
         assert check.status == "completed"
         assert check.conclusion == "success"
@@ -51,9 +49,7 @@ class TestCheckRunInfo:
 
     def test_check_run_info_none_conclusion(self):
         """CheckRunInfo can have None conclusion for pending checks."""
-        check = CheckRunInfo(
-            name="pending-check", status="in_progress", conclusion=None
-        )
+        check = CheckRunInfo(name="pending-check", status="in_progress", conclusion=None)
         assert check.conclusion is None
 
 
@@ -824,9 +820,7 @@ class TestWriteOutput:
         assert temp_file.exists()
         assert content in temp_file.read_text()
 
-    def test_write_output_handles_github_summary_error(
-        self, monkeypatch, capsys, tmp_path
-    ):
+    def test_write_output_handles_github_summary_error(self, monkeypatch, capsys, tmp_path):
         """write_output handles errors writing to GITHUB_STEP_SUMMARY gracefully."""
         bad_path = tmp_path / "nonexistent_dir" / "summary.md"
         monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(bad_path))
@@ -839,9 +833,7 @@ class TestWriteOutput:
         warned = "Warning" in captured.err
         fell_back = content in captured.out
 
-        assert warned or fell_back, (
-            "write_output should either warn on stderr or fall back to stdout on error"
-        )
+        assert warned or fell_back, "write_output should either warn on stderr or fall back to stdout on error"
 
 
 class TestMainFunction:
