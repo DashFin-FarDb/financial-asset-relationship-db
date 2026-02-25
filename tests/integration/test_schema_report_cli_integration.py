@@ -179,10 +179,7 @@ class TestCLIErrorHandling:
         - Print a user-facing cancellation message
         - Exit with code 130
         """
-        pytest.skip(
-            "KeyboardInterrupt behaviour is documented but not exercised "
-            "in this integration test."
-        )
+        pytest.skip("KeyboardInterrupt behaviour is documented but not exercised " "in this integration test.")
 
     def test_help_message_available(self, tmp_path: Path) -> None:
         """Help message should be available and well-formed."""
@@ -263,9 +260,7 @@ class TestCLIFormatConversion:
         )
         assert result.returncode == 0
         content = output_file.read_text(encoding="utf-8")
-        lines_with_headers = [
-            line for line in content.splitlines() if line.startswith("#")
-        ]
+        lines_with_headers = [line for line in content.splitlines() if line.startswith("#")]
         assert len(lines_with_headers) == 0
 
     def test_json_contains_valid_structure(self, tmp_path: Path) -> None:
