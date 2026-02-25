@@ -9,16 +9,20 @@ from src.reports.helpers import (
     _as_top_relationships,
 )
 
+pytestmark = pytest.mark.unit
+
 # ---------------------------------------------------------------------------
 # _as_int tests
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 def test_as_int_valid_conversion() -> None:
     assert _as_int("10") == 10
     assert _as_int(5) == 5
 
 
+@pytest.mark.unit
 def test_as_int_invalid_conversion() -> None:
     assert _as_int(None, default=3) == 3
     assert _as_int("x", default=2) == 2
@@ -30,11 +34,13 @@ def test_as_int_invalid_conversion() -> None:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 def test_as_float_valid_conversion() -> None:
     assert _as_float("1.5") == 1.5
     assert _as_float(2) == 2.0
 
 
+@pytest.mark.unit
 def test_as_float_invalid_conversion() -> None:
     assert _as_float(None, default=9.9) == 9.9
     assert _as_float("bad", default=-0.5) == -0.5
@@ -46,12 +52,14 @@ def test_as_float_invalid_conversion() -> None:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 def test_as_str_int_map_valid() -> None:
     src = {"a": "1", "b": 2, 3: "not included"}
     out = _as_str_int_map(src)
     assert out == {"a": 1, "b": 2}
 
 
+@pytest.mark.unit
 def test_as_str_int_map_non_mapping() -> None:
     assert _as_str_int_map(123) == {}
     assert _as_str_int_map(["x", "y"]) == {}
@@ -62,6 +70,7 @@ def test_as_str_int_map_non_mapping() -> None:
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.unit
 def test_as_top_relationships_valid() -> None:
     src = [
         ("A", "B", "correlation", "0.8"),
@@ -75,6 +84,7 @@ def test_as_top_relationships_valid() -> None:
     ]
 
 
+@pytest.mark.unit
 def test_as_top_relationships_filters_invalid() -> None:
     src = [
         ("A", "B", "invalid"),  # too short
@@ -88,5 +98,6 @@ def test_as_top_relationships_filters_invalid() -> None:
     ]
 
 
+@pytest.mark.unit
 def test_as_top_relationships_non_iterable() -> None:
     assert _as_top_relationships(123) == []

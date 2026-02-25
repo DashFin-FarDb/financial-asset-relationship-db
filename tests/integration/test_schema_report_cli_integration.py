@@ -16,23 +16,43 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 def _repo_root() -> Path:
-    """Return the repository root, assuming tests live under tests/."""
+    """
+    Locate the repository root by ascending two directory levels from this file.
+
+    Assumes this module is placed under a tests/ subtree (i.e., two levels below the repo root).
+
+    Returns:
+        Path: Path object pointing to the repository root directory.
+    """
     return Path(__file__).resolve().parents[2]
 
 
 def _cli_path() -> Path:
-    """Return the path to the schema_report_cli script."""
+    """
+    Locate the repository's schema_report_cli.py script under .github/scripts.
+
+    Returns:
+        Path: Path to the CLI script file (repo_root/.github/scripts/schema_report_cli.py).
+    """
     return _repo_root() / ".github" / "scripts" / "schema_report_cli.py"
 
 
 def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
     """
-    Run the CLI script via subprocess with a temp log location.
+    Run the CLI script in a subprocess while forcing the CLI log to a temporary location.
 
-    SCHEMA_REPORT_LOG is forced to tmp_path so tests do not write logs
-    into the repository tree.
+    The environment variable SCHEMA_REPORT_LOG is set to a file under tmp_path so tests do not write logs into the repository tree.
+
+    Parameters:
+        tmp_path (Path): Directory used to place the temporary log file (schema_report_cli.log).
+        *args (str): Additional command-line arguments forwarded to the CLI.
+
+    Returns:
+        subprocess.CompletedProcess[str]: The completed subprocess result with captured `stdout` and `stderr`.
     """
     env = os.environ.copy()
     env["SCHEMA_REPORT_LOG"] = str(tmp_path / "schema_report_cli.log")
@@ -43,6 +63,7 @@ def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
         text=True,
         cwd=str(_repo_root()),
         env=env,
+        timeout=60,
     )
 
 
@@ -158,10 +179,7 @@ class TestCLIErrorHandling:
         - Print a user-facing cancellation message
         - Exit with code 130
         """
-        pytest.skip(
-            "KeyboardInterrupt behaviour is documented but not exercised "
-            "in this integration test."
-        )
+        pytest.skip("KeyboardInterrupt behaviour is documented but not exercised " "in this integration test.")
 
     def test_help_message_available(self, tmp_path: Path) -> None:
         """Help message should be available and well-formed."""
@@ -225,23 +243,24 @@ class TestCLIFormatConversion:
             "--output",
             str(output_file),
         )
+        result = _run_cli(tmp_path, "--fmt", "markdown", "--output", str(output_file))
+        assert result.returncode == 0
         content = output_file.read_text(encoding="utf-8")
         assert "##" in content or "# " in content
 
     def test_text_removes_markdown_formatting(self, tmp_path: Path) -> None:
         """Text format should remove markdown headers."""
         output_file = tmp_path / "report.txt"
-        _run_cli(
+        result = _run_cli(
             tmp_path,
             "--fmt",
             "text",
             "--output",
             str(output_file),
         )
+        assert result.returncode == 0
         content = output_file.read_text(encoding="utf-8")
-        lines_with_headers = [
-            line for line in content.splitlines() if line.startswith("#")
-        ]
+        lines_with_headers = [line for line in content.splitlines() if line.startswith("#")]
         assert len(lines_with_headers) == 0
 
     def test_json_contains_valid_structure(self, tmp_path: Path) -> None:
@@ -289,7 +308,11 @@ class TestCLIArgumentParsing:
         assert result.returncode == 0
 
     def test_combined_flags(self, tmp_path: Path) -> None:
-        """All flags can be combined without error."""
+        """
+        Verify multiple CLI flags can be combined and produce a successful JSON report file.
+
+        Runs the CLI with --fmt json, --output <file>, and --verbose, and asserts the process exits with code 0 and that the output file is created.
+        """
         output_file = tmp_path / "report.json"
         result = _run_cli(
             tmp_path,
@@ -305,6 +328,18 @@ class TestCLIArgumentParsing:
 
 class TestCLILogging:
     """Test cases for CLI logging behavior."""
+
+    @staticmethod
+    def _assert_cli_success(result, output_file: Path) -> None:
+        assert result.returncode == 0, (
+            "CLI returned non-zero exit code.\n" f"stdout:\n{result.stdout}\n" f"stderr:\n{result.stderr}\n"
+        )
+        assert output_file.exists(), (
+            "CLI reported success but did not create output file.\n"
+            f"Expected: {output_file}\n"
+            f"stdout:\n{result.stdout}\n"
+            f"stderr:\n{result.stderr}\n"
+        )
 
     def test_log_file_created(self, tmp_path: Path) -> None:
         """Log file should be created in the path given by SCHEMA_REPORT_LOG."""
@@ -324,7 +359,6 @@ class TestCLILogging:
         assert result.returncode != 0
 
         log_file = tmp_path / "schema_report_cli.log"
-        if log_file.exists():
-            log_content = log_file.read_text(encoding="utf-8")
-            # We expect at least one error or exception-level record
-            assert "ERROR" in log_content or "CRITICAL" in log_content
+        assert log_file.exists(), "Log file was not created by the CLI"
+        log_content = log_file.read_text(encoding="utf-8")
+        assert "ERROR" in log_content or "CRITICAL" in log_content

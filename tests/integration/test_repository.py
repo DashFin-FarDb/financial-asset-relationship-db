@@ -28,9 +28,7 @@ def _apply_migration(database_path: Path) -> None:
 
     The migration script is static/trusted (repository-owned), not user-controlled.
     """
-    migrations_path = (
-        Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
-    )
+    migrations_path = Path(__file__).resolve().parents[2] / "migrations" / "001_initial.sql"
     sql = migrations_path.read_text(encoding="utf-8")
 
     # executescript() is required for multi-statement DDL migrations.
