@@ -144,83 +144,38 @@ class TestFinancialAssetAppInitialization:
     """Test cases for FinancialAssetApp initialization."""
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_app_initialization_creates_graph(mock_fetcher):
-        """Test that app initialization creates an asset graph."""
+    @patch("app.create_real_database")
+    def test_app_initialization_creates_graph(mock_create_real_database):
+        """Test that app initialization creates an asset graph using create_real_database()."""
         mock_graph = MagicMock()
         mock_graph.assets = {"TEST_001": MagicMock()}
-        mock_fetcher.create_real_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
 
-        assert app.graph is not None
-        assert app.graph == mock_graph
+        assert app.graph is mock_graph
+        mock_create_real_database.assert_called_once()
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_app_initialization_with_sample_database(mock_fetcher):
-        """Test that app falls back to create_sample_database."""
+    @patch("app.create_real_database")
+    def test_app_initialization_accepts_empty_graph(mock_create_real_database):
+        """Test that app initialization stores the graph even if it has no assets."""
         mock_graph = MagicMock()
         mock_graph.assets = {}
-
-        # Remove create_real_database, add create_sample_database
-        del mock_fetcher.create_real_database
-        mock_fetcher.create_sample_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
 
-        assert app.graph is not None
-        mock_fetcher.create_sample_database.assert_called_once()
+        assert app.graph is mock_graph
+        mock_create_real_database.assert_called_once()
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_create_database_tries_multiple_candidates(mock_fetcher):
-        """Test that _create_database tries multiple function names."""
-        mock_graph = MagicMock()
-
-        # Only third candidate exists
-        del mock_fetcher.create_real_database
-        del mock_fetcher.create_sample_database
-        mock_fetcher.create_database = Mock(return_value=mock_graph)
-
-        result = FinancialAssetApp._create_database()
-
-        assert result == mock_graph
-        mock_fetcher.create_database.assert_called_once()
-
-    @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_create_database_raises_if_no_factory_found(mock_fetcher):
-        """Test that _create_database raises AttributeError if no factory exists."""
-        # Remove all candidate functions
-        for attr in [
-            "create_real_database",
-            "create_sample_database",
-            "create_database",
-            "create_real_data_database",
-        ]:
-            if hasattr(mock_fetcher, attr):
-                delattr(mock_fetcher, attr)
-
-        with pytest.raises(AttributeError, match="No known database factory found"):
-            FinancialAssetApp._create_database()
-
-    @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_create_database_raises_if_wrong_type_returned(mock_fetcher):
-        """Test that _create_database raises TypeError if return type is wrong."""
-        mock_fetcher.create_real_database = Mock(return_value="not a graph")
-
-        with pytest.raises(TypeError, match="expected AssetRelationshipGraph"):
-            FinancialAssetApp._create_database()
-
-    @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_ensure_graph_returns_existing_graph(mock_fetcher):
+    @patch("app.create_real_database")
+    def test_ensure_graph_returns_existing_graph(mock_create_real_database):
         """Test that ensure_graph returns existing graph without recreation."""
         mock_graph = MagicMock()
         mock_graph.assets = {}
-        mock_fetcher.create_real_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
         original_graph = app.graph
@@ -228,23 +183,26 @@ class TestFinancialAssetAppInitialization:
         result = app.ensure_graph()
 
         assert result is original_graph
-        assert mock_fetcher.create_real_database.call_count == 1  # Only initial call
+        # create_real_database should have been called only during initialization
+        mock_create_real_database.assert_called_once()
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_ensure_graph_recreates_if_none(mock_fetcher):
-        """Test that ensure_graph recreates graph if it's None."""
+    @patch("app.create_real_database")
+    def test_ensure_graph_recreates_if_none(mock_create_real_database):
+        """Test that ensure_graph recreates the graph when it's None."""
         mock_graph = MagicMock()
         mock_graph.assets = {}
-        mock_fetcher.create_real_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
+        # Simulate external code clearing the graph
         app.graph = None
 
         result = app.ensure_graph()
 
-        assert result is not None
-        assert result == mock_graph
+        assert result is mock_graph
+        # create_real_database should have been called twice: init + recreate
+        assert mock_create_real_database.call_count == 2
 
 
 @pytest.mark.unit
