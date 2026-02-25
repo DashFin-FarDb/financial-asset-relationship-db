@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -270,7 +271,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date="2025-03-31",  # Approximate
+                    delivery_date=(datetime.now(timezone.utc) + timedelta(days=90)).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)

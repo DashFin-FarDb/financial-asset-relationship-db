@@ -6,8 +6,6 @@ websockets>=12.0
 pandas>=1.5.0
 dataclasses-json>=0.5.7
 yfinance>=0.2.51
-requests>=2.32.2
-pandas>=1.5.0
 fastapi==0.127.0  # pinned for API compatibility and stability
 uvicorn[standard]>=0.24.0
 pydantic==2.12.5  # pinned for FastAPI compatibility

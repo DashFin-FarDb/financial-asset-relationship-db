@@ -6,7 +6,7 @@ from typing import Dict, Optional, Tuple
 import gradio as gr
 import plotly.graph_objects as go
 
-from src.analysis.formulaic_analysis import FormulaicdAnalyzer
+from src.analysis.formulaic_analysis import FormulaicAnalyzer
 from src.data.real_data_fetcher import create_real_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import Asset
@@ -331,7 +331,7 @@ class FinancialAssetApp:
             graph = self.ensure_graph() if graph_state is None else graph_state
 
             # Initialize analyzers
-            formulaic_analyzer = FormulaicdAnalyzer()
+            formulaic_analyzer = FormulaicAnalyzer()
             formulaic_visualizer = FormulaicVisualizer()
 
             # Perform analysis
@@ -434,7 +434,7 @@ class FinancialAssetApp:
         Creates the Gradio interface for the Financial Asset Relationship Database.
 
         """
-        with gr.Blocks(title=AppConstants.TITLE):
+        with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
             error_message = gr.Textbox(
@@ -771,12 +771,12 @@ class FinancialAssetApp:
                 outputs=[asset_info, asset_relationships],
             )
 
-            demo.load(
+            interface.load(
                 self.refresh_all_outputs,
                 inputs=[graph_state],
                 outputs=all_refresh_outputs,
             )
-        return demo
+        return interface
 
 
 if __name__ == "__main__":
