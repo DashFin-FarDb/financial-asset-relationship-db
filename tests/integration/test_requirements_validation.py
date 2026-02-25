@@ -203,8 +203,13 @@ class TestRequirementsInstallability:
             capture_output=True,
             text=True,
         )
-        # Should not have syntax errors
-        assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
+        # Check return code - pip should exit with 0 on success
+        # Allow benign warnings in stderr (e.g., "WARNING: pip is being invoked")
+        assert result.returncode == 0, (
+            f"pip install --dry-run failed with exit code {result.returncode}\n"
+            f"stderr: {result.stderr}\n"
+            f"stdout: {result.stdout}"
+        )
 
 
 class TestRequirementsDocumentation:
