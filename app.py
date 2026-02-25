@@ -228,7 +228,7 @@ class FinancialAssetApp:
 
 
 
-   def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
+    def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
         """Refreshes all visualizations and reports in the Gradio interface."""
         try:
             graph = (
