@@ -227,7 +227,7 @@ class FinancialAssetApp:
         return asset_dict, {"outgoing": outgoing, "incoming": incoming}
 
     def refresh_all_outputs(self, graph_state: AssetRelationshipGraph):
-        """Refreshes all visualizations and reports in the Gradio interface."""
+        """Refreshes all visualization outputs and metrics in the Gradio interface."""
         try:
             graph = (
                 self.ensure_graph()
@@ -329,7 +329,18 @@ class FinancialAssetApp:
             return empty_fig, gr.update(value=error_msg, visible=True)
 
     def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
-        """Generate comprehensive formulaic analysis of the asset graph."""
+        """Generate comprehensive formulaic analysis of the asset graph.
+        
+        This function generates a detailed formulaic analysis of the provided  asset
+        graph. It initializes the necessary analyzers and visualizers,  performs the
+        analysis on the graph, and creates various visualizations  such as a formula
+        dashboard, correlation network, and metric comparison  chart. Additionally, it
+        formats a summary of the analysis results and  handles any exceptions that may
+        occur during the process.
+        
+        Args:
+            graph_state (AssetRelationshipGraph): The state of the asset graph
+        """
         try:
             logger.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
@@ -440,10 +451,7 @@ class FinancialAssetApp:
         return "\n".join(summary_lines)
 
     def create_interface(self):
-        """
-        Creates the Gradio interface for the Financial Asset Relationship Database.
-
-        """
+        """Creates the Gradio interface for the Financial Asset Relationship Database."""
         with gr.Blocks(title=AppConstants.TITLE) as demo:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
