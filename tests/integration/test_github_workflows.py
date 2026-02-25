@@ -2871,7 +2871,7 @@ class TestWorkflowEnvironmentVariables:
                     # Check if values are the same (which would be redundant)
                     for env_var in duplicates:
                         if workflow_env.get(env_var) == job_env.get(env_var):
-                            assert False, (
+                            pytest.fail(
                                 f"Env var '{env_var}' in job '{job_name}' duplicates workflow-level "
                                 f"env with same value in {workflow_file.name}. Remove the duplicate."
                             )
