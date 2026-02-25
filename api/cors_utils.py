@@ -4,9 +4,12 @@ This module provides validation logic for HTTP origins based on environment
 and security requirements.
 """
 
+import logging
 import os
 import re
 from urllib.parse import urlparse
+
+logger = logging.getLogger(__name__)
 
 
 def validate_origin(origin: str) -> bool:
@@ -66,7 +69,10 @@ def validate_origin(origin: str) -> bool:
                 ascii_origin,
             ):
                 return True
-        except UnicodeError:
+        except UnicodeError as e:
             # If the hostname cannot be IDNA-encoded, treat the origin as invalid.
+            logger.debug(
+                "Failed to IDNA-encode hostname for origin %s: %s", origin, e
+            )
             return False
     return False

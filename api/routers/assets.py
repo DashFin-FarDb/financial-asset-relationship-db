@@ -39,7 +39,7 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
         "id": asset.id,
         "symbol": asset.symbol,
         "name": asset.name,
-        "asset_class": asset.asset_class.value,
+        "asset_class": asset.asset_class.name,
         "sector": asset.sector,
         "price": asset.price,
         "market_cap": asset.market_cap,
@@ -104,8 +104,9 @@ async def get_assets(
     List assets, optionally filtered by asset class and sector.
 
     Parameters:
-        asset_class (Optional[str]): Filter to include only assets whose
-            `asset_class.value` equals this string.
+        asset_class (Optional[str]): Filter to include only assets matching
+            this asset class. Accepts either the enum name (e.g., "EQUITY")
+            or value (e.g., "Equity"), case-insensitive.
         sector (Optional[str]): Filter to include only assets whose
             `sector` equals this string.
 
@@ -121,8 +122,14 @@ async def get_assets(
 
         for asset_id, asset in g.assets.items():
             # Apply filters
-            if asset_class and asset.asset_class.value != asset_class:
-                continue
+            # Support both enum name (e.g., "EQUITY") and value (e.g., "Equity")
+            if asset_class:
+                asset_class_upper = asset_class.upper()
+                if (
+                    asset.asset_class.name != asset_class_upper
+                    and asset.asset_class.value.upper() != asset_class_upper
+                ):
+                    continue
             if sector and asset.sector != sector:
                 continue
 

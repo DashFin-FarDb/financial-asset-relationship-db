@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import os
+from contextlib import contextmanager
+from typing import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -10,10 +12,6 @@ from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from .base import Base  # noqa: F401 – re-exported for backward compatibility
-
-# Canonical transaction helper lives in repository.py per tech spec.
-# Re-export here for backward compatibility with older imports.
-from .repository import session_scope  # noqa: F401
 
 DEFAULT_DATABASE_URL = os.getenv(
     "ASSET_GRAPH_DATABASE_URL",
@@ -44,6 +42,26 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
         autoflush=False,
         future=True,
     )
+
+
+@contextmanager
+def session_scope(
+    session_factory: sessionmaker[Session],
+) -> Generator[Session, None, None]:
+    """
+    Provide a transactional scope for database operations.
+    
+    Ensures proper commit/rollback/close semantics for SQLAlchemy sessions.
+    """
+    session = session_factory()
+    try:
+        yield session
+        session.commit()
+    except Exception:
+        session.rollback()
+        raise
+    finally:
+        session.close()
 
 
 def init_db(engine: Engine) -> None:
