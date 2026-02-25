@@ -6,7 +6,7 @@ from typing import Dict, Optional, Tuple
 import gradio as gr
 import plotly.graph_objects as go
 
-from src.analysis.formulaic_analysis import FormulaicAnalyzer, FormulaicdAnalyzer
+from src.analysis.formulaic_analysis import FormulaicAnalyzer
 from src.data.real_data_fetcher import create_real_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import Asset
@@ -259,17 +259,17 @@ class FinancialAssetApp:
             )
         except Exception as e:
             logger.exception("Error refreshing outputs: %s", e)
-            empty = gr.update()
+            empty_fig = go.Figure()
             return (
-                empty,
-                empty,
-                empty,
-                empty,
-                empty,
-                empty,
-                empty,
+                empty_fig,
+                empty_fig,
+                empty_fig,
+                empty_fig,
+                "",
+                "",
+                gr.update(choices=[], value=None),
                 gr.update(
-                    value=f"Error refreshing outputs: {e}",
+                    value="An unexpected error occurred. Please try again.",
                     visible=True,
                 ),
             )
@@ -335,7 +335,7 @@ class FinancialAssetApp:
             graph = self.ensure_graph() if graph_state is None else graph_state
 
             # Initialize analyzers
-            formulaic_analyzer = FormulaicdAnalyzer()
+            formulaic_analyzer = FormulaicAnalyzer()
             formulaic_visualizer = FormulaicVisualizer()
 
             # Perform analysis

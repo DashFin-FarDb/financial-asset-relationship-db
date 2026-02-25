@@ -88,7 +88,7 @@ class TestVisualizeMetrics:
     def test_relationship_distribution_data(populated_graph):
         """Test that relationship distribution contains correct data."""
         # Add some relationships
-        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
+        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_link", 0.8)
         populated_graph.add_relationship("TEST_GOLD", "TEST_EUR", "commodity_currency", 0.6)
 
         # Execute

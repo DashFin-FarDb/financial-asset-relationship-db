@@ -465,9 +465,6 @@ async def root():
 
 @app.get("/api/health")
 async def health_check():
-
-
-async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "graph_initialized": graph is not None}
 
@@ -524,6 +521,8 @@ async def get_assets(
             asset_dict = serialize_asset(asset)
             assets.append(AssetResponse(**asset_dict))
     except Exception as e:  # noqa: BLE001
+        if isinstance(e, HTTPException):
+            raise
         logger.exception("Error getting assets:")
         raise HTTPException(
             status_code=500,
@@ -585,14 +584,13 @@ async def get_asset_detail(asset_id: str):
         asset_dict = serialize_asset(asset, include_issuer=True)
         return AssetResponse(**asset_dict)
     except Exception as e:  # noqa: BLE001
-    if isinstance(e, HTTPException):
-        # Preserve existing HTTPExceptions (e.g., raised inside dependencies)
-        raise
-    logger.exception("Error getting assets:")
-    raise HTTPException(
-        status_code=500,
-        detail="An internal error occurred. Please try again later.",
-    ) from e
+        if isinstance(e, HTTPException):
+            raise
+        logger.exception("Error getting asset detail:")
+        raise HTTPException(
+            status_code=500,
+            detail="An internal error occurred. Please try again later.",
+        ) from e
 
 
 @app.get(
@@ -710,6 +708,8 @@ async def get_all_relationships():
                     )
                 )
     except Exception as e:  # noqa: BLE001
+        if isinstance(e, HTTPException):
+            raise
         logger.exception("Error getting relationships:")
         raise HTTPException(
             status_code=500,
@@ -780,16 +780,8 @@ async def get_metrics():
             asset_classes=asset_classes,
             avg_degree=avg_degree,
             max_degree=max_degree,
-            return MetricsResponse(
-                total_assets=total_assets,
-                total_relationships=total_relationships,
-                asset_classes=asset_classes,
-                avg_degree=avg_degree,
-                max_degree=max_degree,
-                network_density=relationship_density / 100.0,
-                relationship_density=relationship_density / 100.0,  # Also scale this field
-            )
-            relationship_density=relationship_density,
+            network_density=relationship_density / 100.0,
+            relationship_density=relationship_density / 100.0,
         )
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting metrics:")
