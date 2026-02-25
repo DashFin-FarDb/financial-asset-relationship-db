@@ -402,7 +402,19 @@ class FinancialAssetApp:
 
     @staticmethod
     def _format_formula_summary(summary: Dict, analysis_results: Dict) -> str:
-        """Format the formula analysis summary for display."""
+        """Format the formula analysis summary for display.
+        
+        This static method generates a formatted summary of the formulaic analysis
+        based on the provided summary and analysis results. It compiles key metrics
+        such as the total number of identified formulas, average reliability, and
+        empirical data points. Additionally, it categorizes formulas and highlights
+        key insights and strongest asset correlations, if available.
+        
+        Args:
+            summary (Dict): A dictionary containing summary statistics and insights.
+            analysis_results (Dict): A dictionary containing analysis results, including
+                formulas and empirical relationships.
+        """
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
 
@@ -439,10 +451,7 @@ class FinancialAssetApp:
         return "\n".join(summary_lines)
 
     def create_interface(self):
-        """
-        Creates the Gradio interface for the Financial Asset Relationship Database.
-
-        """
+        """Creates the Gradio interface for the Financial Asset Relationship Database."""
         with gr.Blocks(title=AppConstants.TITLE) as interface:
             gr.Markdown(AppConstants.MARKDOWN_HEADER)
 
