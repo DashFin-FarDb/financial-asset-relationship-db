@@ -90,6 +90,8 @@ class TestSchemaReportEndpoint:
 
             response = client.get("/schema-report/?format=md")
 
+            response = client.get("/schema-report/?report_format=md")
+
             assert response.status_code == 200
             assert response.text == "## Markdown Content"
             mock_gen_md.assert_called_once_with(mock_graph)
@@ -99,15 +101,13 @@ class TestSchemaReportEndpoint:
         """Test schema report endpoint with html format."""
         with (
             patch("src.api.routers.schema_report.get_graph") as mock_get_graph,
-            patch(
-                "src.api.routers.schema_report.generate_html_report"
-            ) as mock_gen_html,
+            patch("src.api.routers.schema_report.generate_html_report") as mock_gen_html,
         ):
             mock_graph = MagicMock(spec=AssetRelationshipGraph)
             mock_get_graph.return_value = mock_graph
             mock_gen_html.return_value = "<h1>HTML Report</h1>"
 
-            response = client.get("/schema-report/?format=html")
+            response = client.get("/schema-report/?report_format=html")
 
             assert response.status_code == 200
             assert "<h1>HTML Report</h1>" in response.text
@@ -116,7 +116,7 @@ class TestSchemaReportEndpoint:
     @staticmethod
     def test_schema_report_with_invalid_format(client: TestClient) -> None:
         """Test that invalid format parameters are rejected."""
-        response = client.get("/schema-report/?format=pdf")
+        response = client.get("/schema-report/?report_format=pdf")
 
         assert response.status_code == 422  # Unprocessable Entity
 
