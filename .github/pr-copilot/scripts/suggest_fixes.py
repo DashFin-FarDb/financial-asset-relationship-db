@@ -112,7 +112,7 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 
 
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
-    """Check if comment contains actionable feedback."""
+    """Check if the comment contains actionable feedback."""
     body_lower = comment_body.lower()
     return any(keyword in body_lower for keyword in actionable_keywords)
 
@@ -267,8 +267,8 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 
 
 def write_output(report: str) -> None:
-    """Write report to GITHUB_STEP_SUMMARY and secure temp file."""
     # 1. GitHub Summary
+    """Write report to GITHUB_STEP_SUMMARY and a secure temp file."""
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if gh_summary:
         try:
