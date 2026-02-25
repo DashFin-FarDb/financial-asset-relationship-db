@@ -307,11 +307,14 @@ class TestSessionScope:
             assert session.query(TestModel).count() == 0  # nosec B101
 
     @staticmethod
-    def test_propagates_integrity_error(engine: Engine, isolated_base: type[Base]) -> None:
+    def test_propagates_integrity_error(
+        engine: Engine, isolated_base: type[Base]
+    ) -> None:
         """Integrity errors should propagate after rollback."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """Test model representing the `test_integrity` table for integrity error tests."""
+
             __tablename__ = "test_integrity"
             id = Column(Integer, primary_key=True)
 
@@ -325,11 +328,14 @@ class TestSessionScope:
             session.flush()
 
     @staticmethod
-    def test_multiple_operations_commit(engine: Engine, isolated_base: type[Base]) -> None:
+    def test_multiple_operations_commit(
+        engine: Engine, isolated_base: type[Base]
+    ) -> None:
         """Multiple operations in one scope should commit atomically."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
             """SQLAlchemy model for testing multiple operations commit with an 'id' primary key and 'value' column."""
+
             __tablename__ = "test_nested"
             id = Column(Integer, primary_key=True)
             value = Column(String)

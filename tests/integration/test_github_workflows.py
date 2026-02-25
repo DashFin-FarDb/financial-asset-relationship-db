@@ -481,6 +481,8 @@ class TestWorkflowMaintainability:
 
         Parameters:
 """
+
+
 Tests for GitHub workflows to check that files have reasonable size and follow naming conventions.
 """
             workflow_file (Path): Path to the workflow YAML file being checked.
