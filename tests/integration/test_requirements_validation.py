@@ -33,10 +33,7 @@ class TestRequirementsDevChanges:
 
         Performs a case-insensitive check of the provided requirements content to ensure PyYAML is present.
         """
-        assert (
-            "pyyaml" in requirements_dev_content.lower()
-            or "PyYAML" in requirements_dev_content
-        )
+        assert "pyyaml" in requirements_dev_content.lower()
 
     def test_pyyaml_has_version_specifier(self, requirements_dev_content):
         """
