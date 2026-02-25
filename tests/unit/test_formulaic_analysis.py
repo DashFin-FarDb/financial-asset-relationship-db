@@ -1228,7 +1228,7 @@ class TestIntegrationScenarios:
 
     @staticmethod
     def test_analyze_graph_quality_score_calculation():
-        """Test that quality score is calculated and within valid range [0, 1]."""
+        """Test that graph relationship metrics are calculated and within valid range [0, 1]."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
 
@@ -1246,10 +1246,11 @@ class TestIntegrationScenarios:
 
         result = analyzer.analyze_graph(graph)
 
-        # Quality score should be in [0, 1]
+        # Metrics and summary should be present and consistent
         assert "summary" in result
         assert isinstance(result["formula_count"], int)
         assert result["formula_count"] > 0
 
         metrics = graph.calculate_metrics()
-        assert 0.0 <= metrics["quality_score"] <= 1.0
+        # Average relationship strength should be in [0, 1] for auto-generated relationships
+        assert 0.0 <= metrics["average_relationship_strength"] <= 1.0
