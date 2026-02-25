@@ -341,7 +341,7 @@ class TestSnykJobConfiguration:
         assert len(sarif_steps) > 0
 
     @staticmethod
-    def test_sarif_upload_uses_v4(sarif_upload_steps):
+    def test_sarif_upload_uses_v4(snyk_job):
         """Test that SARIF upload uses CodeQL action v4."""
         steps = snyk_job["steps"]
         sarif_steps = [
