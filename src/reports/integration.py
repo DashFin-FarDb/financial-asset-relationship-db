@@ -118,8 +118,12 @@ def embed_report_in_plotly_figure(
     the metadata. It keeps Plotly figures self-describing.
     """
     md = generate_markdown_report(graph)
-    fig["metadata"] = fig.get("metadata", {})
-    fig["metadata"]["schema_report"] = md
+    existing_meta = getattr(fig, "layout", None) and getattr(fig.layout, "meta", None) or {}
+    if isinstance(existing_meta, dict):
+        existing_meta["schema_report"] = md
+    else:
+        existing_meta = {"schema_report": md}
+    fig.update_layout(meta=existing_meta)
     return fig
 
 

@@ -9,10 +9,7 @@ from src.visualizations.graph_2d_visuals_layouts import (
     _create_grid_layout,
     _create_spring_layout_2d,
 )
-from src.visualizations.graph_2d_visuals_traces import (
-    _create_2d_relationship_traces,
-    _create_node_trace,
-)
+from src.visualizations.graph_2d_visuals_traces import _create_2d_relationship_traces
 
 __all__ = ["visualize_2d_graph", "REL_TYPE_COLORS"]
 
@@ -110,6 +107,7 @@ def _resolve_positions(
             )
 
     # Create traces for each relationship type
+    traces: List[go.Scatter] = []
     for rel_type, relationships in relationship_groups.items():
         if not relationships:
             continue
@@ -133,8 +131,18 @@ def _resolve_positions(
             hover_texts.extend([hover_text, hover_text, None])
 
         trace_name = rel_type.replace("_", " ").title()
-        return _create_spring_layout_2d(positions_3d, asset_ids)
-    return _create_circular_layout(asset_ids)
+        traces.append(
+            go.Scatter(
+                x=edges_x,
+                y=edges_y,
+                mode="lines",
+                name=trace_name,
+                hovertext=hover_texts,
+                hoverinfo="text",
+                line={"width": 1},
+            )
+        )
+    return traces
 
 
 def visualize_2d_graph(

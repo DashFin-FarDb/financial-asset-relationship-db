@@ -11,3 +11,5 @@ pre-commit>=3.0.0
 Markdown>=3.4,<4.0
 PyYAML>=6.0
 types-PyYAML
+# Linter used in CI (ci.yml invokes ruff check/format)
+ruff>=0.1.0

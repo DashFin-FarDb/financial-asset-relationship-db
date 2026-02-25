@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
-# Add the scripts directory to path for imports
+# Add the scripts directory to path before importing generate_status
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
+
+scripts_path = (
+    Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
+)
+sys.path.insert(0, str(scripts_path))
+
+from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
@@ -19,11 +25,6 @@ from generate_status import (
     main,
     write_output,
 )
-
-scripts_path = (
-    Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
-)
-sys.path.insert(0, str(scripts_path))
 
 
 class TestCheckRunInfo:

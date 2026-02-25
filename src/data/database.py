@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, declarative_base, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-if TYPE_CHECKING:
-    from .repository import session_scope as session_scope
+from .repository import session_scope as session_scope  # noqa: F401 — re-export
 
 Base = declarative_base()
 
