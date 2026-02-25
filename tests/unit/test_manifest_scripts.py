@@ -89,8 +89,8 @@ First and only occurrence of TS dependencies.
     def test_validate_manifest_detects_duplicates(
         self, sample_manifest_with_duplicates, tmp_path
     ):
-        """Test that validation script detects duplicate headings."""
         # Import here to avoid circular imports
+        """Test that duplicate headings are detected in the manifest."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
@@ -107,8 +107,8 @@ First and only occurrence of TS dependencies.
     def test_validate_manifest_accepts_clean_file(
         self, sample_manifest_clean, tmp_path
     ):
-        """Test that validation script accepts clean manifest."""
         # Import here to avoid circular imports
+        """Test that the validation script accepts a clean manifest."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
@@ -125,8 +125,8 @@ First and only occurrence of TS dependencies.
     def test_deduplicate_removes_duplicates(
         self, sample_manifest_with_duplicates, tmp_path
     ):
-        """Test that deduplication script removes duplicate sections."""
         # Import here to avoid circular imports
+        """Test that deduplication removes duplicate sections."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
@@ -176,8 +176,8 @@ First and only occurrence of TS dependencies.
         assert "# System Manifest" in reconstructed
 
     def test_deduplicate_preserves_order(self, sample_manifest_with_duplicates):
-        """Test that deduplication preserves the order of first occurrence."""
         # Import here to avoid circular imports
+        """Test that deduplication preserves the order of first occurrence."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
@@ -199,8 +199,8 @@ First and only occurrence of TS dependencies.
         assert headings.index("PY Dependencies") < headings.index("TS Dependencies")
 
     def test_preamble_preservation(self, sample_manifest_with_duplicates):
-        """Test that preamble content before first ## heading is preserved."""
         # Import here to avoid circular imports
+        """Test that the preamble content is preserved in the reconstructed manifest."""
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
@@ -229,7 +229,7 @@ First and only occurrence of TS dependencies.
         assert "## Project Overview" in reconstructed
 
     def test_system_manifest_is_clean(self):
-        """Test that the actual systemManifest.md has no duplicates."""
+        """Test that systemManifest.md has no duplicate sections."""
         manifest_path = Path(".elastic-copilot/memory/systemManifest.md")
 
         if not manifest_path.exists():
