@@ -12,6 +12,7 @@ import os
 import httpx
 import pytest
 import pytest_asyncio
+from api.main import app
 from fastapi.security import OAuth2PasswordRequestForm
 
 # Ensure required env vars are set before importing the API module.
@@ -22,7 +23,6 @@ os.environ.setdefault("ADMIN_PASSWORD", "admin-password")
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_FULL_NAME", "Admin User")
 
-from api.main import app
 
 # Disable rate limiting to avoid slowapi interference in test runs.
 app.state.limiter.enabled = False
@@ -66,7 +66,9 @@ class TestCompleteAPIFlow:
         assert detail["id"] == first_asset["id"]
 
         # Step 4: Get relationships for asset
-        rel_response = await client.get(f"/api/assets/{first_asset['id']}/relationships")
+        rel_response = await client.get(
+            f"/api/assets/{first_asset['id']}/relationships"
+        )
         assert rel_response.status_code == 200
         relationships = rel_response.json()
         assert isinstance(relationships, list)
@@ -177,7 +179,9 @@ class TestDataIntegrity:
 
         # Verify relationships are accessible from both endpoints
         for source_id in graph:
-            asset_rels = (await client.get(f"/api/assets/{source_id}/relationships")).json()
+            asset_rels = (
+                await client.get(f"/api/assets/{source_id}/relationships")
+            ).json()
             assert len(asset_rels) > 0
 
 
@@ -270,7 +274,9 @@ class TestAuthenticationFlow:
         assert token_response.status_code == 200
         token = token_response.json()["access_token"]
 
-        me_response = await client.get("/api/users/me", headers={"Authorization": f"Bearer {token}"})
+        me_response = await client.get(
+            "/api/users/me", headers={"Authorization": f"Bearer {token}"}
+        )
         assert me_response.status_code == 200
         payload = me_response.json()
         assert payload["username"] == credentials["username"]
@@ -278,7 +284,9 @@ class TestAuthenticationFlow:
         assert payload["full_name"] == os.environ["ADMIN_FULL_NAME"]
         assert payload["disabled"] is False
 
-        invalid_response = await client.get("/api/users/me", headers={"Authorization": "Bearer invalid-token"})
+        invalid_response = await client.get(
+            "/api/users/me", headers={"Authorization": "Bearer invalid-token"}
+        )
         assert invalid_response.status_code == 401
 
         # Test authentication with incorrect password

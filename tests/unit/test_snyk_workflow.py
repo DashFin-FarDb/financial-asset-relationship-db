@@ -317,13 +317,21 @@ class TestSnykJobConfiguration:
     def test_job_uploads_sarif(self, snyk_job):
         """Test that job uploads SARIF results."""
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         assert len(sarif_steps) > 0
 
     def test_sarif_upload_uses_v4(self, snyk_job):
         """Test that SARIF upload uses CodeQL action v4."""
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         sarif_action = sarif_steps[0]["uses"]
         assert "@v4" in sarif_action
 
@@ -335,7 +343,11 @@ class TestSnykJobConfiguration:
             snyk_job (dict): Parsed workflow job mapping for the `snyk` job under test.
         """
         steps = snyk_job["steps"]
-        sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
+        sarif_steps = [
+            s
+            for s in steps
+            if "uses" in s and "codeql-action/upload-sarif" in s["uses"]
+        ]
         sarif_step = sarif_steps[0]
 
         assert "with" in sarif_step and "sarif_file" in sarif_step["with"]
@@ -428,7 +440,11 @@ class TestSnykWorkflowEdgeCases:
         Reads the workflow YAML file and asserts there is at least one non-empty, non-comment line.
         """
         content = snyk_workflow_path.read_text()
-        lines = [l for l in content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [
+            l
+            for l in content.split("\n")
+            if l.strip() and not l.strip().startswith("#")
+        ]
         assert len(lines) > 0
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
@@ -484,7 +500,9 @@ class TestSnykWorkflowComments:
             snyk_workflow_content (str): Raw text content of the workflow YAML file, including comment lines.
         """
         comments = " ".join(
-            l.strip("# ").lower() for l in snyk_workflow_content.split("\n") if l.strip().startswith("#")
+            l.strip("# ").lower()
+            for l in snyk_workflow_content.split("\n")
+            if l.strip().startswith("#")
         )
         # Should mention scanning or security
         assert "scan" in comments or "security" in comments
