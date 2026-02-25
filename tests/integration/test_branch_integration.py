@@ -26,9 +26,6 @@ class TestWorkflowConsistency:
 
         Only files from the internal list are considered; files that are not present are omitted from the result.
 
-    @staticmethod
-    def all_workflows():
-        """
         Returns:
             dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
         """
@@ -198,11 +195,12 @@ class TestRemovedFilesIntegration:
                 assert removed not in content, f"{wf_file} references removed file {removed}"
 
     def test_label_workflow_doesnt_need_labeler_config(self):
-        """Verify the label workflow does not require an external labeler configuration file.
+        """
+        Verify the label workflow does not require an external labeler configuration file.
 
-        Checks that .github / workflows / label.yml(if present) defines the 'label' job's first
-        step using 'actions/labeler', and that the step either omits 'config-path' or sets it to
-        '.github/labeler.yml'. Skips the test if label.yml is missing.
+        Checks that .github / workflows / label.yml(if present) defines the "label" job's first
+        step using "actions/labeler", and that the step either omits "config-path" or sets it to
+        ".github/labeler.yml". Skips the test if label.yml is missing.
         """
         label_path = Path(".github/workflows/label.yml")
         if not label_path.exists():
@@ -306,6 +304,7 @@ class TestWorkflowSecurityConsistency:
                                 "ref" in with_config or "fetch-depth" in with_config
                             ), f"{wf_file}: Checkout in pull_request_target should specify safe ref"
 
+
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
@@ -316,7 +315,6 @@ class TestBranchCoherence:
         Checks that each workflow in the predefined list does not exceed its maximum allowed line count and fails the test if any file is longer than its threshold.
         """
         # This branch should simplify, not add complexity
-
         # Check workflow line counts decreased
         workflows_to_check = [
             (".github/workflows/pr-agent.yml", 200),  # Should be under 200 lines
@@ -396,6 +394,7 @@ class TestBranchCoherence:
             # Should have minimal external references
             assert external_refs <= 1, f"{wf_file} has {external_refs} external file references (should be <=1)"
 
+
 class TestBranchQuality:
     """Test overall quality of branch changes."""
 
@@ -409,7 +408,6 @@ class TestBranchQuality:
         workflow_files = list(workflow_dir.glob("*.yml"))
 
         assert len(workflow_files) > 0, "No workflow files found"
-
         for wf_file in workflow_files:
             try:
                 with open(wf_file, "r") as f:

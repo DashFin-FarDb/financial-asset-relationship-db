@@ -24,9 +24,7 @@ def _get_database_url() -> str:
     """
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError(
-            "DATABASE_URL environment variable must be set before using the database"
-        )
+        raise ValueError("DATABASE_URL environment variable must be set before using the database")
     return database_url
 
 
@@ -127,9 +125,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
     # The :memory: token must be the entire path component (not part of a longer path).
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (
-        parsed.path == ":memory:" or ":memory:" in parsed.query
-    ):
+    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
         return True
 
     return False
@@ -166,8 +162,6 @@ class _DatabaseConnectionManager:
                         uri=self._database_path.startswith("file:"),
                     )
                     self._memory_connection.row_factory = sqlite3.Row
-                    global _MEMORY_CONNECTION
-                    _MEMORY_CONNECTION = self._memory_connection
             return self._memory_connection
 
         # For file-backed databases, create a new connection each time
@@ -203,7 +197,12 @@ def _connect() -> sqlite3.Connection:
         sqlite3.Connection: A sqlite3 connection to the configured
             DATABASE_PATH (shared for in-memory, new per call for file-backed).
     """
-    return _db_manager.connect()
+    global _MEMORY_CONNECTION
+    conn = _db_manager.connect()
+    if _is_memory_db():
+        with _MEMORY_CONNECTION_LOCK:
+            _MEMORY_CONNECTION = conn
+    return conn
 
 
 @contextmanager
@@ -249,6 +248,10 @@ def _close_shared_memory_connection() -> None:
             conn.close()
             _db_manager._memory_connection = None  # type: ignore[attr-defined]
 
+    global _MEMORY_CONNECTION
+    with _MEMORY_CONNECTION_LOCK:
+        _MEMORY_CONNECTION = None
+
 
 # Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
 _ATEXIT_DB_CLOSE_REGISTERED = globals().get("_ATEXIT_DB_CLOSE_REGISTERED", False)
@@ -275,16 +278,15 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """
     Retrieve the first row produced by an SQL query.
-    """
 
     Parameters:
-        query(str): SQL statement to execute.
-        parameters(tuple | list | None): Optional sequence of parameters
+        query (str): SQL statement to execute.
+        parameters (tuple | list | None): Optional sequence of parameters
             to bind into the query.
 
     Returns:
         sqlite3.Row | None: The first row of the result set
-            as a `sqlite3.Row`, or `None` if the query returned no rows.
+        as a `sqlite3.Row`, or `None` if the query returned no rows.
     """
     with get_connection() as connection:
         cursor = connection.execute(query, parameters or ())
@@ -296,8 +298,8 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     Fetches the first column value from the first row of a query result.
 
     Parameters:
-        query(str): SQL query to execute; may include parameter placeholders.
-        parameters(tuple | list | None): Sequence of parameters for the query
+        query (str): SQL query to execute; may include parameter placeholders.
+        parameters (tuple | list | None): Sequence of parameters for the query
             placeholders.
 
     Returns:
@@ -321,8 +323,7 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    execute(
-        """
+    execute("""
         CREATE TABLE IF NOT EXISTS user_credentials(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -331,5 +332,4 @@ def initialize_schema() -> None:
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
         );
-        """
-    )
+        """)
