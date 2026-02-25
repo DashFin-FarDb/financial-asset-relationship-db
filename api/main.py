@@ -585,7 +585,6 @@ async def get_asset_detail(asset_id: str):
         asset_dict = serialize_asset(asset, include_issuer=True)
         return AssetResponse(**asset_dict)
     except Exception as e:  # noqa: BLE001
-except Exception as e:  # noqa: BLE001
     if isinstance(e, HTTPException):
         # Preserve existing HTTPExceptions (e.g., raised inside dependencies)
         raise
