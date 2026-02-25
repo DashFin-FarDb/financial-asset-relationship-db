@@ -50,7 +50,7 @@ def session_scope(
 ) -> Generator[Session, None, None]:
     """
     Provide a transactional scope for database operations.
-    
+
     Ensures proper commit/rollback/close semantics for SQLAlchemy sessions.
     """
     session = session_factory()

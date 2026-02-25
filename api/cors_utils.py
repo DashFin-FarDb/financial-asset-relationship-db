@@ -71,8 +71,6 @@ def validate_origin(origin: str) -> bool:
                 return True
         except UnicodeError as e:
             # If the hostname cannot be IDNA-encoded, treat the origin as invalid.
-            logger.debug(
-                "Failed to IDNA-encode hostname for origin %s: %s", origin, e
-            )
+            logger.debug("Failed to IDNA-encode hostname for origin %s: %s", origin, e)
             return False
     return False
