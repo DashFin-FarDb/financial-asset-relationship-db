@@ -408,7 +408,8 @@ class FormulaicVisualizer:
     ) -> list[go.Scatter]:
         """Create edge traces for all correlations."""
         edge_traces = []
-        for corr in correlations:
+        # Limit to the strongest few correlations to keep the network readable
+        for corr in correlations[:10]:
             asset1, asset2, value = FormulaicVisualizer._parse_correlation_item(corr)
             if asset1 in positions and asset2 in positions:
                 trace = FormulaicVisualizer._create_single_edge_trace(

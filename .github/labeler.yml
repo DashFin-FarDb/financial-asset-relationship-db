@@ -1,0 +1,13 @@
+documentation:
+  - "**/*.md"
+  - "docs/**"
+
+workflows:
+  - ".github/workflows/**"
+
+backend:
+  - "api/**"
+  - "src/**"
+
+tests:
+  - "tests/**"
