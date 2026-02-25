@@ -295,7 +295,10 @@ def validate_origin(origin: str) -> bool:
             ):
                 return True
         except UnicodeError:
-            pass
+            logger.debug(
+                "Failed to encode origin hostname '%s' as IDNA; treating as invalid origin",
+                parsed.hostname,
+            )
     return False
 
 
