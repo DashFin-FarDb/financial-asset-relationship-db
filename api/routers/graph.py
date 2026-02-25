@@ -21,13 +21,7 @@ router = APIRouter(prefix="/api", tags=["graph"])
         500: {
             "description": "Internal server error while listing relationships.",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
@@ -74,13 +68,7 @@ async def get_all_relationships():
         500: {
             "description": "Internal server error while computing metrics.",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
@@ -146,13 +134,7 @@ async def get_metrics():
         500: {
             "description": ("Internal server error while building visualization data."),
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
@@ -252,13 +234,7 @@ async def get_asset_classes():
         500: {
             "description": ("Internal server error while retrieving sectors."),
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
