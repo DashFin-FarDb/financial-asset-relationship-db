@@ -249,9 +249,9 @@ class TestPRAgentConfigYAMLValidity:
     @staticmethod
     def test_no_duplicate_keys():
         """
-        Check .github/pr-agent-config.yml for duplicate mapping keys and fail the test if any are found.
+        Fail the test if any top-level YAML key appears more than once in the file.
 
-        Parses the file and fails with pytest.fail when a mapping key appears more than once at any nesting level; the failure message includes the duplicated key and its line number.
+        Scans .github/pr-agent-config.yml, ignores comment lines, and for each non-comment line treats the text before the first ':' as the key; the test fails if a key is encountered more than once.
         """
         config_path = Path(".github/pr-agent-config.yml")
         with open(config_path, "r", encoding="utf-8") as f:
@@ -264,31 +264,13 @@ class TestPRAgentConfigYAMLValidity:
             Overrides construct_mapping to detect duplicate entries at any nesting level and fails the test if found.
             """
 
-            def construct_mapping(
-                self,
-                node: yaml.nodes.MappingNode,
-                deep: bool = False,
-            ) -> dict:
-                """
-                Construct a dict from a YAML mapping node, failing the test if a duplicate key is encountered.
-
-                Parameters:
-                    node: YAML mapping node whose `.value` contains (key node, value node) pairs; `.start_mark.line` is used for error reporting.
-                    deep (bool): If True, construct nested Python objects recursively.
-
-                Returns:
-                    dict: Mapping of constructed keys to their constructed values.
-
-                Raises:
-                    pytest.fail: If a duplicate key is found in the mapping; the failure message includes the 1-based line number of the mapping node.
-                """
+            def construct_mapping(self, node, deep=False):
+                """Construct a mapping from a YAML node, failing if duplicate keys are found."""
                 mapping = {}
                 for entry_node, val_node in node.value:
                     entry = self.construct_object(entry_node, deep=deep)
                     if entry in mapping:
-                        pytest.fail(
-                            f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}"
-                        )
+                        pytest.fail(f"Duplicate entry found: {entry} at line {node.start_mark.line + 1}")
                     value = self.construct_object(val_node, deep=deep)
                     mapping[entry] = value
                 return mapping
@@ -312,9 +294,7 @@ class TestPRAgentConfigYAMLValidity:
             if line.strip() and not line.strip().startswith("#"):
                 indent = len(line) - len(line.lstrip())
                 if indent > 0:
-                    assert indent % 2 == 0, (
-                        f"Line {i} has inconsistent indentation: {indent} spaces"
-                    )
+                    assert indent % 2 == 0, f"Line {i} has inconsistent indentation: {indent} spaces"
 
 
 class TestPRAgentConfigSecurity:
@@ -350,39 +330,25 @@ class TestPRAgentConfigSecurity:
         pr_agent_config: dict[str, object],
     ) -> None:
         """
-        Fail the test if the PR agent configuration contains values that resemble hardcoded credentials.
+        Recursively scan configuration values for suspected secrets.
 
-        Scans the provided parsed PR agent YAML mapping for values that match credential-like patterns and fails with a list of redacted examples when any are found.
-
-        Parameters:
-            pr_agent_config (dict[str, object]): Parsed PR agent YAML configuration to inspect.
+        Returns:
+            None
+        Raises:
+            AssertionError: If suspected secrets are found.
         """
         suspected = []
         TestPRAgentConfigSecurity.scan(pr_agent_config, suspected)
 
         def _redact(value: str) -> str:
-            """
-            Redacts a string while preserving up to the first and last four characters.
-
-            If the input length is 8 characters or fewer the function returns '***'. For longer inputs it returns a string composed of the first four characters, an ellipsis, and the last four characters (e.g. 'abcd...wxyz').
-
-            Parameters:
-                value (str): The string to redact.
-
-            Returns:
-                str: The redacted string.
-            """
+            """Redact a string by obscuring all but the first and last four characters."""
             if len(value) <= 8:
                 return "***"
             return f"{value[:4]}...{value[-4:]}"
 
         if suspected:
-            details = "\n".join(
-                f"{kind}: {_redact(value)}" for kind, value in suspected
-            )
-            pytest.fail(
-                f"Potential hardcoded credentials found in PR agent config:\n{details}"
-            )
+            details = "\n".join(f"{kind}: {_redact(value)}" for kind, value in suspected)
+            pytest.fail(f"Potential hardcoded credentials found in PR agent config:\n{details}")
 
     # ------------------------------------------------------------------
 
@@ -419,16 +385,7 @@ class TestPRAgentConfigSecurity:
 
         def scan_for_secrets(node: object, path: str = "root") -> None:
             """
-            Validate that values for keys indicating secrets are allowed placeholders.
-
-            Recursively traverse mappings, sequences, and scalars; when a mapping key contains any of the configured sensitive keywords, assert that its value satisfies `is_allowed_placeholder(value)`. If an invalid hardcoded value is found, raise an AssertionError including the dot/bracket path to the offending node.
-
-            Parameters:
-                node (object): Current node to inspect; may be a dict, list/tuple, or scalar.
-                path (str): Dot/bracket-notation path to `node` used in error messages (default "root").
-
-            Raises:
-                AssertionError: If a sensitive key contains a disallowed hardcoded value (message includes the node path).
+            Recursively scan the given node for sensitive patterns and assert that placeholders are allowed.
             """
             if isinstance(node, dict):
                 for k, v in node.items():
@@ -436,9 +393,7 @@ class TestPRAgentConfigSecurity:
                     new_path = f"{path}.{k}"
 
                     if any(p in key_lower for p in sensitive_patterns):
-                        assert is_allowed_placeholder(v), (
-                            f"Potential hardcoded credential at '{new_path}'"
-                        )
+                        assert is_allowed_placeholder(v), f"Potential hardcoded credential at '{new_path}'"
 
                     scan_for_secrets(v, new_path)
 

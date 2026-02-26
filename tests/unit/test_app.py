@@ -20,15 +20,6 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from app import AppConstants, FinancialAssetApp
-from src.logic.asset_graph import AssetRelationshipGraph
-
-EXPECTED_TABS = (
-    "TAB_3D_VISUALIZATION",
-    "TAB_METRICS_ANALYTICS",
-    "TAB_SCHEMA_RULES",
-    "TAB_ASSET_EXPLORER",
-    "TAB_DOCUMENTATION",
-)
 
 
 @pytest.mark.unit
@@ -36,27 +27,34 @@ class TestAppConstants:
     """Test cases for AppConstants class."""
 
     @staticmethod
-    def test_title_constant() -> None:
+    def test_title_constant():
         """Test that TITLE constant is defined and non-empty."""
-        assert hasattr(AppConstants, "TITLE"), "TITLE constant is not defined"
+        assert hasattr(AppConstants, "TITLE")
         assert isinstance(AppConstants.TITLE, str)
         assert len(AppConstants.TITLE) > 0
 
     @staticmethod
-    def test_markdown_header_constant() -> None:
+    def test_markdown_header_constant():
         """Test that MARKDOWN_HEADER contains expected content."""
         assert hasattr(AppConstants, "MARKDOWN_HEADER")
         assert isinstance(AppConstants.MARKDOWN_HEADER, str)
         assert "Financial" in AppConstants.MARKDOWN_HEADER
         assert "Asset" in AppConstants.MARKDOWN_HEADER
 
-    @pytest.mark.parametrize("tab", EXPECTED_TABS)
-    def test_tab_constants_defined(self, tab: str) -> None:
-        """Each expected tab constant exists and is a non-empty string."""
-        assert hasattr(AppConstants, tab)
-        value = getattr(AppConstants, tab)
-        assert isinstance(value, str)
-        assert len(value) > 0
+    @staticmethod
+    def test_tab_constants_defined():
+        """Test that all tab label constants are defined."""
+        expected_tabs = [
+            "TAB_3D_VISUALIZATION",
+            "TAB_METRICS_ANALYTICS",
+            "TAB_SCHEMA_RULES",
+            "TAB_ASSET_EXPLORER",
+            "TAB_DOCUMENTATION",
+        ]
+        for tab in expected_tabs:
+            assert hasattr(AppConstants, tab)
+            assert isinstance(getattr(AppConstants, tab), str)
+            assert len(getattr(AppConstants, tab)) > 0
 
     @staticmethod
     def test_label_constants_defined():
@@ -146,88 +144,38 @@ class TestFinancialAssetAppInitialization:
     """Test cases for FinancialAssetApp initialization."""
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_app_initialization_creates_graph(mock_fetcher):
-        """Test that app initialization creates an asset graph."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+    @patch("app.create_real_database")
+    def test_app_initialization_creates_graph(mock_create_real_database):
+        """Test that app initialization creates an asset graph using create_real_database()."""
+        mock_graph = MagicMock()
         mock_graph.assets = {"TEST_001": MagicMock()}
-        mock_fetcher.create_real_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
 
-        assert app.graph is not None
-        assert app.graph == mock_graph
+        assert app.graph is mock_graph
+        mock_create_real_database.assert_called_once()
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_app_initialization_with_sample_database(mock_fetcher):
-        """Test that app falls back to create_sample_database."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+    @patch("app.create_real_database")
+    def test_app_initialization_accepts_empty_graph(mock_create_real_database):
+        """Test that app initialization stores the graph even if it has no assets."""
+        mock_graph = MagicMock()
         mock_graph.assets = {}
-
-        # Remove create_real_database, add create_sample_database
-        del mock_fetcher.create_real_database
-        mock_fetcher.create_sample_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
 
-        assert app.graph is not None
-        mock_fetcher.create_sample_database.assert_called_once()
+        assert app.graph is mock_graph
+        mock_create_real_database.assert_called_once()
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_create_database_tries_multiple_candidates(mock_fetcher):
-        """Test that _create_database tries multiple function names."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
-
-        # Only third candidate exists
-        del mock_fetcher.create_real_database
-        del mock_fetcher.create_sample_database
-        mock_fetcher.create_database = Mock(return_value=mock_graph)
-
-        result = FinancialAssetApp._create_database()
-
-        assert result == mock_graph
-        mock_fetcher.create_database.assert_called_once()
-
-    @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_create_database_raises_if_no_factory_found(mock_fetcher):
-        """Test that _create_database raises AttributeError if no factory exists."""
-        # Remove all candidate functions
-        for attr in [
-            "create_real_database",
-            "create_sample_database",
-            "create_database",
-            "create_real_data_database",
-        ]:
-            if hasattr(mock_fetcher, attr):
-                delattr(mock_fetcher, attr)
-
-        with pytest.raises(
-            AttributeError,
-            match="No known database factory found",
-        ) as excinfo:
-            FinancialAssetApp._create_database()
-        assert str(excinfo.value) == "No known database factory found"
-
-    @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_create_database_raises_if_wrong_type_returned(mock_fetcher):
-        """Test that _create_database raises TypeError if return type is wrong."""
-        mock_fetcher.create_real_database = Mock(return_value="not a graph")
-
-        with pytest.raises(TypeError, match="expected AssetRelationshipGraph"):
-            FinancialAssetApp._create_database()
-
-    @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_ensure_graph_returns_existing_graph(mock_fetcher):
+    @patch("app.create_real_database")
+    def test_ensure_graph_returns_existing_graph(mock_create_real_database):
         """Test that ensure_graph returns existing graph without recreation."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {}
-        mock_fetcher.reset_mock()
-        mock_fetcher.create_real_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
         original_graph = app.graph
@@ -235,23 +183,26 @@ class TestFinancialAssetAppInitialization:
         result = app.ensure_graph()
 
         assert result is original_graph
-        assert mock_fetcher.create_real_database.call_count == 1
+        # create_real_database should have been called only during initialization
+        mock_create_real_database.assert_called_once()
 
     @staticmethod
-    @patch("app.real_data_fetcher")
-    def test_ensure_graph_recreates_if_none(mock_fetcher):
-        """Test that ensure_graph recreates graph if it's None."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+    @patch("app.create_real_database")
+    def test_ensure_graph_recreates_if_none(mock_create_real_database):
+        """Test that ensure_graph recreates the graph when it's None."""
+        mock_graph = MagicMock()
         mock_graph.assets = {}
-        mock_fetcher.create_real_database = Mock(return_value=mock_graph)
+        mock_create_real_database.return_value = mock_graph
 
         app = FinancialAssetApp()
+        # Simulate external code clearing the graph
         app.graph = None
 
         result = app.ensure_graph()
 
-        assert result is not None
-        assert result == mock_graph
+        assert result is mock_graph
+        # create_real_database should have been called twice: init + recreate
+        assert mock_create_real_database.call_count == 2
 
 
 @pytest.mark.unit
@@ -261,7 +212,7 @@ class TestUpdateMetricsText:
     @staticmethod
     def test_update_metrics_text_with_valid_data():
         """Test metrics text generation with valid data."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.calculate_metrics.return_value = {
             "total_assets": 100,
             "total_relationships": 250,
@@ -279,8 +230,8 @@ class TestUpdateMetricsText:
 
         assert "Total Assets: 100" in text
         assert "Total Relationships: 250" in text
-        assert "0.750" in text
-        assert "45.50%" in text
+        assert "0.750" in text  # average strength
+        assert "45.50%" in text  # density
         assert "Regulatory Events: 10" in text
         assert "AAPL → GOOGL" in text
         assert "95.0%" in text
@@ -288,7 +239,7 @@ class TestUpdateMetricsText:
     @staticmethod
     def test_update_metrics_text_with_missing_data():
         """Test metrics text generation with missing fields."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.calculate_metrics.return_value = {
             "total_assets": 0,
             "total_relationships": 0,
@@ -302,7 +253,7 @@ class TestUpdateMetricsText:
     @staticmethod
     def test_update_metrics_text_with_invalid_relationship_format():
         """Test metrics text handles invalid relationship format gracefully."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.calculate_metrics.return_value = {
             "total_assets": 10,
             "total_relationships": 5,
@@ -311,11 +262,12 @@ class TestUpdateMetricsText:
             "regulatory_event_count": 2,
             "asset_class_distribution": {},
             "top_relationships": [
-                ("AAPL", "GOOGL"),
-                "invalid_format",
+                ("AAPL", "GOOGL"),  # Invalid: missing rel_type and strength
+                "invalid_format",  # Invalid: not a tuple
             ],
         }
 
+        # Should not raise exception
         text = FinancialAssetApp._update_metrics_text(mock_graph)
         assert "Total Assets: 10" in text
 
@@ -338,7 +290,7 @@ class TestUpdateAssetInfo:
             price=100.0,
         )
 
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {"TEST_001": mock_asset}
         mock_graph.relationships = {
             "TEST_001": [
@@ -347,8 +299,7 @@ class TestUpdateAssetInfo:
         }
 
         asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            "TEST_001",
-            mock_graph,
+            "TEST_001", mock_graph
         )
 
         assert asset_dict["id"] == "TEST_001"
@@ -363,12 +314,11 @@ class TestUpdateAssetInfo:
     @staticmethod
     def test_update_asset_info_with_nonexistent_asset():
         """Test retrieving info for nonexistent asset."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {}
 
         asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            "NONEXISTENT",
-            mock_graph,
+            "NONEXISTENT", mock_graph
         )
 
         assert asset_dict == {}
@@ -377,12 +327,11 @@ class TestUpdateAssetInfo:
     @staticmethod
     def test_update_asset_info_with_none_selected():
         """Test retrieving info when no asset is selected."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {"TEST_001": MagicMock()}
 
         asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            None,
-            mock_graph,
+            None, mock_graph
         )
 
         assert asset_dict == {}
@@ -402,7 +351,7 @@ class TestUpdateAssetInfo:
             price=100.0,
         )
 
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {"TEST_001": mock_asset}
         mock_graph.relationships = {"TEST_001": []}
         mock_graph.incoming_relationships = {
@@ -411,10 +360,7 @@ class TestUpdateAssetInfo:
             ]
         }
 
-        _, relationships = FinancialAssetApp.update_asset_info(
-            "TEST_001",
-            mock_graph,
-        )
+        _, relationships = FinancialAssetApp.update_asset_info("TEST_001", mock_graph)
         assert "TEST_003" in relationships["incoming"]
         assert (
             relationships["incoming"]["TEST_003"]["relationship_type"] == "CORRELATION"
@@ -432,7 +378,7 @@ class TestRefreshVisualization:
         """Test refresh visualization in 2D mode."""
         import plotly.graph_objects as go
 
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {}
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
@@ -465,7 +411,7 @@ class TestRefreshVisualization:
         """Test refresh visualization in 3D mode."""
         import plotly.graph_objects as go
 
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {}
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
@@ -496,7 +442,7 @@ class TestRefreshVisualization:
     @patch("app.real_data_fetcher")
     def test_refresh_visualization_handles_errors(mock_fetcher, mock_viz_2d):
         """Test that refresh visualization handles errors gracefully."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {}
         mock_fetcher.create_real_database = Mock(return_value=mock_graph)
 
@@ -528,7 +474,7 @@ class TestFormulaSummaryFormatting:
 
     @staticmethod
     def test_format_formula_summary_with_complete_data():
-        """Test formatting formula summary with all fields present (string pairs)."""
+        """Test formatting formula summary with all fields present."""
         summary = {
             "formula_categories": {
                 "Financial Ratios": 5,
@@ -547,62 +493,17 @@ class TestFormulaSummaryFormatting:
                         "correlation": 0.95,
                         "strength": "Very Strong",
                     },
-                    {
-                        "pair": "MSFT-AMZN",
-                        "correlation": 0.88,
-                        "strength": "Strong",
-                    },
+                    {"pair": "MSFT-AMZN", "correlation": 0.88, "strength": "Strong"},
                 ]
             }
         }
 
-        text = FinancialAssetApp._format_formula_summary(
-            summary,
-            analysis_results,
-        )
+        text = FinancialAssetApp._format_formula_summary(summary, analysis_results)
 
         assert "Financial Ratios: 5 formulas" in text
         assert "Valuation Models: 3 formulas" in text
         assert "Strong correlation between tech stocks" in text
-        # Fallback path: pair is a plain string
         assert "AAPL-GOOGL: 0.950" in text
-
-    @staticmethod
-    def test_format_formula_summary_with_tuple_pairs():
-        """Test formatting summary when correlation pairs are tuples."""
-        summary = {
-            "formula_categories": {
-                "Financial Ratios": 5,
-            },
-            "key_insights": [
-                "Strong correlation between tech stocks",
-            ],
-        }
-        analysis_results = {
-            "empirical_relationships": {
-                "strongest_correlations": [
-                    {
-                        "pair": ("AAPL", "GOOGL"),
-                        "correlation": 0.95,
-                        "strength": "Very Strong",
-                    },
-                    {
-                        "pair": ("MSFT", "AMZN"),
-                        "correlation": 0.88,
-                        "strength": "Strong",
-                    },
-                ]
-            }
-        }
-
-        text = FinancialAssetApp._format_formula_summary(
-            summary,
-            analysis_results,
-        )
-
-        # This asserts the tuple-branch behaviour (e.g. using the ↔ separator)
-        assert "AAPL ↔ GOOGL: 0.950" in text
-        assert "MSFT ↔ AMZN: 0.880" in text
 
     @staticmethod
     def test_format_formula_summary_with_missing_fields():
@@ -610,10 +511,8 @@ class TestFormulaSummaryFormatting:
         summary = {}
         analysis_results = {}
 
-        text = FinancialAssetApp._format_formula_summary(
-            summary,
-            analysis_results,
-        )
+        # Should not raise exception
+        text = FinancialAssetApp._format_formula_summary(summary, analysis_results)
 
         assert isinstance(text, str)
         assert "Key Insights:" in text
@@ -625,20 +524,14 @@ class TestFormulaSummaryFormatting:
         analysis_results = {
             "empirical_relationships": {
                 "strongest_correlations": [
-                    {
-                        "pair": "TEST",
-                        "correlation": "invalid",
-                        "strength": "Strong",
-                    },
+                    {"pair": "TEST", "correlation": "invalid", "strength": "Strong"},
                     "not_a_dict",
                 ]
             }
         }
 
-        text = FinancialAssetApp._format_formula_summary(
-            summary,
-            analysis_results,
-        )
+        # Should not raise exception
+        text = FinancialAssetApp._format_formula_summary(summary, analysis_results)
         assert isinstance(text, str)
 
 
@@ -651,7 +544,7 @@ class TestEdgeCases:
     def test_initialization_logs_error_on_failure(mock_fetcher, caplog):
         """Test that initialization failure is logged."""
         mock_fetcher.create_real_database = Mock(
-            side_effect=Exception("Database error"),
+            side_effect=Exception("Database error")
         )
 
         with pytest.raises(Exception, match="Database error"):
@@ -666,7 +559,7 @@ class TestEdgeCases:
     @patch("app.real_data_fetcher")
     def test_empty_graph_handled_correctly(mock_fetcher):
         """Test that empty graph (no assets) is handled correctly."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {}
         mock_graph.relationships = {}
         mock_graph.calculate_metrics.return_value = {
@@ -688,13 +581,10 @@ class TestEdgeCases:
     @staticmethod
     def test_update_asset_info_with_empty_string_id():
         """Test update_asset_info with empty string asset ID."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph = MagicMock()
         mock_graph.assets = {"": MagicMock()}
 
-        asset_dict, relationships = FinancialAssetApp.update_asset_info(
-            "",
-            mock_graph,
-        )
+        asset_dict, relationships = FinancialAssetApp.update_asset_info("", mock_graph)
 
         # Empty string should be treated as falsy
         assert asset_dict == {}

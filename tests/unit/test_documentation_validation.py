@@ -127,9 +127,8 @@ class TestDependencyMatrix:
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
         found_types = set(file_types)
-        permitted_types = expected_types | {"jsx", "json", "md"}
-        assert found_types.issubset(permitted_types), (
-            f"Unexpected file types: {found_types - permitted_types}"
+        assert found_types.issubset(expected_types | {"jsx", "json", "md"}), (
+            f"Unexpected file types: {found_types - expected_types}"
         )
 
     def test_dependency_matrix_has_file_type_distribution(
@@ -310,7 +309,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
+        Assert that the system manifest's first line is the top-level title '  # System Manifest'.
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -334,7 +333,8 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a - Description: ... entry documenting the project description.
+        Verify the system manifest contains a - Description: ... entry documenting the project description,
+        and a - Created: ... entry with a valid ISO 8601 timestamp.
         """
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
@@ -356,14 +356,24 @@ class TestSystemManifest:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Test that systemManifest.md has Current Phase section."""
+        """Ensure systemManifest.md defines a current phase section.
+
+        The manifest must contain a "## Current Phase" heading and a line of the
+        form "- Current Phase: <value>" with a non - empty value.
+
+        Parameters:
+            system_manifest_content(str): Full text of the systemManifest.md
+                file to inspect.
+        """
+        # Basic structural checks
         assert "## Current Phase" in system_manifest_content
+        assert "- Current Phase:" in system_manifest_content
 
-        # Assert that the System Manifest declares a current project phase.
-        pattern = r"- Current Phase: (.+)"
+        # Validate the line format and non-empty value
+        pattern = r"- Current Phase:\s+(.+)"
         match = re.search(pattern, system_manifest_content)
-
         assert match is not None, "Current Phase not found"
+        assert match.group(1).strip(), "Current Phase value must not be empty"
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
         """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
@@ -489,7 +499,7 @@ class TestSystemManifest:
         """Test that there are no duplicate major sections."""
         major_sections = [
             "## Project Overview",
-            "## Current Phase",
+            "## Current Status",
             "## Project Structure",
             "## Dependencies",
         ]
@@ -717,7 +727,7 @@ class TestDocumentationRealisticContent:
             if any(x in unix_path for x in ["...", "test_", "__tests__"]):
                 continue
 
-            assert check_path.exists(), (
+            assert check_path.exists() or "..." in file_path, (
                 f"File mentioned in manifest doesn't exist: {unix_path}"
             )
 

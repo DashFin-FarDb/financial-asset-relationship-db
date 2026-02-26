@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Generator
-from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -21,45 +19,13 @@ from src.models.financial_models import (
     RegulatoryEvent,
 )
 
+from .database import session_scope  # noqa: F401
 from .db_models import (
     AssetORM,
     AssetRelationshipORM,
     RegulatoryEventAssetORM,
     RegulatoryEventORM,
 )
-
-
-@contextmanager
-def session_scope(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
-    """
-    Provide a transactional scope around a series of operations.
-
-    Tech spec alignment: session_scope is defined in repository.py to provide a
-    standard transaction boundary for repository interactions.
-
-    Args:
-        session_factory: Zero-argument callable that returns a new ``Session``.
-
-    Yields:
-        Session: An open, uncommitted database session.  The caller may use it
-            freely; the context manager commits on clean exit and rolls back on
-            any exception.
-
-    Raises:
-        Exception: Any exception raised within the ``with`` block is re-raised
-            after the session has been rolled back and closed.
-    """
-    session = session_factory()
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
 
 
 @dataclass
@@ -98,27 +64,14 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_assets(self) -> List[Asset]:
-        """
-        Retrieve all assets ordered by id.
-
-        Returns:
-            List[Asset]: A list of domain Asset instances
-                representing all assets in the database,
-                ordered by asset id.
-        """
+        """Return all assets as dataclass instances ordered by id."""
         result = (
             self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
-        """
-        Builds a mapping from asset id to Asset domain objects.
-
-        Returns:
-            Dict[str, Asset]: Mapping where each key is an asset id and
-                each value is the corresponding Asset instance.
-        """
+        """Return mapping of asset id to asset dataclass."""
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 

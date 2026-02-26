@@ -30,10 +30,6 @@ PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
     "<KEY>",
     "YOUR_KEY",
     "SUPABASE_KEY_HERE",
-    "your-project",
-    "<URL>",
-    "YOUR_URL",
-    "SUPABASE_URL_HERE",
 )
 
 
@@ -62,12 +58,8 @@ def test_supabase_connection_smoke() -> None:
     - Client initializes
     - Query executes without raising
     - Response contains a 'data' attribute (list-like)
-    Returns:
-        None
-    Raises:
-        AssertionError: If the client or query fails or returns an invalid response.
     """
-    if _get_env("RUN_SUPABASE_TESTS") != "1":
+    if os.getenv("RUN_SUPABASE_TESTS") != "1":
         pytest.skip(
             "Set RUN_SUPABASE_TESTS=1 to enable live Supabase connectivity test"
         )
@@ -75,12 +67,11 @@ def test_supabase_connection_smoke() -> None:
     # If you *really* want local .env loading, do it only when explicitly enabled.
     if os.getenv("LOAD_DOTENV") == "1":
         try:
-            from dotenv import load_dotenv
+            import dotenv
 
-            load_dotenv()
-
+            dotenv.load_dotenv()
         except ImportError:
-            pass  # dotenv not installed; proceed without it
+            pass
 
     supabase_url = _get_env("SUPABASE_URL")
     supabase_key = _get_env("SUPABASE_KEY")
@@ -91,15 +82,20 @@ def test_supabase_connection_smoke() -> None:
     if any(tok in supabase_key for tok in PLACEHOLDER_TOKENS):
         pytest.skip("SUPABASE_KEY appears to be a placeholder")
 
-    if any(tok in supabase_url for tok in PLACEHOLDER_TOKENS):
-        pytest.skip("SUPABASE_URL appears to be a placeholder")
-
     # Build client
-    supabase: Client = create_client(supabase_url, supabase_key)
+    try:
+        supabase: Client = create_client(supabase_url, supabase_key)
+    except Exception as exc:  # noqa: BLE001
+        pytest.fail(
+            f"Failed to initialize Supabase client (url={_redact(supabase_url)}): {exc}"
+        )
 
     # Execute a safe, low-cost query.
     # Assumes 'assets' table exists as per your domain; if not, adjust to a known table.
-    response = supabase.table("assets").select("id").limit(1).execute()
+    try:
+        response = supabase.table("assets").select("id").limit(1).execute()
+    except Exception as exc:  # noqa: BLE001
+        pytest.fail(f"Supabase query failed (url={_redact(supabase_url)}): {exc}")
 
     # Validate response shape
     assert response is not None  # nosec B101

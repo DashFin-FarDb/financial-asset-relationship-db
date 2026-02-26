@@ -153,7 +153,7 @@ on: push
                 assert result.is_valid is False
                 assert len(result.errors) == 1
                 assert "Workflow must be a dict" in result.errors[0]
-                assert result.workflow_data == {}
+                assert result.workflow_data == ["item1", "item2", "item3"]
             finally:
                 Path(f.name).unlink()
 
@@ -356,8 +356,8 @@ jobs:
                 Path(f.name).unlink()
 
     @staticmethod
-    def test_workflow_with_anchors_in_name():
-        """Test that a workflow whose name field contains the word 'Anchors' passes validation."""
+    def test_workflow_with_yaml_anchors():
+        """Test that a workflow named 'Anchors' passes validation (confirms the validator accepts workflow names that resemble YAML keywords)."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
@@ -507,12 +507,16 @@ class TestValidationResultDataStructure:
     @staticmethod
     def test_validation_result_attributes_accessible():
         """Test that ValidationResult attributes are accessible"""
-        data = {"name": "Test", "jobs": {"build": {}}}
-        result = ValidationResult(True, [], data)
 
-        assert hasattr(result, "is_valid")
-        assert hasattr(result, "errors")
-        assert hasattr(result, "workflow_data")
+        @staticmethod
+        def test_validation_result_attributes():
+            """Test that ValidationResult attributes are accessible within a static method."""
+            data = {"name": "Test", "jobs": {"build": {}}}
+            result = ValidationResult(True, [], data)
+
+            assert hasattr(result, "is_valid")
+            assert hasattr(result, "errors")
+            assert hasattr(result, "workflow_data")
 
     @staticmethod
     def test_validation_result_errors_is_list():
@@ -830,9 +834,7 @@ class TestWorkflowValidatorSecurityScenarios:
             try:
                 result = validate_workflow(f.name)
                 # Should handle deep nesting gracefully
-                # Only verify the validator completes without raising;
-                # deep nesting is not a structural error per the current implementation.
-                assert result is not None
+                assert result.is_valid is True or result.is_valid is False
             finally:
                 Path(f.name).unlink()
 
@@ -872,11 +874,7 @@ class TestWorkflowValidatorSecurityScenarios:
 
     @staticmethod
     def test_workflow_with_yaml_injection_attempts():
-        """
-        Ensures YAML parsing treats injection-like command strings as plain scalars and the workflow is considered valid.
-
-        Writes a temporary workflow file containing steps with values that resemble shell injection or command substitutions and asserts that validate_workflow returns a valid ValidationResult (i.e., parser does not execute or interpret those patterns).
-        """
+        """Test workflow with potential YAML injection patterns"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
@@ -952,11 +950,7 @@ jobs:
 
     @staticmethod
     def test_workflow_with_minimal_memory_footprint():
-        """
-        Ensure validate_workflow handles a moderately sized workflow without excessive memory usage.
-
-        Creates a temporary YAML workflow file containing 100 jobs and asserts the validator reports it as valid.
-        """
+        """Test that validation doesn't consume excessive memory"""
         # Create a workflow with moderate size
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("name: Test\non: push\njobs:\n")

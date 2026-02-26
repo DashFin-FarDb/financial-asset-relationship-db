@@ -337,7 +337,7 @@ class TestImplementationNotes:
     def test_timestamp_format_noted(populated_graph):
         """Test that timestamp format is documented."""
         report = generate_schema_report(populated_graph)
-        assert "ISO 8601" in report
+        assert "ISO-8601" in report
 
     @staticmethod
     def test_strength_normalization_noted(populated_graph):
@@ -489,4 +489,4 @@ class TestMultipleGenerations:
         # Report should reference date/time concepts
         assert isinstance(report, str)
         assert len(report) > 0
-        assert "ISO 8601" in report
+        assert "ISO-8601" in report

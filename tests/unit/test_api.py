@@ -13,9 +13,9 @@ This module tests all API endpoints including:
 from unittest.mock import PropertyMock, patch
 
 import pytest
+from api.main import app, validate_origin
 from fastapi.testclient import TestClient
 
-from api.main import app, validate_origin
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity
 
@@ -128,7 +128,7 @@ def _apply_mock_graph_configuration(
     """
     Configure a patched graph mock with attributes copied from a real AssetRelationshipGraph.
 
-    Sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data attributes to match the provided graph so tests can reuse a consistent mocked graph surface.
+    Sets the mock's assets, relationships, calculate_metrics, and get_3d_visualization_data_enhanced attributes to match the provided graph so tests can reuse a consistent mocked graph surface.
 
     Parameters:
         mock_graph_instance (object): A unittest.mock.Mock instance that represents the patched api.main.graph.
@@ -138,13 +138,16 @@ def _apply_mock_graph_configuration(
     mock_graph_instance.assets = graph.assets
     mock_graph_instance.relationships = graph.relationships
     mock_graph_instance.calculate_metrics = graph.calculate_metrics
-    mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data
+    mock_graph_instance.get_3d_visualization_data_enhanced = (
+        graph.get_3d_visualization_data_enhanced
+    )
 
 
 @pytest.fixture
 def apply_mock_graph():
     """
     Provide a helper callable that copies key graph attributes from a real AssetRelationshipGraph onto a patched graph instance.
+
     The returned callable has the signature (mock_graph_instance, graph) and mutates mock_graph_instance so its public attributes (assets, relationships, calculate_metrics, get_3d_visualization_data) mirror those of the provided graph.
 
     Returns:
@@ -375,9 +378,7 @@ class TestRelationshipsEndpoint:
     def test_get_asset_relationships(
         self, mock_graph_instance, client, mock_graph, apply_mock_graph
     ):
-        """
-        Verify that requesting /api/assets/TEST_AAPL/relationships returns a 200 response with a list of relationships, and that each relationship contains the fields `source_id`, `target_id`, `relationship_type`, and `strength`.
-        """
+        """Test retrieving relationships for a specific asset."""
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/assets/TEST_AAPL/relationships")
@@ -577,7 +578,7 @@ class TestEdgeCases:
     def test_empty_graph(self, mock_graph_instance, client, apply_mock_graph):
         """Test handling of empty graph."""
         empty_graph = AssetRelationshipGraph()
-        mock_graph_instance.relationships = empty_graph.relationships
+        apply_mock_graph(mock_graph_instance, empty_graph)
         mock_graph_instance.get_3d_visualization_data_enhanced = (
             empty_graph.get_3d_visualization_data_enhanced
         )
@@ -770,9 +771,9 @@ class TestRealDataFetcherFallback:
         assert graph is not None
         assert isinstance(graph, AssetRelationshipGraph)
 
+    @staticmethod
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.RealDataFetcher._fetch_equity_data")
-    @staticmethod
     def test_real_data_fetcher_logs_fallback_on_exception(
         mock_fetch_equity, mock_logger
     ):
@@ -792,9 +793,9 @@ class TestRealDataFetcherFallback:
         warning_calls = [str(call) for call in mock_logger.warning.call_args_list]
         assert any("Falling back" in call for call in warning_calls)
 
+    @staticmethod
     @patch("src.data.real_data_fetcher.logger")
     @patch("src.data.real_data_fetcher.yf.Ticker")
-    @staticmethod
     def test_individual_asset_class_fetch_failures_logged(mock_ticker, mock_logger):
         """Test that individual asset class fetch failures are logged properly."""
         from src.data.real_data_fetcher import RealDataFetcher
@@ -989,6 +990,9 @@ class TestAPIBoundaryConditions:
         mock_graph_instance.assets = large_graph.assets
         mock_graph_instance.relationships = large_graph.relationships
         mock_graph_instance.calculate_metrics = large_graph.calculate_metrics
+        mock_graph_instance.get_3d_visualization_data_enhanced = (
+            large_graph.get_3d_visualization_data_enhanced
+        )
 
         # Should not timeout or error
         response = client.get("/api/assets")

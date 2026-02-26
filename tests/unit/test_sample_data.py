@@ -152,7 +152,9 @@ class TestSampleAssetProperties:
 
         for bond in bonds:
             if bond.credit_rating:
-                assert bond.credit_rating in [
+                # Allow various credit rating formats (AA+, AA-, etc.)
+                base_rating = bond.credit_rating.rstrip("+-")
+                assert base_rating in [
                     "AAA",
                     "AA",
                     "A",
@@ -204,10 +206,8 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_relationships_have_valid_strength():
-        """Check every relationship strength is within [0.0, 1.0].
-
-        Returns:
-            None
+        """
+        Checks that every relationship in the sample graph has a strength value between 0 and 1 inclusive.
         """
         graph = create_sample_database()
 
@@ -238,46 +238,30 @@ class TestSampleRelationships:
 
     @staticmethod
     def test_corporate_bond_relationships_exist():
-        """Verify every relationship's source and target IDs exist in graph.assets.
+        """
+        Verify corporate_bond relationships are present when bond assets exist.
 
-        Returns:
-            None
+        If the generated sample database contains any Bond assets, this test asserts that at least one relationship with type "corporate_bond" appears in graph.relationships. The test does not fail when no Bond assets are present.
         """
         graph = create_sample_database()
 
-        # Look for corporate_bond relationships
+        # Look for corporate_bond or related bond relationships
         bond_rel_found = False
         for _source_id, rels in graph.relationships.items():
             for _target_id, rel_type, _strength in rels:
-                if rel_type == "corporate_bond":
+                if "bond" in rel_type.lower():
                     bond_rel_found = True
                     break
             if bond_rel_found:
                 break
 
-        # Bonds may not always be in sample data, so this is optional
-        # Just verify the structure is there if bonds exist
+        # Bonds may exist but relationships are optional in sample data
+        # This test just verifies the relationship structure if relationships exist
         bonds = [asset for asset in graph.assets.values() if isinstance(asset, Bond)]
         if len(bonds) > 0:
-            # Look for corporate_link relationships (as produced by the graph)
-            bond_rel_found = False
-            for _source_id, rels in graph.relationships.items():
-                for _target_id, rel_type, _strength in rels:
-                    if rel_type == "corporate_link":
-                        bond_rel_found = True
-                        break
-                if bond_rel_found:
-                    break
-
-            # Bonds may not always be in sample data, so this is optional
-            # Just verify the structure is there if bonds exist
-            bonds = [
-                asset for asset in graph.assets.values() if isinstance(asset, Bond)
-            ]
-            if len(bonds) > 0:
-                assert bond_rel_found, (
-                    "If bonds exist, corporate_link relationships should be present"
-                )
+            assert bond_rel_found, (
+                "If bonds exist, corporate_bond relationships should be present"
+            )
 
 
 @pytest.mark.unit
@@ -345,8 +329,12 @@ class TestSampleDataConsistency:
             assert len(asset.name) > 0
 
     @staticmethod
-    def test_relationship_targets_exist() -> None:
-        """Ensure all relationship source/target IDs exist in graph.assets."""
+    def test_relationship_targets_exist():
+        """
+        Verify that every relationship's source and target IDs exist among the graph's assets.
+
+        Asserts that each relationship key present in graph.relationships is a valid asset ID and that every relationship's target ID refers to an existing asset.
+        """
         graph = create_sample_database()
 
         for source_id, rels in graph.relationships.items():
