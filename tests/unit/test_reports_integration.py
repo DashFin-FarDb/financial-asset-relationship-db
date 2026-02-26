@@ -245,7 +245,7 @@ class TestGradioIntegration:
                 "builtins.__import__",
         import builtins
 
-        original_import = builtins.__import__
+        original_import=builtins.__import__
 
         def _fake_import(name, *args, **kwargs):
             if name == "gradio":
@@ -257,163 +257,163 @@ class TestGradioIntegration:
                 attach_to_gradio_interface(graph_provider)
 
 
-@pytest.mark.unit
+@ pytest.mark.unit
 class TestPlotlyIntegration:
     """Test cases for Plotly integration helpers."""
 
-    @staticmethod
+    @ staticmethod
     def test_embed_report_in_plotly_figure() -> None:
         """Test embedding report in Plotly figure metadata."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        fig = {"data": [], "layout": {}}
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
+        fig={"data": [], "layout": {}}
 
         with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Plotly Report"
+            mock_gen_md.return_value="# Plotly Report"
 
-            result = embed_report_in_plotly_figure(fig, mock_graph)
+            result=embed_report_in_plotly_figure(fig, mock_graph)
 
             assert result["metadata"]["schema_report"] == "# Plotly Report"
             mock_gen_md.assert_called_once_with(mock_graph)
 
-    @staticmethod
+    @ staticmethod
     def test_embed_report_preserves_existing_metadata() -> None:
         """Test that embedding report preserves existing figure metadata."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        fig = {"data": [], "layout": {}, "metadata": {"existing": "value"}}
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
+        fig={"data": [], "layout": {}, "metadata": {"existing": "value"}}
 
         with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Report"
+            mock_gen_md.return_value="# Report"
 
-            result = embed_report_in_plotly_figure(fig, mock_graph)
+            result=embed_report_in_plotly_figure(fig, mock_graph)
 
             assert result["metadata"]["existing"] == "value"
             assert result["metadata"]["schema_report"] == "# Report"
 
-    @staticmethod
+    @ staticmethod
     def test_embed_report_in_empty_figure() -> None:
         """Test embedding report in empty Plotly figure."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        fig = {}
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
+        fig={}
 
         with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Empty Fig Report"
+            mock_gen_md.return_value="# Empty Fig Report"
 
-            result = embed_report_in_plotly_figure(fig, mock_graph)
+            result=embed_report_in_plotly_figure(fig, mock_graph)
 
             assert "metadata" in result
             assert result["metadata"]["schema_report"] == "# Empty Fig Report"
 
 
-@pytest.mark.unit
+@ pytest.mark.unit
 class TestExportReport:
     """Test cases for export_report utility."""
 
-    @staticmethod
+    @ staticmethod
     def test_export_report_markdown() -> None:
         """Test exporting report in markdown format."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Export MD"
+            mock_gen_md.return_value="# Export MD"
 
-            result = export_report(mock_graph, fmt="md")
+            result=export_report(mock_graph, fmt="md")
 
             assert result == "# Export MD"
             mock_gen_md.assert_called_once_with(mock_graph)
 
-    @staticmethod
+    @ staticmethod
     def test_export_report_html() -> None:
         """Test exporting report in HTML format."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with patch("src.reports.integration.generate_html_report") as mock_gen_html:
-            mock_gen_html.return_value = "<h1>Export HTML</h1>"
+            mock_gen_html.return_value="<h1>Export HTML</h1>"
 
-            result = export_report(mock_graph, fmt="html")
+            result=export_report(mock_graph, fmt="html")
 
             assert result == "<h1>Export HTML</h1>"
             mock_gen_html.assert_called_once_with(mock_graph)
 
-    @staticmethod
+    @ staticmethod
     def test_export_report_invalid_format() -> None:
         """Test that invalid format raises ValueError."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with pytest.raises(ValueError, match="Unsupported export format"):
             export_report(mock_graph, fmt="pdf")
 
-    @staticmethod
+    @ staticmethod
     def test_export_report_format_normalization() -> None:
         """Test that format parameter is normalized."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Report"
+            mock_gen_md.return_value="# Report"
 
             # Test with uppercase
-            result = export_report(mock_graph, fmt="MD")
+            result=export_report(mock_graph, fmt="MD")
             assert result == "# Report"
 
             # Test with whitespace
-            result = export_report(mock_graph, fmt=" md ")
+            result=export_report(mock_graph, fmt=" md ")
             assert result == "# Report"
 
-    @staticmethod
+    @ staticmethod
     def test_export_report_with_empty_format_string() -> None:
         """Test export with empty format string raises ValueError."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with pytest.raises(ValueError, match="Unsupported export format"):
             export_report(mock_graph, fmt="")
 
 
-@pytest.mark.unit
+@ pytest.mark.unit
 class TestIntegrationEdgeCases:
     """Test edge cases and boundary conditions for integration module."""
 
-    @staticmethod
+    @ staticmethod
     def test_markdown_to_html_with_unicode() -> None:
         """Test markdown to HTML with Unicode characters."""
-        md = "# 价格 报告\n\nÜnicode tëxt: €100"
-        html = markdown_to_html(md)
+        md="# 价格 报告\n\nÜnicode tëxt: €100"
+        html=markdown_to_html(md)
 
         assert "价格 报告" in html
         assert "Ünicode tëxt" in html
         assert "€100" in html
 
-    @staticmethod
+    @ staticmethod
     def test_generate_report_with_large_graph() -> None:
         """Test report generation with large graph."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
-        mock_graph.assets = {f"asset_{i}": MagicMock() for i in range(1000)}
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
+        mock_graph.assets={f"asset_{i}": MagicMock() for i in range(1000)}
 
         with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
-            mock_generator = MagicMock()
-            mock_generator.generate.return_value = "# Large Report\n\n" + ("Content\n" * 1000)
-            mock_generator_class.return_value = mock_generator
+            mock_generator=MagicMock()
+            mock_generator.generate.return_value="# Large Report\n\n" + ("Content\n" * 1000)
+            mock_generator_class.return_value=mock_generator
 
-            result = generate_markdown_report(mock_graph)
+            result=generate_markdown_report(mock_graph)
 
             assert "Large Report" in result
             assert len(result) > 1000  # Substantial content
 
-    @staticmethod
+    @ staticmethod
     def test_export_with_special_characters_in_content() -> None:
         """Test export with special characters in report content."""
-        mock_graph = MagicMock(spec=AssetRelationshipGraph)
+        mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Report\n\n&<>\"'`\n\nSpecial: €$¥£"
+            mock_gen_md.return_value="# Report\n\n&<>\"'`\n\nSpecial: €$¥£"
 
-            result = export_report(mock_graph, fmt="md")
+            result=export_report(mock_graph, fmt="md")
 
             assert "&<>\"'`" in result
             assert "€$¥£" in result
 
-    @staticmethod
+    @ staticmethod
     def test_make_gradio_report_fn_calls_provider_each_time() -> None:
         """Gradio report function calls the provider on every invocation."""
-        call_count = 0
+        call_count=0
 
         def graph_provider() -> AssetRelationshipGraph:
             """Provide a mock graph and increment the call counter."""
@@ -422,9 +422,9 @@ class TestIntegrationEdgeCases:
             return MagicMock(spec=AssetRelationshipGraph)
 
         with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value = "# Report"
+            mock_gen_md.return_value="# Report"
 
-            fn = make_gradio_report_fn(graph_provider, html=False)
+            fn=make_gradio_report_fn(graph_provider, html=False)
 
             fn()
             fn()
