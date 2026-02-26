@@ -472,7 +472,17 @@ class TestCircleCIConfig:
 
     @pytest.fixture
     def circleci_config(self):
-        """Load CircleCI configuration."""
+        """
+        Load and parse the repository's CircleCI configuration file.
+        
+        Reads .circleci/config.yml and returns the parsed YAML structure (typically a dict).
+        
+        Returns:
+            circleci_config (dict): Parsed CircleCI configuration.
+        
+        Raises:
+            AssertionError: If .circleci/config.yml does not exist.
+        """
         config_path = Path(".circleci/config.yml")
         assert config_path.exists(), "CircleCI config not found"
 
@@ -487,7 +497,9 @@ class TestCircleCIConfig:
         assert isinstance(data, dict)
 
     def test_circleci_config_has_version(self, circleci_config):
-        """Test that CircleCI config specifies a version."""
+        """
+        Ensure the CircleCI configuration declares a `version` key and that its numeric value is at least 2.0.
+        """
         assert "version" in circleci_config
         # CircleCI 2.1 is current standard
         assert circleci_config["version"] >= 2.0
@@ -518,7 +530,13 @@ class TestCircleCIConfig:
         assert any(step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps)
 
     def test_circleci_python_test_job(self, circleci_config):
-        """Test that python-test job is properly configured."""
+        """
+        Validate the CircleCI 'python-test' job configuration.
+        
+        Asserts that a job named `python-test` exists in the CircleCI config, contains an `executor`
+        and a `steps` list, and—if a `parallelism` value is provided—ensures it is an integer
+        greater than 0 and no greater than 10.
+        """
         jobs = circleci_config["jobs"]
         assert "python-test" in jobs
 
@@ -541,7 +559,9 @@ class TestCircleCIConfig:
         assert "steps" in python_security
 
     def test_circleci_frontend_jobs(self, circleci_config):
-        """Test that frontend jobs are defined."""
+        """
+        Validate the CircleCI configuration defines 'frontend-lint' and 'frontend-build' jobs and that 'frontend-lint' specifies an executor.
+        """
         jobs = circleci_config["jobs"]
         assert "frontend-lint" in jobs
         assert "frontend-build" in jobs
@@ -591,7 +611,11 @@ class TestCircleCIConfig:
                 assert isinstance(orbs["codecov"], str)
 
     def test_circleci_cache_keys_consistent(self, circleci_config):
-        """Test that cache keys follow consistent patterns."""
+        """
+        Ensure any job that saves a cache also restores at least one cache key.
+        
+        Asserts that for each CircleCI job containing save_cache steps, there is at least one corresponding restore_cache key; raises an assertion error if a job saves cache without restoring.
+        """
         jobs = circleci_config["jobs"]
 
         for job_name, job_config in jobs.items():
@@ -694,7 +718,12 @@ class TestGitHubActionsCommon:
 
     @pytest.fixture
     def github_action_config(self):
-        """Load GitHub Actions composite action configuration."""
+        """
+        Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
+        
+        Returns:
+            dict: Parsed YAML mapping of the action configuration.
+        """
         config_path = Path(".github/actions/ci-common/action.yml")
         assert config_path.exists(), "GitHub Actions composite action not found"
 
@@ -751,7 +780,12 @@ class TestGitHubActionsCommon:
         assert len(steps) > 0
 
     def test_github_action_setup_python_step(self, github_action_config):
-        """Test that Python setup step is properly configured."""
+        """
+        Assert the composite action includes a "Setup Python" step that is conditional on the language input and invokes the setup-python action.
+        
+        Parameters:
+            github_action_config (dict): Parsed YAML configuration of the composite GitHub Action.
+        """
         steps = github_action_config["runs"]["steps"]
 
         python_step = next((s for s in steps if s.get("name") == "Setup Python"), None)
@@ -781,7 +815,9 @@ class TestGitHubActionsCommon:
         assert "setup-node" in node_step["uses"]
 
     def test_github_action_steps_use_composite_shell(self, github_action_config):
-        """Test that all run steps specify shell for composite actions."""
+        """
+        Ensure every step that includes a `run` command in the composite action specifies a shell and that the shell equals "bash".
+        """
         steps = github_action_config["runs"]["steps"]
 
         for step in steps:
@@ -817,7 +853,15 @@ class TestGitHubCopilotInstructions:
 
     @pytest.fixture
     def copilot_instructions(self):
-        """Load Copilot instructions content."""
+        """
+        Load and return the repository's GitHub Copilot instructions Markdown content.
+        
+        Returns:
+            str: The full contents of .github/copilot-instructions.md.
+        
+        Raises:
+            AssertionError: If the Copilot instructions file does not exist.
+        """
         doc_path = Path(".github/copilot-instructions.md")
         assert doc_path.exists(), "Copilot instructions not found"
 
@@ -830,7 +874,12 @@ class TestGitHubCopilotInstructions:
         assert doc_path.exists()
 
     def test_copilot_instructions_has_headers(self, copilot_instructions):
-        """Test that documentation has proper header structure."""
+        """
+        Verify the Copilot instructions Markdown contains a main header and essential sections.
+        
+        Parameters:
+            copilot_instructions (str): Contents of the .github/copilot-instructions.md file; checked case-insensitively for presence of a main header and the "Purpose" and "Quick start" sections.
+        """
         # Should have main header
         assert "# Copilot instructions" in copilot_instructions or "#" in copilot_instructions
 
@@ -851,7 +900,12 @@ class TestGitHubCopilotInstructions:
         assert "```" in copilot_instructions or "`" in copilot_instructions
 
     def test_copilot_instructions_mentions_dependencies(self, copilot_instructions):
-        """Test that documentation mentions project dependencies."""
+        """
+        Check that the Copilot instructions mention at least one core project dependency.
+        
+        Parameters:
+            copilot_instructions (str): Contents of the Copilot instructions file.
+        """
         # Should mention key dependencies
         dependencies = ["Gradio", "Plotly", "requirements.txt"]
 
@@ -878,7 +932,12 @@ class TestGitHubIssueTemplates:
 
     @pytest.fixture
     def custom_issue_template(self):
-        """Load custom issue template."""
+        """
+        Load the repository's custom GitHub issue template.
+        
+        Returns:
+            str: The raw text content of .github/ISSUE_TEMPLATE/custom.md
+        """
         template_path = Path(".github/ISSUE_TEMPLATE/custom.md")
         assert template_path.exists(), "Custom issue template not found"
 
@@ -915,7 +974,15 @@ class TestCodacyInstructions:
 
     @pytest.fixture
     def codacy_instructions(self):
-        """Load Codacy instructions content."""
+        """
+        Load and return the Codacy instructions markdown content.
+        
+        Returns:
+            content (str): The full text of .github/instructions/codacy.instructions.md
+        
+        Raises:
+            AssertionError: If the Codacy instructions file does not exist.
+        """
         doc_path = Path(".github/instructions/codacy.instructions.md")
         assert doc_path.exists(), "Codacy instructions not found"
 
@@ -928,7 +995,11 @@ class TestCodacyInstructions:
         assert doc_path.exists()
 
     def test_codacy_instructions_has_yaml_frontmatter(self, codacy_instructions):
-        """Test that instructions have YAML frontmatter."""
+        """
+        Ensure Codacy instructions include YAML frontmatter.
+        
+        Asserts the document contains the YAML frontmatter delimiter `---` and begins with a frontmatter block.
+        """
         assert "---" in codacy_instructions
         # Should start with frontmatter
         assert codacy_instructions.strip().startswith("---")
@@ -967,7 +1038,17 @@ class TestCircleCIEdgeCases:
 
     @pytest.fixture
     def circleci_config(self):
-        """Load CircleCI configuration."""
+        """
+        Load and parse the repository's CircleCI configuration file.
+        
+        Reads .circleci/config.yml and returns the parsed YAML structure (typically a dict).
+        
+        Returns:
+            circleci_config (dict): Parsed CircleCI configuration.
+        
+        Raises:
+            AssertionError: If .circleci/config.yml does not exist.
+        """
         config_path = Path(".circleci/config.yml")
         assert config_path.exists(), "CircleCI config not found"
 
@@ -984,7 +1065,11 @@ class TestCircleCIEdgeCases:
                 f"Job {job_name} is missing steps or executor configuration"
 
     def test_circleci_checkout_in_jobs(self, circleci_config):
-        """Test that jobs with steps include checkout step."""
+        """
+        Ensure each CircleCI job that defines `steps` includes a `checkout` step or a remote-docker setup.
+        
+        Asserts that for every job in the provided CircleCI config that contains a `steps` list, at least one step is the literal `checkout` or a mapping that includes `checkout`, or that the steps mention `setup_remote_docker`. The `docker-build` job is treated as an expected exception and is not required to include `checkout`.
+        """
         jobs = circleci_config["jobs"]
 
         for job_name, job_config in jobs.items():
@@ -1026,7 +1111,15 @@ class TestCircleCIEdgeCases:
                         f"Executor {executor_name} has invalid resource class: {resource_class}"
 
     def test_circleci_docker_images_pinned(self, circleci_config):
-        """Test that Docker images use specific versions (not latest)."""
+        """
+        Ensure CircleCI executor Docker images include explicit version tags and do not use the 'latest' tag.
+        
+        Parameters:
+            circleci_config (dict): Parsed .circleci/config.yml as a dictionary.
+        
+        Raises:
+            AssertionError: If an executor's docker image has no tag or uses the `:latest` tag.
+        """
         executors = circleci_config.get("executors", {})
 
         for executor_name, executor_config in executors.items():
@@ -1048,7 +1141,12 @@ class TestGitHubActionsEdgeCases:
 
     @pytest.fixture
     def github_action_config(self):
-        """Load GitHub Actions composite action configuration."""
+        """
+        Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
+        
+        Returns:
+            dict: Parsed YAML mapping of the action configuration.
+        """
         config_path = Path(".github/actions/ci-common/action.yml")
         assert config_path.exists(), "GitHub Actions composite action not found"
 
@@ -1103,7 +1201,15 @@ class TestDocumentationEdgeCases:
 
     @pytest.fixture
     def copilot_instructions(self):
-        """Load Copilot instructions content."""
+        """
+        Load and return the repository's GitHub Copilot instructions Markdown content.
+        
+        Returns:
+            str: The full contents of .github/copilot-instructions.md.
+        
+        Raises:
+            AssertionError: If the Copilot instructions file does not exist.
+        """
         doc_path = Path(".github/copilot-instructions.md")
         assert doc_path.exists(), "Copilot instructions not found"
 
@@ -1122,7 +1228,20 @@ class TestDocumentationEdgeCases:
             assert not link_url.endswith(" "), f"Link has trailing space: [{link_text}]({link_url})"
 
     def test_copilot_instructions_command_syntax(self, copilot_instructions):
-        """Test that shell commands use consistent formatting."""
+        """
+        Validate that lines containing Python commands in Copilot instructions are formatted as code, inline code, indented code block, or appropriate prose.
+        
+        This test scans the provided Copilot instructions text for occurrences of the word "python". If fenced code blocks are present, they are tracked; for each line containing "python" the function allows the line if it is:
+        - inside a fenced code block,
+        - contains inline code backticks,
+        - is an indented code line (starts with indentation),
+        - or appears in prose containing specific Python-related phrases (e.g., "Python environment", "@dataclass").
+        
+        If a line looks like a shell command (stripped line starts with "python") and none of the allowed formats apply, the test fails with an assertion indicating the offending line.
+        
+        Parameters:
+            copilot_instructions (str): Full text content of the Copilot instructions file to validate.
+        """
         # Commands should be in code blocks or inline code
         if "python" in copilot_instructions.lower():
             lines = copilot_instructions.split("\n")
