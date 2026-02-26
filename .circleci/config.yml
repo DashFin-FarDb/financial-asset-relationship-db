@@ -122,7 +122,6 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
             - node-deps-v2-{{ checksum "frontend/package.json" }}
             - node-deps-v2-
       - run:
@@ -136,7 +135,7 @@ jobs:
               npm install
             fi
       - save_cache:
-          key: node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
+          key: node-deps-v2-{{ checksum "frontend/package.json" }}
           paths:
             - frontend/node_modules
             - ~/.npm
@@ -151,7 +150,6 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
             - node-deps-v2-{{ checksum "frontend/package.json" }}
             - node-deps-v2-
       - run:
@@ -165,7 +163,7 @@ jobs:
               npm install
             fi
       - save_cache:
-          key: node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
+          key: node-deps-v2-{{ checksum "frontend/package.json" }}
           paths:
             - frontend/node_modules
             - ~/.npm
