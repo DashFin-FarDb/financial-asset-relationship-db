@@ -444,7 +444,6 @@ def test_no_llm_model_references(pr_agent_config_content: str) -> None:
 
     Parameters:
         pr_agent_config_content (str): Raw contents of .github/pr-agent-config.yml used for pattern checks.
-            pr_agent_config_content(str): Raw contents of .github / pr - agent - config.yml used for pattern checks.
-        """
-        assert "gpt-3.5-turbo" not in pr_agent_config_content
-        assert "gpt-4" not in pr_agent_config_content
+    """
+    assert "gpt-3.5-turbo" not in pr_agent_config_content
+    assert "gpt-4" not in pr_agent_config_content
