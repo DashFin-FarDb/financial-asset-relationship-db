@@ -862,7 +862,7 @@ class TestGitHubCopilotInstructions:
         doc_path = Path(".github/copilot-instructions.md")
         assert doc_path.exists(), "Copilot instructions not found"
 
-        with open(doc_path) as f:
+        with open(doc_path, encoding="utf-8") as f:
             return f.read()
 
     def test_copilot_instructions_exists(self):
