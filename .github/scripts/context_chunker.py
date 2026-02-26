@@ -55,13 +55,20 @@ class ContextChunker:
                 with cfg_file.open("r", encoding="utf-8") as f:
                     self.config = yaml.safe_load(f) or {}
             except Exception as e:
-                print(f"Warning: failed to load config from {config_path}: {e}", file=sys.stderr)
+                print(
+                    f"Warning: failed to load config from {config_path}: {e}",
+                    file=sys.stderr,
+                )
                 self.config = {}
         agent_cfg = (self.config.get("agent") or {}).get("context") or {}
         self.max_tokens: int = int(agent_cfg.get("max_tokens", 32000))
-        self.chunk_size: int = int(agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000)))
+        self.chunk_size: int = int(
+            agent_cfg.get("chunk_size", max(1, self.max_tokens - 4000))
+        )
         self.overlap_tokens: int = int(agent_cfg.get("overlap_tokens", 2000))
-        self.summarization_threshold: int = int(agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9)))
+        self.summarization_threshold: int = int(
+            agent_cfg.get("summarization_threshold", int(self.max_tokens * 0.9))
+        )
         limits_cfg = (self.config.get("limits") or {}).get("fallback") or {}
         self.priority_order: List[str] = limits_cfg.get(
             "priority_order",
@@ -73,13 +80,18 @@ class ContextChunker:
                 "full_diff",
             ],
         )
-        self.priority_map: Dict[str, int] = {name: i for i, name in enumerate(self.priority_order)}
+        self.priority_map: Dict[str, int] = {
+            name: i for i, name in enumerate(self.priority_order)
+        }
         self._encoder: Optional[Any] = None
         if TIKTOKEN_AVAILABLE:
             try:
                 self._encoder = tiktoken.get_encoding("cl100k_base")
             except Exception as e:
-                print(f"Warning: failed to initialize tiktoken encoder: {e}", file=sys.stderr)
+                print(
+                    f"Warning: failed to initialize tiktoken encoder: {e}",
+                    file=sys.stderr,
+                )
                 self._encoder = None
 
     def process_context(self, payload: Dict[str, Any]) -> tuple[str, bool]:
