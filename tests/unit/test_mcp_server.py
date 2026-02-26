@@ -78,39 +78,33 @@ class TestThreadSafeGraph:
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-        lock = threading.Lock()
-        safe_graph = _ThreadSafeGraph(graph, lock)
 
-        # Track lock acquisition
+        # Track lock acquisition with a custom mock lock
         lock_acquired = []
 
-        original_acquire = lock.acquire
-        original_release = lock.release
+        class TrackableLock:
+            """Custom lock that tracks acquire/release calls."""
 
-        def tracked_acquire(*args, **kwargs):
-            """
-            Record a lock acquire event by appending "acquired" to the tracking list and delegate to the original acquire implementation.
+            def __init__(self):
+                self._real_lock = threading.Lock()
 
-            Returns:
-                The value returned by the original acquire call.
-            """
-            lock_acquired.append("acquired")
-            return original_acquire(*args, **kwargs)
+            def acquire(self, *args, **kwargs):
+                lock_acquired.append("acquired")
+                return self._real_lock.acquire(*args, **kwargs)
 
-        def tracked_release(*args, **kwargs):
-            """
-            Record a lock release event and delegate to the original release callable.
+            def release(self, *args, **kwargs):
+                lock_acquired.append("released")
+                return self._real_lock.release(*args, **kwargs)
 
-            Appends the string "released" to the enclosing `lock_acquired` list, then calls and returns the result of the original release callable.
+            def __enter__(self):
+                self.acquire()
+                return self
 
-            Returns:
-                The value returned by the original release callable.
-            """
-            lock_acquired.append("released")
-            return original_release(*args, **kwargs)
+            def __exit__(self, *args):
+                self.release()
 
-        lock.acquire = tracked_acquire
-        lock.release = tracked_release
+        lock = TrackableLock()
+        safe_graph = _ThreadSafeGraph(graph, lock)
 
         # Call a method
         equity = Equity(
