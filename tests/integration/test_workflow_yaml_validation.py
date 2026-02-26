@@ -81,20 +81,6 @@ class TestWorkflowYAMLSyntax:
                 f"{workflow_file.name} name should not be all uppercase: '{name}'"
             )
 
-    def test_workflow_names_are_descriptive(self, workflow_files: List[Path]):
-        """Test that workflow names are descriptive and not empty."""
-        for workflow_file in workflow_files:
-            with open(workflow_file, "r") as f:
-                data = yaml.safe_load(f)
-
-            name = data.get("name", "")
-            assert name and len(name) > 3, (
-                f"{workflow_file.name} has empty or too short name: '{name}'"
-            )
-            assert not name.isupper(), (
-                f"{workflow_file.name} name should not be all uppercase: '{name}'"
-            )
-
     def test_no_duplicate_keys_in_yaml(_, workflow_files: List[Path]):
         """Test that YAML files don't have duplicate keys within the same object.
 
