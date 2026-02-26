@@ -154,7 +154,7 @@ class FormulaicAnalyzer:
                 name=("Bond Yield-to-Maturity (Approximation)"),
                 expression=("YTM ≈ (C + (FV - P) / n) / ((FV + P) / 2)"),
                 latex=(
-                    r"YTM \approx \frac{C + \frac{FV - P}{n}}" r"{\frac{FV + P}{2}}"
+                    r"YTM \approx \frac{C + \frac{FV - P}{n}}{\frac{FV + P}{2}}"
                 ),
                 description="Approximate yield-to-maturity for bonds",
                 variables={
