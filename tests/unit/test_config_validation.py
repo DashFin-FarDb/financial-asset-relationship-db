@@ -656,7 +656,7 @@ class TestCircleCIConfig:
         jobs = circleci_config["jobs"]
         job_names = set(jobs.keys())
 
-        for workflow_name, workflow_config in workflows.items():
+        for _, workflow_config in workflows.items():
             # Skip non-dict entries (e.g., version key)
             if not isinstance(workflow_config, dict):
                 continue
@@ -703,7 +703,7 @@ class TestCircleCIConfig:
         workflows = circleci_config["workflows"]
 
         # Find workflow containing docker-build
-        for workflow_name, workflow_config in workflows.items():
+        for _, workflow_config in workflows.items():
             # Skip non-dict entries (e.g., version key)
             if not isinstance(workflow_config, dict):
                 continue
@@ -1312,7 +1312,7 @@ class TestDocumentationEdgeCases:
             lines = copilot_instructions.split("\n")
             in_code_block = False
 
-            for i, line in enumerate(lines):
+            for _, line in enumerate(lines):
                 # Track if we're in a code block
                 if line.strip().startswith("```"):
                     in_code_block = not in_code_block
