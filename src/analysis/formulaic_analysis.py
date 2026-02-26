@@ -90,13 +90,21 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Collects fundamental financial formulas inferred from the assets present in the graph.
+        Collects fundamental financial formulas inferred from the assets present
+        in the graph.
 
         Parameters:
-            graph (AssetRelationshipGraph): Asset and relationship data used to determine which fundamental formulas apply (e.g., equities, dividend-paying stocks, bonds).
+            graph (AssetRelationshipGraph): Asset and relationship data
+                used to determine which fundamental formulas apply
+                (e.g., equities, dividend-paying stocks, bonds).
 
         Returns:
-            List[Formula]: A list of Formula objects representing fundamental valuation and income formulas (for example: Price-to-Earnings, Dividend Yield, Bond YTM approximation, Market Capitalization). Each Formula is included only when relevant asset types are detected in the graph.
+            List[Formula]: A list of Formula objects representing fundamental
+                valuation and income formulas
+                (for example: Price-to-Earnings, Dividend Yield,
+                Bond YTM approximation, Market Capitalization).
+                Each Formula is included only when relevant asset types are
+                detected in the graph.
         """
         formulas = []
 
@@ -186,15 +194,23 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Constructs Formula objects representing correlation- and risk-related relationships between assets.
+        Constructs Formula objects representing correlation- and risk-related
+        relationships between assets.
 
-        Creates formulas (for example, Beta and the Pearson correlation coefficient) populated with expression, LaTeX, descriptive metadata, example calculations derived from the provided AssetRelationshipGraph, category tags, and r_squared estimates.
+        Creates formulas (for example, Beta and the Pearson correlation
+        coefficient) populated with expression, LaTeX, descriptive metadata,
+        example calculations derived from the provided
+        AssetRelationshipGraph, category tags, and r_squared estimates.
 
         Parameters:
-            graph (AssetRelationshipGraph): Asset relationship graph used to populate example calculations and to estimate correlation strength.
+            graph (AssetRelationshipGraph):
+                Asset relationship graph used to populate example
+                calculations and to estimate correlation strength.
 
         Returns:
-            List[Formula]: A list of Formula instances describing correlation patterns and systematic risk (e.g., Beta and Correlation Coefficient).
+            List[Formula]:
+                A list of Formula instances describing correlation patterns
+                and systematic risk (e.g., Beta and Correlation Coefficient).
         """
         formulas = []
 
@@ -202,7 +218,7 @@ class FormulaicAnalyzer:
         beta_formula = Formula(
             name="Beta (Systematic Risk)",
             expression="β = Cov(R_asset, R_market) / Var(R_market)",
-            latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
+            latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",   
             description=("Measure of an asset's sensitivity to market movements"),
             variables={
                 "β": "Beta coefficient",
@@ -241,15 +257,26 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Extracts valuation-related formulas available or derivable from the provided asset relationship graph.
+        Extracts valuation-related formulas available or derivable from
+        the provided asset relationship graph.
 
-        Builds Formula objects for common valuation metrics (for example, Price-to-Book and Enterprise Value), including expression, LaTeX, descriptive text, variable mappings, example calculations where available, category, and an r_squared estimate. The presence of some formulas is conditional on asset types found in the graph (e.g., equity-specific metrics are only created when equities are present).
+        Builds Formula objects for common valuation metrics (for example,
+        Price-to-Book and Enterprise Value), including expression, LaTeX,
+        descriptive text, variable mappings, example calculations where
+        available, category, and an r_squared estimate. The presence of
+        some formulas is conditional on asset types found in the graph
+        (e.g., equity-specific metrics are only created when equities are
+        present).
 
         Parameters:
-            graph (AssetRelationshipGraph): Graph of assets and relationships used to detect asset classes and to populate example calculations.
+            graph (AssetRelationshipGraph):
+                Graph of assets and relationships used to detect asset
+                classes and to populate example calculations.
 
         Returns:
-            List[Formula]: A list of valuation Formula objects discovered or constructed from the graph.
+            List[Formula]:
+                A list of valuation Formula objects discovered or constructed
+                from the graph.
         """
         formulas = []
 
@@ -300,13 +327,18 @@ class FormulaicAnalyzer:
         """
         Assembles risk–return formulas relevant to the provided asset graph.
 
-        Builds common risk-management formulas (e.g., Sharpe Ratio and portfolio volatility) and populates their example_calculation fields using data derived from the given AssetRelationshipGraph.
+        Builds common risk-management formulas (e.g., Sharpe Ratio and portfolio
+        volatility) and populates their example_calculation fields using data
+        derived from the given AssetRelationshipGraph.
 
         Parameters:
-                graph (AssetRelationshipGraph): Graph of assets and relationships used to generate example calculations and contextual details for each formula.
+                graph (AssetRelationshipGraph): Graph of assets and relationships
+                used to generate example calculations and contextual details for
+                each formula.
 
         Returns:
-                List[Formula]: A list of Formula objects representing risk-return relationships.
+                List[Formula]: A list of Formula objects representing risk-return
+                relationships.
         """
         formulas = []
 
@@ -354,13 +386,17 @@ class FormulaicAnalyzer:
         """
         Generate standard Modern Portfolio Theory formulas using data from the asset graph.
 
-        Creates formulas for portfolio expected return and the two-asset portfolio variance, including expressions, LaTeX, variable mappings, example calculations, category, and r_squared estimates.
+        Creates formulas for portfolio expected return and the two-asset portfolio variance,
+        including expressions, LaTeX, variable mappings, example calculations, category,
+        and r_squared estimates.
 
         Parameters:
-            graph (AssetRelationshipGraph): Asset graph used to populate example calculations and extract relevant asset data.
+            graph (AssetRelationshipGraph): Asset graph used to populate example
+                calculations and extract relevant asset data.
 
         Returns:
-            List[Formula]: A list containing the Portfolio Expected Return and Portfolio Variance (2-Asset) Formula objects.
+            List[Formula]: A list containing the Portfolio Expected Return and Portfolio
+                Variance (2-Asset) Formula objects.
         """
         formulas = []
 
@@ -409,15 +445,23 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Builds formulaic representations of relationships between different asset classes present in the given graph.
+        Builds formulaic representations of relationships between different asset
+        classes present in the given graph.
 
-        Detects applicable cross-asset relationships (for example, triangular currency exchange relationships when multiple currencies are present, and inverse commodity–currency relationships when both commodities and currencies are present) and returns a list of corresponding Formula objects populated with expression, LaTeX, descriptive text, variable mappings, example calculations, category, and an r_squared estimate.
+        Detects applicable cross-asset relationships (for example, triangular currency
+        exchange relationships when multiple currencies are present, and inverse
+        commodity–currency relationships when both commodities and currencies are
+        present) and returns a list of corresponding Formula objects populated with
+        expression, LaTeX, descriptive text, variable mappings, example calculations,
+        category, and an r_squared estimate.
 
         Parameters:
-            graph (AssetRelationshipGraph): Asset relationship graph to inspect for cross-asset relationships.
+            graph (AssetRelationshipGraph): Asset relationship graph to inspect for
+                cross-asset relationships.
 
         Returns:
-            List[Formula]: A list of Formula objects for each detected cross-asset relationship; an empty list if none are applicable.
+            List[Formula]: A list of Formula objects for each detected cross-asset
+                relationship; an empty list if none are applicable.
         """
         formulas = []
 
