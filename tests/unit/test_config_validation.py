@@ -1216,7 +1216,6 @@ class TestDocumentationEdgeCases:
     def test_copilot_instructions_no_broken_links(self, copilot_instructions):
         """Test that documentation doesn't have obviously broken markdown links."""
         # Find markdown links [text](url)
-        import re
 
         links = re.findall(r"\[([^\]]+)\]\(([^\)]+)\)", copilot_instructions)
 
