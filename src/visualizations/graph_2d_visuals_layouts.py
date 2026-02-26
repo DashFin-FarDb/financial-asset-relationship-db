@@ -14,7 +14,8 @@ def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, floa
     If `asset_ids` is empty, returns an empty dictionary.
 
     Returns:
-        positions (Dict[str, Tuple[float, float]]): Mapping from each asset ID to its (x, y) coordinates on the unit circle.
+        positions (Dict[str, Tuple[float, float]]): Mapping from each asset ID
+            to its (x, y) coordinates on the unit circle.
     """
     if not asset_ids:
         return {}
@@ -49,7 +50,7 @@ def _create_spring_layout_2d(
     and extracts the first two dimensions of the 3D positions for each  asset ID
     that exists in the positions_3d dictionary.
 
-    Args:
+    Parameters:
         positions_3d: A dictionary mapping asset IDs to their 3D coordinates.
         asset_ids: A list of asset IDs to retrieve 2D positions for.
 

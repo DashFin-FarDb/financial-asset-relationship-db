@@ -37,7 +37,7 @@ class OutputFormat(str, Enum):
 def setup_logging(verbose: bool = False) -> logging.Logger:
     """Configure logging for the CLI.
 
-    Args:
+    Parameters:
         verbose (bool): If True, set log level to DEBUG; otherwise INFO.
 
     Returns:
@@ -63,7 +63,7 @@ def setup_logging(verbose: bool = False) -> logging.Logger:
 def format_as_json(metrics: Dict[str, Any]) -> str:
     """Format metrics as a JSON string.
 
-    Args:
+    Parameters:
         metrics: Dictionary of calculated metrics.
 
     Returns:
@@ -89,7 +89,7 @@ def format_as_text(report: str) -> str:
 def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
     """Generate a schema report in the specified format.
 
-    Args:
+    Parameters:
         fmt (OutputFormat): Desired output format for the report. Supported values
             are ``OutputFormat.MARKDOWN``, ``OutputFormat.JSON``, and
             ``OutputFormat.TEXT``.
