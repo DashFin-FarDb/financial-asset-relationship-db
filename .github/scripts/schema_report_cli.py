@@ -56,7 +56,9 @@ except Exception:
 
 file_handler = logging.FileHandler(LOG_PATH)
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 file_handler.setFormatter(file_formatter)
 
 stream_handler = logging.StreamHandler(sys.stderr)
@@ -215,10 +217,11 @@ def main() -> int:
     """Main entry point for the Schema Report CLI.
 
     This function serves as the primary interface for the command-line tool,
-    handling argument parsing,  log level adjustments based on verbosity, and
-    report generation. It also manages various exceptions  that may arise during
-    execution, including invalid output formats and unexpected errors, ensuring
-    that appropriate messages are logged and displayed to the user.
+    handling argument parsing and adjusting log levels based on verbosity. It
+    manages the output format selection and report generation, while also  handling
+    various exceptions that may arise during execution, including  invalid output
+    formats and unexpected errors, ensuring appropriate messages  are logged and
+    displayed to the user.
 
     Returns:
         int: Exit code (0 for success, non-zero for errors).
@@ -242,7 +245,8 @@ def main() -> int:
         except ValueError:
             logger.error("Invalid format value: %s", args.fmt)
             print(
-                "Error: Invalid output format. " "Please use one of: markdown, text, json.",
+                "Error: Invalid output format. "
+                "Please use one of: markdown, text, json.",
                 file=sys.stderr,
             )
             return 1
