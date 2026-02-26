@@ -39,7 +39,8 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
         distribution (dict): Mapping of relationship type (str) to its count (int).
 
     Returns:
-        go.Figure: Plotly Figure containing a bar chart with relationship types on the x-axis and their counts on the y-axis.
+        go.Figure: Plotly Figure containing a bar chart with relationship types on
+            the x-axis and their counts on the y-axis.
     """
     rel_types = list(distribution.keys())
     rel_counts = list(distribution.values())
@@ -63,7 +64,7 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
     graphing library to create a visually informative  representation of the
     regulatory timeline.
 
-    Args:
+    Parameters:
         events (list): A list of regulatory event objects containing date,
             asset_id, event_type, and impact_score attributes.
 

@@ -356,6 +356,12 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     Parameters:
         asset: Asset object to serialize.
         include_issuer: Whether to include issuer_id field (for detail views).
+
+    Returns:
+        Dict[str, Any]: A dictionary containing core asset fields (such as id, symbol,
+            name, asset_class, sector, price, market_cap, and currency) and an
+            ``additional_fields`` mapping of any optional asset-specific attributes
+            present on the asset (and ``issuer_id`` when ``include_issuer`` is True).
     """
     asset_dict = {
         "id": asset.id,
@@ -551,9 +557,9 @@ async def get_asset_detail(asset_id: str):
         asset_id (str): Identifier of the asset whose details are requested.
 
     Returns:
-        AssetResponse: Detailed asset information including core fields and an
-            additional_fields map containing any asset-specific attributes
-            that are present and non-null.
+        AssetResponse: Detailed asset information including all core asset fields
+            and an `additional_fields` dictionary containing any asset-type-specific
+            attributes that are present and non-null.
 
     Raises:
         HTTPException: 404 if the asset is not found.
@@ -616,6 +622,10 @@ async def get_asset_relationships(asset_id: str):
 
     Parameters:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+
+    Returns:
+        List[RelationshipResponse]: A list of outgoing relationships for the specified
+            asset, represented as RelationshipResponse objects.
     """
     try:
         g = get_graph()
@@ -799,6 +809,10 @@ async def get_visualization_data():
     dictionaries that represent relationships between nodes, including  source,
     target, relationship_type, and strength. The data is formatted  for use in a
     visualization API response.
+
+    Returns:
+        VisualizationDataResponse: Visualization response containing nodes and
+            edges ready for 3D rendering.
     """
     try:
         g = get_graph()
