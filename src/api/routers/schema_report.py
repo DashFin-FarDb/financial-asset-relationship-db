@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import HTMLResponse
 
+from src.data.sample_data import create_sample_database
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.integration import (
     export_report,
@@ -18,16 +19,17 @@ router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 # ----------------------------------------------------------------------
 def get_graph() -> AssetRelationshipGraph:
     """
-    Create and return an AssetRelationshipGraph populated from the default asset source.
+    Create and return an AssetRelationshipGraph populated with sample financial data.
 
-    Initializes a new AssetRelationshipGraph and calls its asset-loading routine so the returned graph is ready for reporting or inspection.
+    Uses the sample database generator to create a graph with assets from all
+    major asset classes (equities, bonds, commodities, currencies) and their
+    relationships.
 
     Returns:
-        AssetRelationshipGraph: A graph instance with assets loaded from the configured source.
+        AssetRelationshipGraph: A fully initialized graph with sample assets and
+            their computed relationships.
     """
-    graph = AssetRelationshipGraph()
-    graph.initialize_assets_from_source()
-    return graph
+    return create_sample_database()
 
 
 # ----------------------------------------------------------------------

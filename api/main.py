@@ -1,18 +1,29 @@
 """
-Comprehensive YAML schema validation tests for GitHub workflows.
-
-Tests validate YAML structure, syntax, and GitHub Actions schema compliance
-for all workflow files in .github/workflows/
+FastAPI application main entry point for Financial Asset Relationship API.
 """
 
-import warnings as GLOBAL_WARNINGS
-from pathlib import Path
-from typing import Any, Dict, List
+import logging
+import os
+import re
+from contextlib import asynccontextmanager
+from datetime import timedelta
+from threading import Lock
+from typing import Callable, Dict, List, Optional
 
-import pytest
-import yaml
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import BaseModel
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+
+from src.data.real_data_fetcher import RealDataFetcher
+from src.logic.asset_graph import AssetRelationshipGraph
 
 from .auth import (
+    ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
     User,
     authenticate_user,
@@ -20,25 +31,12 @@ from .auth import (
     get_current_active_user,
 )
 
+logger = logging.getLogger(__name__)
 
-class TestWorkflowYAMLSyntax:
-    """Test YAML syntax and structure validity."""
-
-    @pytest.fixture
-    def workflow_files(self):
-        """Get all workflow YAML files."""
-        workflow_dir = Path(".github/workflows")
-        return list(workflow_dir.glob("*.yml")) + list(workflow_dir.glob("*.yaml"))
-
-    def test_all_workflows_are_valid_yaml(self, workflow_files):
-        """All workflow files should be valid YAML."""
-        assert len(workflow_files) > 0, "No workflow files found"
-
-        for workflow_file in workflow_files:
-            try:
-                with open(workflow_file, "r") as f:
-
-                    data = yaml.safe_load(f)
+# Global graph state
+graph: Optional[AssetRelationshipGraph] = None
+graph_factory: Optional[Callable[[], AssetRelationshipGraph]] = None
+graph_lock = Lock()
 
 
 def get_graph() -> AssetRelationshipGraph:
