@@ -83,8 +83,7 @@ class SchemaReportGenerator:
             "1. **Equity** – Stock instruments: P/E ratio, dividend yield, EPS",
             "2. **Bond** – Fixed income: yield, coupon, maturity, rating",
             "3. **Commodity** – Physical assets with delivery contracts",
-            "4. **Currency** – FX pairs or proxies with exchange-rate and "
-            "monetary-policy links",
+            "4. **Currency** – FX pairs or proxies with exchange-rate and monetary-policy links",
             "5. **Regulatory Events** – Corporate actions and filings",
             "",
         ]
