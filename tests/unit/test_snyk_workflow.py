@@ -11,11 +11,12 @@ This module tests the Snyk workflow configuration (.github/workflows/snyk-infras
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 import pytest
 import yaml
-import re
+
 _WORKFLOW_PATH = Path(".github/workflows/snyk-infrastructure.yml")
 
 
