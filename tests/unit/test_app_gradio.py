@@ -275,7 +275,9 @@ class TestGenerateFormulaicAnalysis:
     @patch("app.FinancialAssetApp._create_database")
     @patch("app.FormulaicAnalyzer")
     @patch("app.FormulaicVisualizer")
-    def test_generate_formulaic_analysis_success(self, mock_visualizer_class, mock_analyzer_class, mock_create):
+    def test_generate_formulaic_analysis_success(
+        self, mock_visualizer_class, mock_analyzer_class, mock_create
+    ):
         """Test successful formulaic analysis generation."""
         mock_graph = MagicMock()
         mock_create.return_value = mock_graph
@@ -319,7 +321,9 @@ class TestRefreshAllOutputs:
     @patch("app.visualize_metrics")
     @patch("app.generate_schema_report")
     @patch("app.gr")
-    def test_refresh_all_outputs_success(self, mock_gr, mock_schema, mock_metrics, mock_viz, mock_create):
+    def test_refresh_all_outputs_success(
+        self, mock_gr, mock_schema, mock_metrics, mock_viz, mock_create
+    ):
         """Test successful refresh of all outputs."""
         mock_graph = MagicMock()
         mock_graph.assets = {"AAPL": MagicMock(), "MSFT": MagicMock()}
@@ -464,7 +468,9 @@ class TestEdgeCases:
         }
         analysis_results = {
             "empirical_relationships": {
-                "strongest_correlations": [{"pair": "AAPL-MSFT", "correlation": 0.85, "strength": "strong"}]
+                "strongest_correlations": [
+                    {"pair": "AAPL-MSFT", "correlation": 0.85, "strength": "strong"}
+                ]
             }
         }
 
@@ -491,6 +497,8 @@ class TestEdgeCases:
 
         with patch("app.gr.update") as mock_update:
             mock_update.return_value = MagicMock()
-            result_fig, result_update = app_instance.show_formula_details("Test Formula", mock_graph)
+            result_fig, result_update = app_instance.show_formula_details(
+                "Test Formula", mock_graph
+            )
 
             assert result_fig is not None
