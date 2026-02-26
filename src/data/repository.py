@@ -101,7 +101,9 @@ class AssetGraphRepository:
                 representing all assets in the database,
                 ordered by asset id.
         """
-        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        result = (
+            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
+        )
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -296,7 +298,9 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
+        orm.market_cap = (
+            float(asset.market_cap) if asset.market_cap is not None else None
+        )
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)
