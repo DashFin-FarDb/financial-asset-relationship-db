@@ -395,9 +395,8 @@ class TestGitHubActionsEcosystem:
                     all_docs_content += f.read().lower()
 
         # Each workflow should be mentioned somewhere
-        for workflow in workflows:
         undocumented = [
-            if workflows:
+            workflow
             for workflow in workflows
             if workflow.lower() not in all_docs_content
             and workflow.replace("-", " ").lower() not in all_docs_content
