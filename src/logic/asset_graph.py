@@ -33,7 +33,14 @@ class AssetRelationshipGraph:
 
         Parameters:
             asset (Asset): The asset to store; it will be indexed in the graph by asset.id.
+
+        Raises:
+            ValueError: If asset is None or not an Asset instance.
         """
+        if asset is None:
+            raise ValueError("Asset cannot be None")
+        if not isinstance(asset, Asset):
+            raise ValueError(f"Expected Asset instance, got {type(asset).__name__}")
         self.assets[asset.id] = asset
 
     def add_regulatory_event(self, event: RegulatoryEvent) -> None:
