@@ -138,7 +138,11 @@ def generate_report(fmt: OutputFormat, logger: logging.Logger) -> str:
 
 
 def parse_arguments() -> argparse.Namespace:
-    """Parse and validate command-line arguments."""
+    """Parse and validate command-line arguments.
+
+    Returns:
+        argparse.Namespace: Parsed command-line arguments.
+    """
     parser = argparse.ArgumentParser(
         description="Generate schema reports from financial asset relationship database",
         formatter_class=argparse.RawDescriptionHelpFormatter,
