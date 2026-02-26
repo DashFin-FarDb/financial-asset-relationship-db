@@ -19,7 +19,7 @@ class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
     @pytest.fixture
-    def vercel_config(self):
+    def vercel_config(self) -> dict:
         """Load vercel.json configuration."""
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
@@ -27,7 +27,7 @@ class TestVercelConfig:
         with open(config_path) as f:
             return json.load(f)
 
-    def test_vercel_config_valid_json(self):
+    def test_vercel_config_valid_json(self) -> dict:
         """Test that vercel.json is valid JSON."""
         config_path = Path("vercel.json")
         with open(config_path) as f:
@@ -87,8 +87,9 @@ class TestVercelConfig:
 
         if python_build and "config" in python_build:
             max_size = python_build["config"].get("maxLambdaSize", "50mb")
-            # Parse size (e.g., "50mb")
-            size_value = int(max_size.replace("mb", ""))
+            # Parse size (e.g., "50mb", "50MB")
+            size_str = max_size.lower().replace("mb", "").strip()
+            size_value = int(size_str)
             assert 1 <= size_value <= 250, "Lambda size should be between 1MB and 250MB"
 
 
@@ -96,7 +97,7 @@ class TestNextConfig:
     """Test cases for Next.js configuration."""
 
     @pytest.fixture
-    def next_config_content(self):
+    def next_config_content(self) -> dict:
         """Load Next.js configuration file content."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists(), "next.config.js not found"
@@ -104,7 +105,7 @@ class TestNextConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_next_config_exists(self):
+    def test_next_config_exists(self) -> dict:
         """Test that next.config.js exists."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists()
@@ -126,7 +127,7 @@ class TestPackageJson:
     """Test cases for package.json configuration."""
 
     @pytest.fixture
-    def package_json(self):
+    def package_json(self) -> dict:
         """Load package.json configuration."""
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
@@ -134,7 +135,7 @@ class TestPackageJson:
         with open(config_path) as f:
             return json.load(f)
 
-    def test_package_json_valid_json(self):
+    def test_package_json_valid_json(self) -> dict:
         """Test that package.json is valid JSON."""
         config_path = Path("frontend/package.json")
         with open(config_path) as f:
@@ -202,7 +203,7 @@ class TestTSConfig:
     """Test cases for TypeScript configuration."""
 
     @pytest.fixture
-    def tsconfig(self):
+    def tsconfig(self) -> dict:
         """Load tsconfig.json."""
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
@@ -210,7 +211,7 @@ class TestTSConfig:
         with open(config_path) as f:
             return json.load(f)
 
-    def test_tsconfig_valid_json(self):
+    def test_tsconfig_valid_json(self) -> dict:
         """Test that tsconfig.json is valid JSON."""
         config_path = Path("frontend/tsconfig.json")
         with open(config_path) as f:
@@ -250,7 +251,7 @@ class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
     @pytest.fixture
-    def tailwind_config_content(self):
+    def tailwind_config_content(self) -> dict:
         """Load Tailwind configuration content."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists(), "tailwind.config.js not found"
@@ -258,7 +259,7 @@ class TestTailwindConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_tailwind_config_exists(self):
+    def test_tailwind_config_exists(self) -> dict:
         """Test that tailwind.config.js exists."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists()
@@ -280,18 +281,13 @@ class TestEnvExample:
     """Test cases for .env.example file."""
 
     @pytest.fixture
-    def env_example_content(self):
+    def env_example_content(self) -> dict:
         """Load .env.example content."""
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
 
         with open(config_path) as f:
             return f.read()
-
-    def test_env_example_exists(self):
-        """Test that .env.example exists."""
-        config_path = Path(".env.example")
-        assert config_path.exists()
 
     def test_env_example_has_api_url(self, env_example_content):
         """Test that NEXT_PUBLIC_API_URL is documented."""
@@ -322,7 +318,7 @@ class TestGitignore:
     """Test cases for .gitignore configuration."""
 
     @pytest.fixture
-    def gitignore_content(self):
+    def gitignore_content(self) -> dict:
         """Load .gitignore content."""
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
@@ -330,7 +326,7 @@ class TestGitignore:
         with open(config_path) as f:
             return f.read()
 
-    def test_gitignore_exists(self):
+    def test_gitignore_exists(self) -> dict:
         """Test that .gitignore exists."""
         config_path = Path(".gitignore")
         assert config_path.exists()
@@ -364,7 +360,7 @@ class TestRequirementsTxt:
     require_version_pinning = True  # When True, enforces version constraints for all dependencies in requirements.txt
 
     @pytest.fixture
-    def requirements(self):
+    def requirements(self) -> dict:
         """Load requirements.txt content."""
         config_path = Path("requirements.txt")
         assert config_path.exists(), "requirements.txt not found"
@@ -372,7 +368,7 @@ class TestRequirementsTxt:
         with open(config_path) as f:
             return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    def test_requirements_exists(self):
+    def test_requirements_exists(self) -> dict:
         """Test that requirements.txt exists."""
         config_path = Path("requirements.txt")
         assert config_path.exists()
@@ -406,7 +402,7 @@ class TestPostCSSConfig:
     """Test cases for PostCSS configuration."""
 
     @pytest.fixture
-    def postcss_config_content(self):
+    def postcss_config_content(self) -> dict:
         """Load PostCSS configuration."""
         config_path = Path("frontend/postcss.config.js")
         if not config_path.exists():
@@ -427,7 +423,7 @@ class TestPostCSSConfig:
 class TestConfigurationConsistency:
     """Test consistency across configuration files."""
 
-    def test_api_url_consistency(self):
+    def test_api_url_consistency(self) -> dict:
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
@@ -441,7 +437,7 @@ class TestConfigurationConsistency:
         assert "NEXT_PUBLIC_API_URL" in env_content
         assert "NEXT_PUBLIC_API_URL" in next_config
 
-    def test_package_json_and_tsconfig_consistency(self):
+    def test_package_json_and_tsconfig_consistency(self) -> dict:
         """Test that package.json and tsconfig are consistent."""
         with open("frontend/package.json") as f:
             package = json.load(f)
@@ -453,7 +449,7 @@ class TestConfigurationConsistency:
         if "typescript" in package.get("devDependencies", {}):
             assert "compilerOptions" in tsconfig
 
-    def test_frontend_build_configuration_matches(self):
+    def test_frontend_build_configuration_matches(self) -> dict:
         """Test that frontend configurations are aligned."""
         # Verify package.json scripts match expected Next.js commands
         with open("frontend/package.json") as f:
@@ -471,7 +467,7 @@ class TestCircleCIConfig:
     """Test cases for CircleCI configuration."""
 
     @pytest.fixture
-    def circleci_config(self):
+    def circleci_config(self) -> dict:
         """
         Load and parse the repository's CircleCI configuration file.
 
@@ -489,7 +485,7 @@ class TestCircleCIConfig:
         with open(config_path) as f:
             return yaml.safe_load(f)
 
-    def test_circleci_config_valid_yaml(self):
+    def test_circleci_config_valid_yaml(self) -> dict:
         """Test that CircleCI config is valid YAML."""
         config_path = Path(".circleci/config.yml")
         with open(config_path) as f:
@@ -714,7 +710,7 @@ class TestGitHubActionsCommon:
     """Test cases for GitHub Actions composite action."""
 
     @pytest.fixture
-    def github_action_config(self):
+    def github_action_config(self) -> dict:
         """
         Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
 
@@ -727,7 +723,7 @@ class TestGitHubActionsCommon:
         with open(config_path) as f:
             return yaml.safe_load(f)
 
-    def test_github_action_valid_yaml(self):
+    def test_github_action_valid_yaml(self) -> dict:
         """Test that GitHub Actions config is valid YAML."""
         config_path = Path(".github/actions/ci-common/action.yml")
         with open(config_path) as f:
@@ -849,7 +845,7 @@ class TestGitHubCopilotInstructions:
     """Test cases for GitHub Copilot instructions documentation."""
 
     @pytest.fixture
-    def copilot_instructions(self):
+    def copilot_instructions(self) -> dict:
         """
         Load and return the repository's GitHub Copilot instructions Markdown content.
 
@@ -865,7 +861,7 @@ class TestGitHubCopilotInstructions:
         with open(doc_path, encoding="utf-8") as f:
             return f.read()
 
-    def test_copilot_instructions_exists(self):
+    def test_copilot_instructions_exists(self) -> dict:
         """Test that Copilot instructions file exists."""
         doc_path = Path(".github/copilot-instructions.md")
         assert doc_path.exists()
@@ -928,7 +924,7 @@ class TestGitHubIssueTemplates:
     """Test cases for GitHub issue templates."""
 
     @pytest.fixture
-    def custom_issue_template(self):
+    def custom_issue_template(self) -> dict:
         """
         Load the repository's custom GitHub issue template.
 
@@ -941,7 +937,7 @@ class TestGitHubIssueTemplates:
         with open(template_path) as f:
             return f.read()
 
-    def test_custom_issue_template_exists(self):
+    def test_custom_issue_template_exists(self) -> dict:
         """Test that custom issue template exists."""
         template_path = Path(".github/ISSUE_TEMPLATE/custom.md")
         assert template_path.exists()
@@ -958,19 +954,22 @@ class TestGitHubIssueTemplates:
         lines = custom_issue_template.split("\n")
         if lines[0] == "---":
             # Find end of frontmatter
-            end_idx = lines[1:].index("---") + 1
-            frontmatter = "\n".join(lines[1:end_idx])
+            try:
+                end_idx = lines[1:].index("---") + 1
+                frontmatter = "\n".join(lines[1:end_idx])
 
-            # Should have name and about fields
-            assert "name:" in frontmatter
-            assert "about:" in frontmatter
+                # Should have name and about fields
+                assert "name:" in frontmatter
+                assert "about:" in frontmatter
+            except ValueError:
+                pytest.fail("Frontmatter closing delimiter '---' not found")
 
 
 class TestCodacyInstructions:
     """Test cases for Codacy instructions documentation."""
 
     @pytest.fixture
-    def codacy_instructions(self):
+    def codacy_instructions(self) -> dict:
         """
         Load and return the Codacy instructions markdown content.
 
@@ -986,7 +985,7 @@ class TestCodacyInstructions:
         with open(doc_path) as f:
             return f.read()
 
-    def test_codacy_instructions_exists(self):
+    def test_codacy_instructions_exists(self) -> dict:
         """Test that Codacy instructions file exists."""
         doc_path = Path(".github/instructions/codacy.instructions.md")
         assert doc_path.exists()
@@ -1034,7 +1033,7 @@ class TestCircleCIEdgeCases:
     """Additional edge case and regression tests for CircleCI config."""
 
     @pytest.fixture
-    def circleci_config(self):
+    def circleci_config(self) -> dict:
         """
         Load and parse the repository's CircleCI configuration file.
 
@@ -1103,7 +1102,14 @@ class TestCircleCIEdgeCases:
                 if "resource_class" in executor_config:
                     resource_class = executor_config["resource_class"]
                     # Should be valid CircleCI resource class
-                    valid_classes = ["small", "medium", "medium+", "large", "xlarge", "2xlarge"]
+                    valid_classes = [
+                        "small",
+                        "medium",
+                        "medium+",
+                        "large",
+                        "xlarge",
+                        "2xlarge",
+                    ]
                     assert (
                         resource_class in valid_classes
                     ), f"Executor {executor_name} has invalid resource class: {resource_class}"
@@ -1138,7 +1144,7 @@ class TestGitHubActionsEdgeCases:
     """Additional edge case tests for GitHub Actions."""
 
     @pytest.fixture
-    def github_action_config(self):
+    def github_action_config(self) -> dict:
         """
         Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
 
@@ -1197,7 +1203,7 @@ class TestDocumentationEdgeCases:
     """Additional edge case tests for documentation files."""
 
     @pytest.fixture
-    def copilot_instructions(self):
+    def copilot_instructions(self) -> dict:
         """
         Load and return the repository's GitHub Copilot instructions Markdown content.
 
@@ -1281,7 +1287,7 @@ class TestDocumentationEdgeCases:
         # Should be substantial but not overwhelming
         assert 20 <= line_count <= 500, f"Documentation should be reasonable length (20-500 lines), got {line_count}"
 
-    def test_codacy_instructions_example_formatting(self):
+    def test_codacy_instructions_example_formatting(self) -> dict:
         """Test that Codacy instructions have properly formatted examples."""
         doc_path = Path(".github/instructions/codacy.instructions.md")
         with open(doc_path) as f:
