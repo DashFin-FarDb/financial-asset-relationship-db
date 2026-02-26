@@ -809,6 +809,10 @@ async def get_visualization_data():
     dictionaries that represent relationships between nodes, including  source,
     target, relationship_type, and strength. The data is formatted  for use in a
     visualization API response.
+
+    Returns:
+        VisualizationDataResponse: Visualization response containing nodes and
+            edges ready for 3D rendering.
     """
     try:
         g = get_graph()
