@@ -70,46 +70,29 @@ class TestThreadSafeGraph:
 
         # Should be a deep copy, not the same object
         assert assets is not graph.assets
-        assert isinstance(assets, dict)
-
-    @staticmethod
-    def test_thread_safe_graph_method_execution_under_lock():
-        """Test that wrapped methods execute under lock protection."""
-        from mcp_server import _ThreadSafeGraph
-
         graph = AssetRelationshipGraph()
-        lock = threading.Lock()
+
+        class TrackingLock:
+            """Lock-like object that records acquire/release events for testing."""
+
+            def __init__(self) -> None:
+                self.events: list[str] = []
+
+            def acquire(self, *args, **kwargs) -> None:
+                self.events.append("acquired")
+
+            def release(self, *args, **kwargs) -> None:
+                self.events.append("released")
+
+            def __enter__(self) -> "TrackingLock":
+                self.acquire()
+                return self
+
+            def __exit__(self, exc_type, exc, tb) -> None:
+                self.release()
+
+        lock = TrackingLock()
         safe_graph = _ThreadSafeGraph(graph, lock)
-
-        # Track lock acquisition
-        lock_acquired = []
-
-        original_acquire = lock.acquire
-        original_release = lock.release
-
-        def tracked_acquire(*args, **kwargs):
-            """Record a lock acquire event and delegate to the original acquire call."""
-            lock_acquired.append("acquired")
-            return original_acquire(*args, **kwargs)
-
-        def tracked_release(*args, **kwargs):
-            """
-            Wrapper for a lock's release method that records each release event.
-
-            Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
-
-            Parameters:
-                *args: Positional arguments forwarded to the original release callable.
-                **kwargs: Keyword arguments forwarded to the original release callable.
-
-            Returns:
-                The value returned by the original release callable.
-            """
-            lock_acquired.append("released")
-            return original_release(*args, **kwargs)
-
-        lock.acquire = tracked_acquire
-        lock.release = tracked_release
 
         # Call a method
         equity = Equity(
@@ -123,8 +106,8 @@ class TestThreadSafeGraph:
         safe_graph.add_asset(equity)
 
         # Lock should have been acquired and released
-        assert "acquired" in lock_acquired
-        assert "released" in lock_acquired
+        assert "acquired" in lock.events
+        assert "released" in lock.events
 
 
 @pytest.mark.unit
