@@ -492,12 +492,12 @@ class TestPRAgentConfigSimplification:
         """
         Test that agent version matches the configured version.
 
-        With the current configuration, version should be 1.1.0.
+        With the current configuration, version should be 1.0.0.
         """
         agent = pr_agent_config.get("agent", {})
         version = agent.get("version", "")
 
-        assert version == "1.1.0", f"Agent version should be '1.1.0', got '{version}'"
+        assert version == "1.0.0", f"Agent version should be '1.0.0', got '{version}'"
 
     def test_config_structure_remains_valid(self, pr_agent_config: Dict[str, Any]):
         """Test that despite simplification, core config structure remains valid."""
