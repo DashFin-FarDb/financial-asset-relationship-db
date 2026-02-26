@@ -626,7 +626,6 @@ class TestWorkflowRegressionPrevention:
             raise RuntimeError(f"Invalid YAML in {file_path}: {e}") from e
 
         return duplicates
-        return duplicates
 
     def test_workflow_files_remain_valid_yaml(self):
         """Test that all workflow files are still valid YAML after simplification."""
