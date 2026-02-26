@@ -891,7 +891,12 @@ async def get_asset_classes():
 )
 async def get_sectors():
     """Retrieve and return a sorted list of unique sector names from the global asset
-    graph."""
+    graph.
+
+    Returns:
+        Dict[str, List[str]]: A mapping with key "sectors" whose value is a
+        sorted list of unique sector names.
+    """
     try:
         g = get_graph()
         sectors = {asset.sector for asset in g.assets.values() if asset.sector}
