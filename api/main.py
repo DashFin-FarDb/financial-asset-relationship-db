@@ -174,8 +174,8 @@ async def login_for_access_token(
 async def read_users_me(
     request: Request, current_user: User = Depends(get_current_active_user)
 ):
-    # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Retrieve the currently authenticated user."""
+    # The `request` parameter is required by slowapi's limiter for dependency injection.
     _ = request
 
     return current_user
