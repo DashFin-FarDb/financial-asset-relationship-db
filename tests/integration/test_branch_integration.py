@@ -72,8 +72,8 @@ class TestWorkflowConsistency:
                     f"{action} uses multiple versions: {list(versions.keys())}"
                 )
 
-        assert not inconsistencies, (
-            "Inconsistent action versions found:\n" + "\n".join(inconsistencies)
+        assert not inconsistencies, "Inconsistent action versions found:\n" + "\n".join(
+            inconsistencies
         )
 
     def test_all_workflows_use_github_token_consistently(
