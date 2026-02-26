@@ -622,6 +622,10 @@ async def get_asset_relationships(asset_id: str):
 
     Parameters:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+
+    Returns:
+        List[RelationshipResponse]: A list of outgoing relationships for the specified
+            asset, represented as RelationshipResponse objects.
     """
     try:
         g = get_graph()
