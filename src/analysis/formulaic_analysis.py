@@ -330,12 +330,12 @@ class FormulaicAnalyzer:
         derived from the given AssetRelationshipGraph.
 
         Parameters:
-                graph (AssetRelationshipGraph): Graph of assets and relationships
+            graph (AssetRelationshipGraph): Graph of assets and relationships
                 used to generate example calculations and contextual details for
                 each formula.
 
         Returns:
-                List[Formula]: A list of Formula objects representing risk-return
+            List[Formula]: A list of Formula objects representing risk-return
                 relationships.
         """
         formulas = []
