@@ -78,31 +78,31 @@ class TestThreadSafeGraph:
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-        
+
         # Track lock acquisition with a custom mock lock
         lock_acquired = []
-        
+
         class TrackableLock:
             """Custom lock that tracks acquire/release calls."""
-            
+
             def __init__(self):
                 self._real_lock = threading.Lock()
-            
+
             def acquire(self, *args, **kwargs):
                 lock_acquired.append("acquired")
                 return self._real_lock.acquire(*args, **kwargs)
-            
+
             def release(self, *args, **kwargs):
                 lock_acquired.append("released")
                 return self._real_lock.release(*args, **kwargs)
-            
+
             def __enter__(self):
                 self.acquire()
                 return self
-            
+
             def __exit__(self, *args):
                 self.release()
-        
+
         lock = TrackableLock()
         safe_graph = _ThreadSafeGraph(graph, lock)
 
@@ -139,7 +139,11 @@ class TestAddEquityNode:
 
         # Access the registered tool
         tool_func = next(
-            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+            (
+                tool.fn
+                for tool in mcp_app.list_tools()
+                if tool.name == "add_equity_node"
+            ),
             None,
         )
         assert tool_func is not None, "add_equity_node tool not found"
@@ -262,7 +266,11 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
+            (
+                resource.fn
+                for resource in mcp_app.list_resources()
+                if "3d-layout" in resource.uri
+            ),
             None,
         )
         assert resource_func is not None, "3d-layout resource not found"
