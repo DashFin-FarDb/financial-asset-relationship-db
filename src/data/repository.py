@@ -33,20 +33,23 @@ from .db_models import (
 def session_scope(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
-    """Provide a transactional scope around a series of database operations.
+    """
+    Provide a transactional scope around a series of operations.
 
-    Commits on successful exit, rolls back on any exception, and always
-    closes the session.
+    Tech spec alignment: session_scope is defined in repository.py to provide a
+    standard transaction boundary for repository interactions.
 
     Args:
-        session_factory: Zero-argument callable that returns a new Session.
+        session_factory: Zero-argument callable that returns a new ``Session``.
 
     Yields:
-        Session: The active database session for the duration of the block.
+        Session: An open, uncommitted database session.  The caller may use it
+            freely; the context manager commits on clean exit and rolls back on
+            any exception.
 
     Raises:
-        Exception: Re-raises any exception that occurs inside the ``with`` block
-            after rolling back the transaction.
+        Exception: Any exception raised within the ``with`` block is re-raised
+            after the session has been rolled back and closed.
     """
     session = session_factory()
     try:
@@ -80,7 +83,14 @@ class AssetGraphRepository:
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
-        """Create or update an asset record."""
+        """
+        Create or update a database record for the given domain Asset.
+
+        If a row with the asset's id exists, its fields are updated;
+        otherwise a new ORM instance is created with that id.
+        The ORM is populated from the provided domain Asset
+        and added to the active session for persistence.
+        """
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)

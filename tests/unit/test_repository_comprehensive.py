@@ -22,7 +22,15 @@ pytestmark = pytest.mark.unit
 
 @pytest.fixture
 def repository(tmp_path):
-    """Create a repository with a test database."""
+    """
+    Provide an AssetGraphRepository backed by a temporary SQLite database for tests.
+
+    Parameters:
+        tmp_path (pathlib.Path): Temporary directory path provided by pytest; the repository's SQLite file is created at tmp_path / "test_repo_comprehensive.db".
+
+    Returns:
+        AssetGraphRepository: Repository instance connected to the test database. The fixture yields the repository and ensures the database session is closed and the engine disposed after use.
+    """
     db_path = tmp_path / "test_repo_comprehensive.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
@@ -312,7 +320,11 @@ class TestRelationshipStrengthValidation:
 
     @staticmethod
     def test_strength_validation_accepts_int_in_range(repository):
-        """Test that integer strength values in range are accepted."""
+        """
+        Verifies that integer relationship strength values within the allowed range are accepted.
+
+        Creates two assets, adds a relationship with integer strength 1, commits, and asserts the stored relationship strength equals 1.
+        """
         asset1 = Equity(
             id="STR11",
             symbol="S11",
@@ -347,7 +359,11 @@ class TestStrengthBoundaryValues:
 
     @staticmethod
     def test_strength_just_above_zero(repository):
-        """Test strength just above zero."""
+        """
+        Verify that a relationship can be created with a very small positive strength.
+
+        Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the persisted relationship strength equals 0.0001.
+        """
         asset1 = Equity(
             id="BOUND1",
             symbol="B1",
@@ -376,7 +392,11 @@ class TestStrengthBoundaryValues:
 
     @staticmethod
     def test_strength_just_below_one(repository):
-        """Test strength just below one."""
+        """
+        Verify that a relationship with strength 0.9999 is accepted and persisted.
+
+        Creates two equity assets, adds a relationship of type "almost_max" with strength 0.9999, commits, and asserts the retrieved relationship's strength equals 0.9999.
+        """
         asset1 = Equity(
             id="BOUND3",
             symbol="B3",
@@ -431,7 +451,11 @@ class TestStrengthBoundaryValues:
 
     @staticmethod
     def test_strength_just_above_one_fails(repository):
-        """Test that strength just above one fails validation."""
+        """
+        Checks that adding or updating a relationship with strength greater than 1 raises a ValueError.
+
+        The test upserts two assets and attempts to create a relationship with strength 1.0001, expecting validation to reject values above 1.
+        """
         asset1 = Equity(
             id="BOUND7",
             symbol="B7",
@@ -773,7 +797,11 @@ class TestAssetUpdateValidation:
 
     @staticmethod
     def test_multiple_sequential_updates(repository):
-        """Test multiple sequential updates to same asset."""
+        """
+        Verify that performing multiple sequential upserts on the same asset persists the latest values.
+
+        Creates an Equity, upserts it, performs five sequential price updates via upsert+commit, then retrieves the asset and asserts its price equals the last updated value (150.0).
+        """
         equity = Equity(
             id="MULTI_UPDATE",
             symbol="MU",
@@ -837,7 +865,11 @@ class TestRelationshipTypeVariations:
 
     @staticmethod
     def test_relationship_type_case_sensitivity(repository):
-        """Test that relationship types are case-sensitive."""
+        """
+        Verify relationship types are treated as distinct based on case.
+
+        Creates two assets, adds two relationships between them using type names that differ only by letter case, commits, and asserts both relationships are stored separately with their respective strength values.
+        """
         asset1 = Equity(
             id="CASE1",
             symbol="C1",

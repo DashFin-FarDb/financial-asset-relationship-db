@@ -72,9 +72,11 @@ def db_session(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
     """
-    Provide a transaction-scoped SQLAlchemy Session.
+    Provide a transaction-scoped SQLAlchemy Session for a test.
 
-    Uses the project's session_scope helper to ensure commit/rollback/close semantics.
+    The yielded session is managed by the project's transaction scope: it will be
+    committed if the test completes successfully, rolled back on failure, and
+    closed afterwards.
     """
     with session_scope(session_factory) as session:
         yield session
@@ -83,22 +85,22 @@ def db_session(
 @pytest.fixture()
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
-    Utility fixture to set environment variables in tests.
+    Provide a helper to set environment variables for tests.
 
-    Example:
-        def test_x(set_env):
-            set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
+    The returned setter accepts keyword arguments of environment variables to set,
+    e.g. set_env(FOO="bar", BAZ="qux"). It uses pytest's monkeypatch.setenv so
+    values are restored after the test.
     """
 
     def _setter(**kwargs: str) -> None:
         """
-        Set environment variables using the provided monkeypatch fixture.
+        Set environment variables for tests.
 
-        Iterates through each keyword argument and sets the corresponding environment
-        variable.
+        Iterates through provided keyword arguments and uses monkeypatch.setenv
+        to temporarily set each environment variable for the duration of the test.
         """
-        for key, value in kwargs.items():
-            monkeypatch.setenv(key, value)
+        for k, v in kwargs.items():
+            monkeypatch.setenv(k, v)
 
     return _setter
 

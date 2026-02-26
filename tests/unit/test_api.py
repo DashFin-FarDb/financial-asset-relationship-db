@@ -138,13 +138,16 @@ def _apply_mock_graph_configuration(mock_graph_instance: object, graph: AssetRel
     mock_graph_instance.calculate_metrics = graph.calculate_metrics
     mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data
 
-    mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
-    mock_graph_instance.get_3d_visualization_data_enhanced = graph.get_3d_visualization_data_enhanced
-
 
 @pytest.fixture
 def apply_mock_graph():
-    """Return a helper callable that wires the patched graph to a concrete graph."""
+    """
+    Provide a helper callable that copies key graph attributes from a real AssetRelationshipGraph onto a patched graph instance.
+    The returned callable has the signature (mock_graph_instance, graph) and mutates mock_graph_instance so its public attributes (assets, relationships, calculate_metrics, get_3d_visualization_data) mirror those of the provided graph.
+
+    Returns:
+        callable: A function accepting (mock_graph_instance, graph) that updates the mock_graph_instance in-place to reflect the graph.
+    """
     return _apply_mock_graph_configuration
 
 
@@ -350,7 +353,9 @@ class TestRelationshipsEndpoint:
 
     @patch("api.main.graph")
     def test_get_asset_relationships(self, mock_graph_instance, client, mock_graph, apply_mock_graph):
-        """Test retrieving relationships for a specific asset."""
+        """
+        Verify that requesting /api/assets/TEST_AAPL/relationships returns a 200 response with a list of relationships, and that each relationship contains the fields `source_id`, `target_id`, `relationship_type`, and `strength`.
+        """
         apply_mock_graph(mock_graph_instance, mock_graph)
 
         response = client.get("/api/assets/TEST_AAPL/relationships")
@@ -536,7 +541,7 @@ class TestEdgeCases:
     def test_empty_graph(self, mock_graph_instance, client, apply_mock_graph):
         """Test handling of empty graph."""
         empty_graph = AssetRelationshipGraph()
-        apply_mock_graph(mock_graph_instance, empty_graph)
+        mock_graph_instance.relationships = empty_graph.relationships
         mock_graph_instance.get_3d_visualization_data_enhanced = empty_graph.get_3d_visualization_data_enhanced
 
         response = client.get("/api/assets")
@@ -812,9 +817,9 @@ class TestCacheCorruptionRegression:
 
         def load_from_cache():
             """
-            Load a cached real-data graph and record the outcome.
+            Load a cached real-data graph and record success or failure.
 
-            Attempts to instantiate RealDataFetcher with network disabled and create the cached graph. On success appends the resulting graph to the outer-scope `results` list; on failure appends the caught exception to the outer-scope `errors` list.
+            On success appends the created AssetRelationshipGraph to the outer-scope `results` list. On failure appends the caught Exception to the outer-scope `errors` list.
             """
             try:
                 from src.data.real_data_fetcher import RealDataFetcher
@@ -926,7 +931,6 @@ class TestAPIBoundaryConditions:
         mock_graph_instance.assets = large_graph.assets
         mock_graph_instance.relationships = large_graph.relationships
         mock_graph_instance.calculate_metrics = large_graph.calculate_metrics
-        mock_graph_instance.get_3d_visualization_data = large_graph.get_3d_visualization_data
 
         # Should not timeout or error
         response = client.get("/api/assets")
@@ -985,18 +989,10 @@ class TestNegativeScenarios:
     @patch("api.main.graph")
     def test_api_metrics_with_division_by_zero_risk(mock_graph_instance, client):
         """Negative: Metrics with empty graph should not cause division by zero."""
-        # Simulate an empty graph to avoid division by zero in metric calculations.
-        mock_graph_instance.assets = {}
-        mock_graph_instance.relationships = []
-
-        def calculate_metrics_stub():
-            # Metrics implementation should handle empty graphs gracefully.
-            return {
-                "total_assets": 0,
-                "network_density": 0,
-            }
-
-        mock_graph_instance.calculate_metrics = calculate_metrics_stub
+        empty_graph = AssetRelationshipGraph()
+        mock_graph_instance.assets = empty_graph.assets
+        mock_graph_instance.relationships = empty_graph.relationships
+        mock_graph_instance.calculate_metrics = empty_graph.calculate_metrics
 
         # Should not raise ZeroDivisionError
         response = client.get("/api/metrics")

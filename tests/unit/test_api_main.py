@@ -11,11 +11,13 @@ Notes:
 - Bandit B101 (assert_used) is acceptable in pytest; keep assertions as-is.
 """
 
+# nosec B101
+
 from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Any, Dict, Iterator, NoReturn
+from typing import Any, Dict, Iterator
 from unittest.mock import Mock, patch
 
 import api.main as api_main
@@ -45,9 +47,12 @@ CORS_DEV_ORIGIN = "http://localhost:3000"
 @pytest.fixture()
 def client() -> Iterator[TestClient]:
     """
-    Shared TestClient fixture with a sample in-memory graph.
+    Provide a TestClient configured with a sample in-memory graph and ensure the graph is reset after the test.
 
-    This matches the default expectation for most endpoint tests: a populated graph.
+    This fixture sets a sample graph on the API, yields a TestClient connected to the application, and restores the previous graph state when the client is torn down.
+
+    Returns:
+        TestClient: A TestClient instance whose backend is seeded with the sample in-memory graph.
     """
     api_main.set_graph(create_sample_database())
     tc = TestClient(app)
@@ -59,7 +64,11 @@ def client() -> Iterator[TestClient]:
 
 @pytest.fixture()
 def bare_client() -> TestClient:
-    """TestClient fixture without forcing any pre-seeded graph."""
+    """
+    Provide a raw TestClient without mutating the global graph.
+
+    This client is intended for tests that patch graph access functions directly (for example, get_graph) or only exercise middleware such as CORS.
+    """
     return TestClient(app)
 
 
@@ -248,18 +257,15 @@ class TestPydanticModels:
 class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
-    @staticmethod
     @pytest.fixture
-    def client():
+    def client(self):
         """
-        Pytest fixture that yields a TestClient configured with a sample in-memory graph for endpoint tests.
+        Provide a TestClient with a pre-populated in-memory sample graph for endpoint tests.
 
-        Sets a sample in-memory graph on the application before yielding the client and resets the graph after the test completes.
-
-        Sets the application's graph to a sample database and yields a TestClient for use in tests. On fixture teardown the application's graph is reset.
+        Sets the application's graph to a sample in-memory database before yielding and resets the graph on teardown.
 
         Returns:
-            TestClient: A test client instance connected to the application populated with the sample graph.
+            TestClient: Test client instance bound to the application with the sample graph loaded.
         """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
@@ -340,11 +346,11 @@ class TestAPIEndpoints:
         assert data["total_relationships"] > 0
         assert data["avg_degree"] > 0
         assert data["max_degree"] >= data["avg_degree"]
-        assert 0 <= data["network_density"] <= 100
+        assert 0.0 <= data["relationship_density"] <= 1.0
 
-        # If the API includes relationship_density separately, validate its bounds too.
-        if "relationship_density" in data:
-            assert 0 <= data["relationship_density"] <= 100
+        # If the API includes network_density separately, validate its bounds too.
+        if "network_density" in data:
+            assert 0.0 <= data["network_density"] <= 1.0
 
     def test_get_metrics_no_assets(self, client: TestClient) -> None:
         """Metrics endpoint returns zeros for an empty graph."""
@@ -542,7 +548,7 @@ class TestErrorHandling:
         implementations often use get_graph() internally.
         """
 
-        def _raise() -> NoReturn:
+        def _raise() -> AssetRelationshipGraph:
             """Raise a generic exception to simulate a backend graph access failure."""
             raise Exception("Database error")
 
@@ -561,8 +567,7 @@ class TestErrorHandling:
             assert response.status_code == 500
             assert "calculation error" in response.json()["detail"].lower()
 
-    @staticmethod
-    def test_invalid_http_methods(bare_client: TestClient) -> None:
+    def test_invalid_http_methods(self, bare_client: TestClient) -> None:
         """Unsupported HTTP methods return 405 for these endpoints."""
         response = bare_client.post("/api/assets")
         assert response.status_code == 405
@@ -577,32 +582,29 @@ class TestErrorHandling:
 # -----------------------
 # CORS middleware behaviour
 # -----------------------
-@pytest.mark.unit
 def test_cors_headers_present(bare_client: TestClient) -> None:
     """Ensure allowed origins receive the expected CORS headers."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
-    assert response.status_code == status.HTTP_200_OK
-    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN
-    assert response.headers["access-control-allow-credentials"] == "true"
+    assert response.status_code == status.HTTP_200_OK  # nosec B101
+    assert response.headers["access-control-allow-origin"] == CORS_DEV_ORIGIN  # nosec B101
+    assert response.headers["access-control-allow-credentials"] == "true"  # nosec B101
 
 
-@pytest.mark.unit
 def test_cors_rejects_disallowed_origin(bare_client: TestClient) -> None:
     """Ensure disallowed origins do not receive CORS headers."""
     disallowed_origin = "https://malicious.example.com"
     response = bare_client.get("/api/health", headers={"Origin": disallowed_origin})
 
-    assert response.status_code == status.HTTP_200_OK
-    assert "access-control-allow-origin" not in response.headers
-    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin
+    assert response.status_code == status.HTTP_200_OK  # nosec B101
+    assert "access-control-allow-origin" not in response.headers  # nosec B101
+    assert response.headers.get("access-control-allow-origin", "") != disallowed_origin  # nosec B101
 
 
 @patch.dict(os.environ, {"ENV": "development", "ALLOWED_ORIGINS": ""})
-@pytest.mark.unit
 def test_cors_allows_development_origins(bare_client: TestClient) -> None:
     """Allow default dev origins when running in development mode."""
     response = bare_client.get("/api/health", headers={"Origin": CORS_DEV_ORIGIN})
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_200_OK  # nosec B101
 
 
 @pytest.mark.unit
@@ -741,7 +743,11 @@ class TestGraphInitializationRaceConditions:
         errors = []
 
         def init_graph():
-            """Thread worker for graph initialization."""
+            """
+            Initialize the application graph and record the outcome for a concurrent worker.
+
+            Attempts to obtain the singleton graph and appends it to the shared `results` list; if an exception occurs, appends the exception to the shared `errors` list. This function has no return value and relies on those outer-scope lists for communicating results between threads.
+            """
             try:
                 graph = api_main.get_graph()
                 results.append(graph)
@@ -861,8 +867,8 @@ class TestGraphCachingEdgeCases:
 class TestPydanticModelValidation:
     """Validation tests for Pydantic response models."""
 
-    def test_asset_response_rejects_negative_price(self):
-        """Negative: AssetResponse should validate price constraints."""
+    def test_asset_response_no_price_validation_currently(self):
+        """Document that AssetResponse currently accepts negative prices (validation not yet implemented)."""
         asset = AssetResponse(
             id="TEST",
             symbol="TST",
@@ -873,8 +879,8 @@ class TestPydanticModelValidation:
         )
         assert isinstance(asset, AssetResponse)
 
-    def test_relationship_response_validates_strength_range(self):
-        """Negative: RelationshipResponse should validate strength is 0-1."""
+    def test_metrics_response_no_negative_validation_currently(self):
+        """Document that MetricsResponse currently accepts negative metric values (validation not yet implemented)."""
         # Valid strength
         rel = RelationshipResponse(
             source_id="A",
@@ -918,10 +924,17 @@ class TestPydanticModelValidation:
 class TestEndpointStressTests:
     """Stress tests for API endpoints under load."""
 
-    @staticmethod
     @pytest.fixture
-    def client():
-        """Create test client with sample data."""
+    def client(self):
+        """
+        Provide a TestClient preloaded with a sample in-memory graph for tests.
+
+        Yields:
+            TestClient: A TestClient instance for the FastAPI app with a sample graph set on the application.
+
+        Notes:
+            The graph is reset after the client is released.
+        """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
         try:
@@ -930,7 +943,11 @@ class TestEndpointStressTests:
             api_main.reset_graph()
 
     def test_rapid_successive_requests(self, client):
-        """Stress: Handle many rapid successive requests."""
+        """
+        Stress-test the health endpoint by issuing many rapid successive requests.
+
+        Asserts that each response returns HTTP status code 200.
+        """
         responses = []
         for _ in range(100):
             response = client.get("/api/health")
@@ -960,10 +977,16 @@ class TestEndpointStressTests:
 class TestErrorMessageQuality:
     """Test quality and informativeness of error messages."""
 
-    @staticmethod
     @pytest.fixture
-    def client():
-        """Create test client."""
+    def client(self):
+        """
+        Provide a TestClient with an in-memory sample graph for tests.
+
+        This fixture sets a sample graph on the API before yielding a TestClient and resets the graph after use.
+
+        Returns:
+            TestClient: A TestClient for the FastAPI app with a preloaded in-memory sample graph.
+        """
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
         try:

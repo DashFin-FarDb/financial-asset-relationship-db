@@ -16,6 +16,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 def _repo_root() -> Path:
     """Return the repository root, assuming tests live under tests/."""
@@ -43,6 +45,7 @@ def _run_cli(tmp_path: Path, *args: str) -> subprocess.CompletedProcess[str]:
         text=True,
         cwd=str(_repo_root()),
         env=env,
+        check=True,
     )
 
 

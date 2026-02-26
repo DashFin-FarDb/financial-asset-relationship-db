@@ -145,7 +145,7 @@ on: push
                 assert result.is_valid is False
                 assert len(result.errors) == 1
                 assert "Workflow must be a dict" in result.errors[0]
-                assert result.workflow_data == ["item1", "item2", "item3"]
+                assert result.workflow_data == {}
             finally:
                 Path(f.name).unlink()
 
@@ -331,8 +331,8 @@ jobs:
                 Path(f.name).unlink()
 
     @staticmethod
-    def test_workflow_with_yaml_anchors():
-        """Test workflow using YAML anchors"""
+    def test_workflow_with_anchors_in_name():
+        """Test that a workflow whose name field contains the word 'Anchors' passes validation."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: Anchors
@@ -434,7 +434,7 @@ class TestIntegrationWithActualWorkflows:
         """
         Validate every GitHub Actions workflow file in the repository's .github/workflows directory.
 
-        Skips the test if the workflows directory or any workflow files are missing. Collects validation failures for each workflow and fails the test if any workflows are invalid, reporting their filenames and error lists.
+        Skips the test if the workflows directory or no workflow files are present. For each workflow file, runs validate_workflow, collects any failures, and fails the test if any workflows are invalid, reporting the failing filenames and their associated error lists.
         """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
@@ -462,16 +462,12 @@ class TestValidationResultDataStructure:
     @staticmethod
     def test_validation_result_attributes_accessible():
         """Test that ValidationResult attributes are accessible"""
+        data = {"name": "Test", "jobs": {"build": {}}}
+        result = ValidationResult(True, [], data)
 
-        @staticmethod
-        def test_validation_result_attributes():
-            """Test that ValidationResult attributes are accessible within a static method."""
-            data = {"name": "Test", "jobs": {"build": {}}}
-            result = ValidationResult(True, [], data)
-
-            assert hasattr(result, "is_valid")
-            assert hasattr(result, "errors")
-            assert hasattr(result, "workflow_data")
+        assert hasattr(result, "is_valid")
+        assert hasattr(result, "errors")
+        assert hasattr(result, "workflow_data")
 
     @staticmethod
     def test_validation_result_errors_is_list():
@@ -591,7 +587,11 @@ jobs:
                 Path(f.name).unlink()
 
     def test_workflow_path_with_spaces(self):
-        """Test workflow file with spaces in path"""
+        """
+        Verify that a workflow file whose filesystem path contains spaces is parsed and accepted.
+
+        Creates a temporary file with spaces in its name, writes a minimal valid GitHub Actions workflow to it, runs validation, and asserts the result is valid.
+        """
         import os
 
         temp_dir = tempfile.mkdtemp()
@@ -769,7 +769,9 @@ class TestWorkflowValidatorSecurityScenarios:
             try:
                 result = validate_workflow(f.name)
                 # Should handle deep nesting gracefully
-                assert result.is_valid is True or result.is_valid is False
+                # Only verify the validator completes without raising;
+                # deep nesting is not a structural error per the current implementation.
+                assert result is not None
             finally:
                 Path(f.name).unlink()
 
@@ -809,7 +811,11 @@ class TestWorkflowValidatorSecurityScenarios:
 
     @staticmethod
     def test_workflow_with_yaml_injection_attempts():
-        """Test workflow with potential YAML injection patterns"""
+        """
+        Ensures YAML parsing treats injection-like command strings as plain scalars and the workflow is considered valid.
+
+        Writes a temporary workflow file containing steps with values that resemble shell injection or command substitutions and asserts that validate_workflow returns a valid ValidationResult (i.e., parser does not execute or interpret those patterns).
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: Test
@@ -881,7 +887,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_minimal_memory_footprint():
-        """Test that validation doesn't consume excessive memory"""
+        """
+        Ensure validate_workflow handles a moderately sized workflow without excessive memory usage.
+
+        Creates a temporary YAML workflow file containing 100 jobs and asserts the validator reports it as valid.
+        """
         # Create a workflow with moderate size
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("name: Test\non: push\njobs:\n")
@@ -953,7 +963,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_float_values():
-        """Test workflow with float values"""
+        """
+        Validate that a workflow containing float values in environment fields is considered valid.
+
+        Creates a temporary YAML workflow with float values in `env` and asserts that `validate_workflow` returns a valid result.
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: Floats

@@ -50,7 +50,8 @@ def _redact_dsn(dsn: str) -> str:
     # Common URL form: postgresql://user:pass@host:port/db
     if "://" in dsn and "@" in dsn:
         scheme, rest = dsn.split("://", 1)
-        creds_and_host = rest.split("@", 1)
+        # Use rsplit to handle '@' characters within the password
+        creds_and_host = rest.rsplit("@", 1)
         if len(creds_and_host) == 2:
             return f"{scheme}://***:***@{creds_and_host[1]}"
     # psycopg2 keyword DSN: "dbname=... user=... password=... host=..."
@@ -78,6 +79,12 @@ def test_postgres_connection_smoke() -> None:
     Expectations:
     - Connection succeeds
     - A trivial query returns a row
+
+    Returns:
+        None
+
+    Raises:
+        AssertionError: If the connection or query fails to return a valid row.
     """
     if os.getenv("RUN_POSTGRES_TESTS") != "1":
         pytest.skip("Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test")
@@ -94,14 +101,25 @@ def test_postgres_connection_smoke() -> None:
         pytest.skip("Database URL is SQLite; Postgres connectivity test not applicable")
 
     try:
-        with connect(database_url) as conn, conn.cursor() as cur:
-            cur.execute("SELECT current_database(), current_user, version();")
-            row = cur.fetchone()
+        conn = connect(database_url)
     except Exception as exc:  # noqa: BLE001
         pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
 
+    try:
+        with conn, conn.cursor() as cur:
+            cur.execute("SELECT current_database(), current_user, version();")
+            row = cur.fetchone()
+    except Exception as exc:  # noqa: BLE001
+        conn.close()
+        pytest.fail(f"Query failed after connecting to Postgres: {exc}")
+    else:
+        conn.close()
+
     assert row is not None  # nosec B101
     assert len(row) == 3  # nosec B101
-    assert isinstance(row[0], str) and row[0]  # nosec B101
-    assert isinstance(row[1], str) and row[1]  # nosec B101
-    assert isinstance(row[2], str) and row[2]  # nosec B101
+    assert isinstance(row[0], str), f"Expected str for database name, got {type(row[0])}"  # nosec B101
+    assert row[0], "Database name must be non-empty"  # nosec B101
+    assert isinstance(row[1], str), f"Expected str for current user, got {type(row[1])}"  # nosec B101
+    assert row[1], "Current user must be non-empty"  # nosec B101
+    assert isinstance(row[2], str), f"Expected str for version, got {type(row[2])}"  # nosec B101
+    assert row[2], "Version string must be non-empty"  # nosec B101

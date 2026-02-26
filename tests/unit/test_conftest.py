@@ -54,7 +54,6 @@ class TestConftestHelpers:
 
             # Coverage args should be removed, other args preserved
             assert "--cov=src" not in args and "--cov-report=html" not in args
-            assert "--cov-report=html" not in args
             assert "tests/" in args
             assert "-v" in args
 
@@ -135,7 +134,11 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_empty_args():
-        """Test handling of empty argument list."""
+        """
+        Ensure calling pytest_load_initial_conftests with an empty args list leaves it unchanged when the pytest-cov plugin is not present.
+
+        Verifies the function does not raise and that the provided list remains empty after invocation.
+        """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
 
@@ -159,7 +162,9 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_modifies_in_place():
-        """Test that the function modifies the argument list in place."""
+        """
+        Verify pytest_load_initial_conftests modifies the provided args list object in place by removing coverage-related arguments while preserving other entries.
+        """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests
 
@@ -229,10 +234,10 @@ class TestConftestHelpers:
 
     @staticmethod
     def test_pytest_load_initial_conftests_args_with_equals_in_value():
-        """Remove pytest-cov args whose values contain '=' while preserving others.
+        """
+        Verifies that an inline `--cov-report` argument whose value contains '=' is removed from the args list while non-coverage arguments are preserved when pytest-cov is unavailable.
 
-        Verifies an inline `--cov-report=...` argument with a value containing '=' is
-        removed from the provided args list and unrelated args remain unchanged.
+        The test ensures `--cov-report=html:dir=coverage_html` is stripped and that unrelated entries (e.g., "tests/", "-v") remain.
         """
         with patch("conftest.importlib.util.find_spec", return_value=None):
             from conftest import pytest_load_initial_conftests

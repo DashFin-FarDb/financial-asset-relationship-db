@@ -7,9 +7,9 @@ REL_TYPE_COLORS = defaultdict(
         "same_sector": "#FF6B6B",
         "market_cap_similar": "#4ECDC4",
         "correlation": "#45B7D1",
-        "corporate_bond_to_equity": "#96CEB4",
+        "corporate_link": "#96CEB4",
         "commodity_currency": "#FFEAA7",
         "income_comparison": "#DDA0DD",
-        "regulatory_impact": "#FFA07A",
+        "event_impact": "#FFA07A",
     },
 )

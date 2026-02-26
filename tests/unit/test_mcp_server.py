@@ -78,34 +78,45 @@ class TestThreadSafeGraph:
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-
-        # Use a wrapper class to track acquire/release without mutating the
-        # built-in lock (whose attributes are read-only in CPython).
-        lock_acquired: list = []
-        real_lock = threading.Lock()
-
-        class TrackingLock:
-            """Wrapper that delegates to a real lock and records calls."""
-
-            def acquire(self, *args, **kwargs):
-                """Record acquire and delegate."""
-                lock_acquired.append("acquired")
-                return real_lock.acquire(*args, **kwargs)
-
-            def release(self, *args, **kwargs):
-                """Record release and delegate."""
-                lock_acquired.append("released")
-                return real_lock.release(*args, **kwargs)
-
-            def __enter__(self):
-                self.acquire()
-                return self
-
-            def __exit__(self, *args):
-                self.release()
-
-        lock = TrackingLock()
+        lock = threading.Lock()
         safe_graph = _ThreadSafeGraph(graph, lock)
+
+        # Track lock acquisition
+        lock_acquired = []
+
+        original_acquire = lock.acquire
+        original_release = lock.release
+
+        def tracked_acquire(*args, **kwargs):
+            """
+            Record a lock acquisition event and forward the call to the original acquire function.
+
+            Appends an "acquired" marker to the surrounding test's tracking list and returns whatever the wrapped `original_acquire` call returns.
+
+            Returns:
+                The value returned by `original_acquire`.
+            """
+            lock_acquired.append("acquired")
+            return original_acquire(*args, **kwargs)
+
+        def tracked_release(*args, **kwargs):
+            """
+            Wrapper for a lock's release method that records each release event.
+
+            Appends the string "released" to the enclosing `lock_acquired` list and then calls the original release callable with the provided arguments.
+
+            Parameters:
+                *args: Positional arguments forwarded to the original release callable.
+                **kwargs: Keyword arguments forwarded to the original release callable.
+
+            Returns:
+                The value returned by the original release callable.
+            """
+            lock_acquired.append("released")
+            return original_release(*args, **kwargs)
+
+        lock.acquire = tracked_acquire
+        lock.release = tracked_release
 
         # Call a method
         equity = Equity(
@@ -266,6 +277,7 @@ class TestGet3DLayout:
             (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
             None,
         )
+
         assert resource_func is not None, "3d-layout resource not found"
 
         result = resource_func()
@@ -544,7 +556,11 @@ class TestEdgeCases:
 
     @staticmethod
     def test_get_3d_layout_with_empty_graph():
-        """Test get_3d_layout with empty graph."""
+        """
+        Verify the 3D-layout resource returns the expected JSON structure when the global graph contains no assets.
+
+        The returned JSON must include the keys: `asset_ids`, `positions`, `colors`, and `hover`.
+        """
         from mcp_server import _build_mcp_app, graph
 
         # Clear graph

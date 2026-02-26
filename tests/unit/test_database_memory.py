@@ -16,9 +16,16 @@ pytestmark = pytest.mark.unit
 @pytest.fixture()
 def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
-    Preserve api.database state and the DATABASE_URL environment variable for the duration of a test and restore them on teardown.
+    Preserve and restore api.database module state and the DATABASE_URL environment variable for a test.
 
-    Yields control to the test; on teardown closes any in-memory connection stored in api.database._MEMORY_CONNECTION, restores or clears the original DATABASE_URL environment variable, and reloads the api.database module to reset its state.
+    Parameters:
+        monkeypatch (pytest.MonkeyPatch): Pytest helper for environment patching.
+
+    Yields:
+        None: The fixture yields control to the test and restores module state on teardown.
+
+    Raises:
+        Exception: Propagates any teardown errors when closing the memory connection or reloading the module.
     """
     original_url = os.environ.get("DATABASE_URL")
 
@@ -38,7 +45,10 @@ def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     importlib.reload(database)
 
 
-def test_in_memory_database_persists_schema_and_data(monkeypatch, restore_database_module):
+def test_in_memory_database_persists_schema_and_data(
+    monkeypatch: pytest.MonkeyPatch,
+    restore_database_module: None,
+) -> None:
     """
     Verify an in-memory SQLite configuration preserves schema and data
     across multiple connections.
@@ -70,7 +80,10 @@ def test_in_memory_database_persists_schema_and_data(monkeypatch, restore_databa
     # Persistence is the contract; connection identity is an implementation detail
 
 
-def test_uri_style_memory_database_persists_schema_and_data(monkeypatch, restore_database_module):
+def test_uri_style_memory_database_persists_schema_and_data(
+    monkeypatch: pytest.MonkeyPatch,
+    restore_database_module: None,
+) -> None:
     """Verify URI-style in-memory SQLite configuration preserves schema and data."""
     monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
 

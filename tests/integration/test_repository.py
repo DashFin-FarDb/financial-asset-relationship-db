@@ -7,9 +7,10 @@ from pathlib import Path
 from typing import Generator
 
 import pytest
-from sqlalchemy import Engine, create_engine
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
 
+from src.data.database import create_session_factory
 from src.data.repository import AssetGraphRepository
 from src.models.financial_models import (
     AssetClass,
@@ -45,10 +46,8 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
     db_path = tmp_path / "repository.db"
     _apply_migration(db_path)
 
-    engine: Engine = create_engine(f"sqlite:///{db_path}", future=True)
-    SessionLocal = sessionmaker(bind=engine, autoflush=False, future=True)
-
-    session: Session = SessionLocal()
+    engine = create_engine(f"sqlite:///{db_path}")
+    session: Session = create_session_factory(engine)()
     try:
         yield session
     finally:

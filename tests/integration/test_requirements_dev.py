@@ -13,6 +13,8 @@ Policy:
 - Type stub packages (types-*) may omit a version constraint (common in repos).
 """
 
+# nosec B101
+
 from __future__ import annotations
 
 import re
@@ -20,6 +22,7 @@ from pathlib import Path
 
 import pytest
 from packaging.requirements import Requirement
+from packaging.version import Version
 
 # tests/integration/test_requirements_dev.py -> repo root is parents[2]
 REQUIREMENTS_FILE = Path(__file__).resolve().parents[2] / "requirements-dev.txt"
@@ -90,19 +93,8 @@ def parse_requirements(file_path: Path) -> list[tuple[str, str]]:
 
 
 def _normalize_name_for_dupe_check(name: str) -> str:
-    """PEP 503-ish normalization sufficient for duplicate detection."""
-    return name.strip().lower().replace("-", "_")
-
-
-@pytest.fixture()
-def parsed_requirements() -> list[tuple[str, str]]:
-    """Parse requirements-dev.txt and return (package_token, normalized_specifier) pairs.
-
-    This fixture centralizes file parsing so multiple tests can share a single,
-    consistent interpretation of the requirements file (including comment stripping
-    and specifier normalization).
-    """
-    return parse_requirements(REQUIREMENTS_FILE)
+    """PEP 503 normalization: collapses runs of [-_.] to a single separator."""
+    return re.sub(r"[-_.]+", "_", name.strip().lower())
 
 
 @pytest.fixture()
@@ -118,28 +110,33 @@ def package_names(parsed_requirements: list[tuple[str, str]]) -> list[str]:
 # -----------------------
 # File existence / format
 # -----------------------
+@pytest.mark.integration
 def test_file_exists() -> None:
     """Ensure the development requirements file path exists."""
     assert REQUIREMENTS_FILE.exists()
 
 
+@pytest.mark.integration
 def test_file_is_file() -> None:
     """Ensure the requirements path points to a regular file (not a directory)."""
     assert REQUIREMENTS_FILE.is_file()
 
 
+@pytest.mark.integration
 def test_file_is_readable_and_nonempty() -> None:
     """Ensure the file can be read as UTF-8 and is not empty."""
     content = REQUIREMENTS_FILE.read_text(encoding="utf-8")
     assert len(content) > 0
 
 
+@pytest.mark.integration
 def test_file_ends_with_newline() -> None:
     """Ensure the file ends with a trailing newline (POSIX-friendly formatting)."""
     content = REQUIREMENTS_FILE.read_text(encoding="utf-8")
     assert content.endswith("\n")
 
 
+@pytest.mark.integration
 def test_no_trailing_whitespace() -> None:
     """Ensure no line contains trailing whitespace (excluding the newline)."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines(True)
@@ -147,6 +144,7 @@ def test_no_trailing_whitespace() -> None:
     assert lines_with_trailing == []
 
 
+@pytest.mark.integration
 def test_reasonable_file_size() -> None:
     """Ensure the requirements file is not unexpectedly large for dev tooling."""
     lines = REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines()
@@ -156,6 +154,7 @@ def test_reasonable_file_size() -> None:
 # -----------------------
 # Parseability / validity
 # -----------------------
+@pytest.mark.integration
 def test_all_non_comment_lines_parse_with_packaging() -> None:
     """Ensure every non-empty, non-comment requirement line parses via packaging.Requirement."""
     for raw in REQUIREMENTS_FILE.read_text(encoding="utf-8").splitlines():
@@ -170,6 +169,7 @@ def test_all_non_comment_lines_parse_with_packaging() -> None:
         Requirement(line)  # should not raise
 
 
+@pytest.mark.integration
 def test_no_duplicate_packages_case_insensitive(package_names: list[str]) -> None:
     """Ensure no duplicate packages exist after normalizing case and hyphen/underscore."""
     seen: set[str] = set()
@@ -182,6 +182,7 @@ def test_no_duplicate_packages_case_insensitive(package_names: list[str]) -> Non
     assert duplicates == []
 
 
+@pytest.mark.integration
 def test_package_names_valid_characters(package_names: list[str]) -> None:
     """Ensure extracted package tokens contain only allowed characters."""
     valid_name_pattern = re.compile(r"^[a-zA-Z0-9_.-]+$")
@@ -192,6 +193,7 @@ def test_package_names_valid_characters(package_names: list[str]) -> None:
 # -----------------------
 # Required tooling
 # -----------------------
+@pytest.mark.integration
 def test_required_dev_tools_present(package_names: list[str]) -> None:
     """Ensure the dev requirements include core tooling (test, lint, type, formatting, hooks)."""
     lowered = {_normalize_name_for_dupe_check(p) for p in package_names}
@@ -279,8 +281,11 @@ def test_pyyaml_minimum_version(parsed_requirements: list[tuple[str, str]]) -> N
     """Ensure PyYAML specifies a minimum supported version (>=6.0)."""
     pyyaml_specs = [ver for pkg, ver in parsed_requirements if _normalize_name_for_dupe_check(pkg) == "pyyaml"]
     assert len(pyyaml_specs) == 1
-    assert pyyaml_specs[0].startswith(">="), "PyYAML should use a minimum version constraint"
-    assert pyyaml_specs[0].startswith(">=6.0"), f"Expected PyYAML >=6.0, got {pyyaml_specs[0]}"
+    spec = pyyaml_specs[0]
+    assert spec.startswith(">="), "PyYAML should use a minimum version constraint"
+    # Extract the lower bound version and compare semantically
+    lower_bound = spec.split(",")[0][len(">=") :].strip()
+    assert Version(lower_bound) >= Version("6.0"), f"Expected PyYAML >=6.0, got {spec}"
 
 
 def test_type_stubs_have_base_packages(
@@ -292,5 +297,5 @@ def test_type_stubs_have_base_packages(
     for pkg, _ in parsed_requirements:
         norm = _normalize_name_for_dupe_check(pkg)
         if norm.startswith("types_"):
-            base = norm.removeprefix("types_")
+            base = norm[len("types_") :]
             assert base in lowered, f"Type stub package '{pkg}' has no corresponding base package"

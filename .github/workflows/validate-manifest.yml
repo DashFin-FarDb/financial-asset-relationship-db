@@ -1,0 +1,42 @@
+name: Validate System Manifest
+
+on:
+  pull_request:
+    paths:
+      - '.elastic-copilot/memory/systemManifest.md'
+  push:
+    branches:
+      - main
+    paths:
+      - '.elastic-copilot/memory/systemManifest.md'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    name: Check for duplicate sections (MD024)
+    runs-on: ubuntu-latest
+    validate:
+      name: Check for duplicate sections (MD024)
+      runs-on: ubuntu-latest
+      permissions:
+        contents: read
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+
+        - name: Set up Python
+          uses: actions/setup-python@v5
+          with:
+            python-version: '3.11'
+
+        - name: Validate systemManifest.md
+          run: |
+            python scripts/validate_manifest.py
+
+        - name: Provide fix instructions if validation fails
+          if: failure()
+          run: |
+            echo "::error::systemManifest.md contains duplicate sections."
+            echo "To fix this issue, run: python scripts/deduplicate_manifest.py"
+            echo "Then commit the cleaned manifest file."

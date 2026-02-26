@@ -1,26 +1,32 @@
-"""Comprehensive tests for .github/pr-copilot/scripts/generate_status.py"""
+#!/usr/bin/env python3
+"""
+Unit tests for .github/pr-copilot/scripts/generate_status.py
+
+Tests cover all functions, dataclasses, API interactions, and output formatting.
+"""
 
 from __future__ import annotations
 
-# Add the scripts directory to path before importing generate_status
 import sys
 from pathlib import Path
-
-scripts_path = Path(__file__).parent.parent.parent / ".github" / "pr-copilot" / "scripts"
-sys.path.insert(0, str(scripts_path))
-
-from datetime import datetime, timezone
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from generate_status import (
+
+# Mark all tests in this module as unit tests
+pytestmark = pytest.mark.unit
+
+# Add the script to path
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+SCRIPT_DIR = PROJECT_ROOT / ".github" / "pr-copilot" / "scripts"
+sys.path.insert(0, str(SCRIPT_DIR))
+from generate_status import (  # noqa: E402
     CheckRunInfo,
     PRStatus,
     fetch_pr_status,
     format_checklist,
     format_checks_section,
     generate_markdown,
-    main,
     write_output,
 )
 
@@ -29,24 +35,29 @@ class TestCheckRunInfo:
     """Test CheckRunInfo dataclass."""
 
     def test_check_run_info_creation(self):
-        """Test creating CheckRunInfo instances."""
-        check = CheckRunInfo(name="Test", status="completed", conclusion="success")
-        assert check.name == "Test"
+        """CheckRunInfo can be created with valid fields."""
+        check = CheckRunInfo(name="test-check", status="completed", conclusion="success")
+        assert check.name == "test-check"
         assert check.status == "completed"
         assert check.conclusion == "success"
 
-    def test_check_run_info_frozen(self):
-        """Test that CheckRunInfo is frozen."""
-        check = CheckRunInfo(name="Test", status="completed", conclusion="success")
-        with pytest.raises(Exception):  # dataclass frozen error
-            check.name = "Modified"
+    def test_check_run_info_immutable(self):
+        """CheckRunInfo is frozen and immutable."""
+        check = CheckRunInfo(name="test", status="completed", conclusion="success")
+        with pytest.raises(AttributeError):
+            check.name = "modified"  # type: ignore
+
+    def test_check_run_info_none_conclusion(self):
+        """CheckRunInfo can have None conclusion for pending checks."""
+        check = CheckRunInfo(name="pending-check", status="in_progress", conclusion=None)
+        assert check.conclusion is None
 
 
 class TestPRStatus:
     """Test PRStatus dataclass."""
 
     def test_pr_status_creation(self):
-        """Test creating PRStatus with all fields."""
+        """PRStatus can be created with all required fields."""
         status = PRStatus(
             number=123,
             title="Test PR",
@@ -65,94 +76,213 @@ class TestPRStatus:
             review_stats={
                 "approved": 1,
                 "changes_requested": 0,
-                "commented": 2,
-                "total": 3,
+                "commented": 0,
+                "total": 1,
             },
-            open_thread_count=3,
-            check_runs=[CheckRunInfo("ci", "completed", "success")],
+            open_thread_count=2,
+            check_runs=[CheckRunInfo("test", "completed", "success")],
         )
         assert status.number == 123
         assert status.title == "Test PR"
         assert len(status.labels) == 2
-        assert status.review_stats["approved"] == 1
+        assert len(status.check_runs) == 1
 
-
-class TestFetchPRStatus:
-    """Test fetch_pr_status function."""
-
-    @patch("generate_status.Github")
-    def test_fetch_pr_status_success(self, mock_github_class):
-        """Test successfully fetching PR status."""
-        # Setup mocks
-        mock_github = mock_github_class.return_value
-        mock_repo = MagicMock()
-        mock_pr = MagicMock()
-        mock_commit = MagicMock()
-
-        mock_github.get_repo.return_value = mock_repo
-        mock_repo.get_pull.return_value = mock_pr
-        mock_repo.get_commit.return_value = mock_commit
-
-        # Configure PR mock
-        mock_pr.number = 123
-        mock_pr.title = "Test PR"
-        mock_pr.user.login = "testuser"
-        mock_pr.base.ref = "main"
-        mock_pr.head.ref = "feature"
-        mock_pr.head.sha = "abc123"
-        mock_pr.draft = False
-        mock_pr.html_url = "https://github.com/test/repo/pull/123"
-        mock_pr.commits = 5
-        mock_pr.changed_files = 10
-        mock_pr.additions = 100
-        mock_pr.deletions = 50
-        mock_pr.labels = [MagicMock(name="bug")]
-        mock_pr.mergeable = True
-        mock_pr.mergeable_state = "clean"
-
-        # Configure reviews
-        mock_review1 = MagicMock(state="APPROVED")
-        mock_review2 = MagicMock(state="COMMENTED")
-        mock_pr.get_reviews.return_value = [mock_review1, mock_review2]
-
-        # Configure review comments
-        mock_pr.get_review_comments.return_value = MagicMock(totalCount=3)
-
-        # Configure check runs
-        mock_check = MagicMock(name="CI", status="completed", conclusion="success")
-        mock_commit.get_check_runs.return_value = [mock_check]
-
-        # Execute
-        result = fetch_pr_status(mock_github, "owner/repo", 123)
-
-        # Verify
-        assert result.number == 123
-        assert result.title == "Test PR"
-        assert result.review_stats["approved"] == 1
-        assert result.review_stats["commented"] == 1
-        assert result.open_thread_count == 3
-        assert len(result.check_runs) == 1
-
-
-class TestFormatChecklist:
-    """Test format_checklist function."""
-
-    def test_format_checklist_all_complete(self):
-        """Test checklist when all items are complete."""
+    def test_pr_status_immutable(self):
+        """PRStatus is frozen and immutable."""
         status = PRStatus(
-            number=123,
+            number=1,
             title="Test",
             author="user",
             base_ref="main",
             head_ref="feature",
             is_draft=False,
-            url="https://example.com",
-            commit_count=5,
-            file_count=10,
-            additions=100,
-            deletions=50,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
             labels=[],
             mergeable=True,
+            mergeable_state="clean",
+            review_stats={},
+            open_thread_count=0,
+            check_runs=[],
+        )
+        with pytest.raises(AttributeError):
+            status.number = 2  # type: ignore
+
+
+class TestFetchPRStatus:
+    """Test fetch_pr_status function."""
+
+    def test_fetch_pr_status_success(self):
+        """fetch_pr_status fetches and aggregates PR data correctly."""
+        # Mock GitHub API objects
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        # Configure PR mock
+        mock_pr.number = 42
+        mock_pr.title = "Add new feature"
+        mock_pr.user = Mock(login="contributor")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature-branch", sha="abc123")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://github.com/owner/repo/pull/42"
+        mock_pr.commits = 3
+        mock_pr.changed_files = 5
+        mock_pr.additions = 150
+        mock_pr.deletions = 50
+        # Create label mocks with proper name attribute
+        label1 = Mock()
+        label1.name = "enhancement"
+        label2 = Mock()
+        label2.name = "documentation"
+        mock_pr.labels = [label1, label2]
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+
+        # Mock reviews
+        review1 = Mock(state="APPROVED")
+        review2 = Mock(state="COMMENTED")
+        mock_pr.get_reviews.return_value = [review1, review2]
+        mock_pr.get_review_comments.return_value = Mock(totalCount=3)
+
+        # Mock check runs
+        check_run = Mock()
+        check_run.name = "CI Test"
+        check_run.status = "completed"
+        check_run.conclusion = "success"
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = [check_run]
+
+        # Setup mock chain
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        # Execute
+        result = fetch_pr_status(mock_github, "owner/repo", 42)
+
+        # Verify
+        assert result.number == 42
+        assert result.title == "Add new feature"
+        assert result.author == "contributor"
+        assert result.base_ref == "main"
+        assert result.head_ref == "feature-branch"
+        assert result.is_draft is False
+        assert result.commit_count == 3
+        assert result.file_count == 5
+        assert result.additions == 150
+        assert result.deletions == 50
+        assert result.labels == ["enhancement", "documentation"]
+        assert result.mergeable is True
+        assert result.mergeable_state == "clean"
+        assert result.review_stats["approved"] == 1
+        assert result.review_stats["commented"] == 1
+        assert result.review_stats["total"] == 2
+        assert result.open_thread_count == 3
+        assert len(result.check_runs) == 1
+        assert result.check_runs[0].name == "CI Test"
+
+    def test_fetch_pr_status_with_changes_requested(self):
+        """fetch_pr_status correctly counts changes_requested reviews."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        # Minimal PR setup
+        mock_pr.number = 1
+        mock_pr.title = "Test"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 10
+        mock_pr.deletions = 5
+        mock_pr.labels = []
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+
+        # Reviews with changes requested
+        review1 = Mock(state="CHANGES_REQUESTED")
+        review2 = Mock(state="CHANGES_REQUESTED")
+        review3 = Mock(state="APPROVED")
+        mock_pr.get_reviews.return_value = [review1, review2, review3]
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = []
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        assert result.review_stats["changes_requested"] == 2
+        assert result.review_stats["approved"] == 1
+        assert result.review_stats["total"] == 3
+
+    def test_fetch_pr_status_unknown_mergeable_state(self):
+        """fetch_pr_status defaults to 'unknown' if mergeable_state is None."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        # Setup with None mergeable_state
+        mock_pr.number = 1
+        mock_pr.title = "Test"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 1
+        mock_pr.deletions = 1
+        mock_pr.labels = []
+        mock_pr.mergeable = None
+        mock_pr.mergeable_state = None
+        mock_pr.get_reviews.return_value = []
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = []
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        assert result.mergeable_state == "unknown"
+
+
+class TestFormatChecklist:
+    """Test format_checklist function."""
+
+    def test_format_checklist_all_ready(self):
+        """format_checklist shows all tasks complete when PR is ready."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,  # Ready
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,  # No conflicts
             mergeable_state="clean",
             review_stats={
                 "approved": 1,
@@ -161,7 +291,7 @@ class TestFormatChecklist:
                 "total": 1,
             },
             open_thread_count=0,
-            check_runs=[CheckRunInfo("test", "completed", "success")],
+            check_runs=[CheckRunInfo("test", "completed", "success")],  # All pass
         )
 
         result = format_checklist(status)
@@ -172,53 +302,20 @@ class TestFormatChecklist:
         assert "- [x] No merge conflicts" in result
         assert "- [x] No pending change requests" in result
 
-    def test_format_checklist_all_incomplete(self):
-        """Test checklist when all items are incomplete."""
+    def test_format_checklist_draft_pr(self):
+        """format_checklist marks PR as not ready when draft."""
         status = PRStatus(
-            number=123,
+            number=1,
             title="Test",
             author="user",
             base_ref="main",
             head_ref="feature",
-            is_draft=True,
-            url="https://example.com",
-            commit_count=5,
-            file_count=10,
-            additions=100,
-            deletions=50,
-            labels=[],
-            mergeable=None,
-            mergeable_state="unknown",
-            review_stats={
-                "approved": 0,
-                "changes_requested": 1,
-                "commented": 0,
-                "total": 1,
-            },
-            open_thread_count=0,
-            check_runs=[],
-        )
-
-        result = format_checklist(status)
-
-        assert "- [ ] Mark PR as ready for review" in result
-        assert "- [ ] Get approval from reviewer" in result
-        assert "- [ ] CI checks pending/not configured" in result
-
-    def test_format_checklist_partial_checks_passing(self):
-        """Test checklist with partial CI checks passing."""
-        status = PRStatus(
-            number=123,
-            title="Test",
-            author="user",
-            base_ref="main",
-            head_ref="feature",
-            is_draft=False,
-            url="https://example.com",
-            commit_count=5,
-            file_count=10,
-            additions=100,
-            deletions=50,
+            is_draft=True,  # Draft
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
             labels=[],
             mergeable=True,
             mergeable_state="clean",
@@ -229,231 +326,418 @@ class TestFormatChecklist:
                 "total": 0,
             },
             open_thread_count=0,
-            check_runs=[
-                CheckRunInfo("test1", "completed", "success"),
-                CheckRunInfo("test2", "completed", "failure"),
-            ],
+            check_runs=[],
         )
 
         result = format_checklist(status)
 
-        assert "- [ ] All CI checks passing (1/2 passed)" in result
+        assert "- [ ] Mark PR as ready for review" in result
 
-
-class TestFormatChecksSection:
-    """Test format_checks_section function."""
-
-    def test_format_checks_no_checks(self):
-        """Test formatting with no checks configured."""
-        result = format_checks_section([])
-        assert "No checks configured or pending" in result
-
-    def test_format_checks_all_passed(self):
-        """Test formatting with all checks passed."""
-        checks = [
-            CheckRunInfo("test1", "completed", "success"),
-            CheckRunInfo("test2", "completed", "success"),
-        ]
-        result = format_checks_section(checks)
-
-        assert "Passed:** 2" in result
-        assert "Failed:** 0" in result
-
-    def test_format_checks_with_failures(self):
-        """Test formatting with some failed checks."""
-        checks = [
-            CheckRunInfo("test1", "completed", "success"),
-            CheckRunInfo("test2", "completed", "failure"),
-            CheckRunInfo("test3", "in_progress", None),
-        ]
-        result = format_checks_section(checks)
-
-        assert "Passed:** 1" in result
-        assert "Failed:** 1" in result
-        assert "Pending:** 1" in result
-        assert "Failed Checks:" in result
-        assert "test2" in result
-
-
-class TestGenerateMarkdown:
-    """Test generate_markdown function."""
-
-    @patch("generate_status.datetime")
-    def test_generate_markdown_complete(self, mock_datetime):
-        """Test generating complete markdown report."""
-        mock_now = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
-        mock_datetime.now.return_value = mock_now
-
+    def test_format_checklist_no_approval(self):
+        """format_checklist shows approval needed when not approved."""
         status = PRStatus(
-            number=123,
-            title="Test PR",
-            author="testuser",
-            base_ref="main",
-            head_ref="feature",
-            is_draft=False,
-            url="https://github.com/test/repo/pull/123",
-            commit_count=5,
-            file_count=10,
-            additions=100,
-            deletions=50,
-            labels=["bug", "enhancement"],
-            mergeable=True,
-            mergeable_state="clean",
-            review_stats={
-                "approved": 1,
-                "changes_requested": 0,
-                "commented": 2,
-                "total": 3,
-            },
-            open_thread_count=5,
-            check_runs=[CheckRunInfo("ci", "completed", "success")],
-        )
-
-        result = generate_markdown(status)
-
-        # Verify key sections present
-        assert "PR Status Report" in result
-        assert "Test PR (#123)" in result
-        assert "@testuser" in result
-        assert "`main` ← `feature`" in result
-        assert "10 files (5 commits)" in result
-        assert "+100 / -50" in result
-        assert "`bug`" in result
-        assert "Approved:** 1" in result
-        assert "Comments/Threads:** 5" in result
-        assert "2024-01-01 12:00:00 UTC" in result
-
-
-class TestWriteOutput:
-    """Test write_output function."""
-
-    @patch("builtins.open", create=True)
-    @patch("generate_status.os.environ.get")
-    @patch("builtins.print")
-    def test_write_output_with_github_summary(self, mock_print, mock_env_get, mock_open):
-        """Test writing output with GitHub summary."""
-        mock_env_get.return_value = "/tmp/github_summary"
-        mock_file = MagicMock()
-        mock_open.return_value.__enter__.return_value = mock_file
-
-        write_output("Test content")
-
-        # Verify file write
-        assert mock_file.write.called
-        mock_file.write.assert_called_with("Test content")
-
-        # Verify stdout
-        mock_print.assert_called()
-
-    @patch("builtins.open", create=True)
-    @patch("generate_status.os.environ.get")
-    @patch("builtins.print")
-    def test_write_output_without_github_summary(self, mock_print, mock_env_get, mock_open):
-        """Test writing output without GitHub summary."""
-        mock_env_get.return_value = None
-        write_output("Test content")
-
-        # Should still print to stdout
-        mock_print.assert_called()
-
-
-class TestMain:
-    """Test main function."""
-
-    @patch("generate_status.Github")
-    @patch("generate_status.os.environ.get")
-    @patch("generate_status.write_output")
-    @patch("generate_status.sys.exit")
-    def test_main_success(self, mock_exit, mock_write, mock_env, mock_github_class):
-        """Test successful main execution."""
-        # Setup environment
-        env_values = {
-            "GITHUB_TOKEN": "token123",
-            "PR_NUMBER": "123",
-            "REPO_OWNER": "owner",
-            "REPO_NAME": "repo",
-        }
-        mock_env.side_effect = lambda key: env_values.get(key)
-
-        # Setup mocks (simplified)
-        mock_github = mock_github_class.return_value
-        mock_repo = MagicMock()
-        mock_pr = MagicMock()
-
-        mock_github.get_repo.return_value = mock_repo
-        mock_repo.get_pull.return_value = mock_pr
-
-        # Configure minimal PR
-        mock_pr.number = 123
-        mock_pr.title = "Test"
-        mock_pr.user.login = "user"
-        mock_pr.base.ref = "main"
-        mock_pr.head.ref = "feature"
-        mock_pr.head.sha = "abc"
-        mock_pr.draft = False
-        mock_pr.html_url = "url"
-        mock_pr.commits = 1
-        mock_pr.changed_files = 1
-        mock_pr.additions = 1
-        mock_pr.deletions = 1
-        mock_pr.labels = []
-        mock_pr.mergeable = True
-        mock_pr.mergeable_state = "clean"
-        mock_pr.get_reviews.return_value = []
-        mock_pr.get_review_comments.return_value = MagicMock(totalCount=0)
-
-        mock_commit = MagicMock()
-        mock_commit.get_check_runs.return_value = []
-        mock_repo.get_commit.return_value = mock_commit
-
-        main()
-
-        mock_exit.assert_called_with(0)
-        assert mock_write.called
-
-    @patch("generate_status.os.environ.get")
-    @patch("generate_status.sys.exit")
-    @patch("builtins.print")
-    def test_main_missing_env_vars(self, mock_print, mock_exit, mock_env):
-        """Test main with missing environment variables."""
-        mock_env.return_value = None
-
-        main()
-
-        mock_exit.assert_called_with(1)
-
-    @patch("generate_status.os.environ.get")
-    @patch("generate_status.sys.exit")
-    @patch("builtins.print")
-    def test_main_invalid_pr_number(self, mock_print, mock_exit, mock_env):
-        """Test main with invalid PR number."""
-        env_values = {
-            "GITHUB_TOKEN": "token",
-            "PR_NUMBER": "not_a_number",
-            "REPO_OWNER": "owner",
-            "REPO_NAME": "repo",
-        }
-        mock_env.side_effect = lambda key: env_values.get(key)
-
-        main()
-
-        mock_exit.assert_called_with(1)
-
-
-# Additional edge case tests
-class TestEdgeCases:
-    """Test edge cases and boundary conditions."""
-
-    def test_format_checklist_dirty_merge_state(self):
-        """Test checklist with dirty merge state."""
-        status = PRStatus(
-            number=123,
+            number=1,
             title="Test",
             author="user",
             base_ref="main",
             head_ref="feature",
             is_draft=False,
-            url="url",
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 1,
+                "total": 1,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = format_checklist(status)
+
+        assert "- [ ] Get approval from reviewer" in result
+
+    def test_format_checklist_failing_checks(self):
+        """format_checklist shows check progress when some fail."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
+            open_thread_count=0,
+            check_runs=[
+                CheckRunInfo("test1", "completed", "success"),
+                CheckRunInfo("test2", "completed", "failure"),
+                CheckRunInfo("test3", "completed", "success"),
+            ],
+        )
+
+        result = format_checklist(status)
+
+        assert "- [ ] All CI checks passing (2/3 passed)" in result
+
+    def test_format_checklist_no_checks(self):
+        """format_checklist indicates when no checks are configured."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = format_checklist(status)
+
+        assert "- [ ] CI checks pending/not configured" in result
+
+    def test_format_checklist_merge_conflicts(self):
+        """format_checklist shows conflicts when mergeable_state is dirty."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=False,
+            mergeable_state="dirty",
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = format_checklist(status)
+
+        assert "- [ ] Resolve merge conflicts" in result
+
+    def test_format_checklist_unknown_mergeable_state(self):
+        """format_checklist shows 'Check for merge conflicts' when mergeable state is unknown."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=None,
+            mergeable_state="unknown",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = format_checklist(status)
+
+        assert "- [ ] Check for merge conflicts" in result
+
+    def test_format_checklist_changes_requested(self):
+        """format_checklist shows pending change requests."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 2,
+                "commented": 1,
+                "total": 3,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = format_checklist(status)
+
+        assert "- [ ] No pending change requests" in result
+
+
+class TestFormatChecksSection:
+    """Test format_checks_section function."""
+
+    def test_format_checks_section_no_checks(self):
+        """format_checks_section returns info message when no checks."""
+        result = format_checks_section([])
+        assert "No checks configured or pending" in result
+
+    def test_format_checks_section_all_passed(self):
+        """format_checks_section formats all passed checks correctly."""
+        checks = [
+            CheckRunInfo("test1", "completed", "success"),
+            CheckRunInfo("test2", "completed", "success"),
+            CheckRunInfo("test3", "completed", "success"),
+        ]
+        result = format_checks_section(checks)
+
+        assert "✅ **Passed:** 3" in result
+        assert "❌ **Failed:** 0" in result
+        assert "⏳ **Pending:** 0" in result
+        assert "📊 **Total:** 3" in result
+
+    def test_format_checks_section_with_failures(self):
+        """format_checks_section lists failed checks."""
+        checks = [
+            CheckRunInfo("passing-test", "completed", "success"),
+            CheckRunInfo("failing-test-1", "completed", "failure"),
+            CheckRunInfo("failing-test-2", "completed", "failure"),
+        ]
+        result = format_checks_section(checks)
+
+        assert "✅ **Passed:** 1" in result
+        assert "❌ **Failed:** 2" in result
+        assert "**Failed Checks:**" in result
+        assert "❌ failing-test-1" in result
+        assert "❌ failing-test-2" in result
+
+    def test_format_checks_section_with_pending(self):
+        """format_checks_section counts pending checks."""
+        checks = [
+            CheckRunInfo("completed-test", "completed", "success"),
+            CheckRunInfo("pending-test-1", "in_progress", None),
+            CheckRunInfo("pending-test-2", "queued", None),
+        ]
+        result = format_checks_section(checks)
+
+        assert "✅ **Passed:** 1" in result
+        assert "⏳ **Pending:** 2" in result
+
+    def test_format_checks_section_with_skipped(self):
+        """format_checks_section counts skipped checks."""
+        checks = [
+            CheckRunInfo("success", "completed", "success"),
+            CheckRunInfo("failure", "completed", "failure"),
+            CheckRunInfo("skipped", "completed", "skipped"),
+            CheckRunInfo("cancelled", "completed", "cancelled"),
+        ]
+        result = format_checks_section(checks)
+
+        assert "✅ **Passed:** 1" in result
+        assert "❌ **Failed:** 1" in result
+        assert "⏭️ **Skipped:** 2" in result
+
+
+class TestGenerateMarkdown:
+    """Test generate_markdown function."""
+
+    def test_generate_markdown_structure(self):
+        """generate_markdown produces properly structured markdown report."""
+        status = PRStatus(
+            number=123,
+            title="Add authentication feature",
+            author="developer",
+            base_ref="main",
+            head_ref="auth-feature",
+            is_draft=False,
+            url="https://github.com/test/repo/pull/123",
+            commit_count=5,
+            file_count=10,
+            additions=200,
+            deletions=50,
+            labels=["feature", "security"],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 2,
+                "changes_requested": 0,
+                "commented": 1,
+                "total": 3,
+            },
+            open_thread_count=4,
+            check_runs=[CheckRunInfo("CI", "completed", "success")],
+        )
+
+        result = generate_markdown(status)
+
+        # Check main sections
+        assert "📊 **PR Status Report**" in result
+        assert "**PR Information**" in result
+        assert "**Review Status**" in result
+        assert "**CI/Check Status**" in result
+        assert "**Merge Status**" in result
+        assert "**Task Checklist**" in result
+
+        # Check specific content
+        assert "Add authentication feature (#123)" in result
+        assert "@developer" in result
+        assert "`main` ← `auth-feature`" in result
+        assert "10 files (5 commits)" in result
+        assert "+200 / -50" in result
+        assert "`feature`, `security`" in result
+        assert "✅ **Approved:** 2" in result
+        assert "**Comments/Threads:** 4" in result
+        assert "Generated by PR Copilot" in result
+
+    def test_generate_markdown_draft_status(self):
+        """generate_markdown shows draft status correctly."""
+        status = PRStatus(
+            number=1,
+            title="Draft PR",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=True,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = generate_markdown(status)
+        assert "📝 Yes" in result
+
+    def test_generate_markdown_no_labels(self):
+        """generate_markdown handles PR with no labels."""
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = generate_markdown(status)
+        assert "**Labels:** None" in result
+
+    def test_generate_markdown_mergeable_states(self):
+        """generate_markdown displays different mergeable states correctly."""
+        # Test mergeable=True
+        status_clean = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+        result = generate_markdown(status_clean)
+        assert "✅ Yes" in result
+
+        # Test mergeable=False
+        status_dirty = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
             commit_count=1,
             file_count=1,
             additions=1,
@@ -470,20 +754,18 @@ class TestEdgeCases:
             open_thread_count=0,
             check_runs=[],
         )
+        result = generate_markdown(status_dirty)
+        assert "❌ No" in result
 
-        result = format_checklist(status)
-        assert "- [ ] Resolve merge conflicts" in result
-
-    def test_generate_markdown_draft_pr(self):
-        """Test markdown generation for draft PR."""
-        status = PRStatus(
-            number=123,
-            title="Draft PR",
+        # Test mergeable=None
+        status_checking = PRStatus(
+            number=1,
+            title="Test",
             author="user",
             base_ref="main",
             head_ref="feature",
-            is_draft=True,
-            url="url",
+            is_draft=False,
+            url="https://test.com",
             commit_count=1,
             file_count=1,
             additions=1,
@@ -500,23 +782,520 @@ class TestEdgeCases:
             open_thread_count=0,
             check_runs=[],
         )
+        result = generate_markdown(status_checking)
+        assert "⏳ Checking..." in result
+
+
+class TestWriteOutput:
+    """Test write_output function."""
+
+    def test_write_output_to_stdout(self, capsys):
+        """write_output prints content to stdout."""
+        content = "Test report content"
+        write_output(content)
+
+        captured = capsys.readouterr()
+        assert content in captured.out
+
+    def test_write_output_to_github_summary(self, monkeypatch, tmp_path):
+        """write_output writes to GITHUB_STEP_SUMMARY when set."""
+        summary_file = tmp_path / "summary.md"
+        monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_file))
+
+        content = "Test summary content"
+        write_output(content)
+
+        assert summary_file.exists()
+        assert summary_file.read_text() == content
+
+    def test_write_output_to_temp_file(self, monkeypatch, tmp_path):
+        """write_output writes to standard temp file location."""
+        monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        monkeypatch.setattr("tempfile.gettempdir", lambda: str(tmp_path))
+
+        content = "Test temp content"
+        write_output(content)
+
+        temp_file = tmp_path / "pr_status_report.md"
+        assert temp_file.exists()
+        assert content in temp_file.read_text()
+
+    def test_write_output_handles_github_summary_error(self, monkeypatch, capsys, tmp_path):
+        """write_output handles errors writing to GITHUB_STEP_SUMMARY gracefully."""
+        bad_path = tmp_path / "nonexistent_dir" / "summary.md"
+        monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(bad_path))
+
+        content = "Test content"
+        write_output(content)  # Should not raise
+
+        captured = capsys.readouterr()
+
+        warned = "Warning" in captured.err
+        fell_back = content in captured.out
+
+        assert warned or fell_back, "write_output should either warn on stderr or fall back to stdout on error"
+
+
+class TestMainFunction:
+    """Test main() entry point."""
+
+    def test_main_missing_env_vars(self, monkeypatch, capsys):
+        """main exits with error when required env vars are missing."""
+        # Clear all required env vars
+        for var in ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]:
+            monkeypatch.delenv(var, raising=False)
+
+        # Import and run main
+        from generate_status import main
+
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "Missing environment variables" in captured.err
+
+    def test_main_invalid_pr_number(self, monkeypatch, capsys):
+        """main exits with error when PR_NUMBER is not an integer."""
+        monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
+        monkeypatch.setenv("PR_NUMBER", "not-a-number")
+        monkeypatch.setenv("REPO_OWNER", "owner")
+        monkeypatch.setenv("REPO_NAME", "repo")
+
+        from generate_status import main
+
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+
+        assert exc_info.value.code == 1
+        captured = capsys.readouterr()
+        assert "PR_NUMBER must be an integer" in captured.err
+
+    @patch("generate_status.Github")
+    def test_main_success(self, mock_github_class, monkeypatch, capsys):
+        """main successfully generates report when all inputs are valid."""
+        # Setup environment
+        monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
+        monkeypatch.setenv("PR_NUMBER", "42")
+        monkeypatch.setenv("REPO_OWNER", "test-owner")
+        monkeypatch.setenv("REPO_NAME", "test-repo")
+
+        # Mock GitHub API
+        mock_github = MagicMock()
+        mock_repo = MagicMock()
+        mock_pr = MagicMock()
+
+        mock_pr.number = 42
+        mock_pr.title = "Test PR"
+        mock_pr.user = MagicMock(login="testuser")
+        mock_pr.base = MagicMock(ref="main")
+        mock_pr.head = MagicMock(ref="feature", sha="abc123")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://github.com/test-owner/test-repo/pull/42"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 10
+        mock_pr.deletions = 5
+        mock_pr.labels = []
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+        mock_pr.get_reviews.return_value = []
+        mock_pr.get_review_comments.return_value = MagicMock(totalCount=0)
+
+        mock_commit = MagicMock()
+        mock_commit.get_check_runs.return_value = []
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+        mock_github_class.return_value = mock_github
+
+        from generate_status import main
+
+        with pytest.raises(SystemExit) as exc_info:
+            main()
+
+        assert exc_info.value.code == 0
+        captured = capsys.readouterr()
+        assert "Test PR" in captured.out
+
+
+# Integration-style tests
+class TestEndToEndScenarios:
+    """Test realistic end-to-end scenarios."""
+
+    def test_complete_pr_workflow(self):
+        """Test complete PR status flow from fetch to markdown generation."""
+        # Create mock GitHub objects
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        # Setup complete PR scenario
+        mock_pr.number = 456
+        mock_pr.title = "Refactor database layer"
+        mock_pr.user = Mock(login="dbexpert")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="refactor-db", sha="def456")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://github.com/company/project/pull/456"
+        mock_pr.commits = 12
+        mock_pr.changed_files = 25
+        mock_pr.additions = 500
+        mock_pr.deletions = 300
+        # Create label mocks with proper name attribute
+        label1 = Mock()
+        label1.name = "refactoring"
+        label2 = Mock()
+        label2.name = "database"
+        mock_pr.labels = [label1, label2]
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+
+        # Multiple reviews
+        mock_pr.get_reviews.return_value = [
+            Mock(state="APPROVED"),
+            Mock(state="APPROVED"),
+            Mock(state="COMMENTED"),
+        ]
+        mock_pr.get_review_comments.return_value = Mock(totalCount=8)
+
+        # Multiple check runs
+        check1 = Mock()
+        check1.name = "Unit Tests"
+        check1.status = "completed"
+        check1.conclusion = "success"
+        check2 = Mock()
+        check2.name = "Integration Tests"
+        check2.status = "completed"
+        check2.conclusion = "success"
+        check3 = Mock()
+        check3.name = "Linting"
+        check3.status = "completed"
+        check3.conclusion = "success"
+        check4 = Mock()
+        check4.name = "Security Scan"
+        check4.status = "completed"
+        check4.conclusion = "success"
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = [check1, check2, check3, check4]
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        # Fetch status
+        status = fetch_pr_status(mock_github, "company/project", 456)
+
+        # Generate markdown
+        markdown = generate_markdown(status)
+
+        # Verify complete report
+        assert "Refactor database layer" in markdown
+        assert "dbexpert" in markdown
+        assert "25 files" in markdown
+        assert "12 commits" in markdown
+        assert "+500 / -300" in markdown
+        assert "`refactoring`, `database`" in markdown
+        assert "✅ **Approved:** 2" in markdown
+        assert "**Comments/Threads:** 8" in markdown
+        assert "Unit Tests" in markdown or "✅ **Passed:** 4" in markdown
+        assert "[x] All CI checks passing" in markdown
+        assert "[x] Get approval from reviewer" in markdown
+
+
+class TestSecurityAndEdgeCases:
+    """Additional tests for security concerns and edge cases."""
+
+    def test_fetch_pr_status_handles_special_characters_in_labels(self):
+        """fetch_pr_status correctly handles labels with special characters."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        # Configure PR with special characters in labels
+        mock_pr.number = 1
+        mock_pr.title = "Test PR"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 1
+        mock_pr.deletions = 1
+
+        # Labels with special chars: quotes, unicode, HTML-like content
+        label1 = Mock()
+        label1.name = 'label-with-"quotes"'
+        label2 = Mock()
+        label2.name = "unicode: 你好 🎉"
+        label3 = Mock()
+        label3.name = "<script>alert('xss')</script>"
+        mock_pr.labels = [label1, label2, label3]
+
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+        mock_pr.get_reviews.return_value = []
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = []
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        # All labels should be preserved exactly as-is
+        assert len(result.labels) == 3
+        assert 'label-with-"quotes"' in result.labels
+        assert "unicode: 你好 🎉" in result.labels
+        assert "<script>alert('xss')</script>" in result.labels
+
+    def test_generate_markdown_sanitizes_pr_title(self):
+        """generate_markdown handles PR titles with markdown/HTML characters."""
+        status = PRStatus(
+            number=1,
+            title="Fix <script>alert('xss')</script> issue with **bold** and `code`",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
 
         result = generate_markdown(status)
-        assert "Draft:** 📝 Yes" in result
-        assert "Mergeable:** ⏳ Checking..." in result
 
-    def test_format_checks_mixed_states(self):
-        """Test formatting checks with various states."""
+        # Title should be included verbatim (markdown format is expected)
+        assert "<script>alert('xss')</script>" in result
+        assert "**bold**" in result
+        assert "`code`" in result
+
+    def test_format_checks_section_handles_many_check_runs(self):
+        """format_checks_section handles PRs with large numbers of check runs."""
+        # Simulate PR with 100 check runs
+        checks = []
+        for i in range(50):
+            checks.append(CheckRunInfo(f"test-{i}", "completed", "success"))
+        for i in range(30):
+            checks.append(CheckRunInfo(f"build-{i}", "completed", "failure"))
+        for i in range(20):
+            checks.append(CheckRunInfo(f"lint-{i}", "in_progress", None))
+
+        result = format_checks_section(checks)
+
+        assert "✅ **Passed:** 50" in result
+        assert "❌ **Failed:** 30" in result
+        assert "⏳ **Pending:** 20" in result
+        assert "📊 **Total:** 100" in result
+        # Should list all failed checks
+        assert result.count("❌ build-") == 30
+
+    def test_fetch_pr_status_with_duplicate_check_run_names(self):
+        """fetch_pr_status handles multiple check runs with the same name."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        mock_pr.number = 1
+        mock_pr.title = "Test"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 1
+        mock_pr.deletions = 1
+        mock_pr.labels = []
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+        mock_pr.get_reviews.return_value = []
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        # Multiple check runs with same name (retry scenario)
+        check1 = Mock()
+        check1.name = "CI Test"
+        check1.status = "completed"
+        check1.conclusion = "failure"
+        check2 = Mock()
+        check2.name = "CI Test"  # Same name as check1
+        check2.status = "completed"
+        check2.conclusion = "success"
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = [check1, check2]
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        # Should include both check runs
+        assert len(result.check_runs) == 2
+        assert result.check_runs[0].name == "CI Test"
+        assert result.check_runs[1].name == "CI Test"
+
+    def test_write_output_handles_large_reports(self, capsys, tmp_path, monkeypatch):
+        """write_output handles very large report content."""
+        monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+        monkeypatch.setattr("tempfile.gettempdir", lambda: str(tmp_path))
+
+        # Create a large report (1MB+)
+        large_content = "Test line\n" * 100000
+
+        write_output(large_content)
+
+        # Should successfully write to temp file
+        temp_file = tmp_path / "pr_status_report.md"
+        assert temp_file.exists()
+        assert temp_file.stat().st_size >= 900000  # Large file (900KB+)
+
+    def test_format_checklist_with_extremely_high_check_count(self):
+        """format_checklist handles PRs with many failing checks."""
+        # Create 500 check runs, 250 failing
+        checks = []
+        for i in range(250):
+            checks.append(CheckRunInfo(f"test-{i}", "completed", "success"))
+        for i in range(250):
+            checks.append(CheckRunInfo(f"failing-{i}", "completed", "failure"))
+
+        status = PRStatus(
+            number=1,
+            title="Test",
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 1,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 1,
+            },
+            open_thread_count=0,
+            check_runs=checks,
+        )
+
+        result = format_checklist(status)
+
+        # Should show correct fraction
+        assert "- [ ] All CI checks passing (250/500 passed)" in result
+
+    def test_generate_markdown_with_very_long_pr_title(self):
+        """generate_markdown handles extremely long PR titles."""
+        long_title = "A" * 500  # 500 character title
+
+        status = PRStatus(
+            number=1,
+            title=long_title,
+            author="user",
+            base_ref="main",
+            head_ref="feature",
+            is_draft=False,
+            url="https://test.com",
+            commit_count=1,
+            file_count=1,
+            additions=1,
+            deletions=1,
+            labels=[],
+            mergeable=True,
+            mergeable_state="clean",
+            review_stats={
+                "approved": 0,
+                "changes_requested": 0,
+                "commented": 0,
+                "total": 0,
+            },
+            open_thread_count=0,
+            check_runs=[],
+        )
+
+        result = generate_markdown(status)
+
+        # Should include full title
+        assert long_title in result
+
+    def test_fetch_pr_status_with_none_review_states(self):
+        """fetch_pr_status handles reviews with None or unexpected states."""
+        mock_github = Mock()
+        mock_repo = Mock()
+        mock_pr = Mock()
+
+        mock_pr.number = 1
+        mock_pr.title = "Test"
+        mock_pr.user = Mock(login="user")
+        mock_pr.base = Mock(ref="main")
+        mock_pr.head = Mock(ref="feature", sha="abc")
+        mock_pr.draft = False
+        mock_pr.html_url = "https://test.com"
+        mock_pr.commits = 1
+        mock_pr.changed_files = 1
+        mock_pr.additions = 1
+        mock_pr.deletions = 1
+        mock_pr.labels = []
+        mock_pr.mergeable = True
+        mock_pr.mergeable_state = "clean"
+
+        # Reviews with unexpected states
+        review1 = Mock(state=None)
+        review2 = Mock(state="DISMISSED")
+        review3 = Mock(state="PENDING")
+        mock_pr.get_reviews.return_value = [review1, review2, review3]
+        mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+
+        mock_commit = Mock()
+        mock_commit.get_check_runs.return_value = []
+
+        mock_github.get_repo.return_value = mock_repo
+        mock_repo.get_pull.return_value = mock_pr
+        mock_repo.get_commit.return_value = mock_commit
+
+        result = fetch_pr_status(mock_github, "owner/repo", 1)
+
+        # Should not count unexpected states in approved/changes_requested/commented
+        assert result.review_stats["approved"] == 0
+        assert result.review_stats["changes_requested"] == 0
+        assert result.review_stats["commented"] == 0
+        assert result.review_stats["total"] == 3  # But total should include them
+
+    def test_format_checks_section_with_null_conclusion(self):
+        """format_checks_section correctly handles checks with null conclusion."""
         checks = [
-            CheckRunInfo("success", "completed", "success"),
-            CheckRunInfo("failure", "completed", "failure"),
-            CheckRunInfo("pending", "in_progress", None),
-            CheckRunInfo("skipped", "completed", "skipped"),
+            CheckRunInfo("test1", "completed", None),  # Completed but no conclusion
+            CheckRunInfo("test2", "in_progress", None),
         ]
 
         result = format_checks_section(checks)
-        assert "Total:** 4" in result
-        assert "Passed:** 1" in result
-        assert "Failed:** 1" in result
-        assert "Pending:** 1" in result
-        assert "Skipped:** 1" in result
+
+        # Should categorize appropriately
+        assert "⏳ **Pending:** 1" in result  # in_progress
+        assert "⏭️ **Skipped:** 1" in result  # completed with None conclusion

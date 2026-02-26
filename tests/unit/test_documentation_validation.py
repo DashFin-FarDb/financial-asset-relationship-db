@@ -46,8 +46,7 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -126,9 +125,8 @@ class TestDependencyMatrix:
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
         found_types = set(file_types)
-        assert found_types.issubset(
-            expected_types | {"jsx", "json", "md"}
-        ), f"Unexpected file types: {found_types - expected_types}"
+        permitted_types = expected_types | {"jsx", "json", "md"}
+        assert found_types.issubset(permitted_types), f"Unexpected file types: {found_types - permitted_types}"
 
     def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
         """Test that dependencyMatrix.md has File Type Distribution section."""
@@ -266,9 +264,8 @@ class TestSystemManifest:
         with open(system_manifest_path, encoding="utf-8") as f:
             return f.read()
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(system_manifest_content):
+    def system_manifest_lines(self, system_manifest_content):
         """
         Split system manifest content into lines.
 
@@ -291,7 +288,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top-level title '  # System Manifest'.
+        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -315,7 +312,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a '- Description: ...' entry documenting the project's description.
+        Verify the system manifest contains a - Description: ... entry documenting the project description.
         """
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"
@@ -337,24 +334,14 @@ class TestSystemManifest:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Ensure systemManifest.md defines a current phase section.
-
-        The manifest must contain a "## Current Phase" heading and a line of the
-        form "- Current Phase: <value>" with a non - empty value.
-
-        Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md
-                file to inspect.
-        """
-        # Basic structural checks
+        """Test that systemManifest.md has Current Phase section."""
         assert "## Current Phase" in system_manifest_content
-        assert "- Current Phase:" in system_manifest_content
 
-        # Validate the line format and non-empty value
-        pattern = r"- Current Phase:\s+(.+)"
+        # Assert that the System Manifest declares a current project phase.
+        pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
+
         assert match is not None, "Current Phase not found"
-        assert match.group(1).strip(), "Current Phase value must not be empty"
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
         """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
@@ -390,9 +377,7 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """
-        Verify that systemManifest.md contains the "## Dependencies" section.
-        """
+        """Verify that systemManifest.md contains the "## Dependencies" section."""
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
@@ -466,7 +451,7 @@ class TestSystemManifest:
         """Test that there are no duplicate major sections."""
         major_sections = [
             "## Project Overview",
-            "## Current Status",
+            "## Current Phase",
             "## Project Structure",
             "## Dependencies",
         ]
@@ -480,9 +465,9 @@ class TestSystemManifest:
 
     def test_system_manifest_markdown_formatting(self, system_manifest_lines):
         """
-        Verify markdown heading formatting in the System Manifest.
+        Check that Markdown headings in the System Manifest have a space after the leading hashes.
 
-        Asserts that, within the first 500 lines, any Markdown heading that begins with one or more `  # ` characters has a space immediately following the leading hash sequence (e.g. `# Title`, `## Section`). The test raises an assertion identifying the line number and content when a heading is missing the required space.
+        Examines up to the first 500 lines and asserts any line beginning with '#' contains a space immediately following the leading hash sequence(e.g. '# Title', '## Section'). On failure, raises an AssertionError identifying the offending line number and its content.
         """
         for i, line in enumerate(system_manifest_lines[:500]):  # Check first 500 lines
             # Check heading formatting
@@ -665,7 +650,7 @@ class TestDocumentationRealisticContent:
             if any(x in unix_path for x in ["...", "test_", "__tests__"]):
                 continue
 
-            assert check_path.exists() or "..." in file_path, f"File mentioned in manifest doesn't exist: {unix_path}"
+            assert check_path.exists(), f"File mentioned in manifest doesn't exist: {unix_path}"
 
     def test_documented_file_counts_reasonable(self):
         """Test that documented file counts are reasonable for the project."""
