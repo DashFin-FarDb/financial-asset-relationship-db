@@ -422,7 +422,7 @@ class FinancialAssetApp:
         empirical data points. Additionally, it categorizes formulas and highlights
         key insights and strongest asset correlations, if available.
 
-        Args:
+        Parameters:
             summary (Dict): A dictionary containing summary statistics and insights.
             analysis_results (Dict): A dictionary containing analysis results, including
                 formulas and empirical relationships.
