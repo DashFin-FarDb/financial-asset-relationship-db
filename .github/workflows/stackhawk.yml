@@ -40,6 +40,7 @@ on:
       - 'main.py'
       - '.github/workflows/stackhawk.yml'
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ "main" ]
     paths:
       - 'stackhawk.yml'

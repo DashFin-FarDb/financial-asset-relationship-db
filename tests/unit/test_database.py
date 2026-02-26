@@ -311,6 +311,8 @@ class TestSessionScope:
         """Integrity errors should propagate after rollback."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """Test model representing the `test_integrity` table for integrity error tests."""
+
             __tablename__ = "test_integrity"
             id = Column(Integer, primary_key=True)
 
@@ -328,6 +330,8 @@ class TestSessionScope:
         """Multiple operations in one scope should commit atomically."""
 
         class TestModel(isolated_base):  # pylint: disable=redefined-outer-name
+            """SQLAlchemy model for testing multiple operations commit with an 'id' primary key and 'value' column."""
+
             __tablename__ = "test_nested"
             id = Column(Integer, primary_key=True)
             value = Column(String)

@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
@@ -30,9 +31,7 @@ class TestDependencyMatrix:
         return Path(".elastic-copilot/memory/dependencyMatrix.md")
 
     @pytest.fixture
-    @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
+    def dependency_matrix_content(self, dependency_matrix_path):
         """
         Load the dependency matrix markdown content from disk.
 
@@ -250,11 +249,10 @@ class TestDependencyMatrix:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content:  # Not just hashes
-                        assert content.startswith(" "), (
-                            f"Line {i + 1}: Heading should have space after #: {line}"
-                        )
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
 
@@ -311,7 +309,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
+        Assert that the system manifest's first line is the top-level title '  # System Manifest'.
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -355,12 +353,24 @@ class TestSystemManifest:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Test that systemManifest.md has Current Phase section."""
-        assert "## Current Phase" in system_manifest_content
-        pattern = r"- Current Phase: (.+)"
-        match = re.search(pattern, system_manifest_content)
+        """Ensure systemManifest.md defines a current phase section.
 
+        The manifest must contain a "## Current Phase" heading and a line of the
+        form "- Current Phase: <value>" with a non - empty value.
+
+        Parameters:
+            system_manifest_content(str): Full text of the systemManifest.md
+                file to inspect.
+        """
+        # Basic structural checks
+        assert "## Current Phase" in system_manifest_content
+        assert "- Current Phase:" in system_manifest_content
+
+        # Validate the line format and non-empty value
+        pattern = r"- Current Phase:\s+(.+)"
+        match = re.search(pattern, system_manifest_content)
         assert match is not None, "Current Phase not found"
+        assert match.group(1).strip(), "Current Phase value must not be empty"
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
         """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
@@ -396,7 +406,7 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """Verify that systemManifest.md contains the \"## Dependencies\" section."""
+        """Verify that systemManifest.md contains the "## Dependencies" section."""
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
@@ -512,11 +522,10 @@ class TestSystemManifest:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content and not content.startswith("#"):  # Not more hashes
-                        assert content.startswith(" "), (
-                            f"Line {i + 1}: Heading should have space after #: {line}"
-                        )
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestDocumentationConsistency:
     """Test cases for consistency between documentation files."""
 
@@ -675,6 +684,7 @@ class TestDocumentationConsistency:
                 )
 
 
+@pytest.mark.unit
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
 

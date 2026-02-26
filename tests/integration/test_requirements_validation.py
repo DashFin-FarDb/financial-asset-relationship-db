@@ -24,60 +24,89 @@ class TestRequirementsDevChanges:
         req_path = Path("requirements-dev.txt")
         return req_path.read_text(encoding="utf-8")
 
-    def test_pyyaml_added(self, requirements_dev_content: str) -> None:
-        """Verify that requirements-dev.txt includes a PyYAML package entry."""
-        assert "pyyaml" in requirements_dev_content.lower()
+    def test_pyyaml_added(self, requirements_dev_content):
+        """
+        Verify that requirements-dev.txt includes a PyYAML package entry.
 
     def test_pyyaml_has_version_specifier(self, requirements_dev_content: str) -> None:
         """
-        Ensure the active PyYAML requirement in requirements-dev.txt includes a version operator.
+        assert "pyyaml" in requirements_dev_content.lower()
 
         Checks the provided requirements file content for exactly one non-comment line mentioning
         PyYAML and verifies that that line contains one of the version operators:
         >=, ==, ~=, <=, >, or <.
         """
-        lines = requirements_dev_content.splitlines()
+        Ensure the active PyYAML requirement in requirements-dev.txt includes a version operator.
 
-        pyyaml_lines = [
-            line
-            for line in lines
-            if "pyyaml" in line.lower() and not line.lstrip().startswith("#")
-        ]
-        assert pyyaml_lines, (
-            "No active PyYAML requirement found in requirements-dev.txt"
-        )
-        assert len(pyyaml_lines) == 1, (
-            f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
+        Checks the provided requirements file content for exactly one non-comment line mentioning PyYAML and
+        verifies that that line contains one of the version operators: >=, ==, ~=, <=, >, or <.
+
+        Parameters:
+            requirements_dev_content(str): Full text content of requirements-dev.txt.
+        """
+        lines = requirements_dev_content.split("\n")
+        # Ignore commented lines so we don't pick up commented-out examples
+        pyyaml_line = next(
+            (l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")),
+            None,
         )
 
+        assert pyyaml_line is not None
+        from packaging.requirements import Requirement
+
+        def _safe_req_name(line: str) -> str | None:
+            """Return the normalised package name, or None for pip directives / malformed lines."""
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith("-"):
+                return None
+            try:
+                return Requirement(stripped.split("#")[0].strip()).name.lower()
+            except Exception:
+                return None
+
+        # Find all non-comment lines explicitly declaring PyYAML (ignore types-PyYAML)
+        pyyaml_lines = [l for l in lines if _safe_req_name(l) == "pyyaml"]
+        # Assert exactly one active PyYAML requirement exists
+        assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         pyyaml_line = pyyaml_lines[0]
+        # Strip inline comments and whitespace before checking version specifier
         pyyaml_line_no_comment = pyyaml_line.split("#", 1)[0].strip()
+        assert any(op in pyyaml_line_no_comment for op in [">=", "==", "~=", "<=", ">", "<"])
 
-        assert any(
-            op in pyyaml_line_no_comment for op in (">=", "==", "~=", "<=", ">", "<")
-        ), f"PyYAML line has no version operator: {pyyaml_line!r}"
-
-    def test_no_duplicate_packages(self, requirements_dev_content: str) -> None:
+    def test_no_duplicate_packages(self, requirements_dev_content):
         """
         Ensure requirements-dev.txt contains no duplicate package entries.
+
+        This test treats each non-empty, non-comment line as a package specification and compares
+        package names case-insensitively while ignoring common version specifiers, asserting
+        that no package appears more than once.
+
+        Parameters:
+            requirements_dev_content(str): Contents of requirements-dev.txt.
+        """
+        lines = [
+            l.strip()
+            for l in requirements_dev_content.split("\n")
+            if l.strip() and not l.strip().startswith("#") and not l.strip().startswith("-")
+        ]
+
+        # Split on any common version operator to reliably extract the package name
+        from packaging.requirements import Requirement
+
+        package_names = [Requirement(l).name.lower() for l in lines]
+
+        assert len(package_names) == len(set(package_names)), "Duplicate packages found in requirements-dev.txt"
 
         Treats each non-empty, non-comment line as a PEP 508 requirement and compares names
         case-insensitively.
         """
-        lines = [
-            line.strip()
-            for line in requirements_dev_content.splitlines()
-            if line.strip() and not line.lstrip().startswith("#")
-        ]
-        package_names = [Requirement(line).name.lower() for line in lines]
-        assert len(package_names) == len(set(package_names)), (
-            "Duplicate packages found in requirements-dev.txt"
-        )
+        Validate that each active (non-empty, non-comment) line in requirements-dev.txt has no
+        leading or trailing whitespace.
 
-    def test_requirements_format_valid(self, requirements_dev_content: str) -> None:
-        """
-        Validate that each active (non-empty, non-comment) line in requirements-dev.txt
-        has no leading or trailing whitespace.
+        Ignores blank lines and lines beginning with '#' when performing checks.
+
+        Parameters:
+            requirements_dev_content(str): Full text of requirements-dev.txt to validate.
         """
         for line_num, raw_line in enumerate(requirements_dev_content.splitlines(), 1):
             if not raw_line.strip() or raw_line.lstrip().startswith("#"):
@@ -98,6 +127,9 @@ class TestRequirementsDependencyCompatibility:
     def test_pyyaml_compatible_with_python_version() -> None:
         """
         Assert that if PyYAML is listed in requirements-dev.txt the current Python interpreter is at least 3.6.
+
+        Checks requirements-dev.txt case-insensitively and fails the test if PyYAML is present while
+        sys.version_info is less than (3, 6).
         """
         req_path = Path("requirements-dev.txt")
         if not req_path.exists():
@@ -134,11 +166,27 @@ class TestRequirementsDependencyCompatibility:
             if line.strip() and not line.lstrip().startswith("#")
         ]
 
-        req_packages = {Requirement(line).name.lower() for line in req_lines}
-        dev_packages = {Requirement(line).name.lower() for line in dev_lines}
+        def _extract_pkg_name(line: str) -> str | None:
+            """Return normalised package name from a requirement line, or None to skip."""
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith("-"):
+                return None
+            try:
+                from packaging.requirements import Requirement as _Req
 
-        overlap = req_packages & dev_packages
-        assert len(overlap) <= 2, f"Too many overlapping packages: {sorted(overlap)}"
+                return _Req(stripped.split("#")[0].strip()).name.lower()
+            except Exception:
+                return None
+
+        # Check for packages in both files
+        req_packages = {n for l in req_content.split("\n") if (n := _extract_pkg_name(l)) is not None}
+
+        req_dev_packages = {n for l in req_dev_content.split("\n") if (n := _extract_pkg_name(l)) is not None}
+
+        overlap = req_packages & req_dev_packages
+        # PyYAML might be in both, but versions should be compatible
+        # This is a basic check
+        assert len(overlap) <= 2, f"Too many overlapping packages: {overlap}"
 
 
 class TestRequirementsInstallability:
@@ -148,17 +196,21 @@ class TestRequirementsInstallability:
         not Path("requirements-dev.txt").exists(),
         reason="requirements-dev.txt not found",
     )
-    def test_requirements_dev_syntax_valid(self) -> None:
+    def test_requirements_dev_syntax_valid(self):
         """Verify requirements-dev.txt has valid pip syntax."""
+        # Use pip to check syntax without installing
         result = subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
             text=True,
             capture_output=True,
-            check=False,
+            text=True,
         )
-
+        # Check return code - pip should exit with 0 on success
+        # Allow benign warnings in stderr (e.g., "WARNING: pip is being invoked")
         assert result.returncode == 0, (
-            f"pip dry-run failed.\nstdout:\n{result.stdout}\n\nstderr:\n{result.stderr}"
+            f"pip install --dry-run failed with exit code {result.returncode}\n"
+            f"stderr: {result.stderr}\n"
+            f"stdout: {result.stdout}"
         )
 
 
@@ -166,27 +218,37 @@ class TestRequirementsDocumentation:
     """Documentation expectations for requirements-dev.txt."""
 
     @staticmethod
-    def test_requirements_has_helpful_comments() -> None:
-        """Ensure that requirements-dev.txt contains explanatory comment lines."""
-        req_dev_path = Path("requirements-dev.txt")
-        if not req_dev_path.exists():
-            pytest.skip("requirements-dev.txt not found")
+    def test_requirements_has_helpful_comments():
+        """
+        Verify that requirements - dev.txt contains at least one comment line.
 
-        lines = req_dev_path.read_text(encoding="utf-8").splitlines()
-        comment_lines = [line for line in lines if line.strip().startswith("#")]
-        assert comment_lines, "requirements-dev.txt should have explanatory comments"
+        Asserts the file has at least one line, which after trimming leading whitespace,
+        begins with "#", indicating an explanatory comment for the dependency list.
+        """
+        req_dev_path = Path("requirements-dev.txt")
+        with open(req_dev_path, "r") as f:
+            lines = f.readlines()
+
+        # Should have at least some comments explaining purpose
+        comment_lines = [l for l in lines if l.strip().startswith("#")]
+        assert len(comment_lines) >= 1, "requirements-dev.txt should have explanatory comments"
 
     @staticmethod
-    def test_pyyaml_purpose_documented() -> None:
-        """Verify that PyYAML entry in requirements-dev.txt has an explanatory comment nearby."""
+    def test_pyyaml_purpose_documented():
+        """
+        Verify PyYAML addition has comment explaining purpose.
+        """
         req_dev_path = Path("requirements-dev.txt")
-        if not req_dev_path.exists():
-            pytest.skip("requirements-dev.txt not found")
+        with open(req_dev_path, "r") as f:
+            content = f.read()
 
-        lines = req_dev_path.read_text(encoding="utf-8").splitlines()
+        # Check if there's a comment near PyYAML explaining its purpose
+        lines = content.split("\n")
         for i, line in enumerate(lines):
-            if "pyyaml" in line.lower() and not line.lstrip().startswith("#"):
-                context = "\n".join(lines[max(0, i - 3) : i + 1]).lower()
+            if "pyyaml" in line.lower():
+                # Check previous lines for comments
+                context = "\n".join(lines[max(0, i - 3) : i + 1])
+                # Should have some context about YAML parsing or workflows
                 assert any(
                     keyword in context
                     for keyword in ("yaml", "workflow", "config", "parse")

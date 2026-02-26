@@ -273,7 +273,7 @@ class TestRelationshipTraces:
     def test_create_2d_relationship_traces_with_relationships(self, populated_graph):
         """Test creating relationship traces with existing relationships."""
         # Add some relationships
-        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
+        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_link", 0.8)
 
         # Create positions
         positions = {
@@ -406,7 +406,7 @@ class TestEdgeCases:
     def test_relationship_traces_with_missing_assets_in_positions(self, populated_graph):
         """Test creating traces when some assets in relationships aren't in positions."""
         # Add relationship
-        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_bond_to_equity", 0.8)
+        populated_graph.add_relationship("TEST_AAPL", "TEST_BOND", "corporate_link", 0.8)
 
         # Create positions without TEST_BOND
         positions = {"TEST_AAPL": (0, 0)}

@@ -7,7 +7,7 @@ from typing import List
 from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .database import Base
+from .base import Base
 
 # ---------------------------------------------------------------------------
 # Foreign key target constants (avoid duplicated string literals – Sonar S1192)

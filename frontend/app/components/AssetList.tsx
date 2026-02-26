@@ -272,18 +272,11 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    const controller = new AbortController();
-
-    void fetchAssets(controller.signal).catch((err) => {
-      if (controller.signal.aborted) return;
-      if (err instanceof DOMException && err.name === "AbortError") return;
+    void fetchAssets().catch((err) => {
       setError(err instanceof Error ? err.message : "Failed to load assets");
       setLoading(false);
     });
-
-    return () => {
-      controller.abort();
-    };
+  }, [fetchAssets]);
 
   /**
    * Creates an event handler for changing a filter field.
