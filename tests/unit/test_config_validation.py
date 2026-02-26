@@ -474,12 +474,12 @@ class TestCircleCIConfig:
     def circleci_config(self):
         """
         Load and parse the repository's CircleCI configuration file.
-        
+
         Reads .circleci/config.yml and returns the parsed YAML structure (typically a dict).
-        
+
         Returns:
             circleci_config (dict): Parsed CircleCI configuration.
-        
+
         Raises:
             AssertionError: If .circleci/config.yml does not exist.
         """
@@ -532,7 +532,7 @@ class TestCircleCIConfig:
     def test_circleci_python_test_job(self, circleci_config):
         """
         Validate the CircleCI 'python-test' job configuration.
-        
+
         Asserts that a job named `python-test` exists in the CircleCI config, contains an `executor`
         and a `steps` list, and—if a `parallelism` value is provided—ensures it is an integer
         greater than 0 and no greater than 10.
@@ -580,10 +580,7 @@ class TestCircleCIConfig:
 
         # Should have setup_remote_docker step
         steps = docker_build["steps"]
-        assert any(
-            isinstance(step, dict) and "setup_remote_docker" in step
-            for step in steps
-        )
+        assert any(isinstance(step, dict) and "setup_remote_docker" in step for step in steps)
 
     def test_circleci_executors_defined(self, circleci_config):
         """Test that executors are properly defined."""
@@ -613,7 +610,7 @@ class TestCircleCIConfig:
     def test_circleci_cache_keys_consistent(self, circleci_config):
         """
         Ensure any job that saves a cache also restores at least one cache key.
-        
+
         Asserts that for each CircleCI job containing save_cache steps, there is at least one corresponding restore_cache key; raises an assertion error if a job saves cache without restoring.
         """
         jobs = circleci_config["jobs"]
@@ -720,7 +717,7 @@ class TestGitHubActionsCommon:
     def github_action_config(self):
         """
         Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
-        
+
         Returns:
             dict: Parsed YAML mapping of the action configuration.
         """
@@ -782,7 +779,7 @@ class TestGitHubActionsCommon:
     def test_github_action_setup_python_step(self, github_action_config):
         """
         Assert the composite action includes a "Setup Python" step that is conditional on the language input and invokes the setup-python action.
-        
+
         Parameters:
             github_action_config (dict): Parsed YAML configuration of the composite GitHub Action.
         """
@@ -855,10 +852,10 @@ class TestGitHubCopilotInstructions:
     def copilot_instructions(self):
         """
         Load and return the repository's GitHub Copilot instructions Markdown content.
-        
+
         Returns:
             str: The full contents of .github/copilot-instructions.md.
-        
+
         Raises:
             AssertionError: If the Copilot instructions file does not exist.
         """
@@ -876,7 +873,7 @@ class TestGitHubCopilotInstructions:
     def test_copilot_instructions_has_headers(self, copilot_instructions):
         """
         Verify the Copilot instructions Markdown contains a main header and essential sections.
-        
+
         Parameters:
             copilot_instructions (str): Contents of the .github/copilot-instructions.md file; checked case-insensitively for presence of a main header and the "Purpose" and "Quick start" sections.
         """
@@ -902,7 +899,7 @@ class TestGitHubCopilotInstructions:
     def test_copilot_instructions_mentions_dependencies(self, copilot_instructions):
         """
         Check that the Copilot instructions mention at least one core project dependency.
-        
+
         Parameters:
             copilot_instructions (str): Contents of the Copilot instructions file.
         """
@@ -934,7 +931,7 @@ class TestGitHubIssueTemplates:
     def custom_issue_template(self):
         """
         Load the repository's custom GitHub issue template.
-        
+
         Returns:
             str: The raw text content of .github/ISSUE_TEMPLATE/custom.md
         """
@@ -976,10 +973,10 @@ class TestCodacyInstructions:
     def codacy_instructions(self):
         """
         Load and return the Codacy instructions markdown content.
-        
+
         Returns:
             content (str): The full text of .github/instructions/codacy.instructions.md
-        
+
         Raises:
             AssertionError: If the Codacy instructions file does not exist.
         """
@@ -997,7 +994,7 @@ class TestCodacyInstructions:
     def test_codacy_instructions_has_yaml_frontmatter(self, codacy_instructions):
         """
         Ensure Codacy instructions include YAML frontmatter.
-        
+
         Asserts the document contains the YAML frontmatter delimiter `---` and begins with a frontmatter block.
         """
         assert "---" in codacy_instructions
@@ -1040,12 +1037,12 @@ class TestCircleCIEdgeCases:
     def circleci_config(self):
         """
         Load and parse the repository's CircleCI configuration file.
-        
+
         Reads .circleci/config.yml and returns the parsed YAML structure (typically a dict).
-        
+
         Returns:
             circleci_config (dict): Parsed CircleCI configuration.
-        
+
         Raises:
             AssertionError: If .circleci/config.yml does not exist.
         """
@@ -1061,13 +1058,14 @@ class TestCircleCIEdgeCases:
 
         for job_name, job_config in jobs.items():
             # Every job should have steps or executor
-            assert "steps" in job_config or "executor" in job_config or "docker" in job_config, \
-                f"Job {job_name} is missing steps or executor configuration"
+            assert (
+                "steps" in job_config or "executor" in job_config or "docker" in job_config
+            ), f"Job {job_name} is missing steps or executor configuration"
 
     def test_circleci_checkout_in_jobs(self, circleci_config):
         """
         Ensure each CircleCI job that defines `steps` includes a `checkout` step or a remote-docker setup.
-        
+
         Asserts that for every job in the provided CircleCI config that contains a `steps` list, at least one step is the literal `checkout` or a mapping that includes `checkout`, or that the steps mention `setup_remote_docker`. The `docker-build` job is treated as an expected exception and is not required to include `checkout`.
         """
         jobs = circleci_config["jobs"]
@@ -1077,14 +1075,14 @@ class TestCircleCIEdgeCases:
                 steps = job_config["steps"]
                 # Check for checkout step (critical for getting code)
                 has_checkout = any(
-                    step == "checkout" or (isinstance(step, dict) and "checkout" in step)
-                    for step in steps
+                    step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps
                 )
                 # Some jobs like docker-build might not need checkout if they use special setup
                 # But most jobs should have it
                 if job_name not in ["docker-build"]:  # Exclude known exceptions
-                    assert has_checkout or "setup_remote_docker" in str(steps), \
-                        f"Job {job_name} should include checkout step"
+                    assert has_checkout or "setup_remote_docker" in str(
+                        steps
+                    ), f"Job {job_name} should include checkout step"
 
     def test_circleci_reasonable_parallelism(self, circleci_config):
         """Test that parallelism values are reasonable."""
@@ -1093,8 +1091,7 @@ class TestCircleCIEdgeCases:
         for job_name, job_config in jobs.items():
             if "parallelism" in job_config:
                 parallelism = job_config["parallelism"]
-                assert 1 <= parallelism <= 20, \
-                    f"Job {job_name} has unreasonable parallelism: {parallelism}"
+                assert 1 <= parallelism <= 20, f"Job {job_name} has unreasonable parallelism: {parallelism}"
 
     def test_circleci_resource_class_specified(self, circleci_config):
         """Test that executors specify resource class for cost optimization."""
@@ -1107,16 +1104,17 @@ class TestCircleCIEdgeCases:
                     resource_class = executor_config["resource_class"]
                     # Should be valid CircleCI resource class
                     valid_classes = ["small", "medium", "medium+", "large", "xlarge", "2xlarge"]
-                    assert resource_class in valid_classes, \
-                        f"Executor {executor_name} has invalid resource class: {resource_class}"
+                    assert (
+                        resource_class in valid_classes
+                    ), f"Executor {executor_name} has invalid resource class: {resource_class}"
 
     def test_circleci_docker_images_pinned(self, circleci_config):
         """
         Ensure CircleCI executor Docker images include explicit version tags and do not use the 'latest' tag.
-        
+
         Parameters:
             circleci_config (dict): Parsed .circleci/config.yml as a dictionary.
-        
+
         Raises:
             AssertionError: If an executor's docker image has no tag or uses the `:latest` tag.
         """
@@ -1129,11 +1127,11 @@ class TestCircleCIEdgeCases:
                     if "image" in image_config:
                         image = image_config["image"]
                         # Should include version tag, not just :latest or no tag
-                        assert ":" in image, \
-                            f"Docker image in {executor_name} should specify version: {image}"
+                        assert ":" in image, f"Docker image in {executor_name} should specify version: {image}"
                         # Check it's not using :latest (bad practice)
-                        assert not image.endswith(":latest"), \
-                            f"Docker image in {executor_name} should not use :latest tag"
+                        assert not image.endswith(
+                            ":latest"
+                        ), f"Docker image in {executor_name} should not use :latest tag"
 
 
 class TestGitHubActionsEdgeCases:
@@ -1143,7 +1141,7 @@ class TestGitHubActionsEdgeCases:
     def github_action_config(self):
         """
         Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
-        
+
         Returns:
             dict: Parsed YAML mapping of the action configuration.
         """
@@ -1166,8 +1164,7 @@ class TestGitHubActionsEdgeCases:
             conditional_inputs = ["python-version", "node-version"]
 
             if not is_required and input_name not in conditional_inputs:
-                assert has_default, \
-                    f"Optional input {input_name} should have a default value"
+                assert has_default, f"Optional input {input_name} should have a default value"
 
     def test_github_action_error_handling_in_steps(self, github_action_config):
         """Test that run steps use proper error handling."""
@@ -1178,8 +1175,9 @@ class TestGitHubActionsEdgeCases:
                 run_command = step["run"]
                 # Check for set -e or pipefail for proper error propagation
                 if "eval" in run_command or len(run_command.split("\n")) > 1:
-                    assert "set -" in run_command or "pipefail" in run_command, \
-                        f"Multi-line step {step.get('name', 'unnamed')} should use set -e or pipefail"
+                    assert (
+                        "set -" in run_command or "pipefail" in run_command
+                    ), f"Multi-line step {step.get('name', 'unnamed')} should use set -e or pipefail"
 
     def test_github_action_no_hardcoded_values(self, github_action_config):
         """Test that steps use inputs rather than hardcoded values."""
@@ -1192,8 +1190,7 @@ class TestGitHubActionsEdgeCases:
                 if "python-version" in with_values:
                     python_version = with_values["python-version"]
                     # Should reference input
-                    assert "inputs." in python_version, \
-                        "Python version should reference input parameter"
+                    assert "inputs." in python_version, "Python version should reference input parameter"
 
 
 class TestDocumentationEdgeCases:
@@ -1203,10 +1200,10 @@ class TestDocumentationEdgeCases:
     def copilot_instructions(self):
         """
         Load and return the repository's GitHub Copilot instructions Markdown content.
-        
+
         Returns:
             str: The full contents of .github/copilot-instructions.md.
-        
+
         Raises:
             AssertionError: If the Copilot instructions file does not exist.
         """
@@ -1220,7 +1217,8 @@ class TestDocumentationEdgeCases:
         """Test that documentation doesn't have obviously broken markdown links."""
         # Find markdown links [text](url)
         import re
-        links = re.findall(r'\[([^\]]+)\]\(([^\)]+)\)', copilot_instructions)
+
+        links = re.findall(r"\[([^\]]+)\]\(([^\)]+)\)", copilot_instructions)
 
         for link_text, link_url in links:
             # Check for common mistakes
@@ -1230,15 +1228,15 @@ class TestDocumentationEdgeCases:
     def test_copilot_instructions_command_syntax(self, copilot_instructions):
         """
         Validate that lines containing Python commands in Copilot instructions are formatted as code, inline code, indented code block, or appropriate prose.
-        
+
         This test scans the provided Copilot instructions text for occurrences of the word "python". If fenced code blocks are present, they are tracked; for each line containing "python" the function allows the line if it is:
         - inside a fenced code block,
         - contains inline code backticks,
         - is an indented code line (starts with indentation),
         - or appears in prose containing specific Python-related phrases (e.g., "Python environment", "@dataclass").
-        
+
         If a line looks like a shell command (stripped line starts with "python") and none of the allowed formats apply, the test fails with an assertion indicating the offending line.
-        
+
         Parameters:
             copilot_instructions (str): Full text content of the Copilot instructions file to validate.
         """
@@ -1259,10 +1257,17 @@ class TestDocumentationEdgeCases:
                     is_in_code_block = in_code_block
                     is_inline_code = "`" in line
                     is_indented = line.strip() != line and line.startswith("    ")
-                    is_prose = any(phrase in line for phrase in [
-                        "Python environment", "Python-only", "dataclass", "@dataclass",
-                        "Python dependencies", "Python imports"
-                    ])
+                    is_prose = any(
+                        phrase in line
+                        for phrase in [
+                            "Python environment",
+                            "Python-only",
+                            "dataclass",
+                            "@dataclass",
+                            "Python dependencies",
+                            "Python imports",
+                        ]
+                    )
 
                     # Allow any of these valid formats
                     if not (is_in_code_block or is_inline_code or is_indented or is_prose):
@@ -1275,8 +1280,7 @@ class TestDocumentationEdgeCases:
         """Test that documentation is comprehensive but not too long."""
         line_count = len(copilot_instructions.split("\n"))
         # Should be substantial but not overwhelming
-        assert 20 <= line_count <= 500, \
-            f"Documentation should be reasonable length (20-500 lines), got {line_count}"
+        assert 20 <= line_count <= 500, f"Documentation should be reasonable length (20-500 lines), got {line_count}"
 
     def test_codacy_instructions_example_formatting(self):
         """Test that Codacy instructions have properly formatted examples."""
@@ -1287,5 +1291,4 @@ class TestDocumentationEdgeCases:
         # If there are examples, they should be clearly marked
         if "example" in content.lower() or "EXAMPLE" in content:
             # Examples should be in a clear section or code block
-            assert "##" in content or "```" in content or "-" in content, \
-                "Examples should be clearly formatted"
+            assert "##" in content or "```" in content or "-" in content, "Examples should be clearly formatted"
