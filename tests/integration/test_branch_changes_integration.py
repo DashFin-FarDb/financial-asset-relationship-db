@@ -269,9 +269,9 @@ class TestDocumentationConsistency:
             # Should mention the deletions (soft requirement)
             # At least one deletion should be documented
             # (This is a documentation quality check, not strict requirement)
-            assert (
-                "deleted" in content or "removed" in content
-            ), "CHANGELOG.md should mention deletions when files or features are removed"
+            assert "deleted" in content or "removed" in content, (
+                "CHANGELOG.md should mention deletions when files or features are removed"
+            )
 
     @staticmethod
     def test_no_broken_internal_links():
@@ -403,9 +403,9 @@ class TestGitHubActionsEcosystem:
 
         # This is a soft requirement (not all workflows need docs)
         # but at least one should be documented for discoverability
-        assert len(undocumented) < len(
-            workflows
-        ), "At least one workflow should be referenced in the documentation"
+        assert len(undocumented) < len(workflows), (
+            "At least one workflow should be referenced in the documentation"
+        )
 
         # This is a soft requirement (not all workflows need docs)
         # but it's good practice
