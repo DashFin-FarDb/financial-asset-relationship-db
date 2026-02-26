@@ -78,6 +78,12 @@ object AnalyseCommand {
     val httpClient: HttpRequest => Future[HttpResponse] =
       Http(actorSystem).singleRequest(_)
 
+    // Ensure the ActorSystem is terminated when the JVM shuts down to avoid leaking resources.
+    scala.sys.addShutdownHook {
+      actorSystem.terminate()
+      ()
+    }
+
     val toolsClient =
       ToolsClient(codacyApiUrl)(httpClient = httpClient, ec = actorSystem.dispatcher, mat = materializer)
     val toolsDataStorage = FileDataStorage[ToolSpec]("tools")
@@ -89,6 +95,7 @@ object AnalyseCommand {
       duplicationToolsDataStorage,
       metricsToolsDataStorage,
       FileDataStorage(_))(ec = actorSystem.dispatcher, mat = materializer)
+  }
   }
 }
 
