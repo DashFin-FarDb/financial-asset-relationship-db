@@ -23,6 +23,8 @@ jobs:
     # "frogbot" GitHub environment can approve the pull request to be scanned.
     # Read more here (Install Frogbot Using GitHub Actions): https://docs.jfrog-applications.jfrog.io/jfrog-applications/frogbot/setup-frogbot/setup-frogbot-using-github-actions
     environment: frogbot
+    # Only run if JF_URL secret is configured
+    if: secrets.JF_URL != ''
     steps:
       - uses: actions/checkout@v4
         with:

@@ -1,133 +1,206 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import dynamic from 'next/dynamic';
-import type { VisualizationData } from '../types/api';
+import React, { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import type { VisualizationData } from "../types/api";
 
 // Dynamically import Plotly to avoid SSR issues
-const Plot = dynamic(() => import('react-plotly.js'), { 
+const Plot = dynamic(() => import("react-plotly.js"), {
   ssr: false,
-  loading: () => <div className="text-center p-8">Loading visualization...</div>
+  loading: () => (
+    <div className="text-center p-8">Loading visualization...</div>
+  ),
 });
 
 interface NetworkVisualizationProps {
   data: VisualizationData;
 }
 
+type EdgeTrace = {
+  type: "scatter3d";
+  mode: "lines";
+  x: number[];
+  y: number[];
+  z: number[];
+  line: {
+    color: string;
+    width: number;
+  };
+  hoverinfo: "none";
+  showlegend: false;
+};
+
+type NodeTrace = {
+  type: "scatter3d";
+  mode: "markers" | "text" | "lines" | "markers+text";
+  x: number[];
+  y: number[];
+  z: number[];
+  text: string[];
+  hovertext: string[];
+  hoverinfo: "text";
+  marker: {
+    size: number[];
+    color: string[];
+    line: {
+      color: string;
+      width: number;
+    };
+  };
+  textposition: string;
+  textfont: {
+    size: number;
+  };
+};
+
+const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
+const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
+
+import type { Data } from "plotly.js";
+
 /**
- * Renders a 3D asset relationship network using the provided visualization data.
+ * Display an interactive 3D network of assets from the provided visualization payload.
  *
- * The component builds Plotly traces for nodes (scatter3d markers with labels) and edges (3D lines)
- * and displays a loading message while traces are being constructed or data is missing.
+ * It validates incoming data against size limits and prepares Plotly traces for nodes and edges.
  *
  * @param data - Visualization payload containing `nodes` and `edges`.
- *   - `nodes`: Array of node objects, each with properties:
- *       - `id`: string
- *       - `x`, `y`, `z`: number (3D coordinates)
- *       - `symbol`: string
- *       - `name`: string
- *       - `asset_class`: string
- *       - `size`: number
- *       - `color`: string
- *   - `edges`: Array of edge objects, each with properties:
- *       - `source`: string (node id)
- *       - `target`: string (node id)
- *       - `strength`: number
- * @returns A JSX element that renders the interactive 3D network plot (or a loading placeholder when data is unavailable).
+ *   Nodes are objects with at least: `id`, `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, `color`.
+ *   Edges are objects with at least: `source`, `target`, `relationship_type`, `strength`.
+ * @returns A JSX element rendering the 3D network plot when data is valid, or a centred status message when data is missing, invalid or too large.
  */
-export default function NetworkVisualization({ data }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<any[]>([]);
+export default function NetworkVisualization({
+  data,
+}: NetworkVisualizationProps) {
+  const [plotData, setPlotData] = useState<Data[]>([]);
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "empty" | "tooLarge"
+  >("loading");
+  const [message, setMessage] = useState("Loading visualization...");
 
   useEffect(() => {
-    if (!data || !data.nodes || !data.edges) return;
+    if (!data) {
+      setPlotData([]);
+      setStatus("empty");
+      setMessage("No visualization data available.");
+      return;
+    }
+
+    const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+    const edges = Array.isArray(data.edges) ? data.edges : [];
+
+    if (nodes.length === 0) {
+      setPlotData([]);
+      setStatus("empty");
+      setMessage("Visualization data is missing nodes.");
+      return;
+    }
+
+    if (nodes.length > MAX_NODES || edges.length > MAX_EDGES) {
+      setPlotData([]);
+      setStatus("tooLarge");
+      setMessage(
+        `Visualization is unavailable because the dataset is too large (${nodes.length} nodes, ${edges.length} edges). Maximum: ${MAX_NODES} nodes, ${MAX_EDGES} edges.`,
+      );
+      return;
+    }
 
     // Create node trace
-    const nodeTrace = {
-      type: 'scatter3d',
-      mode: 'markers+text',
-      x: data.nodes.map(n => n.x),
-      y: data.nodes.map(n => n.y),
-      z: data.nodes.map(n => n.z),
-      text: data.nodes.map(n => n.symbol),
-      hovertext: data.nodes.map(n => `${n.name} (${n.symbol})<br>Class: ${n.asset_class}`),
-      hoverinfo: 'text',
+    const nodeTrace: NodeTrace = {
+      type: "scatter3d",
+      mode: "markers+text",
+      x: nodes.map((n) => n.x),
+      y: nodes.map((n) => n.y),
+      z: nodes.map((n) => n.z),
+      text: nodes.map((n) => n.symbol),
+      hovertext: nodes.map(
+        (n) => `${n.name} (${n.symbol})<br>Class: ${n.asset_class}`,
+      ),
+      hoverinfo: "text",
       marker: {
-        size: data.nodes.map(n => n.size),
-        color: data.nodes.map(n => n.color),
+        size: nodes.map((n) => n.size),
+        color: nodes.map((n) => n.color),
         line: {
-          color: 'white',
-          width: 0.5
-        }
+          color: "white",
+          width: 0.5,
+        },
       },
-      textposition: 'top center',
+      textposition: "top center",
       textfont: {
         size: 8,
-      }
+      },
     };
 
     // Create node lookup map for O(1) access
-    const nodeMap = new Map(data.nodes.map(node => [node.id, node]));
+    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
 
     // Create edge traces with type predicate to filter nulls
-    const edgeTraces = data.edges
-      .map(edge => {
-        const sourceNode = nodeMap.get(edge.source);
-        const targetNode = nodeMap.get(edge.target);
-        
-        // Validate that both nodes exist before accessing their properties
-        if (!sourceNode || !targetNode) return null;
-        // Validate that both nodes exist before accessing their properties
-        if (!sourceNode || !targetNode) return null;
+    const edgeTraces = edges.reduce<EdgeTrace[]>((acc, edge) => {
+      const sourceNode = nodeMap.get(edge.source);
+      const targetNode = nodeMap.get(edge.target);
 
-        return {
-          type: 'scatter3d' as const,
-          mode: 'lines' as const,
-          x: [sourceNode.x, targetNode.x],
-          y: [sourceNode.y, targetNode.y],
-          z: [sourceNode.z, targetNode.z],
-          line: {
-            color: `rgba(125, 125, 125, ${edge.strength})`,
-            width: edge.strength * 3
-          },
-          hoverinfo: 'none' as const,
-          showlegend: false
-        };
-      })
-      .filter((trace): trace is NonNullable<typeof trace> => trace !== null);
+      if (!sourceNode || !targetNode) {
+        return acc;
+      }
 
-    setPlotData([...edgeTraces, nodeTrace]);
+      acc.push({
+        type: "scatter3d",
+        mode: "lines",
+        x: [sourceNode.x, targetNode.x],
+        y: [sourceNode.y, targetNode.y],
+        z: [sourceNode.z, targetNode.z],
+        line: {
+          color: `rgba(125, 125, 125, ${edge.strength})`,
+          width: edge.strength * 3,
+        },
+        hoverinfo: "none",
+        showlegend: false,
+      });
+
+      return acc;
+    }, []);
+
+    setPlotData([...edgeTraces, nodeTrace] as Data[]);
+    setStatus("ready");
+    setMessage("");
   }, [data]);
 
-  if (!plotData || plotData.length === 0) {
-    return <div className="text-center p-8">Loading visualization...</div>;
+  if (status !== "ready") {
+    return (
+      <div
+        className="text-center p-8 text-gray-600"
+        role={status === "tooLarge" ? "alert" : "status"}
+      >
+        {message}
+      </div>
+    );
   }
 
   return (
     <div className="w-full h-[800px]">
       <Plot
-        data={plotData}
+        data={plotData as any}
         layout={{
-          title: '3D Asset Relationship Network',
+          title: "3D Asset Relationship Network",
           showlegend: false,
           scene: {
             xaxis: { showgrid: false, zeroline: false, showticklabels: false },
             yaxis: { showgrid: false, zeroline: false, showticklabels: false },
             zaxis: { showgrid: false, zeroline: false, showticklabels: false },
             camera: {
-              eye: { x: 1.5, y: 1.5, z: 1.5 }
-            }
+              eye: { x: 1.5, y: 1.5, z: 1.5 },
+            },
           },
-          hovermode: 'closest',
+          hovermode: "closest",
           margin: { l: 0, r: 0, b: 0, t: 40 },
-          paper_bgcolor: 'rgba(0,0,0,0)',
-          plot_bgcolor: 'rgba(0,0,0,0)'
+          paper_bgcolor: "rgba(0,0,0,0)",
+          plot_bgcolor: "rgba(0,0,0,0)",
         }}
         config={{
           displayModeBar: true,
           displaylogo: false,
-          responsive: true
+          responsive: true,
         }}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: "100%", height: "100%" }}
       />
     </div>
   );

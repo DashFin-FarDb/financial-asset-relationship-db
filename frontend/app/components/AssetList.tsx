@@ -1,137 +1,461 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState, useCallback } from 'react';
-import { api } from '../lib/api';
-import type { Asset } from '../types/api';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+
+import type { Asset } from "../types/api";
+import {
+  buildQuerySummary,
+  loadAssets,
+  loadMetadata,
+  parsePositiveInteger,
+} from "../lib/assetHelpers";
+
+const DEFAULT_PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+
+type AssetFilter = {
+  asset_class: string;
+  sector: string;
+};
+
+type SelectFilterProps = {
+  id: string;
+  label: string;
+  options: string[];
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  placeholder: string;
+};
 
 /**
- * Renders an asset list UI with filter controls and data fetching.
+ * Renders a select filter input with a label and list of options.
+ * @param {string} id - The id attribute for the select element.
+ * @param {string} label - The text label for the select input.
+ * @param {string[]} options - Array of options to display in the dropdown.
+ * @param {string} value - The current selected value.
+ * @param {(e: React.ChangeEvent<HTMLSelectElement>) => void} onChange - Handler for change events.
+ * @param {string} placeholder - Placeholder text for the default empty option.
+ * @returns {JSX.Element} The SelectFilter component.
+ */
+const SelectFilter = ({
+  id,
+  label,
+  options,
+  value,
+  onChange,
+  placeholder,
+}: SelectFilterProps) => (
+  <div>
+    <label
+      htmlFor={id}
+      className="block text-sm font-medium text-gray-700 mb-2"
+    >
+      {label}
+    </label>
+    <select
+      id={id}
+      value={value}
+      onChange={onChange}
+      className="w-full border border-gray-300 rounded-md px-3 py-2"
+    >
+      <option value="">{placeholder}</option>
+      {options.map((opt) => (
+        <option key={opt} value={opt}>
+          {opt}
+        </option>
+      ))}
+    </select>
+  </div>
+);
+
+interface AssetListStatusProps {
+  loading: boolean;
+  error: string | null;
+  querySummary?: string;
+}
+
+const MAX_QUERY_SUMMARY_LENGTH = 80;
+const MAX_ERROR_MESSAGE_LENGTH = 160;
+
+// Extracted component to handle loading and error display
+const AssetListStatus = ({
+  loading,
+  error,
+  querySummary = "",
+}: AssetListStatusProps) => {
+  const hasError = error !== null;
+
+  if (!loading && !hasError) {
+    return null;
+  }
+
+  const trimmedQuerySummary = querySummary.trim();
+
+  let displayQuerySummary = trimmedQuerySummary;
+
+  if (trimmedQuerySummary.length > MAX_QUERY_SUMMARY_LENGTH) {
+    const chars = Array.from(trimmedQuerySummary);
+    displayQuerySummary = `${chars.slice(0, MAX_QUERY_SUMMARY_LENGTH - 1).join("")}…`;
+  }
+
+  const loadingMessage = displayQuerySummary.length
+    ? `Loading results for ${displayQuerySummary}...`
+    : "Loading results...";
+
+  const getDisplayError = (rawError: string | null): string => {
+    if (!rawError) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    // Normalize whitespace to avoid layout issues
+    const sanitized = rawError.replace(/\s+/g, " ").trim();
+
+    if (!sanitized) {
+      return "An unexpected error occurred while loading results.";
+    }
+
+    if (sanitized.length > MAX_ERROR_MESSAGE_LENGTH) {
+      return `${sanitized.slice(0, MAX_ERROR_MESSAGE_LENGTH - 1)}…`;
+    }
+
+    return sanitized;
+  };
+
+  const errorMessage = hasError ? getDisplayError(error) : "";
+
+  return (
+    <div
+      role={hasError ? "alert" : "status"}
+      aria-live={hasError ? "assertive" : "polite"}
+      className={`px-6 py-3 text-sm ${
+        hasError ? "text-red-500" : "text-gray-500"
+      }`}
+    >
+      {hasError ? `Error: ${errorMessage}` : loadingMessage}
+    </div>
+  );
+};
+
+// AssetTable wrapper to handle overflow and reduce nesting depth.
+
+/**
+ * Component to handle table container and reduce nesting depth.
+ * @param {React.ReactNode} children - Table content to render.
+ * @returns {JSX.Element} The table wrapper with overflow handling.
+ */
+type AssetTableProps = {
+  children: React.ReactElement;
+  className?: string;
+};
+
+const AssetTable = ({ children, className }: AssetTableProps) => {
+  if (
+    process.env.NODE_ENV !== "production" &&
+    React.isValidElement(children) &&
+    typeof children.type === "string" &&
+    children.type !== "table"
+  ) {
+    console.warn("AssetTable expects a <table> as its direct child.");
+  }
+
+  return (
+    <div className={["overflow-x-auto", className].filter(Boolean).join(" ")}>
+      {children}
+    </div>
+  );
+};
+
+/**
+ * Fetches and displays a list of assets with filtering and pagination.
  *
- * Loads asset classes and sectors on mount and reloads the asset list whenever the selected
- * asset class or sector changes. Displays loading and empty states and, when available,
- * a table of assets showing symbol, name, class, sector, price, and market capitalization.
+ * The AssetList component manages the state for assets, loading status, error handling, and pagination. It utilizes hooks to fetch asset metadata and assets based on the current filter and pagination settings. The component also updates the URL query parameters to reflect the current filter and pagination state, ensuring a seamless user experience.
  *
- * @returns The rendered JSX element for the asset list component.
+ * @returns {JSX.Element} The AssetList component.
  */
 export default function AssetList() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [assets, setAssets] = useState<Asset[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState({ asset_class: '', sector: '' });
+  const [error, setError] = useState<string | null>(null);
+
+  const [filter, setFilter] = useState<AssetFilter>({
+    asset_class: "",
+    sector: "",
+  });
   const [assetClasses, setAssetClasses] = useState<string[]>([]);
   const [sectors, setSectors] = useState<string[]>([]);
 
-  const loadMetadata = async () => {
-    try {
-      const [classesData, sectorsData] = await Promise.all([
-        api.getAssetClasses(),
-        api.getSectors()
-      ]);
-      setAssetClasses(classesData.asset_classes);
-      setSectors(sectorsData.sectors);
-    } catch (error) {
-      console.error('Error loading metadata:', error);
-    }
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [total, setTotal] = useState<number | null>(null);
+
+  const totalPages = useMemo(() => {
+    if (!total || total <= 0) return null;
+    return Math.max(1, Math.ceil(total / pageSize));
+  }, [pageSize, total]);
+
+  const querySummary = useMemo(
+    () => buildQuerySummary(page, pageSize, filter),
+    [buildQuerySummary, filter, page, pageSize],
+  );
+
+  const updateQueryParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      if (!pathname) return;
+
+      const params = new URLSearchParams(searchParams.toString());
+
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value === null || value === "") {
+          params.delete(key);
+        } else {
+          params.set(key, value);
+        }
+      });
+
+      const queryString = params.toString();
+      if (queryString !== searchParams.toString()) {
+        router.replace(`${pathname}${queryString ? `?${queryString}` : ""}`, {
+          scroll: false,
+        });
+      }
+    },
+    [pathname, router, searchParams],
+  );
+
+  const fetchMetadata = useCallback(() => {
+    loadMetadata(setAssetClasses, setSectors);
+  }, [loadMetadata, setAssetClasses, setSectors]);
+
+  useEffect(() => {
+    fetchMetadata();
+  }, [fetchMetadata]);
+
+  useEffect(() => {
+    const nextFilter: AssetFilter = {
+      asset_class: searchParams.get("asset_class") ?? "",
+      sector: searchParams.get("sector") ?? "",
+    };
+
+    const nextPage = parsePositiveInteger(searchParams.get("page"), 1);
+    const nextPageSize = parsePositiveInteger(
+      searchParams.get("per_page"),
+      DEFAULT_PAGE_SIZE,
+    );
+
+    setFilter((prev) =>
+      prev.asset_class === nextFilter.asset_class &&
+      prev.sector === nextFilter.sector
+        ? prev
+        : nextFilter,
+    );
+
+    setPage((prev) => (prev === nextPage ? prev : nextPage));
+    setPageSize((prev) => (prev === nextPageSize ? prev : nextPageSize));
+  }, [parsePositiveInteger, searchParams]);
+
+  const fetchAssets = useCallback(async () => {
+    setLoading(true);
+    await loadAssets(
+      page,
+      pageSize,
+      filter,
+      setAssets,
+      setTotal,
+      setError,
+      querySummary,
+    );
+  }, [filter, loadAssets, page, pageSize, querySummary]);
+
+  useEffect(() => {
+    void fetchAssets().catch((err) => {
+      setError(err instanceof Error ? err.message : "Failed to load assets");
+      setLoading(false);
+    });
+  }, [fetchAssets]);
+
+  /**
+   * Creates an event handler for changing a filter field.
+   * @param {keyof AssetFilter} field - The filter field to update.
+   * @returns {(e: React.ChangeEvent<HTMLSelectElement>) => void} Event handler for the change event.
+   */
+  const handleFilterChange =
+    (field: keyof AssetFilter) => (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const value = e.target.value;
+
+      setFilter((prev) => ({ ...prev, [field]: value }));
+      setPage(1);
+      updateQueryParams({ [field]: value || null, page: "1" });
+    };
+
+  /**
+   * Handles page size selection changes.
+   * @param {React.ChangeEvent<HTMLSelectElement>} e - The change event with the new page size.
+   * @returns {void}
+   */
+  const handlePageSizeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextSize = parsePositiveInteger(e.target.value, DEFAULT_PAGE_SIZE);
+
+    setPageSize(nextSize);
+    setPage(1);
+    updateQueryParams({ per_page: String(nextSize), page: "1" });
   };
 
-  const loadAssets = useCallback(async () => {
-    setLoading(true);
-    try {
-      const params: { asset_class?: string; sector?: string } = {};
-      if (filter.asset_class) params.asset_class = filter.asset_class;
-      if (filter.sector) params.sector = filter.sector;
-      
-      const data = await api.getAssets(params);
-      setAssets(data);
-    } catch (error) {
-      console.error('Error loading assets:', error);
-    } finally {
-      setLoading(false);
+  const goToPage = useCallback(
+    (requestedPage: number) => {
+      const boundedPage =
+        totalPages !== null
+          ? Math.min(Math.max(1, requestedPage), totalPages)
+          : Math.max(1, requestedPage);
+
+      if (boundedPage === page) return;
+
+      setPage(boundedPage);
+      updateQueryParams({ page: String(boundedPage) });
+    },
+    [page, totalPages, updateQueryParams],
+  );
+
+  const canGoPrev = page > 1 && !loading;
+  const canGoNext = totalPages !== null && page < totalPages && !loading;
+
+  const handlePrevClick = useCallback(() => {
+    goToPage(page - 1);
+  }, [goToPage, page]);
+
+  const handleNextClick = useCallback(() => {
+    goToPage(page + 1);
+  }, [goToPage, page]);
+
+  /**
+   * Renders an option element for the page size selector.
+   * @param {number} size - The page size to render as an option.
+   * @returns {JSX.Element} The rendered option element.
+   */
+  const renderPageSizeOption = (size: number) => (
+    <option key={size} value={size}>
+      {size}
+    </option>
+  );
+
+  type AssetListStatusProps = {
+    loading: boolean;
+    error: string | null;
+    querySummary?: string;
+  };
+
+  // Extracted component to handle loading and error display
+  /**
+   * Renders the status of an asset list based on loading and error states.
+   *
+   * The component checks if the loading state is false and there is no error; if so, it returns null.
+   * If loading is true, it displays a loading message, otherwise, it shows an error message with the provided error string.
+   * The text color changes based on the loading state, indicating the current status visually.
+   *
+   * @param {Object} params - The parameters for the component.
+   * @param {boolean} params.loading - Indicates if the asset list is currently loading.
+   * @param {string | null} params.error - The error message to display if loading is complete and an error occurred.
+   */
+  const AssetListStatus = ({
+    loading,
+    error,
+  }: {
+    loading: boolean;
+    error: string | null;
+  }) => {
+    if (!loading && !error) {
+      return null;
     }
-  }, [filter]);
+    return (
+      <div
+        className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}
+      >
+        {loading ? "Loading..." : `Error: ${error}`}
+      </div>
+    );
+  };
 
-  useEffect(() => {
-    loadMetadata();
-  }, []);
-
-  useEffect(() => {
-    loadAssets();
-  }, [loadAssets]);
+  // Extracted component to handle table container and reduce nesting depth
+  const AssetTable = ({ children }: { children: React.ReactNode }) => {
+    return <div className="overflow-x-auto">{children}</div>;
+  };
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-lg font-semibold mb-4">Filters</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Asset Class
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={filter.asset_class}
-              onChange={(e) => setFilter({ ...filter, asset_class: e.target.value })}
-            >
-              <option value="">All Classes</option>
-              {assetClasses.map((ac) => (
-                <option key={ac} value={ac}>{ac}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Sector
-            </label>
-            <select
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              value={filter.sector}
-              onChange={(e) => setFilter({ ...filter, sector: e.target.value })}
-            >
-              <option value="">All Sectors</option>
-              {sectors.map((sector) => (
-                <option key={sector} value={sector}>{sector}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+      <div className="bg-white rounded-lg shadow-md p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <SelectFilter
+          id="asset-class-filter"
+          label="Asset Class"
+          options={assetClasses}
+          value={filter.asset_class}
+          onChange={handleFilterChange("asset_class")}
+          placeholder="All Classes"
+        />
+        <SelectFilter
+          id="sector-filter"
+          label="Sector"
+          options={sectors}
+          value={filter.sector}
+          onChange={handleFilterChange("sector")}
+          placeholder="All Sectors"
+        />
       </div>
 
       {/* Asset List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
+        <AssetListStatus loading={loading} error={error} />
+
+        <AssetTable>
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Symbol
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Class
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Sector
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Price
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Market Cap
-                </th>
+                {[
+                  "Symbol",
+                  "Name",
+                  "Class",
+                  "Sector",
+                  "Price",
+                  "Market Cap",
+                ].map((col) => (
+                  <th
+                    key={col}
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
+                    {col}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     Loading...
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-red-600"
+                  >
+                    {error}
                   </td>
                 </tr>
               ) : assets.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-gray-500"
+                  >
                     No assets found
                   </td>
                 </tr>
@@ -154,13 +478,63 @@ export default function AssetList() {
                       {asset.currency} {asset.price.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.market_cap ? `$${(asset.market_cap / 1e9).toFixed(2)}B` : 'N/A'}
+                      {typeof asset.market_cap === "number"
+                        ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
+                        : "N/A"}
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+        </AssetTable>
+
+        {/* Pagination */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gray-50 px-6 py-4 border-t border-gray-100">
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={handlePrevClick}
+              disabled={!canGoPrev}
+              className={`px-3 py-1 rounded-md border ${
+                canGoPrev
+                  ? "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  : "border-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Previous
+            </button>
+            <span className="text-sm text-gray-600">
+              Page {page}
+              {totalPages ? ` of ${totalPages}` : ""}
+            </span>
+            <button
+              type="button"
+              onClick={handleNextClick}
+              disabled={!canGoNext}
+              className={`px-3 py-1 rounded-md border ${
+                canGoNext
+                  ? "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  : "border-gray-200 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <label htmlFor="asset-page-size" className="text-sm text-gray-600">
+              Rows per page
+            </label>
+            <select
+              id="asset-page-size"
+              value={pageSize}
+              onChange={handlePageSizeChange}
+              className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+            >
+              {PAGE_SIZE_OPTIONS.map(renderPageSizeOption)}
+            </select>
+          </div>
         </div>
       </div>
     </div>

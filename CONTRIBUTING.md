@@ -29,6 +29,7 @@ This project adheres to a code of conduct that fosters an open and welcoming env
 
 1. Fork the repository on GitHub
 2. Clone your fork locally:
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/financial-asset-relationship-db.git
    cd financial-asset-relationship-db
@@ -50,16 +51,19 @@ python -m venv .venv
 ### 2. Activate the Virtual Environment
 
 **Windows (PowerShell):**
+
 ```powershell
 .\.venv\Scripts\Activate.ps1
 ```
 
 **Windows (Command Prompt):**
+
 ```cmd
 .venv\Scripts\activate.bat
 ```
 
 **macOS/Linux:**
+
 ```bash
 source .venv/bin/activate
 ```
@@ -75,6 +79,7 @@ pip install -r requirements-dev.txt
 ```
 
 Or use the Makefile:
+
 ```bash
 make install-dev
 ```
@@ -86,6 +91,7 @@ pre-commit install
 ```
 
 Or use the Makefile:
+
 ```bash
 make pre-commit
 ```
@@ -103,6 +109,7 @@ git checkout -b bugfix/issue-number
 ```
 
 Branch naming conventions:
+
 - `feature/description` - New features
 - `bugfix/description` - Bug fixes
 - `docs/description` - Documentation updates
@@ -150,6 +157,7 @@ Reference any related issues: #123"
 ```
 
 Commit message guidelines:
+
 - Use present tense ("Add feature" not "Added feature")
 - First line should be concise (50 chars or less)
 - Separate subject from body with blank line
@@ -162,6 +170,7 @@ git push origin your-branch-name
 ```
 
 Then create a pull request on GitHub with:
+
 - Clear description of changes
 - Reference to related issues
 - Screenshots (if UI changes)
@@ -209,11 +218,11 @@ Every public class and function should have a docstring:
 ```python
 def calculate_metrics(self) -> Dict[str, Any]:
     """Calculate relationship strength metrics.
-    
+
     Returns:
         Dict containing metrics including total_assets, total_relationships,
         average_relationship_strength, and more.
-        
+
     Raises:
         ValueError: If graph is empty or invalid.
     """
@@ -237,12 +246,14 @@ tests/
 ### Writing Tests
 
 1. **Use descriptive test names:**
+
    ```python
    def test_asset_creation_with_valid_data():
        """Test that a valid asset can be created."""
    ```
 
 2. **Use fixtures from conftest.py:**
+
    ```python
    def test_add_asset(empty_graph, sample_equity):
        empty_graph.add_asset(sample_equity)
@@ -256,11 +267,12 @@ tests/
    - Invalid data
 
 4. **Use pytest markers:**
+
    ```python
    @pytest.mark.unit
    def test_something():
        pass
-       
+
    @pytest.mark.slow
    def test_something_slow():
        pass
@@ -286,6 +298,7 @@ pytest -v
 ```
 
 Or use the Makefile:
+
 ```bash
 make test        # With coverage
 make test-fast   # Without coverage
@@ -339,6 +352,32 @@ make test-fast   # Without coverage
   git pull upstream main
   ```
 
+### Branch Cleanup Best Practices
+
+To keep the repository clean and organized:
+
+1. **Delete merged branches:**
+   - GitHub can automatically delete branches after PR merge
+   - Manually delete local branches: `git branch -d branch-name`
+   - Delete remote branches: `git push origin --delete branch-name`
+
+2. **Avoid long-lived feature branches:**
+   - Keep branches short-lived (ideally < 2 weeks)
+   - Break large features into smaller PRs
+   - Regularly sync with main to avoid conflicts
+
+3. **Stale branch policy:**
+   - Branches inactive for 90+ days may be automatically deleted
+   - You'll receive a warning before deletion
+   - Important branches should be documented in issues
+
+4. **Branch naming:**
+   - Use descriptive names that indicate purpose
+   - Follow the naming conventions listed above
+   - Avoid generic names like "test" or "temp"
+
+See [BRANCH_CLEANUP_ANALYSIS.md](BRANCH_CLEANUP_ANALYSIS.md) for detailed branch management guidelines.
+
 ## Project Structure
 
 ```
@@ -383,6 +422,7 @@ financial-asset-relationship-db/
 ## Recognition
 
 Contributors will be recognized in:
+
 - GitHub contributors list
 - Release notes
 - Project documentation (if significant contribution)

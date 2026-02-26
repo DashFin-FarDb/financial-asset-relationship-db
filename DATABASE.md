@@ -43,6 +43,7 @@ The database module will attempt to connect using the Supabase client first, and
 ### Supabase Client
 
 The Supabase client provides a high-level API for interacting with your Supabase database, including:
+
 - Authentication
 - Storage
 - Realtime subscriptions

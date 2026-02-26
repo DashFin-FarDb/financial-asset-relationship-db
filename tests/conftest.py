@@ -1,4 +1,8 @@
-"""Pytest configuration and fixtures for the financial asset relationship database tests."""
+"""Pytest configuration and fixtures for the financial asset relationship
+database tests.
+"""
+
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,108 +19,202 @@ from src.models.financial_models import (
 
 
 @pytest.fixture
+def empty_graph():
+    """Provide an empty AssetRelationshipGraph."""
+    return AssetRelationshipGraph()
+
+
+@pytest.fixture
 def sample_equity():
-    """Create a sample equity asset for testing."""
+    """
+    Create a sample Equity asset configured for tests.
+
+    Returns:
+        Equity: An Equity instance with id "AAPL", symbol "AAPL", name "Apple Inc.", asset_class AssetClass.EQUITY, sector "Technology", price 150.0, pe_ratio 25.5, and dividend_yield 0.005.
+    """
     return Equity(
-        id="TEST_AAPL",
+        id="AAPL",
         symbol="AAPL",
         name="Apple Inc.",
         asset_class=AssetClass.EQUITY,
         sector="Technology",
-        price=150.00,
-        market_cap=2.4e12,
+        price=150.0,
         pe_ratio=25.5,
         dividend_yield=0.005,
-        earnings_per_share=5.89,
     )
 
 
 @pytest.fixture
 def sample_bond():
-    """Create a sample bond asset for testing."""
+    """
+    Create a sample Bond asset for tests.
+
+    The returned Bond is pre-populated with the following values: id "AAPL_BOND", symbol "AAPL_B", name "Apple Bond", asset_class FIXED_INCOME, sector "Technology", price 100.0, issuer_id "AAPL", yield_to_maturity 0.03, and credit_rating "AAA".
+
+    Returns:
+        Bond: A Bond instance configured with the sample Apple bond values.
+    """
     return Bond(
-        id="TEST_BOND",
-        symbol="AAPL_BOND",
-        name="Apple Corporate Bond",
+        id="AAPL_BOND",
+        symbol="AAPL_B",
+        name="Apple Bond",
         asset_class=AssetClass.FIXED_INCOME,
         sector="Technology",
-        price=1000.00,
+        price=100.0,
+        issuer_id="AAPL",
         yield_to_maturity=0.03,
-        coupon_rate=0.025,
-        maturity_date="2030-01-01",
         credit_rating="AAA",
-        issuer_id="TEST_AAPL",
     )
 
 
 @pytest.fixture
 def sample_commodity():
-    """Create a sample commodity asset for testing."""
+    """
+    Create a sample Commodity asset for tests.
+
+    Returns:
+        Commodity: A Commodity representing gold with id "GOLD", symbol "GC", sector "Metals", price 2000.0, contract_size 100.0, and volatility 0.15.
+    """
     return Commodity(
-        id="TEST_GOLD",
-        symbol="GOLD",
-        name="Gold Futures",
+        id="GOLD",
+        symbol="GC",
+        name="Gold",
         asset_class=AssetClass.COMMODITY,
-        sector="Materials",
-        price=1950.00,
+        sector="Metals",
+        price=2000.0,
         contract_size=100.0,
-        delivery_date="2024-12-31",
         volatility=0.15,
     )
 
 
 @pytest.fixture
 def sample_currency():
-    """Create a sample currency asset for testing."""
+    """
+    Create a sample Currency asset configured for tests.
+
+    Returns:
+        Currency: A Currency instance with id "EUR", symbol "EUR", name "Euro", asset_class AssetClass.CURRENCY, sector "Currency", price 1.1, exchange_rate 1.1, and country "Eurozone".
+    """
     return Currency(
-        id="TEST_EUR",
+        id="EUR",
         symbol="EUR",
         name="Euro",
         asset_class=AssetClass.CURRENCY,
         sector="Currency",
-        price=1.10,
-        exchange_rate=1.10,
+        price=1.1,
+        exchange_rate=1.1,
         country="Eurozone",
-        central_bank_rate=0.04,
     )
 
 
 @pytest.fixture
 def sample_regulatory_event():
-    """Create a sample regulatory event for testing."""
+    """
+    Create a sample RegulatoryEvent representing an earnings report for TEST_AAPL.
+
+    Returns:
+        RegulatoryEvent: Instance with id "EVENT_001", asset_id "TEST_AAPL", event_type RegulatoryActivity.EARNINGS_REPORT, date "2024-01-01", description "Earnings report", impact_score 0.8, and related_assets ["AAPL_BOND"].
+    """
     return RegulatoryEvent(
         id="EVENT_001",
         asset_id="TEST_AAPL",
         event_type=RegulatoryActivity.EARNINGS_REPORT,
-        date="2024-01-15",
-        description="Q4 2023 Earnings Report",
+        date="2024-01-01",
+        description="Earnings report",
         impact_score=0.8,
-        related_assets=["TEST_BOND", "TEST_GOLD"],
+        related_assets=["AAPL_BOND"],
     )
 
 
 @pytest.fixture
-def empty_graph():
-    """Create an empty asset relationship graph."""
-    return AssetRelationshipGraph()
-
-
-@pytest.fixture
-def populated_graph(sample_equity, sample_bond, sample_commodity, sample_currency):
-    """Create a populated asset relationship graph."""
+def populated_graph(
+    sample_equity,
+    sample_bond,
+    sample_commodity,
+    sample_currency,
+    sample_regulatory_event,
+):
+    """Provide a populated AssetRelationshipGraph with 4 assets and 1 event."""
     graph = AssetRelationshipGraph()
     graph.add_asset(sample_equity)
     graph.add_asset(sample_bond)
     graph.add_asset(sample_commodity)
     graph.add_asset(sample_currency)
+    graph.add_regulatory_event(sample_regulatory_event)
+    graph.build_relationships()
     return graph
+
+
+if TYPE_CHECKING:
+    from _pytest.config.argparsing import Parser
+
+
+def pytest_addoption(parser: "Parser") -> None:
+    """
+    Register dummy coverage command-line options when pytest-cov is unavailable.
+
+    If the `pytest-cov` plugin cannot be imported this registers `--cov` and
+    `--cov-report` as benign, appendable options so test runs that include those
+    flags do not error. If `pytest-cov` is importable this function has no effect.
+
+    Parameters:
+        parser (Parser): Pytest argument parser used to add the command-line options.
+    """
+    try:
+        import pytest_cov  # type: ignore  # noqa: F401
+    except ImportError:  # pragma: no cover
+        _register_dummy_cov_options(parser)
+
+
+def _register_dummy_cov_options(parser: "Parser") -> None:  # pragma: no cover
+    """Register dummy --cov and --cov-report options."""
+    group = parser.getgroup("cov")
+    group.addoption(
+        "--cov",
+        action="append",
+        dest="cov",
+        default=[],
+        metavar="path",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
+    group.addoption(
+        "--cov-report",
+        action="append",
+        dest="cov_report",
+        default=[],
+        metavar="type",
+        help="Dummy option registered when pytest-cov is unavailable.",
+    )
 
 
 @pytest.fixture
 def _reset_graph():
     """Reset the graph singleton between tests."""
-    import api.main
+    from api.main import reset_graph
 
-    api.main.graph = None
+    reset_graph()
     yield
-    api.main.graph = None
+
+
+@pytest.fixture
+def dividend_stock():
+    """
+    Provide a sample Equity representing a dividend-paying stock for tests.
+
+    Returns:
+        Equity: An Equity instance configured for testing with id "DIV_STOCK",
+            symbol "DIVS", sector "Utilities", price 100.0,
+            dividend_yield 0.04 and other common financial fields populated.
+    """
+    return Equity(
+        id="DIV_STOCK",
+        symbol="DIVS",
+        name="Dividend Stock",
+        asset_class=AssetClass.EQUITY,
+        sector="Utilities",
+        price=100.0,
+        market_cap=1e10,
+        pe_ratio=15.0,
+        dividend_yield=0.04,
+        earnings_per_share=6.67,
+    )

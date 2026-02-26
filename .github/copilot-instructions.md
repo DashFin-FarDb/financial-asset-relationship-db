@@ -49,6 +49,22 @@ Examples to reference in code
 - Create deterministic positions: `np.random.seed(42)` in `get_3d_visualization_data`.
 - Create sample DB: `from src.data.sample_data import create_sample_database` (used in `app.py` Gradio `State`).
 
+## PR Management Agent
+
+This repository includes an automated PR management agent configured in `.github/copilot-pr-agent.md`. The agent:
+
+- **Monitors PRs**: Automatically detects review comments and feedback
+- **Implements Changes**: Makes targeted fixes based on reviewer feedback
+- **Manages Workflow**: Handles commits, testing, and re-review requests
+- **Maintains Quality**: Ensures all changes meet code standards
+
+### Agent Triggers
+- `@copilot fix this` - Implement suggested fix
+- `@copilot address review` - Handle all review comments
+- `@copilot update tests` - Add/update test coverage
+- `@copilot check ci` - Investigate CI failures
+
+The agent configuration is in `.github/pr-agent-config.yml` and includes safety limits, quality standards, and automated workflows.
 If anything here is unclear or you'd like me to merge content from a specific file (or prefer different run commands), tell me which parts to adjust and I will iterate.
 
 -- End of instructions

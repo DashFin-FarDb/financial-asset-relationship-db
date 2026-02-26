@@ -1,18 +1,18 @@
 # Dependency Matrix
 
-*Generated: 2025-11-06T19:28:49.162Z*
+_Generated: 2026-02-16T07:58:03.539Z_
 
 ## Summary
 
-- Files analyzed: 57
-- File types: py, tsx, ts, js
+- Files analyzed: 111
+- File types: py, js, ts, tsx
 
 ## File Type Distribution
 
-- 32 py files
-- 12 tsx files
-- 5 ts files
-- 8 js files
+- 84 py files
+- 5 js files
+- 12 ts files
+- 10 tsx files
 
 ## Key Dependencies by Type
 
@@ -20,9 +20,29 @@
 
 No common dependencies found
 
+### JS
+
+Top dependencies:
+
+- @testing-library/jest-dom
+
+### TS
+
+Top dependencies:
+
+- ../app/types/api
+- ../../app/types/api
+- ../test-utils
+- axios
+- fs
+- path
+- ./api
+- ../types/api
+
 ### TSX
 
 Top dependencies:
+
 - react
 - @testing-library/react
 - @testing-library/jest-dom
@@ -33,18 +53,3 @@ Top dependencies:
 - ./components/MetricsDashboard
 - ./components/AssetList
 - ./types/api
-
-### TS
-
-Top dependencies:
-- axios
-- ../../app/lib/api
-- ../../app/types/api
-- ../types/api
-- ../api
-
-### JS
-
-Top dependencies:
-- @testing-library/jest-dom
-

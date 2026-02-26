@@ -20,17 +20,20 @@ The application now consists of two main components:
 ### Backend Setup
 
 1. **Create and activate Python virtual environment:**
+
    ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows: .venv\Scripts\activate
    ```
 
 2. **Install Python dependencies:**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Run the FastAPI backend:**
+
    ```bash
    python -m uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
    ```
@@ -42,11 +45,13 @@ The application now consists of two main components:
 ### Frontend Setup
 
 1. **Navigate to the frontend directory:**
+
    ```bash
    cd frontend
    ```
 
 2. **Install Node.js dependencies:**
+
    ```bash
    npm install
    ```
@@ -54,10 +59,14 @@ The application now consists of two main components:
 3. **(Optional) Create environment file:**
 
    Copy the environment template:
+
    ```bash
    cp ../.env.example .env.local
 
+   ```
+
 4. **Run the Next.js development server:**
+
    ```bash
    npm run dev
    ```
@@ -67,6 +76,7 @@ The application now consists of two main components:
 ### Development Workflow
 
 With both servers running:
+
 - Frontend: `http://localhost:3000`
 - Backend API: `http://localhost:8000`
 - API Docs: `http://localhost:8000/docs`
@@ -78,16 +88,19 @@ The frontend automatically connects to the backend API on port 8000.
 ### Option 1: Deploy via Vercel CLI
 
 1. **Install Vercel CLI:**
+
    ```bash
    npm install -g vercel
    ```
 
 2. **Login to Vercel:**
+
    ```bash
    vercel login
    ```
 
 3. **Deploy from the project root:**
+
    ```bash
    vercel
    ```
@@ -97,6 +110,7 @@ The frontend automatically connects to the backend API on port 8000.
 ### Option 2: Deploy via GitHub Integration
 
 1. **Push your code to GitHub:**
+
    ```bash
    git add .
    git commit -m "Add Vercel Next.js integration"
@@ -185,6 +199,7 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 For production on Vercel, set this in the Vercel dashboard:
+
 ```bash
 NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app
 ```
@@ -212,6 +227,7 @@ app.add_middleware(
 ### Build Errors
 
 For frontend build issues:
+
 ```bash
 cd frontend
 rm -rf .next node_modules
@@ -220,6 +236,7 @@ npm run build
 ```
 
 For backend issues:
+
 ```bash
 pip install --upgrade -r requirements.txt
 ```

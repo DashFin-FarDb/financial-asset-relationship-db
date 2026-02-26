@@ -1,0 +1,48 @@
+name: Branch Cleanup
+
+on:
+  schedule:
+    # Run weekly on Sundays at 00:00 UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run mode (only report, do not delete)'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Delete merged branches
+        uses: phpdocker-io/github-actions-delete-merged-branches@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          dry_run: ${{ github.event.inputs.dry_run || 'false' }}
+          exclude: |
+            main
+            develop
+            staging
+            production
+
+      - name: Report stale branches
+        run: |
+          echo "## Stale Branches Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          git for-each-ref --sort=-committerdate refs/remotes/origin/ --format='%(refname:short)|%(committerdate:relative)|%(authorname)' | \
+            grep -v 'origin/main\|origin/HEAD' | \
+            awk -F'|' '{printf "- **%s** - Last commit: %s by %s\n", $1, $2, $3}' >> $GITHUB_STEP_SUMMARY

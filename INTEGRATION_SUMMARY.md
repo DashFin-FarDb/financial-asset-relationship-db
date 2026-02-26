@@ -9,11 +9,13 @@ This document summarizes the integration of a Next.js frontend with FastAPI back
 ### 1. FastAPI Backend (`/api`)
 
 **File: `api/main.py`**
+
 - RESTful API that exposes the asset relationship graph functionality
 - Built with FastAPI for high performance and automatic API documentation
 - CORS-enabled for Next.js frontend communication
 
 **Key Endpoints:**
+
 - `GET /api/health` - Health check
 - `GET /api/assets` - List all assets (with filters)
 - `GET /api/assets/{id}` - Get asset details
@@ -25,6 +27,7 @@ This document summarizes the integration of a Next.js frontend with FastAPI back
 - `GET /api/sectors` - Get available sectors
 
 **Features:**
+
 - Reuses existing graph logic from `src/logic/asset_graph.py`
 - Uses real data from `src/data/real_data_fetcher.py`
 - Pydantic models for request/response validation
@@ -33,6 +36,7 @@ This document summarizes the integration of a Next.js frontend with FastAPI back
 ### 2. Next.js Frontend (`/frontend`)
 
 **Application Structure:**
+
 ```
 frontend/
 ├── app/
@@ -72,6 +76,7 @@ frontend/
    - Displays key asset information
 
 **Technologies:**
+
 - Next.js 14 (App Router)
 - React 18
 - TypeScript
@@ -82,21 +87,25 @@ frontend/
 ### 3. Deployment Configuration
 
 **File: `vercel.json`**
+
 - Configures Vercel deployment
 - Routes API requests to Python backend
 - Routes frontend requests to Next.js
 
 **File: `.env.example`**
+
 - Template for environment variables
 - API URL configuration
 
 **File: `run-dev.sh` / `run-dev.bat`**
+
 - Development scripts for both platforms
 - Starts both backend and frontend together
 
 ### 4. Documentation
 
 **File: `DEPLOYMENT.md`**
+
 - Comprehensive deployment guide
 - Local development setup
 - Vercel deployment instructions
@@ -104,6 +113,7 @@ frontend/
 - Troubleshooting guide
 
 **Updated Files:**
+
 - `README.md` - Added Next.js integration section
 - `requirements.txt` - Added FastAPI, Uvicorn, Pydantic
 - `.gitignore` - Added Next.js and build artifacts
@@ -156,12 +166,14 @@ frontend/
 ## Deployment Options
 
 ### Option 1: Original Gradio UI (Preserved)
+
 ```bash
 python app.py
 # Access at http://localhost:7860
 ```
 
 ### Option 2: New Next.js Frontend + FastAPI Backend
+
 ```bash
 # Start both servers
 ./run-dev.sh  # Linux/Mac
@@ -173,6 +185,7 @@ run-dev.bat   # Windows
 ```
 
 ### Option 3: Deploy to Vercel
+
 ```bash
 # Using Vercel CLI
 vercel
@@ -208,6 +221,7 @@ vercel
 ### Testing
 
 **Backend:**
+
 ```bash
 # Run test script
 python test_api.py
@@ -217,6 +231,7 @@ python test_api.py
 ```
 
 **Frontend:**
+
 ```bash
 cd frontend
 npm run build  # Test production build
@@ -226,6 +241,7 @@ npm run lint   # Check for issues
 ## Environment Variables
 
 ### Development
+
 ```bash
 # Backend: No special env vars needed
 # Frontend: .env.local
@@ -233,7 +249,9 @@ NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
 ### Production (Vercel)
+
 Set in Vercel dashboard:
+
 ```bash
 NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app
 ```
@@ -241,6 +259,7 @@ NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app
 ## File Changes Summary
 
 ### New Files (22 total)
+
 - `api/__init__.py`
 - `api/main.py`
 - `frontend/app/components/AssetList.tsx`
@@ -269,6 +288,7 @@ NEXT_PUBLIC_API_URL=https://your-api-domain.vercel.app
 - `test_api.py`
 
 ### Modified Files (3 total)
+
 - `README.md` - Added Next.js integration documentation
 - `requirements.txt` - Added FastAPI dependencies
 - `.gitignore` - Added Next.js build artifacts
@@ -293,18 +313,23 @@ The integration is designed to work alongside the existing Gradio application:
 ## Maintenance
 
 ### Keeping APIs in Sync
+
 When modifying `src/logic/asset_graph.py`:
+
 1. Update `api/main.py` endpoints if needed
 2. Update TypeScript types in `app/types/api.ts`
 3. Update API client in `app/lib/api.ts`
 4. Test both backend and frontend
 
 ### Dependencies
+
 - **Backend**: `pip install -r requirements.txt`
 - **Frontend**: `cd frontend && npm install`
 
 ### Updating Documentation
+
 Keep these files updated:
+
 - `DEPLOYMENT.md` - Deployment procedures
 - `README.md` - Quick start guide
 - `frontend/README.md` - Frontend specifics
@@ -312,6 +337,7 @@ Keep these files updated:
 ## Next Steps
 
 Suggested improvements:
+
 1. Add authentication/authorization
 2. Implement caching (Redis)
 3. Add real-time updates (WebSockets)
@@ -324,6 +350,7 @@ Suggested improvements:
 ## Support
 
 For issues or questions:
+
 1. Check `DEPLOYMENT.md` for troubleshooting
 2. Review API docs at `http://localhost:8000/docs`
 3. Check browser console for frontend errors

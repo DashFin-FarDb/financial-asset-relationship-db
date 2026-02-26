@@ -11,6 +11,7 @@ This guide will get you up and running with the new Next.js frontend in under 5 
 ## Option 1: Automated Setup (Recommended)
 
 ### Linux/macOS
+
 ```bash
 # Make the script executable
 chmod +x run-dev.sh
@@ -20,12 +21,14 @@ chmod +x run-dev.sh
 ```
 
 ### Windows
+
 ```cmd
 # Run the development environment
 run-dev.bat
 ```
 
 That's it! The script will:
+
 1. Create a Python virtual environment
 2. Install Python dependencies
 3. Install Node.js dependencies
@@ -33,6 +36,7 @@ That's it! The script will:
 5. Start the Next.js frontend on port 3000
 
 **Access the application:**
+
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 - API Documentation: http://localhost:8000/docs
@@ -78,6 +82,7 @@ npm run dev
 ## What You'll See
 
 ### Backend (Port 8000)
+
 ```
 INFO:     Uvicorn running on http://0.0.0.0:8000
 INFO:     Application startup complete.
@@ -86,6 +91,7 @@ INFO:     Application startup complete.
 Visit http://localhost:8000/docs to see the interactive API documentation.
 
 ### Frontend (Port 3000)
+
 ```
 - ready started server on 0.0.0.0:3000, url: http://localhost:3000
 - event compiled client and server successfully
@@ -96,17 +102,20 @@ Visit http://localhost:3000 to see the application.
 ## Using the Application
 
 ### 1. 3D Visualization Tab
+
 - Interactive 3D network graph
 - Rotate: Click and drag
 - Zoom: Scroll wheel
 - Hover: View asset details
 
 ### 2. Metrics & Analytics Tab
+
 - Total assets and relationships
 - Network statistics
 - Asset class distribution
 
 ### 3. Asset Explorer Tab
+
 - Filterable table of all assets
 - Filter by asset class or sector
 - View detailed asset information
@@ -114,6 +123,7 @@ Visit http://localhost:3000 to see the application.
 ## Testing the API
 
 ### Using curl
+
 ```bash
 # Health check
 curl http://localhost:8000/api/health
@@ -126,12 +136,14 @@ curl http://localhost:8000/api/metrics
 ```
 
 ### Using Python
+
 ```bash
 # Run the test script
 python test_api.py
 ```
 
 ### Using Browser
+
 Visit http://localhost:8000/docs for interactive API testing.
 
 ## Troubleshooting
@@ -139,6 +151,7 @@ Visit http://localhost:8000/docs for interactive API testing.
 ### Backend Issues
 
 **Problem: Port 8000 already in use**
+
 ```bash
 # Find and kill the process
 # Linux/macOS
@@ -150,6 +163,7 @@ taskkill /PID <PID> /F
 ```
 
 **Problem: Module not found errors**
+
 ```bash
 # Ensure virtual environment is activated
 source .venv/bin/activate  # Linux/macOS
@@ -162,6 +176,7 @@ pip install -r requirements.txt
 ### Frontend Issues
 
 **Problem: Port 3000 already in use**
+
 ```bash
 # The frontend will automatically use the next available port
 # Or kill the process manually:
@@ -175,11 +190,13 @@ taskkill /PID <PID> /F
 ```
 
 **Problem: API connection errors**
+
 - Check that backend is running on port 8000
 - Verify `NEXT_PUBLIC_API_URL` in `.env.local`
 - Check browser console for CORS errors
 
 **Problem: Module not found**
+
 ```bash
 cd frontend
 rm -rf node_modules .next
@@ -190,6 +207,7 @@ npm run dev
 ## Common Commands
 
 ### Backend
+
 ```bash
 # Start backend
 python -m uvicorn api.main:app --reload --port 8000
@@ -202,6 +220,7 @@ python -m uvicorn api.main:app --port 8000
 ```
 
 ### Frontend
+
 ```bash
 cd frontend
 
@@ -248,6 +267,7 @@ npm run lint
 ## Compare with Gradio UI
 
 You can still use the original Gradio interface:
+
 ```bash
 python app.py
 ```

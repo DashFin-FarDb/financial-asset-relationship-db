@@ -11,17 +11,19 @@ This document outlines additional improvements, error-prone patterns identified,
 **Issue:** Using `except Exception` catches too many exceptions, making debugging difficult.
 
 **Found in:**
+
 - `real_data_fetcher.py`: 5 instances
 - `sample_data.py`: 1 instance
 
 **Recommendation:**
+
 ```python
 # Instead of:
 try:
     data = fetch_data()
 except Exception as e:
     logger.error(f"Error: {e}")
-    
+
 # Use specific exceptions:
 try:
     data = fetch_data()
@@ -41,6 +43,7 @@ except Exception as e:
 **Current State:** Partial type hints in core modules
 
 **Recommendation:** Add comprehensive type hints to all functions:
+
 ```python
 from typing import Dict, List, Optional, Tuple
 
@@ -56,23 +59,25 @@ def calculate_metrics(self) -> Dict[str, Any]:
 **Issue:** Hardcoded values scattered throughout code
 
 **Examples:**
+
 - Random seed: `np.random.seed(42)`
 - Relationship strengths: `0.7`, `0.8`, `0.9`
 - Gradio port: `7860`
 
 **Recommendation:** Create `src/config.py`:
+
 ```python
 # src/config.py
 class Config:
     # Visualization
     RANDOM_SEED = 42
     LINE_LENGTH = 120
-    
+
     # Relationship strengths
     SAME_SECTOR_STRENGTH = 0.7
     CURRENCY_EXPOSURE_STRENGTH = 0.8
     CORPORATE_BOND_STRENGTH = 0.9
-    
+
     # Server
     GRADIO_PORT = 7860
     GRADIO_HOST = "0.0.0.0"
@@ -85,6 +90,7 @@ class Config:
 **Current State:** Basic logging configured in `app.py`
 
 **Recommendation:** Implement structured logging:
+
 ```python
 import logging
 import json
@@ -93,7 +99,7 @@ from datetime import datetime
 class StructuredLogger:
     def __init__(self, name: str):
         self.logger = logging.getLogger(name)
-        
+
     def log_event(self, level: str, event: str, **kwargs):
         log_data = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -111,6 +117,7 @@ class StructuredLogger:
 **Current State:** Basic validation in dataclass `__post_init__`
 
 **Recommendation:** Add validation decorators:
+
 ```python
 from functools import wraps
 from typing import Callable
@@ -131,6 +138,7 @@ def validate_price(func: Callable) -> Callable:
 **Potential Improvements:**
 
 1. **Caching for expensive operations:**
+
 ```python
 from functools import lru_cache
 
@@ -141,6 +149,7 @@ def calculate_relationship_strength(asset1_id: str, asset2_id: str) -> float:
 ```
 
 2. **Lazy loading for visualizations:**
+
 ```python
 @property
 def visualization_data(self):
@@ -150,6 +159,7 @@ def visualization_data(self):
 ```
 
 3. **Database connection pooling** (when adding PostgreSQL):
+
 ```python
 from sqlalchemy import create_engine
 from sqlalchemy.pool import QueuePool
@@ -169,6 +179,7 @@ engine = create_engine(
 **Current State:** Some error messages lack context
 
 **Recommendation:** Add contextual information:
+
 ```python
 # Instead of:
 raise ValueError("Invalid input")
@@ -189,6 +200,7 @@ raise ValueError(
 **Recommendations:**
 
 1. **Add integration tests:**
+
 ```python
 # tests/integration/test_workflow.py
 def test_full_workflow():
@@ -201,6 +213,7 @@ def test_full_workflow():
 ```
 
 2. **Add property-based tests:**
+
 ```python
 from hypothesis import given, strategies as st
 
@@ -211,6 +224,7 @@ def test_relationship_strength_bounds(strength):
 ```
 
 3. **Add performance tests:**
+
 ```python
 import pytest
 import time
@@ -231,11 +245,13 @@ def test_large_graph_performance():
 ### 1. Dependency Scanning
 
 **Implemented:**
+
 - ✅ CodeQL security scanning
 - ✅ Dependency review on PRs
 - ✅ Trivy Docker image scanning
 
 **Additional Recommendations:**
+
 - Add `safety` to CI for Python dependency vulnerabilities
 - Add `bandit` for Python security linting
 - Regular dependency updates with Dependabot
@@ -245,6 +261,7 @@ def test_large_graph_performance():
 **Current State:** Basic validation on dataclass fields
 
 **Recommendation:** Add sanitization for user inputs:
+
 ```python
 import re
 from html import escape
@@ -264,6 +281,7 @@ def sanitize_input(value: str) -> str:
 ### 3. Secrets Management
 
 **Recommendation:** Use environment variables and secret managers:
+
 ```python
 import os
 from pathlib import Path
@@ -284,15 +302,16 @@ API_KEY = os.getenv('API_KEY')
 ### 1. Repository Pattern
 
 **Recommendation:** Abstract data access:
+
 ```python
 # src/repositories/asset_repository.py
 class AssetRepository:
     def get_by_id(self, asset_id: str) -> Optional[Asset]:
         pass
-    
+
     def get_all(self) -> List[Asset]:
         pass
-    
+
     def save(self, asset: Asset) -> None:
         pass
 ```
@@ -302,12 +321,13 @@ class AssetRepository:
 ### 2. Service Layer
 
 **Recommendation:** Separate business logic:
+
 ```python
 # src/services/asset_service.py
 class AssetService:
     def __init__(self, repository: AssetRepository):
         self.repository = repository
-    
+
     def calculate_portfolio_risk(self, assets: List[Asset]) -> float:
         # Business logic here
         pass
@@ -318,6 +338,7 @@ class AssetService:
 ### 3. Dependency Injection
 
 **Recommendation:** Use dependency injection for better testing:
+
 ```python
 from typing import Protocol
 
@@ -337,6 +358,7 @@ class AssetService:
 ### 1. API Documentation
 
 **Recommendation:** Add OpenAPI/Swagger for API endpoints:
+
 ```python
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
@@ -363,6 +385,7 @@ app.openapi = custom_openapi
 ### 2. Architecture Diagrams
 
 **Recommendation:** Add diagrams to documentation:
+
 - System architecture
 - Data flow diagrams
 - Sequence diagrams for key operations
@@ -374,6 +397,7 @@ app.openapi = custom_openapi
 ### 3. Code Examples
 
 **Recommendation:** Add runnable examples:
+
 ```python
 # examples/basic_usage.py
 """
@@ -413,6 +437,7 @@ print(f"Total assets: {metrics['total_assets']}")
 ### 1. Metrics Collection
 
 **Recommendation:** Add Prometheus metrics:
+
 ```python
 from prometheus_client import Counter, Histogram, start_http_server
 
@@ -431,6 +456,7 @@ request_count.inc()
 ### 2. Health Checks
 
 **Recommendation:** Add comprehensive health checks:
+
 ```python
 from fastapi import FastAPI, status
 
@@ -450,6 +476,7 @@ def health_check():
 ### 3. Distributed Tracing
 
 **Recommendation:** Add OpenTelemetry for tracing:
+
 ```python
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
@@ -467,6 +494,7 @@ with tracer.start_as_current_span("calculate_metrics"):
 ### 1. Machine Learning Integration
 
 **Ideas:**
+
 - Predictive relationship discovery
 - Anomaly detection in asset relationships
 - Portfolio optimization
@@ -477,6 +505,7 @@ with tracer.start_as_current_span("calculate_metrics"):
 ### 2. Real-time Updates
 
 **Ideas:**
+
 - WebSocket support for live data
 - Event-driven architecture
 - Message queue integration (RabbitMQ, Kafka)
@@ -484,6 +513,7 @@ with tracer.start_as_current_span("calculate_metrics"):
 ### 3. Advanced Analytics
 
 **Ideas:**
+
 - Time-series analysis
 - Correlation matrices
 - Network centrality measures
@@ -492,6 +522,7 @@ with tracer.start_as_current_span("calculate_metrics"):
 ### 4. Multi-tenancy
 
 **Ideas:**
+
 - User authentication
 - Per-user data isolation
 - Role-based access control
@@ -500,6 +531,7 @@ with tracer.start_as_current_span("calculate_metrics"):
 ## Conclusion
 
 This document provides a roadmap for future improvements. Prioritize based on:
+
 1. **Security** (High): Secrets management, input sanitization
 2. **Testing** (High): Integration tests, performance tests
 3. **Monitoring** (Medium): Health checks, logging

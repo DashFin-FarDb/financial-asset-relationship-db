@@ -19,6 +19,8 @@ permissions:
   security-events: write
 jobs:
   create-fix-pull-requests:
+    # Only run if JF_URL is configured
+    if: secrets.JF_URL != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
