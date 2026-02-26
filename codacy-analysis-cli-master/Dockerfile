@@ -19,7 +19,7 @@ RUN adduser -D appuser \
   && chown -R appuser:appuser /workdir
 
 # Switch to the non-root user
-USER appuser
+# USER appuser
 
 ENTRYPOINT ["/workdir/bin/codacy-analysis-cli"]
 
