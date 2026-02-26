@@ -100,6 +100,12 @@ dmypy.json
 # Linting
 .ruff_cache/
 
+# Qlty cache and temporary files
+.qlty/plugin_cachedir
+.qlty/logs
+.qlty/out
+.qlty/results
+
 # Docker
 .dockerignore
 docker-compose.override.yml
