@@ -337,7 +337,7 @@ class FinancialAssetApp:
         dashboard and correlation network. Additionally, it compiles a summary of the
         analysis results and prepares formula selector options for further use.
 
-        Args:
+        Parameters:
             graph_state (AssetRelationshipGraph): The state of the asset graph
         """
         try:
