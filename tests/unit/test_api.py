@@ -137,7 +137,9 @@ def _apply_mock_graph_configuration(
     mock_graph_instance.assets = graph.assets
     mock_graph_instance.relationships = graph.relationships
     mock_graph_instance.calculate_metrics = graph.calculate_metrics
-    mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
+    mock_graph_instance.get_3d_visualization_data = (
+        graph.get_3d_visualization_data_enhanced
+    )
 
 
 @pytest.fixture
