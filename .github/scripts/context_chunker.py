@@ -55,8 +55,9 @@ class ContextChunker:
                 with cfg_file.open("r", encoding="utf-8") as f:
                     self.config = yaml.safe_load(f) or {}
             except Exception as e:
+                exc_type = type(e).__name__
                 print(
-                    f"Warning: failed to load config from {config_path}: {e}",
+                    f"Warning: failed to load config from {config_path} ({exc_type}). Using defaults.",
                     file=sys.stderr,
                 )
                 self.config = {}
