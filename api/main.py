@@ -356,6 +356,12 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     Args:
         asset: Asset object to serialize.
         include_issuer: Whether to include issuer_id field (for detail views).
+
+    Returns:
+        Dict[str, Any]: A dictionary containing core asset fields (such as id, symbol,
+            name, asset_class, sector, price, market_cap, and currency) and an
+            ``additional_fields`` mapping of any optional asset-specific attributes
+            present on the asset (and ``issuer_id`` when ``include_issuer`` is True).
     """
     asset_dict = {
         "id": asset.id,
