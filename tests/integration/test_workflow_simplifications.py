@@ -622,14 +622,11 @@ class TestWorkflowRegressionPrevention:
         )
 
         try:
-            yaml.load(content, Loader=DuplicateKeySafeLoader)
-        except yaml.YAMLError:
-            # Ignore YAML errors here because this function only checks for duplicate keys.
-            try:
-                yaml.load(content, Loader=DuplicateKeySafeLoader)
-            except yaml.YAMLError as e:
-                raise RuntimeError(f"Invalid YAML in {file_path}: {e}")
+            yaml.load(content, Loader=DuplicateKeySafeLoader)  # noqa: S506
+        except yaml.YAMLError as e:
+            raise RuntimeError(f"Invalid YAML in {file_path}: {e}") from e
 
+        return duplicates
         return duplicates
 
     def test_workflow_files_remain_valid_yaml(self):
