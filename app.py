@@ -442,7 +442,8 @@ class FinancialAssetApp:
                 formulas and empirical relationships.
 
         Returns:
-            str: A formatted multi-line string containing the analysis summary.
+            str: A formatted multi-line string containing key metrics, categorized
+                formulas, insights, and notable asset correlations.
         """
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
