@@ -1,55 +1,187 @@
+# src/reports/integration.py
 from __future__ import annotations
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Literal
 
+import bleach
 import markdown
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.reports.schema_report_generator import SchemaReportGenerator
 
 # ---------------------------------------------------------------------------
-# Markdown → HTML transformation
+# Markdown → HTML transformation (sanitized)
 # ---------------------------------------------------------------------------
+
+# Conservative allowlist. Expand only if you have a concrete rendering need.
+_ALLOWED_TAGS: set[str] = set(bleach.sanitizer.ALLOWED_TAGS).union(
+    {
+        "p",
+        "br",
+        "hr",
+        "pre",
+        "code",
+        "blockquote",
+        "ul",
+        "ol",
+        "li",
+        "strong",
+        "em",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "table",
+        "thead",
+        "tbody",
+        "tr",
+        "th",
+        "td",
+        "span",
+    }
+)
+
+_ALLOWED_ATTRIBUTES: dict[str, list[str]] = {
+    # links
+    "a": ["href", "title", "rel"],
+    # code blocks (some markdown renderers add class for highlighting)
+    "code": ["class"],
+    "pre": ["class"],
+    # table formatting
+    "th": ["colspan", "rowspan", "align"],
+    "td": ["colspan", "rowspan", "align"],
+    # very limited span usage
+    "span": ["class"],
+}
+
+_ALLOWED_PROTOCOLS: frozenset[str] = frozenset({"http", "https", "mailto"})
 
 
 def markdown_to_html(md: str) -> str:
     """
-    Convert a Markdown string into HTML.
+    Render a Markdown-formatted string to sanitized HTML.
 
-    Uses python-markdown for safety and deterministic output.
+    Markdown rendering can emit raw HTML if the source contains it. We therefore
+    sanitize the resulting HTML to prevent script injection (XSS).
+
+    Parameters:
+        md (str): Markdown content.
+
+    Returns:
+        str: Sanitized HTML string rendered from the provided Markdown.
+
+    Raises:
+        ValueError: If Markdown rendering or sanitisation fails.
     """
-    return markdown.markdown(
+    rendered = markdown.markdown(
         md,
         extensions=["tables", "fenced_code", "toc"],
         output_format="html5",
     )
+
+    sanitized = bleach.clean(
+        rendered,
+        tags=_ALLOWED_TAGS,
+        attributes=_ALLOWED_ATTRIBUTES,
+        protocols=_ALLOWED_PROTOCOLS,
+        strip=True,
+    )
+
+    # Add rel="nofollow noopener" to links and open in new tab defensively.
+    def _add_noopener(attrs: dict, new: bool = False) -> dict:
+        rel = attrs.get((None, "rel"), "")
+        if "noopener" not in rel:
+            attrs[(None, "rel")] = (rel + " noopener").strip()
+        return attrs
+
+    sanitized = bleach.linkify(
+        sanitized,
+        callbacks=[
+            bleach.callbacks.nofollow,
+            bleach.callbacks.target_blank,
+            _add_noopener,
+        ],
+        skip_tags={"pre", "code"},
+    )
+    return sanitized
 
 
 # ---------------------------------------------------------------------------
 # Core generation interface
 # ---------------------------------------------------------------------------
 
+from src.reports.schema_report import generate_schema_report
+
 
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown-formatted schema + metrics report.
+    Generate a Markdown schema report for the provided graph.
+
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to report on.
+
+    Returns:
+        str: Markdown-formatted schema report.
+
+    Raises:
+        ValueError: Propagated from report generation if the graph is invalid.
     """
-    generator = SchemaReportGenerator(graph)
-    return generator.generate()
+    return generate_schema_report(graph)
 
 
 def generate_html_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate an HTML report by converting the Markdown output.
+    Generate a schema report for the provided asset relationship graph and
+    return it as sanitized HTML.
+
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to report on.
+
+    Returns:
+        str: Sanitized HTML string containing the generated report.
+
+    Raises:
+        ValueError: Propagated from report generation if the graph is invalid.
     """
     md = generate_markdown_report(graph)
     return markdown_to_html(md)
 
 
-# ---------------------------------------------------------------------------
-# Optional Gradio integration
+ReportFormat = Literal["md", "html"]
 
-# ---------------------------------------------------------------------------
+
+def export_report(graph: AssetRelationshipGraph, fmt: ReportFormat = "md") -> str:
+    """
+    Export a schema report for `graph` in the requested format.
+
+    This provides a single integration point for API routes or other callers
+    that need either Markdown or HTML output.
+
+    Parameters:
+        graph (AssetRelationshipGraph): The asset relationship graph to report on.
+        fmt (Literal["md", "html"]): Output format.
+
+    Returns:
+        str: Report content in the requested format.
+
+    Raises:
+        TypeError: If `graph` is not an AssetRelationshipGraph.
+        ValueError: If `fmt` is unsupported.
+    """
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError(f"export_report() expected AssetRelationshipGraph, got {type(graph)!r}")
+
+    fmt_norm = fmt.lower()
+
+    if fmt_norm == "md":
+        return generate_markdown_report(graph)
+
+    if fmt_norm == "html":
+        # HTML path is always sanitized via markdown_to_html()
+        return generate_html_report(graph)
+
+    raise ValueError(f"Unsupported report format: {fmt!r}. Expected 'md' or 'html'.")
 
 
 def make_gradio_report_fn(
@@ -57,14 +189,19 @@ def make_gradio_report_fn(
     html: bool = False,
 ) -> Callable[[], str]:
     """
-    Create a Gradio-friendly callable that returns either Markdown or HTML.
+    Create a no-argument callable that returns a schema report as Markdown or HTML.
 
     Parameters:
-        graph_provider: Callable returning an initialized AssetRelationshipGraph.
-        html: If True, output HTML; otherwise output Markdown.
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument factory
+            returning the current graph.
+        html (bool): If ``True``, returns sanitized HTML; otherwise returns Markdown.
 
     Returns:
-        A function suitable for Gradio interfaces.
+        Callable[[], str]: Zero-argument function producing the report string.
+
+    Raises:
+        Any exception propagated from ``graph_provider()``, ``generate_html_report()``,
+        or ``generate_markdown_report()`` when the returned callable is invoked.
     """
 
     def _fn() -> str:
@@ -81,74 +218,26 @@ def attach_to_gradio_interface(
     html: bool = False,
 ) -> Any:
     """
-    Attach a report generator to a Gradio Blocks or Interface component.
+    Create and return a Gradio component pre-populated with a schema report.
 
-    Returns a Gradio component (Markdown or HTML), depending on parameters.
+    Parameters:
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument factory
+            returning the current graph.
+        html (bool): If True, returns a gr.HTML component; otherwise gr.Markdown.
 
-    This function avoids importing Gradio unless actually invoked, to
-    prevent unnecessary dependencies from leaking into environments
-    that do not use Gradio.
+    Returns:
+        Any: A gr.HTML or gr.Markdown Gradio component.
+
+    Raises:
+        RuntimeError: If Gradio is not installed.
     """
     try:
         import gradio as gr
-    except Exception as exc:  # pragma: no cover
+    except ImportError as exc:  # pragma: no cover
         raise RuntimeError("Gradio is not installed.") from exc
 
     report_fn = make_gradio_report_fn(graph_provider, html=html)
 
     if html:
-        return gr.HTML(report_fn())
-    return gr.Markdown(report_fn())
-
-
-# ---------------------------------------------------------------------------
-
-# Plotly integration helpers
-# ---------------------------------------------------------------------------
-
-
-def embed_report_in_plotly_figure(
-    fig: Any,
-    graph: AssetRelationshipGraph,
-) -> Any:
-    """
-    Attach a schema report to a Plotly figure as metadata.
-
-    This does not alter visual rendering unless the consumer UI reads
-    the metadata. It keeps Plotly figures self-describing.
-    """
-    md = generate_markdown_report(graph)
-    fig["metadata"] = fig.get("metadata", {})
-    fig["metadata"]["schema_report"] = md
-    return fig
-
-
-# ---------------------------------------------------------------------------
-# Export utilities
-# ---------------------------------------------------------------------------
-
-
-def export_report(
-    graph: AssetRelationshipGraph,
-    *,
-    fmt: str = "md",
-) -> str:
-    """
-    Export the report in one of several formats.
-
-    Supported:
-        - "md"  → Markdown string
-        - "html" → HTML string
-
-    Raises:
-        ValueError: For unsupported formats.
-    """
-    fmt_normalized = fmt.lower().strip()
-
-    if fmt_normalized == "md":
-        return generate_markdown_report(graph)
-
-    if fmt_normalized == "html":
-        return generate_html_report(graph)
-
-    raise ValueError(f"Unsupported export format: {fmt!r}")
+        return gr.HTML(value=report_fn)
+    return gr.Markdown(value=report_fn)

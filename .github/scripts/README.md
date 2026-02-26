@@ -1,4 +1,70 @@
-# PR Agent Context Chunking
+# GitHub Scripts
+
+This directory contains utility scripts for GitHub Actions workflows and local development.
+
+## Schema Report CLI (`schema_report_cli.py`)
+
+### Overview
+
+A command-line tool for generating financial asset relationship schema reports with validated input options and proper error handling.
+
+### Features
+
+- **Validated Input**: Uses constrained enum for format validation to prevent unexpected states
+- **Secure Error Handling**: Presents generic error messages to users while maintaining detailed diagnostics in logs
+- **Multiple Output Formats**: Supports markdown, text, and JSON (markdown fully implemented)
+- **Flexible Output**: Write to file or stdout
+- **Comprehensive Logging**: Detailed logs for debugging without exposing sensitive information
+
+### Usage
+
+```bash
+# Generate report to stdout (default markdown format)
+python .github/scripts/schema_report_cli.py
+
+# Specify output format
+python .github/scripts/schema_report_cli.py --fmt markdown
+python .github/scripts/schema_report_cli.py --fmt text
+python .github/scripts/schema_report_cli.py --fmt json
+
+# Write to file
+python .github/scripts/schema_report_cli.py --output report.md
+python .github/scripts/schema_report_cli.py -o report.md --fmt markdown
+
+# Enable verbose logging
+python .github/scripts/schema_report_cli.py --verbose
+python .github/scripts/schema_report_cli.py -v
+```
+
+### Security Features
+
+1. **Input Validation**: The `--fmt` option uses a constrained enum (`OutputFormat`) that only accepts valid values:
+   - `markdown`
+   - `text`
+   - `json`
+
+   Invalid values are rejected by argparse before any processing occurs.
+
+2. **Exception Handling**: Multi-layered error handling approach:
+   - **User-facing**: Generic error messages that don't expose implementation details
+   - **Logging**: Detailed exception information logged to `.github/scripts/schema_report_cli.log`
+   - **Exit Codes**: Appropriate exit codes for different failure scenarios
+
+3. **No Sensitive Data Exposure**: Error messages shown to users are generic and don't reveal:
+   - Internal paths or structure
+   - Stack traces
+   - Configuration details
+   - Database connection information
+
+### Exit Codes
+
+- `0`: Success
+- `1`: Error (validation, generation, or unexpected)
+- `130`: User cancelled (Ctrl+C)
+
+---
+
+## PR Agent Context Chunking
 
 ## Overview
 
@@ -9,6 +75,7 @@ The PR Agent now includes intelligent context chunking to handle large PRs witho
 ### Context Size Monitoring
 
 The workflow automatically monitors the size of PR context data:
+
 - **Threshold**: 100KB of raw PR data (reviews, files, diffs, CI logs)
 - **Token Limit**: 32,000 tokens maximum context length
 - **Chunking Threshold**: 30,000 tokens triggers summarization
@@ -37,6 +104,7 @@ When context exceeds limits, the system uses a smart chunking approach:
 ### Fallback Strategies
 
 When context still exceeds limits after chunking:
+
 - **chunk_and_summarize**: Default strategy - chunk content and summarize overflows
 - **summarize_only**: Summarize all content aggressively
 - **prioritize**: Only include highest priority items
@@ -49,20 +117,20 @@ Configure chunking behavior in `.github/pr-agent-config.yml`:
 ```yaml
 agent:
   context:
-    max_tokens: 32000              # Maximum context length
-    chunk_size: 28000              # Size of each chunk
-    overlap_tokens: 2000           # Overlap between chunks
+    max_tokens: 32000 # Maximum context length
+    chunk_size: 28000 # Size of each chunk
+    overlap_tokens: 2000 # Overlap between chunks
     summarization_threshold: 30000 # When to start summarizing
 
     chunking:
       enabled: true
-      strategy: "smart"            # smart, sequential, or priority
-      preserve_structure: true     # Maintain code structure
+      strategy: "smart" # smart, sequential, or priority
+      preserve_structure: true # Maintain code structure
 
     summarization:
       enabled: true
-      model: "gpt-3.5-turbo"      # Model for summaries
-      max_summary_tokens: 2000     # Max tokens per summary
+      model: "gpt-3.5-turbo" # Model for summaries
+      max_summary_tokens: 2000 # Max tokens per summary
 ```
 
 ## Usage
@@ -70,6 +138,7 @@ agent:
 ### Automatic Operation
 
 The chunking system works automatically:
+
 1. PR opened or review submitted
 2. Workflow fetches PR context data
 3. Context size checked against threshold
@@ -79,6 +148,7 @@ The chunking system works automatically:
 ### Monitoring
 
 Check workflow output to see chunking status:
+
 - ✅ **No chunking needed**: Context under threshold
 - 🔄 **Context chunking applied**: Large context was chunked
 - 📊 **Context size**: Shows actual size in bytes
@@ -107,16 +177,19 @@ python .github/scripts/context_chunker.py
 ## Benefits
 
 ### Prevents Errors
+
 - No more "context length exceeded" failures
 - Handles PRs of any size
 - Graceful degradation when limits approached
 
 ### Maintains Quality
+
 - Prioritizes important information
 - Preserves code structure and context
 - Includes all critical review feedback
 
 ### Improves Performance
+
 - Faster processing of large PRs
 - Reduced token usage via summarization
 - Efficient use of API rate limits
@@ -157,6 +230,7 @@ The chunker uses two methods for token estimation:
 ### 1. Accurate Estimation (Recommended)
 
 When `tiktoken` is available, the chunker uses OpenAI's tokenizer for precise token counting:
+
 ```python
 import tiktoken
 enc = tiktoken.get_encoding('cl100k_base')  # GPT-4, GPT-3.5-turbo
@@ -164,6 +238,7 @@ tokens = len(enc.encode(text))
 ```
 
 **Installation**:
+
 ```bash
 pip install tiktoken
 ```
@@ -171,6 +246,7 @@ pip install tiktoken
 ### 2. Heuristic Fallback
 
 When `tiktoken` is not available, uses intelligent heuristics:
+
 - **Base Rate**: ~4 characters per token (English text)
 - **Code Adjustment**: +0.5 tokens per structural character `{}()[];`
 - **Whitespace Adjustment**: +0.25 tokens per whitespace sequence
@@ -178,6 +254,7 @@ When `tiktoken` is not available, uses intelligent heuristics:
 - **Safety Margin**: +10% buffer to prevent overruns
 
 The heuristic provides reasonable estimates but may be less accurate for:
+
 - Non-English text
 - Code-heavy content
 - Complex Unicode characters
@@ -191,13 +268,15 @@ The heuristic provides reasonable estimates but may be less accurate for:
 If chunking isn't sufficient:
 
 1. **Increase Priority Filtering**: Edit `.github/pr-agent-config.yml`:
+
    ```yaml
    limits:
-     max_files_per_chunk: 5        # Reduce from 10
-     max_diff_lines: 2500           # Reduce from 5000
+     max_files_per_chunk: 5 # Reduce from 10
+     max_diff_lines: 2500 # Reduce from 5000
    ```
 
 2. **Aggressive Summarization**: Change fallback strategy:
+
    ```yaml
    limits:
      fallback:
@@ -224,6 +303,7 @@ If chunking should activate but doesn't:
 If tests fail after implementing chunking:
 
 1. Verify context integrity with:
+
    ```bash
    python .github/scripts/context_chunker.py < test_pr.json
    ```
@@ -238,12 +318,14 @@ If tests fail after implementing chunking:
 ### Version 1.1.0
 
 **Accurate Token Estimation**:
+
 - ✅ Integrated `tiktoken` for precise token counting (GPT-4/3.5-turbo compatible)
 - ✅ Automatic fallback to improved heuristic when tiktoken unavailable
 - ✅ Enhanced heuristic with whitespace and formatting adjustments
 - ✅ 10% safety margin for heuristic mode
 
 **Robust Error Handling**:
+
 - ✅ Comprehensive configuration validation
 - ✅ Default configuration fallback when file missing/invalid
 - ✅ Graceful degradation on config errors
