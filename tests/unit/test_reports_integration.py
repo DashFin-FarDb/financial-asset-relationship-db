@@ -243,11 +243,18 @@ class TestGradioIntegration:
         with (
             patch(
                 "builtins.__import__",
-                side_effect=ImportError("No module gradio"),
-            ),
-            pytest.raises(RuntimeError, match="Gradio is not installed"),
-        ):
-            attach_to_gradio_interface(graph_provider)
+        import builtins
+
+        original_import = builtins.__import__
+
+        def _fake_import(name, *args, **kwargs):
+            if name == "gradio":
+                raise ImportError("No module named 'gradio'")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=_fake_import):
+            with pytest.raises(RuntimeError, match="Gradio is not installed"):
+                attach_to_gradio_interface(graph_provider)
 
 
 @pytest.mark.unit
