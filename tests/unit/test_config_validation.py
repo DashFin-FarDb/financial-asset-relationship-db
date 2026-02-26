@@ -289,11 +289,6 @@ class TestEnvExample:
         with open(config_path) as f:
             return f.read()
 
-    def test_env_example_exists(self):
-        """Test that .env.example exists."""
-        config_path = Path(".env.example")
-        assert config_path.exists()
-
     def test_env_example_has_api_url(self, env_example_content):
         """Test that NEXT_PUBLIC_API_URL is documented."""
         assert "NEXT_PUBLIC_API_URL" in env_example_content
