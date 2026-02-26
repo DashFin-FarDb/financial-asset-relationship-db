@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # System Manifest
 
 ## Project Overview
@@ -6758,3 +6759,5 @@ Dependencies:
 ## Implementation Notes
 
 - TBD
+=======
+>>>>>>> Stashed changes
