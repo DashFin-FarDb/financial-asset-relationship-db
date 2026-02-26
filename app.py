@@ -339,6 +339,20 @@ class FinancialAssetApp:
 
         Parameters:
             graph_state (AssetRelationshipGraph): The state of the asset graph
+
+        Returns:
+            tuple: A tuple containing:
+                - dashboard_fig (plotly.graph_objects.Figure): Formula dashboard figure.
+                - correlation_network_fig (plotly.graph_objects.Figure): Correlation
+                  network visualization of empirical relationships.
+                - metric_comparison_fig (plotly.graph_objects.Figure): Metric
+                  comparison chart across formulas and assets.
+                - formula_selector_update (gr.Update): Gradio update configuring the
+                  formula selector dropdown (choices and default value).
+                - summary_text (str): Human-readable summary of the formulaic
+                  analysis.
+                - error_message_update (gr.Update): Gradio update used to hide the
+                  error message component on successful analysis.
         """
         try:
             logger.info("Generating formulaic analysis")
