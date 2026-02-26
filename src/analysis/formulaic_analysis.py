@@ -382,11 +382,13 @@ class FormulaicAnalyzer:
         self, graph: AssetRelationshipGraph
     ) -> List[Formula]:
         """
-        Generate standard Modern Portfolio Theory formulas using data from the asset graph.
+        Generate standard Modern Portfolio Theory formulas using data from the
+        asset graph.
 
-        Creates formulas for portfolio expected return and the two-asset portfolio variance,
-        including expressions, LaTeX, variable mappings, example calculations, category,
-        and r_squared estimates.
+        Creates formulas for portfolio expected return and the two-asset
+        portfolio variance,
+        including expressions, LaTeX, variable mappings, example calculations,
+        category, and r_squared estimates.
 
         Parameters:
             graph (AssetRelationshipGraph): Asset graph used to populate example
