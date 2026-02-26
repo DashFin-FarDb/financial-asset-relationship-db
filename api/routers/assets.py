@@ -85,13 +85,7 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
         500: {
             "description": "Internal server error while listing assets.",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
@@ -125,10 +119,7 @@ async def get_assets(
             # Support both enum name (e.g., "EQUITY") and value (e.g., "Equity")
             if asset_class:
                 asset_class_upper = asset_class.upper()
-                if (
-                    asset.asset_class.name != asset_class_upper
-                    and asset.asset_class.value.upper() != asset_class_upper
-                ):
+                if asset.asset_class.name != asset_class_upper and asset.asset_class.value.upper() != asset_class_upper:
                     continue
             if sector and asset.sector != sector:
                 continue
@@ -154,20 +145,12 @@ async def get_assets(
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {
-                "application/json": {"example": {"detail": "Asset not found."}}
-            },
+            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
         },
         500: {
             "description": "Internal server error while retrieving asset.",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
@@ -215,22 +198,12 @@ async def get_asset_detail(asset_id: str):
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {
-                "application/json": {"example": {"detail": "Asset not found."}}
-            },
+            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
         },
         500: {
-            "description": (
-                "Internal server error while retrieving asset relationships."
-            ),
+            "description": ("Internal server error while retrieving asset relationships."),
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },

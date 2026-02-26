@@ -13,9 +13,10 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+import api.graph_lifecycle as _graph_lifecycle
+
 # Import from new modules
 from api.cors_utils import validate_origin
-import api.graph_lifecycle as _graph_lifecycle
 from api.graph_lifecycle import get_graph, reset_graph, set_graph, set_graph_factory
 from api.models import (
     AssetResponse,
@@ -145,9 +146,7 @@ app.include_router(graph.router)
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
-):
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Create a JWT access token for a user authenticated with a username and password.
 
@@ -162,27 +161,21 @@ async def login_for_access_token(
 
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
-        logger.warning(
-            "Authentication failed for user: %s", form_data.username
-        )
+        logger.warning("Authentication failed for user: %s", form_data.username)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     logger.info("Authentication successful for user: %s", user.username)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_active_user)
-):
+async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
     """
     Retrieve the currently authenticated user.
 
