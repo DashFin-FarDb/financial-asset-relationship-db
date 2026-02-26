@@ -257,9 +257,8 @@ class TestPydanticModels:
 class TestAPIEndpoints:
     """Test all FastAPI endpoints."""
 
-    @staticmethod
     @pytest.fixture
-    def client():
+    def client(self):
         """
         Provide a TestClient with a pre-populated in-memory sample graph for endpoint tests.
 
@@ -925,9 +924,8 @@ class TestPydanticModelValidation:
 class TestEndpointStressTests:
     """Stress tests for API endpoints under load."""
 
-    @staticmethod
     @pytest.fixture
-    def client():
+    def client(self):
         """
         Provide a TestClient preloaded with a sample in-memory graph for tests.
 
@@ -979,9 +977,8 @@ class TestEndpointStressTests:
 class TestErrorMessageQuality:
     """Test quality and informativeness of error messages."""
 
-    @staticmethod
     @pytest.fixture
-    def client():
+    def client(self):
         """
         Provide a TestClient with an in-memory sample graph for tests.
 

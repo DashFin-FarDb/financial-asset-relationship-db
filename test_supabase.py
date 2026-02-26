@@ -67,7 +67,7 @@ def test_supabase_connection_smoke() -> None:
     Raises:
         AssertionError: If the client or query fails or returns an invalid response.
     """
-    if os.getenv("RUN_SUPABASE_TESTS") != "1":
+    if _get_env("RUN_SUPABASE_TESTS") != "1":
         pytest.skip("Set RUN_SUPABASE_TESTS=1 to enable live Supabase connectivity test")
 
     # If you *really* want local .env loading, do it only when explicitly enabled.
