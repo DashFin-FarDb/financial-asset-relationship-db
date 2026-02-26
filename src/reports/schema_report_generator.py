@@ -194,6 +194,9 @@ class SchemaReportGenerator:
             "- ISO 8601 timestamps.",
             "- Strengths normalized to 0–1.",
             "- Impact scores normalized to -1 to +1.",
-            ("- Directionality varies by relationship type: " "some are bidirectional, others directional."),
+            (
+                "- Directionality varies by relationship type: "
+                "some are bidirectional, others directional."
+            ),
             "",
         ]
