@@ -56,7 +56,9 @@ except Exception:
 
 file_handler = logging.FileHandler(LOG_PATH)
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+file_formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
 file_handler.setFormatter(file_formatter)
 
 stream_handler = logging.StreamHandler(sys.stderr)
@@ -94,12 +96,7 @@ class CLIError(Exception):
 
 
 def parse_arguments() -> argparse.Namespace:
-    """
-    Parse and validate command-line arguments.
-
-    Returns:
-        argparse.Namespace: Validated argument namespace.
-    """
+    """Parse and validate command-line arguments."""
     parser = argparse.ArgumentParser(
         description="Generate schema reports for financial asset relationships.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -129,11 +126,13 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def convert_markdown_to_plain_text(markdown: str) -> str:
-    """
-    Convert Markdown to a simple plain-text representation.
+    """Convert Markdown to a simple plain-text representation.
 
-    Strips common Markdown markers but keeps content intact.
+    Strips common Markdown markers (like '# ', '- ', '* ') from the start of lines
+    but keeps the line content. This is a naive conversion and may not handle
+    complex Markdown formatting correctly.
     """
+    """Convert Markdown to plain text."""
     lines: list[str] = []
     for line in markdown.splitlines():
         stripped = line.lstrip("# ").lstrip("- ").lstrip("* ")
@@ -142,11 +141,7 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
 
 
 def convert_markdown_to_json(markdown: str) -> str:
-    """
-    Wrap the Markdown schema report in a simple JSON object.
-
-    This minimal payload can be extended or versioned in future.
-    """
+    """Wrap the Markdown schema report in a JSON object."""
     payload = {"schema_report": markdown}
     return json.dumps(payload, indent=2)
 
@@ -219,8 +214,14 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
 
 
 def main() -> int:
-    """
-    Main entry point for the Schema Report CLI.
+    """Main entry point for the Schema Report CLI.
+
+    This function serves as the primary interface for the command-line tool,
+    handling argument parsing and adjusting log levels based on verbosity. It
+    manages the output format selection and report generation, while also  handling
+    various exceptions that may arise during execution, including  invalid output
+    formats and unexpected errors, ensuring appropriate messages  are logged and
+    displayed to the user.
 
     Returns:
         int: Exit code (0 for success, non-zero for errors).
@@ -244,7 +245,8 @@ def main() -> int:
         except ValueError:
             logger.error("Invalid format value: %s", args.fmt)
             print(
-                "Error: Invalid output format. " "Please use one of: markdown, text, json.",
+                "Error: Invalid output format. "
+                "Please use one of: markdown, text, json.",
                 file=sys.stderr,
             )
             return 1

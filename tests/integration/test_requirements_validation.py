@@ -33,7 +33,7 @@ class TestRequirementsDevChanges:
 
         Performs a case-insensitive check of the provided requirements content to ensure PyYAML is present.
         """
-        assert "pyyaml" in requirements_dev_content.lower() or "PyYAML" in requirements_dev_content
+        assert "pyyaml" in requirements_dev_content.lower()
 
     def test_pyyaml_has_version_specifier(self, requirements_dev_content):
         """
@@ -47,15 +47,26 @@ class TestRequirementsDevChanges:
         """
         lines = requirements_dev_content.split("\n")
         # Ignore commented lines so we don't pick up commented-out examples
-        pyyaml_line = next((l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")), None)
+        pyyaml_line = next(
+            (l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")),
+            None,
+        )
 
         assert pyyaml_line is not None
         from packaging.requirements import Requirement
 
+        def _safe_req_name(line: str) -> str | None:
+            """Return the normalised package name, or None for pip directives / malformed lines."""
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith("-"):
+                return None
+            try:
+                return Requirement(stripped.split("#")[0].strip()).name.lower()
+            except Exception:
+                return None
+
         # Find all non-comment lines explicitly declaring PyYAML (ignore types-PyYAML)
-        pyyaml_lines = [
-            l for l in lines if l.strip() and not l.strip().startswith("#") and Requirement(l).name.lower() == "pyyaml"
-        ]
+        pyyaml_lines = [l for l in lines if _safe_req_name(l) == "pyyaml"]
         # Assert exactly one active PyYAML requirement exists
         assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         pyyaml_line = pyyaml_lines[0]
@@ -74,7 +85,11 @@ class TestRequirementsDevChanges:
         Parameters:
             requirements_dev_content(str): Contents of requirements-dev.txt.
         """
-        lines = [l.strip() for l in requirements_dev_content.split("\n") if l.strip() and not l.strip().startswith("#")]
+        lines = [
+            l.strip()
+            for l in requirements_dev_content.split("\n")
+            if l.strip() and not l.strip().startswith("#") and not l.strip().startswith("-")
+        ]
 
         # Split on any common version operator to reliably extract the package name
         from packaging.requirements import Requirement
@@ -150,18 +165,22 @@ class TestRequirementsDependencyCompatibility:
         with open(req_dev_path, "r") as f:
             req_dev_content = f.read()
 
-        # Check for packages in both files
-        req_packages = {
-            l.split("==")[0].split(">=")[0].lower().strip()
-            for l in req_content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
-        }
+        def _extract_pkg_name(line: str) -> str | None:
+            """Return normalised package name from a requirement line, or None to skip."""
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#") or stripped.startswith("-"):
+                return None
+            try:
+                from packaging.requirements import Requirement as _Req
 
-        req_dev_packages = {
-            l.split("==")[0].split(">=")[0].lower().strip()
-            for l in req_dev_content.split("\n")
-            if l.strip() and not l.strip().startswith("#")
-        }
+                return _Req(stripped.split("#")[0].strip()).name.lower()
+            except Exception:
+                return None
+
+        # Check for packages in both files
+        req_packages = {n for l in req_content.split("\n") if (n := _extract_pkg_name(l)) is not None}
+
+        req_dev_packages = {n for l in req_dev_content.split("\n") if (n := _extract_pkg_name(l)) is not None}
 
         overlap = req_packages & req_dev_packages
         # PyYAML might be in both, but versions should be compatible
@@ -172,7 +191,10 @@ class TestRequirementsDependencyCompatibility:
 class TestRequirementsInstallability:
     """Test that requirements can be installed."""
 
-    @pytest.mark.skipif(not Path("requirements-dev.txt").exists(), reason="requirements-dev.txt not found")
+    @pytest.mark.skipif(
+        not Path("requirements-dev.txt").exists(),
+        reason="requirements-dev.txt not found",
+    )
     def test_requirements_dev_syntax_valid(self):
         """Verify requirements-dev.txt has valid pip syntax."""
         # Use pip to check syntax without installing
@@ -181,8 +203,13 @@ class TestRequirementsInstallability:
             capture_output=True,
             text=True,
         )
-        # Should not have syntax errors
-        assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
+        # Check return code - pip should exit with 0 on success
+        # Allow benign warnings in stderr (e.g., "WARNING: pip is being invoked")
+        assert result.returncode == 0, (
+            f"pip install --dry-run failed with exit code {result.returncode}\n"
+            f"stderr: {result.stderr}\n"
+            f"stdout: {result.stdout}"
+        )
 
 
 class TestRequirementsDocumentation:

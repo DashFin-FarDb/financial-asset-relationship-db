@@ -30,7 +30,7 @@ def db_session(tmp_path):
 
     This fixture creates a temporary SQLite database file, initializes the schema, yields a session bound to that database for test use, and closes the session and disposes the engine when the test completes.
 
-    Returns:
+    Yields:
         session (Session): A SQLAlchemy Session connected to the temporary SQLite database.
     """
     db_path = tmp_path / "test.db"

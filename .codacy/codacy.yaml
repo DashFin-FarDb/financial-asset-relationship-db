@@ -7,7 +7,7 @@ runtimes:
 
 tools:
   # JavaScript / TypeScript / Next.js / frontend
-  - eslint@8.57.0
+  - eslint@9.39.3
 
   # Python backend static analysis (complements ruff/flake8 in CI)
   - pylint@3.3.6

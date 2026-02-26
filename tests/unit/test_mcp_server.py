@@ -278,7 +278,6 @@ class TestGet3DLayout:
             ),
             None,
         )
-        assert resource_func is not None, "3d-layout resource not found"
 
         result = resource_func()
 

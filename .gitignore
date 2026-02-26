@@ -100,9 +100,22 @@ dmypy.json
 # Linting
 .ruff_cache/
 
+# Qlty cache and temporary files
+.qlty/plugin_cachedir
+.qlty/logs
+.qlty/out
+.qlty/results
+
 # Docker
 .dockerignore
 docker-compose.override.yml
 
+# Elastic Copilot backups
+.elastic-copilot/memory/*.backup
+
 #Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+
+# Ignore accidental pip/command output artifacts
+=2.8.0
+s

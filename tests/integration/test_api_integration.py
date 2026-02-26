@@ -14,6 +14,8 @@ import pytest
 import pytest_asyncio
 from fastapi.security import OAuth2PasswordRequestForm
 
+from api.main import app
+
 # Ensure required env vars are set before importing the API module.
 os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
@@ -22,7 +24,6 @@ os.environ.setdefault("ADMIN_PASSWORD", "admin-password")
 os.environ.setdefault("ADMIN_EMAIL", "admin@example.com")
 os.environ.setdefault("ADMIN_FULL_NAME", "Admin User")
 
-from api.main import app
 
 # Disable rate limiting to avoid slowapi interference in test runs.
 app.state.limiter.enabled = False
@@ -120,8 +121,8 @@ class TestCompleteAPIFlow:
         all_assets = (await client.get("/api/assets")).json()
 
         # Get unique asset classes and sectors
-        asset_classes = set(a["asset_class"] for a in all_assets)
-        sectors = set(a["sector"] for a in all_assets)
+        asset_classes = {a["asset_class"] for a in all_assets}
+        sectors = {a["sector"] for a in all_assets}
 
         # Test each asset class filter
         for ac in asset_classes:
@@ -207,6 +208,7 @@ class TestPerformance:
         import asyncio
 
         async def make_request():
+            """Make a GET request to '/api/assets' and return the status code."""
             return (await client.get("/api/assets")).status_code
 
         results = await asyncio.gather(*(make_request() for _ in range(10)))
@@ -222,13 +224,13 @@ class TestAuthenticationFlow:
     @pytest.mark.asyncio
     async def test_token_issuance_and_validation(client):
         """A valid credential should yield a token that authorizes protected endpoints."""
-
         credentials = {
             "username": os.environ["ADMIN_USERNAME"],
             "password": os.environ["ADMIN_PASSWORD"],
         }
 
         async def override_form_data():
+            """Provide valid OAuth2 form data override for testing successful token issuance."""
             return OAuth2PasswordRequestForm(
                 username=credentials["username"],
                 password=credentials["password"],
@@ -261,6 +263,7 @@ class TestAuthenticationFlow:
         invalid_credentials["password"] = "wrongpassword"
 
         async def override_invalid_form_data():
+            """Provide invalid OAuth2 form data override for testing authentication failure."""
             return OAuth2PasswordRequestForm(
                 username=invalid_credentials["username"],
                 password=invalid_credentials["password"],

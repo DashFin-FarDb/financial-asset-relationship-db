@@ -414,7 +414,6 @@ class TestFormulaicVisualizer:
         assert count_trace is not None, "Should have count trace"
 
     @staticmethod
-    @staticmethod
     def test_formula_dashboard_handles_large_correlation_matrix(visualizer):
         """Test dashboard with a large correlation matrix."""
         # Create a large correlation matrix (more than 8x8)
@@ -443,7 +442,6 @@ class TestFormulaicVisualizer:
             heatmap = heatmap_traces[0]
             assert len(heatmap.z) <= 8, "Should limit heatmap to 8x8"
 
-    @staticmethod
     @staticmethod
     def test_formula_detail_view_with_special_characters(visualizer):
         """Test detail view with formulas containing special characters."""
@@ -535,8 +533,14 @@ class TestFormulaicVisualizer:
         )
 
     @staticmethod
-    def test_formula_dashboard_with_zero_formulas():
-        """Test dashboard creation with empty formula list."""
+    def test_formula_dashboard_with_zero_formulas() -> None:
+        """Test dashboard creation with empty formula list.
+
+        Returns:
+            None
+        Raises:
+            Exception: Propagates any unexpected errors from dashboard creation.
+        """
         visualizer = FormulaicVisualizer()
 
         analysis_results = {

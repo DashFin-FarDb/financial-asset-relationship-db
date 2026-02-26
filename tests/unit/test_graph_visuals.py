@@ -13,9 +13,7 @@ from src.visualizations.graph_visuals import (
 
 
 class DummyGraph(AssetRelationshipGraph):
-    """A dummy graph for testing, extending AssetRelationshipGraph to provide controllable relationships."""
-
-    def __init__(self, relationships):
+    def __init__(self, relationships: dict[str, list[tuple[str, str, float]]]) -> None:
         # relationships: Dict[str, List[Tuple[str, str, float]]]
         """
         Initialize the DummyGraph with a mapping of asset relationships.
@@ -24,6 +22,12 @@ class DummyGraph(AssetRelationshipGraph):
             relationships (dict): Mapping from source asset ID (str) to a list of relationship tuples. Each tuple is
                 (target_id: str, relation_type: str, weight: float), representing an outgoing relationship from the
                 source asset to the target asset with the given type and weight.
+
+        Returns:
+            None
+
+        Raises:
+            None
         """
         super().__init__()
         self.relationships = relationships

@@ -61,6 +61,8 @@ import type { Data } from "plotly.js";
 /**
  * Display an interactive 3D network of assets from the provided visualization payload.
  *
+ * It validates incoming data against size limits and prepares Plotly traces for nodes and edges.
+ *
  * @param data - Visualization payload containing `nodes` and `edges`.
  *   Nodes are objects with at least: `id`, `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, `color`.
  *   Edges are objects with at least: `source`, `target`, `relationship_type`, `strength`.
@@ -157,7 +159,7 @@ export default function NetworkVisualization({
       return acc;
     }, []);
 
-    setPlotData([...edgeTraces, nodeTrace]);
+    setPlotData([...edgeTraces, nodeTrace] as Data[]);
     setStatus("ready");
     setMessage("");
   }, [data]);
