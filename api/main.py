@@ -147,8 +147,8 @@ app.include_router(graph.router)
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
 async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
-    # The `request` parameter is required by slowapi's limiter for dependency injection.
     """Create a JWT access token for an authenticated user."""
+    # The `request` parameter is required by slowapi's limiter for dependency injection.
     _ = request
 
     user = authenticate_user(form_data.username, form_data.password)
