@@ -959,12 +959,15 @@ class TestGitHubIssueTemplates:
         lines = custom_issue_template.split("\n")
         if lines[0] == "---":
             # Find end of frontmatter
-            end_idx = lines[1:].index("---") + 1
-            frontmatter = "\n".join(lines[1:end_idx])
+            try:
+                end_idx = lines[1:].index("---") + 1
+                frontmatter = "\n".join(lines[1:end_idx])
 
-            # Should have name and about fields
-            assert "name:" in frontmatter
-            assert "about:" in frontmatter
+                # Should have name and about fields
+                assert "name:" in frontmatter
+                assert "about:" in frontmatter
+            except ValueError:
+                pytest.fail("Frontmatter closing delimiter '---' not found")
 
 
 class TestCodacyInstructions:
