@@ -227,7 +227,6 @@ async def read_users_me(
     _ = request
 
     return current_user
-    return current_user
 
 
 def validate_origin(origin: str) -> bool:
