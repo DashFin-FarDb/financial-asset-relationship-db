@@ -440,6 +440,9 @@ class FinancialAssetApp:
             summary (Dict): A dictionary containing summary statistics and insights.
             analysis_results (Dict): A dictionary containing analysis results, including
                 formulas and empirical relationships.
+
+        Returns:
+            str: A formatted multi-line string containing the analysis summary.
         """
         formulas = analysis_results.get("formulas", [])
         empirical = analysis_results.get("empirical_relationships", {})
