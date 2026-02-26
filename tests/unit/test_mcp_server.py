@@ -128,34 +128,42 @@ class TestAddEquityNode:
         """Test successful equity node addition."""
         from mcp_server import _build_mcp_app, graph
 
-        # Reset graph state
-        graph._graph.assets.clear()
-        graph._graph.relationships.clear()
+        original_assets = dict(graph._graph.assets)
+        original_relationships = dict(graph._graph.relationships)
+        try:
+            # Reset graph state
+            graph._graph.assets.clear()
+            graph._graph.relationships.clear()
 
-        mcp_app = _build_mcp_app()
+            mcp_app = _build_mcp_app()
 
-        # Access the registered tool
-        tool_func = next(
-            (
-                tool.fn
-                for tool in mcp_app.list_tools()
-                if tool.name == "add_equity_node"
-            ),
-            None,
-        )
-        assert tool_func is not None, "add_equity_node tool not found"
+            # Access the registered tool
+            tool_func = next(
+                (
+                    tool.fn
+                    for tool in mcp_app.list_tools()
+                    if tool.name == "add_equity_node"
+                ),
+                None,
+            )
+            assert tool_func is not None, "add_equity_node tool not found"
 
-        result = tool_func(
-            asset_id="AAPL_TEST",
-            symbol="AAPL",
-            name="Apple Inc Test",
-            sector="Technology",
-            price=150.0,
-        )
+            result = tool_func(
+                asset_id="AAPL_TEST",
+                symbol="AAPL",
+                name="Apple Inc Test",
+                sector="Technology",
+                price=150.0,
+            )
 
-        assert "Successfully" in result
-        assert "Apple Inc Test" in result
-        assert "AAPL" in result
+            assert "Successfully" in result
+            assert "Apple Inc Test" in result
+            assert "AAPL" in result
+        finally:
+            graph._graph.assets.clear()
+            graph._graph.assets.update(original_assets)
+            graph._graph.relationships.clear()
+            graph._graph.relationships.update(original_relationships)
 
     @staticmethod
     def test_add_equity_node_validation_error_negative_price():
@@ -558,26 +566,34 @@ class TestEdgeCases:
         """Test get_3d_layout with empty graph."""
         from mcp_server import _build_mcp_app, graph
 
-        # Clear graph
-        graph._graph.assets.clear()
-        graph._graph.relationships.clear()
+        original_assets = dict(graph._graph.assets)
+        original_relationships = dict(graph._graph.relationships)
+        try:
+            # Clear graph
+            graph._graph.assets.clear()
+            graph._graph.relationships.clear()
 
-        mcp_app = _build_mcp_app()
+            mcp_app = _build_mcp_app()
 
-        resource_func = None
-        for resource in mcp_app.list_resources():
-            if "3d-layout" in resource.uri:
-                resource_func = resource.fn
-                break
+            resource_func = None
+            for resource in mcp_app.list_resources():
+                if "3d-layout" in resource.uri:
+                    resource_func = resource.fn
+                    break
 
-        result = resource_func()
-        data = json.loads(result)
+            result = resource_func()
+            data = json.loads(result)
 
-        # Should return valid structure even with empty graph
-        assert "asset_ids" in data
-        assert "positions" in data
-        assert "colors" in data
-        assert "hover" in data
+            # Should return valid structure even with empty graph
+            assert "asset_ids" in data
+            assert "positions" in data
+            assert "colors" in data
+            assert "hover" in data
+        finally:
+            graph._graph.assets.clear()
+            graph._graph.assets.update(original_assets)
+            graph._graph.relationships.clear()
+            graph._graph.relationships.update(original_relationships)
 
     @staticmethod
     def test_main_with_invalid_arguments():

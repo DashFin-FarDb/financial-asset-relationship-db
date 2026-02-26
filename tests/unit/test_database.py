@@ -425,23 +425,22 @@ class TestConnectionPooling:
         in_memory_engine = create_engine_from_url("sqlite:///:memory:")
         assert isinstance(in_memory_engine.pool, StaticPool)
 
-    def test_multiple_connections_to_same_in_memory_db(self) -> None:
+    def test_multiple_connections_to_same_in_memory_db(self, isolated_base) -> None:
         """Multiple connections to in-memory DB should share same data with StaticPool."""
         in_memory_engine = create_engine_from_url("sqlite:///:memory:")
-        Base.metadata.create_all(in_memory_engine)
 
         from sqlalchemy.orm import sessionmaker
 
         Session = sessionmaker(bind=in_memory_engine)
 
-        class TestTable(Base):
+        class TestTable(isolated_base):
             """Test table for connection pooling validation."""
 
             __tablename__ = "test_pool"
             id = Column(Integer, primary_key=True)
             value = Column(String)
 
-        Base.metadata.create_all(in_memory_engine)
+        isolated_base.metadata.create_all(in_memory_engine)
 
         session1 = Session()
         session1.add(TestTable(id=1, value="test"))
@@ -454,7 +453,7 @@ class TestConnectionPooling:
         assert result.value == "test"
         session2.close()
 
-        Base.metadata.drop_all(in_memory_engine)
+        isolated_base.metadata.drop_all(in_memory_engine)
 
     def test_pool_size_configuration_for_postgres(self) -> None:
         """PostgreSQL URLs should accept pool size configuration."""
@@ -710,20 +709,20 @@ class TestResourceCleanup:
         with session_scope(factory) as session:
             assert session.query(TestModel).count() == 10
 
-    def test_session_scope_with_nested_commits(self, engine: Engine) -> None:
+    def test_session_scope_with_nested_commits(self, engine: Engine, isolated_base) -> None:
         """
         Verifies that explicit commits performed inside a session_scope persist data across subsequent scopes.
 
         This test creates a simple model, performs explicit commits within a session_scope (simulating a regression where nested commits might be discarded), and then opens a new session_scope to assert the committed row is visible.
         """
 
-        class TestModelBase(Base):  # pylint: disable=redefined-outer-name
+        class TestModelBase(isolated_base):  # pylint: disable=redefined-outer-name
             """Test model for nested commit validation."""
 
             __tablename__ = "test_nested_commits"
             id = Column(Integer, primary_key=True)
 
-        init_db(engine)
+        isolated_base.metadata.create_all(engine)
         factory = create_session_factory(engine)
 
         # First transaction

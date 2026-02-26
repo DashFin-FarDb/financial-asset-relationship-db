@@ -435,8 +435,6 @@ class TestGitignore:
         """Test that .gitignore exists."""
         config_path = Path(".gitignore")
         assert config_path.exists()
-        config_path = Path(".gitignore")
-        assert config_path.exists()
 
     @staticmethod
     def test_gitignore_excludes_node_modules(gitignore_content):
