@@ -64,12 +64,17 @@ class TestWorkflowConsistency:
                     action_versions.setdefault(action_name, {}).setdefault(
                         action_version, []
                     ).append(wf_file)
+                inconsistencies: list[str] = []
 
         for action, versions in action_versions.items():
             if len(versions) > 1 and "actions/checkout" not in action:
-                print(
-                    f"Warning: {action} uses multiple versions: {list(versions.keys())}"
+                inconsistencies.append(
+                    f"{action} uses multiple versions: {list(versions.keys())}"
                 )
+
+        assert not inconsistencies, (
+            "Inconsistent action versions found:\n" + "\n".join(inconsistencies)
+        )
 
     def test_all_workflows_use_github_token_consistently(
         self,
