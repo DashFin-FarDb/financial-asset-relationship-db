@@ -382,6 +382,7 @@ class TestPRAgentConfigSecurity:
                         if v is None:
                             # Allow explicit null values for sensitive keys as safe placeholders
                             continue
+                            assert str(v).lower() in safe_placeholders, (
                             f"Potential hardcoded credential at '{current_path}'"
                         )
                     walk_and_check_config(v, current_path)
