@@ -87,15 +87,11 @@ def test_postgres_connection_smoke() -> None:
         AssertionError: If the connection or query fails to return a valid row.
     """
     if os.getenv("RUN_POSTGRES_TESTS") != "1":
-        pytest.skip(
-            "Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test"
-        )
+        pytest.skip("Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test")
 
     database_url = _get_database_url()
     if not database_url:
-        pytest.skip(
-            "No database URL provided. Set ASSET_GRAPH_DATABASE_URL (preferred) or DATABASE_URL."
-        )
+        pytest.skip("No database URL provided. Set ASSET_GRAPH_DATABASE_URL (preferred) or DATABASE_URL.")
 
     if any(token in database_url for token in PLACEHOLDER_TOKENS):
         pytest.skip("Database URL contains a placeholder password token")
@@ -107,9 +103,7 @@ def test_postgres_connection_smoke() -> None:
     try:
         conn = connect(database_url)
     except Exception as exc:  # noqa: BLE001
-        pytest.fail(
-            f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}"
-        )
+        pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
 
     try:
         with conn, conn.cursor() as cur:
@@ -123,9 +117,7 @@ def test_postgres_connection_smoke() -> None:
 
     assert row is not None  # nosec B101
     assert len(row) == 3  # nosec B101
-    assert isinstance(row[0], str), (
-        f"Expected str for database name, got {type(row[0])}"
-    )  # nosec B101
+    assert isinstance(row[0], str), f"Expected str for database name, got {type(row[0])}"  # nosec B101
     assert row[0], "Database name must be non-empty"  # nosec B101
     assert isinstance(row[1], str), f"Expected str for current user, got {type(row[1])}"  # nosec B101
     assert row[1], "Current user must be non-empty"  # nosec B101
