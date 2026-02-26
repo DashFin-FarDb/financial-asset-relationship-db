@@ -525,9 +525,7 @@ class FormulaicVisualizer:
             else list(strongest_correlations)[:10]
         )
 
-        assets = FormulaicVisualizer._extract_assets_from_correlations(
-            top_correlations
-        )
+        assets = FormulaicVisualizer._extract_assets_from_correlations(top_correlations)
         if not assets:
             fig = go.Figure()
             fig.update_layout(title="No valid asset correlations found")
