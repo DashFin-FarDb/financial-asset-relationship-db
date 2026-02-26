@@ -11,11 +11,13 @@ executors:
     docker:
       - image: cimg/python:3.11
     working_directory: ~/project
-  
+    resource_class: medium
+
   node-executor:
     docker:
       - image: cimg/node:18.19
     working_directory: ~/project
+    resource_class: medium
 
 jobs:
   # Python Backend Jobs
@@ -25,7 +27,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - python-deps-v1-{{ checksum "requirements.txt" }}
+            - python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+            - python-deps-v2-{{ checksum "requirements.txt" }}
+            - python-deps-v2-
       - run:
           name: Install dependencies
           command: |
@@ -35,9 +39,10 @@ jobs:
               pip install -r requirements-dev.txt
             fi
       - save_cache:
-          key: python-deps-v1-{{ checksum "requirements.txt" }}
+          key: python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
           paths:
             - ~/.cache/pip
+            - /home/circleci/.local/lib/python3.11/site-packages
       - run:
           name: Run flake8 (critical errors only)
           command: |
@@ -50,7 +55,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - python-deps-v1-{{ checksum "requirements.txt" }}
+            - python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+            - python-deps-v2-{{ checksum "requirements.txt" }}
+            - python-deps-v2-
       - run:
           name: Install dependencies
           command: |
@@ -60,13 +67,15 @@ jobs:
               pip install -r requirements-dev.txt
             fi
       - save_cache:
-          key: python-deps-v1-{{ checksum "requirements.txt" }}
+          key: python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
           paths:
             - ~/.cache/pip
+            - /home/circleci/.local/lib/python3.11/site-packages
       - run:
           name: Run tests with pytest
           command: |
-            pytest --cov=src --cov=tests --cov-report=xml --cov-report=html --cov-report=term-missing -v --junitxml=test-results/pytest/results.xml
+            TESTFILES=$(circleci tests glob "tests/**/*.py" | circleci tests split --split-by=timings)
+            pytest $TESTFILES --cov=src --cov=tests --cov-report=xml --cov-report=html --cov-report=term-missing -v --junitxml=test-results/pytest/results.xml
       - codecov/upload:
           file: coverage.xml
       - store_test_results:
@@ -81,16 +90,19 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - python-deps-v1-{{ checksum "requirements.txt" }}
+            - python-security-deps-v2-{{ checksum "requirements.txt" }}
+            - python-security-deps-v2-
       - run:
           name: Install dependencies
           command: |
             pip install --upgrade pip
             pip install -r requirements.txt
             pip install safety bandit
-            if [ -f requirements-dev.txt ]; then
-              pip install -r requirements-dev.txt
-            fi
+      - save_cache:
+          key: python-security-deps-v2-{{ checksum "requirements.txt" }}
+          paths:
+            - ~/.cache/pip
+            - /home/circleci/.local/lib/python3.11/site-packages
       - run:
           name: Security check with safety
           command: safety check --json --ignore 72086
@@ -108,21 +120,24 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-deps-v1-{{ checksum "frontend/package.json" }}
+            - node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
+            - node-deps-v2-{{ checksum "frontend/package.json" }}
+            - node-deps-v2-
       - run:
           name: Install dependencies
           command: |
             cd frontend
             if [ -f package-lock.json ]; then
-              npm ci
+              npm ci --prefer-offline --no-audit
             else
               echo "package-lock.json not found; running npm install instead"
               npm install
             fi
       - save_cache:
-          key: node-deps-v1-{{ checksum "frontend/package.json" }}
+          key: node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
           paths:
             - frontend/node_modules
+            - ~/.npm
       - run:
           name: Run ESLint
           command: |
@@ -134,25 +149,37 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - node-deps-v1-{{ checksum "frontend/package.json" }}
+            - node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
+            - node-deps-v2-{{ checksum "frontend/package.json" }}
+            - node-deps-v2-
       - run:
           name: Install dependencies
           command: |
             cd frontend
             if [ -f package-lock.json ]; then
-              npm ci
+              npm ci --prefer-offline --no-audit
             else
               echo "package-lock.json not found; running npm install instead"
               npm install
             fi
       - save_cache:
-          key: node-deps-v1-{{ checksum "frontend/package.json" }}
+          key: node-deps-v2-{{ checksum "frontend/package-lock.json" }}-{{ checksum "frontend/package.json" }}
           paths:
             - frontend/node_modules
+            - ~/.npm
+      - restore_cache:
+          keys:
+            - nextjs-build-cache-v1-{{ .Branch }}-{{ .Revision }}
+            - nextjs-build-cache-v1-{{ .Branch }}-
+            - nextjs-build-cache-v1-
       - run:
           name: Build Next.js application
           command: |
             cd frontend && npm run build --if-present
+      - save_cache:
+          key: nextjs-build-cache-v1-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - frontend/.next/cache
       - store_artifacts:
           path: frontend/.next
           destination: next-build
@@ -178,25 +205,22 @@ workflows:
   version: 2
   build-and-test:
     jobs:
-      # Backend workflow
+      # Backend workflow - run lint and test in parallel, security can run after lint
       - python-lint
-      - python-test:
-          requires:
-            - python-lint
+      - python-test
       - python-security:
           requires:
-            - python-test
-      
-      # Frontend workflow
+            - python-lint
+
+      # Frontend workflow - run lint and build in parallel
       - frontend-lint
-      - frontend-build:
-          requires:
-            - frontend-lint
-      
-      # Docker build (only on main branch)
+      - frontend-build
+
+      # Docker build (only on main branch) - wait for tests to pass
       - docker-build:
           requires:
             - python-test
+            - python-security
             - frontend-build
           filters:
             branches:
