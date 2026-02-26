@@ -27,14 +27,15 @@ class TestRequirementsDevChanges:
     def test_pyyaml_added(self, requirements_dev_content):
         """
         Verify that requirements-dev.txt includes a PyYAML package entry.
-
-    def test_pyyaml_has_version_specifier(self, requirements_dev_content: str) -> None:
         """
         assert "pyyaml" in requirements_dev_content.lower()
 
-        Checks the provided requirements file content for exactly one non - comment line mentioning
+    def test_pyyaml_has_version_specifier(self, requirements_dev_content: str) -> None:
+        """
+        Checks the provided requirements file content for exactly one non-comment line mentioning
         PyYAML and verifies that that line contains one of the version operators:
-        >=, == , ~ = , <= , > , or <.
+        >=, ==, ~=, <=, >, or <.
+        """
         """
         Ensure the active PyYAML requirement in requirements-dev.txt includes a version operator.
 
