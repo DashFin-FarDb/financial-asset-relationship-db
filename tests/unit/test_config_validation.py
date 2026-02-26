@@ -364,14 +364,16 @@ class TestRequirementsTxt:
     require_version_pinning = True  # When True, enforces version constraints for all dependencies in requirements.txt
 
     @pytest.fixture
-    def requirements(self) -> dict:
+    def requirements(self) -> list[str]:
         """Load requirements.txt content."""
         config_path = Path("requirements.txt")
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
             return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
+                line.strip()
+                for line in f
+                if line.strip() and not line.strip().startswith("#")
             ]
 
     def test_requirements_exists(self) -> dict:
