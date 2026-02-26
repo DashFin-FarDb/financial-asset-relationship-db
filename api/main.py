@@ -336,7 +336,7 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
     """
     Raise HTTPException for missing resources.
 
-    Args:
+    Parameters:
         asset_id (str): ID of the asset that was not found.
         resource_type (str): Type of resource (default: "Asset").
     """
@@ -353,7 +353,7 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     serialized output. The function dynamically checks for the presence of various
     asset-specific fields and adds them to the dictionary if they are not None.
 
-    Args:
+    Parameters:
         asset: Asset object to serialize.
         include_issuer: Whether to include issuer_id field (for detail views).
 
