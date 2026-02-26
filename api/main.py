@@ -147,16 +147,8 @@ app.include_router(graph.router)
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
 async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
-    """
-    Create a JWT access token for a user authenticated with a username and password.
-
-    Parameters:
-        form_data (OAuth2PasswordRequestForm): Client-submitted credentials (`username` and `password`).
-
-    Returns:
-        dict: Mapping with `access_token` (JWT string) and `token_type` set to `'bearer'`.
-    """
     # The `request` parameter is required by slowapi's limiter for dependency injection.
+    """Create a JWT access token for an authenticated user."""
     _ = request
 
     user = authenticate_user(form_data.username, form_data.password)
@@ -176,18 +168,9 @@ async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequ
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
 async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
-    """
-    Retrieve the currently authenticated user.
-
-    Parameters:
-        request (Request): Included for slowapi limiter dependency injection; unused by the function.
-        current_user (User): Active user injected by the authentication dependency.
-
-    Returns:
-        The authenticated user.
-    """
 
     # The `request` parameter is required by slowapi's limiter for dependency injection.
+    """Retrieve the currently authenticated user."""
     _ = request
 
     return current_user
