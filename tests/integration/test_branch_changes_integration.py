@@ -7,7 +7,7 @@ don't introduce inconsistencies or broken references.
 import re
 from collections import Counter
 from pathlib import Path
-from typing import Generator, List, Set
+from typing import List, Set
 
 import pytest
 import yaml
