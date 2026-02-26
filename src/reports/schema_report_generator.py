@@ -83,7 +83,8 @@ class SchemaReportGenerator:
             "1. **Equity** – Stock instruments: P/E ratio, dividend yield, EPS",
             "2. **Bond** – Fixed income: yield, coupon, maturity, rating",
             "3. **Commodity** – Physical assets with delivery contracts",
-            ("4. **Currency** – FX pairs or proxies with exchange-rate and " "monetary-policy links"),
+            "4. **Currency** – FX pairs or proxies with exchange-rate and "
+            "monetary-policy links",
             "5. **Regulatory Events** – Corporate actions and filings",
             "",
         ]
@@ -98,7 +99,8 @@ class SchemaReportGenerator:
         return lines
 
     def _render_calculated_metrics(self, metrics: Metrics) -> List[str]:
-        """Render calculated network metrics such as total assets, relationships, density, and events."""
+        """Render calculated network metrics such as total assets,
+        relationships, density, and events."""
         total_assets = _as_int(metrics.get("total_assets"))
         total_rels = _as_int(metrics.get("total_relationships"))
         avg_strength = _as_float(metrics.get("average_relationship_strength"))
@@ -145,7 +147,10 @@ class SchemaReportGenerator:
             "",
             "### Cross-Asset Rules",
             "- **Sector Affinity**: Same-sector assets link at strength 0.7.",
-            ("- **Corporate Bond Linkage**: issuer_id match creates a " "directional link (strength 0.9)."),
+            (
+                "- **Corporate Bond Linkage**: issuer_id match creates a "
+                "directional link (strength 0.9)."
+            ),
             "- **Currency Exposure**: FX and central-bank policy effects included.",
             "",
             "### Regulatory Rules",
@@ -159,7 +164,8 @@ class SchemaReportGenerator:
         ]
 
     def _render_schema_optimization(self, metrics: Metrics) -> List[str]:
-        """Render recommendations and metrics for schema optimization based on relationship density."""
+        """Render recommendations and metrics for schema optimization based on
+        relationship density."""
         density = _as_float(metrics.get("relationship_density"))
         quality_score = _as_float(metrics.get("quality_score"))
 
@@ -188,6 +194,9 @@ class SchemaReportGenerator:
             "- ISO 8601 timestamps.",
             "- Strengths normalized to 0–1.",
             "- Impact scores normalized to -1 to +1.",
-            ("- Directionality varies by relationship type: " "some are bidirectional, others directional."),
+            (
+                "- Directionality varies by relationship type: "
+                "some are bidirectional, others directional."
+            ),
             "",
         ]
