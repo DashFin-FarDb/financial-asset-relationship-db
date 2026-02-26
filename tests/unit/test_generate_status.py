@@ -22,9 +22,7 @@ import pytest
 from github import GithubException
 
 # Add the script directory to path
-sys.path.insert(
-    0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts")
-)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
 
 # Now we can import directly
 
@@ -158,9 +156,7 @@ def sample_pr_status():
 
 def test_check_run_info_creation():
     """Test CheckRunInfo dataclass creation."""
-    check = generate_status.CheckRunInfo(
-        name="test-check", status="completed", conclusion="success"
-    )
+    check = generate_status.CheckRunInfo(name="test-check", status="completed", conclusion="success")
     assert check.name == "test-check"
     assert check.status == "completed"
     assert check.conclusion == "success"
@@ -1182,9 +1178,7 @@ def test_main_github_api_error(capsys):
         with patch("generate_status.Github") as mock_github_class:
             mock_github = Mock()
             mock_github_class.return_value = mock_github
-            mock_github.get_repo.side_effect = GithubException(
-                status=404, data={"message": "Not Found"}, headers={}
-            )
+            mock_github.get_repo.side_effect = GithubException(status=404, data={"message": "Not Found"}, headers={})
 
             with pytest.raises(SystemExit) as exc_info:
                 generate_status.main()
@@ -1195,9 +1189,7 @@ def test_main_github_api_error(capsys):
     assert "GitHub API Error" in captured.err
 
 
-def test_main_success_flow(
-    mock_pr, mock_review_approved, mock_check_run_success, capsys
-):
+def test_main_success_flow(mock_pr, mock_review_approved, mock_check_run_success, capsys):
     """Test main executes successfully."""
     env = {
         "GITHUB_TOKEN": "token",

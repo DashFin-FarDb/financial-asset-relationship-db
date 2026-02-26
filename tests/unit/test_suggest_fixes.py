@@ -23,9 +23,7 @@ import suggest_fixes
 from github import GithubException
 
 # Add the script directory to path
-sys.path.insert(
-    0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts")
-)
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
 
 # Now we can import directly
 
@@ -531,9 +529,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
     assert len(items) == 3
     # Should be sorted: priority 1 (bug first by date, then critical), then priority 2
     assert items[0]["body"] == "Please fix this bug"  # Priority 1, earliest
-    assert (
-        items[1]["body"] == "Please fix this critical security issue"
-    )  # Priority 1, later
+    assert items[1]["body"] == "Please fix this critical security issue"  # Priority 1, later
     assert items[2]["body"] == "Please refactor this"  # Priority 2
 
 
@@ -656,9 +652,7 @@ def test_format_item_long_body_truncation():
     # Should truncate to 200 chars + "..."
     assert "A" * 200 in result
     assert "..." in result
-    assert (
-        len(result.split("**Feedback:**")[1].split("\n")[0].strip()) <= 204
-    )  # 200 + "..."
+    assert len(result.split("**Feedback:**")[1].split("\n")[0].strip()) <= 204  # 200 + "..."
 
 
 def test_format_item_no_file_or_line():
@@ -1093,9 +1087,7 @@ def test_main_success_flow(mock_pr, mock_comment, capsys):
 
     with patch.dict(os.environ, env, clear=True):
         with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {
-                "review_handling": {"actionable_keywords": ["please"]}
-            }
+            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
 
             with patch("suggest_fixes.Github") as mock_github_class:
                 with patch("tempfile.NamedTemporaryFile") as mock_temp:
@@ -1133,13 +1125,9 @@ def test_main_generic_exception(capsys):
     with patch.dict(os.environ, env, clear=True):
         # Patch load_config to return valid config, then patch Github to raise exception
         with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {
-                "review_handling": {"actionable_keywords": ["please"]}
-            }
+            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
 
-            with patch(
-                "suggest_fixes.Github", side_effect=Exception("Unexpected error")
-            ):
+            with patch("suggest_fixes.Github", side_effect=Exception("Unexpected error")):
                 with pytest.raises(SystemExit) as exc_info:
                     suggest_fixes.main()
 
@@ -1167,9 +1155,7 @@ def test_main_with_no_actionable_items(mock_pr, capsys):
 
     with patch.dict(os.environ, env, clear=True):
         with patch("suggest_fixes.load_config") as mock_config:
-            mock_config.return_value = {
-                "review_handling": {"actionable_keywords": ["please"]}
-            }
+            mock_config.return_value = {"review_handling": {"actionable_keywords": ["please"]}}
 
             with patch("suggest_fixes.Github") as mock_github_class:
                 with patch("tempfile.NamedTemporaryFile") as mock_temp:

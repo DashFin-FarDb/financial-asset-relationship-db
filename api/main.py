@@ -179,9 +179,7 @@ ENV = os.getenv("ENV", "development").lower()
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
-):
+async def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
     """
     Create a JWT access token for a user authenticated with a username and password.
 
@@ -202,17 +200,13 @@ async def login_for_access_token(
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
+    access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.get("/api/users/me", response_model=User)
 @limiter.limit("10/minute")
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_active_user)
-):
+async def read_users_me(request: Request, current_user: User = Depends(get_current_active_user)):
     """
     Retrieve the currently authenticated user.
 
@@ -472,10 +466,7 @@ async def get_assets(asset_class: Optional[str] = None, sector: Optional[str] = 
 
         for _, asset in g.assets.items():
             # Apply filters
-            if (
-                normalized_asset_class
-                and asset.asset_class.name != normalized_asset_class
-            ):
+            if normalized_asset_class and asset.asset_class.name != normalized_asset_class:
                 continue
             if sector and asset.sector != sector:
                 continue
@@ -521,9 +512,7 @@ async def get_asset_detail(asset_id: str):
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get(
-    "/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse]
-)
+@app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
 async def get_asset_relationships(asset_id: str):
     """
     List outgoing relationships for the specified asset.
@@ -631,11 +620,7 @@ async def get_metrics():
 
         avg_degree = sum(degrees.values()) / total_assets if total_assets else 0
         max_degree = max(degrees.values(), default=0)
-        network_density = (
-            (total_relationships / (total_assets * (total_assets - 1)) * 100)
-            if total_assets > 1
-            else 0
-        )
+        network_density = (total_relationships / (total_assets * (total_assets - 1)) * 100) if total_assets > 1 else 0
 
         asset_classes: Dict[str, int] = {}
         for asset in g.assets.values():
