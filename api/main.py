@@ -591,7 +591,7 @@ async def get_visualization_data():
     # Color map for asset classes
     _ASSET_CLASS_COLORS: Dict[str, str] = {
         "Equity": "#4e79a7",
-        "FixedIncome": "#f28e2b",
+        "Fixed Income": "#f28e2b",
         "Commodity": "#e15759",
         "Currency": "#76b7b2",
         "Cryptocurrency": "#59a14f",
