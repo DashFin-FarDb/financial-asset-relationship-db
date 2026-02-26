@@ -75,7 +75,7 @@ jobs:
       - run:
           name: Run tests with pytest
           command: |
-            TESTFILES=$(circleci tests glob "tests/**/*.py" | circleci tests split --split-by=timings)
+            TESTFILES=$(circleci tests glob "tests/**/*.py" "test_*.py" | circleci tests split --split-by=timings)
             pytest "$TESTFILES" --cov=src --cov=tests --cov-report=xml --cov-report=html --cov-report=term-missing -v --junitxml=test-results/pytest/results.xml
       - codecov/upload:
           file: coverage.xml
