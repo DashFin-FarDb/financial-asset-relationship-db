@@ -7,8 +7,9 @@ import os
 import threading
 from typing import Iterator
 
-import api.database as database
 import pytest
+
+import api.database as database
 
 pytestmark = pytest.mark.unit
 

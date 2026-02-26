@@ -25,9 +25,8 @@
 #                                                                              #
 # ##############################################################################
 
-import github.GithubObject
-
 import github.Commit
+import github.GithubObject
 
 
 class Branch(github.GithubObject.NonCompletableGithubObject):
@@ -81,5 +80,9 @@ class Branch(github.GithubObject.NonCompletableGithubObject):
             self._name = self._makeStringAttribute(attributes["name"])
         if "protection" in attributes:
             self._protected = self._makeBoolAttribute(attributes["protection"]["enabled"])
-            self._enforcement_level = self._makeStringAttribute(attributes["protection"]["required_status_checks"]["enforcement_level"])
-            self._contexts = self._makeListOfStringsAttribute(attributes["protection"]["required_status_checks"]["contexts"])
+            self._enforcement_level = self._makeStringAttribute(
+                attributes["protection"]["required_status_checks"]["enforcement_level"]
+            )
+            self._contexts = self._makeListOfStringsAttribute(
+                attributes["protection"]["required_status_checks"]["contexts"]
+            )

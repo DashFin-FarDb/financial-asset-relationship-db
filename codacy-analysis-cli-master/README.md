@@ -1,4 +1,4 @@
-> ⚠️ **Legacy Component Warning**  
+> ⚠️ **Legacy Component Warning**
 > This component is part of our **classic/legacy** implementation is no longer actively maintained for local analysis; please use the [new Codacy CLI v2 instead](https://github.com/codacy/codacy-cli-v2/).
 > For uploading results to Codacy, use this CLI.
 
@@ -356,7 +356,7 @@ sbt codacyCoverage
 
 ## What is Codacy
 
-[Codacy](https://www.codacy.com/) is a platform that monitors your technical debt, helps you improve your code quality and security, teaches best practices to your developers, and helps you save time in code reviews. We help developers ship billions of lines of code per day by automating and standardizing code reviews.  
+[Codacy](https://www.codacy.com/) is a platform that monitors your technical debt, helps you improve your code quality and security, teaches best practices to your developers, and helps you save time in code reviews. We help developers ship billions of lines of code per day by automating and standardizing code reviews.
 Integrating seamlessly into workflows, Codacy helps engineering teams save time in code reviews and find, fix, and prevent coding defects that would otherwise stack up as technical debt. Our platform uses Artificial Intelligence to suggest code quality fixes. Codacy supports 40+ languages & frameworks and is available in free open-source.
 
 [Start a free trial](https://www.codacy.com/signup-codacy) to learn more.

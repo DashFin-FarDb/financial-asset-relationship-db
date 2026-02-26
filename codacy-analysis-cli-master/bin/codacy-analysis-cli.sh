@@ -10,9 +10,9 @@ log_error() {
   cat >&2 <<-EOF
 		We encountered a problem with your Docker setup:
 		  > ${message}
-		
+
 		Please check https://github.com/codacy/codacy-analysis-cli for alternative instructions.
-		
+
 	EOF
   exit 3
 }
