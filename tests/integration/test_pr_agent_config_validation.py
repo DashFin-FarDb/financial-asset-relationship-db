@@ -383,8 +383,8 @@ class TestPRAgentConfigSecurity:
                             # Allow explicit null values for sensitive keys as safe placeholders
                             continue
                             assert str(v).lower() in safe_placeholders, (
-                            f"Potential hardcoded credential at '{current_path}'"
-                        )
+                                f"Potential hardcoded credential at '{current_path}'"
+                            )
                     walk_and_check_config(v, current_path)
             elif isinstance(obj, list):
                 for i, item in enumerate(obj):
@@ -414,7 +414,7 @@ def test_safe_configuration_values(pr_agent_config: dict[str, object]) -> None:
     assert limits["rate_limit_requests"] <= 1000, "Rate limit too high"
 
 
-@ pytest.fixture
+@pytest.fixture
 def pr_agent_config_content() -> str:
     """
     Read and return the raw contents of .github/pr-agent-config.yml.
