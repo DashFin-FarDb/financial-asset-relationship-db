@@ -75,11 +75,15 @@ class Branch(github.GithubObject.NonCompletableGithubObject):
 
     def _useAttributes(self, attributes):
         if "commit" in attributes:  # pragma no branch
-            self._commit = self._makeClassAttribute(github.Commit.Commit, attributes["commit"])
+            self._commit = self._makeClassAttribute(
+                github.Commit.Commit, attributes["commit"]
+            )
         if "name" in attributes:  # pragma no branch
             self._name = self._makeStringAttribute(attributes["name"])
         if "protection" in attributes:
-            self._protected = self._makeBoolAttribute(attributes["protection"]["enabled"])
+            self._protected = self._makeBoolAttribute(
+                attributes["protection"]["enabled"]
+            )
             self._enforcement_level = self._makeStringAttribute(
                 attributes["protection"]["required_status_checks"]["enforcement_level"]
             )
