@@ -551,9 +551,9 @@ async def get_asset_detail(asset_id: str):
         asset_id (str): Identifier of the asset whose details are requested.
 
     Returns:
-        AssetResponse: Detailed asset information including core fields and an
-            additional_fields map containing any asset-specific attributes
-            that are present and non-null.
+        AssetResponse: Detailed asset information including all core asset fields
+            and an `additional_fields` dictionary containing any asset-type-specific
+            attributes that are present and non-null.
 
     Raises:
         HTTPException: 404 if the asset is not found.
