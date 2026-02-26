@@ -614,7 +614,7 @@ async def get_asset_relationships(asset_id: str):
     relationships  and returns them as a list of RelationshipResponse objects, each
     containing  source_id, target_id, relationship_type, and strength.
 
-    Args:
+    Parameters:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
     """
     try:
