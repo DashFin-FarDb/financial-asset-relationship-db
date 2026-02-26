@@ -276,7 +276,6 @@ class TestTSConfig:
 @pytest.mark.unit
 class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
-
     @pytest.fixture
     def tailwind_config_content(self):
         """Load Tailwind configuration content."""
