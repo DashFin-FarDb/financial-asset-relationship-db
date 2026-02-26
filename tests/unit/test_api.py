@@ -137,7 +137,7 @@ def _apply_mock_graph_configuration(
     mock_graph_instance.assets = graph.assets
     mock_graph_instance.relationships = graph.relationships
     mock_graph_instance.calculate_metrics = graph.calculate_metrics
-    mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data
+    mock_graph_instance.get_3d_visualization_data = graph.get_3d_visualization_data_enhanced
 
 
 @pytest.fixture
@@ -990,7 +990,7 @@ class TestAPIBoundaryConditions:
         mock_graph_instance.relationships = large_graph.relationships
         mock_graph_instance.calculate_metrics = large_graph.calculate_metrics
         mock_graph_instance.get_3d_visualization_data = (
-            large_graph.get_3d_visualization_data
+            large_graph.get_3d_visualization_data_enhanced
         )
 
         # Should not timeout or error
