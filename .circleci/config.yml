@@ -219,8 +219,10 @@ workflows:
       # Docker build (only on main branch) - wait for tests to pass
       - docker-build:
           requires:
+            - python-lint
             - python-test
             - python-security
+            - frontend-lint
             - frontend-build
           filters:
             branches:
