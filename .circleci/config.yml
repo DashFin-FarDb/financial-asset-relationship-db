@@ -1,8 +1,6 @@
 version: 2.1
 
 orbs:
-  # orb-tools is configured automatically by CircleCI as part of setup, but it is not run.
-  orb-tools: circleci/orb-tools@12.3
   node: circleci/node@5.1.0
   python: circleci/python@2.1.1
   codecov: codecov/codecov@4.0.1
@@ -75,7 +73,7 @@ jobs:
       - run:
           name: Run tests with pytest
           command: |
-            TESTFILES=$(circleci tests glob "tests/**/*.py" "test_*.py" | circleci tests split --split-by=timings)
+            TESTFILES=$(circleci tests glob "tests/**/test_*.py" "test_*.py" | circleci tests split --split-by=timings)
             mkdir -p test-results/pytest
             pytest ${TESTFILES} --cov=src --cov=tests --cov-report=xml --cov-report=html --cov-report=term-missing -v --junitxml=test-results/pytest/results.xml
       - codecov/upload:
@@ -209,8 +207,6 @@ workflows:
       - python-lint
       - python-test
       - python-security:
-          requires:
-            - python-lint
 
       # Frontend workflow - run lint and build in parallel
       - frontend-lint

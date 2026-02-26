@@ -480,21 +480,11 @@ class FormulaicAnalyzer:
     def _calculate_avg_correlation_strength_from_empirical(
         empirical_relationships: Dict,
     ) -> float:
-
-
-Args:
-            empirical_relationships(Dict): A dictionary containing the
-                correlation matrix under the key "correlation_matrix". This matrix
-                should be a dictionary mapping relationship pairs to correlation values.
-
-        This method computes the average correlation strength from a given  set of
-        empirical relationships. It retrieves the correlation matrix  from the input
-        dictionary and filters out any correlations that are  equal to or greater than
-        1.0. If valid correlations exist, it returns  their average; otherwise, it
-        defaults to returning 0.5.
+        """Compute the average correlation strength from empirical relationships.
 
         Args:
             empirical_relationships (Dict): A dictionary containing the
+                correlation matrix under the key "correlation_matrix".
         """
         correlations = empirical_relationships.get("correlation_matrix", {})
         if correlations:
