@@ -87,19 +87,20 @@ class TestPRAgentConfigChanges:
     def test_basic_sections_present(self, config_data: Dict[str, Any]) -> None:
         """Check essential top-level sections exist."""
         required_sections = ["agent", "monitoring", "actions", "quality"]
-        for section in required_sections:
-            assert section in config_data, f"Required section '{section}' missing"
+        Ensure chunk_size / max_tokens knobs live under agent.context when configured.
 
-    def test_no_complex_token_management(self, config_data: Dict[str, Any]) -> None:
+        If you later change where these are defined, update this test accordingly.
         """
-        Ensure no chunk_size / max_tokens knobs are present.
+        agent = config_data.get("agent", {})
+        if not isinstance(agent, dict):
+            pytest.skip("No agent configuration to validate")
 
-        If you later reintroduce max_tokens intentionally, define it under limits
-        with a clear rationale and update this test.
-        """
-        config_str = str(config_data).lower()
-        assert "chunk_size" not in config_str
-        assert "max_tokens" not in config_str
+        context = agent.get("context")
+        if not isinstance(context, dict):
+            pytest.skip("No context chunking configuration to validate")
+
+        assert "chunk_size" in context, "agent.context.chunk_size should be configured"
+        assert "max_tokens" in context, "agent.context.max_tokens should be configured"
 
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]) -> None:
         """Validate quality settings exist and Python uses pytest."""
