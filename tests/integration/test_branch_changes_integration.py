@@ -263,8 +263,7 @@ class TestDocumentationConsistency:
         changelog = Path("CHANGELOG.md")
 
         if changelog.exists():
-            with open(changelog, "r"):
-            with open(changelog, "r") as f:
+            with open(changelog, "r", encoding="utf-8") as f:
                 content = f.read().lower()
 
             # Should mention the deletions (soft requirement)
