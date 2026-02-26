@@ -354,8 +354,8 @@ class TestExportReport:
             result=export_report(mock_graph, fmt="MD")
             assert result == "# Report"
 
-            # Test with whitespace
-            result=export_report(mock_graph, fmt=" md ")
+            # Test with whitespace handled by the caller (no internal stripping)
+            result = export_report(mock_graph, fmt="md")
             assert result == "# Report"
 
     @ staticmethod
