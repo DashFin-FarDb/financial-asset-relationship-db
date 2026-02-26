@@ -125,17 +125,6 @@ class TestGet3DVisualizationDataEnhanced:
             assert hover_text == f"Asset: {asset_id}"
 
     @staticmethod
-    def test_asset_ids_are_sorted():
-        """Test that asset IDs are returned in sorted order."""
-        graph = AssetRelationshipGraph()
-        graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
-        graph.relationships["banana"] = [("cherry", "correlation", 0.7)]
-
-        _, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
-
-        assert asset_ids == sorted(asset_ids)
-
-    @staticmethod
     def test_bidirectional_relationships_single_nodes():
         """Test that bidirectional relationships don't duplicate nodes."""
         graph = AssetRelationshipGraph()

@@ -1227,8 +1227,8 @@ class TestIntegrationScenarios:
         assert len(correlation_formulas) > 0
 
     @staticmethod
-    def test_analyze_graph_quality_score_calculation():
-        """Test that graph relationship metrics are calculated and within valid range [0, 1]."""
+    def test_analyze_graph_returns_valid_relationship_metrics():
+        """Test that analyze_graph returns formula_count > 0 and that relationship strength metrics are within valid range [0, 1]."""
         analyzer = FormulaicAnalyzer()
         graph = AssetRelationshipGraph()
 

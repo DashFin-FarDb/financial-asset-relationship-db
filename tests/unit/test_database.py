@@ -67,7 +67,7 @@ def engine() -> Iterator[Engine]:
     """
     Provide an in-memory SQLite engine.
 
-    Returns:
+    Yields:
         Iterator[Engine]: Yielded in-memory engine.
     """
     eng = create_engine(

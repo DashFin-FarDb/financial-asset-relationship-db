@@ -333,7 +333,8 @@ class TestSystemManifest:
 
     def test_system_manifest_has_project_description(self, system_manifest_content):
         """
-        Verify the system manifest contains a - Description: ... entry documenting the project description.
+        Verify the system manifest contains a - Description: ... entry documenting the project description,
+        and a - Created: ... entry with a valid ISO 8601 timestamp.
         """
         assert "- Description:" in system_manifest_content
         pattern = r"- Description: (.+)"

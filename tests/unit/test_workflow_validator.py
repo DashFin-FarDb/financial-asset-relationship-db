@@ -357,7 +357,7 @@ jobs:
 
     @staticmethod
     def test_workflow_with_yaml_anchors():
-        """Test that a minimal valid workflow with 'Anchors' as its name passes validation."""
+        """Test that a workflow named 'Anchors' passes validation (confirms the validator accepts workflow names that resemble YAML keywords)."""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write(
                 """
