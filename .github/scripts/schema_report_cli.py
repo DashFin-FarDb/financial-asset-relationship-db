@@ -68,17 +68,23 @@ def main() -> None:
 
     If the application raises an exception, print a concise error message to stderr and terminate the process with exit status 1.
     """
-    parser = argparse.ArgumentParser(description="Generate schema reports for AssetRelationshipGraph")
+    parser = argparse.ArgumentParser(
+        description="Generate schema reports for AssetRelationshipGraph"
+    )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # md command
-    subparsers.add_parser("md", help="Print the Markdown-formatted schema report to stdout")
+    subparsers.add_parser(
+        "md", help="Print the Markdown-formatted schema report to stdout"
+    )
 
     # html command
     subparsers.add_parser("html", help="Print the HTML schema report to stdout")
 
     # save command
-    save_parser = subparsers.add_parser("save", help="Save the generated schema report to a file")
+    save_parser = subparsers.add_parser(
+        "save", help="Save the generated schema report to a file"
+    )
     save_parser.add_argument("out", type=Path, help="Output file path")
     save_parser.add_argument(
         "--fmt",
