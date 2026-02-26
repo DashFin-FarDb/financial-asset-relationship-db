@@ -20,13 +20,20 @@ import org.mockito.Mockito._
 import org.specs2.matcher.EitherMatchers
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
+import org.specs2.specification.AfterAll
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMatchers {
+class ToolRepositoryRemoteSpec extends Specification with Mockito with EitherMatchers with AfterAll {
   implicit val actorSystem = ActorSystem("MyTest")
   implicit val materializer = ActorMaterializer()
+
+  override def afterAll(): Unit = {
+    materializer.shutdown()
+    actorSystem.terminate()
+    ()
+  }
 
   private def getTool(uuid: String, name: String, standalone: Boolean = false) =
     Tool(
