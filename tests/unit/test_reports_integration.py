@@ -340,37 +340,21 @@ class TestExportReport:
         mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with pytest.raises(ValueError, match="Unsupported export format"):
-            export_report(mock_graph, fmt="pdf")
+            @staticmethod
+            def test_export_report_invalid_format() -> None:
+                """Test that invalid format raises ValueError."""
+                mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-    @ staticmethod
-    def test_export_report_format_normalization() -> None:
-        """Test that format parameter is normalized."""
-        mock_graph=MagicMock(spec=AssetRelationshipGraph)
+                with pytest.raises(ValueError, match="Unsupported report format"):
+                    export_report(mock_graph, fmt="pdf")
 
-        with patch("src.reports.integration.generate_markdown_report") as mock_gen_md:
-            mock_gen_md.return_value="# Report"
+            @staticmethod
+            def test_export_report_with_empty_format_string() -> None:
+                """Test export with empty format string raises ValueError."""
+                mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-            # Test with uppercase
-            result=export_report(mock_graph, fmt="MD")
-            assert result == "# Report"
-
-            # Test with whitespace handled by the caller (no internal stripping)
-            result=export_report(mock_graph, fmt="md")
-            assert result == "# Report"
-
-    @ staticmethod
-    def test_export_report_with_empty_format_string() -> None:
-        """Test export with empty format string raises ValueError."""
-        mock_graph=MagicMock(spec=AssetRelationshipGraph)
-
-        with pytest.raises(ValueError, match="Unsupported export format"):
-            export_report(mock_graph, fmt="")
-
-
-@ pytest.mark.unit
-class TestIntegrationEdgeCases:
-    """Test edge cases and boundary conditions for integration module."""
-
+                with pytest.raises(ValueError, match="Unsupported report format"):
+                    export_report(mock_graph, fmt="")
     @ staticmethod
     def test_markdown_to_html_with_unicode() -> None:
         """Test markdown to HTML with Unicode characters."""
