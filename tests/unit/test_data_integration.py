@@ -82,9 +82,7 @@ class TestRepositoryGraphIntegration:
         # Save relationships
         for source_id, rels in graph.relationships.items():
             for target_id, rel_type, strength in rels:
-                repo.add_or_update_relationship(
-                    source_id, target_id, rel_type, strength, bidirectional=False
-                )
+                repo.add_or_update_relationship(source_id, target_id, rel_type, strength, bidirectional=False)
 
         session.commit()
 
@@ -118,9 +116,7 @@ class TestSerializationRoundTrip:
             original_graph.add_asset(asset)
 
         # Add relationships
-        original_graph.add_relationship(
-            "TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False
-        )
+        original_graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.7, bidirectional=False)
 
         # Serialize
         serialized = _serialize_graph(original_graph)
@@ -164,12 +160,8 @@ class TestSerializationRoundTrip:
             graph.add_asset(asset)
 
         # Add bidirectional relationships
-        graph.add_relationship(
-            "TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True
-        )
-        graph.add_relationship(
-            "TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True
-        )
+        graph.add_relationship("TEST_0", "TEST_1", "same_sector", 0.8, bidirectional=True)
+        graph.add_relationship("TEST_1", "TEST_2", "market_cap", 0.6, bidirectional=True)
 
         # Serialize and deserialize
         serialized = _serialize_graph(graph)
@@ -369,19 +361,13 @@ class TestEdgeCasesAndRegressions:
         session.commit()
 
         # Test with exact 0.0
-        repo.add_or_update_relationship(
-            "BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_0", "BOUND_1", "zero", 0.0, bidirectional=False)
 
         # Test with exact 1.0
-        repo.add_or_update_relationship(
-            "BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_1", "BOUND_2", "one", 1.0, bidirectional=False)
 
         # Test with negative (allowed in some systems)
-        repo.add_or_update_relationship(
-            "BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False
-        )
+        repo.add_or_update_relationship("BOUND_2", "BOUND_0", "negative", -0.5, bidirectional=False)
 
         session.commit()
 
@@ -559,9 +545,7 @@ class TestDataConsistency:
 
         repo.upsert_asset(a1)
         repo.upsert_asset(a2)
-        repo.add_or_update_relationship(
-            "DEL1", "DEL2", "test_rel", 0.5, bidirectional=False
-        )
+        repo.add_or_update_relationship("DEL1", "DEL2", "test_rel", 0.5, bidirectional=False)
         session.commit()
 
         # Delete one asset
@@ -570,9 +554,7 @@ class TestDataConsistency:
 
         # Relationship should be gone
         rels = repo.list_relationships()
-        matching_rels = [
-            r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"
-        ]
+        matching_rels = [r for r in rels if r.source_id == "DEL1" or r.target_id == "DEL1"]
         assert len(matching_rels) == 0
 
         session.close()

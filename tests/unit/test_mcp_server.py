@@ -78,39 +78,33 @@ class TestThreadSafeGraph:
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
-        lock = threading.Lock()
-        safe_graph = _ThreadSafeGraph(graph, lock)
-
-        # Track lock acquisition
+        
+        # Track lock acquisition with a custom mock lock
         lock_acquired = []
-
-        original_acquire = lock.acquire
-        original_release = lock.release
-
-        def tracked_acquire(*args, **kwargs):
-            """
-            Record a lock acquire event by appending "acquired" to the tracking list and delegate to the original acquire implementation.
-
-            Returns:
-                The value returned by the original acquire call.
-            """
-            lock_acquired.append("acquired")
-            return original_acquire(*args, **kwargs)
-
-        def tracked_release(*args, **kwargs):
-            """
-            Record a lock release event and delegate to the original release callable.
-
-            Appends the string "released" to the enclosing `lock_acquired` list, then calls and returns the result of the original release callable.
-
-            Returns:
-                The value returned by the original release callable.
-            """
-            lock_acquired.append("released")
-            return original_release(*args, **kwargs)
-
-        lock.acquire = tracked_acquire
-        lock.release = tracked_release
+        
+        class TrackableLock:
+            """Custom lock that tracks acquire/release calls."""
+            
+            def __init__(self):
+                self._real_lock = threading.Lock()
+            
+            def acquire(self, *args, **kwargs):
+                lock_acquired.append("acquired")
+                return self._real_lock.acquire(*args, **kwargs)
+            
+            def release(self, *args, **kwargs):
+                lock_acquired.append("released")
+                return self._real_lock.release(*args, **kwargs)
+            
+            def __enter__(self):
+                self.acquire()
+                return self
+            
+            def __exit__(self, *args):
+                self.release()
+        
+        lock = TrackableLock()
+        safe_graph = _ThreadSafeGraph(graph, lock)
 
         # Call a method
         equity = Equity(
@@ -145,11 +139,7 @@ class TestAddEquityNode:
 
         # Access the registered tool
         tool_func = next(
-            (
-                tool.fn
-                for tool in mcp_app.list_tools()
-                if tool.name == "add_equity_node"
-            ),
+            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
             None,
         )
         assert tool_func is not None, "add_equity_node tool not found"
@@ -272,11 +262,7 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (
-                resource.fn
-                for resource in mcp_app.list_resources()
-                if "3d-layout" in resource.uri
-            ),
+            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
             None,
         )
         assert resource_func is not None, "3d-layout resource not found"
