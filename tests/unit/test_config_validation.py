@@ -196,9 +196,9 @@ class TestPackageJson:
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
         semver_pattern = r"^\d+\.\d+\.\d+(-[\w.]+)?$"
-        assert re.match(
-            semver_pattern, version
-        ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        assert re.match(semver_pattern, version), (
+            f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
+        )
 
 
 class TestTSConfig:
@@ -313,7 +313,9 @@ class TestEnvExample:
         ]
 
         for pattern in suspicious_patterns:
-            assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
+            assert pattern not in env_example_content.lower(), (
+                f"Potential real secret found: {pattern}"
+            )
 
 
 class TestGitignore:
@@ -368,7 +370,9 @@ class TestRequirementsTxt:
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+            return [
+                line.strip() for line in f if line.strip() and not line.startswith("#")
+            ]
 
     def test_requirements_exists(self) -> dict:
         """Test that requirements.txt exists."""
@@ -395,9 +399,9 @@ class TestRequirementsTxt:
 
         for req in requirements:
             if not req.startswith("-"):
-                assert any(
-                    op in req for op in [">=", "==", "~=", "<="]
-                ), f"Package should have version constraint: {req}"
+                assert any(op in req for op in [">=", "==", "~=", "<="]), (
+                    f"Package should have version constraint: {req}"
+                )
 
 
 class TestPostCSSConfig:
@@ -461,8 +465,12 @@ class TestConfigurationConsistency:
 
         # Next.js standard scripts
         assert "next dev" in scripts.get("dev", "") or "next" in scripts.get("dev", "")
-        assert "next build" in scripts.get("build", "") or "next" in scripts.get("build", "")
-        assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
+        assert "next build" in scripts.get("build", "") or "next" in scripts.get(
+            "build", ""
+        )
+        assert "next start" in scripts.get("start", "") or "next" in scripts.get(
+            "start", ""
+        )
 
 
 class TestCircleCIConfig:
@@ -525,7 +533,10 @@ class TestCircleCIConfig:
 
         # Check for checkout step
         steps = python_lint["steps"]
-        assert any(step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps)
+        assert any(
+            step == "checkout" or (isinstance(step, dict) and "checkout" in step)
+            for step in steps
+        )
 
     def test_circleci_python_test_job(self, circleci_config):
         """
@@ -578,7 +589,9 @@ class TestCircleCIConfig:
 
         # Should have setup_remote_docker step
         steps = docker_build["steps"]
-        assert any(isinstance(step, dict) and "setup_remote_docker" in step for step in steps)
+        assert any(
+            isinstance(step, dict) and "setup_remote_docker" in step for step in steps
+        )
 
     def test_circleci_executors_defined(self, circleci_config):
         """Test that executors are properly defined."""
@@ -633,7 +646,9 @@ class TestCircleCIConfig:
 
             # If we have save_cache, we should have restore_cache
             if save_keys:
-                assert len(restore_keys) > 0, f"Job {job_name} saves cache but doesn't restore"
+                assert len(restore_keys) > 0, (
+                    f"Job {job_name} saves cache but doesn't restore"
+                )
 
     def test_circleci_workflow_dependencies_valid(self, circleci_config):
         """Test that workflow job dependencies reference existing jobs."""
@@ -660,7 +675,9 @@ class TestCircleCIConfig:
                     if "requires" in job_config:
                         required_jobs = job_config["requires"]
                         for required_job in required_jobs:
-                            assert required_job in job_names, f"Job {job_name} requires non-existent job {required_job}"
+                            assert required_job in job_names, (
+                                f"Job {job_name} requires non-existent job {required_job}"
+                            )
 
     def test_circleci_nightly_security_schedule(self, circleci_config):
         """Test that nightly security scan is properly scheduled."""
@@ -705,7 +722,9 @@ class TestCircleCIConfig:
                     # Should specify main and/or develop
                     allowed_branches = branches["only"]
                     assert isinstance(allowed_branches, list)
-                    assert any(branch in ["main", "develop"] for branch in allowed_branches)
+                    assert any(
+                        branch in ["main", "develop"] for branch in allowed_branches
+                    )
 
 
 class TestGitHubActionsCommon:
@@ -818,7 +837,9 @@ class TestGitHubActionsCommon:
         for step in steps:
             if "run" in step:
                 # Composite actions require shell to be specified
-                assert "shell" in step, f"Step {step.get('name', 'unnamed')} is missing shell specification"
+                assert "shell" in step, (
+                    f"Step {step.get('name', 'unnamed')} is missing shell specification"
+                )
                 assert step["shell"] == "bash"
 
     def test_github_action_conditional_steps(self, github_action_config):
@@ -876,18 +897,29 @@ class TestGitHubCopilotInstructions:
             copilot_instructions (str): Contents of the .github/copilot-instructions.md file; checked case-insensitively for presence of a main header and the "Purpose" and "Quick start" sections.
         """
         # Should have main header
-        assert "# Copilot instructions" in copilot_instructions or "#" in copilot_instructions
+        assert (
+            "# Copilot instructions" in copilot_instructions
+            or "#" in copilot_instructions
+        )
 
         # Check for key sections
-        assert "Purpose" in copilot_instructions or "purpose" in copilot_instructions.lower()
-        assert "Quick start" in copilot_instructions or "quick start" in copilot_instructions.lower()
+        assert (
+            "Purpose" in copilot_instructions
+            or "purpose" in copilot_instructions.lower()
+        )
+        assert (
+            "Quick start" in copilot_instructions
+            or "quick start" in copilot_instructions.lower()
+        )
 
     def test_copilot_instructions_mentions_key_files(self, copilot_instructions):
         """Test that documentation mentions key project files."""
         key_files = ["app.py", "asset_graph.py", "financial_models.py"]
 
         for file_name in key_files:
-            assert file_name in copilot_instructions, f"Should mention key file: {file_name}"
+            assert file_name in copilot_instructions, (
+                f"Should mention key file: {file_name}"
+            )
 
     def test_copilot_instructions_has_code_examples(self, copilot_instructions):
         """Test that documentation includes code examples."""
@@ -911,14 +943,18 @@ class TestGitHubCopilotInstructions:
         """Test that documentation describes project conventions."""
         conventions_keywords = ["convention", "pattern", "guideline", "practice"]
 
-        has_conventions = any(keyword in copilot_instructions.lower() for keyword in conventions_keywords)
+        has_conventions = any(
+            keyword in copilot_instructions.lower() for keyword in conventions_keywords
+        )
         assert has_conventions, "Should describe coding conventions or patterns"
 
     def test_copilot_instructions_mentions_testing(self, copilot_instructions):
         """Test that documentation mentions testing practices."""
         testing_keywords = ["test", "testing"]
 
-        has_testing_info = any(keyword in copilot_instructions.lower() for keyword in testing_keywords)
+        has_testing_info = any(
+            keyword in copilot_instructions.lower() for keyword in testing_keywords
+        )
         assert has_testing_info, "Should provide testing guidance"
 
 
@@ -1008,18 +1044,26 @@ class TestCodacyInstructions:
 
     def test_codacy_instructions_mentions_codacy_cli(self, codacy_instructions):
         """Test that instructions mention Codacy CLI tool."""
-        assert "codacy_cli_analyze" in codacy_instructions or "Codacy CLI" in codacy_instructions
+        assert (
+            "codacy_cli_analyze" in codacy_instructions
+            or "Codacy CLI" in codacy_instructions
+        )
 
     def test_codacy_instructions_has_security_checks(self, codacy_instructions):
         """Test that instructions include security checking guidance."""
         security_keywords = ["security", "vulnerabilit", "trivy"]
 
-        has_security = any(keyword in codacy_instructions.lower() for keyword in security_keywords)
+        has_security = any(
+            keyword in codacy_instructions.lower() for keyword in security_keywords
+        )
         assert has_security, "Should mention security checks"
 
     def test_codacy_instructions_has_dependency_check_rules(self, codacy_instructions):
         """Test that instructions cover dependency checking."""
-        assert "dependencies" in codacy_instructions.lower() or "package" in codacy_instructions.lower()
+        assert (
+            "dependencies" in codacy_instructions.lower()
+            or "package" in codacy_instructions.lower()
+        )
 
     def test_codacy_instructions_has_mcp_server_guidance(self, codacy_instructions):
         """Test that instructions mention MCP Server."""
@@ -1060,7 +1104,9 @@ class TestCircleCIEdgeCases:
         for job_name, job_config in jobs.items():
             # Every job should have steps or executor
             assert (
-                "steps" in job_config or "executor" in job_config or "docker" in job_config
+                "steps" in job_config
+                or "executor" in job_config
+                or "docker" in job_config
             ), f"Job {job_name} is missing steps or executor configuration"
 
     def test_circleci_checkout_in_jobs(self, circleci_config):
@@ -1076,14 +1122,16 @@ class TestCircleCIEdgeCases:
                 steps = job_config["steps"]
                 # Check for checkout step (critical for getting code)
                 has_checkout = any(
-                    step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps
+                    step == "checkout"
+                    or (isinstance(step, dict) and "checkout" in step)
+                    for step in steps
                 )
                 # Some jobs like docker-build might not need checkout if they use special setup
                 # But most jobs should have it
                 if job_name not in ["docker-build"]:  # Exclude known exceptions
-                    assert has_checkout or "setup_remote_docker" in str(
-                        steps
-                    ), f"Job {job_name} should include checkout step"
+                    assert has_checkout or "setup_remote_docker" in str(steps), (
+                        f"Job {job_name} should include checkout step"
+                    )
 
     def test_circleci_reasonable_parallelism(self, circleci_config):
         """Test that parallelism values are reasonable."""
@@ -1092,7 +1140,9 @@ class TestCircleCIEdgeCases:
         for job_name, job_config in jobs.items():
             if "parallelism" in job_config:
                 parallelism = job_config["parallelism"]
-                assert 1 <= parallelism <= 20, f"Job {job_name} has unreasonable parallelism: {parallelism}"
+                assert 1 <= parallelism <= 20, (
+                    f"Job {job_name} has unreasonable parallelism: {parallelism}"
+                )
 
     def test_circleci_resource_class_specified(self, circleci_config):
         """Test that executors specify resource class for cost optimization."""
@@ -1112,9 +1162,9 @@ class TestCircleCIEdgeCases:
                         "xlarge",
                         "2xlarge",
                     ]
-                    assert (
-                        resource_class in valid_classes
-                    ), f"Executor {executor_name} has invalid resource class: {resource_class}"
+                    assert resource_class in valid_classes, (
+                        f"Executor {executor_name} has invalid resource class: {resource_class}"
+                    )
 
     def test_circleci_docker_images_pinned(self, circleci_config):
         """
@@ -1135,11 +1185,13 @@ class TestCircleCIEdgeCases:
                     if "image" in image_config:
                         image = image_config["image"]
                         # Should include version tag, not just :latest or no tag
-                        assert ":" in image, f"Docker image in {executor_name} should specify version: {image}"
+                        assert ":" in image, (
+                            f"Docker image in {executor_name} should specify version: {image}"
+                        )
                         # Check it's not using :latest (bad practice)
-                        assert not image.endswith(
-                            ":latest"
-                        ), f"Docker image in {executor_name} should not use :latest tag"
+                        assert not image.endswith(":latest"), (
+                            f"Docker image in {executor_name} should not use :latest tag"
+                        )
 
 
 class TestGitHubActionsEdgeCases:
@@ -1172,7 +1224,9 @@ class TestGitHubActionsEdgeCases:
             conditional_inputs = ["python-version", "node-version"]
 
             if not is_required and input_name not in conditional_inputs:
-                assert has_default, f"Optional input {input_name} should have a default value"
+                assert has_default, (
+                    f"Optional input {input_name} should have a default value"
+                )
 
     def test_github_action_error_handling_in_steps(self, github_action_config):
         """Test that run steps use proper error handling."""
@@ -1183,9 +1237,9 @@ class TestGitHubActionsEdgeCases:
                 run_command = step["run"]
                 # Check for set -e or pipefail for proper error propagation
                 if "eval" in run_command or len(run_command.split("\n")) > 1:
-                    assert (
-                        "set -" in run_command or "pipefail" in run_command
-                    ), f"Multi-line step {step.get('name', 'unnamed')} should use set -e or pipefail"
+                    assert "set -" in run_command or "pipefail" in run_command, (
+                        f"Multi-line step {step.get('name', 'unnamed')} should use set -e or pipefail"
+                    )
 
     def test_github_action_no_hardcoded_values(self, github_action_config):
         """Test that steps use inputs rather than hardcoded values."""
@@ -1198,7 +1252,9 @@ class TestGitHubActionsEdgeCases:
                 if "python-version" in with_values:
                     python_version = with_values["python-version"]
                     # Should reference input
-                    assert "inputs." in python_version, "Python version should reference input parameter"
+                    assert "inputs." in python_version, (
+                        "Python version should reference input parameter"
+                    )
 
 
 class TestDocumentationEdgeCases:
@@ -1229,8 +1285,12 @@ class TestDocumentationEdgeCases:
 
         for link_text, link_url in links:
             # Check for common mistakes
-            assert not link_url.startswith(" "), f"Link has leading space: [{link_text}]({link_url})"
-            assert not link_url.endswith(" "), f"Link has trailing space: [{link_text}]({link_url})"
+            assert not link_url.startswith(" "), (
+                f"Link has leading space: [{link_text}]({link_url})"
+            )
+            assert not link_url.endswith(" "), (
+                f"Link has trailing space: [{link_text}]({link_url})"
+            )
 
     def test_copilot_instructions_command_syntax(self, copilot_instructions):
         """
@@ -1277,17 +1337,23 @@ class TestDocumentationEdgeCases:
                     )
 
                     # Allow any of these valid formats
-                    if not (is_in_code_block or is_inline_code or is_indented or is_prose):
+                    if not (
+                        is_in_code_block or is_inline_code or is_indented or is_prose
+                    ):
                         # Only fail if it looks like a command (starts with python and has no prose context)
                         looks_like_command = line.strip().startswith("python")
                         if looks_like_command:
-                            assert False, f"Python command should be in code format: {line.strip()}"
+                            assert False, (
+                                f"Python command should be in code format: {line.strip()}"
+                            )
 
     def test_copilot_instructions_reasonable_length(self, copilot_instructions):
         """Test that documentation is comprehensive but not too long."""
         line_count = len(copilot_instructions.split("\n"))
         # Should be substantial but not overwhelming
-        assert 20 <= line_count <= 500, f"Documentation should be reasonable length (20-500 lines), got {line_count}"
+        assert 20 <= line_count <= 500, (
+            f"Documentation should be reasonable length (20-500 lines), got {line_count}"
+        )
 
     def test_codacy_instructions_example_formatting(self) -> dict:
         """Test that Codacy instructions have properly formatted examples."""
@@ -1298,4 +1364,6 @@ class TestDocumentationEdgeCases:
         # If there are examples, they should be clearly marked
         if "example" in content.lower() or "EXAMPLE" in content:
             # Examples should be in a clear section or code block
-            assert "##" in content or "```" in content or "-" in content, "Examples should be clearly formatted"
+            assert "##" in content or "```" in content or "-" in content, (
+                "Examples should be clearly formatted"
+            )
