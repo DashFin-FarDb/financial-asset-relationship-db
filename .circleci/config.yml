@@ -206,7 +206,7 @@ workflows:
       # Backend workflow - run lint and test in parallel, security can run after lint
       - python-lint
       - python-test
-      - python-security:
+      - python-security
 
       # Frontend workflow - run lint and build in parallel
       - frontend-lint
