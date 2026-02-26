@@ -403,7 +403,10 @@ class TestShellScripts:
             content = f.read()
 
         # Should reference the analysis document
-        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
+        assert (
+            "BRANCH_CLEANUP_ANALYSIS.md" in content
+            or "documentation" in content.lower()
+        )
 
     def test_shell_scripts_consistent_style(self):
         """Test that shell scripts use consistent coding style."""
@@ -534,4 +537,6 @@ class TestShellScripts:
                 )
             )
         )
-        assert has_preview, "Script should have a dry-run flag or explicitly preview branches before deletion"
+        assert has_preview, (
+            "Script should have a dry-run flag or explicitly preview branches before deletion"
+        )

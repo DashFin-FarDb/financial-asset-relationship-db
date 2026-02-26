@@ -2,19 +2,19 @@
 
 ## Main rules
 
-* Before you open a ticket or send a pull request, [search](https://github.com/codacy/codacy-analysis-cli/issues) for previous discussions about the same feature or issue. Add any new details to earlier tickets if you find any.
+- Before you open a ticket or send a pull request, [search](https://github.com/codacy/codacy-analysis-cli/issues) for previous discussions about the same feature or issue. Add any new details to earlier tickets if you find any.
 
-* If you're proposing a new feature, make sure you create an issue to let other contributors know what you will be working on.
+- If you're proposing a new feature, make sure you create an issue to let other contributors know what you will be working on.
 
-* Before sending a pull request make sure your code is tested.
+- Before sending a pull request make sure your code is tested.
 
-* Before sending a pull request for a feature, be sure to run tests with `./scripts/test.sh`.
+- Before sending a pull request for a feature, be sure to run tests with `./scripts/test.sh`.
 
-* Use the same coding style as the rest of the codebase, most of the checks can be performed with `./scripts/lint.sh`.
+- Use the same coding style as the rest of the codebase, most of the checks can be performed with `./scripts/lint.sh`.
 
-* Use `git rebase` (not `git merge`) to sync your work from time to time with the master branch.
+- Use `git rebase` (not `git merge`) to sync your work from time to time with the master branch.
 
-* After creating your pull request make sure the build is passing on [CircleCI](https://circleci.com/gh/codacy/codacy-analysis-cli) and that [Codacy](https://www.codacy.com/app/Codacy/codacy-analysis-cli) is also confident in the code quality.
+- After creating your pull request make sure the build is passing on [CircleCI](https://circleci.com/gh/codacy/codacy-analysis-cli) and that [Codacy](https://www.codacy.com/app/Codacy/codacy-analysis-cli) is also confident in the code quality.
 
 ## Commit Style
 
@@ -46,14 +46,14 @@ nicely even when it is indented.
 
 By making a contribution to this project, I certify that:
 
-* (a) The contribution was created in whole or in part by me and I
+- (a) The contribution was created in whole or in part by me and I
   have the right to submit it under the open source license indicated
   in the file; or
-* (b) The contribution is based upon previous work that, to the best
+- (b) The contribution is based upon previous work that, to the best
   of my knowledge, is covered under an appropriate open source license
   and I have the right under that license to submit that work with
   modifications, whether created in whole or in part by me, under the
   same open source license (unless I am permitted to submit under a
   different license), as indicated in the file; or
-* (c) The contribution was provided directly to me by some other
+- (c) The contribution was provided directly to me by some other
   person who certified (a), (b) or (c) and I have not modified it.

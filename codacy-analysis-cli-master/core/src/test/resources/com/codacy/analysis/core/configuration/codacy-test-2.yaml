@@ -1,4 +1,4 @@
 ---
 grade:
   exclude_paths:
-      - config/engines.yml
+    - config/engines.yml

@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 
 /* We need to tell jshint what variables are being exported */
 /* global angular: true,
@@ -96,7 +96,7 @@
   NODE_TYPE_DOCUMENT_FRAGMENT: true,
 */
 
-////////////////////////////////////
+/// /////////////////////////////////
 
 /**
  * @ngdoc module
@@ -113,63 +113,65 @@
  * <div doc-module-components="ng"></div>
  */
 
-var REGEX_STRING_REGEXP = /^\/(.+)\/([a-z]*)$/;
+const REGEX_STRING_REGEXP = /^\/(.+)\/([a-z]*)$/
 
 // The name of a form control's ValidityState property.
 // This is used so that it's possible for internal tests to create mock ValidityStates.
-var VALIDITY_STATE_PROPERTY = 'validity';
+const VALIDITY_STATE_PROPERTY = 'validity'
 
-var hasOwnProperty = Object.prototype.hasOwnProperty;
+const hasOwnProperty = Object.prototype.hasOwnProperty
 
-var lowercase = function(string) {return isString(string) ? string.toLowerCase() : string;};
-var uppercase = function(string) {return isString(string) ? string.toUpperCase() : string;};
+let lowercase = function (string) {
+  return isString(string) ? string.toLowerCase() : string
+}
+let uppercase = function (string) {
+  return isString(string) ? string.toUpperCase() : string
+}
 
-
-var manualLowercase = function(s) {
+const manualLowercase = function (s) {
   /* jshint bitwise: false */
   return isString(s)
-    ? s.replace(/[A-Z]/g, function(ch) {return String.fromCharCode(ch.charCodeAt(0) | 32);})
-    : s;
-};
-var manualUppercase = function(s) {
+    ? s.replace(/[A-Z]/g, function (ch) {
+      return String.fromCharCode(ch.charCodeAt(0) | 32)
+    })
+    : s
+}
+const manualUppercase = function (s) {
   /* jshint bitwise: false */
   return isString(s)
-    ? s.replace(/[a-z]/g, function(ch) {return String.fromCharCode(ch.charCodeAt(0) & ~32);})
-    : s;
-};
-
+    ? s.replace(/[a-z]/g, function (ch) {
+      return String.fromCharCode(ch.charCodeAt(0) & ~32)
+    })
+    : s
+}
 
 // String#toLowerCase and String#toUpperCase don't produce correct results in browsers with Turkish
 // locale, for this reason we need to detect this case and redefine lowercase/uppercase methods
 // with correct but slower alternatives. See https://github.com/angular/angular.js/issues/11387
-if ('i' !== 'I'.toLowerCase()) {
-  lowercase = manualLowercase;
-  uppercase = manualUppercase;
+if ('I'.toLowerCase() !== 'i') {
+  lowercase = manualLowercase
+  uppercase = manualUppercase
 }
 
-
-var
-  msie,             // holds major version number for IE, or NaN if UA is not IE.
-  jqLite,           // delay binding since jQuery could be loaded after us.
-  jQuery,           // delay binding
-  slice             = [].slice,
-  splice            = [].splice,
-  push              = [].push,
-  toString          = Object.prototype.toString,
-  getPrototypeOf    = Object.getPrototypeOf,
-  ngMinErr          = minErr('ng'),
-
-  /** @name angular */
-  angular           = window.angular || (window.angular = {}),
-  angularModule,
-  uid               = 0;
+let msie // holds major version number for IE, or NaN if UA is not IE.
+let jqLite // delay binding since jQuery could be loaded after us.
+let jQuery // delay binding
+const slice = [].slice
+const splice = [].splice
+const push = [].push
+const toString = Object.prototype.toString
+const getPrototypeOf = Object.getPrototypeOf
+const ngMinErr = minErr('ng')
+/** @name angular */
+const angular = window.angular || (window.angular = {})
+let angularModule
+let uid = 0
 
 /**
  * documentMode is an IE-only property
  * http://msdn.microsoft.com/en-us/library/ie/cc196988(v=vs.85).aspx
  */
-msie = document.documentMode;
-
+msie = document.documentMode
 
 /**
  * @private
@@ -177,26 +179,29 @@ msie = document.documentMode;
  * @return {boolean} Returns true if `obj` is an array or array-like object (NodeList, Arguments,
  *                   String ...)
  */
-function isArrayLike(obj) {
-
+function isArrayLike (obj) {
   // `null`, `undefined` and `window` are not array-like
-  if (obj == null || isWindow(obj)) return false;
+  if (obj == null || isWindow(obj)) return false
 
   // arrays, strings and jQuery/jqLite objects are array like
   // * jqLite is either the jQuery or jqLite constructor function
   // * we have to check the existence of jqLite first as this method is called
   //   via the forEach method when constructing the jqLite object in the first place
-  if (isArray(obj) || isString(obj) || (jqLite && obj instanceof jqLite)) return true;
+  if (isArray(obj) || isString(obj) || (jqLite && obj instanceof jqLite)) {
+    return true
+  }
 
   // Support: iOS 8.2 (not reproducible in simulator)
   // "length" in obj used to prevent JIT error (gh-11508)
-  var length = "length" in Object(obj) && obj.length;
+  const length = 'length' in Object(obj) && obj.length
 
   // NodeList objects (with `item` method) and
   // other objects with suitable length characteristics are array-like
-  return isNumber(length) &&
-    (length >= 0 && ((length - 1) in obj || obj instanceof Array) || typeof obj.item == 'function');
-
+  return (
+    isNumber(length) &&
+    ((length >= 0 && (length - 1 in obj || obj instanceof Array)) ||
+      typeof obj.item === 'function')
+  )
 }
 
 /**
@@ -234,66 +239,72 @@ function isArrayLike(obj) {
  * @returns {Object|Array} Reference to `obj`.
  */
 
-function forEach(obj, iterator, context) {
-  var key, length;
+function forEach (obj, iterator, context) {
+  let key, length
   if (obj) {
     if (isFunction(obj)) {
       for (key in obj) {
         // Need to check if hasOwnProperty exists,
         // as on IE8 the result of querySelectorAll is an object without a hasOwnProperty function
-        if (key != 'prototype' && key != 'length' && key != 'name' && (!obj.hasOwnProperty || obj.hasOwnProperty(key))) {
-          iterator.call(context, obj[key], key, obj);
+        if (
+          key != 'prototype' &&
+          key != 'length' &&
+          key != 'name' &&
+          (!obj.hasOwnProperty || obj.hasOwnProperty(key))
+        ) {
+          iterator.call(context, obj[key], key, obj)
         }
       }
     } else if (isArray(obj) || isArrayLike(obj)) {
-      var isPrimitive = typeof obj !== 'object';
+      const isPrimitive = typeof obj !== 'object'
       for (key = 0, length = obj.length; key < length; key++) {
         if (isPrimitive || key in obj) {
-          iterator.call(context, obj[key], key, obj);
+          iterator.call(context, obj[key], key, obj)
         }
       }
     } else if (obj.forEach && obj.forEach !== forEach) {
-      obj.forEach(iterator, context, obj);
+      obj.forEach(iterator, context, obj)
     } else if (isBlankObject(obj)) {
       // createMap() fast path --- Safe to avoid hasOwnProperty check because prototype chain is empty
       for (key in obj) {
-        iterator.call(context, obj[key], key, obj);
+        iterator.call(context, obj[key], key, obj)
       }
     } else if (typeof obj.hasOwnProperty === 'function') {
       // Slow path for objects inheriting Object.prototype, hasOwnProperty check needed
       for (key in obj) {
         if (obj.hasOwnProperty(key)) {
-          iterator.call(context, obj[key], key, obj);
+          iterator.call(context, obj[key], key, obj)
         }
       }
     } else {
       // Slow path for objects which do not have a method `hasOwnProperty`
       for (key in obj) {
         if (hasOwnProperty.call(obj, key)) {
-          iterator.call(context, obj[key], key, obj);
+          iterator.call(context, obj[key], key, obj)
         }
       }
     }
   }
-  return obj;
+  return obj
 }
 
-function forEachSorted(obj, iterator, context) {
-  var keys = Object.keys(obj).sort();
-  for (var i = 0; i < keys.length; i++) {
-    iterator.call(context, obj[keys[i]], keys[i]);
+function forEachSorted (obj, iterator, context) {
+  const keys = Object.keys(obj).sort()
+  for (let i = 0; i < keys.length; i++) {
+    iterator.call(context, obj[keys[i]], keys[i])
   }
-  return keys;
+  return keys
 }
-
 
 /**
  * when using forEach the params are value, key, but it is often useful to have key, value.
  * @param {function(string, *)} iteratorFn
  * @returns {function(*, string)}
  */
-function reverseParams(iteratorFn) {
-  return function(value, key) {iteratorFn(key, value);};
+function reverseParams (iteratorFn) {
+  return function (value, key) {
+    iteratorFn(key, value)
+  }
 }
 
 /**
@@ -306,57 +317,55 @@ function reverseParams(iteratorFn) {
  *
  * @returns {number} an unique alpha-numeric string
  */
-function nextUid() {
-  return ++uid;
+function nextUid () {
+  return ++uid
 }
-
 
 /**
  * Set or clear the hashkey for an object.
  * @param obj object
  * @param h the hashkey (!truthy to delete the hashkey)
  */
-function setHashKey(obj, h) {
+function setHashKey (obj, h) {
   if (h) {
-    obj.$$hashKey = h;
+    obj.$$hashKey = h
   } else {
-    delete obj.$$hashKey;
+    delete obj.$$hashKey
   }
 }
 
+function baseExtend (dst, objs, deep) {
+  const h = dst.$$hashKey
 
-function baseExtend(dst, objs, deep) {
-  var h = dst.$$hashKey;
-
-  for (var i = 0, ii = objs.length; i < ii; ++i) {
-    var obj = objs[i];
-    if (!isObject(obj) && !isFunction(obj)) continue;
-    var keys = Object.keys(obj);
-    for (var j = 0, jj = keys.length; j < jj; j++) {
-      var key = keys[j];
-      var src = obj[key];
+  for (let i = 0, ii = objs.length; i < ii; ++i) {
+    const obj = objs[i]
+    if (!isObject(obj) && !isFunction(obj)) continue
+    const keys = Object.keys(obj)
+    for (let j = 0, jj = keys.length; j < jj; j++) {
+      const key = keys[j]
+      const src = obj[key]
 
       if (deep && isObject(src)) {
         if (isDate(src)) {
-          dst[key] = new Date(src.valueOf());
+          dst[key] = new Date(src.valueOf())
         } else if (isRegExp(src)) {
-          dst[key] = new RegExp(src);
+          dst[key] = new RegExp(src)
         } else if (src.nodeName) {
-          dst[key] = src.cloneNode(true);
+          dst[key] = src.cloneNode(true)
         } else if (isElement(src)) {
-          dst[key] = src.clone();
+          dst[key] = src.clone()
         } else {
-          if (!isObject(dst[key])) dst[key] = isArray(src) ? [] : {};
-          baseExtend(dst[key], [src], true);
+          if (!isObject(dst[key])) dst[key] = isArray(src) ? [] : {}
+          baseExtend(dst[key], [src], true)
         }
       } else {
-        dst[key] = src;
+        dst[key] = src
       }
     }
   }
 
-  setHashKey(dst, h);
-  return dst;
+  setHashKey(dst, h)
+  return dst
 }
 
 /**
@@ -377,10 +386,9 @@ function baseExtend(dst, objs, deep) {
  * @param {...Object} src Source object(s).
  * @returns {Object} Reference to `dst`.
  */
-function extend(dst) {
-  return baseExtend(dst, slice.call(arguments, 1), false);
+function extend (dst) {
+  return baseExtend(dst, slice.call(arguments, 1), false)
 }
-
 
 /**
  * @ngdoc function
@@ -400,19 +408,16 @@ function extend(dst) {
  * @param {...Object} src Source object(s).
  * @returns {Object} Reference to `dst`.
  */
-function merge(dst) {
-  return baseExtend(dst, slice.call(arguments, 1), true);
+function merge (dst) {
+  return baseExtend(dst, slice.call(arguments, 1), true)
 }
 
-
-
-function toInt(str) {
-  return parseInt(str, 10);
+function toInt (str) {
+  return parseInt(str, 10)
 }
 
-
-function inherit(parent, extra) {
-  return extend(Object.create(parent), extra);
+function inherit (parent, extra) {
+  return extend(Object.create(parent), extra)
 }
 
 /**
@@ -431,9 +436,8 @@ function inherit(parent, extra) {
      }
  ```
  */
-function noop() {}
-noop.$inject = [];
-
+function noop () {}
+noop.$inject = []
 
 /**
  * @ngdoc function
@@ -453,16 +457,20 @@ noop.$inject = [];
  * @param {*} value to be returned.
  * @returns {*} the value passed in.
  */
-function identity($) {return $;}
-identity.$inject = [];
+function identity ($) {
+  return $
+}
+identity.$inject = []
 
-
-function valueFn(value) {return function() {return value;};}
-
-function hasCustomToString(obj) {
-  return isFunction(obj.toString) && obj.toString !== toString;
+function valueFn (value) {
+  return function () {
+    return value
+  }
 }
 
+function hasCustomToString (obj) {
+  return isFunction(obj.toString) && obj.toString !== toString
+}
 
 /**
  * @ngdoc function
@@ -476,8 +484,9 @@ function hasCustomToString(obj) {
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is undefined.
  */
-function isUndefined(value) {return typeof value === 'undefined';}
-
+function isUndefined (value) {
+  return typeof value === 'undefined'
+}
 
 /**
  * @ngdoc function
@@ -491,8 +500,9 @@ function isUndefined(value) {return typeof value === 'undefined';}
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is defined.
  */
-function isDefined(value) {return typeof value !== 'undefined';}
-
+function isDefined (value) {
+  return typeof value !== 'undefined'
+}
 
 /**
  * @ngdoc function
@@ -507,21 +517,19 @@ function isDefined(value) {return typeof value !== 'undefined';}
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is an `Object` but not `null`.
  */
-function isObject(value) {
+function isObject (value) {
   // http://jsperf.com/isobject4
-  return value !== null && typeof value === 'object';
+  return value !== null && typeof value === 'object'
 }
-
 
 /**
  * Determine if a value is an object with a null prototype
  *
  * @returns {boolean} True if `value` is an `Object` with a null prototype
  */
-function isBlankObject(value) {
-  return value !== null && typeof value === 'object' && !getPrototypeOf(value);
+function isBlankObject (value) {
+  return value !== null && typeof value === 'object' && !getPrototypeOf(value)
 }
-
 
 /**
  * @ngdoc function
@@ -535,8 +543,9 @@ function isBlankObject(value) {
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is a `String`.
  */
-function isString(value) {return typeof value === 'string';}
-
+function isString (value) {
+  return typeof value === 'string'
+}
 
 /**
  * @ngdoc function
@@ -556,8 +565,9 @@ function isString(value) {return typeof value === 'string';}
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is a `Number`.
  */
-function isNumber(value) {return typeof value === 'number';}
-
+function isNumber (value) {
+  return typeof value === 'number'
+}
 
 /**
  * @ngdoc function
@@ -571,10 +581,9 @@ function isNumber(value) {return typeof value === 'number';}
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is a `Date`.
  */
-function isDate(value) {
-  return toString.call(value) === '[object Date]';
+function isDate (value) {
+  return toString.call(value) === '[object Date]'
 }
-
 
 /**
  * @ngdoc function
@@ -588,7 +597,7 @@ function isDate(value) {
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is an `Array`.
  */
-var isArray = Array.isArray;
+var isArray = Array.isArray
 
 /**
  * @ngdoc function
@@ -602,8 +611,9 @@ var isArray = Array.isArray;
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is a `Function`.
  */
-function isFunction(value) {return typeof value === 'function';}
-
+function isFunction (value) {
+  return typeof value === 'function'
+}
 
 /**
  * Determines if a value is a regular expression object.
@@ -612,10 +622,9 @@ function isFunction(value) {return typeof value === 'function';}
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is a `RegExp`.
  */
-function isRegExp(value) {
-  return toString.call(value) === '[object RegExp]';
+function isRegExp (value) {
+  return toString.call(value) === '[object RegExp]'
 }
-
 
 /**
  * Checks if `obj` is a window object.
@@ -624,63 +633,60 @@ function isRegExp(value) {
  * @param {*} obj Object to check
  * @returns {boolean} True if `obj` is a window obj.
  */
-function isWindow(obj) {
-  return obj && obj.window === obj;
+function isWindow (obj) {
+  return obj && obj.window === obj
 }
 
-
-function isScope(obj) {
-  return obj && obj.$evalAsync && obj.$watch;
+function isScope (obj) {
+  return obj && obj.$evalAsync && obj.$watch
 }
 
-
-function isFile(obj) {
-  return toString.call(obj) === '[object File]';
+function isFile (obj) {
+  return toString.call(obj) === '[object File]'
 }
 
-
-function isFormData(obj) {
-  return toString.call(obj) === '[object FormData]';
+function isFormData (obj) {
+  return toString.call(obj) === '[object FormData]'
 }
 
-
-function isBlob(obj) {
-  return toString.call(obj) === '[object Blob]';
+function isBlob (obj) {
+  return toString.call(obj) === '[object Blob]'
 }
 
-
-function isBoolean(value) {
-  return typeof value === 'boolean';
+function isBoolean (value) {
+  return typeof value === 'boolean'
 }
 
-
-function isPromiseLike(obj) {
-  return obj && isFunction(obj.then);
+function isPromiseLike (obj) {
+  return obj && isFunction(obj.then)
 }
 
-
-var TYPED_ARRAY_REGEXP = /^\[object (?:Uint8|Uint8Clamped|Uint16|Uint32|Int8|Int16|Int32|Float32|Float64)Array\]$/;
-function isTypedArray(value) {
-  return value && isNumber(value.length) && TYPED_ARRAY_REGEXP.test(toString.call(value));
+const TYPED_ARRAY_REGEXP =
+  /^\[object (?:Uint8|Uint8Clamped|Uint16|Uint32|Int8|Int16|Int32|Float32|Float64)Array\]$/
+function isTypedArray (value) {
+  return (
+    value &&
+    isNumber(value.length) &&
+    TYPED_ARRAY_REGEXP.test(toString.call(value))
+  )
 }
 
-function isArrayBuffer(obj) {
-  return toString.call(obj) === '[object ArrayBuffer]';
+function isArrayBuffer (obj) {
+  return toString.call(obj) === '[object ArrayBuffer]'
 }
 
-
-var trim = function(value) {
-  return isString(value) ? value.trim() : value;
-};
+const trim = function (value) {
+  return isString(value) ? value.trim() : value
+}
 
 // Copied from:
 // http://docs.closure-library.googlecode.com/git/local_closure_goog_string_string.js.source.html#line1021
 // Prereq: s is a string.
-var escapeForRegexp = function(s) {
-  return s.replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1').
-  replace(/\x08/g, '\\x08');
-};
-
+const escapeForRegexp = function (s) {
+  return s
+    .replace(/([-()\[\]{}+?*.$\^|,:#<!\\])/g, '\\$1')
+    .replace(/\x08/g, '\\x08')
+}
 
 /**
  * @ngdoc function
@@ -694,39 +700,42 @@ var escapeForRegexp = function(s) {
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is a DOM element (or wrapped jQuery element).
  */
-function isElement(node) {
-  return !!(node &&
-    (node.nodeName  // we are a direct element
-      || (node.prop && node.attr && node.find)));  // we have an on and find method part of jQuery API
+function isElement (node) {
+  return !!(
+    node &&
+    (node.nodeName || // we are a direct element
+      (node.prop && node.attr && node.find))
+  ) // we have an on and find method part of jQuery API
 }
 
 /**
  * @param str 'key1,key2,...'
  * @returns {object} in the form of {key1:true, key2:true, ...}
  */
-function makeMap(str) {
-  var obj = {}, items = str.split(','), i;
+function makeMap (str) {
+  const obj = {}
+  const items = str.split(',')
+  let i
   for (i = 0; i < items.length; i++) {
-    obj[items[i]] = true;
+    obj[items[i]] = true
   }
-  return obj;
+  return obj
 }
 
-
-function nodeName_(element) {
-  return lowercase(element.nodeName || (element[0] && element[0].nodeName));
+function nodeName_ (element) {
+  return lowercase(element.nodeName || (element[0] && element[0].nodeName))
 }
 
-function includes(array, obj) {
-  return Array.prototype.indexOf.call(array, obj) != -1;
+function includes (array, obj) {
+  return Array.prototype.indexOf.call(array, obj) != -1
 }
 
-function arrayRemove(array, value) {
-  var index = array.indexOf(value);
+function arrayRemove (array, value) {
+  const index = array.indexOf(value)
   if (index >= 0) {
-    array.splice(index, 1);
+    array.splice(index, 1)
   }
-  return index;
+  return index
 }
 
 /**
@@ -787,101 +796,109 @@ function arrayRemove(array, value) {
  </file>
  </example>
  */
-function copy(source, destination) {
-  var stackSource = [];
-  var stackDest = [];
+function copy (source, destination) {
+  const stackSource = []
+  const stackDest = []
 
   if (destination) {
     if (isTypedArray(destination) || isArrayBuffer(destination)) {
-      throw ngMinErr('cpta', "Can't copy! TypedArray destination cannot be mutated.");
+      throw ngMinErr(
+        'cpta',
+        "Can't copy! TypedArray destination cannot be mutated."
+      )
     }
     if (source === destination) {
-      throw ngMinErr('cpi', "Can't copy! Source and destination are identical.");
+      throw ngMinErr(
+        'cpi',
+        "Can't copy! Source and destination are identical."
+      )
     }
 
     // Empty the destination object
     if (isArray(destination)) {
-      destination.length = 0;
+      destination.length = 0
     } else {
-      forEach(destination, function(value, key) {
+      forEach(destination, function (value, key) {
         if (key !== '$$hashKey') {
-          delete destination[key];
+          delete destination[key]
         }
-      });
+      })
     }
 
-    stackSource.push(source);
-    stackDest.push(destination);
-    return copyRecurse(source, destination);
+    stackSource.push(source)
+    stackDest.push(destination)
+    return copyRecurse(source, destination)
   }
 
-  return copyElement(source);
+  return copyElement(source)
 
-  function copyRecurse(source, destination) {
-    var h = destination.$$hashKey;
-    var result, key;
+  function copyRecurse (source, destination) {
+    const h = destination.$$hashKey
+    let result, key
     if (isArray(source)) {
-      for (var i = 0, ii = source.length; i < ii; i++) {
-        destination.push(copyElement(source[i]));
+      for (let i = 0, ii = source.length; i < ii; i++) {
+        destination.push(copyElement(source[i]))
       }
     } else if (isBlankObject(source)) {
       // createMap() fast path --- Safe to avoid hasOwnProperty check because prototype chain is empty
       for (key in source) {
-        destination[key] = copyElement(source[key]);
+        destination[key] = copyElement(source[key])
       }
     } else if (source && typeof source.hasOwnProperty === 'function') {
       // Slow path, which must rely on hasOwnProperty
       for (key in source) {
         if (source.hasOwnProperty(key)) {
-          destination[key] = copyElement(source[key]);
+          destination[key] = copyElement(source[key])
         }
       }
     } else {
       // Slowest path --- hasOwnProperty can't be called as a method
       for (key in source) {
         if (hasOwnProperty.call(source, key)) {
-          destination[key] = copyElement(source[key]);
+          destination[key] = copyElement(source[key])
         }
       }
     }
-    setHashKey(destination, h);
-    return destination;
+    setHashKey(destination, h)
+    return destination
   }
 
-  function copyElement(source) {
+  function copyElement (source) {
     // Simple values
     if (!isObject(source)) {
-      return source;
+      return source
     }
 
     // Already copied values
-    var index = stackSource.indexOf(source);
+    const index = stackSource.indexOf(source)
     if (index !== -1) {
-      return stackDest[index];
+      return stackDest[index]
     }
 
     if (isWindow(source) || isScope(source)) {
-      throw ngMinErr('cpws',
-        "Can't copy! Making copies of Window or Scope instances is not supported.");
+      throw ngMinErr(
+        'cpws',
+        "Can't copy! Making copies of Window or Scope instances is not supported."
+      )
     }
 
-    var needsRecurse = false;
-    var destination = copyType(source);
+    let needsRecurse = false
+    let destination = copyType(source)
 
     if (destination === undefined) {
-      destination = isArray(source) ? [] : Object.create(getPrototypeOf(source));
-      needsRecurse = true;
+      destination = isArray(source)
+        ? []
+        : Object.create(getPrototypeOf(source))
+      needsRecurse = true
     }
 
-    stackSource.push(source);
-    stackDest.push(destination);
+    stackSource.push(source)
+    stackDest.push(destination)
 
-    return needsRecurse
-      ? copyRecurse(source, destination)
-      : destination;
+    return needsRecurse ? copyRecurse(source, destination) : destination
   }
 
-  function copyType(source) {
+  function copyType (source) {
     switch (toString.call(source)) {
       case '[object Int8Array]':
       case '[object Int16Array]':
@@ -892,34 +909,37 @@ function copy(source, destination) {
       case '[object Uint8ClampedArray]':
       case '[object Uint16Array]':
       case '[object Uint32Array]':
-        return new source.constructor(copyElement(source.buffer));
+        return new source.constructor(copyElement(source.buffer))
 
       case '[object ArrayBuffer]':
-        //Support: IE10
+        // Support: IE10
         if (!source.slice) {
-          var copied = new ArrayBuffer(source.byteLength);
-          new Uint8Array(copied).set(new Uint8Array(source));
-          return copied;
+          const copied = new ArrayBuffer(source.byteLength)
+          new Uint8Array(copied).set(new Uint8Array(source))
+          return copied
         }
-        return source.slice(0);
+        return source.slice(0)
 
       case '[object Boolean]':
       case '[object Number]':
       case '[object String]':
       case '[object Date]':
-        return new source.constructor(source.valueOf());
+        return new source.constructor(source.valueOf())
 
       case '[object RegExp]':
-        var re = new RegExp(source.source, source.toString().match(/[^\/]*$/)[0]);
-        re.lastIndex = source.lastIndex;
-        return re;
+        var re = new RegExp(
+          source.source,
+          source.toString().match(/[^\/]*$/)[0]
+        )
+        re.lastIndex = source.lastIndex
+        return re
 
       case '[object Blob]':
-        return new source.constructor([source], {type: source.type});
+        return new source.constructor([source], { type: source.type })
     }
 
     if (isFunction(source.cloneNode)) {
-      return source.cloneNode(true);
+      return source.cloneNode(true)
     }
   }
 }
@@ -929,26 +949,25 @@ function copy(source, destination) {
  *
  * Assumes that there are no proto properties for objects.
  */
-function shallowCopy(src, dst) {
+function shallowCopy (src, dst) {
   if (isArray(src)) {
-    dst = dst || [];
+    dst = dst || []
 
-    for (var i = 0, ii = src.length; i < ii; i++) {
-      dst[i] = src[i];
+    for (let i = 0, ii = src.length; i < ii; i++) {
+      dst[i] = src[i]
     }
   } else if (isObject(src)) {
-    dst = dst || {};
+    dst = dst || {}
 
-    for (var key in src) {
+    for (const key in src) {
       if (!(key.charAt(0) === '$' && key.charAt(1) === '$')) {
-        dst[key] = src[key];
+        dst[key] = src[key]
       }
     }
   }
 
-  return dst || src;
+  return dst || src
 }
-
 
 /**
  * @ngdoc function
@@ -979,82 +998,101 @@ function shallowCopy(src, dst) {
  * @param {*} o2 Object or value to compare.
  * @returns {boolean} True if arguments are equal.
  */
-function equals(o1, o2) {
-  if (o1 === o2) return true;
-  if (o1 === null || o2 === null) return false;
-  if (o1 !== o1 && o2 !== o2) return true; // NaN === NaN
-  var t1 = typeof o1, t2 = typeof o2, length, key, keySet;
+function equals (o1, o2) {
+  if (o1 === o2) return true
+  if (o1 === null || o2 === null) return false
+  if (o1 !== o1 && o2 !== o2) return true // NaN === NaN
+  const t1 = typeof o1
+  const t2 = typeof o2
+  let length
+  let key
+  let keySet
   if (t1 == t2 && t1 == 'object') {
     if (isArray(o1)) {
-      if (!isArray(o2)) return false;
+      if (!isArray(o2)) return false
       if ((length = o1.length) == o2.length) {
         for (key = 0; key < length; key++) {
-          if (!equals(o1[key], o2[key])) return false;
+          if (!equals(o1[key], o2[key])) return false
         }
-        return true;
+        return true
       }
     } else if (isDate(o1)) {
-      if (!isDate(o2)) return false;
-      return equals(o1.getTime(), o2.getTime());
+      if (!isDate(o2)) return false
+      return equals(o1.getTime(), o2.getTime())
     } else if (isRegExp(o1)) {
-      if (!isRegExp(o2)) return false;
-      return o1.toString() == o2.toString();
+      if (!isRegExp(o2)) return false
+      return o1.toString() == o2.toString()
     } else {
-      if (isScope(o1) || isScope(o2) || isWindow(o1) || isWindow(o2) ||
-        isArray(o2) || isDate(o2) || isRegExp(o2)) return false;
-      keySet = createMap();
+      if (
+        isScope(o1) ||
+        isScope(o2) ||
+        isWindow(o1) ||
+        isWindow(o2) ||
+        isArray(o2) ||
+        isDate(o2) ||
+        isRegExp(o2)
+      ) {
+        return false
+      }
+      keySet = createMap()
       for (key in o1) {
-        if (key.charAt(0) === '$' || isFunction(o1[key])) continue;
-        if (!equals(o1[key], o2[key])) return false;
-        keySet[key] = true;
+        if (key.charAt(0) === '$' || isFunction(o1[key])) continue
+        if (!equals(o1[key], o2[key])) return false
+        keySet[key] = true
       }
       for (key in o2) {
-        if (!(key in keySet) &&
+        if (
+          !(key in keySet) &&
           key.charAt(0) !== '$' &&
           isDefined(o2[key]) &&
-          !isFunction(o2[key])) return false;
+          !isFunction(o2[key])
+        ) {
+          return false
+        }
       }
-      return true;
+      return true
     }
   }
-  return false;
+  return false
 }
 
-var csp = function() {
+const csp = function () {
   if (!isDefined(csp.rules)) {
-
-
-    var ngCspElement = (document.querySelector('[ng-csp]') ||
-      document.querySelector('[data-ng-csp]'));
+    const ngCspElement =
+      document.querySelector('[ng-csp]') ||
+      document.querySelector('[data-ng-csp]')
 
     if (ngCspElement) {
-      var ngCspAttribute = ngCspElement.getAttribute('ng-csp') ||
-        ngCspElement.getAttribute('data-ng-csp');
+      const ngCspAttribute =
+        ngCspElement.getAttribute('ng-csp') ||
+        ngCspElement.getAttribute('data-ng-csp')
       csp.rules = {
-        noUnsafeEval: !ngCspAttribute || (ngCspAttribute.indexOf('no-unsafe-eval') !== -1),
-        noInlineStyle: !ngCspAttribute || (ngCspAttribute.indexOf('no-inline-style') !== -1)
-      };
+        noUnsafeEval:
+          !ngCspAttribute || ngCspAttribute.indexOf('no-unsafe-eval') !== -1,
+        noInlineStyle:
+          !ngCspAttribute || ngCspAttribute.indexOf('no-inline-style') !== -1
+      }
     } else {
       csp.rules = {
         noUnsafeEval: noUnsafeEval(),
         noInlineStyle: false
-      };
+      }
     }
   }
 
-  return csp.rules;
+  return csp.rules
 
-  function noUnsafeEval() {
+  function noUnsafeEval () {
     try {
       /* jshint -W031, -W054 */
-      new Function('');
+      new Function('')
       /* jshint +W031, +W054 */
-      return false;
+      return false
     } catch (e) {
-      return true;
+      return true
     }
   }
-};
+}
 
 /**
  * @ngdoc directive
@@ -1094,29 +1132,33 @@ var csp = function() {
  </html>
  ```
  */
-var jq = function() {
-  if (isDefined(jq.name_)) return jq.name_;
-  var el;
-  var i, ii = ngAttrPrefixes.length, prefix, name;
+const jq = function () {
+  if (isDefined(jq.name_)) return jq.name_
+  let el
+  let i
+  const ii = ngAttrPrefixes.length
+  let prefix
+  let name
   for (i = 0; i < ii; ++i) {
-    prefix = ngAttrPrefixes[i];
-    if (el = document.querySelector('[' + prefix.replace(':', '\\:') + 'jq]')) {
-      name = el.getAttribute(prefix + 'jq');
-      break;
+    prefix = ngAttrPrefixes[i]
+    if (
+      (el = document.querySelector('[' + prefix.replace(':', '\\:') + 'jq]'))
+    ) {
+      name = el.getAttribute(prefix + 'jq')
+      break
     }
   }
 
-  return (jq.name_ = name);
-};
-
-function concat(array1, array2, index) {
-  return array1.concat(slice.call(array2, index));
+  return (jq.name_ = name)
 }
 
-function sliceArgs(args, startIndex) {
-  return slice.call(args, startIndex || 0);
+function concat (array1, array2, index) {
+  return array1.concat(slice.call(array2, index))
 }
 
+function sliceArgs (args, startIndex) {
+  return slice.call(args, startIndex || 0)
+}
 
 /* jshint -W101 */
 /**
@@ -1137,43 +1179,43 @@ function sliceArgs(args, startIndex) {
  * @returns {function()} Function that wraps the `fn` with all the specified bindings.
  */
 /* jshint +W101 */
-function bind(self, fn) {
-  var curryArgs = arguments.length > 2 ? sliceArgs(arguments, 2) : [];
+function bind (self, fn) {
+  const curryArgs = arguments.length > 2 ? sliceArgs(arguments, 2) : []
   if (isFunction(fn) && !(fn instanceof RegExp)) {
     return curryArgs.length
-      ? function() {
+      ? function () {
         return arguments.length
           ? fn.apply(self, concat(curryArgs, arguments, 0))
-          : fn.apply(self, curryArgs);
+          : fn.apply(self, curryArgs)
       }
-      : function() {
-        return arguments.length
-          ? fn.apply(self, arguments)
-          : fn.call(self);
-      };
+      : function () {
+        return arguments.length ? fn.apply(self, arguments) : fn.call(self)
+      }
   } else {
     // in IE, native methods are not functions so they cannot be bound (note: they don't need to be)
-    return fn;
+    return fn
   }
 }
 
+function toJsonReplacer (key, value) {
+  let val = value
 
-function toJsonReplacer(key, value) {
-  var val = value;
-
-  if (typeof key === 'string' && key.charAt(0) === '$' && key.charAt(1) === '$') {
-    val = undefined;
+  if (
+    typeof key === 'string' &&
+    key.charAt(0) === '$' &&
+    key.charAt(1) === '$'
+  ) {
+    val = undefined
   } else if (isWindow(value)) {
-    val = '$WINDOW';
-  } else if (value &&  document === value) {
-    val = '$DOCUMENT';
+    val = '$WINDOW'
+  } else if (value && document === value) {
+    val = '$DOCUMENT'
   } else if (isScope(value)) {
-    val = '$SCOPE';
+    val = '$SCOPE'
   }
 
-  return val;
+  return val
 }
-
 
 /**
  * @ngdoc function
@@ -1190,14 +1232,13 @@ function toJsonReplacer(key, value) {
  *    If set to an integer, the JSON output will contain that many spaces per indentation.
  * @returns {string|undefined} JSON-ified string representing `obj`.
  */
-function toJson(obj, pretty) {
-  if (isUndefined(obj)) return undefined;
+function toJson (obj, pretty) {
+  if (isUndefined(obj)) return undefined
   if (!isNumber(pretty)) {
-    pretty = pretty ? 2 : null;
+    pretty = pretty ? 2 : null
   }
-  return JSON.stringify(obj, toJsonReplacer, pretty);
+  return JSON.stringify(obj, toJsonReplacer, pretty)
 }
-
 
 /**
  * @ngdoc function
@@ -1211,61 +1252,57 @@ function toJson(obj, pretty) {
  * @param {string} json JSON string to deserialize.
  * @returns {Object|Array|string|number} Deserialized JSON string.
  */
-function fromJson(json) {
-  return isString(json)
-    ? JSON.parse(json)
-    : json;
+function fromJson (json) {
+  return isString(json) ? JSON.parse(json) : json
 }
 
-
-var ALL_COLONS = /:/g;
-function timezoneToOffset(timezone, fallback) {
+const ALL_COLONS = /:/g
+function timezoneToOffset (timezone, fallback) {
   // IE/Edge do not "understand" colon (`:`) in timezone
-  timezone = timezone.replace(ALL_COLONS, '');
-  var requestedTimezoneOffset = Date.parse('Jan 01, 1970 00:00:00 ' + timezone) / 60000;
-  return isNaN(requestedTimezoneOffset) ? fallback : requestedTimezoneOffset;
+  timezone = timezone.replace(ALL_COLONS, '')
+  const requestedTimezoneOffset =
+    Date.parse('Jan 01, 1970 00:00:00 ' + timezone) / 60000
+  return isNaN(requestedTimezoneOffset) ? fallback : requestedTimezoneOffset
 }
 
-
-function addDateMinutes(date, minutes) {
-  date = new Date(date.getTime());
-  date.setMinutes(date.getMinutes() + minutes);
-  return date;
+function addDateMinutes (date, minutes) {
+  date = new Date(date.getTime())
+  date.setMinutes(date.getMinutes() + minutes)
+  return date
 }
 
-
-function convertTimezoneToLocal(date, timezone, reverse) {
-  reverse = reverse ? -1 : 1;
-  var dateTimezoneOffset = date.getTimezoneOffset();
-  var timezoneOffset = timezoneToOffset(timezone, dateTimezoneOffset);
-  return addDateMinutes(date, reverse * (timezoneOffset - dateTimezoneOffset));
+function convertTimezoneToLocal (date, timezone, reverse) {
+  reverse = reverse ? -1 : 1
+  const dateTimezoneOffset = date.getTimezoneOffset()
+  const timezoneOffset = timezoneToOffset(timezone, dateTimezoneOffset)
+  return addDateMinutes(date, reverse * (timezoneOffset - dateTimezoneOffset))
 }
-
 
 /**
  * @returns {string} Returns the string representation of the element.
  */
-function startingTag(element) {
-  element = jqLite(element).clone();
+function startingTag (element) {
+  element = jqLite(element).clone()
   try {
     // turns out IE does not let you set .html() on elements which
     // are not allowed to have children. So we just ignore it.
-    element.empty();
+    element.empty()
   } catch (e) {}
-  var elemHtml = jqLite('<div>').append(element).html();
+  const elemHtml = jqLite('<div>').append(element).html()
   try {
-    return element[0].nodeType === NODE_TYPE_TEXT ? lowercase(elemHtml) :
-      elemHtml.
-      match(/^(<[^>]+>)/)[1].
-      replace(/^<([\w\-]+)/, function(match, nodeName) {return '<' + lowercase(nodeName);});
+    return element[0].nodeType === NODE_TYPE_TEXT
+      ? lowercase(elemHtml)
+      : elemHtml
+        .match(/^(<[^>]+>)/)[1]
+        .replace(/^<([\w\-]+)/, function (match, nodeName) {
+          return '<' + lowercase(nodeName)
+        })
   } catch (e) {
-    return lowercase(elemHtml);
+    return lowercase(elemHtml)
   }
-
 }
 
-
-/////////////////////////////////////////////////
+/// //////////////////////////////////////////////
 
 /**
  * Tries to decode the URI component without throwing an exception.
@@ -1275,62 +1312,64 @@ function startingTag(element) {
  * @returns {boolean} True if `value` can be decoded
  * with the decodeURIComponent function.
  */
-function tryDecodeURIComponent(value) {
+function tryDecodeURIComponent (value) {
   try {
-    return decodeURIComponent(value);
+    return decodeURIComponent(value)
   } catch (e) {
     // Ignore any invalid uri component
   }
 }
 
-
 /**
  * Parses an escaped url query string into key-value pairs.
  * @returns {Object.<string,boolean|Array>}
  */
-function parseKeyValue(/**string*/keyValue) {
-  var obj = {};
-  forEach((keyValue || "").split('&'), function(keyValue) {
-    var splitPoint, key, val;
+function parseKeyValue (/** string */ keyValue) {
+  const obj = {}
+  forEach((keyValue || '').split('&'), function (keyValue) {
+    let splitPoint, key, val
     if (keyValue) {
-      key = keyValue = keyValue.replace(/\+/g,'%20');
-      splitPoint = keyValue.indexOf('=');
+      key = keyValue = keyValue.replace(/\+/g, '%20')
+      splitPoint = keyValue.indexOf('=')
       if (splitPoint !== -1) {
-        key = keyValue.substring(0, splitPoint);
-        val = keyValue.substring(splitPoint + 1);
+        key = keyValue.substring(0, splitPoint)
+        val = keyValue.substring(splitPoint + 1)
       }
-      key = tryDecodeURIComponent(key);
+      key = tryDecodeURIComponent(key)
       if (isDefined(key)) {
-        val = isDefined(val) ? tryDecodeURIComponent(val) : true;
+        val = isDefined(val) ? tryDecodeURIComponent(val) : true
         if (!hasOwnProperty.call(obj, key)) {
-          obj[key] = val;
+          obj[key] = val
         } else if (isArray(obj[key])) {
-          obj[key].push(val);
+          obj[key].push(val)
         } else {
-          obj[key] = [obj[key],val];
+          obj[key] = [obj[key], val]
         }
       }
     }
-  });
-  return obj;
+  })
+  return obj
 }
 
-function toKeyValue(obj) {
-  var parts = [];
-  forEach(obj, function(value, key) {
+function toKeyValue (obj) {
+  const parts = []
+  forEach(obj, function (value, key) {
     if (isArray(value)) {
-      forEach(value, function(arrayValue) {
-        parts.push(encodeUriQuery(key, true) +
-          (arrayValue === true ? '' : '=' + encodeUriQuery(arrayValue, true)));
-      });
+      forEach(value, function (arrayValue) {
+        parts.push(
+          encodeUriQuery(key, true) +
+            (arrayValue === true ? '' : '=' + encodeUriQuery(arrayValue, true))
+        )
+      })
     } else {
-      parts.push(encodeUriQuery(key, true) +
-        (value === true ? '' : '=' + encodeUriQuery(value, true)));
+      parts.push(
+        encodeUriQuery(key, true) +
+          (value === true ? '' : '=' + encodeUriQuery(value, true))
+      )
     }
-  });
-  return parts.length ? parts.join('&') : '';
+  })
+  return parts.length ? parts.join('&') : ''
 }
-
 
 /**
  * We need our custom method because encodeURIComponent is too aggressive and doesn't follow
@@ -1343,13 +1382,12 @@ function toKeyValue(obj) {
  *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
  *                     / "*" / "+" / "," / ";" / "="
  */
-function encodeUriSegment(val) {
-  return encodeUriQuery(val, true).
-  replace(/%26/gi, '&').
-  replace(/%3D/gi, '=').
-  replace(/%2B/gi, '+');
+function encodeUriSegment (val) {
+  return encodeUriQuery(val, true)
+    .replace(/%26/gi, '&')
+    .replace(/%3D/gi, '=')
+    .replace(/%2B/gi, '+')
 }
-
 
 /**
  * This method is intended for encoding *key* or *value* parts of query component. We need a custom
@@ -1362,27 +1400,29 @@ function encodeUriSegment(val) {
  *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
  *                     / "*" / "+" / "," / ";" / "="
  */
-function encodeUriQuery(val, pctEncodeSpaces) {
-  return encodeURIComponent(val).
-  replace(/%40/gi, '@').
-  replace(/%3A/gi, ':').
-  replace(/%24/g, '$').
-  replace(/%2C/gi, ',').
-  replace(/%3B/gi, ';').
-  replace(/%20/g, (pctEncodeSpaces ? '%20' : '+'));
+function encodeUriQuery (val, pctEncodeSpaces) {
+  return encodeURIComponent(val)
+    .replace(/%40/gi, '@')
+    .replace(/%3A/gi, ':')
+    .replace(/%24/g, '$')
+    .replace(/%2C/gi, ',')
+    .replace(/%3B/gi, ';')
+    .replace(/%20/g, pctEncodeSpaces ? '%20' : '+')
 }
 
-var ngAttrPrefixes = ['ng-', 'data-ng-', 'ng:', 'x-ng-'];
+var ngAttrPrefixes = ['ng-', 'data-ng-', 'ng:', 'x-ng-']
 
-function getNgAttribute(element, ngAttr) {
-  var attr, i, ii = ngAttrPrefixes.length;
+function getNgAttribute (element, ngAttr) {
+  let attr
+  let i
+  const ii = ngAttrPrefixes.length
   for (i = 0; i < ii; ++i) {
-    attr = ngAttrPrefixes[i] + ngAttr;
-    if (isString(attr = element.getAttribute(attr))) {
-      return attr;
+    attr = ngAttrPrefixes[i] + ngAttr
+    if (isString((attr = element.getAttribute(attr)))) {
+      return attr
     }
   }
-  return null;
+  return null
 }
 
 /**
@@ -1519,32 +1559,35 @@ function getNgAttribute(element, ngAttr) {
  </file>
  </example>
  */
-function angularInit(element, bootstrap) {
-  var appElement,
-    module,
-    config = {};
+function angularInit (element, bootstrap) {
+  let appElement
+  let module
+  const config = {}
 
   // The element `element` has priority over any other element
-  forEach(ngAttrPrefixes, function(prefix) {
-    var name = prefix + 'app';
+  forEach(ngAttrPrefixes, function (prefix) {
+    const name = prefix + 'app'
 
     if (!appElement && element.hasAttribute && element.hasAttribute(name)) {
-      appElement = element;
-      module = element.getAttribute(name);
+      appElement = element
+      module = element.getAttribute(name)
     }
-  });
-  forEach(ngAttrPrefixes, function(prefix) {
-    var name = prefix + 'app';
-    var candidate;
+  })
+  forEach(ngAttrPrefixes, function (prefix) {
+    const name = prefix + 'app'
+    let candidate
 
-    if (!appElement && (candidate = element.querySelector('[' + name.replace(':', '\\:') + ']'))) {
-      appElement = candidate;
-      module = candidate.getAttribute(name);
+    if (
+      !appElement &&
+      (candidate = element.querySelector('[' + name.replace(':', '\\:') + ']'))
+    ) {
+      appElement = candidate
+      module = candidate.getAttribute(name)
     }
-  });
+  })
   if (appElement) {
-    config.strictDi = getNgAttribute(appElement, "strict-di") !== null;
-    bootstrap(appElement, module ? [module] : [], config);
+    config.strictDi = getNgAttribute(appElement, 'strict-di') !== null
+    bootstrap(appElement, module ? [module] : [], config)
   }
 }
 
@@ -1607,71 +1650,82 @@ function angularInit(element, bootstrap) {
  *
  * @returns {auto.$injector} Returns the newly created injector for this app.
  */
-function bootstrap(element, modules, config) {
-  if (!isObject(config)) config = {};
-  var defaultConfig = {
+function bootstrap (element, modules, config) {
+  if (!isObject(config)) config = {}
+  const defaultConfig = {
     strictDi: false
-  };
-  config = extend(defaultConfig, config);
-  var doBootstrap = function() {
-    element = jqLite(element);
+  }
+  config = extend(defaultConfig, config)
+  const doBootstrap = function () {
+    element = jqLite(element)
 
     if (element.injector()) {
-      var tag = (element[0] === document) ? 'document' : startingTag(element);
-      //Encode angle brackets to prevent input from being sanitized to empty string #8683
+      const tag = element[0] === document ? 'document' : startingTag(element)
+      // Encode angle brackets to prevent input from being sanitized to empty string #8683
       throw ngMinErr(
         'btstrpd',
         "App Already Bootstrapped with this Element '{0}'",
-        tag.replace(/</,'&lt;').replace(/>/,'&gt;'));
+        tag.replace(/</, '&lt;').replace(/>/, '&gt;')
+      )
     }
 
-    modules = modules || [];
-    modules.unshift(['$provide', function($provide) {
-      $provide.value('$rootElement', element);
-    }]);
+    modules = modules || []
+    modules.unshift([
+      '$provide',
+      function ($provide) {
+        $provide.value('$rootElement', element)
+      }
+    ])
 
     if (config.debugInfoEnabled) {
       // Pushing so that this overrides `debugInfoEnabled` setting defined in user's `modules`.
-      modules.push(['$compileProvider', function($compileProvider) {
-        $compileProvider.debugInfoEnabled(true);
-      }]);
+      modules.push([
+        '$compileProvider',
+        function ($compileProvider) {
+          $compileProvider.debugInfoEnabled(true)
+        }
+      ])
     }
 
-    modules.unshift('ng');
-    var injector = createInjector(modules, config.strictDi);
-    injector.invoke(['$rootScope', '$rootElement', '$compile', '$injector',
-      function bootstrapApply(scope, element, compile, injector) {
-        scope.$apply(function() {
-          element.data('$injector', injector);
-          compile(element)(scope);
-        });
-      }]
-    );
-    return injector;
-  };
+    modules.unshift('ng')
+    const injector = createInjector(modules, config.strictDi)
+    injector.invoke([
+      '$rootScope',
+      '$rootElement',
+      '$compile',
+      '$injector',
+      function bootstrapApply (scope, element, compile, injector) {
+        scope.$apply(function () {
+          element.data('$injector', injector)
+          compile(element)(scope)
+        })
+      }
+    ])
+    return injector
+  }
 
-  var NG_ENABLE_DEBUG_INFO = /^NG_ENABLE_DEBUG_INFO!/;
-  var NG_DEFER_BOOTSTRAP = /^NG_DEFER_BOOTSTRAP!/;
+  const NG_ENABLE_DEBUG_INFO = /^NG_ENABLE_DEBUG_INFO!/
+  const NG_DEFER_BOOTSTRAP = /^NG_DEFER_BOOTSTRAP!/
 
   if (window && NG_ENABLE_DEBUG_INFO.test(window.name)) {
-    config.debugInfoEnabled = true;
-    window.name = window.name.replace(NG_ENABLE_DEBUG_INFO, '');
+    config.debugInfoEnabled = true
+    window.name = window.name.replace(NG_ENABLE_DEBUG_INFO, '')
   }
 
   if (window && !NG_DEFER_BOOTSTRAP.test(window.name)) {
-    return doBootstrap();
+    return doBootstrap()
   }
 
-  window.name = window.name.replace(NG_DEFER_BOOTSTRAP, '');
-  angular.resumeBootstrap = function(extraModules) {
-    forEach(extraModules, function(module) {
-      modules.push(module);
-    });
-    return doBootstrap();
-  };
+  window.name = window.name.replace(NG_DEFER_BOOTSTRAP, '')
+  angular.resumeBootstrap = function (extraModules) {
+    forEach(extraModules, function (module) {
+      modules.push(module)
+    })
+    return doBootstrap()
+  }
 
   if (isFunction(angular.resumeDeferredBootstrap)) {
-    angular.resumeDeferredBootstrap();
+    angular.resumeDeferredBootstrap()
   }
 }
 
@@ -1685,9 +1739,9 @@ function bootstrap(element, modules, config) {
  *
  * See {@link ng.$compileProvider#debugInfoEnabled} for more.
  */
-function reloadWithDebugInfo() {
-  window.name = 'NG_ENABLE_DEBUG_INFO!' + window.name;
-  window.location.reload();
+function reloadWithDebugInfo () {
+  window.name = 'NG_ENABLE_DEBUG_INFO!' + window.name
+  window.location.reload()
 }
 
 /**
@@ -1698,93 +1752,108 @@ function reloadWithDebugInfo() {
  * element.
  * @param {DOMElement} element DOM element which is the root of angular application.
  */
-function getTestability(rootElement) {
-  var injector = angular.element(rootElement).injector();
+function getTestability (rootElement) {
+  const injector = angular.element(rootElement).injector()
   if (!injector) {
-    throw ngMinErr('test',
-      'no injector found for element argument to getTestability');
+    throw ngMinErr(
+      'test',
+      'no injector found for element argument to getTestability'
+    )
   }
-  return injector.get('$$testability');
+  return injector.get('$$testability')
 }
 
-var SNAKE_CASE_REGEXP = /[A-Z]/g;
-function snake_case(name, separator) {
-  separator = separator || '_';
-  return name.replace(SNAKE_CASE_REGEXP, function(letter, pos) {
-    return (pos ? separator : '') + letter.toLowerCase();
-  });
+const SNAKE_CASE_REGEXP = /[A-Z]/g
+function snake_case (name, separator) {
+  separator = separator || '_'
+  return name.replace(SNAKE_CASE_REGEXP, function (letter, pos) {
+    return (pos ? separator : '') + letter.toLowerCase()
+  })
 }
 
-var bindJQueryFired = false;
-function bindJQuery() {
-  var originalCleanData;
+let bindJQueryFired = false
+function bindJQuery () {
+  let originalCleanData
 
   if (bindJQueryFired) {
-    return;
+    return
   }
 
   // bind to jQuery if present;
-  var jqName = jq();
-  jQuery = isUndefined(jqName) ? window.jQuery :   // use jQuery (if present)
-    !jqName             ? undefined     :   // use jqLite
-      window[jqName];   // use jQuery specified by `ngJq`
+  const jqName = jq()
+  jQuery = isUndefined(jqName)
+    ? window.jQuery // use jQuery (if present)
+    : !jqName
+        ? undefined // use jqLite
+        : window[jqName] // use jQuery specified by `ngJq`
 
   // Use jQuery if it exists with proper functionality, otherwise default to us.
   // Angular 1.2+ requires jQuery 1.7+ for on()/off() support.
   // Angular 1.3+ technically requires at least jQuery 2.1+ but it may work with older
   // versions. It will not work for sure with jQuery <1.7, though.
   if (jQuery && jQuery.fn.on) {
-    jqLite = jQuery;
+    jqLite = jQuery
     extend(jQuery.fn, {
       scope: JQLitePrototype.scope,
       isolateScope: JQLitePrototype.isolateScope,
       controller: JQLitePrototype.controller,
       injector: JQLitePrototype.injector,
       inheritedData: JQLitePrototype.inheritedData
-    });
+    })
 
     // All nodes removed from the DOM via various jQuery APIs like .remove()
     // are passed through jQuery.cleanData. Monkey-patch this method to fire
     // the $destroy event on all removed nodes.
-    originalCleanData = jQuery.cleanData;
-    jQuery.cleanData = function(elems) {
-      var events;
+    originalCleanData = jQuery.cleanData
+    jQuery.cleanData = function (elems) {
+      let events
       for (var i = 0, elem; (elem = elems[i]) != null; i++) {
-        events = jQuery._data(elem, "events");
+        events = jQuery._data(elem, 'events')
         if (events && events.$destroy) {
-          jQuery(elem).triggerHandler('$destroy');
+          jQuery(elem).triggerHandler('$destroy')
         }
       }
-      originalCleanData(elems);
-    };
+      originalCleanData(elems)
+    }
   } else {
-    jqLite = JQLite;
+    jqLite = JQLite
   }
 
-  angular.element = jqLite;
+  angular.element = jqLite
 
   // Prevent double-proxying.
-  bindJQueryFired = true;
+  bindJQueryFired = true
 }
 
 /**
  * throw error if the argument is falsy.
  */
-function assertArg(arg, name, reason) {
+function assertArg (arg, name, reason) {
   if (!arg) {
-    throw ngMinErr('areq', "Argument '{0}' is {1}", (name || '?'), (reason || "required"));
+    throw ngMinErr(
+      'areq',
+      "Argument '{0}' is {1}",
+      name || '?',
+      reason || 'required'
+    )
   }
-  return arg;
+  return arg
 }
 
-function assertArgFn(arg, name, acceptArrayAnnotation) {
+function assertArgFn (arg, name, acceptArrayAnnotation) {
   if (acceptArrayAnnotation && isArray(arg)) {
-    arg = arg[arg.length - 1];
+    arg = arg[arg.length - 1]
   }
 
-  assertArg(isFunction(arg), name, 'not a function, got ' +
-    (arg && typeof arg === 'object' ? arg.constructor.name || 'Object' : typeof arg));
-  return arg;
+  assertArg(
+    isFunction(arg),
+    name,
+    'not a function, got ' +
+      (arg && typeof arg === 'object'
+        ? arg.constructor.name || 'Object'
+        : typeof arg)
+  )
+  return arg
 }
 
 /**
@@ -1792,9 +1861,13 @@ function assertArgFn(arg, name, acceptArrayAnnotation) {
  * @param  {String} name    the name to test
  * @param  {String} context the context in which the name is used, such as module or directive
  */
-function assertNotHasOwnProperty(name, context) {
+function assertNotHasOwnProperty (name, context) {
   if (name === 'hasOwnProperty') {
-    throw ngMinErr('badname', "hasOwnProperty is not a valid {0} name", context);
+    throw ngMinErr(
+      'badname',
+      'hasOwnProperty is not a valid {0} name',
+      context
+    )
   }
 }
 
@@ -1805,24 +1878,24 @@ function assertNotHasOwnProperty(name, context) {
  * @param {boolean} [bindFnToScope=true]
  * @returns {Object} value as accessible by path
  */
-//TODO(misko): this function needs to be removed
-function getter(obj, path, bindFnToScope) {
-  if (!path) return obj;
-  var keys = path.split('.');
-  var key;
-  var lastInstance = obj;
-  var len = keys.length;
+// TODO(misko): this function needs to be removed
+function getter (obj, path, bindFnToScope) {
+  if (!path) return obj
+  const keys = path.split('.')
+  let key
+  let lastInstance = obj
+  const len = keys.length
 
-  for (var i = 0; i < len; i++) {
-    key = keys[i];
+  for (let i = 0; i < len; i++) {
+    key = keys[i]
     if (obj) {
-      obj = (lastInstance = obj)[key];
+      obj = (lastInstance = obj)[key]
     }
   }
   if (!bindFnToScope && isFunction(obj)) {
-    return bind(lastInstance, obj);
+    return bind(lastInstance, obj)
   }
-  return obj;
+  return obj
 }
 
 /**
@@ -1830,24 +1903,23 @@ function getter(obj, path, bindFnToScope) {
  * @param {Array} array like object
  * @returns {Array} the inputted object or a jqLite collection containing the nodes
  */
-function getBlockNodes(nodes) {
+function getBlockNodes (nodes) {
   // TODO(perf): update `nodes` instead of creating a new object?
-  var node = nodes[0];
-  var endNode = nodes[nodes.length - 1];
-  var blockNodes;
+  let node = nodes[0]
+  const endNode = nodes[nodes.length - 1]
+  let blockNodes
 
-  for (var i = 1; node !== endNode && (node = node.nextSibling); i++) {
+  for (let i = 1; node !== endNode && (node = node.nextSibling); i++) {
     if (blockNodes || nodes[i] !== node) {
       if (!blockNodes) {
-        blockNodes = jqLite(slice.call(nodes, 0, i));
+        blockNodes = jqLite(slice.call(nodes, 0, i))
       }
-      blockNodes.push(node);
+      blockNodes.push(node)
     }
   }
 
-  return blockNodes || nodes;
+  return blockNodes || nodes
 }
-
 
 /**
  * Creates a new object without a prototype. This object is useful for lookup without having to
@@ -1860,13 +1932,13 @@ function getBlockNodes(nodes) {
  *
  * @returns {Object}
  */
-function createMap() {
-  return Object.create(null);
+function createMap () {
+  return Object.create(null)
 }
 
-var NODE_TYPE_ELEMENT = 1;
-var NODE_TYPE_ATTRIBUTE = 2;
-var NODE_TYPE_TEXT = 3;
-var NODE_TYPE_COMMENT = 8;
-var NODE_TYPE_DOCUMENT = 9;
-var NODE_TYPE_DOCUMENT_FRAGMENT = 11;
+const NODE_TYPE_ELEMENT = 1
+const NODE_TYPE_ATTRIBUTE = 2
+var NODE_TYPE_TEXT = 3
+const NODE_TYPE_COMMENT = 8
+const NODE_TYPE_DOCUMENT = 9
+const NODE_TYPE_DOCUMENT_FRAGMENT = 11

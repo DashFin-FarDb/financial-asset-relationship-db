@@ -151,7 +151,11 @@ class TestAddEquityNode:
 
         # Access the registered tool
         tool_func = next(
-            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+            (
+                tool.fn
+                for tool in mcp_app.list_tools()
+                if tool.name == "add_equity_node"
+            ),
             None,
         )
         assert tool_func is not None, "add_equity_node tool not found"
@@ -274,7 +278,11 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
+            (
+                resource.fn
+                for resource in mcp_app.list_resources()
+                if "3d-layout" in resource.uri
+            ),
             None,
         )
 

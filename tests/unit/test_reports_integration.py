@@ -95,7 +95,9 @@ class TestGenerateReports:
         """Test markdown report generation."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
+        with patch(
+            "src.reports.integration.SchemaReportGenerator"
+        ) as mock_generator_class:
             mock_generator = MagicMock()
             mock_generator.generate.return_value = "# Test Report"
             mock_generator_class.return_value = mock_generator
@@ -112,7 +114,9 @@ class TestGenerateReports:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         with (
-            patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class,
+            patch(
+                "src.reports.integration.SchemaReportGenerator"
+            ) as mock_generator_class,
             patch("src.reports.integration.markdown_to_html") as mock_md_to_html,
         ):
             mock_generator = MagicMock()
@@ -132,7 +136,9 @@ class TestGenerateReports:
         mock_graph.assets = {}
         mock_graph.relationships = {}
 
-        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
+        with patch(
+            "src.reports.integration.SchemaReportGenerator"
+        ) as mock_generator_class:
             mock_generator = MagicMock()
             mock_generator.generate.return_value = "# Empty Report"
             mock_generator_class.return_value = mock_generator
@@ -370,9 +376,13 @@ class TestIntegrationEdgeCases:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
         mock_graph.assets = {f"asset_{i}": MagicMock() for i in range(1000)}
 
-        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
+        with patch(
+            "src.reports.integration.SchemaReportGenerator"
+        ) as mock_generator_class:
             mock_generator = MagicMock()
-            mock_generator.generate.return_value = "# Large Report\n\n" + ("Content\n" * 1000)
+            mock_generator.generate.return_value = "# Large Report\n\n" + (
+                "Content\n" * 1000
+            )
             mock_generator_class.return_value = mock_generator
 
             result = generate_markdown_report(mock_graph)

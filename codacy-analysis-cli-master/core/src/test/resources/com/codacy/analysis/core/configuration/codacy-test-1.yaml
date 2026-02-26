@@ -11,7 +11,7 @@ engines:
       - config/engines.yml
     config:
       languages:
-      - "ruby"
+        - "ruby"
   metrics:
     enabled: true
     exclude_paths:
