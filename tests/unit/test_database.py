@@ -709,7 +709,9 @@ class TestResourceCleanup:
         with session_scope(factory) as session:
             assert session.query(TestModel).count() == 10
 
-    def test_session_scope_with_nested_commits(self, engine: Engine, isolated_base) -> None:
+    def test_session_scope_with_nested_commits(
+        self, engine: Engine, isolated_base
+    ) -> None:
         """
         Verifies that explicit commits performed inside a session_scope persist data across subsequent scopes.
 
