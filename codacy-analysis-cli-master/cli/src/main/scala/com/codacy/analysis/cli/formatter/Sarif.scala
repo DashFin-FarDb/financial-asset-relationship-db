@@ -120,17 +120,26 @@ private[formatter] class Sarif(val stream: PrintStream, val executionDirectory: 
     val patternsMap: Map[String, PatternDescription] =
       patternDescriptions.map(pattern => (pattern.patternId.value, pattern))(collection.breakOut)
 
-    (for {
-      issue <- issues.groupBy(_.patternId.value).collect { case (_, issue :: _) => issue }
-      modelPattern <- patternsMap.get(issue.patternId.value)
-    } yield SarifReport.Rule(
-      id = issue.patternId.value,
-      name = modelPattern.title,
-      shortDescription = SarifReport.Message(modelPattern.description.getOrElse(modelPattern.title)),
-      help = SarifReport
-        .Message(text = modelPattern.description.getOrElse(modelPattern.title), markdown = modelPattern.explanation),
-      properties =
-        SarifReport.RuleProperties(category = issue.category.getOrElse(Pattern.Category.CodeStyle).toString))).toList
+    issues
+      .groupBy(_.patternId.value)
+      .collect {
+        case (_, issue :: _) =>
+          val modelPatternOpt = patternsMap.get(issue.patternId.value)
+          val title = modelPatternOpt.map(_.title).getOrElse(issue.patternId.value)
+          val descriptionOpt = modelPatternOpt.flatMap(_.description)
+          val text = descriptionOpt.getOrElse(title)
+          val markdown = modelPatternOpt.flatMap(_.explanation)
+
+          SarifReport.Rule(
+            id = issue.patternId.value,
+            name = title,
+            shortDescription = SarifReport.Message(text),
+            help = SarifReport.Message(text = text, markdown = markdown),
+            properties = SarifReport.RuleProperties(
+              category = issue.category.getOrElse(Pattern.Category.CodeStyle).toString
+            )
+          )
+      }(collection.breakOut)
   }
 
   private def createArtifacts(issues: Seq[Issue]): List[SarifReport.Artifact] = {
