@@ -213,13 +213,14 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
 
 def main() -> int:
     """Main entry point for the Schema Report CLI.
-
+    
     This function serves as the primary interface for the command-line tool,
-    handling argument parsing,  log level adjustments based on verbosity, and
-    report generation. It also manages various exceptions  that may arise during
-    execution, including invalid output formats and unexpected errors, ensuring
-    that appropriate messages are logged and displayed to the user.
-
+    handling argument parsing and adjusting log levels based on verbosity. It
+    manages the output format selection and report generation, while also  handling
+    various exceptions that may arise during execution, including  invalid output
+    formats and unexpected errors, ensuring appropriate messages  are logged and
+    displayed to the user.
+    
     Returns:
         int: Exit code (0 for success, non-zero for errors).
     """
