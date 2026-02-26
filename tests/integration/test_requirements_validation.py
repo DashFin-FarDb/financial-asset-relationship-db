@@ -32,9 +32,9 @@ class TestRequirementsDevChanges:
         """
         assert "pyyaml" in requirements_dev_content.lower()
 
-        Checks the provided requirements file content for exactly one non-comment line mentioning
+        Checks the provided requirements file content for exactly one non - comment line mentioning
         PyYAML and verifies that that line contains one of the version operators:
-        >=, ==, ~=, <=, >, or <.
+        >=, == , ~ = , <= , > , or <.
         """
         Ensure the active PyYAML requirement in requirements-dev.txt includes a version operator.
 
@@ -97,7 +97,7 @@ class TestRequirementsDevChanges:
 
         assert len(package_names) == len(set(package_names)), "Duplicate packages found in requirements-dev.txt"
 
-        Treats each non-empty, non-comment line as a PEP 508 requirement and compares names
+        Treats each non - empty, non - comment line as a PEP 508 requirement and compares names
         case-insensitively.
         """
         Validate that each active (non-empty, non-comment) line in requirements-dev.txt has no

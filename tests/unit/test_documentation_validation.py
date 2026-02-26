@@ -249,7 +249,9 @@ class TestDependencyMatrix:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content:  # Not just hashes
-                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), (
+                            f"Line {i + 1}: Heading should have space after #: {line}"
+                        )
 
 
 @pytest.mark.unit
@@ -522,7 +524,9 @@ class TestSystemManifest:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content and not content.startswith("#"):  # Not more hashes
-                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), (
+                            f"Line {i + 1}: Heading should have space after #: {line}"
+                        )
 
 
 @pytest.mark.unit
