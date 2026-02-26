@@ -60,7 +60,7 @@ def load_config() -> Dict[str, Any]:
 
 
 def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
-    """Extract code suggestions from comment body."""
+    """Extract code suggestions from the comment body."""
     suggestions = []
 
     # Pattern 1: Code blocks with suggestion marker
@@ -114,7 +114,7 @@ def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
 
 
 def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[str, Any]]:
-    """Parse all review comments and extract actionable items."""
+    """Parse review comments and extract actionable items."""
     actionable_items = []
 
     # Helper to process a raw comment object
