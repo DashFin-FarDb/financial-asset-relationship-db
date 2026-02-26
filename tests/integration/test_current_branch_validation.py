@@ -260,7 +260,6 @@ class TestDocumentationConsistency:
     @staticmethod
     def test_summary_files_exist() -> None:
         """Summary documentation files must exist and be non-empty."""
-        summary_path = Path("COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md")
         candidate_paths = [
             Path("COMPREHENSIVE_BRANCH_TEST_GENERATION_SUMMARY.md"),
             Path("FINAL_TEST_SUMMARY.md"),
