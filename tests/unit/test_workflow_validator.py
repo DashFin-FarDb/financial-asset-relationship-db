@@ -20,6 +20,7 @@ from workflow_validator import ValidationResult, validate_workflow
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 
+@pytest.mark.unit
 class TestValidationResult:
     """Test suite for ValidationResult class"""
 
@@ -48,6 +49,7 @@ class TestValidationResult:
         assert result.workflow_data == data
 
 
+@pytest.mark.unit
 class TestValidateWorkflow:
     """Test suite for validate_workflow function"""
 
@@ -55,8 +57,7 @@ class TestValidateWorkflow:
     def test_valid_minimal_workflow_file():
         """Test validation of a minimal valid workflow file"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
 jobs:
@@ -64,8 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -80,8 +80,7 @@ jobs:
     def test_valid_complex_workflow_file():
         """Test validation of a complex valid workflow"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Complex Workflow
 on:
   push:
@@ -98,8 +97,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: pytest
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -116,12 +114,10 @@ jobs:
     def test_workflow_missing_jobs_key():
         """Test detection of missing 'jobs' key"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -137,13 +133,11 @@ on: push
     def test_workflow_not_a_dict():
         """Test detection when YAML content is not a dictionary"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 - item1
 - item2
 - item3
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -159,16 +153,14 @@ on: push
     def test_workflow_invalid_yaml_syntax():
         """Test handling of invalid YAML syntax"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Invalid
 on: push
 jobs:
   test:
     invalid: indentation
       causes: error
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -210,9 +202,7 @@ jobs:
             try:
                 result = validate_workflow(f.name)
                 assert result.is_valid is False
-                assert (
-                    "Workflow file is empty or contains only nulls." in result.errors[0]
-                )
+                assert "Workflow file is empty or contains only nulls." in result.errors[0]
             finally:
                 Path(f.name).unlink()
 
@@ -220,13 +210,11 @@ jobs:
     def test_workflow_with_empty_jobs_dict():
         """Test workflow with empty jobs dictionary"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
 jobs: {}
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -239,8 +227,7 @@ jobs: {}
     def test_workflow_with_special_characters():
         """Test workflow with special characters in values"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: "Test with @special #chars!"
 on: push
 jobs:
@@ -248,8 +235,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Special chars"
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -261,11 +247,8 @@ jobs:
     @staticmethod
     def test_workflow_with_unicode():
         """Test workflow with Unicode characters"""
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".yml", delete=False, encoding="utf-8"
-        ) as f:
-            f.write(
-                """
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False, encoding="utf-8") as f:
+            f.write("""
 name: "Test with emojis"
 on: push
 jobs:
@@ -273,8 +256,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Unicode test"
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -284,6 +266,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and boundary conditions"""
 
@@ -307,8 +290,7 @@ class TestEdgeCases:
     def test_workflow_with_deeply_nested_structure():
         """Test workflow with deeply nested YAML structure"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Nested
 on: push
 jobs:
@@ -321,8 +303,7 @@ jobs:
             level2:
               level3:
                 deep: value
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -335,10 +316,7 @@ jobs:
     def test_workflow_with_many_jobs():
         """Test workflow with many jobs"""
         jobs = "\n".join(
-            [
-                f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}"
-                for i in range(50)
-            ]
+            [f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo {i}" for i in range(50)]
         )
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
@@ -356,8 +334,7 @@ jobs:
     def test_workflow_with_yaml_anchors():
         """Test workflow using YAML anchors"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Anchors
 on: push
 jobs:
@@ -365,8 +342,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "test"
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -376,6 +352,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test error handling and exception scenarios"""
 
@@ -399,10 +376,13 @@ class TestErrorHandling:
 
     @staticmethod
     def test_workflow_with_duplicate_keys():
-        """Test workflow with duplicate keys"""
+        """
+        Verify that a workflow YAML containing duplicate mapping keys parses successfully and that the parser retains the last occurrence of a duplicated key.
+
+        This test writes a temporary YAML file where "name" appears twice and asserts validation is successful and workflow_data["name"] equals "Second".
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: First
 name: Second
 on: push
@@ -411,8 +391,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo test
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -423,57 +402,46 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestIntegrationWithActualWorkflows:
     """Integration tests with actual project workflows"""
 
     @staticmethod
     def test_validate_actual_pr_agent_workflow():
         """Test validation of actual pr-agent.yml if it exists"""
-        workflow_path = (
-            Path(__file__).parent.parent.parent
-            / ".github"
-            / "workflows"
-            / "pr-agent.yml"
-        )
+        workflow_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "pr-agent.yml"
 
         if not workflow_path.exists():
             pytest.skip("pr-agent.yml not found")
 
         result = validate_workflow(str(workflow_path))
-        assert result.is_valid is True, (
-            f"pr-agent.yml validation failed: {result.errors}"
-        )
+        assert result.is_valid is True, f"pr-agent.yml validation failed: {result.errors}"
         assert "jobs" in result.workflow_data
 
     @staticmethod
     def test_validate_actual_apisec_workflow():
         """Test validation of actual apisec-scan.yml if it exists"""
-        workflow_path = (
-            Path(__file__).parent.parent.parent
-            / ".github"
-            / "workflows"
-            / "apisec-scan.yml"
-        )
+        workflow_path = Path(__file__).parent.parent.parent / ".github" / "workflows" / "apisec-scan.yml"
 
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml not found")
 
         result = validate_workflow(str(workflow_path))
-        assert result.is_valid is True, (
-            f"apisec-scan.yml validation failed: {result.errors}"
-        )
+        assert result.is_valid is True, f"apisec-scan.yml validation failed: {result.errors}"
 
     @staticmethod
     def test_validate_all_project_workflows():
-        """Test validation of all workflows in the project"""
+        """
+        Validate every GitHub Actions workflow file in the repository's .github/workflows directory.
+
+        Skips the test if the workflows directory or any workflow files are missing. Collects validation failures for each workflow and fails the test if any workflows are invalid, reporting their filenames and error lists.
+        """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
         if not workflows_dir.exists():
             pytest.skip(".github/workflows directory not found")
 
-        workflow_files = list(workflows_dir.glob("*.yml")) + list(
-            workflows_dir.glob("*.yaml")
-        )
+        workflow_files = list(workflows_dir.glob("*.yml")) + list(workflows_dir.glob("*.yaml"))
 
         if not workflow_files:
             pytest.skip("No workflow files found")
@@ -487,6 +455,7 @@ class TestIntegrationWithActualWorkflows:
         assert len(failed) == 0, f"Failed workflows: {failed}"
 
 
+@pytest.mark.unit
 class TestValidationResultDataStructure:
     """Test ValidationResult data structure integrity"""
 
@@ -519,6 +488,7 @@ class TestValidationResultDataStructure:
         assert isinstance(result.workflow_data, dict)
 
 
+@pytest.mark.unit
 class TestAdvancedValidationScenarios:
     """Additional advanced validation scenarios with bias for action"""
 
@@ -551,13 +521,11 @@ class TestAdvancedValidationScenarios:
     def test_workflow_with_comments_only(self):
         """Test workflow file with only YAML comments"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 # This is a comment
 # Another comment
 # More comments
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -569,13 +537,11 @@ class TestAdvancedValidationScenarios:
     def test_workflow_with_null_jobs_value(self):
         """Test workflow with null value for jobs key"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
 jobs: ~
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -588,15 +554,13 @@ jobs: ~
     def test_workflow_with_list_as_jobs(self):
         """Test workflow where jobs is a list instead of dict"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
 jobs:
   - job1
   - job2
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -609,8 +573,7 @@ jobs:
     def test_workflow_with_integer_values(self):
         """Test workflow with integer values in unexpected places"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: 12345
 on: 67890
 jobs:
@@ -618,8 +581,7 @@ jobs:
     runs-on: 11111
     steps:
       - run: 22222
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -636,8 +598,7 @@ jobs:
         try:
             file_path = os.path.join(temp_dir, "workflow with spaces.yml")
             with open(file_path, "w") as f:
-                f.write(
-                    """
+                f.write("""
 name: Test
 on: push
 jobs:
@@ -645,8 +606,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo test
-"""
-                )
+""")
 
             result = validate_workflow(file_path)
             assert result.is_valid is True
@@ -659,8 +619,7 @@ jobs:
         """Test workflow with extremely long single line"""
         long_string = "A" * 10000
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                f"""
+            f.write(f"""
 name: Test
 on: push
 jobs:
@@ -670,8 +629,7 @@ jobs:
       LONG_VAR: "{long_string}"
     steps:
       - run: echo test
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -683,8 +641,7 @@ jobs:
     def test_workflow_with_circular_yaml_reference(self):
         """Test workflow with YAML anchors that could cause circular references"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
 defaults: &defaults
@@ -698,8 +655,7 @@ jobs:
     <<: *defaults
     steps:
       - run: echo test2
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -713,8 +669,7 @@ jobs:
     def test_workflow_with_multiline_strings(self):
         """Test workflow with various multiline string formats"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
 jobs:
@@ -731,8 +686,7 @@ jobs:
           This is a very long line
           that will be folded into
           a single line
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -742,6 +696,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestValidationResultBehavior:
     """Test ValidationResult behavior and edge cases"""
 
@@ -794,6 +749,7 @@ class TestValidationResultBehavior:
         assert len(result.errors) == 5
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorSecurityScenarios:
     """Test security-related scenarios and potential exploits"""
 
@@ -853,10 +809,13 @@ class TestWorkflowValidatorSecurityScenarios:
 
     @staticmethod
     def test_workflow_with_yaml_injection_attempts():
-        """Test workflow with potential YAML injection patterns"""
+        """
+        Ensures YAML parsing treats injection-like command strings as plain scalars and the workflow is considered valid.
+
+        Writes a temporary workflow file containing steps with values that resemble shell injection or command substitutions and asserts that validate_workflow returns a valid ValidationResult (i.e., parser does not execute or interpret those patterns).
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Test
 on: push
 jobs:
@@ -867,8 +826,7 @@ jobs:
       - run: '; rm -rf /'
       - run: "$(malicious command)"
       - run: "`backdoor`"
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -879,6 +837,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorPerformance:
     """Test performance-related aspects of workflow validation"""
 
@@ -900,8 +859,7 @@ class TestWorkflowValidatorPerformance:
         workflows = []
         for i in range(10):
             f = tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False)
-            f.write(
-                f"""
+            f.write(f"""
 name: Test{i}
 on: push
 jobs:
@@ -909,8 +867,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo {i}
-"""
-            )
+""")
             f.flush()
             workflows.append(f.name)
 
@@ -928,14 +885,16 @@ jobs:
 
     @staticmethod
     def test_workflow_with_minimal_memory_footprint():
-        """Test that validation doesn't consume excessive memory"""
+        """
+        Ensure validate_workflow handles a moderately sized workflow without excessive memory usage.
+
+        Creates a temporary YAML workflow file containing 100 jobs and asserts the validator reports it as valid.
+        """
         # Create a workflow with moderate size
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("name: Test\non: push\njobs:\n")
             for i in range(100):
-                f.write(
-                    f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo test\n"
-                )
+                f.write(f"  job{i}:\n    runs-on: ubuntu-latest\n    steps:\n      - run: echo test\n")
             f.flush()
 
             try:
@@ -946,6 +905,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorEdgeCasesExtended:
     """Extended edge cases and corner scenarios"""
 
@@ -953,8 +913,7 @@ class TestWorkflowValidatorEdgeCasesExtended:
     def test_workflow_with_boolean_values():
         """Test workflow with boolean values in various positions"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Booleans
 on: push
 jobs:
@@ -967,8 +926,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -979,10 +937,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_scientific_notation():
-        """Test workflow with scientific notation numbers"""
+        """
+        Validate that a workflow using numeric values in scientific notation (for example `1e2`) is considered valid.
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Scientific
 on: push
 jobs:
@@ -991,8 +950,7 @@ jobs:
     timeout-minutes: 1e2
     steps:
       - run: echo test
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -1005,8 +963,7 @@ jobs:
     def test_workflow_with_float_values():
         """Test workflow with float values"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Floats
 on: push
 jobs:
@@ -1017,8 +974,7 @@ jobs:
       RATIO: 0.5
     steps:
       - run: echo test
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -1047,8 +1003,7 @@ jobs:
     def test_workflow_with_trailing_commas():
         """Test workflow with trailing commas in flow style"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: Trailing
 on: push
 jobs:
@@ -1057,8 +1012,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with: {ref: main, fetch-depth: 1,}
-"""
-            )
+""")
             f.flush()
 
             try:
@@ -1072,8 +1026,7 @@ jobs:
     def test_workflow_with_explicit_types():
         """Test workflow with explicit YAML type tags"""
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
-            f.write(
-                """
+            f.write("""
 name: !!str Types
 on: !!str push
 jobs:
@@ -1082,8 +1035,7 @@ jobs:
     timeout-minutes: !!int 30
     steps:
       - run: !!str "echo test"
-"""
-            )
+""")
             f.flush()
 
             try:

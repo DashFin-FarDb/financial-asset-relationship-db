@@ -30,11 +30,38 @@ type EdgeTrace = {
   showlegend: false;
 };
 
+type NodeTrace = {
+  type: "scatter3d";
+  mode: "markers" | "text" | "lines" | "markers+text";
+  x: number[];
+  y: number[];
+  z: number[];
+  text: string[];
+  hovertext: string[];
+  hoverinfo: "text";
+  marker: {
+    size: number[];
+    color: string[];
+    line: {
+      color: string;
+      width: number;
+    };
+  };
+  textposition: string;
+  textfont: {
+    size: number;
+  };
+};
+
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
+import type { Data } from "plotly.js";
+
 /**
  * Display an interactive 3D network of assets from the provided visualization payload.
+ *
+ * It validates incoming data against size limits and prepares Plotly traces for nodes and edges.
  *
  * @param data - Visualization payload containing `nodes` and `edges`.
  *   Nodes are objects with at least: `id`, `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, `color`.
@@ -44,7 +71,7 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<(EdgeTrace | NodeTrace)[]>([]);
+  const [plotData, setPlotData] = useState<Data[]>([]);
   const [status, setStatus] = useState<
     "loading" | "ready" | "empty" | "tooLarge"
   >("loading");
@@ -78,7 +105,7 @@ export default function NetworkVisualization({
     }
 
     // Create node trace
-    const nodeTrace = {
+    const nodeTrace: NodeTrace = {
       type: "scatter3d",
       mode: "markers+text",
       x: nodes.map((n) => n.x),
@@ -132,7 +159,7 @@ export default function NetworkVisualization({
       return acc;
     }, []);
 
-    setPlotData([...edgeTraces, nodeTrace]);
+    setPlotData([...edgeTraces, nodeTrace] as Data[]);
     setStatus("ready");
     setMessage("");
   }, [data]);
@@ -151,7 +178,7 @@ export default function NetworkVisualization({
   return (
     <div className="w-full h-[800px]">
       <Plot
-        data={plotData}
+        data={plotData as any}
         layout={{
           title: "3D Asset Relationship Network",
           showlegend: false,

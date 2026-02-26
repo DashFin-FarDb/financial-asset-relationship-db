@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestEnhancedTestSummary:
     """Test cases for ENHANCED_TEST_SUMMARY.md."""
 
@@ -26,7 +27,6 @@ class TestEnhancedTestSummary:
     def summary_path(self):
         """
         Provide the path to the enhanced test summary file.
-        """
 
         Returns:
             Path: Path to "ENHANCED_TEST_SUMMARY.md".
@@ -120,9 +120,13 @@ class TestEnhancedTestSummary:
             summary_content(str): The full text content of the summary markdown file to validate.
         """
         # Check for common markdown issues
-        assert "##" not in summary_content.replace("##", "# #")  # No triple hashes without space
+        # Ensure no heading markers (e.g., ###) appear without a trailing space
+        assert not re.search(
+            r"^#{2,}[^ #\n]", summary_content, re.MULTILINE
+        ), "Found heading markers without proper spacing"
 
 
+@pytest.mark.unit
 class TestFinalTestSummary:
     """Test cases for FINAL_TEST_SUMMARY.md."""
 
@@ -221,12 +225,12 @@ class TestFinalTestSummary:
             assert heading_levels[0] == 1, "Document should start with h1"
 
 
+@pytest.mark.unit
 class TestDocumentationSummary:
     """Test cases for TEST_DOCUMENTATION_SUMMARY.md."""
 
-    @staticmethod
     @pytest.fixture
-    def summary_path():
+    def summary_path(self):
         """
         Provide the path to the test documentation summary file.
 

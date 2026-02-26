@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
@@ -31,10 +32,6 @@ class TestDependencyMatrix:
 
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
-        """
-    @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
         """
         Load the dependency matrix markdown content from disk.
 
@@ -234,9 +231,10 @@ class TestDependencyMatrix:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content:  # Not just hashes
-                        assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
 
@@ -293,7 +291,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
+        Assert that the system manifest's first line is the top-level title '  # System Manifest'.
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -338,23 +336,25 @@ class TestSystemManifest:
         except ValueError:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
-
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Test that systemManifest.md has Current Phase section."""
-        assert "## Current Phase" in system_manifest_content
+        """Ensure systemManifest.md defines a current phase section.
 
-
-        Assert that the System Manifest declares a current project phase.
-
-        Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
+        The manifest must contain a "## Current Phase" heading and a line of the
+        form "- Current Phase: <value>" with a non - empty value.
 
         Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md file to inspect.
+            system_manifest_content(str): Full text of the systemManifest.md
+                file to inspect.
         """
-        pattern = r"- Current Phase: (.+)"
-        match = re.search(pattern, system_manifest_content)
+        # Basic structural checks
+        assert "## Current Phase" in system_manifest_content
+        assert "- Current Phase:" in system_manifest_content
 
+        # Validate the line format and non-empty value
+        pattern = r"- Current Phase:\s+(.+)"
+        match = re.search(pattern, system_manifest_content)
         assert match is not None, "Current Phase not found"
+        assert match.group(1).strip(), "Current Phase value must not be empty"
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
         """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
@@ -390,9 +390,7 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """
-        Verify that systemManifest.md contains the "## Dependencies" section.
-        """
+        """Verify that systemManifest.md contains the "## Dependencies" section."""
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
@@ -411,7 +409,12 @@ class TestSystemManifest:
 
     def test_system_manifest_has_language_dependency_sections(self, system_manifest_content):
         """Test that systemManifest.md has language - specific dependency sections."""
-        expected_sections = ["## PY Dependencies", "## JS Dependencies", "## TS Dependencies", "## TSX Dependencies"]
+        expected_sections = [
+            "## PY Dependencies",
+            "## JS Dependencies",
+            "## TS Dependencies",
+            "## TSX Dependencies",
+        ]
 
         found = sum(1 for section in expected_sections if section in system_manifest_content)
         assert found > 0, "No language-specific dependency sections found"
@@ -459,7 +462,12 @@ class TestSystemManifest:
 
     def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
         """Test that there are no duplicate major sections."""
-        major_sections = ["## Project Overview", "## Current Status", "## Project Structure", "## Dependencies"]
+        major_sections = [
+            "## Project Overview",
+            "## Current Status",
+            "## Project Structure",
+            "## Dependencies",
+        ]
 
         for section in major_sections:
             count = system_manifest_content.count(section)
@@ -482,9 +490,10 @@ class TestSystemManifest:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content and not content.startswith("#"):  # Not more hashes
-                        assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestDocumentationConsistency:
     """Test cases for consistency between documentation files."""
 
@@ -616,6 +625,7 @@ class TestDocumentationConsistency:
                 )
 
 
+@pytest.mark.unit
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
 
