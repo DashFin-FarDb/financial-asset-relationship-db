@@ -218,7 +218,7 @@ class FormulaicAnalyzer:
         beta_formula = Formula(
             name="Beta (Systematic Risk)",
             expression="β = Cov(R_asset, R_market) / Var(R_market)",
-            latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",   
+            latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
             description=("Measure of an asset's sensitivity to market movements"),
             variables={
                 "β": "Beta coefficient",
