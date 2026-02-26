@@ -358,6 +358,12 @@ class TestSnykWorkflowSecurity:
         with open(workflow_path) as f:
             return yaml.safe_load(f)
 
+    @pytest.fixture
+    def snyk_workflow_content(self):
+        """Read the raw text content of the Snyk workflow YAML file."""
+        workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
+        return workflow_path.read_text()
+
     def test_no_hardcoded_secrets(self, snyk_workflow_content: str) -> None:
         """Test that workflow contains no hardcoded secrets."""
         workflow_str = snyk_workflow_content.lower()
