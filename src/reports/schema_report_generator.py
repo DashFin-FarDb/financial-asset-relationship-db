@@ -159,8 +159,8 @@ class SchemaReportGenerator:
             ("- Event nodes create directional edges to affected assets."),
             "",
             "### Valuation Rules",
-            "- **Impact Scoring**: Normalized to −1 to +1.",
-            "- **Strength Normalization**: Relationship strengths clamped to 0–1.",
+            "- **Impact Scoring**: Normalized to -1 to +1.",
+            "- **Strength Normalization**: Relationship strengths clamped to 0-1.",
             "",
         ]
 
@@ -191,12 +191,9 @@ class SchemaReportGenerator:
         """Render implementation notes including timestamp and normalization details."""
         return [
             "## Implementation Notes",
-            "- ISO-8601 timestamps.",
+            "- ISO 8601 timestamps.",
             "- Strengths normalized to 0–1.",
-            "- Impact scores normalized to −1 to +1.",
-            (
-                "- Directionality varies by relationship type: "
-                "some are bidirectional, others directional."
-            ),
+            "- Impact scores normalized to -1 to +1.",
+            ("- Directionality varies by relationship type: " "some are bidirectional, others directional."),
             "",
         ]
