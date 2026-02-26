@@ -724,7 +724,9 @@ class TestCircleCIConfig:
                     # Should specify only main and/or develop
                     allowed_branches = branches["only"]
                     assert isinstance(allowed_branches, list)
-                    assert allowed_branches, "docker-build must specify at least one allowed branch"
+                    assert allowed_branches, (
+                        "docker-build must specify at least one allowed branch"
+                    )
                     invalid_branches = set(allowed_branches) - {"main", "develop"}
                     assert not invalid_branches, (
                         f"docker-build is restricted to 'main'/'develop' only, but found: {sorted(invalid_branches)}"
