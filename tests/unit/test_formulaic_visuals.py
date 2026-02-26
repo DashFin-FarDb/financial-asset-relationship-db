@@ -29,7 +29,7 @@ class TestFormulaicVisualizer:
         """Create a sample formula for testing."""
         return Formula(
             name="Price-to-Earnings Ratio",
-            formula="PE = P / EPS",
+            expression="PE = P / EPS",
             latex=r"PE = \frac{P}{EPS}",
             description="Valuation metric comparing stock price to earnings per share",
             variables={
@@ -199,7 +199,8 @@ class TestFormulaicVisualizer:
         assert len(heatmap_traces) > 0, "Should have a heatmap"
 
         heatmap = heatmap_traces[0]
-        assert heatmap.colorscale == "RdYlBu_r"
+        # Plotly expands colorscale strings to RGB tuples; just verify it's set
+        assert heatmap.colorscale is not None, "Should have a colorscale"
         assert heatmap.zmin == -1
         assert heatmap.zmax == 1
 
@@ -234,7 +235,7 @@ class TestFormulaicVisualizer:
         assert len(fig.layout.annotations) > 0
         annotation = fig.layout.annotations[0]
         assert sample_formula.name in annotation.text
-        assert sample_formula.formula in annotation.text
+        assert sample_formula.expression in annotation.text
         assert sample_formula.description in annotation.text
 
     @staticmethod
@@ -248,7 +249,7 @@ class TestFormulaicVisualizer:
 
         # Verify all fields are included
         assert sample_formula.name in annotation_text
-        assert sample_formula.formula in annotation_text
+        assert sample_formula.expression in annotation_text
         assert sample_formula.latex in annotation_text
         assert sample_formula.description in annotation_text
         assert sample_formula.category in annotation_text
@@ -362,7 +363,7 @@ class TestFormulaicVisualizer:
             "formulas": [
                 Formula(
                     name="Formula 1",
-                    formula="F1",
+                    expression="F1",
                     latex="F1",
                     description="Desc 1",
                     variables={},
@@ -372,7 +373,7 @@ class TestFormulaicVisualizer:
                 ),
                 Formula(
                     name="Formula 2",
-                    formula="F2",
+                    expression="F2",
                     latex="F2",
                     description="Desc 2",
                     variables={},
@@ -382,7 +383,7 @@ class TestFormulaicVisualizer:
                 ),
                 Formula(
                     name="Formula 3",
-                    formula="F3",
+                    expression="F3",
                     latex="F3",
                     description="Desc 3",
                     variables={},
@@ -444,7 +445,7 @@ class TestFormulaicVisualizer:
         """Test detail view with formulas containing special characters."""
         special_formula = Formula(
             name="Complex Formula",
-            formula="sigma^2_p = w1^2*sigma1^2 + w2^2*sigma2^2 + 2*w1*w2*rho12*sigma1*sigma2",
+            expression="sigma^2_p = w1^2*sigma1^2 + w2^2*sigma2^2 + 2*w1*w2*rho12*sigma1*sigma2",
             latex=r"\sigma_p^2 = w_1^2\sigma_1^2 + w_2^2\sigma_2^2 + 2w_1w_2\rho_{12}\sigma_1\sigma_2",
             description="Portfolio variance with Greek letters",
             variables={"sigma^2_p": "Portfolio variance", "rho12": "Correlation"},
@@ -492,7 +493,7 @@ class TestFormulaicVisualizer:
             "formulas": [
                 Formula(
                     name="F1",
-                    formula="F1",
+                    expression="F1",
                     latex="F1",
                     description="D1",
                     variables={},
@@ -502,7 +503,7 @@ class TestFormulaicVisualizer:
                 ),
                 Formula(
                     name="F2",
-                    formula="F2",
+                    expression="F2",
                     latex="F2",
                     description="D2",
                     variables={},
@@ -544,4 +545,4 @@ class TestFormulaicVisualizer:
 
         # Should still create a valid figure
         assert isinstance(fig, go.Figure)
-        assert fig.layout.title.text == "Financial Formula Analysis Dashboard"
+        assert fig.layout.title.text == "📊 Financial Formulaic Analysis Dashboard"

@@ -275,7 +275,6 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """
     Retrieve the first row produced by an SQL query.
-    """
 
     Parameters:
         query(str): SQL statement to execute.

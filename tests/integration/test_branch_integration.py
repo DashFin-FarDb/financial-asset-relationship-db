@@ -26,9 +26,6 @@ class TestWorkflowConsistency:
 
         Only files from the internal list are considered; files that are not present are omitted from the result.
 
-    @staticmethod
-    def all_workflows():
-        """
         Returns:
             dict: Mapping from workflow file path(str) to the parsed YAML content(dict) for each workflow file that exists.
         """

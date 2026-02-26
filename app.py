@@ -15,7 +15,10 @@ from src.models.financial_models import Asset
 from src.reports.schema_report import generate_schema_report
 from src.visualizations.formulaic_visuals import FormulaicVisualizer
 from src.visualizations.graph_2d_visuals import visualize_2d_graph
-from src.visualizations.graph_visuals import visualize_3d_graph
+from src.visualizations.graph_visuals import (
+    visualize_3d_graph,
+    visualize_3d_graph_with_filters,
+)
 from src.visualizations.metric_visuals import visualize_metrics
 
 # Configure logging
@@ -183,11 +186,11 @@ class FinancialAssetApp:
             fn = getattr(real_data_fetcher, name, None)
             if callable(fn):
                 graph = fn()
-                if isinstance(graph, AssetRelationshipGraph):
-                    return graph
-                raise TypeError(
-                    f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
-                )
+                if not hasattr(graph, "assets"):
+                    raise TypeError(
+                        f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph"
+                    )
+                return graph
         raise AttributeError(
             "No known database factory found in src.data.real_data_fetcher. Tried: "
             f"{', '.join(candidates)}"
@@ -309,7 +312,7 @@ class FinancialAssetApp:
 
         asset: Asset = graph.assets[selected_asset]
         asset_dict = asdict(asset)
-        asset_dict["asset_class"] = asset.asset_class.value
+        asset_dict["asset_class"] = asset.asset_class.name
 
         outgoing: dict[str, dict[str, Any]] = {
             target_id: {"relationship_type": rel_type, "strength": strength}
@@ -471,7 +474,18 @@ class FinancialAssetApp:
                 )
             else:
                 # Default to 3D visualization for any non-"2D" view mode
-                graph_viz = visualize_3d_graph(graph)
+                graph_viz = visualize_3d_graph_with_filters(
+                    graph,
+                    show_same_sector=show_same_sector,
+                    show_market_cap=show_market_cap,
+                    show_correlation=show_correlation,
+                    show_corporate_bond=show_corporate_bond,
+                    show_commodity_currency=show_commodity_currency,
+                    show_income_comparison=show_income_comparison,
+                    show_regulatory=show_regulatory,
+                    show_all_relationships=show_all_relationships,
+                    toggle_arrows=toggle_arrows,
+                )
 
             return graph_viz, gr.update(visible=False)
 
@@ -622,10 +636,13 @@ class FinancialAssetApp:
 
         pair = corr.get("pair", "n/a")
         correlation_value = corr.get("correlation", 0.0)
+        strength = corr.get("strength")
 
         pair_str = cls._format_pair(pair)
         corr_str = cls._format_correlation_value(correlation_value)
 
+        if strength:
+            return f"  • {pair_str}: {corr_str} ({strength})"
         return f"  • {pair_str}: {corr_str}"
 
     @classmethod

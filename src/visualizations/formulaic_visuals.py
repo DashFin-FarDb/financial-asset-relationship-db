@@ -53,6 +53,14 @@ class FormulaicVisualizer:
         self._plot_sector_analysis(fig, formulas)
         self._plot_key_formula_examples(fig, formulas)
 
+        fig.update_layout(
+            title="📊 Financial Formulaic Analysis Dashboard",
+            height=1000,
+            showlegend=False,
+            plot_bgcolor="white",
+            paper_bgcolor="#F8F9FA",
+        )
+
         return fig
 
     # ------------------------------------------------------------------
@@ -74,7 +82,7 @@ class FormulaicVisualizer:
             go.Pie(
                 labels=list(categories.keys()),
                 values=list(categories.values()),
-                hole=0.3,
+                hole=0.4,
             ),
             row=1,
             col=1,
@@ -157,23 +165,50 @@ class FormulaicVisualizer:
         if not correlation_matrix:
             return
 
-        if isinstance(correlation_matrix, dict):
-            assets = sorted(correlation_matrix.keys())
+        if not isinstance(correlation_matrix, dict):
+            return
+
+        # Detect flat format: {"ASSET1-ASSET2": float, ...} vs nested: {"ASSET1": {"ASSET2": float}}
+        first_val = next(iter(correlation_matrix.values()), None)
+        if isinstance(first_val, (int, float)):
+            # Flat format: parse asset pairs from keys
+            assets_set: set[str] = set()
+            for key in correlation_matrix:
+                if "-" in key:
+                    parts = key.split("-", 1)
+                    assets_set.add(parts[0])
+                    assets_set.add(parts[1])
+            assets = sorted(assets_set)[:8]
+            z = []
+            for a1 in assets:
+                row: list[float] = []
+                for a2 in assets:
+                    if a1 == a2:
+                        row.append(1.0)
+                    else:
+                        key1 = f"{a1}-{a2}"
+                        key2 = f"{a2}-{a1}"
+                        val = correlation_matrix.get(
+                            key1, correlation_matrix.get(key2, 0.0)
+                        )
+                        row.append(val)
+                z.append(row)
+        else:
+            # Nested format: {"ASSET1": {"ASSET2": float, ...}, ...}
+            assets = sorted(correlation_matrix.keys())[:8]
             z = [
                 [correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets]
                 for a1 in assets
             ]
-        else:
-            # Assume it's already a matrix-like structure
-            return
 
         fig.add_trace(
             go.Heatmap(
                 z=z,
                 x=assets,
                 y=assets,
-                colorscale="RdBu",
-                zmid=0,
+                colorscale="RdYlBu_r",
+                zmin=-1,
+                zmax=1,
             ),
             row=2,
             col=1,
@@ -383,7 +418,7 @@ class FormulaicVisualizer:
             text=(
                 f"<b>{formula.name}</b><br><br>"
                 "<b>Mathematical Expression:</b><br>"
-                f"{formula.formula}<br><br>"
+                f"{formula.expression}<br><br>"
                 "<b>LaTeX:</b><br>"
                 f"{formula.latex}<br><br>"
                 "<b>Description:</b><br>"
@@ -400,6 +435,12 @@ class FormulaicVisualizer:
                 f"{formula.example_calculation}"
             ),
             showarrow=False,
+        )
+
+        fig.update_layout(
+            title=f"Formula Details: {formula.name}",
+            height=600,
+            plot_bgcolor="white",
         )
 
         return fig
@@ -446,7 +487,15 @@ class FormulaicVisualizer:
     def _create_empty_correlation_figure() -> go.Figure:
         """Return an empty placeholder correlation figure."""
         fig = go.Figure()
-        fig.update_layout(title="No correlation data available")
+        fig.add_annotation(
+            text="No correlation data available",
+            showarrow=False,
+            x=0.5,
+            y=0.5,
+            xref="paper",
+            yref="paper",
+        )
+        fig.update_layout(title="No Correlation Data")
         return fig
 
     @staticmethod
@@ -470,8 +519,14 @@ class FormulaicVisualizer:
                 "No valid asset correlations found" when no assets can be
                 extracted.
         """
+        top_correlations = (
+            strongest_correlations[:10]
+            if isinstance(strongest_correlations, (list, tuple))
+            else list(strongest_correlations)[:10]
+        )
+
         assets = FormulaicVisualizer._extract_assets_from_correlations(
-            strongest_correlations
+            top_correlations
         )
         if not assets:
             fig = go.Figure()
@@ -480,7 +535,7 @@ class FormulaicVisualizer:
 
         positions = FormulaicVisualizer._create_circular_positions(assets)
         edge_traces = FormulaicVisualizer._create_edge_traces(
-            strongest_correlations, positions
+            top_correlations, positions
         )
         node_trace = FormulaicVisualizer._create_node_trace(assets, positions)
 
@@ -694,13 +749,16 @@ class FormulaicVisualizer:
 
         categories: Dict[str, list[float]] = {}
         for formula in formulas:
-            categories.setdefault(formula.category, []).append(formula.r_squared)
+            category = getattr(formula, "category", None) or "Unknown"
+            r_sq = getattr(formula, "r_squared", 0.0) or 0.0
+            categories.setdefault(category, []).append(r_sq)
 
         category_names = list(categories.keys())
         r_squared_by_category = [
             sum(values) / len(values) if values else 0.0
             for values in categories.values()
         ]
+        count_by_category = [len(values) for values in categories.values()]
 
         fig.add_trace(
             go.Bar(
@@ -710,12 +768,20 @@ class FormulaicVisualizer:
             )
         )
 
+        fig.add_trace(
+            go.Bar(
+                name="Formula Count",
+                x=category_names,
+                y=count_by_category,
+            )
+        )
+
         fig.update_layout(
-            title="Formula Reliability Distribution by Category",
+            title="Formula Categories: Reliability vs Count",
             xaxis_title="Formula Category",
-            yaxis_title="R-Squared Score",
-            showlegend=False,
-            template="plotly_white",
+            yaxis_title="Value",
+            barmode="group",
+            plot_bgcolor="white",
         )
 
         return fig

@@ -133,13 +133,6 @@ class TestSnykWorkflowTriggers:
         assert len(parts) == 5, "Cron expression should have 5 parts"
 
     def test_push_triggers_on_main_branch(self, snyk_workflow):
-        """
-        Verify that the push trigger specifies the "main" branch (or "Default") when branches are provided.
-
-        If the workflow defines a push trigger with a "branches" list, this test asserts that the list includes "main" or "Default".
-
-        Parameters:
-    def test_push_triggers_on_main_branch(self, snyk_workflow):
         """Test that push trigger includes main branch."""
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         push_config = triggers["push"]
@@ -383,9 +376,9 @@ class TestSnykWorkflowSecurity:
         """Raw text of the Snyk workflow file."""
         return Path(".github/workflows/snyk-infrastructure.yml").read_text()
 
-    def test_no_hardcoded_secrets(self, snyk_workflow_content):
+    def test_no_hardcoded_secrets(self, snyk_workflow):
         """Test that workflow contains no hardcoded secrets."""
-        workflow_str = snyk_workflow_content.lower()
+        workflow_str = snyk_workflow.lower()
         # Check for common secret patterns
         forbidden_patterns = [
             "password:",
@@ -396,18 +389,18 @@ class TestSnykWorkflowSecurity:
         for pattern in forbidden_patterns:
             assert pattern not in workflow_str
 
-    def test_uses_github_secrets(self, snyk_workflow):
+    def test_uses_github_secrets(self, snyk_workflow_path):
         """Test that sensitive data uses GitHub secrets."""
-        snyk_job = snyk_workflow["jobs"]["snyk"]
+        snyk_job = snyk_workflow_path["jobs"]["snyk"]
         steps = snyk_job["steps"]
         snyk_steps = [s for s in steps if "uses" in s and "snyk" in s["uses"].lower()]
 
         # Token should reference secrets
         assert "${{ secrets." in str(snyk_steps[0]["env"])
 
-    def test_actions_use_specific_versions(self, snyk_workflow):
+    def test_actions_use_specific_versions(self, snyk_workflow_path):
         """Test that actions use specific versions or SHAs."""
-        snyk_job = snyk_workflow["jobs"]["snyk"]
+        snyk_job = snyk_workflow_path["jobs"]["snyk"]
         for step in snyk_job["steps"]:
             if "uses" in step:
                 action = step["uses"]

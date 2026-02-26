@@ -30,8 +30,6 @@ class TestRequirementsDevChanges:
     def test_pyyaml_added(self, requirements_dev_content):
         """
         Verify that requirements - dev.txt includes a PyYAML package entry.
-        """
-        pass
 
         Performs a case-insensitive check of the provided requirements content to ensure PyYAML is present.
         """
@@ -47,12 +45,16 @@ class TestRequirementsDevChanges:
                 requirements_dev_content(str): Full text content of requirements - dev.txt.
         """
         lines = requirements_dev_content.split("\n")
-        # Ignore commented lines so we don't pick up commented-out examples
-        pyyaml_line = next((l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")), None)
+        # Ignore commented lines and type-stub packages (types-PyYAML is separate)
+        pyyaml_line = next(
+            (l for l in lines if l.lower().startswith("pyyaml") and not l.strip().startswith("#")), None
+        )
 
         assert pyyaml_line is not None
-        # Find all non-comment lines containing 'pyyaml'
-        pyyaml_lines = [l for l in lines if "pyyaml" in l.lower() and not l.strip().startswith("#")]
+        # Find all non-comment lines for the PyYAML package itself (not type stubs)
+        pyyaml_lines = [
+            l for l in lines if l.lower().startswith("pyyaml") and not l.strip().startswith("#")
+        ]
         # Assert exactly one active PyYAML requirement exists
         assert len(pyyaml_lines) == 1, f"Expected exactly one active PyYAML line, found {len(pyyaml_lines)}"
         pyyaml_line = pyyaml_lines[0]
@@ -174,10 +176,10 @@ class TestRequirementsInstallability:
         """Verify requirements - dev.txt has valid pip syntax."""
         # Use pip to check syntax without installing
         result = subprocess.run(
-        result=subprocess.run(
             ["pip", "install", "--dry-run", "-r", "requirements-dev.txt"],
             capture_output=True,
-            text=True
+            text=True,
+        )
         # Should not have syntax errors
         assert "error" not in result.stderr.lower() or "requirement already satisfied" in result.stdout.lower()
 

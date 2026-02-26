@@ -243,11 +243,10 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     yield_to_maturity=info.get("yield", 0.03),  # Default 3% if not available
-                    coupon_rate=info.get("yield", 0.025),  # Approximate
-                    maturity_date="2035-01-01",  # Approximate for ETFs
                     coupon_rate=info.get(
                         "couponRate", info.get("yield", 0.025)
                     ),  # Prefer explicit coupon rate when available
+                    maturity_date="2035-01-01",  # Approximate for ETFs
                     issuer_id=issuer_id,
                 )
                 bonds.append(bond)

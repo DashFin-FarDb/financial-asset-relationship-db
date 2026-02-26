@@ -1,6 +1,6 @@
 """
 Unit tests for helper functions in test_github_workflows.py module.
-"""
+
 This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
@@ -73,23 +73,6 @@ class TestGetWorkflowFiles:
         workflows_dir.mkdir()
 
         yaml_file = workflows_dir / "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-yaml_file.write_text("name: Test")
-
-with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    result = get_workflow_files()
-    assert len(result) == 1
-    assert result[0].name == "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
         yaml_file.write_text("name: Test")
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
@@ -491,8 +474,6 @@ jobs:
     steps:
       - uses: actions / checkout @ v4
         with:
-"""
-        )
             fetch - depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -513,7 +494,7 @@ jobs:
             assert len(workflows) == 1
 
             config = load_yaml_safe(workflows[0])
-            assert config["name"] == "Complex CI/CD"
+            assert config["name"] == "Complex CI / CD"
             assert "push" in config["on"]
             assert "pull_request" in config["on"]
             assert "strategy" in config["jobs"]["test"]

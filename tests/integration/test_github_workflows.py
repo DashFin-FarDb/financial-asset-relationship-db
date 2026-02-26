@@ -59,7 +59,9 @@ def get_workflow_files() -> List[Path]:
     """
     if not WORKFLOWS_DIR.exists():
         return []
-    return list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
+    return [p for p in WORKFLOWS_DIR.glob("*.yml") if p.is_file()] + [
+        p for p in WORKFLOWS_DIR.glob("*.yaml") if p.is_file()
+    ]
 
 
 def load_yaml_safe(file_path: Path) -> Dict[str, Any]:
@@ -2856,6 +2858,7 @@ class TestWorkflowEnvironmentVariables:
 
         for _, job in jobs.items():
             # Check for duplication (informational)
+            pass
 
 
 class TestWorkflowScheduledExecutionBestPractices:
@@ -2895,15 +2898,9 @@ class TestWorkflowScheduledExecutionBestPractices:
         triggers = data.get("on", {})
 
         if "schedule" in triggers:
-
-
-if "schedule" in triggers:
-    schedules = triggers["schedule"]
-    for schedule in schedules:
-        _ = schedule.get("cron", "")
-        for schedule in schedules:
-            _ = schedule.get("cron", "")
-            pass
+            schedules = triggers["schedule"]
+            for schedule in schedules:
+                _ = schedule.get("cron", "")
 
 
 # Additional test to verify all new test classes are properly structured

@@ -414,11 +414,6 @@ class TestUpdateAssetInfo:
 
 @pytest.mark.unit
 class TestRefreshVisualization:
-        _, relationships = FinancialAssetApp.update_asset_info(
-            "TEST_001", mock_graph
-        )
-        assert "TEST_003" in relationships["incoming"]
-
     @staticmethod
     @patch("app.visualize_2d_graph")
     @patch("app.real_data_fetcher")
@@ -466,6 +461,7 @@ class TestRefreshVisualization:
         mock_fig = go.Figure()
         mock_viz_3d.return_value = mock_fig
 
+        app = FinancialAssetApp()
         result_fig, _ = app.refresh_visualization(
             mock_graph,
             view_mode="3D",
