@@ -331,6 +331,15 @@ class TestBackwardCompatibility:
                         assert "context_chunker" not in value, (
                             f"{workflow_file.name} env var {key} references deleted script"
                         )
+                for step in job_data.get("steps", []):
+                    if not isinstance(step, dict):
+                        continue
+                    step_env = step.get("env", {})
+                    for key, value in step_env.items():
+                        if isinstance(value, str):
+                            assert "context_chunker" not in value, (
+                                f"{workflow_file.name} step env var {key} references deleted script"
+                            )
 
     @staticmethod
     def test_action_inputs_valid() -> None:
