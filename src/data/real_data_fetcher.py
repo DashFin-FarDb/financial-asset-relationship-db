@@ -451,7 +451,7 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     serialized assets, regulatory events, and mappings of relationships, including
     incoming relationships for each target.
 
-    Args:
+    Parameters:
         graph (AssetRelationshipGraph): Graph to serialize.
 
     Returns:

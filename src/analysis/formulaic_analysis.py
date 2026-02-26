@@ -665,7 +665,7 @@ class FormulaicAnalyzer:
 
         If no examples are found, a default example is returned.
 
-        Args:
+        Parameters:
             graph (AssetRelationshipGraph): The graph containing asset data for
                 analysis.
         """

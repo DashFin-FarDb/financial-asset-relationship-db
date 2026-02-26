@@ -49,7 +49,7 @@ def _create_spring_layout_2d(
     and extracts the first two dimensions of the 3D positions for each  asset ID
     that exists in the positions_3d dictionary.
 
-    Args:
+    Parameters:
         positions_3d: A dictionary mapping asset IDs to their 3D coordinates.
         asset_ids: A list of asset IDs to retrieve 2D positions for.
 

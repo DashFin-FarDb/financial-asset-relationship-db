@@ -69,7 +69,7 @@ class AssetGraphRepository:
         """
         Return a single asset by its ID, or None if not found.
 
-        Args:
+        Parameters:
             asset_id: Asset identifier to retrieve.
         Returns:
             Optional[Asset]: The asset if found, otherwise None.
@@ -102,7 +102,7 @@ class AssetGraphRepository:
         Strength must be numeric in the inclusive range [-1.0, 1.0].
         Negative values represent negative correlations.
 
-        Args:
+        Parameters:
             source_id: The source asset identifier.
             target_id: The target asset identifier.
             rel_type: The relationship type.
@@ -159,7 +159,7 @@ class AssetGraphRepository:
         """
         Return a single relationship matching the given identifiers, if present.
 
-        Args:
+        Parameters:
             source_id: The source asset identifier.
             target_id: The target asset identifier.
             rel_type: The relationship type to look up.

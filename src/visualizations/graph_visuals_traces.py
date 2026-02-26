@@ -131,7 +131,7 @@ def _create_directional_arrows(
 ) -> list[go.Scatter3d]:
     """Create diamond markers at 70% along each unidirectional edge.
 
-    Args:
+    Parameters:
         graph: The asset relationship graph.
         positions: 3-D positions array aligned with asset_ids.
         asset_ids: Assets to include.
@@ -274,7 +274,7 @@ def _create_directional_arrows_traces(
     """
     Build 3D directional arrow traces for asymmetric relationships.
 
-    Args:
+    Parameters:
         graph: The asset relationship graph.
         positions: 3-D positions array aligned with asset_ids.
         asset_ids: Assets to include.

@@ -63,7 +63,7 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
     graphing library to create a visually informative  representation of the
     regulatory timeline.
 
-    Args:
+    Parameters:
         events (list): A list of regulatory event objects containing date,
             asset_id, event_type, and impact_score attributes.
 

@@ -35,7 +35,7 @@ class ContextChunker:
         """
         Initialize a ContextChunker for PR agent context chunking.
 
-        Args:
+        Parameters:
             config_path (str): Path to the YAML configuration file. Defaults to ".github/pr-agent-config.yml".
                 The file should contain configuration sections for 'agent.context' (chunking parameters)
                 and 'limits.fallback' (priority order for context elements).
@@ -86,7 +86,7 @@ class ContextChunker:
         """
         Processes a PR payload dictionary into a single text string.
 
-        Args:
+        Parameters:
             payload (Dict[str, Any]): Dictionary containing PR context. Expected keys:
                 - 'reviews': Optional[List[Dict[str, Any]]] — each dict may have a 'body' key (str).
                 - 'files': Optional[List[Dict[str, Any]]] — each dict may have a 'patch' key (str).
@@ -130,7 +130,7 @@ class ContextChunker:
         Uses the tiktoken encoder if available, otherwise falls back to a simple
         word-based approximation (splitting on whitespace).
 
-        Args:
+        Parameters:
             text (str): The text to count tokens for.
 
         Returns:
