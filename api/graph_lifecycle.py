@@ -53,7 +53,11 @@ def set_graph_factory(factory: Optional[Callable[[], AssetRelationshipGraph]]) -
     """
     Set the callable used to construct the global AssetRelationshipGraph on demand.
 
-    If `factory` is a callable it will be used to build the graph the next time `get_graph()` is called. Passing `None` clears any configured factory. In all cases the current global graph instance is cleared so a new graph will be created on next access; this operation is performed in a thread-safe manner.
+    If `factory` is a callable it will be used to build the graph the next
+    time `get_graph()` is called. Passing `None` clears any configured
+    factory. In all cases the current global graph instance is cleared so a
+    new graph will be created on next access; this operation is performed in
+    a thread-safe manner.
 
     Parameters:
         factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns an `AssetRelationshipGraph`, or `None` to remove the factory and force recreation from defaults.

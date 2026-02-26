@@ -16,7 +16,9 @@ def validate_origin(origin: str) -> bool:
     """
     Determine whether an HTTP origin is permitted by the application's CORS rules.
 
-    Allows explicitly configured origins, HTTPS origins with a valid domain, Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment, and HTTP localhost/127.0.0.1 when ENV is "development".
+    Allows explicitly configured origins, HTTPS origins with a valid domain,
+    Vercel preview hostnames, HTTPS localhost/127.0.0.1 in any environment,
+    and HTTP localhost/127.0.0.1 when ENV is "development".
 
     Parameters:
         origin (str): Origin URL to validate (for example "https://example.com" or "http://localhost:3000").

@@ -15,6 +15,7 @@ from slowapi.util import get_remote_address
 
 # Import from new modules
 from api.cors_utils import validate_origin
+import api.graph_lifecycle as _graph_lifecycle
 from api.graph_lifecycle import get_graph, reset_graph, set_graph, set_graph_factory
 from api.models import (
     AssetResponse,
@@ -161,6 +162,9 @@ async def login_for_access_token(
 
     user = authenticate_user(form_data.username, form_data.password)
     if not user:
+        logger.warning(
+            "Authentication failed for user: %s", form_data.username
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -170,6 +174,7 @@ async def login_for_access_token(
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
+    logger.info("Authentication successful for user: %s", user.username)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -223,9 +228,7 @@ async def root():
 @app.get("/api/health")
 async def health_check():
     """Health check endpoint."""
-    from api.graph_lifecycle import graph
-
-    return {"status": "healthy", "graph_initialized": graph is not None}
+    return {"status": "healthy", "graph_initialized": _graph_lifecycle.graph is not None}
 
 
 if __name__ == "__main__":
