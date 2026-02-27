@@ -109,7 +109,7 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
     """Produce a Markdown report summarizing schema and metrics for an asset
     relationship graph.
-    
+
     This function analyzes the provided AssetRelationshipGraph to generate a
     comprehensive Markdown report. It includes an overview of the schema, entity
     types, relationship types, calculated metrics, and business rules. The report

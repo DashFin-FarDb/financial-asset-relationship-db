@@ -42,7 +42,7 @@ class TestMergifyConfigIntegration:
 
     def test_size_tier_continuity(self):
         """Verify t-shirt size tiers cover modified-line ranges without gaps.
-        
+
         This function loads the Mergify configuration and extracts t-shirt size rules
         from the pull request rules. It constructs a list of lower and upper bounds for
         each size tier, treating missing bounds appropriately. The function then checks
@@ -100,7 +100,7 @@ class TestMergifyConfigIntegration:
 
     def test_ci_check_name_in_auto_merge_rules(self):
         """Test auto-merge rules for CI job name compliance.
-        
+
         This function verifies that the auto-merge rules defined in the  configuration
         file reference the required CI job name  'check-success=Test Python 3.12'. It
         loads the configuration,  filters the rules for those that include a merge
@@ -141,7 +141,7 @@ class TestMergifyConfigIntegration:
 
     def test_stale_rules_are_paired(self):
         """Verify that both 'mark stale' and 'remove stale' rules exist.
-        
+
         This function checks the configuration for pull request rules to ensure that
         there is exactly one rule for adding the 'stale' label and one rule for
         removing it. It retrieves the rules from the loaded configuration and asserts
@@ -165,7 +165,7 @@ class TestMergifyComplexScenarios:
 
     def test_bot_pr_auto_merge_safety(self):
         """Ensure auto-merge rules for Dependabot and Snyk require passing CI.
-        
+
         This function verifies that there are auto-merge rules defined for both
         Dependabot and snyk-bot within the pull request rules configuration.  It checks
         that each rule includes a `check-success` condition, ensuring  that a passing
@@ -210,7 +210,7 @@ class TestMergifyComplexScenarios:
 
     def test_content_labels_are_additive(self):
         """Ensure content-label rules allow multiple labels to be applied.
-        
+
         This function verifies that there are at least four content-label rules
         (security, ci, documentation, dependencies) defined in the configuration.  It
         checks that each rule uses the `add` label action instead of `toggle`,
@@ -237,7 +237,7 @@ class TestMergifyComplexScenarios:
 
     def test_review_automation_excludes_bot_prs(self):
         """Verify review-request rules exclude common bot authors.
-        
+
         This function checks that the review-request rules in the configuration
         properly exclude automated pull requests from common bot authors such as
         dependabot and snyk-bot. It loads the configuration, filters the rules for
@@ -260,7 +260,7 @@ class TestMergifyComplexScenarios:
 
     def test_stale_workflow_prevents_premature_closure(self):
         """Ensure stale removal rules prevent premature closure of active PRs.
-        
+
         This function verifies that there is at least one rule in the  pull request
         rules that removes the "stale" label. It checks  that each of these rules
         includes conditions for both the  presence of the stale label and a recent
@@ -285,7 +285,7 @@ class TestMergifyComplexScenarios:
 
     def test_multiple_labels_can_apply_simultaneously(self):
         """Ensure size and dependency labels can both apply to the same pull request.
-        
+
         This function loads the Mergify configuration and checks for the presence of at
         least one size-labeling rule and one dependency-labeling rule. It counts the
         applicable rules for a hypothetical pull request that modifies requirements.txt
@@ -384,7 +384,7 @@ class TestMergifySecurityAndSafety:
 
     def test_stale_management_excludes_closed_prs(self):
         """Verify stale marking doesn't apply to closed PRs.
-        
+
         This function checks the configuration for pull request rules to ensure that
         any rules related to stale marking explicitly exclude closed pull requests.  It
         first loads the configuration and retrieves the relevant rules, then  asserts
@@ -407,13 +407,13 @@ class TestMergifyRulePriority:
 
     def test_all_size_tiers_are_mutually_exclusive(self):
         """Verify that exactly one size tier applies to any given line count.
-        
+
         This function checks the configuration for pull request rules to ensure that
         there are exactly six size tiers defined. It then tests a range of line counts
         to confirm that each count matches exactly one size tier based on the defined
         conditions. If multiple tiers match for any line count, an assertion error is
         raised, indicating the discrepancy.
-        
+
         Args:
             self: The instance of the class containing this method.
         """
