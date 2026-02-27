@@ -36,11 +36,7 @@ class TestMergifyConfiguration:
             pytest.fail(f"Invalid YAML syntax in .mergify.yml: {e}")
 
     def test_mergify_has_pull_request_rules(self):
-        """
-        Ensure the repository's .mergify.yml defines a non-empty pull_request_rules list.
-
-        Asserts that the top-level key 'pull_request_rules' exists, that its value is a list, and that the list contains at least one rule.
-        """
+        """Test that .mergify.yml contains pull_request_rules key."""
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -81,11 +77,7 @@ class TestMergifyConfiguration:
             )
 
     def test_tshirt_rule_has_label_action(self):
-        """
-        Ensure each t-shirt size rule defines a valid `label` action.
-
-        Verifies that rules whose name contains "t-shirt" include an `actions.label` mapping, that the mapping contains at least one of the operations `toggle`, `add`, or `remove`, and that any of those operations present are lists and non-empty (except `remove` which, if present, must be a list).
-        """
+        """Test that t-shirt size rule has label action."""
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -97,10 +89,13 @@ class TestMergifyConfiguration:
             actions = rule.get("actions", {})
             label_action = actions["label"]
             label_action = actions.get("label")
-            for rule in tshirt_rules:
-                actions = rule.get("actions", {})
-                label_action = actions.get("label")
-                assert isinstance(label_action, dict), f"Missing/invalid label action in rule {rule.get('name')}"
+            assert isinstance(label_action, dict), f"Missing/invalid label action in rule {rule.get('name')}"
+
+            assert any(k in label_action for k in ("toggle", "add", "remove")), (
+                f"Missing label operation in rule {rule.get('name')}"
+            )
+
+            assert any(k in label_action for k in ("toggle", "add", "remove")), (
                 f"Missing label operation in rule {rule.get('name')}"
             )
 
@@ -239,11 +234,7 @@ class TestMergifyRuleLogic:
         assert "500" in condition_str, "Missing 500 threshold"
 
     def test_description_is_meaningful(self):
-        """
-        Validate that rule descriptions meaningfully reference size or line changes.
-
-        For each rule that includes a `description`, assert the description is a string, longer than 10 characters, and contains at least one of the words "line", "size", or "change" (case-insensitive).
-        """
+        """Test that rule descriptions are present and meaningful."""
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -379,11 +370,7 @@ class TestMergifyAdditionalEdgeCases:
                 assert "toggle" in label_action or "add" in label_action or "remove" in label_action
 
     def test_rule_names_are_descriptive(self):
-        """
-        Ensure pull request rule names are descriptive.
-
-        Asserts each rule's `name` is longer than 10 characters and is not all uppercase; raises an AssertionError with a diagnostic message if a name fails these checks.
-        """
+        """Test that all rule names are descriptive and meaningful."""
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -405,12 +392,7 @@ class TestMergifyAdditionalEdgeCases:
         assert len(names) == len(set(names)), "Duplicate rule names found"
 
     def test_conditions_list_not_empty(self):
-        """
-        Ensure each pull request rule contains at least one condition.
-
-        Raises:
-            AssertionError: If any rule's `conditions` list is empty or missing. The assertion message includes the rule's name.
-        """
+        """Test that all rules have at least one condition."""
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -421,11 +403,7 @@ class TestMergifyAdditionalEdgeCases:
             assert len(conditions) > 0, f"Rule {rule.get('name')} has no conditions"
 
     def test_yaml_indentation_consistency(self):
-        """
-        Verify the .mergify.yml file uses a consistent two-space indentation.
-
-        Checks non-empty, non-comment lines and asserts that all indented lines align to a 2-space indentation boundary; raises an assertion on inconsistency.
-        """
+        """Test that YAML file uses consistent indentation."""
         with open(self.MERGIFY_PATH, "r") as f:
             content = f.read()
 
@@ -448,15 +426,6 @@ class TestMergifySizeCoverage:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_tshirt_rules(self):
-        """
-        Return pull request rules whose name contains "t-shirt" (case-insensitive).
-
-        Loads the .mergify.yml configuration at self.MERGIFY_PATH and filters the top-level
-        `pull_request_rules` list to only rules whose `name` includes the substring "t-shirt".
-
-        Returns:
-            list: A list of rule dictionaries matching the t-shirt naming convention.
-        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return [r for r in config["pull_request_rules"] if "t-shirt" in r.get("name", "").lower()]
@@ -520,26 +489,11 @@ class TestMergifyContentLabels:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
-        """
-        Load and return the pull request rules from the repository's .mergify.yml.
-
-        Returns:
-            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
-        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
     def _find_rule(self, name_fragment):
-        """
-        Find the first rule whose name contains the given fragment, case-insensitively.
-
-        Parameters:
-            name_fragment (str): Substring to match against rule names (case-insensitive).
-
-        Returns:
-            dict or None: The first matching rule dictionary, or `None` if no match is found.
-        """
         return next(
             (r for r in self._load_rules() if name_fragment.lower() in r.get("name", "").lower()),
             None,
@@ -589,12 +543,6 @@ class TestMergifyReviewAutomation:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
-        """
-        Load and return the pull request rules from the repository's .mergify.yml.
-
-        Returns:
-            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
-        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
@@ -629,11 +577,7 @@ class TestMergifyReviewAutomation:
         assert dismiss_rules, "No dismiss_reviews rule found"
 
     def test_dismiss_stale_reviews_targets_main(self):
-        """
-        Verify that every rule with a `dismiss_reviews` action targets pull requests whose base branch is `main`.
-
-        Asserts that for each rule containing a `dismiss_reviews` action, the rule's conditions include `main`.
-        """
+        """Test that stale-review dismissal applies to PRs targeting main."""
         rules = self._load_rules()
         for rule in rules:
             if "dismiss_reviews" in rule.get("actions", {}):
@@ -647,22 +591,11 @@ class TestMergifyAutoMerge:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
-        """
-        Load and return the pull request rules from the repository's .mergify.yml.
-
-        Returns:
-            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
-        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
     def _get_auto_merge_rules(self):
-        """
-        Return rules that enable automatic merging.
-
-        @returns A list of rule dictionaries whose `actions` mapping contains the `merge` key.
-        """
         return [r for r in self._load_rules() if "merge" in r.get("actions", {})]
 
     def test_auto_merge_rules_exist(self):
@@ -709,22 +642,12 @@ class TestMergifyStaleManagement:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
-        """
-        Load and return the pull request rules from the repository's .mergify.yml.
-
-        Returns:
-            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
-        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
     def test_mark_stale_rule_exists(self):
-        """
-        Verify that at least one pull request rule adds the 'stale' label.
-
-        Asserts that among loaded pull_request_rules there exists a rule whose actions include adding the label "stale".
-        """
+        """Test that a rule to mark PRs as stale exists."""
         rules = self._load_rules()
         stale_adders = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])]
         assert stale_adders, "No rule found that adds the 'stale' label"
@@ -763,3 +686,299 @@ class TestMergifyStaleManagement:
 
         assert any(ref[0] == "add" for ref in all_stale_label_references), "No rule adds 'stale' label"
         assert any(ref[0] == "remove" for ref in all_stale_label_references), "No rule removes 'stale' label"
+
+
+class TestMergifyBoundaryConditions:
+    """Test boundary conditions and edge values for thresholds."""
+
+    MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
+
+    def _load_config(self):
+        with open(self.MERGIFY_PATH, "r") as f:
+            return yaml.safe_load(f)
+
+    def test_size_xs_upper_boundary(self):
+        """Test that size/XS rule has upper boundary at 10."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        xs_rule = next((r for r in rules if "xs" in r.get("name", "").lower() and "size/XS" in str(r)), None)
+        assert xs_rule is not None, "XS rule not found"
+
+        conditions = " ".join(str(c) for c in xs_rule.get("conditions", []))
+        assert "< 10" in conditions or "<10" in conditions, "XS rule should have upper bound < 10"
+
+    def test_size_s_boundaries(self):
+        """Test that size/S rule covers exactly 10-49 lines."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        s_rule = next((r for r in rules if "/S" in str(r) and "size/S" in str(r)), None)
+        assert s_rule is not None, "S rule not found"
+
+        conditions = " ".join(str(c) for c in s_rule.get("conditions", []))
+        assert ">= 10" in conditions or ">=10" in conditions, "S rule should have lower bound >= 10"
+        assert "< 50" in conditions or "<50" in conditions, "S rule should have upper bound < 50"
+
+    def test_size_xxl_lower_boundary(self):
+        """Test that size/XXL rule has lower boundary at 1000."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        xxl_rule = next((r for r in rules if "xxl" in r.get("name", "").lower()), None)
+        assert xxl_rule is not None, "XXL rule not found"
+
+        conditions = " ".join(str(c) for c in xxl_rule.get("conditions", []))
+        assert ">= 1000" in conditions or ">=1000" in conditions, "XXL rule should have lower bound >= 1000"
+
+    def test_dependabot_file_limit(self):
+        """Test that Dependabot auto-merge has a 5-file change limit."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        dep_rule = next(
+            (r for r in rules if "dependabot" in str(r.get("conditions", [])).lower() and "merge" in r.get("actions", {})),
+            None
+        )
+        assert dep_rule is not None, "Dependabot auto-merge rule not found"
+
+        conditions = " ".join(str(c) for c in dep_rule.get("conditions", []))
+        assert "#changed-files <= 5" in conditions or "#changed-files<=5" in conditions, (
+            "Dependabot auto-merge should limit to 5 changed files"
+        )
+
+    def test_stale_threshold_is_14_days(self):
+        """Test that PRs are marked stale after 14 days."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        stale_rule = next(
+            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])),
+            None
+        )
+        assert stale_rule is not None, "Stale marking rule not found"
+
+        conditions = " ".join(str(c) for c in stale_rule.get("conditions", []))
+        assert "14 days" in conditions, "Stale rule should use 14 days threshold"
+
+
+class TestMergifyNegativeCases:
+    """Test negative cases and error conditions."""
+
+    MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
+
+    def _load_config(self):
+        with open(self.MERGIFY_PATH, "r") as f:
+            return yaml.safe_load(f)
+
+    def test_no_empty_conditions_lists(self):
+        """Test that no rule has an empty conditions list."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            conditions = rule.get("conditions", [])
+            assert len(conditions) > 0, f"Rule '{rule.get('name')}' has empty conditions list"
+
+    def test_no_empty_actions_dicts(self):
+        """Test that no rule has an empty actions dictionary."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            actions = rule.get("actions", {})
+            assert len(actions) > 0, f"Rule '{rule.get('name')}' has empty actions dictionary"
+
+    def test_no_empty_label_lists(self):
+        """Test that no label action has an empty list."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            label_action = rule.get("actions", {}).get("label", {})
+            if "add" in label_action:
+                assert len(label_action["add"]) > 0, f"Rule '{rule.get('name')}' has empty add list"
+            if "remove" in label_action:
+                assert len(label_action["remove"]) > 0, f"Rule '{rule.get('name')}' has empty remove list"
+            if "toggle" in label_action:
+                assert len(label_action["toggle"]) > 0, f"Rule '{rule.get('name')}' has empty toggle list"
+
+    def test_review_request_has_users(self):
+        """Test that review request actions specify at least one user."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            if "request_reviews" in rule.get("actions", {}):
+                users = rule["actions"]["request_reviews"].get("users", [])
+                assert len(users) > 0, f"Rule '{rule.get('name')}' has no users for review request"
+
+    def test_comment_has_message(self):
+        """Test that comment actions have a non-empty message."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            if "comment" in rule.get("actions", {}):
+                message = rule["actions"]["comment"].get("message", "")
+                assert len(message.strip()) > 0, f"Rule '{rule.get('name')}' has empty comment message"
+
+    def test_no_conflicting_label_operations(self):
+        """Test that a rule doesn't both add and remove the same label."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            label_action = rule.get("actions", {}).get("label", {})
+            add_labels = set(label_action.get("add", []))
+            remove_labels = set(label_action.get("remove", []))
+
+            conflicts = add_labels & remove_labels
+            assert len(conflicts) == 0, f"Rule '{rule.get('name')}' has conflicting label operations: {conflicts}"
+
+
+class TestMergifyFilePatterns:
+    """Test file pattern matching in conditions."""
+
+    MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
+
+    def _load_config(self):
+        with open(self.MERGIFY_PATH, "r") as f:
+            return yaml.safe_load(f)
+
+    def test_security_file_patterns_exist(self):
+        """Test that security label rule has file pattern conditions."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        sec_rule = next(
+            (r for r in rules if "security" in r.get("actions", {}).get("label", {}).get("add", [])),
+            None
+        )
+        assert sec_rule is not None, "Security label rule not found"
+
+        conditions = " ".join(str(c) for c in sec_rule.get("conditions", []))
+        # Should have file patterns for security-related files
+        has_file_pattern = any(keyword in conditions for keyword in ["files", "snyk", "bandit", "codeql", "semgrep"])
+        assert has_file_pattern, "Security rule should have file pattern conditions"
+
+    def test_ci_file_pattern(self):
+        """Test that CI label rule matches .github/workflows/ files."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        ci_rule = next(
+            (r for r in rules if "ci" in r.get("actions", {}).get("label", {}).get("add", [])),
+            None
+        )
+        assert ci_rule is not None, "CI label rule not found"
+
+        conditions = " ".join(str(c) for c in ci_rule.get("conditions", []))
+        assert ".github/workflows" in conditions or "github/workflows" in conditions, (
+            "CI rule should match .github/workflows/ files"
+        )
+
+    def test_documentation_file_pattern(self):
+        """Test that documentation label rule matches .md and docs/ files."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        doc_rule = next(
+            (r for r in rules if "documentation" in r.get("actions", {}).get("label", {}).get("add", [])),
+            None
+        )
+        assert doc_rule is not None, "Documentation label rule not found"
+
+        conditions = " ".join(str(c) for c in doc_rule.get("conditions", []))
+        has_md_or_docs = ".md" in conditions or "docs/" in conditions or "docs" in conditions
+        assert has_md_or_docs, "Documentation rule should match .md or docs/ files"
+
+    def test_dependencies_file_pattern(self):
+        """Test that dependencies label rule matches package files."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+        dep_rule = next(
+            (r for r in rules if "dependencies" in r.get("actions", {}).get("label", {}).get("add", [])),
+            None
+        )
+        assert dep_rule is not None, "Dependencies label rule not found"
+
+        conditions = " ".join(str(c) for c in dep_rule.get("conditions", []))
+        has_pkg_files = any(
+            keyword in conditions for keyword in ["requirements", "pyproject.toml", "package.json"]
+        )
+        assert has_pkg_files, "Dependencies rule should match package files"
+
+
+class TestMergifyRegressionCases:
+    """Regression tests for previously identified issues."""
+
+    MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
+
+    def _load_config(self):
+        with open(self.MERGIFY_PATH, "r") as f:
+            return yaml.safe_load(f)
+
+    def test_dismiss_reviews_has_when_clause(self):
+        """Test that dismiss_reviews action has a 'when' clause."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            if "dismiss_reviews" in rule.get("actions", {}):
+                dismiss_action = rule["actions"]["dismiss_reviews"]
+                assert "when" in dismiss_action, f"Rule '{rule.get('name')}' should have 'when' in dismiss_reviews"
+                assert dismiss_action["when"] == "synchronize", (
+                    f"Rule '{rule.get('name')}' should dismiss reviews on synchronize"
+                )
+
+    def test_dismiss_reviews_has_message(self):
+        """Test that dismiss_reviews action has a message."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            if "dismiss_reviews" in rule.get("actions", {}):
+                dismiss_action = rule["actions"]["dismiss_reviews"]
+                assert "message" in dismiss_action, f"Rule '{rule.get('name')}' should have message in dismiss_reviews"
+                assert len(dismiss_action["message"]) > 0, (
+                    f"Rule '{rule.get('name')}' has empty dismiss_reviews message"
+                )
+
+    def test_stale_comment_mentions_removing_label(self):
+        """Test that stale comment explains how to remove the label."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            if "stale" in rule.get("actions", {}).get("label", {}).get("add", []):
+                if "comment" in rule.get("actions", {}):
+                    message = rule["actions"]["comment"]["message"].lower()
+                    has_removal_info = any(
+                        keyword in message for keyword in ["remove", "push", "update", "commit"]
+                    )
+                    assert has_removal_info, (
+                        f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
+                    )
+
+    def test_auto_merge_has_label_conditions(self):
+        """Test that auto-merge rules check for appropriate labels."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        for rule in rules:
+            if "merge" in rule.get("actions", {}):
+                conditions = " ".join(str(c) for c in rule.get("conditions", []))
+                # Auto-merge rules should have label conditions
+                has_label = "label=" in conditions
+                assert has_label, f"Auto-merge rule '{rule.get('name')}' should check for labels"
+
+    def test_no_infinite_stale_loops(self):
+        """Test that stale removal conditions prevent infinite loops."""
+        config = self._load_config()
+        rules = config["pull_request_rules"]
+
+        # Find stale removal rule
+        stale_remove_rule = next(
+            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])),
+            None
+        )
+        assert stale_remove_rule is not None, "Stale removal rule not found"
+
+        # Should require label=stale to prevent removing label that isn't there
+        conditions = " ".join(str(c) for c in stale_remove_rule.get("conditions", []))
+        assert "label=stale" in conditions or "label= stale" in conditions, (
+            "Stale removal rule should check that stale label exists"
+        )
