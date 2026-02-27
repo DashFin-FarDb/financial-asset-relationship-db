@@ -326,7 +326,7 @@ def _to_gfm_anchor(text: str) -> str:
 
         # Extract headers and internal links from the document
         headers = [line.lstrip('#').strip() for line in summary_lines if line.startswith('#')]
-        valid_anchors: Set[str] = set(_to_gfm_anchor(header) for header in headers)
+        valid_anchors: Set[str] = {_to_gfm_anchor(header) for header in headers}
         internal_links = re.findall(r'\[([^\]]+)\]\(#([^)]+)\)', summary_content)
 
         # Check each internal link
