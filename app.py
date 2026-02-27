@@ -187,15 +187,10 @@ class FinancialAssetApp:
             if callable(fn):
                 graph = fn()
                 if not hasattr(graph, "assets"):
-                    raise TypeError(
-                        f"{name}() returned {type(graph)!r}, expected "
-                        f"AssetRelationshipGraph"
-                    )
+                    raise TypeError(f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph")
                 return graph
         raise AttributeError(
-            f"No known database factory found in "
-            f"src.data.real_data_fetcher. Tried: "
-            f"{', '.join(candidates)}"
+            f"No known database factory found in src.data.real_data_fetcher. Tried: {', '.join(candidates)}"
         )
 
     def _initialize_graph(self) -> None:
