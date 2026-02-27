@@ -53,12 +53,12 @@ class TestWorkflowConsistency:
 
     def test_all_workflows_use_consistent_action_versions(self, all_workflows):
         """Ensure actions referenced across workflows are used with a single version.
-        
+
         This function scans the provided workflows' jobs and steps to detect actions
         specified with explicit versions. It reports when the same action appears with
         multiple different versions, while allowing differences between major versions
         (e.g., v4 vs v5) for specific actions like actions/checkout.
-        
+
         Args:
             all_workflows (dict): Mapping from workflow file path (str) to parsed YAML content (dict).
         """
@@ -98,7 +98,7 @@ class TestWorkflowConsistency:
         representation for the correct usage of  the GITHUB_TOKEN syntax and raises an
         assertion error if the syntax is  incorrect, including the workflow file path
         in the error message.
-        
+
         Args:
             all_workflows (dict): Mapping of workflow file path to parsed YAML content."""
         for wf_file, workflow in all_workflows.items():
@@ -114,7 +114,7 @@ class TestWorkflowConsistency:
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
         # These workflows were simplified in this branch
         """Verify that simplified workflows limit each job to at most three steps.
-        
+
         Args:
             all_workflows (dict): Mapping from workflow file path to its parsed YAML content.
         """
@@ -330,7 +330,7 @@ class TestBranchCoherence:
 
     def test_removed_complexity_not_referenced(self):
         """Assert that removed complexity indicators are not referenced in workflow files.
-        
+
         This function scans all YAML files under .github/workflows for specific feature
         names  such as 'context_chunking', 'tiktoken', 'summarization', 'max_tokens',
         and 'chunk_size'.  It checks if any of these names appear in non-comment lines
@@ -365,7 +365,7 @@ class TestBranchCoherence:
     def test_branch_reduces_dependencies_on_external_config(self):
         # labeler.yml was removed - workflows should work without it
         """Ensure the branch removes external workflow configuration.
-        
+
         This function verifies that the .github/labeler.yml and
         .github/scripts/context_chunker.py files do not exist, ensuring workflows can
         operate independently. It also checks each YAML file in the .github/workflows
@@ -447,7 +447,7 @@ class TestBranchQuality:
 
     def test_consistent_indentation_across_workflows(self):
         """Check that every workflow YAML file uses consistent 2-space indentation.
-        
+
         This function iterates through all YAML files in the `.github/workflows`
         directory  and checks each non-empty line that begins with a space. It verifies
         that the number  of leading spaces is a multiple of two. If any line violates
