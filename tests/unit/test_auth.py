@@ -947,18 +947,18 @@ class TestTokenCreationEdgeCases:
     """Additional edge cases for token creation."""
 
     def test_create_token_with_empty_data(self):
-            "sub": "user@example.com",
-            "role": "admin:read/write",
-            "note": "contains spaces & symbols !@#$%^&*()",
-        }
-        token = create_access_token(data=data)
-        """Test creating token with special-character claims."""
-        data = {
-            "sub": "user@example.com",
+        """Test creating token with minimal/empty payload."""
+        token = create_access_token(data={})
+        assert isinstance(token, str)
         assert len(token) > 0
 
     def test_create_token_with_special_claims(self):
         """Test creating token with special-character claims."""
+        data = {
+            "sub": "user@example.com",
+            "role": "admin:read/write",
+            "note": "contains spaces & symbols !@#$%^&*()",
+        }
         token = create_access_token(data=data)
         assert isinstance(token, str)
         assert len(token) > 0
