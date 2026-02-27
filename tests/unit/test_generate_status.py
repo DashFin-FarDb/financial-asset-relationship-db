@@ -157,7 +157,7 @@ def sample_pr_status():
 
 
 def test_check_run_info_creation():
-    """Test CheckRunInfo dataclass creation."""
+    """Test creation of CheckRunInfo dataclass."""
     check = generate_status.CheckRunInfo(
         name="test-check", status="completed", conclusion="success"
     )
@@ -167,7 +167,7 @@ def test_check_run_info_creation():
 
 
 def test_check_run_info_frozen():
-    """Test that CheckRunInfo is immutable (frozen)."""
+    """Test that CheckRunInfo is immutable."""
     check = generate_status.CheckRunInfo("test", "completed", "success")
     with pytest.raises(AttributeError):
         check.name = "new-name"
@@ -183,7 +183,7 @@ def test_check_run_info_with_none_conclusion():
 
 
 def test_pr_status_creation(sample_pr_status):
-    """Test PRStatus dataclass creation."""
+    """Test the creation of the PRStatus dataclass."""
     assert sample_pr_status.number == 123
     assert sample_pr_status.title == "Test PR"
     assert sample_pr_status.author == "testuser"
@@ -192,7 +192,7 @@ def test_pr_status_creation(sample_pr_status):
 
 
 def test_pr_status_frozen():
-    """Test that PRStatus is immutable (frozen)."""
+    """Test that PRStatus is immutable."""
     status = generate_status.PRStatus(
         number=1,
         title="Test",
@@ -220,8 +220,8 @@ def test_pr_status_frozen():
 
 
 def test_fetch_pr_status_basic(mock_pr, mock_review_approved, mock_check_run_success):
-    """Test fetch_pr_status with basic PR data."""
     # Setup mocks
+    """Test fetching PR status with basic PR data."""
     mock_github = Mock()
     mock_repo = Mock()
     mock_commit = Mock()
@@ -260,7 +260,7 @@ def test_fetch_pr_status_basic(mock_pr, mock_review_approved, mock_check_run_suc
 def test_fetch_pr_status_with_multiple_reviews(
     mock_pr, mock_review_approved, mock_review_changes_requested, mock_review_commented
 ):
-    """Test fetch_pr_status with multiple review types."""
+    """Test fetching PR status with multiple review types."""
     mock_github = Mock()
     mock_repo = Mock()
     mock_commit = Mock()
@@ -319,7 +319,7 @@ def test_fetch_pr_status_with_labels(mock_pr):
 
 
 def test_fetch_pr_status_draft_pr(mock_pr):
-    """Test fetch_pr_status with draft PR."""
+    """Test fetch_pr_status with a draft PR."""
     mock_pr.draft = True
 
     mock_github = Mock()
@@ -340,7 +340,7 @@ def test_fetch_pr_status_draft_pr(mock_pr):
 
 
 def test_fetch_pr_status_mergeable_none(mock_pr):
-    """Test fetch_pr_status when mergeable status is unknown."""
+    """Test fetch_pr_status when mergeable status is None."""
     mock_pr.mergeable = None
     mock_pr.mergeable_state = None
 
@@ -365,7 +365,7 @@ def test_fetch_pr_status_mergeable_none(mock_pr):
 def test_fetch_pr_status_with_multiple_check_runs(
     mock_pr, mock_check_run_success, mock_check_run_failure, mock_check_run_pending
 ):
-    """Test fetch_pr_status with multiple check runs."""
+    """Test fetching PR status with multiple check runs."""
     mock_github = Mock()
     mock_repo = Mock()
     mock_commit = Mock()
@@ -430,7 +430,7 @@ def test_format_checklist_all_tasks_complete():
 
 
 def test_format_checklist_draft_pr():
-    """Test format_checklist with draft PR."""
+    """Test format_checklist with a draft PR."""
     status = generate_status.PRStatus(
         number=1,
         title="Draft",
@@ -754,7 +754,7 @@ def test_format_checks_section_mixed_states():
 
 
 def test_generate_markdown_basic(sample_pr_status):
-    """Test generate_markdown with basic PR status."""
+    """Test the generate_markdown function with basic PR status."""
     markdown = generate_status.generate_markdown(sample_pr_status)
 
     assert "📊 **PR Status Report**" in markdown
@@ -767,7 +767,7 @@ def test_generate_markdown_basic(sample_pr_status):
 
 
 def test_generate_markdown_draft_pr():
-    """Test generate_markdown with draft PR."""
+    """Test generate_markdown with a draft PR."""
     status = generate_status.PRStatus(
         number=1,
         title="Draft PR",
@@ -799,7 +799,7 @@ def test_generate_markdown_draft_pr():
 
 
 def test_generate_markdown_no_draft():
-    """Test generate_markdown with non-draft PR."""
+    """Test generate_markdown with a non-draft PR."""
     status = generate_status.PRStatus(
         number=1,
         title="Regular PR",
@@ -831,7 +831,7 @@ def test_generate_markdown_no_draft():
 
 
 def test_generate_markdown_no_labels():
-    """Test generate_markdown with no labels."""
+    """Test generate_markdown function with no labels."""
     status = generate_status.PRStatus(
         number=1,
         title="PR",
@@ -863,7 +863,7 @@ def test_generate_markdown_no_labels():
 
 
 def test_generate_markdown_review_section():
-    """Test generate_markdown review section."""
+    """Test the generation of a markdown review section."""
     status = generate_status.PRStatus(
         number=1,
         title="PR",
@@ -932,7 +932,7 @@ def test_generate_markdown_mergeable_yes():
 
 
 def test_generate_markdown_mergeable_no():
-    """Test generate_markdown with non-mergeable PR."""
+    """Test generate_markdown with a non-mergeable PR."""
     status = generate_status.PRStatus(
         number=1,
         title="PR",
@@ -964,7 +964,7 @@ def test_generate_markdown_mergeable_no():
 
 
 def test_generate_markdown_mergeable_unknown():
-    """Test generate_markdown with unknown merge status."""
+    """Test generate_markdown with mergeable status as unknown."""
     status = generate_status.PRStatus(
         number=1,
         title="PR",
@@ -996,7 +996,7 @@ def test_generate_markdown_mergeable_unknown():
 
 
 def test_generate_markdown_includes_timestamp():
-    """Test generate_markdown includes timestamp."""
+    """Test that the generated markdown includes a timestamp."""
     status = generate_status.PRStatus(
         number=1,
         title="PR",
@@ -1030,7 +1030,7 @@ def test_generate_markdown_includes_timestamp():
 
 
 def test_generate_markdown_includes_checklist():
-    """Test generate_markdown includes task checklist."""
+    """Test that the generated markdown includes a task checklist."""
     status = generate_status.PRStatus(
         number=1,
         title="PR",
@@ -1066,7 +1066,7 @@ def test_generate_markdown_includes_checklist():
 
 
 def test_write_output_to_stdout(capsys):
-    """Test write_output writes to stdout."""
+    """Test that write_output writes the expected content to stdout."""
     content = "Test report content"
 
     with patch.dict(os.environ, {}, clear=True):
@@ -1079,7 +1079,7 @@ def test_write_output_to_stdout(capsys):
 
 
 def test_write_output_to_temp_file():
-    """Test write_output writes to temp file."""
+    """Test writing output to a temporary file."""
     content = "Test report content"
 
     with patch.dict(os.environ, {}, clear=True):
@@ -1095,7 +1095,7 @@ def test_write_output_to_temp_file():
 
 
 def test_write_output_to_github_step_summary():
-    """Test write_output writes to GITHUB_STEP_SUMMARY."""
+    """Test writing output to GITHUB_STEP_SUMMARY."""
     content = "Test report"
     summary_file = "/tmp/github_summary.md"
 
@@ -1123,7 +1123,7 @@ def test_write_output_handles_io_error_temp_file(capsys):
 
 
 def test_write_output_handles_io_error_github_summary(capsys):
-    """Test write_output handles IOError for GitHub summary."""
+    """Test write_output function's handling of IOError for GitHub summary."""
     content = "Test content"
     summary_file = "/tmp/summary.md"
 
@@ -1139,7 +1139,7 @@ def test_write_output_handles_io_error_github_summary(capsys):
 
 
 def test_main_missing_env_vars(capsys):
-    """Test main exits with error when env vars are missing."""
+    """Test main exits with error when environment variables are missing."""
     with patch.dict(os.environ, {}, clear=True):
         with pytest.raises(SystemExit) as exc_info:
             generate_status.main()
@@ -1198,7 +1198,7 @@ def test_main_github_api_error(capsys):
 def test_main_success_flow(
     mock_pr, mock_review_approved, mock_check_run_success, capsys
 ):
-    """Test main executes successfully."""
+    """Test that the main function executes successfully."""
     env = {
         "GITHUB_TOKEN": "token",
         "PR_NUMBER": "123",
@@ -1291,7 +1291,7 @@ def test_format_checklist_edge_case_all_checks_passed_zero_total():
 
 
 def test_generate_markdown_with_special_characters():
-    """Test generate_markdown handles special characters in title."""
+    """Test that generate_markdown handles special characters in title."""
     status = generate_status.PRStatus(
         number=1,
         title='PR with "quotes" and <tags>',
@@ -1375,7 +1375,7 @@ def test_fetch_pr_status_empty_reviews():
 
 
 def test_large_diff_numbers():
-    """Test with very large diff numbers."""
+    """Test the generation of markdown for large diff numbers."""
     status = generate_status.PRStatus(
         number=1,
         title="Large PR",
