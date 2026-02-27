@@ -125,8 +125,8 @@ class TestCacheHelpers:
         """Test that invalid JSON propagates JSONDecodeError."""
         with (
             patch("src.data.real_data_fetcher.Path.open"),
-            cache_data = {"test": "data"}
-            cache_path = tmp_path / "cache.json"
+            cache_data={"test": "data"}
+            cache_path=tmp_path / "cache.json"
 
             _save_to_cache(cache_data, cache_path)
 
@@ -140,7 +140,7 @@ class TestCacheHelpers:
     def test_load_from_cache_file_not_found(self):
         """Test that missing cache file propagates FileNotFoundError."""
         with patch(
-            "src.data.real_data_fetcher.Path.open", side_effect=FileNotFoundError
+            "src.data.real_data_fetcher.Path.open", side_effect = FileNotFoundError
         ):
             with pytest.raises(FileNotFoundError):
                 _load_from_cache(Path("missing.json"))
@@ -152,32 +152,34 @@ class TestCacheHelpers:
         written = json.loads(cache_path.read_text())
         assert written == cache_data
 
-    @patch("src.data.real_data_fetcher.Path.write_text")
-    @patch("src.data.real_data_fetcher.Path.mkdir")
+    @ patch("src.data.real_data_fetcher.Path.write_text")
+    @ patch("src.data.real_data_fetcher.Path.mkdir")
     def test_save_to_cache_creates_directory(self, mock_mkdir, mock_write):
         """Test that cache directory is created."""
         _save_to_cache({"test": "data"}, Path("subdir/test.json"))
 
         mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
-    @patch(
+    @ patch(
         "src.data.real_data_fetcher.Path.write_text",
-        side_effect=OSError("Permission denied"),
+        side_effect = OSError("Permission denied"),
     )
-    @patch("src.data.real_data_fetcher.Path.mkdir")
+    @ patch("src.data.real_data_fetcher.Path.mkdir")
     def test_save_to_cache_error_handling(self, mock_mkdir, mock_write):
         """Test error handling when saving cache fails."""
         # Should not raise, just log error
         _save_to_cache({"test": "data"}, Path("test.json"))
 
 
-@pytest.mark.xfail(
-    reason="RealDataFetcher currently lacks the per-symbol fetch API used in these tests; update or re-enable when the implementation is available.",
+@ pytest.mark.xfail(
+    reason = "RealDataFetcher currently lacks the per-symbol fetch API used in these tests; update or re-enable when the implementation is available.",
+
+
 )
 class TestRealDataFetcher:
     """Test RealDataFetcher class."""
 
-    @pytest.fixture
+    @ pytest.fixture
     def fetcher(self):
         """
         Provide a RealDataFetcher instance for tests.
@@ -191,7 +193,7 @@ class TestRealDataFetcher:
         """
         return RealDataFetcher()
 
-    @pytest.fixture
+    @ pytest.fixture
     def mock_ticker_data(self):
         """
         Provides a sample ticker data dictionary for tests representing Apple (AAPL).
