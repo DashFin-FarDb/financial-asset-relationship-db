@@ -197,23 +197,16 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
-        """
-        Fetch bond and treasury ETF market data and return Bond instances used
-        as fixed-income proxies.
-
-        Retrieves price and metadata for a small set of bond and treasury ETFs
-        (used as proxies for individual bonds). If yield information is missing,
-        `yield_to_maturity` defaults to 0.03 and
-        `coupon_rate` defaults to 0.025; maturity dates and some
-        fields are approximate for ETF-based proxies.
-
-        Returns:
-            List[Bond]: Bond instances populated with id, symbol, name,
-            asset_class, sector, price, yield_to_maturity, coupon_rate,
-            maturity_date, credit_rating, and issuer_id.
-        """
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
+        """Fetch bond and treasury ETF market data and return Bond instances.
+        
+        This method retrieves price and metadata for a predefined set of bond and
+        treasury ETFs, which serve as proxies for individual bonds. It handles missing
+        yield information by providing default values for `yield_to_maturity` and
+        `coupon_rate`. The function logs warnings for any symbols that do not have
+        price data and errors for any exceptions encountered during data fetching.
+        """
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
@@ -265,8 +258,15 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
-        """Fetch real commodity futures data."""
         # Define key commodity futures and their characteristics.
+        """Fetch real commodity futures data.
+        
+        This method retrieves the latest price data for key commodity futures  and
+        constructs a list of Commodity objects. It defines a set of  commodity symbols
+        along with their characteristics, such as name,  sector, contract size, and
+        volatility. For each symbol, it fetches  the historical price data and logs any
+        issues encountered during  the data retrieval process.
+        """
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
             # Example entries (adjust or extend as needed elsewhere in the file):
@@ -318,7 +318,15 @@ class RealDataFetcher:
 
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
-        """Fetch real currency exchange rate data"""
+        """Fetch real currency exchange rate data.
+        
+        This method retrieves the latest exchange rates for a predefined set of
+        currency symbols.  It utilizes the `yfinance` library to fetch historical data
+        for each currency symbol and  constructs a list of `Currency` objects
+        containing relevant information such as name,  country, and current exchange
+        rate. If any symbol fails to fetch data, it logs an error  and continues
+        processing the remaining symbols.
+        """
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
