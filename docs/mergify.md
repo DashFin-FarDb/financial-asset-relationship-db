@@ -9,7 +9,7 @@ automates pull-request workflows in this repository.
 
 [Mergify](https://mergify.com) is a GitHub-native automation service that acts on
 pull requests based on declarative rules. The configuration in `.mergify.yml` covers
-four areas:
+five areas:
 
 1. **PR size labels** — automatically tag every PR with a t-shirt size so reviewers
    can gauge review effort at a glance.
@@ -21,7 +21,6 @@ four areas:
    CI passes, without requiring manual approval.
 5. **Stale PR management** — flag PRs that have been inactive for 14 days and
    automatically un-flag them when activity resumes.
-
 ---
 
 ## PR Size Labels
