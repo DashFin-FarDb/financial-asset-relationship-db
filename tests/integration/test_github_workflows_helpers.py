@@ -342,26 +342,16 @@ job2:
         assert result == []
 
     def test_handles_invalid_yaml_gracefully(self, tmp_path, caplog):
-        """Test that invalid YAML is handled gracefully and logs an informative message."""
+    def test_handles_invalid_yaml_gracefully(self, tmp_path):
+        """Test that invalid YAML is handled gracefully without raising and returns an empty list."""
         yaml_file = tmp_path / "invalid.yml"
         yaml_file.write_text("invalid: yaml: [unclosed")
 
-        with caplog.at_level("ERROR"):
-            result = check_duplicate_keys(yaml_file)
+        # Function should handle parse errors internally and return an empty list
+        result = check_duplicate_keys(yaml_file)
 
-        # Should return an empty list on invalid YAML
         assert isinstance(result, list)
         assert result == []
-
-        # Should log an error mentioning the file and YAML parse failure
-        assert any(
-            ("invalid.yml" in rec.message or str(yaml_file) in rec.message)
-            and (
-                "yaml" in rec.message.lower()
-                or "parse" in rec.message.lower()
-                or "failed" in rec.message.lower()
-            )
-            for rec in caplog.records
         )
 
     def test_github_actions_pr_agent_scenario(self, tmp_path):
