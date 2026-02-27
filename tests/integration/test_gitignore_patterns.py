@@ -72,7 +72,7 @@ class TestGitignoreFileStructure:
         for line in gitignore_lines:
             # Patterns should not have spaces unless quoted or in character class
             if ' ' in line and '[' not in line and '\\' not in line:
-                # Patterns should not have spaces unless quoted or in character classes
+                pass  # Patterns should not have spaces unless quoted or in character classes
                 # Valid patterns can have: spaces in character classes, quoted spaces, or escaped spaces
             if ' ' in line and not (
                 '[' in line and ']' in line  # Character class
