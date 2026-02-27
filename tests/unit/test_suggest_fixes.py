@@ -110,7 +110,7 @@ review_handling:
 
 
 def test_load_config_file_not_found():
-    """Test load_config when config file doesn't exist."""
+    """Test loading configuration when the config file does not exist."""
     with patch("builtins.open", side_effect=FileNotFoundError):
         config = suggest_fixes.load_config()
 
@@ -121,7 +121,7 @@ def test_load_config_file_not_found():
 
 
 def test_load_config_default_keywords():
-    """Test load_config returns expected default keywords."""
+    """Test that load_config returns expected default keywords."""
     with patch("builtins.open", side_effect=FileNotFoundError):
         config = suggest_fixes.load_config()
 
@@ -137,7 +137,7 @@ def test_load_config_default_keywords():
 
 
 def test_extract_code_suggestions_with_suggestion_block():
-    """Test extracting code from suggestion block."""
+    """Test extracting code suggestions from a suggestion block."""
     comment = """
 Please update the code:
 ```suggestion
@@ -163,7 +163,7 @@ def test_extract_code_suggestions_with_inline_suggestion():
 
 
 def test_extract_code_suggestions_multiple_patterns():
-    """Test extracting multiple suggestions from same comment."""
+    """Test extracting multiple code suggestions from a single comment."""
     comment = """
 Please change to `new_value` and also use `better_name`
 ```suggestion
@@ -188,7 +188,7 @@ def test_extract_code_suggestions_no_suggestions():
 
 
 def test_extract_code_suggestions_various_keywords():
-    """Test inline suggestions with various keywords."""
+    """Test inline suggestions for various keywords."""
     test_cases = [
         ("should be `value1`", "value1"),
         ("change to `value2`", "value2"),
@@ -203,7 +203,7 @@ def test_extract_code_suggestions_various_keywords():
 
 
 def test_extract_code_suggestions_multiline_suggestion():
-    """Test extracting multiline code suggestion."""
+    """Test extracting multiline code suggestions."""
     comment = """
 ```suggestion
 def calculate(x, y):
@@ -249,7 +249,7 @@ def test_categorize_comment_bug():
 
 
 def test_categorize_comment_question():
-    """Test categorizing questions."""
+    """Test categorizing a comment as a question."""
     comment = "Why did you choose this approach?"
     category, priority = suggest_fixes.categorize_comment(comment)
 
@@ -276,7 +276,7 @@ def test_categorize_comment_improvement():
 
 
 def test_categorize_comment_default():
-    """Test categorizing comment with no specific keywords."""
+    """Test categorizing a comment without specific keywords."""
     comment = "Nice work on this feature"
     category, priority = suggest_fixes.categorize_comment(comment)
 
@@ -295,7 +295,7 @@ def test_categorize_comment_multiple_keywords():
 
 
 def test_categorize_comment_various_critical_keywords():
-    """Test various critical keywords."""
+    """Test categorization of comments with various critical keywords."""
     critical_comments = [
         "security issue here",
         "vulnerability found",
@@ -331,7 +331,7 @@ def test_categorize_comment_various_bug_keywords():
 
 
 def test_is_actionable_with_keyword():
-    """Test is_actionable returns True for actionable comments."""
+    """Test if is_actionable returns True for actionable comments."""
     comment = "Please fix this typo"
     keywords = ["please", "should", "fix"]
 
@@ -339,7 +339,7 @@ def test_is_actionable_with_keyword():
 
 
 def test_is_actionable_without_keyword():
-    """Test is_actionable returns False for non-actionable comments."""
+    """Test that is_actionable returns False for non-actionable comments."""
     comment = "Looks good to me"
     keywords = ["please", "should", "fix"]
 
@@ -363,7 +363,7 @@ def test_is_actionable_multiple_keywords():
 
 
 def test_is_actionable_partial_match():
-    """Test is_actionable with partial word match."""
+    """Test is_actionable with a complete word match."""
     comment = "This code should be please reviewed"
     keywords = ["please"]
 
@@ -375,7 +375,7 @@ def test_is_actionable_partial_match():
 
 
 def test_parse_review_comments_single_comment(mock_pr, mock_comment):
-    """Test parsing single review comment."""
+    """Test parsing a single review comment."""
     mock_pr.get_review_comments.return_value = [mock_comment]
     mock_pr.get_reviews.return_value = []
 
@@ -419,7 +419,7 @@ def test_parse_review_comments_multiple_comments(mock_pr):
 
 
 def test_parse_review_comments_filters_non_actionable(mock_pr):
-    """Test that non-actionable comments are filtered out."""
+    """Test filtering of non-actionable comments from review comments."""
     actionable = Mock()
     actionable.id = 1
     actionable.user = Mock(login="user1")
@@ -490,8 +490,8 @@ def test_parse_review_comments_only_changes_requested_reviews(mock_pr):
 
 
 def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
-    """Test that comments are sorted by priority then date."""
     # Critical (priority 1), later date - but needs actionable keyword
+    """Test sorting of review comments by priority and date."""
     comment1 = Mock()
     comment1.id = 1
     comment1.user = Mock(login="user1")
@@ -537,7 +537,7 @@ def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
 
 
 def test_parse_review_comments_includes_code_suggestions(mock_pr):
-    """Test that code suggestions are extracted and included."""
+    """Test extraction of code suggestions from review comments."""
     comment = Mock()
     comment.id = 1
     comment.user = Mock(login="user1")
@@ -582,7 +582,7 @@ def test_parse_review_comments_no_file_or_line(mock_pr, mock_review):
 
 
 def test_format_code_suggestions_with_code_block():
-    """Test _format_code_suggestions with code block."""
+    """Test _format_code_suggestions with a code block."""
     suggestions = [{"type": "code_suggestion", "content": "def foo():\n    pass"}]
 
     result = suggest_fixes._format_code_suggestions(suggestions)
@@ -616,7 +616,7 @@ def test_format_code_suggestions_mixed():
 
 
 def test_format_item_basic():
-    """Test _format_item with basic item."""
+    """Test _format_item with a basic item."""
     item = {
         "author": "reviewer1",
         "body": "Please fix this issue",
@@ -661,7 +661,7 @@ def test_format_item_long_body_truncation():
 
 
 def test_format_item_no_file_or_line():
-    """Test _format_item without file/line information."""
+    """Test _format_item without file or line information."""
     item = {
         "author": "reviewer1",
         "body": "General comment",
@@ -715,7 +715,7 @@ def test_generate_summary_basic():
 
 
 def test_generate_summary_with_critical():
-    """Test _generate_summary with critical items."""
+    """Test _generate_summary with critical and bug items."""
     items = [
         {"category": "critical", "priority": 1},
         {"category": "bug", "priority": 1},
@@ -729,7 +729,7 @@ def test_generate_summary_with_critical():
 
 
 def test_generate_summary_no_critical_or_bugs():
-    """Test _generate_summary without critical issues or bugs."""
+    """Test _generate_summary for absence of critical issues or bugs."""
     items = [
         {"category": "improvement", "priority": 2},
         {"category": "style", "priority": 3},
@@ -743,7 +743,7 @@ def test_generate_summary_no_critical_or_bugs():
 
 
 def test_generate_summary_counts_categories():
-    """Test _generate_summary correctly counts categories."""
+    """Test _generate_summary counts categories correctly."""
     items = [
         {"category": "bug", "priority": 1},
         {"category": "bug", "priority": 1},
@@ -769,7 +769,7 @@ def test_generate_fix_proposals_no_items():
 
 
 def test_generate_fix_proposals_single_item():
-    """Test generate_fix_proposals with single item."""
+    """Test generate_fix_proposals with a single item."""
     items = [
         {
             "category": "bug",
@@ -833,7 +833,7 @@ def test_generate_fix_proposals_multiple_categories():
 
 
 def test_generate_fix_proposals_maintains_order():
-    """Test generate_fix_proposals maintains priority order."""
+    """Test that generate_fix_proposals maintains priority order."""
     items = [
         {
             "category": "style",
@@ -900,7 +900,7 @@ def test_generate_fix_proposals_includes_summary():
 
 
 def test_generate_fix_proposals_skips_empty_categories():
-    """Test generate_fix_proposals skips categories with no items."""
+    """Test that generate_fix_proposals skips categories with no items."""
     items = [
         {
             "category": "bug",
@@ -927,7 +927,7 @@ def test_generate_fix_proposals_skips_empty_categories():
 
 
 def test_write_output_to_stdout(capsys):
-    """Test write_output writes to stdout."""
+    """Test that write_output writes the expected output to stdout."""
     report = "Test fix proposals"
 
     with patch.dict(os.environ, {}, clear=True):
@@ -966,7 +966,7 @@ def test_write_output_to_temp_file():
 
 
 def test_write_output_to_github_step_summary():
-    """Test write_output writes to GITHUB_STEP_SUMMARY."""
+    """Test writing output to GITHUB_STEP_SUMMARY."""
     report = "Test report"
     summary_file = "/tmp/github_summary.md"
 
@@ -999,7 +999,7 @@ def test_write_output_handles_io_error_temp_file(capsys):
 
 
 def test_write_output_handles_io_error_github_summary(capsys):
-    """Test write_output handles IOError for GitHub summary."""
+    """Test write_output function handles IOError for GitHub summary."""
     report = "Test content"
     summary_file = "/tmp/summary.md"
 
@@ -1021,7 +1021,7 @@ def test_write_output_handles_io_error_github_summary(capsys):
 
 
 def test_main_missing_env_vars(capsys):
-    """Test main exits with error when env vars are missing."""
+    """Test main exits with error when environment variables are missing."""
     with patch.dict(os.environ, {}, clear=True):
         with pytest.raises(SystemExit) as exc_info:
             suggest_fixes.main()
@@ -1052,7 +1052,7 @@ def test_main_invalid_pr_number(capsys):
 
 
 def test_main_github_api_error(capsys):
-    """Test main handles GitHub API errors."""
+    """Test handling of GitHub API errors in the main function."""
     env = {
         "GITHUB_TOKEN": "token",
         "PR_NUMBER": "123",
@@ -1197,26 +1197,26 @@ def test_main_with_no_actionable_items(mock_pr, capsys):
 
 
 def test_extract_code_suggestions_empty_string():
-    """Test extract_code_suggestions with empty string."""
+    """Test extract_code_suggestions with an empty string."""
     suggestions = suggest_fixes.extract_code_suggestions("")
     assert len(suggestions) == 0
 
 
 def test_categorize_comment_empty_string():
-    """Test categorize_comment with empty string."""
+    """Test categorize_comment with an empty string."""
     category, priority = suggest_fixes.categorize_comment("")
     assert category == "improvement"
     assert priority == 2
 
 
 def test_is_actionable_empty_keywords():
-    """Test is_actionable with empty keyword list."""
+    """Test is_actionable with an empty keyword list."""
     result = suggest_fixes.is_actionable("Please fix this", [])
     assert result is False
 
 
 def test_parse_review_comments_empty_pr(mock_pr):
-    """Test parse_review_comments with PR having no comments."""
+    """Test parse_review_comments with an empty PR."""
     mock_pr.get_review_comments.return_value = []
     mock_pr.get_reviews.return_value = []
 
@@ -1308,7 +1308,7 @@ def test_generate_fix_proposals_with_all_categories():
 
 
 def test_extract_code_suggestions_multiple_suggestion_blocks():
-    """Test extracting multiple suggestion blocks from same comment."""
+    """Test extracting multiple code suggestion blocks from a comment."""
     comment = """
 First suggestion:
 ```suggestion
