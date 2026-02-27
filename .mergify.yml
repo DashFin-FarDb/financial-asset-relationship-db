@@ -167,7 +167,7 @@ pull_request_rules:
   - name: "Remove stale label on updated PRs"
     conditions:
       - "label=stale"
-      - "updated-at >= 1 days ago"
+      - "updated-at >= 2 days ago"
     actions:
       label:
         remove:
