@@ -252,8 +252,8 @@ class TestRecommendations:
 
     @staticmethod
     def test_high_density_recommendation(populated_graph):
-        """Test recommendation for high connectivity graphs."""
         # Create high density graph by connecting all pairs
+        """Test high density recommendation for a populated graph."""
         assets = list(populated_graph.assets.keys())
         for i, source in enumerate(assets):
             for target in assets[i + 1 :]:
