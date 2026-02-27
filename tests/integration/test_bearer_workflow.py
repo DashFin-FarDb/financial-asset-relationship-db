@@ -12,7 +12,6 @@ This test suite validates:
 - Security best practices
 """
 
-from pathlib import Path
 
 import pytest
 import yaml
