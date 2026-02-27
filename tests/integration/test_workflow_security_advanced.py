@@ -11,7 +11,7 @@ Focus areas:
 
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, List
 
 import pytest
 import yaml
