@@ -190,7 +190,7 @@ class FinancialAssetApp:
                     raise TypeError(f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph")
                 return graph
         raise AttributeError(
-            "No known database factory found in src.data.real_data_fetcher. Tried: " f"{', '.join(candidates)}"
+            f"No known database factory found in src.data.real_data_fetcher. Tried: {', '.join(candidates)}"
         )
 
     def _initialize_graph(self) -> None:
