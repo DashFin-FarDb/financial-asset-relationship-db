@@ -13,18 +13,18 @@ from src.visualizations.graph_visuals import (
 
 
 class DummyGraph(AssetRelationshipGraph):
-    """A dummy graph for testing, extending AssetRelationshipGraph to provide controllable relationships."""
-
     def __init__(self, relationships):
         # relationships: Dict[str, List[Tuple[str, str, float]]]
         """
-        Initialize the DummyGraph with a predefined relationships mapping.
+        Initialize the DummyGraph with a mapping of asset relationships.
 
         Parameters:
-            relationships (dict): Mapping from source asset ID (str) to a list of relationships. Each relationship is a tuple (target_id, relationship_type, weight) where `target_id` is a str, `relationship_type` is a str, and `weight` is a float.
+            relationships (dict): Mapping from source asset ID (str) to a list of relationships.
+                Each relationship is a tuple (target_id, relationship_type, weight) where
+                `target_id` and `relationship_type` are strings and `weight` is a float.
 
         Notes:
-            The provided mapping is stored on the instance as `self.relationships` for use by test helpers.
+            The provided mapping is stored on the instance as `self.relationships`.
         """
         super().__init__()
         self.relationships = relationships

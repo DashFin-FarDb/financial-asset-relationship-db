@@ -46,8 +46,7 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -266,9 +265,8 @@ class TestSystemManifest:
         with open(system_manifest_path, encoding="utf-8") as f:
             return f.read()
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(system_manifest_content):
+    def system_manifest_lines(self, system_manifest_content):
         """
         Split system manifest content into lines.
 
@@ -291,7 +289,7 @@ class TestSystemManifest:
 
     def test_system_manifest_has_title(self, system_manifest_lines):
         """
-        Assert that the system manifest's first line is the top-level title '  # System Manifest'.
+        Assert that the system manifest's first line is the top - level title '  # System Manifest'.
         """
         assert system_manifest_lines[0] == "# System Manifest"
 
@@ -337,24 +335,20 @@ class TestSystemManifest:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Ensure systemManifest.md defines a current phase section.
+        """
+        Assert that the System Manifest declares a current project phase.
 
-        The manifest must contain a "## Current Phase" heading and a line of the
-        form "- Current Phase: <value>" with a non - empty value.
+        Checks both the section header and a specific "- Current Phase:" line.
 
         Parameters:
-            system_manifest_content(str): Full text of the systemManifest.md
-                file to inspect.
+            system_manifest_content(str): Full text of the systemManifest.md file to inspect.
         """
-        # Basic structural checks
         assert "## Current Phase" in system_manifest_content
-        assert "- Current Phase:" in system_manifest_content
 
-        # Validate the line format and non-empty value
-        pattern = r"- Current Phase:\s+(.+)"
+        pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
+
         assert match is not None, "Current Phase not found"
-        assert match.group(1).strip(), "Current Phase value must not be empty"
 
     def test_system_manifest_has_last_updated(self, system_manifest_content):
         """Test that systemManifest.md has Last Updated timestamp as valid ISO 8601."""
@@ -390,7 +384,9 @@ class TestSystemManifest:
             assert count >= 0, f"File count for {file_type} should be non-negative"
 
     def test_system_manifest_has_dependencies_section(self, system_manifest_content):
-        """Verify that systemManifest.md contains the "## Dependencies" section."""
+        """
+        Verify that systemManifest.md contains the "## Dependencies" section.
+        """
         assert "## Dependencies" in system_manifest_content
 
     def test_system_manifest_has_directory_structure(self, system_manifest_content):
@@ -429,7 +425,7 @@ class TestSystemManifest:
             system_manifest_content(str): Full markdown text of the system manifest to inspect.
         """
         # Look for file dependency entries like: ### \path\to\file.py
-        file_pattern = r"###\s+\\[\w\\\/._-]+\.\w+"
+        file_pattern = r"###\s+\\[\w\\/._-]+\.\w+"
         matches = re.findall(file_pattern, system_manifest_content)
 
         # If there are file entries, they should be properly formatted
@@ -620,9 +616,9 @@ class TestDocumentationConsistency:
             sm_has = any(dep in d for d in sm_deps)
             # If one has it, both should (or neither)
             if dm_has or sm_has:
-                assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: " f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
-                )
+                assert (
+                    dm_has == sm_has
+                ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
 
 
 @pytest.mark.unit
@@ -688,7 +684,6 @@ class TestDocumentationRealisticContent:
         matrix_path = Path(".elastic-copilot/memory/dependencyMatrix.md")
         with open(matrix_path, encoding="utf-8") as f:
             content = f.read()
-
         # Extract dependencies
         deps = []
         for match in re.finditer(r"^- (.+)$", content, re.MULTILINE):

@@ -267,7 +267,9 @@ class TestRealWorldScenarios:
     @staticmethod
     @patch("conftest._cov_plugin_available")
     def test_preserves_test_selection_args(mock_cov_available):
-        """Test that test selection arguments are preserved."""
+        """
+        Ensure pytest test-selection options (`-k`, `-m`) remain in the argument list when coverage-related flags are removed because the pytest-cov plugin is unavailable.
+        """
         mock_cov_available.return_value = False
         args = [
             "-k",
