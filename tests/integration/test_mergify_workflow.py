@@ -27,7 +27,6 @@ def load_config():
         return yaml.safe_load(f)
 
 
-@pytest.mark.integration
 class TestMergifyConfigIntegration:
     """Cross-rule integration validation for .mergify.yml."""
 
@@ -100,7 +99,7 @@ class TestMergifyConfigIntegration:
             toggle_labels.extend(label_action.get("toggle", []))
 
         assert len(toggle_labels) == len(set(toggle_labels)), (
-            f"Duplicate toggle labels found: {[l for l in toggle_labels if toggle_labels.count(l) > 1]}"
+            f"Duplicate toggle labels found: {[label for label in toggle_labels if toggle_labels.count(label) > 1]}"
         )
 
     def test_ci_check_name_in_auto_merge_rules(self):
@@ -157,7 +156,6 @@ class TestMergifyConfigIntegration:
         assert len(removes_stale) == 1, f"Expected exactly 1 rule to remove 'stale', found {len(removes_stale)}"
 
 
-@pytest.mark.integration
 class TestMergifyComplexScenarios:
     """Test complex real-world scenarios across multiple rules."""
 
@@ -298,7 +296,6 @@ class TestMergifyComplexScenarios:
             )
 
 
-@pytest.mark.integration
 class TestMergifySecurityAndSafety:
     """Test security and safety aspects of Mergify configuration."""
 
@@ -394,7 +391,6 @@ class TestMergifySecurityAndSafety:
             assert "-closed" in conditions, f"Stale marking rule '{rule.get('name')}' should exclude closed PRs"
 
 
-@pytest.mark.integration
 class TestMergifyRulePriority:
     """Test rule ordering and priority."""
 

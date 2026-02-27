@@ -62,7 +62,7 @@ pull_request_rules:
   - name: "Label security-related changes"
     conditions:
       - or:
-          - "files~=^\\.github/workflows/(snyk|bandit|codeql|semgrep)"
+          - "files~=^\\.github/workflows/(snyk|bandit|codeql|semgrep).*\\.ya?ml$"
           - "files=.safety-policy.json"
     actions:
       label:
