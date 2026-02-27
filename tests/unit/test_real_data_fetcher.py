@@ -125,8 +125,12 @@ class TestCacheHelpers:
         """Test that invalid JSON propagates JSONDecodeError."""
         with (
             patch("src.data.real_data_fetcher.Path.open"),
-            patch(
-                "src.data.real_data_fetcher.json.load",
+            cache_data = {"test": "data"}
+            cache_path = tmp_path / "cache.json"
+
+            _save_to_cache(cache_data, cache_path)
+
+            assert cache_path.exists(), "Cache file should have been created"
                 side_effect=json.JSONDecodeError("Invalid JSON", "doc", 0),
             ),
         ):
