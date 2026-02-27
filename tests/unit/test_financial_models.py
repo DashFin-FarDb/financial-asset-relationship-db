@@ -80,7 +80,7 @@ class TestAsset:
 
     @staticmethod
     def test_asset_invalid_currency():
-        """Test that invalid currency code raises ValueError."""
+        """Test that an invalid currency code raises a ValueError."""
         with pytest.raises(ValueError, match="Currency must be a valid 3-letter ISO code"):
             Asset(
                 id="TEST_001",
@@ -94,7 +94,7 @@ class TestAsset:
 
     @staticmethod
     def test_asset_invalid_market_cap():
-        """Test that negative market cap raises ValueError."""
+        """Test that a negative market cap raises ValueError."""
         with pytest.raises(ValueError, match="Market cap must be a non-negative number or None"):
             Asset(
                 id="TEST_001",
@@ -203,7 +203,7 @@ class TestRegulatoryEvent:
 
     @staticmethod
     def test_event_invalid_impact_score():
-        """Test that impact score outside [-1, 1] raises ValueError."""
+        """Test that an invalid impact score raises ValueError."""
         with pytest.raises(ValueError, match="Impact score must be a float between -1 and 1"):
             RegulatoryEvent(
                 id="EVENT_002",
