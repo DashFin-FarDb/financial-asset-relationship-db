@@ -1,1032 +1,1361 @@
-#!/usr/bin/env python3
+"""Comprehensive unit tests for suggest_fixes.py.
+
+This module tests all functions in the suggest_fixes.py script including:
+- Configuration loading
+- Code suggestion extraction from comments
+- Comment categorization and priority assignment
+- Actionable comment detection
+- Review comment parsing
+- Fix proposal generation
+- Output writing
+- Error handling and edge cases
 """
-Unit tests for .github/pr-copilot/scripts/suggest_fixes.py
 
-Tests cover configuration loading, comment parsing, categorization,
-formatting, and report generation.
-"""
-
-from __future__ import annotations
-
+import os
 import sys
-from collections import defaultdict
+import tempfile
 from datetime import datetime, timezone
-from pathlib import Path
-from unittest.mock import Mock, patch
+from io import StringIO
+from unittest.mock import MagicMock, Mock, mock_open, patch
 
 import pytest
+from github import GithubException
 
-# Add the script to path
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-SCRIPT_DIR = PROJECT_ROOT / ".github" / "pr-copilot" / "scripts"
-sys.path.insert(0, str(SCRIPT_DIR))
-
-from suggest_fixes import (  # noqa: E402
-    categorize_comment,
-    extract_code_suggestions,
-    generate_fix_proposals,
-    is_actionable,
-    load_config,
-    parse_review_comments,
-    write_output,
+# Add the script directory to path before importing the script under test
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts")
 )
 
+import suggest_fixes  # noqa: E402
 
-class TestLoadConfig:
-    """Test load_config function."""
+# --- Fixtures ---
 
-    def test_load_config_with_existing_file(self, tmp_path, monkeypatch):
-        """load_config loads configuration from existing YAML file."""
-        # Create a mock config file
-        config_dir = tmp_path / ".github"
-        config_dir.mkdir(parents=True)
-        config_file = config_dir / "pr-copilot-config.yml"
 
-        config_content = """
+@pytest.fixture
+def sample_config():
+    """Create a sample configuration."""
+    return {
+        "review_handling": {
+            "actionable_keywords": [
+                "please",
+                "should",
+                "could you",
+                "nit",
+                "typo",
+                "fix",
+                "refactor",
+                "change",
+                "update",
+                "add",
+                "remove",
+            ]
+        }
+    }
+
+
+@pytest.fixture
+def mock_comment():
+    """Create a mock review comment."""
+    comment = Mock()
+    comment.id = 1
+    comment.user = Mock(login="reviewer1")
+    comment.body = "Please fix the typo in line 10"
+    comment.path = "src/file.py"
+    comment.original_line = 10
+    comment.html_url = "https://github.com/owner/repo/pull/123#comment-1"
+    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    return comment
+
+
+@pytest.fixture
+def mock_review():
+    """Create a mock review object."""
+    review = Mock()
+    review.id = 100
+    review.user = Mock(login="reviewer2")
+    review.body = "Please add more tests"
+    review.state = "CHANGES_REQUESTED"
+    review.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+    review.html_url = "https://github.com/owner/repo/pull/123#review-100"
+    return review
+
+
+@pytest.fixture
+def mock_pr():
+    """Create a mock PR object."""
+    pr = Mock()
+    pr.number = 123
+    return pr
+
+
+# --- Test load_config Function ---
+
+
+def test_load_config_file_exists():
+    """Test load_config when config file exists."""
+    config_data = """
 review_handling:
   actionable_keywords:
-    - "fix"
-    - "update"
-    - "refactor"
+    - please
+    - should
+    - fix
 """
-        config_file.write_text(config_content)
+    with patch("builtins.open", mock_open(read_data=config_data)):
+        with patch("os.path.exists", return_value=True):
+            config = suggest_fixes.load_config()
 
-        # Change to tmp_path directory
-        monkeypatch.chdir(tmp_path)
-
-        config = load_config()
-
-        assert "review_handling" in config
-        assert "actionable_keywords" in config["review_handling"]
-        assert "fix" in config["review_handling"]["actionable_keywords"]
-        assert "update" in config["review_handling"]["actionable_keywords"]
-
-    def test_load_config_with_missing_file(self, tmp_path, monkeypatch):
-        """load_config returns defaults when config file is missing."""
-        monkeypatch.chdir(tmp_path)
-
-        config = load_config()
-
-        # Should return defaults
-        assert "review_handling" in config
-        assert "actionable_keywords" in config["review_handling"]
-        # Check some default keywords
-        keywords = config["review_handling"]["actionable_keywords"]
-        assert "please" in keywords
-        assert "should" in keywords
-        assert "fix" in keywords
+    assert "review_handling" in config
+    assert "actionable_keywords" in config["review_handling"]
+    assert "please" in config["review_handling"]["actionable_keywords"]
 
 
-class TestExtractCodeSuggestions:
-    """Test extract_code_suggestions function."""
+def test_load_config_file_not_found():
+    """Test load_config when config file doesn't exist."""
+    with patch("builtins.open", side_effect=FileNotFoundError):
+        config = suggest_fixes.load_config()
 
-    def test_extract_code_suggestions_with_suggestion_blocks(self):
-        """extract_code_suggestions extracts fenced suggestion blocks."""
-        comment = """
-Please update the code like this:
+    # Should return defaults
+    assert "review_handling" in config
+    assert "actionable_keywords" in config["review_handling"]
+    assert "please" in config["review_handling"]["actionable_keywords"]
 
+
+def test_load_config_default_keywords():
+    """Test load_config returns expected default keywords."""
+    with patch("builtins.open", side_effect=FileNotFoundError):
+        config = suggest_fixes.load_config()
+
+    keywords = config["review_handling"]["actionable_keywords"]
+    assert "please" in keywords
+    assert "should" in keywords
+    assert "fix" in keywords
+    assert "refactor" in keywords
+    assert "change" in keywords
+
+
+# --- Test extract_code_suggestions Function ---
+
+
+def test_extract_code_suggestions_with_suggestion_block():
+    """Test extracting code from suggestion block."""
+    comment = """
+Please update the code:
 ```suggestion
-def new_function():
-    return "fixed"
+def foo():
+    return 42
 ```
-
-This is better.
 """
-        suggestions = extract_code_suggestions(comment)
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
 
-        assert len(suggestions) == 1
-        assert suggestions[0]["type"] == "code_suggestion"
-        assert "def new_function()" in suggestions[0]["content"]
-        assert 'return "fixed"' in suggestions[0]["content"]
+    assert len(suggestions) == 1
+    assert suggestions[0]["type"] == "code_suggestion"
+    assert "def foo():" in suggestions[0]["content"]
 
-    def test_extract_code_suggestions_with_inline_suggestions(self):
-        """extract_code_suggestions extracts inline code suggestions."""
-        comment = "This should be `new_value` instead."
-        suggestions = extract_code_suggestions(comment)
 
-        assert len(suggestions) == 1
-        assert suggestions[0]["type"] == "inline_suggestion"
-        assert suggestions[0]["content"] == "new_value"
+def test_extract_code_suggestions_with_inline_suggestion():
+    """Test extracting inline code suggestions."""
+    comment = "This should be `True` instead of False"
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
 
-    def test_extract_code_suggestions_change_to_pattern(self):
-        """extract_code_suggestions recognizes 'change to' pattern."""
-        comment = "Change to `updated_variable_name` for clarity."
-        suggestions = extract_code_suggestions(comment)
+    assert len(suggestions) == 1
+    assert suggestions[0]["type"] == "inline_suggestion"
+    assert suggestions[0]["content"] == "True"
 
-        assert len(suggestions) == 1
-        assert suggestions[0]["content"] == "updated_variable_name"
 
-    def test_extract_code_suggestions_replace_with_pattern(self):
-        """extract_code_suggestions recognizes 'replace with' pattern."""
-        comment = "Replace with `better_implementation()` here."
-        suggestions = extract_code_suggestions(comment)
-
-        assert len(suggestions) == 1
-        assert suggestions[0]["content"] == "better_implementation()"
-
-    def test_extract_code_suggestions_use_pattern(self):
-        """extract_code_suggestions recognizes 'use' pattern."""
-        comment = "Use `const` instead of `let`."
-        suggestions = extract_code_suggestions(comment)
-
-        assert len(suggestions) == 1
-        assert suggestions[0]["content"] == "const"
-
-    def test_extract_code_suggestions_multiple(self):
-        """extract_code_suggestions extracts multiple suggestions."""
-        comment = """
+def test_extract_code_suggestions_multiple_patterns():
+    """Test extracting multiple suggestions from same comment."""
+    comment = """
+Please change to `new_value` and also use `better_name`
 ```suggestion
-line1
-line2
+def improved():
+    pass
 ```
-
-Also, change to `value1` and use `value2`.
 """
-        suggestions = extract_code_suggestions(comment)
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
 
-        assert len(suggestions) == 3
-        assert suggestions[0]["type"] == "code_suggestion"
-        assert suggestions[1]["type"] == "inline_suggestion"
-        assert suggestions[2]["type"] == "inline_suggestion"
+    assert len(suggestions) == 3
+    types = [s["type"] for s in suggestions]
+    assert "code_suggestion" in types
+    assert "inline_suggestion" in types
 
-    def test_extract_code_suggestions_no_matches(self):
-        """extract_code_suggestions returns empty list when no suggestions."""
-        comment = "This looks good to me."
-        suggestions = extract_code_suggestions(comment)
 
-        assert len(suggestions) == 0
+def test_extract_code_suggestions_no_suggestions():
+    """Test extract_code_suggestions with no suggestions."""
+    comment = "This looks good to me"
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
 
-    def test_extract_code_suggestions_case_insensitive(self):
-        """extract_code_suggestions matches patterns case-insensitively."""
-        comment = "SHOULD BE `UPPERCASE` here."
-        suggestions = extract_code_suggestions(comment)
+    assert len(suggestions) == 0
 
+
+def test_extract_code_suggestions_various_keywords():
+    """Test inline suggestions with various keywords."""
+    test_cases = [
+        ("should be `value1`", "value1"),
+        ("change to `value2`", "value2"),
+        ("replace with `value3`", "value3"),
+        ("use `value4` here", "value4"),
+    ]
+
+    for comment, expected in test_cases:
+        suggestions = suggest_fixes.extract_code_suggestions(comment)
         assert len(suggestions) == 1
-        assert suggestions[0]["content"] == "UPPERCASE"
+        assert suggestions[0]["content"] == expected
 
 
-class TestCategorizeComment:
-    """Test categorize_comment function."""
+def test_extract_code_suggestions_multiline_suggestion():
+    """Test extracting multiline code suggestion."""
+    comment = """
+```suggestion
+def calculate(x, y):
+    result = x + y
+    return result
+```
+"""
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
 
-    def test_categorize_comment_critical(self):
-        """categorize_comment identifies critical security issues."""
-        comment = "This is a critical security vulnerability!"
-        category, priority = categorize_comment(comment)
+    assert len(suggestions) == 1
+    assert "def calculate" in suggestions[0]["content"]
+    assert "result = x + y" in suggestions[0]["content"]
 
+
+def test_extract_code_suggestions_case_insensitive():
+    """Test that keyword matching is case insensitive."""
+    comment = "Should Be `VALUE` instead"
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
+
+    assert len(suggestions) == 1
+    assert suggestions[0]["content"] == "VALUE"
+
+
+# --- Test categorize_comment Function ---
+
+
+def test_categorize_comment_security():
+    """Test categorizing security-related comments."""
+    comment = "This has a security vulnerability"
+    category, priority = suggest_fixes.categorize_comment(comment)
+
+    assert category == "critical"
+    assert priority == 1
+
+
+def test_categorize_comment_bug():
+    """Test categorizing bug-related comments."""
+    comment = "This code has a bug that causes errors"
+    category, priority = suggest_fixes.categorize_comment(comment)
+
+    assert category == "bug"
+    assert priority == 1
+
+
+def test_categorize_comment_question():
+    """Test categorizing questions."""
+    comment = "Why did you choose this approach?"
+    category, priority = suggest_fixes.categorize_comment(comment)
+
+    assert category == "question"
+    assert priority == 3
+
+
+def test_categorize_comment_style():
+    """Test categorizing style comments."""
+    comment = "Please follow the naming convention here"
+    category, priority = suggest_fixes.categorize_comment(comment)
+
+    assert category == "style"
+    assert priority == 3
+
+
+def test_categorize_comment_improvement():
+    """Test categorizing improvement suggestions."""
+    comment = "Consider refactoring this for better performance"
+    category, priority = suggest_fixes.categorize_comment(comment)
+
+    assert category == "improvement"
+    assert priority == 2
+
+
+def test_categorize_comment_default():
+    """Test categorizing comment with no specific keywords."""
+    comment = "Nice work on this feature"
+    category, priority = suggest_fixes.categorize_comment(comment)
+
+    assert category == "improvement"
+    assert priority == 2
+
+
+def test_categorize_comment_multiple_keywords():
+    """Test categorizing comment with multiple keywords (first match wins)."""
+    comment = "This is a critical bug that needs fixing"
+    category, priority = suggest_fixes.categorize_comment(comment)
+
+    # "critical" is checked before "bug"
+    assert category == "critical"
+    assert priority == 1
+
+
+def test_categorize_comment_various_critical_keywords():
+    """Test various critical keywords."""
+    critical_comments = [
+        "security issue here",
+        "vulnerability found",
+        "exploit possible",
+        "this is critical",
+        "breaking change",
+    ]
+
+    for comment in critical_comments:
+        category, priority = suggest_fixes.categorize_comment(comment)
         assert category == "critical"
         assert priority == 1
 
-    def test_categorize_comment_bug(self):
-        """categorize_comment identifies bugs."""
-        comment = "This code has a bug that causes incorrect results."
-        category, priority = categorize_comment(comment)
 
+def test_categorize_comment_various_bug_keywords():
+    """Test various bug keywords."""
+    bug_comments = [
+        "there is a bug",
+        "this causes an error",
+        "the test fails",
+        "this is broken",
+        "incorrect behavior",
+        "wrong output",
+    ]
+
+    for comment in bug_comments:
+        category, priority = suggest_fixes.categorize_comment(comment)
         assert category == "bug"
         assert priority == 1
 
-    def test_categorize_comment_question(self):
-        """categorize_comment identifies questions."""
-        comment = "Why did you choose this approach?"
-        category, priority = categorize_comment(comment)
 
-        assert category == "question"
-        assert priority == 3
+# --- Test is_actionable Function ---
 
-    def test_categorize_comment_style(self):
-        """categorize_comment identifies style issues."""
-        comment = "This doesn't follow our naming convention."
-        category, priority = categorize_comment(comment)
 
-        assert category == "style"
-        assert priority == 3
+def test_is_actionable_with_keyword():
+    """Test is_actionable returns True for actionable comments."""
+    comment = "Please fix this typo"
+    keywords = ["please", "should", "fix"]
 
-    def test_categorize_comment_improvement(self):
-        """categorize_comment identifies improvements."""
-        comment = "Consider refactoring this for better performance."
-        category, priority = categorize_comment(comment)
+    assert suggest_fixes.is_actionable(comment, keywords) is True
 
-        assert category == "improvement"
-        assert priority == 2
 
-    def test_categorize_comment_default(self):
-        """categorize_comment defaults to improvement for generic comments."""
-        comment = "This is a comment without specific keywords."
-        category, priority = categorize_comment(comment)
+def test_is_actionable_without_keyword():
+    """Test is_actionable returns False for non-actionable comments."""
+    comment = "Looks good to me"
+    keywords = ["please", "should", "fix"]
 
-        assert category == "improvement"
-        assert priority == 2
+    assert suggest_fixes.is_actionable(comment, keywords) is False
 
-    def test_categorize_comment_priority_order(self):
-        """categorize_comment respects priority order of categories."""
-        # Security should win over bug
-        comment = "This security issue causes bugs."
-        category, priority = categorize_comment(comment)
-
-        assert category == "critical"
-        assert priority == 1
 
-
-class TestIsActionable:
-    """Test is_actionable function."""
+def test_is_actionable_case_insensitive():
+    """Test is_actionable is case insensitive."""
+    comment = "PLEASE fix this"
+    keywords = ["please"]
 
-    def test_is_actionable_with_keyword(self):
-        """is_actionable returns True when keyword is present."""
-        keywords = ["please", "fix", "update"]
-        comment = "Please fix this issue."
-
-        assert is_actionable(comment, keywords) is True
+    assert suggest_fixes.is_actionable(comment, keywords) is True
 
-    def test_is_actionable_without_keyword(self):
-        """is_actionable returns False when no keyword is present."""
-        keywords = ["please", "fix", "update"]
-        comment = "This looks good!"
 
-        assert is_actionable(comment, keywords) is False
+def test_is_actionable_multiple_keywords():
+    """Test is_actionable with multiple keywords."""
+    comment = "You should refactor this code"
+    keywords = ["please", "should", "refactor"]
 
-    def test_is_actionable_case_insensitive(self):
-        """is_actionable is case-insensitive."""
-        keywords = ["fix"]
-        comment = "FIX this bug."
+    assert suggest_fixes.is_actionable(comment, keywords) is True
 
-        assert is_actionable(comment, keywords) is True
 
-    def test_is_actionable_partial_match(self):
-        """is_actionable matches keywords as substrings."""
-        keywords = ["nit"]
-        comment = "Just a nitpick, but consider changing this."
-
-        assert is_actionable(comment, keywords) is True
-
-    def test_is_actionable_multiple_keywords(self):
-        """is_actionable returns True if any keyword matches."""
-        keywords = ["fix", "update", "change"]
-        comment = "You should update this."
-
-        assert is_actionable(comment, keywords) is True
-
-
-class TestParseReviewComments:
-    """Test parse_review_comments function."""
-
-    def test_parse_review_comments_file_level(self):
-        """parse_review_comments extracts actionable file-level comments."""
-        mock_pr = Mock()
-
-        # Mock file-level comment
-        comment1 = Mock()
-        comment1.id = 1
-        comment1.id = 1
-        comment1.user = Mock(login="reviewer1")
-        comment1.body = "Please fix this typo."
-        comment1.path = "src/file.py"
-        comment1.original_line = 42
-        comment1.html_url = "https://github.com/repo/pull/1#comment-1"
-        comment1.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
-
-        mock_pr.get_review_comments.return_value = [comment1]
-        mock_pr.get_reviews.return_value = []
-
-        keywords = ["please", "fix"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        assert len(items) == 1
-        assert items[0]["id"] == 1
-        assert items[0]["author"] == "reviewer1"
-        assert items[0]["body"] == "Please fix this typo."
-        assert items[0]["file"] == "src/file.py"
-        assert items[0]["line"] == 42
-        assert items[0]["priority"] == 2
-
-    def test_parse_review_comments_changes_requested(self):
-        """parse_review_comments includes CHANGES_REQUESTED reviews."""
-        mock_pr = Mock()
-
-        mock_pr.get_review_comments.return_value = []
-
-        # Mock review with changes requested
-        review = Mock()
-        review.id = 2
-        review.user = Mock(login="reviewer2")
-        review.body = "Please refactor this code."
-        review.state = "CHANGES_REQUESTED"
-        review.html_url = "https://github.com/repo/pull/1#review-2"
-        review.submitted_at = datetime(2024, 1, 2, tzinfo=timezone.utc)
-
-        mock_pr.get_reviews.return_value = [review]
-
-        keywords = ["please", "refactor"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        assert len(items) == 1
-        assert items[0]["id"] == 2
-        assert items[0]["author"] == "reviewer2"
-        assert items[0]["category"] == "improvement"
-
-    def test_parse_review_comments_ignores_approved(self):
-        """parse_review_comments ignores APPROVED reviews without actionable content."""
-        mock_pr = Mock()
-
-        mock_pr.get_review_comments.return_value = []
-
-        # Approved review without actionable keywords
-        review = Mock()
-        review.user = Mock(login="reviewer")
-        review.body = "Looks good to me!"
-        review.state = "APPROVED"
-
-        mock_pr.get_reviews.return_value = [review]
-
-        keywords = ["please", "fix"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        # Should be empty because "Looks good to me!" has no actionable keywords
-        assert len(items) == 0
-
-    def test_parse_review_comments_with_code_suggestions(self):
-        """parse_review_comments extracts code suggestions."""
-        mock_pr = Mock()
-
-        comment = Mock()
-        comment.id = 1
-        comment.user = Mock(login="reviewer")
-        comment.body = """
-Please update:
-```suggestion
-new_code()
-```
-"""
-        comment.path = "file.py"
-        comment.original_line = 10
-        comment.html_url = "https://test.com"
-        comment.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
-
-        mock_pr.get_review_comments.return_value = [comment]
-        mock_pr.get_reviews.return_value = []
-
-        keywords = ["please"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        assert len(items) == 1
-        assert len(items[0]["code_suggestions"]) == 1
-        assert "new_code()" in items[0]["code_suggestions"][0]["content"]
-
-    def test_parse_review_comments_sorted_by_priority(self):
-        """parse_review_comments sorts by priority then date."""
-        mock_pr = Mock()
-
-        # Create comments with different priorities
-        comment1 = Mock()
-        comment1.id = 1
-        comment1.user = Mock(login="reviewer")
-        comment1.body = "This is a style issue."  # Priority 3
-        comment1.path = "file.py"
-        comment1.original_line = 1
-        comment1.html_url = "https://test.com/1"
-        comment1.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
-
-        comment2 = Mock()
-        comment2.id = 2
-        comment2.user = Mock(login="reviewer")
-        comment2.body = "This is a critical bug!"  # Priority 1
-        comment2.path = "file.py"
-        comment2.original_line = 2
-        comment2.html_url = "https://test.com/2"
-        comment2.created_at = datetime(2024, 1, 2, tzinfo=timezone.utc)
-
-        comment3 = Mock()
-        comment3.id = 3
-        comment3.user = Mock(login="reviewer")
-        comment3.body = "Please refactor this."  # Priority 2
-        comment3.path = "file.py"
-        comment3.original_line = 3
-        comment3.html_url = "https://test.com/3"
-        comment3.created_at = datetime(2024, 1, 3, tzinfo=timezone.utc)
-
-        mock_pr.get_review_comments.return_value = [comment1, comment2, comment3]
-        mock_pr.get_reviews.return_value = []
-
-        keywords = ["style", "critical", "bug", "please", "refactor"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        # Should be sorted by priority (1, 2, 3)
-        assert len(items) == 3
-        assert items[0]["priority"] == 1  # Critical bug
-        assert items[1]["priority"] == 2  # Refactor
-        assert items[2]["priority"] == 3  # Style
-
-    def test_parse_review_comments_filters_non_actionable(self):
-        """parse_review_comments filters out non-actionable comments."""
-        mock_pr = Mock()
-
-        comment1 = Mock()
-        comment1.user = Mock(login="reviewer")
-        comment1.body = "Please fix this."
-        comment1.path = "file.py"
-        comment1.original_line = 1
-        comment1.html_url = "https://test.com"
-        comment1.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
-
-        comment2 = Mock()
-        comment2.user = Mock(login="reviewer")
-        comment2.body = "Looks good!"  # Not actionable
-        comment2.path = "file.py"
-        comment2.original_line = 2
-        comment2.html_url = "https://test.com"
-        comment2.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
-
-        mock_pr.get_review_comments.return_value = [comment1, comment2]
-        mock_pr.get_reviews.return_value = []
-
-        keywords = ["please", "fix"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        # Only comment1 should be included
-        assert len(items) == 1
-        assert items[0]["body"] == "Please fix this."
-
-
-class TestGenerateFixProposals:
-    """Test generate_fix_proposals function."""
-
-    def test_generate_fix_proposals_no_items(self):
-        """generate_fix_proposals returns success message when no items."""
-        result = generate_fix_proposals([])
-
-        assert "No actionable items found" in result
-
-    def test_generate_fix_proposals_with_items(self):
-        """generate_fix_proposals generates structured report."""
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer1",
-                "body": "This is a bug that needs fixing.",
-                "category": "bug",
-                "priority": 1,
-                "file": "src/app.py",
-                "line": 42,
-                "code_suggestions": [],
-                "url": "https://github.com/repo/pull/1#comment-1",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            },
-            {
-                "id": 2,
-                "author": "reviewer2",
-                "body": "Consider refactoring this for better readability.",
-                "category": "improvement",
-                "priority": 2,
-                "file": "src/utils.py",
-                "line": 10,
-                "code_suggestions": [],
-                "url": "https://github.com/repo/pull/1#comment-2",
-                "created_at": datetime(2024, 1, 2, tzinfo=timezone.utc),
-            },
-        ]
-
-        result = generate_fix_proposals(items)
-
-        # Check main sections
-        assert "🔧 **Fix Proposals from Review Comments**" in result
-        assert "🐛 Bug" in result
-        assert "💡 Improvement" in result
-
-        # Check content
-        assert "reviewer1" in result
-        assert "reviewer2" in result
-        assert "src/app.py:42" in result
-        assert "src/utils.py:10" in result
-
-        # Check summary
-        assert "**Summary:**" in result
-        assert "**Total Actionable Items:** 2" in result
-        assert "🐛 **Bugs:** 1" in result
-        assert "💡 **Improvements:** 1" in result
-
-    def test_generate_fix_proposals_with_code_suggestions(self):
-        """generate_fix_proposals includes code suggestions."""
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer",
-                "body": "Please update this code.",
-                "category": "improvement",
-                "priority": 2,
-                "file": "file.py",
-                "line": 1,
-                "code_suggestions": [
-                    {"type": "code_suggestion", "content": "new_function()"},
-                    {"type": "inline_suggestion", "content": "value"},
-                ],
-                "url": "https://test.com",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            }
-        ]
-
-        result = generate_fix_proposals(items)
-
-        assert "**Suggested Code:**" in result
-        assert "new_function()" in result
-        assert "`value`" in result
-
-    def test_generate_fix_proposals_long_body_truncated(self):
-        """generate_fix_proposals truncates long comment bodies."""
-        long_body = "a" * 250  # Longer than 200 chars
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer",
-                "body": long_body,
-                "category": "improvement",
-                "priority": 2,
-                "file": None,
-                "line": None,
-                "code_suggestions": [],
-                "url": "https://test.com",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            }
-        ]
-
-        result = generate_fix_proposals(items)
-
-        # Should be truncated with "..."
-        assert "..." in result
-        # Should not contain the full 250 chars
-        assert long_body not in result
-
-    def test_generate_fix_proposals_priority_warning(self):
-        """generate_fix_proposals shows priority warning for critical/bugs."""
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer",
-                "body": "Critical security issue!",
-                "category": "critical",
-                "priority": 1,
-                "file": "file.py",
-                "line": 1,
-                "code_suggestions": [],
-                "url": "https://test.com",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            }
-        ]
-
-        result = generate_fix_proposals(items)
-
-        assert "⚠️ **Priority:**" in result
-        assert "Address critical issues and bugs first" in result
-
-    def test_generate_fix_proposals_category_order(self):
-        """generate_fix_proposals displays categories in priority order."""
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer",
-                "body": "Style issue.",
-                "category": "style",
-                "priority": 3,
-                "file": None,
-                "line": None,
-                "code_suggestions": [],
-                "url": "https://test.com/1",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            },
-            {
-                "id": 2,
-                "author": "reviewer",
-                "body": "Critical bug!",
-                "category": "critical",
-                "priority": 1,
-                "file": None,
-                "line": None,
-                "code_suggestions": [],
-                "url": "https://test.com/2",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            },
-        ]
-
-        result = generate_fix_proposals(items)
-
-        # Critical should appear before style in the output
-        critical_pos = result.find("🚨 Critical")
-        style_pos = result.find("🎨 Style")
-        assert critical_pos < style_pos
-
-
-class TestWriteOutput:
-    """Test write_output function."""
-
-    def test_write_output_to_stdout(self, capsys):
-        """write_output prints to stdout."""
-        report = "Test report content"
-        write_output(report)
-
-        captured = capsys.readouterr()
-        assert report in captured.out
-
-    def test_write_output_to_github_summary(self, monkeypatch, tmp_path):
-        """write_output writes to GITHUB_STEP_SUMMARY when set."""
-        summary_file = tmp_path / "summary.md"
-        monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary_file))
-
-        report = "Test summary"
-        write_output(report)
-
-        assert summary_file.exists()
-        assert summary_file.read_text() == report
-
-    def test_write_output_to_temp_file(self, capsys):
-        """write_output creates temporary file."""
-        report = "Test temp report"
-        write_output(report)
-
-        # Check stderr for file path message
-        captured = capsys.readouterr()
-        assert "Fix proposals generated:" in captured.err
-
-    def test_write_output_handles_github_summary_error(self, monkeypatch, capsys):
-        """write_output handles errors writing to GITHUB_STEP_SUMMARY."""
-        bad_path = "/nonexistent/dir/summary.md"
-        monkeypatch.setenv("GITHUB_STEP_SUMMARY", bad_path)
-
-        report = "Test content"
-        write_output(report)  # Should not raise
-
-        captured = capsys.readouterr()
-        # Should show warning or still output to stdout
-        assert "Warning" in captured.err or report in captured.out
-
-
-class TestMainFunction:
-    """Test main() entry point."""
-
-    def test_main_missing_env_vars(self, monkeypatch, capsys):
-        """main exits with error when required env vars are missing."""
-        for var in ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]:
-            monkeypatch.delenv(var, raising=False)
-
-        from suggest_fixes import main
+def test_is_actionable_partial_match():
+    """Test is_actionable with partial word match."""
+    comment = "This code should be please reviewed"
+    keywords = ["please"]
 
+    # Should match because "please" is a complete word in the comment
+    assert suggest_fixes.is_actionable(comment, keywords) is True
+
+
+# --- Test parse_review_comments Function ---
+
+
+def test_parse_review_comments_single_comment(mock_pr, mock_comment):
+    """Test parsing single review comment."""
+    mock_pr.get_review_comments.return_value = [mock_comment]
+    mock_pr.get_reviews.return_value = []
+
+    keywords = ["please", "fix"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 1
+    assert items[0]["author"] == "reviewer1"
+    assert items[0]["body"] == "Please fix the typo in line 10"
+    assert items[0]["file"] == "src/file.py"
+    assert items[0]["line"] == 10
+
+
+def test_parse_review_comments_multiple_comments(mock_pr):
+    """Test parsing multiple review comments."""
+    comment1 = Mock()
+    comment1.id = 1
+    comment1.user = Mock(login="user1")
+    comment1.body = "Please fix this"
+    comment1.path = "file1.py"
+    comment1.original_line = 10
+    comment1.html_url = "url1"
+    comment1.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+    comment2 = Mock()
+    comment2.id = 2
+    comment2.user = Mock(login="user2")
+    comment2.body = "Should update that"
+    comment2.path = "file2.py"
+    comment2.original_line = 20
+    comment2.html_url = "url2"
+    comment2.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+
+    mock_pr.get_review_comments.return_value = [comment1, comment2]
+    mock_pr.get_reviews.return_value = []
+
+    keywords = ["please", "should"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 2
+
+
+def test_parse_review_comments_filters_non_actionable(mock_pr):
+    """Test that non-actionable comments are filtered out."""
+    actionable = Mock()
+    actionable.id = 1
+    actionable.user = Mock(login="user1")
+    actionable.body = "Please fix this"
+    actionable.path = "file.py"
+    actionable.original_line = 10
+    actionable.html_url = "url"
+    actionable.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+    non_actionable = Mock()
+    non_actionable.id = 2
+    non_actionable.user = Mock(login="user2")
+    non_actionable.body = "Looks good"
+    non_actionable.path = "file.py"
+    non_actionable.original_line = 20
+    non_actionable.html_url = "url2"
+    non_actionable.created_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+
+    mock_pr.get_review_comments.return_value = [actionable, non_actionable]
+    mock_pr.get_reviews.return_value = []
+
+    keywords = ["please"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 1
+    assert items[0]["body"] == "Please fix this"
+
+
+def test_parse_review_comments_includes_reviews(mock_pr, mock_review):
+    """Test parsing includes review-level comments."""
+    mock_pr.get_review_comments.return_value = []
+    mock_pr.get_reviews.return_value = [mock_review]
+
+    keywords = ["please"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 1
+    assert items[0]["author"] == "reviewer2"
+    assert items[0]["body"] == "Please add more tests"
+
+
+def test_parse_review_comments_only_changes_requested_reviews(mock_pr):
+    """Test that only CHANGES_REQUESTED reviews are included."""
+    review_approved = Mock()
+    review_approved.id = 1
+    review_approved.user = Mock(login="user1")
+    review_approved.body = "Please fix something"
+    review_approved.state = "APPROVED"
+    review_approved.submitted_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+    review_approved.html_url = "url1"
+
+    review_changes = Mock()
+    review_changes.id = 2
+    review_changes.user = Mock(login="user2")
+    review_changes.body = "Please fix this issue"
+    review_changes.state = "CHANGES_REQUESTED"
+    review_changes.submitted_at = datetime(2024, 1, 1, 13, 0, 0, tzinfo=timezone.utc)
+    review_changes.html_url = "url2"
+
+    mock_pr.get_review_comments.return_value = []
+    mock_pr.get_reviews.return_value = [review_approved, review_changes]
+
+    keywords = ["please"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 1
+    assert items[0]["body"] == "Please fix this issue"
+
+
+def test_parse_review_comments_sorts_by_priority_then_date(mock_pr):
+    """Test that comments are sorted by priority then date."""
+    # Critical (priority 1), later date - but needs actionable keyword
+    comment1 = Mock()
+    comment1.id = 1
+    comment1.user = Mock(login="user1")
+    comment1.body = "Please fix this critical security issue"  # Added "please fix"
+    comment1.path = "file.py"
+    comment1.original_line = 10
+    comment1.html_url = "url1"
+    comment1.created_at = datetime(2024, 1, 2, 12, 0, 0, tzinfo=timezone.utc)
+
+    # Bug (priority 1), earlier date
+    comment2 = Mock()
+    comment2.id = 2
+    comment2.user = Mock(login="user2")
+    comment2.body = "Please fix this bug"
+    comment2.path = "file.py"
+    comment2.original_line = 20
+    comment2.html_url = "url2"
+    comment2.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+    # Improvement (priority 2)
+    comment3 = Mock()
+    comment3.id = 3
+    comment3.user = Mock(login="user3")
+    comment3.body = "Please refactor this"
+    comment3.path = "file.py"
+    comment3.original_line = 30
+    comment3.html_url = "url3"
+    comment3.created_at = datetime(2024, 1, 3, 12, 0, 0, tzinfo=timezone.utc)
+
+    mock_pr.get_review_comments.return_value = [comment1, comment2, comment3]
+    mock_pr.get_reviews.return_value = []
+
+    keywords = ["please", "fix", "refactor"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 3
+    # Should be sorted: priority 1 (bug first by date, then critical), then priority 2
+    assert items[0]["body"] == "Please fix this bug"  # Priority 1, earliest
+    assert (
+        items[1]["body"] == "Please fix this critical security issue"
+    )  # Priority 1, later
+    assert items[2]["body"] == "Please refactor this"  # Priority 2
+
+
+def test_parse_review_comments_includes_code_suggestions(mock_pr):
+    """Test that code suggestions are extracted and included."""
+    comment = Mock()
+    comment.id = 1
+    comment.user = Mock(login="user1")
+    comment.body = "Please change to `new_value`"
+    comment.path = "file.py"
+    comment.original_line = 10
+    comment.html_url = "url"
+    comment.created_at = datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+    mock_pr.get_review_comments.return_value = [comment]
+    mock_pr.get_reviews.return_value = []
+
+    keywords = ["please"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 1
+    assert len(items[0]["code_suggestions"]) == 1
+    assert items[0]["code_suggestions"][0]["content"] == "new_value"
+
+
+def test_parse_review_comments_no_file_or_line(mock_pr, mock_review):
+    """Test parsing review-level comments without file/line info."""
+    # Review objects don't have path or original_line attributes
+    # Remove these attributes if they exist on the mock
+    if hasattr(mock_review, "path"):
+        delattr(mock_review, "path")
+    if hasattr(mock_review, "original_line"):
+        delattr(mock_review, "original_line")
+
+    mock_pr.get_review_comments.return_value = []
+    mock_pr.get_reviews.return_value = [mock_review]
+
+    keywords = ["please"]
+    items = suggest_fixes.parse_review_comments(mock_pr, keywords)
+
+    assert len(items) == 1
+    assert items[0]["file"] is None
+    assert items[0]["line"] is None
+
+
+# --- Test formatting helper functions ---
+
+
+def test_format_code_suggestions_with_code_block():
+    """Test _format_code_suggestions with code block."""
+    suggestions = [{"type": "code_suggestion", "content": "def foo():\n    pass"}]
+
+    result = suggest_fixes._format_code_suggestions(suggestions)
+
+    assert "**Suggested Code:**" in result
+    assert "```" in result
+    assert "def foo():" in result
+
+
+def test_format_code_suggestions_with_inline():
+    """Test _format_code_suggestions with inline suggestion."""
+    suggestions = [{"type": "inline_suggestion", "content": "new_value"}]
+
+    result = suggest_fixes._format_code_suggestions(suggestions)
+
+    assert "**Suggested Code:**" in result
+    assert "`new_value`" in result
+
+
+def test_format_code_suggestions_mixed():
+    """Test _format_code_suggestions with mixed types."""
+    suggestions = [
+        {"type": "code_suggestion", "content": "def foo():\n    pass"},
+        {"type": "inline_suggestion", "content": "bar"},
+    ]
+
+    result = suggest_fixes._format_code_suggestions(suggestions)
+
+    assert "def foo():" in result
+    assert "`bar`" in result
+
+
+def test_format_item_basic():
+    """Test _format_item with basic item."""
+    item = {
+        "author": "reviewer1",
+        "body": "Please fix this issue",
+        "priority": 1,
+        "file": "src/file.py",
+        "line": 10,
+        "code_suggestions": [],
+        "url": "https://github.com/owner/repo/pull/123#comment-1",
+        "category": "bug",
+    }
+
+    result = suggest_fixes._format_item(1, item)
+
+    assert "**1. Comment by @reviewer1**" in result
+    assert "**Location:** `src/file.py:10`" in result
+    assert "**Priority:** 🔴 High" in result
+    assert "**Feedback:** Please fix this issue" in result
+    assert "[View Comment](https://github.com/owner/repo/pull/123#comment-1)" in result
+
+
+def test_format_item_long_body_truncation():
+    """Test _format_item truncates long comment bodies."""
+    item = {
+        "author": "reviewer1",
+        "body": "A" * 250,  # 250 characters
+        "priority": 2,
+        "file": None,
+        "line": None,
+        "code_suggestions": [],
+        "url": "url",
+        "category": "improvement",
+    }
+
+    result = suggest_fixes._format_item(1, item)
+
+    # Should truncate to 200 chars + "..."
+    assert "A" * 200 in result
+    assert "..." in result
+    assert (
+        len(result.split("**Feedback:**")[1].split("\n")[0].strip()) <= 204
+    )  # 200 + "..."
+
+
+def test_format_item_no_file_or_line():
+    """Test _format_item without file/line information."""
+    item = {
+        "author": "reviewer1",
+        "body": "General comment",
+        "priority": 3,
+        "file": None,
+        "line": None,
+        "code_suggestions": [],
+        "url": "url",
+        "category": "question",
+    }
+
+    result = suggest_fixes._format_item(1, item)
+
+    assert "**Location:**" not in result
+    assert "**Priority:** 🟢 Low" in result
+
+
+def test_format_item_with_code_suggestions():
+    """Test _format_item with code suggestions."""
+    item = {
+        "author": "reviewer1",
+        "body": "Please update",
+        "priority": 2,
+        "file": "file.py",
+        "line": 10,
+        "code_suggestions": [{"type": "inline_suggestion", "content": "new_value"}],
+        "url": "url",
+        "category": "improvement",
+    }
+
+    result = suggest_fixes._format_item(1, item)
+
+    assert "**Suggested Code:**" in result
+    assert "`new_value`" in result
+
+
+def test_generate_summary_basic():
+    """Test _generate_summary with basic items."""
+    items = [
+        {"category": "bug", "priority": 1},
+        {"category": "improvement", "priority": 2},
+        {"category": "style", "priority": 3},
+    ]
+
+    result = suggest_fixes._generate_summary(items)
+
+    assert "**Total Actionable Items:** 3" in result
+    assert "**Bugs:** 1" in result
+    assert "**Improvements:** 1" in result
+    assert "**Style:** 1" in result
+
+
+def test_generate_summary_with_critical():
+    """Test _generate_summary with critical items."""
+    items = [
+        {"category": "critical", "priority": 1},
+        {"category": "bug", "priority": 1},
+    ]
+
+    result = suggest_fixes._generate_summary(items)
+
+    assert "**Critical Issues:** 1" in result
+    assert "**Bugs:** 1" in result
+    assert "⚠️ **Priority:** Address critical issues and bugs first." in result
+
+
+def test_generate_summary_no_critical_or_bugs():
+    """Test _generate_summary without critical issues or bugs."""
+    items = [
+        {"category": "improvement", "priority": 2},
+        {"category": "style", "priority": 3},
+    ]
+
+    result = suggest_fixes._generate_summary(items)
+
+    assert "Critical Issues:" not in result
+    assert "Bugs:" not in result
+    assert "Address critical issues and bugs first" not in result
+
+
+def test_generate_summary_counts_categories():
+    """Test _generate_summary correctly counts categories."""
+    items = [
+        {"category": "bug", "priority": 1},
+        {"category": "bug", "priority": 1},
+        {"category": "improvement", "priority": 2},
+        {"category": "improvement", "priority": 2},
+        {"category": "improvement", "priority": 2},
+    ]
+
+    result = suggest_fixes._generate_summary(items)
+
+    assert "**Bugs:** 2" in result
+    assert "**Improvements:** 3" in result
+
+
+# --- Test generate_fix_proposals Function ---
+
+
+def test_generate_fix_proposals_no_items():
+    """Test generate_fix_proposals with no actionable items."""
+    result = suggest_fixes.generate_fix_proposals([])
+
+    assert "No actionable items found" in result
+
+
+def test_generate_fix_proposals_single_item():
+    """Test generate_fix_proposals with single item."""
+    items = [
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "reviewer1",
+            "body": "Please fix this bug",
+            "file": "file.py",
+            "line": 10,
+            "code_suggestions": [],
+            "url": "url",
+        }
+    ]
+
+    result = suggest_fixes.generate_fix_proposals(items)
+
+    assert "🔧 **Fix Proposals from Review Comments**" in result
+    assert "### 🐛 Bug (1)" in result
+    assert "Comment by @reviewer1" in result
+
+
+def test_generate_fix_proposals_multiple_categories():
+    """Test generate_fix_proposals with multiple categories."""
+    items = [
+        {
+            "category": "critical",
+            "priority": 1,
+            "author": "user1",
+            "body": "Security issue",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url1",
+        },
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "user2",
+            "body": "Bug found",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url2",
+        },
+        {
+            "category": "improvement",
+            "priority": 2,
+            "author": "user3",
+            "body": "Refactor suggestion",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url3",
+        },
+    ]
+
+    result = suggest_fixes.generate_fix_proposals(items)
+
+    assert "### 🚨 Critical (1)" in result
+    assert "### 🐛 Bug (1)" in result
+    assert "### 💡 Improvement (1)" in result
+
+
+def test_generate_fix_proposals_maintains_order():
+    """Test generate_fix_proposals maintains priority order."""
+    items = [
+        {
+            "category": "style",
+            "priority": 3,
+            "author": "u1",
+            "body": "Style",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url1",
+        },
+        {
+            "category": "critical",
+            "priority": 1,
+            "author": "u2",
+            "body": "Critical",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url2",
+        },
+        {
+            "category": "improvement",
+            "priority": 2,
+            "author": "u3",
+            "body": "Improve",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url3",
+        },
+    ]
+
+    result = suggest_fixes.generate_fix_proposals(items)
+
+    # Check order: critical, bug, improvement, style, question
+    critical_pos = result.find("### 🚨 Critical")
+    improvement_pos = result.find("### 💡 Improvement")
+    style_pos = result.find("### 🎨 Style")
+
+    assert critical_pos < improvement_pos < style_pos
+
+
+def test_generate_fix_proposals_includes_summary():
+    """Test generate_fix_proposals includes summary."""
+    items = [
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "u1",
+            "body": "Bug",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url1",
+        },
+    ]
+
+    result = suggest_fixes.generate_fix_proposals(items)
+
+    assert "**Summary:**" in result
+    assert "**Total Actionable Items:** 1" in result
+    assert "Generated by PR Copilot Fix Suggestion Tool" in result
+
+
+def test_generate_fix_proposals_skips_empty_categories():
+    """Test generate_fix_proposals skips categories with no items."""
+    items = [
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "u1",
+            "body": "Bug",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url1",
+        },
+    ]
+
+    result = suggest_fixes.generate_fix_proposals(items)
+
+    # Should not include headers for empty categories
+    assert "### 🚨 Critical" not in result
+    assert "### 💡 Improvement" not in result
+    assert "### 🎨 Style" not in result
+    assert "### ❓ Question" not in result
+
+
+# --- Test write_output Function ---
+
+
+def test_write_output_to_stdout(capsys):
+    """Test write_output writes to stdout."""
+    report = "Test fix proposals"
+
+    with patch.dict(os.environ, {}, clear=True):
+        with patch("tempfile.NamedTemporaryFile") as mock_temp:
+            mock_file = mock_open()
+            mock_temp.return_value.__enter__ = lambda self: mock_file()
+            mock_temp.return_value.__exit__ = lambda self, *args: None
+            mock_file.return_value.name = "/tmp/fix_proposals_test.md"
+
+            suggest_fixes.write_output(report)
+
+    captured = capsys.readouterr()
+    assert report in captured.out
+
+
+def test_write_output_to_temp_file():
+    """Test write_output writes to temp file."""
+    report = "Test report"
+
+    with patch.dict(os.environ, {}, clear=True):
+        with patch("tempfile.NamedTemporaryFile") as mock_temp:
+            mock_file = Mock()
+            mock_file.name = "/tmp/test.md"
+            mock_temp.return_value.__enter__ = lambda self: mock_file
+            mock_temp.return_value.__exit__ = lambda self, *args: None
+
+            suggest_fixes.write_output(report)
+
+            # Verify NamedTemporaryFile was called with correct parameters
+            mock_temp.assert_called_once()
+            kwargs = mock_temp.call_args[1]
+            assert kwargs["mode"] == "w"
+            assert kwargs["delete"] is False
+            assert kwargs["suffix"] == ".md"
+            assert kwargs["prefix"] == "fix_proposals_"
+
+
+def test_write_output_to_github_step_summary():
+    """Test write_output writes to GITHUB_STEP_SUMMARY."""
+    report = "Test report"
+    summary_file = "/tmp/github_summary.md"
+
+    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}):
+        m = mock_open()
+        with patch("builtins.open", m):
+            with patch("tempfile.NamedTemporaryFile") as mock_temp:
+                mock_file = Mock()
+                mock_file.name = "/tmp/test.md"
+                mock_temp.return_value.__enter__ = lambda self: mock_file
+                mock_temp.return_value.__exit__ = lambda self, *args: None
+
+                suggest_fixes.write_output(report)
+
+        # Check that summary file was opened in append mode
+        calls = [str(call) for call in m.call_args_list]
+        assert any(summary_file in call for call in calls)
+
+
+def test_write_output_handles_io_error_temp_file(capsys):
+    """Test write_output handles IOError for temp file."""
+    report = "Test content"
+
+    with patch.dict(os.environ, {}, clear=True):
+        with patch("tempfile.NamedTemporaryFile", side_effect=IOError("Disk full")):
+            suggest_fixes.write_output(report)
+
+    captured = capsys.readouterr()
+    assert "Error writing temp file" in captured.err
+
+
+def test_write_output_handles_io_error_github_summary(capsys):
+    """Test write_output handles IOError for GitHub summary."""
+    report = "Test content"
+    summary_file = "/tmp/summary.md"
+
+    with patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": summary_file}):
+        with patch("builtins.open", side_effect=IOError("Permission denied")):
+            with patch("tempfile.NamedTemporaryFile") as mock_temp:
+                mock_file = Mock()
+                mock_file.name = "/tmp/test.md"
+                mock_temp.return_value.__enter__ = lambda self: mock_file
+                mock_temp.return_value.__exit__ = lambda self, *args: None
+
+                suggest_fixes.write_output(report)
+
+    captured = capsys.readouterr()
+    assert "Failed to write to GITHUB_STEP_SUMMARY" in captured.err
+
+
+# --- Test main Function ---
+
+
+def test_main_missing_env_vars(capsys):
+    """Test main exits with error when env vars are missing."""
+    with patch.dict(os.environ, {}, clear=True):
         with pytest.raises(SystemExit) as exc_info:
-            main()
+            suggest_fixes.main()
 
         assert exc_info.value.code == 1
-        captured = capsys.readouterr()
-        assert "Missing required environment variables" in captured.err
 
-    def test_main_invalid_pr_number(self, monkeypatch, capsys):
-        """main exits with error when PR_NUMBER is not an integer."""
-        monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
-        monkeypatch.setenv("PR_NUMBER", "not-a-number")
-        monkeypatch.setenv("REPO_OWNER", "owner")
-        monkeypatch.setenv("REPO_NAME", "repo")
+    captured = capsys.readouterr()
+    assert "Missing required environment variables" in captured.err
 
-        from suggest_fixes import main
 
+def test_main_invalid_pr_number(capsys):
+    """Test main exits with error when PR_NUMBER is not an integer."""
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "not-a-number",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
+
+    with patch.dict(os.environ, env, clear=True):
         with pytest.raises(SystemExit) as exc_info:
-            main()
+            suggest_fixes.main()
 
         assert exc_info.value.code == 1
-        captured = capsys.readouterr()
-        assert "PR_NUMBER must be an integer" in captured.err
 
-    @patch("suggest_fixes.Github")
-    def test_main_success(self, mock_github_class, monkeypatch, capsys, tmp_path):
-        """main successfully generates fix proposals."""
-        # Setup environment
-        monkeypatch.setenv("GITHUB_TOKEN", "fake-token")
-        monkeypatch.setenv("PR_NUMBER", "42")
-        monkeypatch.setenv("REPO_OWNER", "test-owner")
-        monkeypatch.setenv("REPO_NAME", "test-repo")
-
-        # Create mock config
-        config_dir = tmp_path / ".github"
-        config_dir.mkdir(parents=True)
-        config_file = config_dir / "pr-copilot-config.yml"
-        config_file.write_text("review_handling:\n  actionable_keywords:\n    - please\n")
-        monkeypatch.chdir(tmp_path)
-
-        # Mock GitHub API
-        mock_github = Mock()
-        mock_repo = Mock()
-        mock_pr = Mock()
-
-        # No comments for simplicity
-        mock_pr.get_review_comments.return_value = []
-        mock_pr.get_reviews.return_value = []
-
-        mock_github.get_repo.return_value = mock_repo
-        mock_repo.get_pull.return_value = mock_pr
-        mock_github_class.return_value = mock_github
-
-        from suggest_fixes import main
-
-        # main() may not raise SystemExit on success, just return normally
-        try:
-            main()
-            # If it returns normally, that's success (no exception)
-            captured = capsys.readouterr()
-            # Should show "no actionable items" message
-            assert "No actionable items" in captured.out or "Parsing review comments" in captured.err
-        except SystemExit as exc:
-            # If it does exit, should be 0
-            assert exc.code == 0
+    captured = capsys.readouterr()
+    assert "PR_NUMBER must be an integer" in captured.err
 
 
-# Regression tests
-class TestRegressionTests:
-    """Test edge cases and regressions."""
+def test_main_github_api_error(capsys):
+    """Test main handles GitHub API errors."""
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
-    def test_extract_code_suggestions_empty_string(self):
-        """extract_code_suggestions handles empty comment."""
-        result = extract_code_suggestions("")
-        assert result == []
+    with patch.dict(os.environ, env, clear=True):
+        with patch(
+            "suggest_fixes.load_config",
+            return_value={"review_handling": {"actionable_keywords": ["please"]}},
+        ):
+            with patch("suggest_fixes.Github") as mock_github_class:
+                mock_github = Mock()
+                mock_github_class.return_value = mock_github
+                mock_github.get_repo.side_effect = GithubException(
+                    status=404, data={"message": "Not Found"}, headers={}
+                )
 
-    def test_categorize_comment_empty_string(self):
-        """categorize_comment handles empty comment."""
-        category, priority = categorize_comment("")
-        assert category == "improvement"
-        assert priority == 2
+                with pytest.raises(SystemExit) as exc_info:
+                    suggest_fixes.main()
 
-    def test_is_actionable_empty_keywords(self):
-        """is_actionable returns False when keyword list is empty."""
-        result = is_actionable("Please fix this.", [])
-        assert result is False
+                assert exc_info.value.code == 1
 
-    def test_parse_review_comments_empty_body(self):
-        """parse_review_comments handles comments with None or empty body."""
-        mock_pr = Mock()
+    captured = capsys.readouterr()
+    assert "GitHub API Error" in captured.err
 
-        comment = Mock()
-        comment.id = 1
-        comment.user = Mock(login="reviewer")
-        comment.body = None  # Empty body
-        comment.path = "file.py"
-        comment.original_line = 1
-        comment.html_url = "https://test.com"
-        comment.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
 
-        mock_pr.get_review_comments.return_value = [comment]
-        mock_pr.get_reviews.return_value = []
+def test_main_success_flow(mock_pr, mock_comment, capsys):
+    """Test main executes successfully."""
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
-        keywords = ["please"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        # Should handle None body gracefully
-        assert len(items) == 0
-
-    def test_generate_fix_proposals_empty_category_counts(self):
-        """generate_fix_proposals handles categories with zero counts."""
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer",
-                "body": "Question?",
-                "category": "question",
-                "priority": 3,
-                "file": None,
-                "line": None,
-                "code_suggestions": [],
-                "url": "https://test.com",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
+    with patch.dict(os.environ, env, clear=True):
+        with patch("suggest_fixes.load_config") as mock_config:
+            mock_config.return_value = {
+                "review_handling": {"actionable_keywords": ["please"]}
             }
-        ]
 
-        result = generate_fix_proposals(items)
+            with patch("suggest_fixes.Github") as mock_github_class:
+                with patch("tempfile.NamedTemporaryFile") as mock_temp:
+                    mock_file = Mock()
+                    mock_file.name = "/tmp/test.md"
+                    mock_temp.return_value.__enter__ = lambda self: mock_file
+                    mock_temp.return_value.__exit__ = lambda self, *args: None
 
-        # Should show question count but not critical/bug counts
-        assert "❓ **Questions:** 1" in result
-        # Should not show priority warning (no critical/bugs)
-        assert "Address critical issues and bugs first" not in result
+                    # Setup mocks
+                    mock_github = Mock()
+                    mock_repo = Mock()
+
+                    mock_github_class.return_value = mock_github
+                    mock_github.get_repo.return_value = mock_repo
+                    mock_repo.get_pull.return_value = mock_pr
+
+                    mock_pr.get_review_comments.return_value = [mock_comment]
+                    mock_pr.get_reviews.return_value = []
+
+                    suggest_fixes.main()
+
+    captured = capsys.readouterr()
+    assert "Parsing review comments for PR #123" in captured.err
 
 
-class TestComplexParsingScenarios:
-    """Test complex real-world parsing scenarios."""
+def test_main_generic_exception(capsys):
+    """Test main handles generic exceptions."""
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
 
-    def test_extract_code_suggestions_with_nested_code_blocks(self):
-        """extract_code_suggestions handles nested code blocks."""
-        comment = """
+    with patch.dict(os.environ, env, clear=True):
+        # Patch load_config to return valid config, then patch Github to raise exception
+        with patch("suggest_fixes.load_config") as mock_config:
+            mock_config.return_value = {
+                "review_handling": {"actionable_keywords": ["please"]}
+            }
+
+            with patch(
+                "suggest_fixes.Github", side_effect=Exception("Unexpected error")
+            ):
+                with pytest.raises(SystemExit) as exc_info:
+                    suggest_fixes.main()
+
+                assert exc_info.value.code == 1
+
+    captured = capsys.readouterr()
+    assert "Unexpected Error" in captured.err
+
+
+def test_main_with_no_actionable_items(mock_pr, capsys):
+    """Test main when no actionable items are found."""
+    env = {
+        "GITHUB_TOKEN": "token",
+        "PR_NUMBER": "123",
+        "REPO_OWNER": "owner",
+        "REPO_NAME": "repo",
+    }
+
+    # Comment without actionable keywords
+    non_actionable = Mock()
+    non_actionable.id = 1
+    non_actionable.user = Mock(login="user")
+    non_actionable.body = "Looks good"
+    non_actionable.created_at = datetime.now(timezone.utc)
+
+    with patch.dict(os.environ, env, clear=True):
+        with patch("suggest_fixes.load_config") as mock_config:
+            mock_config.return_value = {
+                "review_handling": {"actionable_keywords": ["please"]}
+            }
+
+            with patch("suggest_fixes.Github") as mock_github_class:
+                with patch("tempfile.NamedTemporaryFile") as mock_temp:
+                    mock_file = Mock()
+                    mock_file.name = "/tmp/test.md"
+                    mock_temp.return_value.__enter__ = lambda self: mock_file
+                    mock_temp.return_value.__exit__ = lambda self, *args: None
+
+                    mock_github = Mock()
+                    mock_repo = Mock()
+
+                    mock_github_class.return_value = mock_github
+                    mock_github.get_repo.return_value = mock_repo
+                    mock_repo.get_pull.return_value = mock_pr
+
+                    mock_pr.get_review_comments.return_value = [non_actionable]
+                    mock_pr.get_reviews.return_value = []
+
+                    suggest_fixes.main()
+
+    captured = capsys.readouterr()
+    assert "No actionable items found" in captured.out
+
+
+# --- Edge Cases and Integration Tests ---
+
+
+def test_extract_code_suggestions_empty_string():
+    """Test extract_code_suggestions with empty string."""
+    suggestions = suggest_fixes.extract_code_suggestions("")
+    assert len(suggestions) == 0
+
+
+def test_categorize_comment_empty_string():
+    """Test categorize_comment with empty string."""
+    category, priority = suggest_fixes.categorize_comment("")
+    assert category == "improvement"
+    assert priority == 2
+
+
+def test_is_actionable_empty_keywords():
+    """Test is_actionable with empty keyword list."""
+    result = suggest_fixes.is_actionable("Please fix this", [])
+    assert result is False
+
+
+def test_parse_review_comments_empty_pr(mock_pr):
+    """Test parse_review_comments with PR having no comments."""
+    mock_pr.get_review_comments.return_value = []
+    mock_pr.get_reviews.return_value = []
+
+    items = suggest_fixes.parse_review_comments(mock_pr, ["please"])
+    assert len(items) == 0
+
+
+def test_format_item_all_priority_levels():
+    """Test _format_item displays correct emoji for all priority levels."""
+    priorities = [(1, "🔴 High"), (2, "🟡 Medium"), (3, "🟢 Low"), (999, "Medium")]
+
+    for priority, expected in priorities:
+        item = {
+            "author": "user",
+            "body": "test",
+            "priority": priority,
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "url",
+            "category": "improvement",
+        }
+        result = suggest_fixes._format_item(1, item)
+        assert expected in result
+
+
+def test_generate_fix_proposals_with_all_categories():
+    """Test generate_fix_proposals with all category types."""
+    items = [
+        {
+            "category": "critical",
+            "priority": 1,
+            "author": "u1",
+            "body": "Critical",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u1",
+        },
+        {
+            "category": "bug",
+            "priority": 1,
+            "author": "u2",
+            "body": "Bug",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u2",
+        },
+        {
+            "category": "improvement",
+            "priority": 2,
+            "author": "u3",
+            "body": "Improve",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u3",
+        },
+        {
+            "category": "style",
+            "priority": 3,
+            "author": "u4",
+            "body": "Style",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u4",
+        },
+        {
+            "category": "question",
+            "priority": 3,
+            "author": "u5",
+            "body": "Question",
+            "file": None,
+            "line": None,
+            "code_suggestions": [],
+            "url": "u5",
+        },
+    ]
+
+    result = suggest_fixes.generate_fix_proposals(items)
+
+    assert "### 🚨 Critical (1)" in result
+    assert "### 🐛 Bug (1)" in result
+    assert "### 💡 Improvement (1)" in result
+    assert "### 🎨 Style (1)" in result
+    assert "### ❓ Question (1)" in result
+
+
+def test_extract_code_suggestions_multiple_suggestion_blocks():
+    """Test extracting multiple suggestion blocks from same comment."""
+    comment = """
+First suggestion:
 ```suggestion
-def outer():
-    ```
-    # This is inside a comment
-    ```
-    return "value"
+code1
+```
+
+Second suggestion:
+```suggestion
+code2
 ```
 """
-        suggestions = extract_code_suggestions(comment)
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
 
-        assert len(suggestions) == 1
-        assert "def outer()" in suggestions[0]["content"]
+    assert len(suggestions) == 2
+    assert all(s["type"] == "code_suggestion" for s in suggestions)
 
-    def test_extract_code_suggestions_with_multiple_languages(self):
-        """extract_code_suggestions extracts suggestions with language specifiers."""
-        comment = """
-```suggestion
-# Python code
-print("hello")
-```
 
-Also, change to `const value = 42` in JavaScript.
-"""
-        suggestions = extract_code_suggestions(comment)
+def test_comment_with_very_long_body():
+    """Test handling of very long comment bodies."""
+    long_body = "A" * 1000
+    item = {
+        "author": "user",
+        "body": long_body,
+        "priority": 1,
+        "file": None,
+        "line": None,
+        "code_suggestions": [],
+        "url": "url",
+        "category": "bug",
+    }
 
-        assert len(suggestions) == 2
-        assert "print" in suggestions[0]["content"]
-        assert "const value = 42" in suggestions[1]["content"]
+    result = suggest_fixes._format_item(1, item)
+    # Should be truncated to 200 chars
+    assert len(item["body"]) == 1000
+    feedback_line = [line for line in result.split("\n") if "**Feedback:**" in line][0]
+    # Feedback should be truncated
+    assert "..." in feedback_line
 
-    def test_categorize_comment_with_multiple_keywords(self):
-        """categorize_comment prioritizes highest severity when multiple keywords present."""
-        comment = "This bug is a security vulnerability that needs style fixes"
-        category, priority = categorize_comment(comment)
 
-        # Security (critical) should win
-        assert category == "critical"
-        assert priority == 1
+def test_unicode_characters_in_comments():
+    """Test handling of unicode characters in comments."""
+    comment = "Please fix this 🐛 bug with émojis and spëcial çhars"
 
-    def test_parse_review_comments_with_very_long_comment(self):
-        """parse_review_comments handles extremely long comments."""
-        mock_pr = Mock()
+    suggestions = suggest_fixes.extract_code_suggestions(comment)
+    category, priority = suggest_fixes.categorize_comment(comment)
+    is_act = suggest_fixes.is_actionable(comment, ["please"])
 
-        # Create a comment with 10,000 characters
-        long_body = "Please fix this. " * 600  # ~10k characters
-
-        comment = Mock()
-        comment.id = 1
-        comment.user = Mock(login="reviewer")
-        comment.body = long_body
-        comment.path = "file.py"
-        comment.original_line = 1
-        comment.html_url = "https://test.com"
-        comment.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
-
-        mock_pr.get_review_comments.return_value = [comment]
-        mock_pr.get_reviews.return_value = []
-
-        keywords = ["please", "fix"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        assert len(items) == 1
-        assert items[0]["body"] == long_body  # Full body preserved
-
-    def test_load_config_with_empty_config_file(self, tmp_path, monkeypatch):
-        """load_config handles empty or minimal config files."""
-        config_dir = tmp_path / ".github"
-        config_dir.mkdir(parents=True)
-        config_file = config_dir / "pr-copilot-config.yml"
-
-        # Write a valid but different YAML structure
-        config_file.write_text("review_handling:\n  actionable_keywords:\n    - custom_keyword")
-
-        monkeypatch.chdir(tmp_path)
-
-        config = load_config()
-
-        # Should load the custom config successfully
-        assert "review_handling" in config
-        assert "actionable_keywords" in config["review_handling"]
-        assert "custom_keyword" in config["review_handling"]["actionable_keywords"]
-
-    def test_extract_code_suggestions_with_backticks_in_code(self):
-        """extract_code_suggestions handles code containing backticks."""
-        comment = "Replace with `value = `nested``.  More text."
-        suggestions = extract_code_suggestions(comment)
-
-        # Should extract despite nested backticks
-        assert len(suggestions) >= 1
-
-    def test_parse_review_comments_with_unicode_in_code_suggestions(self):
-        """parse_review_comments handles unicode in code suggestions."""
-        mock_pr = Mock()
-
-        comment = Mock()
-        comment.id = 1
-        comment.user = Mock(login="reviewer")
-        comment.body = """
-Please update:
-```suggestion
-print("Hello 世界! 🌍")
-```
-"""
-        comment.path = "file.py"
-        comment.original_line = 1
-        comment.html_url = "https://test.com"
-        comment.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)
-
-        mock_pr.get_review_comments.return_value = [comment]
-        mock_pr.get_reviews.return_value = []
-
-        keywords = ["please"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        assert len(items) == 1
-        assert len(items[0]["code_suggestions"]) == 1
-        assert "世界" in items[0]["code_suggestions"][0]["content"]
-        assert "🌍" in items[0]["code_suggestions"][0]["content"]
-
-    def test_generate_fix_proposals_with_no_file_or_line_info(self):
-        """generate_fix_proposals handles review-level comments without file/line."""
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer",
-                "body": "Please update the overall approach.",
-                "category": "improvement",
-                "priority": 2,
-                "file": None,  # No file
-                "line": None,  # No line
-                "code_suggestions": [],
-                "url": "https://test.com",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            }
-        ]
-
-        result = generate_fix_proposals(items)
-
-        # Should generate report without file/line info
-        assert "reviewer" in result
-        assert "update the overall approach" in result
-        # Should not show Location line if file/line are None
-        assert "Location:" not in result or "None" not in result
-
-    def test_is_actionable_with_special_characters_in_keywords(self):
-        """is_actionable handles keywords with special regex characters."""
-        keywords = ["should.", "could?", "fix*"]
-        comment = "You should. fix* this."
-
-        # Should match even with special chars (treated as literals)
-        assert is_actionable(comment, keywords) is True
-
-    def test_categorize_comment_with_html_tags(self):
-        """categorize_comment handles comments with HTML tags."""
-        comment = "<p>This is a <strong>critical</strong> <script>alert('xss')</script> bug</p>"
-        category, priority = categorize_comment(comment)
-
-        # Should still categorize based on keywords
-        assert category == "critical"
-        assert priority == 1
-
-    def test_parse_review_comments_sorts_same_priority_by_date(self):
-        """parse_review_comments sorts items with same priority by creation date."""
-        mock_pr = Mock()
-
-        comment1 = Mock()
-        comment1.id = 1
-        comment1.user = Mock(login="reviewer")
-        comment1.body = "Please fix issue 1."
-        comment1.path = "file.py"
-        comment1.original_line = 1
-        comment1.html_url = "https://test.com/1"
-        comment1.created_at = datetime(2024, 1, 3, tzinfo=timezone.utc)  # Latest
-
-        comment2 = Mock()
-        comment2.id = 2
-        comment2.user = Mock(login="reviewer")
-        comment2.body = "Please fix issue 2."
-        comment2.path = "file.py"
-        comment2.original_line = 2
-        comment2.html_url = "https://test.com/2"
-        comment2.created_at = datetime(2024, 1, 1, tzinfo=timezone.utc)  # Earliest
-
-        comment3 = Mock()
-        comment3.id = 3
-        comment3.user = Mock(login="reviewer")
-        comment3.body = "Please fix issue 3."
-        comment3.path = "file.py"
-        comment3.original_line = 3
-        comment3.html_url = "https://test.com/3"
-        comment3.created_at = datetime(2024, 1, 2, tzinfo=timezone.utc)  # Middle
-
-        mock_pr.get_review_comments.return_value = [comment1, comment2, comment3]
-        mock_pr.get_reviews.return_value = []
-
-        keywords = ["please", "fix"]
-        items = parse_review_comments(mock_pr, keywords)
-
-        # All have same priority (improvement=2), so should be sorted by date
-        assert len(items) == 3
-        assert items[0]["id"] == 2  # Earliest
-        assert items[1]["id"] == 3  # Middle
-        assert items[2]["id"] == 1  # Latest
-
-    def test_generate_fix_proposals_escapes_markdown_in_urls(self):
-        """generate_fix_proposals handles URLs with special markdown characters."""
-        items = [
-            {
-                "id": 1,
-                "author": "reviewer",
-                "body": "Please fix.",
-                "category": "improvement",
-                "priority": 2,
-                "file": "file.py",
-                "line": 1,
-                "code_suggestions": [],
-                "url": "https://github.com/repo/pull/1#comment-1_with_special-chars",
-                "created_at": datetime(2024, 1, 1, tzinfo=timezone.utc),
-            }
-        ]
-
-        result = generate_fix_proposals(items)
-
-        # URL should be present in markdown link format
-        assert "https://github.com/repo/pull/1#comment-1_with_special-chars" in result
-        assert "[View Comment]" in result
+    # Should handle unicode without errors
+    assert is_act is True
+    assert category == "bug"
