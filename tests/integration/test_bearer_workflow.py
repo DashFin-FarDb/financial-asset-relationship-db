@@ -196,9 +196,9 @@ class TestBearerPermissions:
         # Should only have the necessary permissions
         expected_permissions = {"contents", "security-events"}
         actual_permissions = set(permissions.keys())
-        assert (
-            actual_permissions == expected_permissions
-        ), f"Workflow should only have minimal required permissions: {expected_permissions}"
+        assert actual_permissions == expected_permissions, (
+            f"Workflow should only have minimal required permissions: {expected_permissions}"
+        )
 
 
 class TestBearerSteps:
@@ -291,9 +291,9 @@ class TestBearerActionConfiguration:
         bearer_step = next((s for s in steps if "bearer/bearer-action" in s.get("uses", "")), None)
         assert "with" in bearer_step, "Bearer step should have 'with' configuration"
         assert "api-key" in bearer_step["with"], "Bearer config should include api-key"
-        assert (
-            "${{ secrets.BEARER_TOKEN }}" in bearer_step["with"]["api-key"]
-        ), "API key should reference BEARER_TOKEN secret"
+        assert "${{ secrets.BEARER_TOKEN }}" in bearer_step["with"]["api-key"], (
+            "API key should reference BEARER_TOKEN secret"
+        )
 
     @staticmethod
     def test_bearer_format_is_sarif(bearer_workflow_content):
@@ -336,9 +336,9 @@ class TestBearerActionConfiguration:
         bearer_output = bearer_step["with"]["output"]
         upload_file = upload_step["with"]["sarif_file"]
 
-        assert (
-            bearer_output == upload_file
-        ), f"Bearer output ({bearer_output}) should match upload sarif_file ({upload_file})"
+        assert bearer_output == upload_file, (
+            f"Bearer output ({bearer_output}) should match upload sarif_file ({upload_file})"
+        )
 
 
 class TestBearerWorkflowComments:
@@ -518,9 +518,9 @@ class TestBearerWorkflowEdgeCases:
         required_params = {"api-key", "format", "output", "exit-code"}
         actual_params = set(bearer_step["with"].keys())
 
-        assert required_params.issubset(
-            actual_params
-        ), f"Bearer action missing required parameters. Expected: {required_params}, Got: {actual_params}"
+        assert required_params.issubset(actual_params), (
+            f"Bearer action missing required parameters. Expected: {required_params}, Got: {actual_params}"
+        )
 
 
 class TestBearerWorkflowMaintainability:
@@ -558,9 +558,9 @@ class TestBearerWorkflowMaintainability:
         bearer_section = steps_section[steps_section.find("bearer/bearer-action") :]
 
         # Should have the SHA visible for easy reference
-        assert (
-            "828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc" in bearer_section
-        ), "Bearer action commit SHA should be clearly visible"
+        assert "828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc" in bearer_section, (
+            "Bearer action commit SHA should be clearly visible"
+        )
 
 
 class TestBearerWorkflowCompliance:
