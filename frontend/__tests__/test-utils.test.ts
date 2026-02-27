@@ -1464,8 +1464,8 @@ describe("Advanced Mock Data Validation - Additional Coverage", () => {
     });
 
     it("should have average degree less than total assets", () => {
-      expect(mockMetrics.average_degree).toBeGreaterThanOrEqual(0);
-      expect(mockMetrics.average_degree).toBeLessThan(mockMetrics.total_assets);
+      expect(mockMetrics.avg_degree).toBeGreaterThanOrEqual(0);
+      expect(mockMetrics.avg_degree).toBeLessThan(mockMetrics.total_assets);
     });
   });
 
