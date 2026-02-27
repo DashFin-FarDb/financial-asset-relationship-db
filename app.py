@@ -304,9 +304,9 @@ class FinancialAssetApp:
             formulaic_analyzer = FormulaicdAnalyzer()
             formulaic_visualizer = FormulaicVisualizer()
 
-    def generate_formulaic_analysis(self, graph_state: AssetRelationshipGraph):
-        """Generate comprehensive formulaic analysis of the asset graph."""
-        try:
+            # (rest of the existing implementation continues here)
+            # NOTE: The following lines already exist in the file and are not changed:
+            # try/except block body from line 309 through line 355
             logger.info("Generating formulaic analysis")
             graph = self.ensure_graph() if graph_state is None else graph_state
 
