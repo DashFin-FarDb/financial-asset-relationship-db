@@ -671,7 +671,10 @@ class TestCircleCIConfig:
                 if isinstance(job_entry, dict):
                     # Get the job name (first key in dict)
                     job_name = list(job_entry.keys())[0]
-                    def test_circleci_workflow_dependencies_valid(self, circleci_config):
+
+                    def test_circleci_workflow_dependencies_valid(
+                        self, circleci_config
+                    ):
                         """Test that workflow job dependencies reference existing jobs."""
                         workflows = circleci_config["workflows"]
                         jobs = circleci_config["jobs"]
@@ -693,10 +696,16 @@ class TestCircleCIConfig:
                                     job_config = job_entry[job_name]
 
                                     # Check if requires field references valid jobs
-                                    if isinstance(job_config, dict) and "requires" in job_config:
+                                    if (
+                                        isinstance(job_config, dict)
+                                        and "requires" in job_config
+                                    ):
                                         required_jobs = job_config["requires"]
                                         for required_job in required_jobs:
-                                            assert required_job in job_names, f"Job {job_name} requires non-existent job {required_job}"
+                                            assert required_job in job_names, (
+                                                f"Job {job_name} requires non-existent job {required_job}"
+                                            )
+
             assert "filters" in schedule
 
     def test_circleci_docker_build_on_main_only(self, circleci_config):
