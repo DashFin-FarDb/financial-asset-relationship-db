@@ -88,13 +88,13 @@ class FormulaicAnalyzer:
 
     def _extract_fundamental_formulas(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """Extract fundamental financial formulas based on asset types.
-
-        This function analyzes the provided AssetRelationshipGraph to extract  key
-        financial formulas relevant to different asset types, including  equities,
-        dividend stocks, and bonds. It checks for the presence of  these asset types
-        and constructs corresponding formulas, such as  Price-to-Earnings Ratio,
-        Dividend Yield, Bond Yield-to-Maturity,  and Market Capitalization, each with
-        its own description and  calculation method.
+        
+        This function analyzes the provided AssetRelationshipGraph to extract key
+        financial formulas relevant to different asset types, including equities,
+        dividend stocks, and bonds. It checks for the presence of these asset types and
+        constructs corresponding formulas, such as Price-to-Earnings Ratio, Dividend
+        Yield, Bond Yield-to-Maturity, and Market Capitalization, each with its own
+        description and calculation method.
         """
         formulas = []
 
@@ -218,7 +218,7 @@ class FormulaicAnalyzer:
         return formulas
 
     def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
-        """Extract valuation model relationships."""
+        """Extracts valuation model relationships from the given asset relationship graph."""
         formulas = []
 
         # Price-to-Book Ratio
@@ -443,7 +443,13 @@ class FormulaicAnalyzer:
         empirical_relationships: Dict,
     ) -> float:
         """Compute the average correlation strength from empirical relationships.
-
+        
+        This function retrieves the correlation matrix from the provided
+        empirical_relationships dictionary. It filters out any correlations  that are
+        equal to or greater than 1.0, calculates the average of the  valid
+        correlations, and returns it. If no valid correlations are found,  a default
+        value of 0.5 is returned.
+        
         Args:
             empirical_relationships (Dict): A dictionary containing the
                 correlation matrix under the key "correlation_matrix".
@@ -524,12 +530,12 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example dividend yield calculations from graph data.
-
+        
         This static method iterates through the assets in the provided
         AssetRelationshipGraph, checking for assets of the EQUITY class that have a
         defined dividend yield. It collects formatted strings representing the yield
-        percentage and price for each qualifying asset, stopping after two examples. If
-        no examples are found, it returns a default example calculation.
+        percentage and price for each qualifying asset, stopping after two examples.
+        If no examples are found, it returns a default example calculation.
         """
         from src.models.financial_models import AssetClass
 
@@ -609,16 +615,14 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example P/B ratio calculations from graph data.
-
-        This static method calculates the price-to-book (P/B) ratio for assets
-        in the provided AssetRelationshipGraph.
-        It iterates through the assets, checking if
-        each asset is of the EQUITY class and has a valid book value.
-        The method computes the P/B ratio for qualifying assets
-        and collects examples until two are found,
-        which are then returned as a formatted string.
-        If no examples are found, a default example is returned.
-
+        
+        This static method calculates the price-to-book (P/B) ratio for assets in the
+        provided AssetRelationshipGraph. It iterates through the assets, checking if
+        each asset is of the EQUITY class and has a valid book value. The method
+        computes the P/B ratio for qualifying assets and collects examples until two
+        are found, which are then returned as a formatted string. If no examples are
+        found, a default example is returned.
+        
         Args:
             graph (AssetRelationshipGraph): The graph containing asset data
                 for analysis.
