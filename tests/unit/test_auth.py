@@ -126,9 +126,7 @@ class TestUserModels:
 
     def test_user_model_creation(self):
         """Test creating a User model."""
-        user = User(
-            username="testuser", email="test@example.com", full_name="Test User"
-        )
+        user = User(username="testuser", email="test@example.com", full_name="Test User")
 
         assert user.username == "testuser"
         assert user.email == "test@example.com"
@@ -284,15 +282,11 @@ class TestUserRepository:
         repo = UserRepository()
 
         # Test disabled=False
-        repo.create_or_update_user(
-            username="user1", hashed_password="pw1", disabled=False
-        )
+        repo.create_or_update_user(username="user1", hashed_password="pw1", disabled=False)
         assert 0 in mock_database["execute"].call_args[0][1]
 
         # Test disabled=True
-        repo.create_or_update_user(
-            username="user2", hashed_password="pw2", disabled=True
-        )
+        repo.create_or_update_user(username="user2", hashed_password="pw2", disabled=True)
         assert 1 in mock_database["execute"].call_args[0][1]
 
 
@@ -307,9 +301,7 @@ class TestAuthenticationFunctions:
 
     def test_get_user_calls_repository(self, mock_repository):
         """Test get_user function calls the repository correctly."""
-        mock_user = UserInDB(
-            username="testuser", hashed_password="hashed", disabled=False
-        )
+        mock_user = UserInDB(username="testuser", hashed_password="hashed", disabled=False)
         mock_repository.get_user.return_value = mock_user
 
         result = get_user("testuser")
@@ -320,9 +312,7 @@ class TestAuthenticationFunctions:
     def test_get_user_with_custom_repository(self):
         """Test get_user with custom repository parameter."""
         custom_repo = Mock(spec=UserRepository)
-        mock_user = UserInDB(
-            username="testuser", hashed_password="hashed", disabled=False
-        )
+        mock_user = UserInDB(username="testuser", hashed_password="hashed", disabled=False)
         custom_repo.get_user.return_value = mock_user
 
         result = get_user("testuser", repository=custom_repo)
@@ -333,9 +323,7 @@ class TestAuthenticationFunctions:
     def test_authenticate_user_with_correct_credentials(self, mock_repository):
         """Test authenticate_user with correct username and password."""
         hashed_password = get_password_hash("correct_password")
-        mock_user = UserInDB(
-            username="testuser", hashed_password=hashed_password, disabled=False
-        )
+        mock_user = UserInDB(username="testuser", hashed_password=hashed_password, disabled=False)
         mock_repository.get_user.return_value = mock_user
 
         result = authenticate_user("testuser", "correct_password")
@@ -345,9 +333,7 @@ class TestAuthenticationFunctions:
     def test_authenticate_user_with_incorrect_password(self, mock_repository):
         """Test authenticate_user with wrong password returns False."""
         hashed_password = get_password_hash("correct_password")
-        mock_user = UserInDB(
-            username="testuser", hashed_password=hashed_password, disabled=False
-        )
+        mock_user = UserInDB(username="testuser", hashed_password=hashed_password, disabled=False)
         mock_repository.get_user.return_value = mock_user
 
         result = authenticate_user("testuser", "wrong_password")
@@ -366,9 +352,7 @@ class TestAuthenticationFunctions:
         """Test authenticate_user with custom repository."""
         custom_repo = Mock(spec=UserRepository)
         hashed_password = get_password_hash("password")
-        mock_user = UserInDB(
-            username="testuser", hashed_password=hashed_password, disabled=False
-        )
+        mock_user = UserInDB(username="testuser", hashed_password=hashed_password, disabled=False)
         custom_repo.get_user.return_value = mock_user
 
         result = authenticate_user("testuser", "password", repository=custom_repo)
@@ -448,17 +432,13 @@ class TestCurrentUserDependencies:
         with patch("api.auth.user_repository") as mock_repo:
             yield mock_repo
 
-    def test_get_current_user_with_valid_token(
-        self, mock_oauth2_scheme, mock_repository
-    ):
+    def test_get_current_user_with_valid_token(self, mock_oauth2_scheme, mock_repository):
         """Test get_current_user with valid JWT token."""
         # Create a valid token
         token_data = {"sub": "testuser"}
         token = create_access_token(token_data)
 
-        mock_user = UserInDB(
-            username="testuser", hashed_password="hashed", disabled=False
-        )
+        mock_user = UserInDB(username="testuser", hashed_password="hashed", disabled=False)
         mock_repository.get_user.return_value = mock_user
 
         # This would normally be called by FastAPI with the token
@@ -543,9 +523,7 @@ class TestSeedCredentialsFromEnv:
         mock_repo = Mock(spec=UserRepository)
         mock_repo.has_users.return_value = True
 
-        with patch.dict(
-            os.environ, {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "password"}
-        ):
+        with patch.dict(os.environ, {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": "password"}):
             _seed_credentials_from_env(mock_repo)
 
         mock_repo.has_users.assert_called_once()
@@ -593,9 +571,7 @@ class TestSeedCredentialsFromEnv:
 
         plain_password = "test_password_123"
 
-        with patch.dict(
-            os.environ, {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": plain_password}
-        ):
+        with patch.dict(os.environ, {"ADMIN_USERNAME": "admin", "ADMIN_PASSWORD": plain_password}):
             _seed_credentials_from_env(mock_repo)
 
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
