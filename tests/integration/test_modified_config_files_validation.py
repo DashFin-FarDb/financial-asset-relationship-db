@@ -98,9 +98,9 @@ class TestPRAgentConfigChanges:
 
         # Should not contain references to chunking or token limits
         assert "chunk_size" not in config_str.lower()
-        assert "max_tokens" not in config_str.lower() or config_data.get("limits", {}).get(
-            "max_execution_time"
-        ), "Token management should be simplified"
+        assert "max_tokens" not in config_str.lower() or config_data.get("limits", {}).get("max_execution_time"), (
+            "Token management should be simplified"
+        )
 
     def test_quality_standards_preserved(self, config_data: Dict[str, Any]):
         """
@@ -393,9 +393,9 @@ class TestCodacyInstructionsChanges:
             content = f.read()
 
         # Should not contain repository-specific git remote instructions
-        assert (
-            "git remote -v" not in content or "unless really necessary" not in content
-        ), "Codacy instructions should be simplified"
+        assert "git remote -v" not in content or "unless really necessary" not in content, (
+            "Codacy instructions should be simplified"
+        )
 
     @staticmethod
     def test_codacy_critical_rules_present(codacy_instructions_path: Path):
