@@ -671,33 +671,32 @@ class TestCircleCIConfig:
                 if isinstance(job_entry, dict):
                     # Get the job name (first key in dict)
                     job_name = list(job_entry.keys())[0]
-                    job_config = job_entry[job_name]
+                    def test_circleci_workflow_dependencies_valid(self, circleci_config):
+                        """Test that workflow job dependencies reference existing jobs."""
+                        workflows = circleci_config["workflows"]
+                        jobs = circleci_config["jobs"]
+                        job_names = set(jobs.keys())
 
-                    # Check if requires field references valid jobs
-                    if "requires" in job_config:
-                        required_jobs = job_config["requires"]
-                        for required_job in required_jobs:
-                            assert required_job in job_names, (
-                                f"Job {job_name} requires non-existent job {required_job}"
-                            )
+                        for _, workflow_config in workflows.items():
+                            # Skip non-dict entries (e.g., version key)
+                            if not isinstance(workflow_config, dict):
+                                continue
 
-    def test_circleci_nightly_security_schedule(self, circleci_config):
-        """Test that nightly security scan is properly scheduled."""
-        workflows = circleci_config["workflows"]
+                            if "jobs" not in workflow_config:
+                                continue
 
-        if "nightly-security" in workflows:
-            nightly = workflows["nightly-security"]
-            assert "triggers" in nightly
+                            workflow_jobs = workflow_config["jobs"]
+                            for job_entry in workflow_jobs:
+                                if isinstance(job_entry, dict):
+                                    # Get the job name (first key in dict)
+                                    job_name = list(job_entry.keys())[0]
+                                    job_config = job_entry[job_name]
 
-            triggers = nightly["triggers"]
-            assert isinstance(triggers, list)
-            assert len(triggers) > 0
-
-            # Check for schedule trigger
-            schedule_trigger = triggers[0]
-            assert "schedule" in schedule_trigger
-            schedule = schedule_trigger["schedule"]
-            assert "cron" in schedule
+                                    # Check if requires field references valid jobs
+                                    if isinstance(job_config, dict) and "requires" in job_config:
+                                        required_jobs = job_config["requires"]
+                                        for required_job in required_jobs:
+                                            assert required_job in job_names, f"Job {job_name} requires non-existent job {required_job}"
             assert "filters" in schedule
 
     def test_circleci_docker_build_on_main_only(self, circleci_config):
