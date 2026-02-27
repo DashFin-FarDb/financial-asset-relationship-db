@@ -17,12 +17,7 @@ pytestmark = pytest.mark.integration
 
 
 def load_config():
-    """
-    Load and parse the repository's .mergify.yml configuration.
-
-    Returns:
-        The parsed YAML content from MERGIFY_PATH as native Python objects (typically a dict).
-    """
+    """Load and parse the repository's .mergify.yml configuration."""
     with open(MERGIFY_PATH, "r") as f:
         return yaml.safe_load(f)
 
@@ -31,7 +26,7 @@ class TestMergifyConfigIntegration:
     """Cross-rule integration validation for .mergify.yml."""
 
     def test_config_loads_and_validates(self):
-        """Parse YAML and check top-level keys are present and correct."""
+        """Load and validate the configuration from YAML."""
         config = load_config()
 
         assert config is not None, ".mergify.yml is empty"
@@ -46,10 +41,14 @@ class TestMergifyConfigIntegration:
             assert "actions" in rule, f"Rule '{rule.get('name', idx)}' is missing 'actions'"
 
     def test_size_tier_continuity(self):
-        """
-        Verify t-shirt size tiers cover modified-line ranges without gaps.
-
-        Parses "#modified-lines >= N" and "#modified-lines < N" from t-shirt rules in the loaded Mergify config, treating a missing lower bound as 0 and a missing upper bound as infinity, and asserts each tier's upper bound equals the next tier's lower bound. Raises AssertionError with a descriptive message if a gap is found.
+        """Verify t-shirt size tiers cover modified-line ranges without gaps.
+        
+        This function loads the Mergify configuration and extracts t-shirt size rules
+        from the pull request rules. It constructs a list of lower and upper bounds for
+        each size tier, treating missing bounds appropriately. The function then checks
+        for continuity between the tiers, asserting that the upper bound of one tier
+        matches the lower bound of the next. An AssertionError is raised if any gaps
+        are found in the tiers.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -86,11 +85,7 @@ class TestMergifyConfigIntegration:
             )
 
     def test_no_duplicate_labels_across_rules(self):
-        """
-        Verify that label toggles are unique across all pull request rules.
-
-        Asserts that no label appears in more than one rule's `actions.label.toggle` list; reports duplicate labels if found.
-        """
+        """Verify that label toggles are unique across all pull request rules."""
         config = load_config()
         rules = config["pull_request_rules"]
 
@@ -104,9 +99,13 @@ class TestMergifyConfigIntegration:
         ), f"Duplicate toggle labels found: {[label for label in toggle_labels if toggle_labels.count(label) > 1]}"
 
     def test_ci_check_name_in_auto_merge_rules(self):
-        """
-        Auto-merge rules must reference 'check-success=Test Python 3.12',
-        matching the actual CI job name in ci.yml.
+        """Test auto-merge rules for CI job name compliance.
+        
+        This function verifies that the auto-merge rules defined in the  configuration
+        file reference the required CI job name  'check-success=Test Python 3.12'. It
+        loads the configuration,  filters the rules for those that include a merge
+        action, and  asserts that each rule contains the specified job name in its
+        conditions. If no auto-merge rules are found, an assertion error  is raised.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -141,9 +140,13 @@ class TestMergifyConfigIntegration:
             assert "-author=snyk-bot" in conditions, f"Review-request rule '{rule['name']}' must exclude snyk-bot"
 
     def test_stale_rules_are_paired(self):
-        """
-        Both a 'mark stale' rule (adds stale label) and a 'remove stale' rule
-        (removes stale label) must exist so stale management is reversible.
+        """Verify that both 'mark stale' and 'remove stale' rules exist.
+        
+        This function checks the configuration for pull request rules to ensure that
+        there is exactly one rule for adding the 'stale' label and one rule for
+        removing it. It retrieves the rules from the loaded configuration and asserts
+        the presence and count of these rules to guarantee that stale management is
+        reversible.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -161,10 +164,14 @@ class TestMergifyComplexScenarios:
     """Test complex real-world scenarios across multiple rules."""
 
     def test_bot_pr_auto_merge_safety(self):
-        """
-        Ensure auto-merge rules for Dependabot and Snyk require passing CI.
-
-        Asserts there are auto-merge rules for both Dependabot and snyk-bot and that each such rule's conditions include a `check-success` requirement.
+        """Ensure auto-merge rules for Dependabot and Snyk require passing CI.
+        
+        This function verifies that there are auto-merge rules defined for both
+        Dependabot and snyk-bot within the pull request rules configuration.  It checks
+        that each rule includes a `check-success` condition, ensuring  that a passing
+        CI check is required for the auto-merge to occur. The  function asserts that at
+        least two rules exist, one for each bot, and  validates the conditions of these
+        rules.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -184,10 +191,7 @@ class TestMergifyComplexScenarios:
             assert "check-success" in conditions, f"Bot auto-merge rule '{rule.get('name')}' must require passing CI"
 
     def test_size_label_updates_when_pr_changes(self):
-        """
-        Verify size labels use 'toggle' so they update automatically when PR grows/shrinks.
-        This prevents stale labels when a PR is updated with more/fewer changes.
-        """
+        """Verify size labels use 'toggle' for automatic updates when PR changes."""
         config = load_config()
         rules = config["pull_request_rules"]
 
@@ -205,10 +209,12 @@ class TestMergifyComplexScenarios:
             ), f"Size rule '{rule.get('name')}' should not use 'add' (use 'toggle' instead)"
 
     def test_content_labels_are_additive(self):
-        """
-        Ensure content-label rules add labels so multiple content labels can be applied simultaneously.
-
-        Asserts there are at least four content-label rules (security, ci, documentation, dependencies) and that each rule uses the `add` label action rather than `toggle`.
+        """Ensure content-label rules allow multiple labels to be applied.
+        
+        This function verifies that there are at least four content-label rules
+        (security, ci, documentation, dependencies) defined in the configuration.  It
+        checks that each rule uses the `add` label action instead of `toggle`,
+        ensuring that multiple content labels can be applied simultaneously.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -230,10 +236,13 @@ class TestMergifyComplexScenarios:
             assert "add" in label_action, f"Content rule '{rule.get('name')}' should use 'add' for cumulative labels"
 
     def test_review_automation_excludes_bot_prs(self):
-        """
-        Verify review-request rules exclude common bot authors so human reviewers are not requested for automated PRs.
-
-        For each rule with a `request_reviews` action, assert the rule's conditions include `-author=dependabot[bot]` and `-author=snyk-bot`.
+        """Verify review-request rules exclude common bot authors.
+        
+        This function checks that the review-request rules in the configuration
+        properly exclude automated pull requests from common bot authors such as
+        dependabot and snyk-bot. It loads the configuration, filters the rules for
+        those that request reviews, and asserts that the conditions for each rule
+        include the necessary exclusions for these bot authors.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -250,10 +259,12 @@ class TestMergifyComplexScenarios:
             assert "-author=snyk-bot" in conditions, f"Review request rule '{rule.get('name')}' should exclude snyk-bot"
 
     def test_stale_workflow_prevents_premature_closure(self):
-        """
-        Ensure stale-label removal rules require the stale label and a recent update condition to prevent premature closure of active PRs.
-
-        Verifies at least one rule removes the "stale" label and that each such rule's conditions include a check for the stale label (e.g., `label=stale`) and an `updated-at >=` criterion indicating recent activity.
+        """Ensure stale removal rules prevent premature closure of active PRs.
+        
+        This function verifies that there is at least one rule in the  pull request
+        rules that removes the "stale" label. It checks  that each of these rules
+        includes conditions for both the  presence of the stale label and a recent
+        update criterion  indicating that the pull request has been recently active.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -273,10 +284,13 @@ class TestMergifyComplexScenarios:
             ), f"Stale removal rule '{rule.get('name')}' should check for recent updates"
 
     def test_multiple_labels_can_apply_simultaneously(self):
-        """
-        Ensure size and dependency labels can both apply to the same pull request.
-
-        Loads the Mergify configuration and asserts there is at least one size-labeling rule and at least one dependency-labeling rule. For each size rule, verifies the rule's conditions do not explicitly exclude dependency file changes (e.g., requirements files), ensuring a PR that modifies requirements.txt could receive both labels.
+        """Ensure size and dependency labels can both apply to the same pull request.
+        
+        This function loads the Mergify configuration and checks for the presence of at
+        least one size-labeling rule and one dependency-labeling rule. It counts the
+        applicable rules for a hypothetical pull request that modifies requirements.txt
+        and verifies that no size rule conditions explicitly exclude dependency file
+        changes, ensuring that both labels can be applied simultaneously.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -339,11 +353,7 @@ class TestMergifySecurityAndSafety:
         assert "#changed-files" in conditions, "Dependabot auto-merge should limit changed files"
 
     def test_auto_merge_uses_safe_merge_method(self):
-        """
-        Ensure auto-merge rules specify the 'squash' merge method.
-
-        Asserts at least one auto-merge rule exists and that each such rule's merge action has method 'squash'.
-        """
+        """Ensure auto-merge rules specify the 'squash' merge method."""
         config = load_config()
         rules = config["pull_request_rules"]
 
@@ -358,11 +368,7 @@ class TestMergifySecurityAndSafety:
             ), f"Auto-merge rule '{rule.get('name')}' should use 'squash' method, got '{method}'"
 
     def test_dismiss_reviews_only_on_new_commits(self):
-        """
-        Ensure rules that dismiss reviews only trigger on new commits ('synchronize').
-
-        Asserts at least one rule contains a `dismiss_reviews` action and that each such action has its `when` field equal to "synchronize".
-        """
+        """Ensure dismiss_reviews rules trigger only on new commits."""
         config = load_config()
         rules = config["pull_request_rules"]
 
@@ -377,9 +383,13 @@ class TestMergifySecurityAndSafety:
             ), f"Dismiss reviews rule '{rule.get('name')}' should only trigger on 'synchronize', got '{when}'"
 
     def test_stale_management_excludes_closed_prs(self):
-        """
-        Verify stale marking doesn't apply to closed PRs.
-        This prevents unnecessary label operations on closed PRs.
+        """Verify stale marking doesn't apply to closed PRs.
+        
+        This function checks the configuration for pull request rules to ensure that
+        any rules related to stale marking explicitly exclude closed pull requests.  It
+        first loads the configuration and retrieves the relevant rules, then  asserts
+        that there are stale marking rules present. Finally, it verifies  that each
+        stale marking rule includes a condition to exclude closed PRs.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -396,9 +406,16 @@ class TestMergifyRulePriority:
     """Test rule ordering and priority."""
 
     def test_all_size_tiers_are_mutually_exclusive(self):
-        """
-        Verify exactly one size tier applies to any given line count.
-        This prevents multiple size labels on a single PR.
+        """Verify that exactly one size tier applies to any given line count.
+        
+        This function checks the configuration for pull request rules to ensure that
+        there are exactly six size tiers defined. It then tests a range of line counts
+        to confirm that each count matches exactly one size tier based on the defined
+        conditions. If multiple tiers match for any line count, an assertion error is
+        raised, indicating the discrepancy.
+        
+        Args:
+            self: The instance of the class containing this method.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -432,10 +449,7 @@ class TestMergifyRulePriority:
             )
 
     def test_rule_names_are_unique(self):
-        """
-        Verify all rules have unique names.
-        Duplicate names could cause confusion in Mergify dashboard.
-        """
+        """Verify that all rule names are unique."""
         config = load_config()
         rules = config["pull_request_rules"]
 
