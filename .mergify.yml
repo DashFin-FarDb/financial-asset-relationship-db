@@ -1,0 +1,174 @@
+pull_request_rules:
+  # ---------------------------------------------------------------------------
+  # Size labelling — toggle so labels update as a PR grows or shrinks
+  # ---------------------------------------------------------------------------
+
+  - name: "T-shirt size: XS (< 10 lines)"
+    conditions:
+      - "#modified-lines < 10"
+    actions:
+      label:
+        toggle:
+          - size/XS
+
+  - name: "T-shirt size: S (10–49 lines)"
+    conditions:
+      - "#modified-lines >= 10"
+      - "#modified-lines < 50"
+    actions:
+      label:
+        toggle:
+          - size/S
+
+  - name: "T-shirt size: M (50–99 lines)"
+    conditions:
+      - "#modified-lines >= 50"
+      - "#modified-lines < 100"
+    actions:
+      label:
+        toggle:
+          - size/M
+
+  - name: "T-shirt size: L (100–499 lines)"
+    conditions:
+      - "#modified-lines >= 100"
+      - "#modified-lines < 500"
+    actions:
+      label:
+        toggle:
+          - size/L
+
+  - name: "T-shirt size: XL (500–999 lines)"
+    conditions:
+      - "#modified-lines >= 500"
+      - "#modified-lines < 1000"
+    actions:
+      label:
+        toggle:
+          - size/XL
+
+  - name: "T-shirt size: XXL (>= 1000 lines)"
+    conditions:
+      - "#modified-lines >= 1000"
+    actions:
+      label:
+        toggle:
+          - size/XXL
+
+  # ---------------------------------------------------------------------------
+  # Content-based labelling
+  # ---------------------------------------------------------------------------
+
+  - name: "Label security-related changes"
+    conditions:
+      - or:
+          - "files~=^\\.github/workflows/(snyk|bandit|codeql|semgrep).*\\.ya?ml$"
+          - "files=.safety-policy.json"
+    actions:
+      label:
+        add:
+          - security
+
+  - name: "Label CI/workflow changes"
+    conditions:
+      - "files~=^\\.github/workflows/"
+    actions:
+      label:
+        add:
+          - ci
+
+  - name: "Label documentation changes"
+    conditions:
+      - or:
+          - "files~=\\.md$"
+          - "files~=^docs/"
+    actions:
+      label:
+        add:
+          - documentation
+
+  - name: "Label dependency changes"
+    conditions:
+      - or:
+          - "files~=^requirements"
+          - "files=pyproject.toml"
+          - "files=frontend/package.json"
+    actions:
+      label:
+        add:
+          - dependencies
+
+  # ---------------------------------------------------------------------------
+  # Review automation
+  # ---------------------------------------------------------------------------
+
+  - name: "Request review from maintainer"
+    conditions:
+      - "-draft"
+      - "-author=dependabot[bot]"
+      - "-author=snyk-bot"
+      - "#reviewers=0"
+    actions:
+      request_reviews:
+        users:
+          - mohavro
+
+  - name: "Dismiss stale reviews on new commits"
+    conditions:
+      - "base=main"
+    actions:
+      dismiss_reviews:
+        when: synchronize
+        message: "New commits have been pushed — previous approvals have been dismissed."
+
+  # ---------------------------------------------------------------------------
+  # Auto-merge: trusted bots (require passing CI to prevent regressions)
+  # ---------------------------------------------------------------------------
+
+  - name: "Auto-merge Dependabot patch updates"
+    conditions:
+      - "author=dependabot[bot]"
+      - "label=dependencies"
+      - "#changed-files <= 5"
+      - "check-success=Test Python 3.12"
+    actions:
+      merge:
+        method: squash
+
+  - name: "Auto-merge Snyk security fixes"
+    conditions:
+      - "author=snyk-bot"
+      - "label=security"
+      - "check-success=Test Python 3.12"
+    actions:
+      merge:
+        method: squash
+
+  # ---------------------------------------------------------------------------
+  # Stale PR management
+  # ---------------------------------------------------------------------------
+
+  - name: "Mark stale PRs"
+    conditions:
+      - "-draft"
+      - "-closed"
+      - "updated-at < 14 days ago"
+      - "-label=stale"
+    actions:
+      label:
+        add:
+          - stale
+      comment:
+        message: >
+          This pull request has had no activity for 14 days and has been marked
+          as stale. Please update it or it may be closed. Remove the `stale`
+          label or push new commits to keep it open.
+
+  - name: "Remove stale label on updated PRs"
+    conditions:
+      - "label=stale"
+      - "updated-at >= 2 days ago"
+    actions:
+      label:
+        remove:
+          - stale
