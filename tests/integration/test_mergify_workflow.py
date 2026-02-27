@@ -54,6 +54,7 @@ class TestMergifyConfigIntegration:
         config = load_config()
         rules = config["pull_request_rules"]
         tshirt_rules = [r for r in rules if "t-shirt" in r.get("name", "").lower()]
+        assert tshirt_rules, "No t-shirt rules found"
 
         # Build a list of (lower, upper) pairs for each tier
         # XS has no lower bound → treat as 0

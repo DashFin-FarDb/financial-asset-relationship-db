@@ -126,7 +126,7 @@ When marked stale, Mergify:
 ### Remove stale label
 
 The `stale` label is automatically removed when the PR receives any activity
-(new commit, comment, label change) within the following day.
+(new commit, comment, label change) within the past two days.
 
 ---
 
