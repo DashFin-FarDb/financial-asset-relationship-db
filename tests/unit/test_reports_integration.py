@@ -134,6 +134,7 @@ class TestGenerateReports:
 
             assert "Empty Report" in result
             mock_generate_schema_report.assert_called_once_with(mock_graph)
+
     @staticmethod
     def test_make_gradio_report_fn_markdown() -> None:
         """Test Gradio report function creation for markdown output."""
@@ -329,18 +330,18 @@ class TestExportReport:
         mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
         with pytest.raises(ValueError, match="Unsupported export format"):
-            @staticmethod
+            @ staticmethod
             def test_export_report_invalid_format() -> None:
                 """Test that invalid format raises ValueError."""
-                mock_graph = MagicMock(spec=AssetRelationshipGraph)
+                mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
                 with pytest.raises(ValueError, match="Unsupported report format"):
                     export_report(mock_graph, fmt="pdf")
 
-            @staticmethod
+            @ staticmethod
             def test_export_report_with_empty_format_string() -> None:
                 """Test export with empty format string raises ValueError."""
-                mock_graph = MagicMock(spec=AssetRelationshipGraph)
+                mock_graph=MagicMock(spec=AssetRelationshipGraph)
 
                 with pytest.raises(ValueError, match="Unsupported report format"):
                     export_report(mock_graph, fmt="")
