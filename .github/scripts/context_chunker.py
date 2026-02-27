@@ -77,7 +77,7 @@ except ImportError:
             except Exception as e:
                 print(
                     f"Warning: failed to initialize tiktoken encoder: {e}",
-                    file=sys.stderr,
+                    file = sys.stderr,
                 )
                 self._encoder = None
 
