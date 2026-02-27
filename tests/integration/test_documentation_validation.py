@@ -308,21 +308,20 @@ def _to_gfm_anchor(text: str) -> str:
         text (str): Header text to convert into an anchor.
 
     Returns:
-        str: A GFM-compatible anchor string.
     """
-            """
-            s = text.strip().lower()
-            # Normalize unicode to NFKD and remove diacritics
-            s = unicodedata.normalize('NFKD', s)
-            s = ''.join(ch for ch in s if not unicodedata.combining(ch))
-            # Remove punctuation/special chars except spaces and hyphens
-            s = re.sub(r'[^\w\s-]', '', s)
-            # Replace whitespace with single hyphen
-            s = re.sub(r'\s+', '-', s)
-            # Collapse multiple hyphens
-            s = re.sub(r'-{2,}', '-', s)
-            # Strip leading/trailing hyphens
-            s = s.strip('-')
+    s = text.strip().lower()
+    # Normalize unicode to NFKD and remove diacritics
+    s = unicodedata.normalize('NFKD', s)
+    s = ''.join(ch for ch in s if not unicodedata.combining(ch))
+    # Remove punctuation/special chars except spaces and hyphens
+    s = re.sub(r'[^\w\s-]', '', s)
+    # Replace whitespace with single hyphen
+    s = re.sub(r'\s+', '-', s)
+    # Collapse multiple hyphens
+    s = re.sub(r'-{2,}', '-', s)
+    # Strip leading/trailing hyphens
+    s = s.strip('-')
+    return s
             return s
 
         # Extract headers and internal links from the document
