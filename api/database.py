@@ -13,15 +13,7 @@ from urllib.parse import unquote, urlparse
 
 
 def _get_database_url() -> str:
-    """
-    Read the DATABASE_URL environment variable and return its value.
-
-    Returns:
-        The value of the `DATABASE_URL` environment variable.
-
-    Raises:
-        ValueError: If the `DATABASE_URL` environment variable is not set.
-    """
+    """Retrieve the DATABASE_URL environment variable."""
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
         raise ValueError(
