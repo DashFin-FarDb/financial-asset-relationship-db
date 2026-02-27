@@ -62,8 +62,10 @@ except ImportError:
             ],
         )
         # Map chunk type to priority index (lower is higher priority)
-        self.priority_map: Dict[str, int] = {
-            name: i for i, name in enumerate(self.priority_order)
+        # remove these lines from __init__; instead define:
+        # def process_context(self, chunks):
+        #     processed_content = self._build_limited_content(chunks)
+        #     return processed_content, True
         }
 
         # Setup tokenizer/encoder if tiktoken available
