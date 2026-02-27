@@ -290,13 +290,9 @@ class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
     def test_simplification_theme_consistent(self):
-        """
-        Ensure selected workflows adhere to the branch's simplification theme.
-
-        Checks that each workflow in the predefined list does not exceed its maximum allowed line count and fails the test if any file is longer than its threshold.
-        """
         # This branch should simplify, not add complexity
         # Check workflow line counts decreased
+        """Ensure workflows adhere to the branch's simplification theme."""
         workflows_to_check = [
             (".github/workflows/pr-agent.yml", 200),  # Should be under 200 lines
             (".github/workflows/label.yml", 30),  # Should be under 30 lines
