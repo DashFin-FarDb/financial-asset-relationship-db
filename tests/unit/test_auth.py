@@ -53,7 +53,7 @@ class TestIsTruthyHelper:
 
     @staticmethod
     def test_is_truthy_with_false_strings():
-        """Test that unrecognized strings return False."""
+        """Test that specific false strings return False."""
         assert _is_truthy("false") is False
         assert _is_truthy("0") is False
         assert _is_truthy("no") is False
@@ -63,7 +63,7 @@ class TestIsTruthyHelper:
 
     @staticmethod
     def test_is_truthy_with_none():
-        """Test that None returns False."""
+        """Test that None evaluates to False."""
         assert _is_truthy(None) is False
 
     @staticmethod
@@ -92,7 +92,7 @@ class TestPasswordHashing:
 
     @staticmethod
     def test_verify_password_with_correct_password():
-        """Test that correct password verifies successfully."""
+        """Test that the correct password verifies successfully."""
         password = "correct_password"
         hashed = get_password_hash(password)
 
@@ -100,7 +100,7 @@ class TestPasswordHashing:
 
     @staticmethod
     def test_verify_password_with_incorrect_password():
-        """Test that incorrect password fails verification."""
+        """Test that an incorrect password fails verification."""
         password = "correct_password"
         wrong_password = "wrong_password"
         hashed = get_password_hash(password)
@@ -109,7 +109,7 @@ class TestPasswordHashing:
 
     @staticmethod
     def test_verify_password_with_empty_password():
-        """Test verification with empty password."""
+        """Test verification of an empty password."""
         hashed = get_password_hash("something")
         assert verify_password("", hashed) is False
 
@@ -125,7 +125,7 @@ class TestUserModels:
     """Test User and UserInDB Pydantic models."""
 
     def test_user_model_creation(self):
-        """Test creating a User model."""
+        """Test the creation of a User model."""
         user = User(
             username="testuser", email="test@example.com", full_name="Test User"
         )
@@ -136,7 +136,7 @@ class TestUserModels:
         assert user.disabled is None
 
     def test_user_model_with_disabled_flag(self):
-        """Test User model with disabled flag."""
+        """Test the User model's disabled flag functionality."""
         user = User(username="testuser", disabled=True)
         assert user.disabled is True
 
@@ -183,7 +183,7 @@ class TestUserRepository:
             }
 
     def test_get_user_returns_user_when_found(self, mock_database):
-        """Test get_user returns UserInDB when user exists."""
+        """Test that get_user returns UserInDB when the user exists."""
         mock_database["fetch_one"].return_value = {
             "username": "testuser",
             "email": "test@example.com",
@@ -204,7 +204,7 @@ class TestUserRepository:
         assert user.disabled is False
 
     def test_get_user_returns_none_when_not_found(self, mock_database):
-        """Test get_user returns None when user doesn't exist."""
+        """Test that get_user returns None when the user does not exist."""
         mock_database["fetch_one"].return_value = None
 
         repo = UserRepository()
@@ -229,7 +229,7 @@ class TestUserRepository:
         assert user.disabled is True
 
     def test_has_users_returns_true_when_users_exist(self, mock_database):
-        """Test has_users returns True when users exist."""
+        """Test has_users method returns True when users exist."""
         mock_database["fetch_value"].return_value = 1
 
         repo = UserRepository()
@@ -268,7 +268,7 @@ class TestUserRepository:
         assert 1 in call_args[0][1]  # disabled=True converts to 1
 
     def test_create_or_update_user_with_minimal_fields(self, mock_database):
-        """Test creating/updating user with only required fields."""
+        """Test creating or updating a user with minimal required fields."""
         repo = UserRepository()
         repo.create_or_update_user(username="minimaluser", hashed_password="hashed_pw")
 
@@ -280,7 +280,7 @@ class TestUserRepository:
         assert 0 in call_args[0][1]  # disabled=False (default) converts to 0
 
     def test_create_or_update_user_disabled_flag_conversion(self, mock_database):
-        """Test that disabled boolean is correctly converted to int."""
+        """Test conversion of disabled boolean to int for user creation or update."""
         repo = UserRepository()
 
         # Test disabled=False
@@ -306,7 +306,7 @@ class TestAuthenticationFunctions:
             yield mock_repo
 
     def test_get_user_calls_repository(self, mock_repository):
-        """Test get_user function calls the repository correctly."""
+        """Test that get_user function calls the repository correctly."""
         mock_user = UserInDB(
             username="testuser", hashed_password="hashed", disabled=False
         )
@@ -331,7 +331,7 @@ class TestAuthenticationFunctions:
         custom_repo.get_user.assert_called_once_with("testuser")
 
     def test_authenticate_user_with_correct_credentials(self, mock_repository):
-        """Test authenticate_user with correct username and password."""
+        """Test authentication of a user with valid credentials."""
         hashed_password = get_password_hash("correct_password")
         mock_user = UserInDB(
             username="testuser", hashed_password=hashed_password, disabled=False
@@ -343,7 +343,7 @@ class TestAuthenticationFunctions:
         assert result == mock_user
 
     def test_authenticate_user_with_incorrect_password(self, mock_repository):
-        """Test authenticate_user with wrong password returns False."""
+        """Test that authenticate_user returns False for incorrect password."""
         hashed_password = get_password_hash("correct_password")
         mock_user = UserInDB(
             username="testuser", hashed_password=hashed_password, disabled=False
@@ -363,7 +363,7 @@ class TestAuthenticationFunctions:
         assert result is False
 
     def test_authenticate_user_with_custom_repository(self):
-        """Test authenticate_user with custom repository."""
+        """Test user authentication with a custom repository."""
         custom_repo = Mock(spec=UserRepository)
         hashed_password = get_password_hash("password")
         mock_user = UserInDB(
@@ -381,7 +381,7 @@ class TestJWTTokenOperations:
     """Test JWT token creation and validation."""
 
     def test_create_access_token_with_default_expiry(self):
-        """Test creating access token with default expiration."""
+        """Test creating an access token with default expiration."""
         data = {"sub": "testuser"}
         token = create_access_token(data)
 
@@ -394,7 +394,7 @@ class TestJWTTokenOperations:
         assert "exp" in payload
 
     def test_create_access_token_with_custom_expiry(self):
-        """Test creating access token with custom expiration."""
+        """Test creating an access token with a custom expiration time."""
         data = {"sub": "testuser"}
         expires_delta = timedelta(minutes=60)
         token = create_access_token(data, expires_delta=expires_delta)
@@ -419,7 +419,7 @@ class TestJWTTokenOperations:
         assert payload["custom_field"] == "custom_value"
 
     def test_token_data_model(self):
-        """Test TokenData model creation."""
+        """Test the creation of TokenData model."""
         token_data = TokenData(username="testuser")
         assert token_data.username == "testuser"
 
@@ -427,7 +427,7 @@ class TestJWTTokenOperations:
         assert token_data_none.username is None
 
     def test_token_model(self):
-        """Test Token response model."""
+        """Test the Token response model."""
         token = Token(access_token="abc123", token_type="bearer")
         assert token.access_token == "abc123"
         assert token.token_type == "bearer"
@@ -438,7 +438,7 @@ class TestCurrentUserDependencies:
 
     @pytest.fixture
     def mock_oauth2_scheme(self):
-        """Mock OAuth2PasswordBearer."""
+        """Mock OAuth2 password bearer for testing."""
         with patch("api.auth.oauth2_scheme") as mock_scheme:
             yield mock_scheme
 
@@ -451,8 +451,8 @@ class TestCurrentUserDependencies:
     def test_get_current_user_with_valid_token(
         self, mock_oauth2_scheme, mock_repository
     ):
-        """Test get_current_user with valid JWT token."""
         # Create a valid token
+        """Test getting the current user with a valid JWT token."""
         token_data = {"sub": "testuser"}
         token = create_access_token(token_data)
 
@@ -473,7 +473,7 @@ class TestCurrentUserDependencies:
         assert result == active_user
 
     def test_get_current_active_user_with_disabled_user(self):
-        """Test get_current_active_user raises error for disabled user."""
+        """Test that get_current_active_user raises an error for a disabled user."""
         from fastapi import HTTPException
 
         disabled_user = User(username="disableduser", disabled=True)
@@ -485,7 +485,7 @@ class TestCurrentUserDependencies:
         assert "Inactive user" in str(exc_info.value.detail)
 
     def test_get_current_active_user_with_none_disabled(self):
-        """Test get_current_active_user with None disabled (treated as active)."""
+        """Test get_current_active_user with None disabled."""
         user = User(username="user", disabled=None)
         result = get_current_active_user(user)
         assert result == user
@@ -521,7 +521,7 @@ class TestSeedCredentialsFromEnv:
         assert call_kwargs["disabled"] is False
 
     def test_seed_credentials_with_minimal_env_vars(self):
-        """Test seeding with only required username and password."""
+        """Test seeding with minimal environment variables."""
         mock_repo = Mock(spec=UserRepository)
         mock_repo.has_users.return_value = False
 
@@ -571,7 +571,7 @@ class TestSeedCredentialsFromEnv:
         assert call_kwargs["disabled"] is True
 
     def test_seed_credentials_without_username_or_password(self):
-        """Test that seeding is skipped when username or password is missing."""
+        """Test seeding is skipped when username or password is missing."""
         mock_repo = Mock(spec=UserRepository)
         mock_repo.has_users.return_value = False
 
@@ -587,7 +587,7 @@ class TestSeedCredentialsFromEnv:
         mock_repo.create_or_update_user.assert_not_called()
 
     def test_seed_credentials_password_is_hashed(self):
-        """Test that the password is properly hashed before storage."""
+        """Test that the password is hashed before storage."""
         mock_repo = Mock(spec=UserRepository)
         mock_repo.has_users.return_value = False
 
@@ -611,18 +611,18 @@ class TestSecurityConfiguration:
 
     @staticmethod
     def test_secret_key_is_set():
-        """Test that SECRET_KEY is configured."""
+        """Test that SECRET_KEY is set and not empty."""
         assert SECRET_KEY is not None
         assert len(SECRET_KEY) > 0
 
     @staticmethod
     def test_algorithm_is_hs256():
-        """Test that JWT algorithm is HS256."""
+        """Test that the JWT algorithm is HS256."""
         assert ALGORITHM == "HS256"
 
     @staticmethod
     def test_access_token_expire_minutes_is_positive():
-        """Test that token expiration is a positive number."""
+        """Test that ACCESS_TOKEN_EXPIRE_MINUTES is a positive integer."""
         assert ACCESS_TOKEN_EXPIRE_MINUTES > 0
         assert isinstance(ACCESS_TOKEN_EXPIRE_MINUTES, int)
 
@@ -632,7 +632,7 @@ class TestEdgeCases:
 
     @staticmethod
     def test_user_repository_methods_are_instance_methods():
-        """Test that UserRepository methods are instance methods, not static."""
+        """Test that UserRepository methods are instance methods."""
         repo = UserRepository()
 
         # Check methods exist and are callable
