@@ -64,9 +64,7 @@ class TestPRAgentConfigStructure:
     def test_config_has_monitoring_section(config):
         """Configuration should have a 'monitoring' section."""
         assert "monitoring" in config, "Missing 'monitoring' section"
-        assert isinstance(config["monitoring"], dict), (
-            "'monitoring' should be a dictionary"
-        )
+        assert isinstance(config["monitoring"], dict), "'monitoring' should be a dictionary"
 
 
 class TestPRAgentSettings:
@@ -90,9 +88,7 @@ class TestPRAgentSettings:
         import re
 
         semver_pattern = r"^\d+\.\d+\.\d+(-[a-zA-Z0-9.-]+)?$"
-        assert re.match(semver_pattern, version), (
-            f"Version '{version}' should follow semantic versioning (X.Y.Z)"
-        )
+        assert re.match(semver_pattern, version), f"Version '{version}' should follow semantic versioning (X.Y.Z)"
 
     @staticmethod
     def test_agent_enabled_is_boolean(config):
@@ -106,12 +102,8 @@ class TestPRAgentSettings:
         check_interval = config.get("monitoring", {}).get("check_interval")
 
         if check_interval is not None:
-            assert isinstance(check_interval, int), (
-                "check_interval should be an integer"
-            )
-            assert 60 <= check_interval <= 3600, (
-                "check_interval should be between 60s (1 min) and 3600s (1 hour)"
-            )
+            assert isinstance(check_interval, int), "check_interval should be an integer"
+            assert 60 <= check_interval <= 3600, "check_interval should be between 60s (1 min) and 3600s (1 hour)"
 
 
 class TestAutoResponseSettings:
@@ -121,9 +113,7 @@ class TestAutoResponseSettings:
     def test_auto_response_section_exists(config):
         """Auto-response section should exist if configured."""
         if "auto_response" in config:
-            assert isinstance(config["auto_response"], dict), (
-                "'auto_response' should be a dictionary"
-            )
+            assert isinstance(config["auto_response"], dict), "'auto_response' should be a dictionary"
 
     @staticmethod
     def test_enabled_events_are_valid(config):
@@ -140,9 +130,7 @@ class TestAutoResponseSettings:
         }
 
         for event in enabled_events:
-            assert event in valid_events, (
-                f"Invalid event type '{event}'. Must be one of {valid_events}"
-            )
+            assert event in valid_events, f"Invalid event type '{event}'. Must be one of {valid_events}"
 
     @staticmethod
     def test_triggers_are_valid_regex(config):
@@ -173,9 +161,7 @@ class TestActionsConfiguration:
 
         for action_name, action_config in actions.items():
             assert isinstance(action_name, str), "Action name should be a string"
-            assert action_config is not None, (
-                f"Action '{action_name}' config should not be null"
-            )
+            assert action_config is not None, f"Action '{action_name}' config should not be null"
 
     @staticmethod
     def test_action_enabled_flags(config):
@@ -186,9 +172,7 @@ class TestActionsConfiguration:
             if not isinstance(action_config, dict):
                 continue
             if "enabled" in action_config:
-                assert isinstance(action_config["enabled"], bool), (
-                    f"Action '{action_name}' enabled should be a boolean"
-                )
+                assert isinstance(action_config["enabled"], bool), f"Action '{action_name}' enabled should be a boolean"
 
     @staticmethod
     def test_action_commands_are_strings(config):
@@ -200,12 +184,8 @@ class TestActionsConfiguration:
                 continue
             if "command" in action_config:
                 command = action_config["command"]
-                assert isinstance(command, str), (
-                    f"Action '{action_name}' command should be a string"
-                )
-                assert len(command) > 0, (
-                    f"Action '{action_name}' command should not be empty"
-                )
+                assert isinstance(command, str), f"Action '{action_name}' command should be a string"
+                assert len(command) > 0, f"Action '{action_name}' command should not be empty"
 
 
 class TestCodeReviewSettings:
@@ -230,9 +210,7 @@ class TestCodeReviewSettings:
             valid_levels = {"low", "medium", "high", "critical"}
 
             for level in levels:
-                assert level in valid_levels, (
-                    f"Invalid review level '{level}'. Must be one of {valid_levels}"
-                )
+                assert level in valid_levels, f"Invalid review level '{level}'. Must be one of {valid_levels}"
 
     @staticmethod
     def test_file_patterns_are_valid_glob(config):
@@ -263,12 +241,8 @@ class TestLimitsConfiguration:
         max_concurrent = config.get("limits", {}).get("max_concurrent_prs")
 
         if max_concurrent is not None:
-            assert isinstance(max_concurrent, int), (
-                "max_concurrent_prs should be an integer"
-            )
-            assert 1 <= max_concurrent <= 100, (
-                "max_concurrent_prs should be between 1 and 100"
-            )
+            assert isinstance(max_concurrent, int), "max_concurrent_prs should be an integer"
+            assert 1 <= max_concurrent <= 100, "max_concurrent_prs should be between 1 and 100"
 
     @staticmethod
     def test_rate_limit_requests_reasonable(config):
@@ -276,12 +250,8 @@ class TestLimitsConfiguration:
         rate_limit = config.get("limits", {}).get("rate_limit_requests")
 
         if rate_limit is not None:
-            assert isinstance(rate_limit, int), (
-                "rate_limit_requests should be an integer"
-            )
-            assert 10 <= rate_limit <= 1000, (
-                "rate_limit_requests should be between 10 and 1000 per hour"
-            )
+            assert isinstance(rate_limit, int), "rate_limit_requests should be an integer"
+            assert 10 <= rate_limit <= 1000, "rate_limit_requests should be between 10 and 1000 per hour"
 
 
 class TestSecuritySettings:
@@ -304,9 +274,7 @@ class TestSecuritySettings:
 
         for pattern in secret_patterns:
             matches = re.findall(pattern, config_str, re.IGNORECASE)
-            assert len(matches) == 0, (
-                f"Potential hardcoded secret found matching pattern: {pattern}"
-            )
+            assert len(matches) == 0, f"Potential hardcoded secret found matching pattern: {pattern}"
 
     @staticmethod
     def test_no_sensitive_paths(config):
@@ -321,9 +289,7 @@ class TestSecuritySettings:
         ]
 
         for pattern in sensitive_patterns:
-            assert pattern not in config_str, (
-                f"Sensitive path pattern '{pattern}' found in configuration"
-            )
+            assert pattern not in config_str, f"Sensitive path pattern '{pattern}' found in configuration"
 
     @staticmethod
     def test_secure_defaults(config):
@@ -333,9 +299,7 @@ class TestSecuritySettings:
         if "enabled" in debug:
             # In production, debug should typically be false
             # But we'll just check it's a boolean
-            assert isinstance(debug["enabled"], bool), (
-                "debug.enabled should be a boolean"
-            )
+            assert isinstance(debug["enabled"], bool), "debug.enabled should be a boolean"
 
 
 class TestNotificationSettings:
@@ -357,9 +321,7 @@ class TestNotificationSettings:
             }
 
             for channel in channels:
-                assert channel in valid_channels, (
-                    f"Invalid notification channel '{channel}'"
-                )
+                assert channel in valid_channels, f"Invalid notification channel '{channel}'"
 
     @staticmethod
     def test_notification_on_events_valid(config):
@@ -396,9 +358,7 @@ class TestDebugConfiguration:
             log_level = debug["log_level"]
             valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
 
-            assert log_level.upper() in valid_levels, (
-                f"Invalid log level '{log_level}'. Must be one of {valid_levels}"
-            )
+            assert log_level.upper() in valid_levels, f"Invalid log level '{log_level}'. Must be one of {valid_levels}"
 
     @staticmethod
     def test_verbose_mode_is_boolean(config):
@@ -406,9 +366,7 @@ class TestDebugConfiguration:
         debug = config.get("debug", {})
 
         if "verbose" in debug:
-            assert isinstance(debug["verbose"], bool), (
-                "debug.verbose should be a boolean"
-            )
+            assert isinstance(debug["verbose"], bool), "debug.verbose should be a boolean"
 
 
 class TestConfigurationConsistency:
@@ -479,9 +437,7 @@ class TestConfigurationConsistency:
     def test_all_sections_are_dictionaries(config):
         """Top-level sections should all be dictionaries."""
         for key, value in config.items():
-            if value is not None and not isinstance(
-                value, (dict, list, str, int, bool, float)
-            ):
+            if value is not None and not isinstance(value, (dict, list, str, int, bool, float)):
                 pytest.fail(f"Section '{key}' has unexpected type: {type(value)}")
 
     @staticmethod
@@ -497,9 +453,7 @@ class TestBestPractices:
     def test_has_version_field(self, config):
         """Configuration should have version information for tracking."""
         agent = config.get("agent", {})
-        assert "version" in agent, (
-            "Configuration should include version for tracking changes"
-        )
+        assert "version" in agent, "Configuration should include version for tracking changes"
 
     def test_has_monitoring_enabled(self, config):
         """Monitoring should be configured for production use."""
@@ -516,9 +470,7 @@ class TestBestPractices:
         if "check_interval" in monitoring:
             interval = monitoring["check_interval"]
             # Should check at least once an hour, but not more than once a minute
-            assert 60 <= interval <= 3600, (
-                "check_interval should be between 1 minute and 1 hour"
-            )
+            assert 60 <= interval <= 3600, "check_interval should be between 1 minute and 1 hour"
 
     @staticmethod
     def test_config_is_documented():
@@ -530,16 +482,12 @@ class TestBestPractices:
         assert "#" in content, "Configuration should include comments for documentation"
 
         # Count comment lines
-        comment_lines = [
-            line for line in content.split("\n") if line.strip().startswith("#")
-        ]
+        comment_lines = [line for line in content.split("\n") if line.strip().startswith("#")]
         total_lines = len([line for line in content.split("\n") if line.strip()])
 
         # At least 5% of lines should be comments
         comment_ratio = len(comment_lines) / max(total_lines, 1)
-        assert comment_ratio >= 0.05, (
-            f"Configuration should have adequate comments (found {comment_ratio:.1%})"
-        )
+        assert comment_ratio >= 0.05, f"Configuration should have adequate comments (found {comment_ratio:.1%})"
 
 
 class TestEdgeCases:
@@ -550,13 +498,9 @@ class TestEdgeCases:
         # If a section exists but is empty, it should be a dict or list
         for key, value in config.items():
             if value == {}:
-                assert isinstance(value, dict), (
-                    f"Empty section '{key}' should be a dictionary"
-                )
+                assert isinstance(value, dict), f"Empty section '{key}' should be a dictionary"
             elif value == []:
-                assert isinstance(value, list), (
-                    f"Empty section '{key}' should be a list"
-                )
+                assert isinstance(value, list), f"Empty section '{key}' should be a list"
 
     def test_no_excessively_long_values(self, config: object) -> None:
         """Configuration values should not be excessively long."""
@@ -564,9 +508,7 @@ class TestEdgeCases:
         def check_length(obj: object, path: str = "") -> None:
             """Recursively ensure no string exceeds 10,000 characters across dicts and lists."""
             if isinstance(obj, str):
-                assert len(obj) <= 10_000, (
-                    f"String at '{path}' is excessively long ({len(obj)} chars)"
-                )
+                assert len(obj) <= 10_000, f"String at '{path}' is excessively long ({len(obj)} chars)"
             elif isinstance(obj, dict):
                 for key, value in obj.items():
                     next_path = f"{path}.{key}" if path else str(key)
@@ -579,6 +521,7 @@ class TestEdgeCases:
 
     def test_no_circular_references(self, config):
         """Configuration should not have circular references."""
+
         # YAML safe_load prevents circular references, but let's be explicit
         def check_circular(obj, seen=None):
             """Recursively checks for circular references within the given object and raises an AssertionError if any are found."""
