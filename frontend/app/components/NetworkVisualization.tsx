@@ -32,7 +32,7 @@ type EdgeTrace = {
 
 type NodeTrace = {
   type: "scatter3d";
-  mode: "markers+text";
+  mode: "markers" | "text" | "lines" | "markers+text";
   x: number[];
   y: number[];
   z: number[];
@@ -58,6 +58,8 @@ const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
 /**
  * Display an interactive 3D network of assets from the provided visualization payload.
+ *
+ * It validates incoming data against size limits and prepares Plotly traces for nodes and edges.
  *
  * @param data - Visualization payload containing `nodes` and `edges`.
  *   Nodes are objects with at least: `id`, `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, `color`.
@@ -155,7 +157,7 @@ export default function NetworkVisualization({
       return acc;
     }, []);
 
-    setPlotData([...edgeTraces, nodeTrace]);
+    setPlotData([...edgeTraces, nodeTrace] as Array<EdgeTrace | NodeTrace>);
     setStatus("ready");
     setMessage("");
   }, [data]);
@@ -174,7 +176,7 @@ export default function NetworkVisualization({
   return (
     <div className="w-full h-[800px]">
       <Plot
-        data={plotData}
+        data={plotData as any}
         layout={{
           title: "3D Asset Relationship Network",
           showlegend: false,

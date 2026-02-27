@@ -71,6 +71,9 @@ const SelectFilter = ({
 
 /**
  * Fetches and displays a list of assets with filtering and pagination.
+ *
+ * The AssetList component manages the state for assets, loading status, error handling, and pagination. It utilizes hooks to fetch asset metadata and assets based on the current filter and pagination settings. The component also updates the URL query parameters to reflect the current filter and pagination state, ensuring a seamless user experience.
+ *
  * @returns {JSX.Element} The AssetList component.
  */
 export default function AssetList() {
@@ -173,8 +176,10 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    fetchAssets();
-    return undefined;
+    void fetchAssets().catch((err) => {
+      setError(err instanceof Error ? err.message : "Failed to load assets");
+      setLoading(false);
+    });
   }, [fetchAssets]);
 
   /**
@@ -241,29 +246,17 @@ export default function AssetList() {
     </option>
   );
   // Extracted component to handle loading and error display
-  const AssetListStatus = ({
-    loading,
-    error,
-  }: {
-    loading: boolean;
-    error: string | null;
-  }) => {
-    const hasError = error !== null;
-
-    if (!loading && !hasError) {
-      return null;
-    }
-
-    return (
-      <div
-        className={`px-6 py-3 text-sm ${hasError ? "text-red-500" : "text-gray-500"}`}
-      >
-        {hasError ? `Error: ${error}` : "Loading..."}
-      </div>
-    );
-  };
-
-  // Extracted component to handle loading and error display
+  /**
+   * Renders the status of an asset list based on loading and error states.
+   *
+   * The component checks if the loading state is false and there is no error; if so, it returns null.
+   * If loading is true, it displays a loading message, otherwise, it shows an error message with the provided error string.
+   * The text color changes based on the loading state, indicating the current status visually.
+   *
+   * @param {Object} params - The parameters for the component.
+   * @param {boolean} params.loading - Indicates if the asset list is currently loading.
+   * @param {string | null} params.error - The error message to display if loading is complete and an error occurred.
+   */
   const AssetListStatus = ({
     loading: isLoading,
     error: loadError,
@@ -442,3 +435,4 @@ export default function AssetList() {
       </div>
     </div>
   );
+}
