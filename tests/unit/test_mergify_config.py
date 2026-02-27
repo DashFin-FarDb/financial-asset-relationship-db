@@ -731,8 +731,12 @@ class TestMergifyBoundaryConditions:
         config = self._load_config()
         rules = config["pull_request_rules"]
         dep_rule = next(
-            (r for r in rules if "dependabot" in str(r.get("conditions", [])).lower() and "merge" in r.get("actions", {})),
-            None
+            (
+                r
+                for r in rules
+                if "dependabot" in str(r.get("conditions", [])).lower() and "merge" in r.get("actions", {})
+            ),
+            None,
         )
         assert dep_rule is not None, "Dependabot auto-merge rule not found"
 
@@ -745,10 +749,7 @@ class TestMergifyBoundaryConditions:
         """Test that PRs are marked stale after 14 days."""
         config = self._load_config()
         rules = config["pull_request_rules"]
-        stale_rule = next(
-            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
-        )
+        stale_rule = next((r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])), None)
         assert stale_rule is not None, "Stale marking rule not found"
 
         conditions = " ".join(str(c) for c in stale_rule.get("conditions", []))
@@ -843,10 +844,7 @@ class TestMergifyFilePatterns:
         """Test that security label rule has file pattern conditions."""
         config = self._load_config()
         rules = config["pull_request_rules"]
-        sec_rule = next(
-            (r for r in rules if "security" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
-        )
+        sec_rule = next((r for r in rules if "security" in r.get("actions", {}).get("label", {}).get("add", [])), None)
         assert sec_rule is not None, "Security label rule not found"
 
         conditions = " ".join(str(c) for c in sec_rule.get("conditions", []))
@@ -858,10 +856,7 @@ class TestMergifyFilePatterns:
         """Test that CI label rule matches .github/workflows/ files."""
         config = self._load_config()
         rules = config["pull_request_rules"]
-        ci_rule = next(
-            (r for r in rules if "ci" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
-        )
+        ci_rule = next((r for r in rules if "ci" in r.get("actions", {}).get("label", {}).get("add", [])), None)
         assert ci_rule is not None, "CI label rule not found"
 
         conditions = " ".join(str(c) for c in ci_rule.get("conditions", []))
@@ -874,8 +869,7 @@ class TestMergifyFilePatterns:
         config = self._load_config()
         rules = config["pull_request_rules"]
         doc_rule = next(
-            (r for r in rules if "documentation" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
+            (r for r in rules if "documentation" in r.get("actions", {}).get("label", {}).get("add", [])), None
         )
         assert doc_rule is not None, "Documentation label rule not found"
 
@@ -888,15 +882,12 @@ class TestMergifyFilePatterns:
         config = self._load_config()
         rules = config["pull_request_rules"]
         dep_rule = next(
-            (r for r in rules if "dependencies" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
+            (r for r in rules if "dependencies" in r.get("actions", {}).get("label", {}).get("add", [])), None
         )
         assert dep_rule is not None, "Dependencies label rule not found"
 
         conditions = " ".join(str(c) for c in dep_rule.get("conditions", []))
-        has_pkg_files = any(
-            keyword in conditions for keyword in ["requirements", "pyproject.toml", "package.json"]
-        )
+        has_pkg_files = any(keyword in conditions for keyword in ["requirements", "pyproject.toml", "package.json"])
         assert has_pkg_files, "Dependencies rule should match package files"
 
 
@@ -944,9 +935,7 @@ class TestMergifyRegressionCases:
             if "stale" in rule.get("actions", {}).get("label", {}).get("add", []):
                 if "comment" in rule.get("actions", {}):
                     message = rule["actions"]["comment"]["message"].lower()
-                    has_removal_info = any(
-                        keyword in message for keyword in ["remove", "push", "update", "commit"]
-                    )
+                    has_removal_info = any(keyword in message for keyword in ["remove", "push", "update", "commit"])
                     assert has_removal_info, (
                         f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
                     )
@@ -970,8 +959,7 @@ class TestMergifyRegressionCases:
 
         # Find stale removal rule
         stale_remove_rule = next(
-            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])),
-            None
+            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])), None
         )
         assert stale_remove_rule is not None, "Stale removal rule not found"
 

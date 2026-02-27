@@ -160,7 +160,8 @@ class TestMergifyComplexScenarios:
         rules = config["pull_request_rules"]
 
         bot_auto_merge_rules = [
-            r for r in rules
+            r
+            for r in rules
             if "merge" in r.get("actions", {})
             and any(bot in str(r.get("conditions", [])) for bot in ["dependabot", "snyk-bot"])
         ]
@@ -170,9 +171,7 @@ class TestMergifyComplexScenarios:
         for rule in bot_auto_merge_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
             # Must require a passing CI check
-            assert "check-success" in conditions, (
-                f"Bot auto-merge rule '{rule.get('name')}' must require passing CI"
-            )
+            assert "check-success" in conditions, f"Bot auto-merge rule '{rule.get('name')}' must require passing CI"
 
     def test_size_label_updates_when_pr_changes(self):
         """
@@ -204,9 +203,12 @@ class TestMergifyComplexScenarios:
         rules = config["pull_request_rules"]
 
         content_label_rules = [
-            r for r in rules
-            if any(label in r.get("actions", {}).get("label", {}).get("add", [])
-                   for label in ["security", "ci", "documentation", "dependencies"])
+            r
+            for r in rules
+            if any(
+                label in r.get("actions", {}).get("label", {}).get("add", [])
+                for label in ["security", "ci", "documentation", "dependencies"]
+            )
         ]
 
         assert len(content_label_rules) >= 4, "Should have at least 4 content label rules"
@@ -214,9 +216,7 @@ class TestMergifyComplexScenarios:
         for rule in content_label_rules:
             label_action = rule.get("actions", {}).get("label", {})
             # Content rules should use add, not toggle
-            assert "add" in label_action, (
-                f"Content rule '{rule.get('name')}' should use 'add' for cumulative labels"
-            )
+            assert "add" in label_action, f"Content rule '{rule.get('name')}' should use 'add' for cumulative labels"
 
     def test_review_automation_excludes_bot_prs(self):
         """
@@ -235,9 +235,7 @@ class TestMergifyComplexScenarios:
             assert "-author=dependabot[bot]" in conditions, (
                 f"Review request rule '{rule.get('name')}' should exclude dependabot"
             )
-            assert "-author=snyk-bot" in conditions, (
-                f"Review request rule '{rule.get('name')}' should exclude snyk-bot"
-            )
+            assert "-author=snyk-bot" in conditions, f"Review request rule '{rule.get('name')}' should exclude snyk-bot"
 
     def test_stale_workflow_prevents_premature_closure(self):
         """
@@ -248,9 +246,7 @@ class TestMergifyComplexScenarios:
         rules = config["pull_request_rules"]
 
         # Find stale removal rule
-        stale_remove_rules = [
-            r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])
-        ]
+        stale_remove_rules = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])]
         assert len(stale_remove_rules) > 0, "No stale removal rule found"
 
         for rule in stale_remove_rules:
@@ -273,9 +269,7 @@ class TestMergifyComplexScenarios:
 
         # Count rules that could apply to a hypothetical PR changing requirements.txt
         size_rules = [r for r in rules if "size/" in str(r.get("actions", {}).get("label", {}))]
-        dependency_rules = [
-            r for r in rules if "dependencies" in r.get("actions", {}).get("label", {}).get("add", [])
-        ]
+        dependency_rules = [r for r in rules if "dependencies" in r.get("actions", {}).get("label", {}).get("add", [])]
 
         assert len(size_rules) >= 1, "Should have size labeling rules"
         assert len(dependency_rules) >= 1, "Should have dependency labeling rules"
@@ -306,9 +300,7 @@ class TestMergifySecurityAndSafety:
 
         for rule in auto_merge_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
-            assert "check-success" in conditions, (
-                f"Auto-merge rule '{rule.get('name')}' must require passing CI check"
-            )
+            assert "check-success" in conditions, f"Auto-merge rule '{rule.get('name')}' must require passing CI check"
 
     def test_no_auto_merge_for_large_changes(self):
         """
@@ -319,10 +311,12 @@ class TestMergifySecurityAndSafety:
         rules = config["pull_request_rules"]
 
         dep_auto_merge = next(
-            (r for r in rules
-             if "dependabot" in str(r.get("conditions", [])).lower()
-             and "merge" in r.get("actions", {})),
-            None
+            (
+                r
+                for r in rules
+                if "dependabot" in str(r.get("conditions", [])).lower() and "merge" in r.get("actions", {})
+            ),
+            None,
         )
         assert dep_auto_merge is not None, "Dependabot auto-merge rule not found"
 
@@ -373,16 +367,12 @@ class TestMergifySecurityAndSafety:
         config = load_config()
         rules = config["pull_request_rules"]
 
-        stale_add_rules = [
-            r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])
-        ]
+        stale_add_rules = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])]
         assert len(stale_add_rules) > 0, "No stale marking rules found"
 
         for rule in stale_add_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
-            assert "-closed" in conditions, (
-                f"Stale marking rule '{rule.get('name')}' should exclude closed PRs"
-            )
+            assert "-closed" in conditions, f"Stale marking rule '{rule.get('name')}' should exclude closed PRs"
 
 
 @pytest.mark.integration
@@ -410,11 +400,11 @@ class TestMergifyRulePriority:
                 for cond in rule.get("conditions", []):
                     cond_str = str(cond)
                     if ">=" in cond_str and "#modified-lines" in cond_str:
-                        threshold = int(re.search(r'(\d+)', cond_str).group(1))
+                        threshold = int(re.search(r"(\d+)", cond_str).group(1))
                         if line_count < threshold:
                             matches = False
                     if "<" in cond_str and ">=" not in cond_str and "#modified-lines" in cond_str:
-                        threshold = int(re.search(r'(\d+)', cond_str).group(1))
+                        threshold = int(re.search(r"(\d+)", cond_str).group(1))
                         if line_count >= threshold:
                             matches = False
                 if matches:
