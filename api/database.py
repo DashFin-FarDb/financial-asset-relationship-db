@@ -24,7 +24,9 @@ def _get_database_url() -> str:
     """
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set before using the database")
+        raise ValueError(
+            "DATABASE_URL environment variable must be set before using the database"
+        )
     return database_url
 
 
@@ -96,14 +98,14 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """Determine if the given path is an in-memory SQLite database.
-    
+
     This function checks if the provided database path or URI corresponds  to a
     valid in-memory SQLite database pattern. It recognizes standard  in-memory
     database identifiers such as ":memory:" and URI-style  identifiers like
     "file::memory:?cache=shared". The function ensures  that ":memory:" is not part
     of a longer file path, as per SQLite  documentation, and will return False for
     such cases.
-    
+
     Args:
         path (str | None): Optional database path or URI to evaluate.
     """
@@ -114,7 +116,9 @@ def _is_memory_db(path: str | None = None) -> bool:
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
     # The :memory: token must be the entire path component (not part of a longer path).
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
+    if parsed.scheme == "file" and (
+        parsed.path == ":memory:" or ":memory:" in parsed.query
+    ):
         return True
 
     return False
@@ -242,11 +246,11 @@ def execute(query: str, parameters: tuple | list | None = None) -> None:
 
 def fetch_one(query: str, parameters: tuple | list | None = None):
     """Retrieve the first row produced by an SQL query.
-    
+
     Args:
         query (str): SQL statement to execute.
         parameters (tuple | list | None): Optional sequence of parameters to bind into the query.
-    
+
     Returns:
         sqlite3.Row | None: The first row of the result set as a `sqlite3.Row`, or
             `None` if no rows are returned.
@@ -258,12 +262,12 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
 
 def fetch_value(query: str, parameters: tuple | list | None = None):
     """Fetches the first column value from the first row of a query result.
-    
+
     Args:
         query (str): SQL query to execute; may include parameter placeholders.
         parameters (tuple | list | None): Sequence of parameters for the query
             placeholders.
-    
+
     Returns:
         The first column value if a row is returned, `None` otherwise.
     """
@@ -285,7 +289,8 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    execute("""
+    execute(
+        """
         CREATE TABLE IF NOT EXISTS user_credentials(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -294,4 +299,5 @@ def initialize_schema() -> None:
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
         );
-        """)
+        """
+    )
