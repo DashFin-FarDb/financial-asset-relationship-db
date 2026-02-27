@@ -272,9 +272,7 @@ class TestUserRepository:
     @patch("api.auth.execute")
     def test_create_or_update_user_disabled(self, mock_execute, user_repo):
         """Test creating a disabled user."""
-        user_repo.create_or_update_user(
-            username="disabled_user", hashed_password="hashed_pwd", is_disabled=True
-        )
+        user_repo.create_or_update_user(username="disabled_user", hashed_password="hashed_pwd", is_disabled=True)
 
         call_args = mock_execute.call_args
         assert call_args[0][1][4] == 1  # disabled=True -> 1
@@ -362,9 +360,7 @@ class TestJWTOperations:
 
     @pytest.mark.asyncio
     @patch("api.auth.user_repository.get_user")
-    async def test_get_current_user_valid_token(
-        self, mock_get_user, valid_token, mock_user
-    ):
+    async def test_get_current_user_valid_token(self, mock_get_user, valid_token, mock_user):
         mock_get_user.return_value = mock_user
 
         user = await get_current_user(valid_token)
@@ -410,9 +406,7 @@ class TestGetCurrentActiveUser:
 
     @pytest.fixture
     def disabled_user(self):
-        return User(
-            username="disableduser", email="disabled@example.com", disabled=True, hashed_password="hash"
-        )
+        return User(username="disableduser", email="disabled@example.com", disabled=True, hashed_password="hash")
 
     @pytest.mark.asyncio
     async def test_get_current_active_user_success(self, active_user):
@@ -575,9 +569,7 @@ class TestUserRepositoryParameterNameChanges:
 
     @patch("api.auth.execute")
     @patch("api.auth.fetch_one")
-    def test_create_or_update_user_with_new_parameter_names(
-        self, mock_fetch, mock_execute
-    ):
+    def test_create_or_update_user_with_new_parameter_names(self, mock_fetch, mock_execute):
         """Test create_or_update_user uses new parameter names correctly."""
         repository = UserRepository()
 
@@ -603,9 +595,7 @@ class TestUserRepositoryParameterNameChanges:
         """Test that disabled=True is converted to 1."""
         repository = UserRepository()
 
-        repository.create_or_update_user(
-            username="disableduser", hashed_password="hashed", is_disabled=True
-        )
+        repository.create_or_update_user(username="disableduser", hashed_password="hashed", is_disabled=True)
 
         call_args = mock_execute.call_args[0][1]
         assert 1 in call_args  # disabled=True should be 1
@@ -908,9 +898,7 @@ class TestAuthenticationEdgeCases:
     @patch("api.auth.user_repository.get_user")
     def test_authenticate_with_empty_password(self, mock_get_user):
         """Test authentication with empty password."""
-        mock_user = UserInDB(
-            username="test", hashed_password=get_password_hash("realpass")
-        )
+        mock_user = UserInDB(username="test", hashed_password=get_password_hash("realpass"))
         mock_get_user.return_value = mock_user
 
         result = authenticate_user("test", "")
@@ -919,9 +907,7 @@ class TestAuthenticationEdgeCases:
     @patch("api.auth.user_repository.get_user")
     def test_authenticate_with_none_password(self, mock_get_user):
         """Test authentication with None password raises appropriate error."""
-        mock_get_user.return_value = UserInDB(
-            username="test", hashed_password=get_password_hash("realpass")
-        )
+        mock_get_user.return_value = UserInDB(username="test", hashed_password=get_password_hash("realpass"))
 
         # verify_password may raise or return False for a None password
         try:
@@ -1056,9 +1042,7 @@ class TestAuthenticationIntegrationFlow:
         assert retrieved_user.username == "newuser"
 
         # Step 3: Authenticate (use the same repository instance)
-        authenticated = authenticate_user(
-            "newuser", plain_password, repository=repository
-        )
+        authenticated = authenticate_user("newuser", plain_password, repository=repository)
         assert authenticated is not False
         assert authenticated.username == "newuser"
 
