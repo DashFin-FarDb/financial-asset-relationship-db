@@ -501,8 +501,8 @@ class TestBestPractices:
     def test_has_monitoring_enabled(self, config):
         """Monitoring should be configured for production use."""
         pass
-        pass
-        pass
+        monitoring = config.get("monitoring", {})
+        assert monitoring, "Monitoring configuration should not be empty"
         assert "monitoring" in config, "Configuration should include monitoring section"
 
     def test_has_reasonable_defaults(self, config):
