@@ -265,20 +265,7 @@ def authenticate_user(
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """
-    Create a JWT access token that includes an expiry (`exp`) claim.
-
-    Parameters:
-        data (dict):
-            Claims to include in the token payload.
-            The function will add or overwrite the `exp` claim.
-        expires_delta (Optional[timedelta]):
-            Time span after which the token expires; if omitted the token
-            expires in 15 minutes.
-
-    Returns:
-        str: Encoded JWT as a compact string.
-    """
+    """Create a JWT access token with an expiry claim."""
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
