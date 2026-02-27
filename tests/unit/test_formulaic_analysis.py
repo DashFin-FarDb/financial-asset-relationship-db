@@ -1205,3 +1205,35 @@ class TestIntegrationScenarios:
         formulas = result["formulas"]
         correlation_formulas = [f for f in formulas if "Correlation" in f.name or "Beta" in f.name]
         assert len(correlation_formulas) > 0
+
+    @staticmethod
+    def test_analyze_graph_quality_score_calculation():
+        """Test that quality score is calculated and within valid range [0, 1]."""
+        analyzer = FormulaicAnalyzer()
+        graph = AssetRelationshipGraph()
+
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            pe_ratio=25.5,
+        )
+        graph.add_asset(equity)
+        graph.build_relationships()
+
+        # Run analyzer to ensure it still works with the graph
+        result = analyzer.analyze_graph(graph)
+        assert "summary" in result
+        quality_score = result["summary"].get("quality_score")
+        assert quality_score is not None
+        assert 0.0 <= quality_score <= 1.0
+        assert isinstance(result["formula_count"], int)
+        assert result["formula_count"] > 0
+        # Explicitly verify the graph's quality score metric is present and bounded
+        metrics = graph.calculate_metrics()
+        assert "quality_score" in metrics
+        assert isinstance(metrics["quality_score"], float)
+        assert 0.0 <= metrics["quality_score"] <= 1.0

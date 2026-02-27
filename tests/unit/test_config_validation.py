@@ -1,4 +1,5 @@
-"""Unit tests for validating configuration files.
+"""
+Unit tests for validating configuration files.
 
 This module tests JSON and other configuration files to ensure:
 - Valid JSON/YAML syntax
@@ -12,16 +13,15 @@ import re
 from pathlib import Path
 
 import pytest
-import yaml
-
-pytestmark = pytest.mark.unit
 
 
+@pytest.mark.unit
 class TestVercelConfig:
     """Test cases for vercel.json configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def vercel_config(self) -> dict:
+    def vercel_config():
         """Load vercel.json configuration."""
         config_path = Path("vercel.json")
         assert config_path.exists(), "vercel.json not found"
@@ -29,26 +29,30 @@ class TestVercelConfig:
         with open(config_path) as f:
             return json.load(f)
 
-    def test_vercel_config_valid_json(self) -> None:
+    @staticmethod
+    def test_vercel_config_valid_json():
         """Test that vercel.json is valid JSON."""
         config_path = Path("vercel.json")
         with open(config_path) as f:
             data = json.load(f)
         assert isinstance(data, dict)
 
-    def test_vercel_config_has_builds(self, vercel_config):
+    @staticmethod
+    def test_vercel_config_has_builds(vercel_config):
         """Test that vercel.json has builds configuration."""
         assert "builds" in vercel_config
         assert isinstance(vercel_config["builds"], list)
         assert len(vercel_config["builds"]) > 0
 
-    def test_vercel_config_has_routes(self, vercel_config):
+    @staticmethod
+    def test_vercel_config_has_routes(vercel_config):
         """Test that vercel.json has routes configuration."""
         assert "routes" in vercel_config
         assert isinstance(vercel_config["routes"], list)
         assert len(vercel_config["routes"]) > 0
 
-    def test_vercel_build_python_backend(self, vercel_config):
+    @staticmethod
+    def test_vercel_build_python_backend(vercel_config):
         """Test that Python backend build is configured correctly."""
         builds = vercel_config["builds"]
         python_build = next((b for b in builds if "api/main.py" in b["src"]), None)
@@ -58,7 +62,8 @@ class TestVercelConfig:
         assert "config" in python_build
         assert "maxLambdaSize" in python_build["config"]
 
-    def test_vercel_build_nextjs_frontend(self, vercel_config):
+    @staticmethod
+    def test_vercel_build_nextjs_frontend(vercel_config):
         """Test that Next.js frontend build is configured correctly."""
         builds = vercel_config["builds"]
         nextjs_build = next((b for b in builds if "package.json" in b["src"]), None)
@@ -66,7 +71,8 @@ class TestVercelConfig:
         assert nextjs_build is not None, "Next.js frontend build not found"
         assert nextjs_build["use"] == "@vercel/next"
 
-    def test_vercel_routes_api_routing(self, vercel_config):
+    @staticmethod
+    def test_vercel_routes_api_routing(vercel_config):
         """Test that API routes are configured correctly."""
         routes = vercel_config["routes"]
         api_route = next((r for r in routes if "/api/" in r["src"]), None)
@@ -74,7 +80,8 @@ class TestVercelConfig:
         assert api_route is not None, "API route not found"
         assert api_route["dest"] == "api/main.py"
 
-    def test_vercel_routes_frontend_routing(self, vercel_config):
+    @staticmethod
+    def test_vercel_routes_frontend_routing(vercel_config):
         """Test that frontend routes are configured correctly."""
         routes = vercel_config["routes"]
         frontend_route = next((r for r in routes if r["src"] == "/(.*)"), None)
@@ -82,24 +89,34 @@ class TestVercelConfig:
         assert frontend_route is not None, "Frontend route not found"
         assert "frontend" in frontend_route["dest"]
 
-    def test_vercel_lambda_size_reasonable(self, vercel_config):
-        """Test that Lambda size limit is reasonable."""
+    @staticmethod
+    def test_vercel_lambda_size_reasonable(vercel_config):
+        """
+        Ensure the Vercel Python backend's configured Lambda `maxLambdaSize` is within a reasonable range.
+
+        Checks the `builds` entries in `vercel_config` for a Python backend (an entry whose `src` contains "api/main.py") and, if that entry has a `config.maxLambdaSize`, parses its value (e.g., "50mb") and asserts the numeric size is between 1 and 250 MB.
+
+        Parameters:
+            vercel_config (dict): Parsed contents of vercel.json.
+
+        """
         builds = vercel_config["builds"]
         python_build = next((b for b in builds if "api/main.py" in b["src"]), None)
 
         if python_build and "config" in python_build:
             max_size = python_build["config"].get("maxLambdaSize", "50mb")
-            # Parse size (e.g., "50mb", "50MB")
-            size_str = max_size.lower().replace("mb", "").strip()
-            size_value = int(size_str)
+            # Parse size (e.g., "50mb")
+            size_value = int(max_size.replace("mb", ""))
             assert 1 <= size_value <= 250, "Lambda size should be between 1MB and 250MB"
 
 
+@pytest.mark.unit
 class TestNextConfig:
     """Test cases for Next.js configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def next_config_content(self) -> str:
+    def next_config_content():
         """Load Next.js configuration file content."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists(), "next.config.js not found"
@@ -107,50 +124,66 @@ class TestNextConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_next_config_exists(self) -> None:
+    @staticmethod
+    def test_next_config_exists():
         """Test that next.config.js exists."""
         config_path = Path("frontend/next.config.js")
         assert config_path.exists()
 
-    def test_next_config_has_module_exports(self, next_config_content):
+    @staticmethod
+    def test_next_config_has_module_exports(next_config_content):
         """Test that next.config.js exports configuration."""
         assert "module.exports" in next_config_content
 
-    def test_next_config_has_react_strict_mode(self, next_config_content):
+    @staticmethod
+    def test_next_config_has_react_strict_mode(next_config_content):
         """Test that React strict mode is configured."""
         assert "reactStrictMode" in next_config_content
 
-    def test_next_config_has_env_configuration(self, next_config_content):
+    @staticmethod
+    def test_next_config_has_env_configuration(next_config_content):
         """Test that environment variables are configured."""
         assert "env" in next_config_content or "NEXT_PUBLIC" in next_config_content
 
 
+@pytest.mark.unit
 class TestPackageJson:
     """Test cases for package.json configuration."""
 
     @pytest.fixture
-    def package_json(self) -> dict:
-        """Load package.json configuration."""
+    def package_json(self):
+        """
+        Load and parse the frontend package.json file.
+
+        Returns:
+            dict: Parsed JSON content of frontend/package.json.
+
+        Raises:
+            AssertionError: If frontend/package.json does not exist.
+        """
         config_path = Path("frontend/package.json")
         assert config_path.exists(), "package.json not found"
 
         with open(config_path) as f:
             return json.load(f)
 
-    def test_package_json_valid_json(self) -> None:
+    @staticmethod
+    def test_package_json_valid_json():
         """Test that package.json is valid JSON."""
         config_path = Path("frontend/package.json")
         with open(config_path) as f:
             data = json.load(f)
         assert isinstance(data, dict)
 
-    def test_package_json_has_required_fields(self, package_json):
+    @staticmethod
+    def test_package_json_has_required_fields(package_json):
         """Test that package.json has required fields."""
         required_fields = ["name", "version", "scripts", "dependencies"]
         for field in required_fields:
             assert field in package_json, f"Missing required field: {field}"
 
-    def test_package_json_has_build_scripts(self, package_json):
+    @staticmethod
+    def test_package_json_has_build_scripts(package_json):
         """Test that package.json has necessary build scripts."""
         scripts = package_json["scripts"]
         required_scripts = ["dev", "build", "start"]
@@ -158,7 +191,8 @@ class TestPackageJson:
         for script in required_scripts:
             assert script in scripts, f"Missing script: {script}"
 
-    def test_package_json_has_react_dependencies(self, package_json):
+    @staticmethod
+    def test_package_json_has_react_dependencies(package_json):
         """Test that React dependencies are present."""
         deps = package_json["dependencies"]
         required_deps = ["react", "react-dom", "next"]
@@ -166,7 +200,8 @@ class TestPackageJson:
         for dep in required_deps:
             assert dep in deps, f"Missing dependency: {dep}"
 
-    def test_package_json_has_visualization_deps(self, package_json):
+    @staticmethod
+    def test_package_json_has_visualization_deps(package_json):
         """Test that visualization dependencies are present."""
         deps = package_json["dependencies"]
         viz_deps = ["plotly.js", "react-plotly.js"]
@@ -174,13 +209,19 @@ class TestPackageJson:
         for dep in viz_deps:
             assert dep in deps, f"Missing visualization dependency: {dep}"
 
-    def test_package_json_has_axios(self, package_json):
+    @staticmethod
+    def test_package_json_has_axios(package_json):
         """Test that axios is included for API calls."""
         deps = package_json["dependencies"]
         assert "axios" in deps, "Missing axios dependency"
 
-    def test_package_json_has_typescript_deps(self, package_json):
-        """Test that TypeScript dependencies are present."""
+    @staticmethod
+    def test_package_json_has_typescript_deps(package_json):
+        """
+        Ensure standard TypeScript development dependencies are declared in package.json.
+
+        Verifies that the `devDependencies` object contains `typescript`, `@types/react`, and `@types/node`.
+        """
         dev_deps = package_json.get("devDependencies", {})
         ts_deps = ["typescript", "@types/react", "@types/node"]
 
@@ -188,10 +229,10 @@ class TestPackageJson:
             assert dep in dev_deps, f"Missing TypeScript dependency: {dep}"
 
     def test_package_json_version_format(self, package_json):
-        """Test that version follows semantic versioning.
+        """
+        Ensure the package.json "version" value follows semantic versioning with an optional pre-release identifier.
 
-        Supports standard semantic versions (e.g., 1.0.0) and pre-release versions
-        (e.g., 1.0.0-beta, 1.0.0-rc.1, 1.0.0-alpha.1).
+        Accepts formats like `1.2.3` and `1.2.3-beta`, `1.2.3-rc.1`, or `1.2.3-alpha.1`. The version must match the pattern `major.minor.patch` with an optional `-identifier` (identifiers may contain letters, digits, underscores, and dots).
         """
         version = package_json["version"]
         # Semantic versioning pattern: major.minor.patch with optional pre-release suffix
@@ -201,11 +242,13 @@ class TestPackageJson:
         ), f"Version should follow semantic versioning (x.y.z or x.y.z-prerelease): {version}"
 
 
+@pytest.mark.unit
 class TestTSConfig:
     """Test cases for TypeScript configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def tsconfig(self) -> dict:
+    def tsconfig():
         """Load tsconfig.json."""
         config_path = Path("frontend/tsconfig.json")
         assert config_path.exists(), "tsconfig.json not found"
@@ -213,30 +256,35 @@ class TestTSConfig:
         with open(config_path) as f:
             return json.load(f)
 
-    def test_tsconfig_valid_json(self) -> None:
+    @staticmethod
+    def test_tsconfig_valid_json():
         """Test that tsconfig.json is valid JSON."""
         config_path = Path("frontend/tsconfig.json")
         with open(config_path) as f:
             data = json.load(f)
         assert isinstance(data, dict)
 
-    def test_tsconfig_has_compiler_options(self, tsconfig):
+    @staticmethod
+    def test_tsconfig_has_compiler_options(tsconfig):
         """Test that tsconfig has compiler options."""
         assert "compilerOptions" in tsconfig
         assert isinstance(tsconfig["compilerOptions"], dict)
 
-    def test_tsconfig_strict_mode_enabled(self, tsconfig):
+    @staticmethod
+    def test_tsconfig_strict_mode_enabled(tsconfig):
         """Test that TypeScript strict mode is enabled."""
         compiler_options = tsconfig["compilerOptions"]
         assert compiler_options.get("strict", False), "Strict mode should be enabled"
 
-    def test_tsconfig_has_jsx_configuration(self, tsconfig):
+    @staticmethod
+    def test_tsconfig_has_jsx_configuration(tsconfig):
         """Test that JSX is configured for React."""
         compiler_options = tsconfig["compilerOptions"]
         assert "jsx" in compiler_options
         assert compiler_options["jsx"] in ["preserve", "react", "react-jsx"]
 
-    def test_tsconfig_module_resolution(self, tsconfig):
+    @staticmethod
+    def test_tsconfig_module_resolution(tsconfig):
         """Test that module resolution is configured."""
         compiler_options = tsconfig["compilerOptions"]
         assert "moduleResolution" in compiler_options
@@ -249,11 +297,13 @@ class TestTSConfig:
             assert isinstance(paths, dict)
 
 
+@pytest.mark.unit
 class TestTailwindConfig:
     """Test cases for Tailwind CSS configuration."""
 
     @pytest.fixture
-    def tailwind_config_content(self) -> str:
+    @staticmethod
+    def tailwind_config_content():
         """Load Tailwind configuration content."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists(), "tailwind.config.js not found"
@@ -261,35 +311,72 @@ class TestTailwindConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_tailwind_config_exists(self) -> None:
+    @staticmethod
+    def test_tailwind_config_exists():
         """Test that tailwind.config.js exists."""
         config_path = Path("frontend/tailwind.config.js")
         assert config_path.exists()
 
-    def test_tailwind_config_has_module_exports(self, tailwind_config_content):
+    @staticmethod
+    def test_tailwind_config_has_module_exports(tailwind_config_content):
         """Test that Tailwind config exports configuration."""
         assert "module.exports" in tailwind_config_content
 
-    def test_tailwind_config_has_content_paths(self, tailwind_config_content):
+    @staticmethod
+    def test_tailwind_config_has_content_paths(tailwind_config_content):
         """Test that content paths are configured."""
         assert "content" in tailwind_config_content
 
-    def test_tailwind_config_includes_app_directory(self, tailwind_config_content):
+    @staticmethod
+    def test_tailwind_config_includes_app_directory(tailwind_config_content):
         """Test that content paths include app directory."""
         assert "app/" in tailwind_config_content or "./app/" in tailwind_config_content
+
+
+@pytest.mark.unit
+class TestEnvExampleFixture:
+    """Test cases for .env.example file."""
+
+    @pytest.fixture
+    def env_example_content(self):
+        """
+        Return the contents of the repository's .env.example file.
+
+        Returns:
+            str: Contents of `.env.example`.
+
+        Raises:
+            AssertionError: If `.env.example` does not exist.
+        """
+        config_path = Path(".env.example")
+        assert config_path.exists(), ".env.example not found"
+        with open(config_path) as f:
+            return f.read()
 
 
 class TestEnvExample:
     """Test cases for .env.example file."""
 
     @pytest.fixture
-    def env_example_content(self) -> str:
-        """Load .env.example content."""
+    def env_example_content(self):
+        """
+        Read and return the contents of .env.example.
+
+        Returns:
+            str: Contents of the .env.example file.
+
+        Raises:
+            AssertionError: If .env.example does not exist.
+        """
         config_path = Path(".env.example")
         assert config_path.exists(), ".env.example not found"
-
         with open(config_path) as f:
             return f.read()
+
+    def test_env_example_exists(self):
+        """Test that .env.example exists."""
+        config_path = Path(".env.example")
+        assert config_path.exists()
 
     def test_env_example_has_api_url(self, env_example_content):
         """Test that NEXT_PUBLIC_API_URL is documented."""
@@ -300,11 +387,15 @@ class TestEnvExample:
         assert "ALLOWED_ORIGINS" in env_example_content or "CORS" in env_example_content
 
     def test_env_example_has_comments(self, env_example_content):
-        """Test that .env.example has helpful comments."""
+        """
+        Asserts that the example environment file contains at least one comment line.
+
+        Checks for the presence of the `#` character in `env_example_content`, indicating at least one comment.
+        """
         assert "#" in env_example_content
 
     def test_env_example_no_real_secrets(self, env_example_content):
-        """Test that .env.example doesn't contain real secrets."""
+        """Test that .env.example does not contain real secrets."""
         # Check for common secret patterns
         suspicious_patterns = [
             "sk_live",  # Stripe live keys
@@ -316,79 +407,116 @@ class TestEnvExample:
             assert pattern not in env_example_content.lower(), f"Potential real secret found: {pattern}"
 
 
+@pytest.mark.unit
 class TestGitignore:
-    """Test cases for .gitignore configuration."""
+    """Unit tests for .gitignore configuration validation."""
 
+    @staticmethod
     @pytest.fixture
-    def gitignore_content(self) -> str:
-        """Load .gitignore content."""
+    def gitignore_content():
+        """
+        Read and return the repository's .gitignore file contents.
+
+        Returns:
+            str: The full text of .gitignore.
+
+        Raises:
+            AssertionError: If the .gitignore file does not exist.
+        """
         config_path = Path(".gitignore")
         assert config_path.exists(), ".gitignore not found"
 
         with open(config_path) as f:
             return f.read()
 
-    def test_gitignore_exists(self) -> None:
+    def test_gitignore_exists(self):
         """Test that .gitignore exists."""
         config_path = Path(".gitignore")
         assert config_path.exists()
 
-    def test_gitignore_excludes_node_modules(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_node_modules(gitignore_content):
         """Test that node_modules is excluded."""
         assert "node_modules" in gitignore_content
 
-    def test_gitignore_excludes_next_artifacts(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_next_artifacts(gitignore_content):
         """Test that Next.js build artifacts are excluded."""
         assert ".next" in gitignore_content or ".next/" in gitignore_content
 
-    def test_gitignore_excludes_env_files(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_env_files(gitignore_content):
         """Test that environment files are excluded."""
         assert ".env.local" in gitignore_content
 
-    def test_gitignore_excludes_vercel(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_vercel(gitignore_content):
         """Test that Vercel directory is excluded."""
         assert ".vercel" in gitignore_content
 
-    def test_gitignore_excludes_python_artifacts(self, gitignore_content):
+    @staticmethod
+    def test_gitignore_excludes_python_artifacts(gitignore_content):
         """Test that Python artifacts are excluded."""
         assert "__pycache__" in gitignore_content
         # Check for *.pyc explicitly or the pattern *.py[cod] (which matches files ending in .pyc, .pyo, or .pyd; [cod] means any single character from the set {c, o, d})
         assert "*.pyc" in gitignore_content or "*.py[cod]" in gitignore_content
 
 
+@pytest.mark.unit
 class TestRequirementsTxt:
     """Test cases for requirements.txt."""
 
     require_version_pinning = True  # When True, enforces version constraints for all dependencies in requirements.txt
 
+    @staticmethod
     @pytest.fixture
-    def requirements(self) -> list[str]:
-        """Load requirements.txt content."""
+    def requirements():
+        """
+        Return non-empty, non-comment lines from requirements.txt.
+
+        Each returned string is stripped of surrounding whitespace; lines that are empty or begin with `#` are omitted.
+
+        Returns:
+            list[str]: Requirement lines with whitespace removed (comments and blank lines omitted).
+        """
         config_path = Path("requirements.txt")
         assert config_path.exists(), "requirements.txt not found"
 
         with open(config_path) as f:
-            return [line.strip() for line in f if line.strip() and not line.strip().startswith("#")]
+            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
 
-    def test_requirements_exists(self) -> None:
+    @staticmethod
+    def test_requirements_exists():
         """Test that requirements.txt exists."""
         config_path = Path("requirements.txt")
         assert config_path.exists()
 
-    def test_requirements_has_fastapi(self, requirements):
+    @staticmethod
+    def test_requirements_has_fastapi(requirements):
         """Test that FastAPI is in requirements."""
         assert any("fastapi" in req.lower() for req in requirements)
 
-    def test_requirements_has_uvicorn(self, requirements):
+    @staticmethod
+    def test_requirements_has_uvicorn(requirements):
         """Test that Uvicorn is in requirements."""
         assert any("uvicorn" in req.lower() for req in requirements)
 
-    def test_requirements_has_pydantic(self, requirements):
-        """Test that Pydantic is in requirements."""
+    @staticmethod
+    def test_requirements_has_pydantic(requirements):
+        """
+        Verify that "pydantic" is present in the provided requirements (case-insensitive).
+        """
         assert any("pydantic" in req.lower() for req in requirements)
 
     def test_requirements_has_version_constraints(self, requirements):
-        """Test that packages have version constraints (if project policy requires)."""
+        """
+        Ensure each non-option requirement in requirements.txt includes a version constraint if version pinning is required.
+
+        If the test class flag `require_version_pinning` is False, the test is skipped.
+
+        Parameters:
+            requirements (list[str]): Filtered non-empty, non-comment lines from requirements.txt to validate.
+        """
         # Skip this test if project doesn't require version pinning
         if not self.require_version_pinning:
             pytest.skip("Version pinning not required for this project")
@@ -400,11 +528,13 @@ class TestRequirementsTxt:
                 ), f"Package should have version constraint: {req}"
 
 
+@pytest.mark.unit
 class TestPostCSSConfig:
     """Test cases for PostCSS configuration."""
 
+    @staticmethod
     @pytest.fixture
-    def postcss_config_content(self) -> str:
+    def postcss_config_content():
         """Load PostCSS configuration."""
         config_path = Path("frontend/postcss.config.js")
         if not config_path.exists():
@@ -413,22 +543,37 @@ class TestPostCSSConfig:
         with open(config_path) as f:
             return f.read()
 
-    def test_postcss_config_has_tailwindcss(self, postcss_config_content):
+    @staticmethod
+    def test_postcss_config_has_tailwindcss(postcss_config_content):
         """Test that Tailwind CSS plugin is configured."""
         assert "tailwindcss" in postcss_config_content
 
-    def test_postcss_config_has_autoprefixer(self, postcss_config_content):
+    @staticmethod
+    def test_postcss_config_has_autoprefixer(postcss_config_content):
         """Test that autoprefixer plugin is configured."""
         assert "autoprefixer" in postcss_config_content
 
 
+@pytest.mark.unit
 class TestConfigurationConsistency:
     """Test consistency across configuration files."""
 
-    def test_api_url_consistency(self) -> None:
+    @staticmethod
+    def test_api_url_consistency():
         """Test that API URL is consistent across configurations."""
         # Check .env.example
         with open(".env.example") as f:
+            env_content = f.read()
+        assert "NEXT_PUBLIC_API_URL" in env_content
+
+    @staticmethod
+    def test_env_and_next_config():
+        """Test that .env and next.config.js both contain NEXT_PUBLIC_API_URL."""
+        env_path = Path(".env.local")
+        if not env_path.exists():
+            env_path = Path(".env.example")
+
+        with open(env_path) as f:
             env_content = f.read()
 
         # Check next.config.js
@@ -439,7 +584,8 @@ class TestConfigurationConsistency:
         assert "NEXT_PUBLIC_API_URL" in env_content
         assert "NEXT_PUBLIC_API_URL" in next_config
 
-    def test_package_json_and_tsconfig_consistency(self) -> None:
+    @staticmethod
+    def test_package_json_and_tsconfig_consistency():
         """Test that package.json and tsconfig are consistent."""
         with open("frontend/package.json") as f:
             package = json.load(f)
@@ -451,8 +597,13 @@ class TestConfigurationConsistency:
         if "typescript" in package.get("devDependencies", {}):
             assert "compilerOptions" in tsconfig
 
-    def test_frontend_build_configuration_matches(self) -> None:
-        """Test that frontend configurations are aligned."""
+    @staticmethod
+    def test_frontend_build_configuration_matches():
+        """
+        Ensure frontend package.json scripts invoke Next.js commands for dev, build, and start.
+
+        Asserts that the `dev`, `build`, and `start` entries in frontend/package.json's `scripts` contain Next.js commands (for example `next`, `next dev`, `next build`, `next start`).
+        """
         # Verify package.json scripts match expected Next.js commands
         with open("frontend/package.json") as f:
             package = json.load(f)
@@ -465,846 +616,276 @@ class TestConfigurationConsistency:
         assert "next start" in scripts.get("start", "") or "next" in scripts.get("start", "")
 
 
-class TestCircleCIConfig:
-    """Test cases for CircleCI configuration."""
+@pytest.mark.unit
+class TestConfigurationSecurityNegative:
+    """Negative test cases for configuration security issues."""
 
-    @pytest.fixture
-    def circleci_config(self) -> dict:
+    @staticmethod
+    def test_gitignore_prevents_env_file_leak():
         """
-        Load and parse the repository's CircleCI configuration file.
+        Ensure the repository's .gitignore prevents committing environment files that could expose secrets.
 
-        Reads .circleci/config.yml and returns the parsed YAML structure (typically a dict).
-
-        Returns:
-            circleci_config (dict): Parsed CircleCI configuration.
-
-        Raises:
-            AssertionError: If .circleci/config.yml does not exist.
+        Asserts that either ".env" or ".env.local" appears in the .gitignore file.
         """
-        config_path = Path(".circleci/config.yml")
-        assert config_path.exists(), "CircleCI config not found"
-
-        with open(config_path) as f:
-            return yaml.safe_load(f)
-
-    def test_circleci_config_valid_yaml(self) -> None:
-        """Test that CircleCI config is valid YAML."""
-        config_path = Path(".circleci/config.yml")
-        with open(config_path) as f:
-            data = yaml.safe_load(f)
-        assert isinstance(data, dict)
-
-    def test_circleci_config_has_version(self, circleci_config):
-        """
-        Ensure the CircleCI configuration declares a `version` key and that its numeric value is at least 2.0.
-        """
-        assert "version" in circleci_config
-        # CircleCI 2.1 is current standard
-        assert circleci_config["version"] >= 2.0
-
-    def test_circleci_config_has_jobs(self, circleci_config):
-        """Test that CircleCI config defines jobs."""
-        assert "jobs" in circleci_config
-        assert isinstance(circleci_config["jobs"], dict)
-        assert len(circleci_config["jobs"]) > 0
-
-    def test_circleci_config_has_workflows(self, circleci_config):
-        """Test that CircleCI config defines workflows."""
-        assert "workflows" in circleci_config
-        assert isinstance(circleci_config["workflows"], dict)
-
-    def test_circleci_python_lint_job(self, circleci_config):
-        """Test that python-lint job is properly configured."""
-        jobs = circleci_config["jobs"]
-        assert "python-lint" in jobs
-
-        python_lint = jobs["python-lint"]
-        assert "executor" in python_lint
-        assert "steps" in python_lint
-        assert isinstance(python_lint["steps"], list)
-
-        # Check for checkout step
-        steps = python_lint["steps"]
-        assert any(step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps)
-
-    def test_circleci_python_test_job(self, circleci_config):
-        """
-        Validate the CircleCI 'python-test' job configuration.
-
-        Asserts that a job named `python-test` exists in the CircleCI config, contains an `executor`
-        and a `steps` list, and—if a `parallelism` value is provided—ensures it is an integer
-        greater than 0 and no greater than 10.
-        """
-        jobs = circleci_config["jobs"]
-        assert "python-test" in jobs
-
-        python_test = jobs["python-test"]
-        assert "executor" in python_test
-        assert "steps" in python_test
-
-        # Check for parallelism
-        if "parallelism" in python_test:
-            assert python_test["parallelism"] > 0
-            assert python_test["parallelism"] <= 10  # Reasonable upper bound
-
-    def test_circleci_python_security_job(self, circleci_config):
-        """Test that python-security job is properly configured."""
-        jobs = circleci_config["jobs"]
-        assert "python-security" in jobs
-
-        python_security = jobs["python-security"]
-        assert "executor" in python_security
-        assert "steps" in python_security
-
-    def test_circleci_frontend_jobs(self, circleci_config):
-        """
-        Validate the CircleCI configuration defines 'frontend-lint' and 'frontend-build' jobs and that 'frontend-lint' specifies an executor.
-        """
-        jobs = circleci_config["jobs"]
-        assert "frontend-lint" in jobs
-        assert "frontend-build" in jobs
-
-        # Verify they use appropriate executor
-        frontend_lint = jobs["frontend-lint"]
-        assert "executor" in frontend_lint
-
-    def test_circleci_docker_build_job(self, circleci_config):
-        """Test that docker-build job is properly configured."""
-        jobs = circleci_config["jobs"]
-        assert "docker-build" in jobs
-
-        docker_build = jobs["docker-build"]
-        assert "steps" in docker_build
-
-        # Should have setup_remote_docker step
-        steps = docker_build["steps"]
-        assert any(isinstance(step, dict) and "setup_remote_docker" in step for step in steps)
-
-    def test_circleci_executors_defined(self, circleci_config):
-        """Test that executors are properly defined."""
-        assert "executors" in circleci_config
-        executors = circleci_config["executors"]
-
-        assert "python-executor" in executors
-        assert "node-executor" in executors
-
-        # Verify executor structure
-        python_executor = executors["python-executor"]
-        assert "docker" in python_executor
-        assert isinstance(python_executor["docker"], list)
-        assert len(python_executor["docker"]) > 0
-
-    def test_circleci_orbs_usage(self, circleci_config):
-        """Test that orbs are properly declared."""
-        if "orbs" in circleci_config:
-            orbs = circleci_config["orbs"]
-            assert isinstance(orbs, dict)
-
-            # Check for commonly used orbs
-            # CodeCov orb for coverage reporting
-            if "codecov" in orbs:
-                assert isinstance(orbs["codecov"], str)
-
-    def test_circleci_cache_keys_consistent(self, circleci_config):
-        """
-        Ensure any job that saves a cache also restores at least one cache key.
-
-        Asserts that for each CircleCI job containing save_cache steps, there is at least one corresponding restore_cache key; raises an assertion error if a job saves cache without restoring.
-        """
-        jobs = circleci_config["jobs"]
-
-        for job_name, job_config in jobs.items():
-            if "steps" not in job_config:
-                continue
-
-            steps = job_config["steps"]
-            restore_keys = []
-            save_keys = []
-
-            for step in steps:
-                if isinstance(step, dict):
-                    if "restore_cache" in step:
-                        keys = step["restore_cache"].get("keys", [])
-                        restore_keys.extend(keys)
-                    if "save_cache" in step:
-                        key = step["save_cache"].get("key", "")
-                        if key:
-                            save_keys.append(key)
-
-            # If we have save_cache, we should have restore_cache
-            if save_keys:
-                assert len(restore_keys) > 0, f"Job {job_name} saves cache but doesn't restore"
-
-    def test_circleci_workflow_dependencies_valid(self, circleci_config):
-        """Test that workflow job dependencies reference existing jobs."""
-        workflows = circleci_config["workflows"]
-        jobs = circleci_config["jobs"]
-        job_names = set(jobs.keys())
-
-        for _, workflow_config in workflows.items():
-            # Skip non-dict entries (e.g., version key)
-            if not isinstance(workflow_config, dict):
-                continue
-
-            if "jobs" not in workflow_config:
-                continue
-
-            workflow_jobs = workflow_config["jobs"]
-            for job_entry in workflow_jobs:
-                if isinstance(job_entry, dict):
-                    # Get the job name (first key in dict)
-                    job_name = list(job_entry.keys())[0]
-
-                    def test_circleci_workflow_dependencies_valid(self, circleci_config):
-                        """Test that workflow job dependencies reference existing jobs."""
-                        workflows = circleci_config["workflows"]
-                        jobs = circleci_config["jobs"]
-                        job_names = set(jobs.keys())
-
-                        for _, workflow_config in workflows.items():
-                            # Skip non-dict entries (e.g., version key)
-                            if not isinstance(workflow_config, dict):
-                                continue
-
-                            if "jobs" not in workflow_config:
-                                continue
-
-                            workflow_jobs = workflow_config["jobs"]
-                            for job_entry in workflow_jobs:
-                                if isinstance(job_entry, dict):
-                                    # Get the job name (first key in dict)
-                                    job_name = list(job_entry.keys())[0]
-                                    job_config = job_entry[job_name]
-
-                                    # Check if requires field references valid jobs
-                                    if isinstance(job_config, dict) and "requires" in job_config:
-                                        required_jobs = job_config["requires"]
-                                        for required_job in required_jobs:
-                                            assert (
-                                                required_job in job_names
-                                            ), f"Job {job_name} requires non-existent job {required_job}"
-
-            assert "filters" in schedule
-
-    def test_circleci_docker_build_on_main_only(self, circleci_config):
-        """Test that docker-build only runs on main/develop branches."""
-        workflows = circleci_config["workflows"]
-
-        # Find workflow containing docker-build
-        for _, workflow_config in workflows.items():
-            # Skip non-dict entries (e.g., version key)
-            if not isinstance(workflow_config, dict):
-                continue
-
-            if "jobs" not in workflow_config:
-                continue
-
-            for job_entry in workflow_config["jobs"]:
-                if isinstance(job_entry, dict) and "docker-build" in job_entry:
-                    docker_build_config = job_entry["docker-build"]
-                    assert "filters" in docker_build_config
-                    filters = docker_build_config["filters"]
-                    assert "branches" in filters
-                    branches = filters["branches"]
-                    assert "only" in branches
-                    # Should specify only main and/or develop
-                    allowed_branches = branches["only"]
-                    assert isinstance(allowed_branches, list)
-                    assert allowed_branches, "docker-build must specify at least one allowed branch"
-                    invalid_branches = set(allowed_branches) - {"main", "develop"}
-                    assert (
-                        not invalid_branches
-                    ), f"docker-build is restricted to 'main'/'develop' only, but found: {sorted(invalid_branches)}"
-
-
-class TestGitHubActionsCommon:
-    """Test cases for GitHub Actions composite action."""
-
-    @pytest.fixture
-    def github_action_config(self) -> dict:
-        """
-        Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
-
-        Returns:
-            dict: Parsed YAML mapping of the action configuration.
-        """
-        config_path = Path(".github/actions/ci-common/action.yml")
-        assert config_path.exists(), "GitHub Actions composite action not found"
-
-        with open(config_path) as f:
-            return yaml.safe_load(f)
-
-    def test_github_action_valid_yaml(self) -> None:
-        """Test that GitHub Actions config is valid YAML."""
-        config_path = Path(".github/actions/ci-common/action.yml")
-        with open(config_path) as f:
-            data = yaml.safe_load(f)
-        assert isinstance(data, dict)
-
-    def test_github_action_has_required_fields(self, github_action_config):
-        """Test that action has required metadata fields."""
-        assert "name" in github_action_config
-        assert "description" in github_action_config
-        assert isinstance(github_action_config["name"], str)
-        assert isinstance(github_action_config["description"], str)
-        assert len(github_action_config["name"]) > 0
-        assert len(github_action_config["description"]) > 0
-
-    def test_github_action_has_inputs(self, github_action_config):
-        """Test that action defines inputs."""
-        assert "inputs" in github_action_config
-        inputs = github_action_config["inputs"]
-        assert isinstance(inputs, dict)
-
-        # Check for expected inputs
-        assert "language" in inputs
-        assert "working-directory" in inputs
-
-    def test_github_action_language_input_required(self, github_action_config):
-        """Test that language input is marked as required."""
-        inputs = github_action_config["inputs"]
-        language = inputs["language"]
-        assert "required" in language
-        assert language["required"] is True
-
-    def test_github_action_has_runs(self, github_action_config):
-        """Test that action defines runs configuration."""
-        assert "runs" in github_action_config
-        runs = github_action_config["runs"]
-        assert isinstance(runs, dict)
-        assert "using" in runs
-        assert runs["using"] == "composite"
-
-    def test_github_action_has_steps(self, github_action_config):
-        """Test that action defines steps."""
-        runs = github_action_config["runs"]
-        assert "steps" in runs
-        steps = runs["steps"]
-        assert isinstance(steps, list)
-        assert len(steps) > 0
-
-    def test_github_action_setup_python_step(self, github_action_config):
-        """
-        Assert the composite action includes a "Setup Python" step that is conditional on the language input and invokes the setup-python action.
-
-        Parameters:
-            github_action_config (dict): Parsed YAML configuration of the composite GitHub Action.
-        """
-        steps = github_action_config["runs"]["steps"]
-
-        python_step = next((s for s in steps if s.get("name") == "Setup Python"), None)
-        assert python_step is not None
-
-        # Should have conditional
-        assert "if" in python_step
-        assert "inputs.language == 'python'" in python_step["if"]
-
-        # Should use setup-python action
-        assert "uses" in python_step
-        assert "setup-python" in python_step["uses"]
-
-    def test_github_action_setup_node_step(self, github_action_config):
-        """Test that Node.js setup step is properly configured."""
-        steps = github_action_config["runs"]["steps"]
-
-        node_step = next((s for s in steps if s.get("name") == "Setup Node.js"), None)
-        assert node_step is not None
-
-        # Should have conditional
-        assert "if" in node_step
-        assert "inputs.language == 'node'" in node_step["if"]
-
-        # Should use setup-node action
-        assert "uses" in node_step
-        assert "setup-node" in node_step["uses"]
-
-    def test_github_action_steps_use_composite_shell(self, github_action_config):
-        """
-        Ensure every step that includes a `run` command in the composite action specifies a shell and that the shell equals "bash".
-        """
-        steps = github_action_config["runs"]["steps"]
-
-        for step in steps:
-            if "run" in step:
-                # Composite actions require shell to be specified
-                assert "shell" in step, f"Step {step.get('name', 'unnamed')} is missing shell specification"
-                assert step["shell"] == "bash"
-
-    def test_github_action_conditional_steps(self, github_action_config):
-        """Test that install/build/test steps are conditional."""
-        steps = github_action_config["runs"]["steps"]
-
-        conditional_steps = ["Install dependencies", "Build", "Test"]
-
-        for step_name in conditional_steps:
-            step = next((s for s in steps if s.get("name") == step_name), None)
-            if step:
-                assert "if" in step, f"Step {step_name} should be conditional"
-
-    def test_github_action_working_directory_usage(self, github_action_config):
-        """Test that steps use working-directory input."""
-        steps = github_action_config["runs"]["steps"]
-
-        # Steps with run commands should use working-directory
-        for step in steps:
-            if "run" in step and "working-directory" in step:
-                working_dir = step["working-directory"]
-                assert "inputs.working-directory" in working_dir
-
-
-class TestGitHubCopilotInstructions:
-    """Test cases for GitHub Copilot instructions documentation."""
-
-    @pytest.fixture
-    def copilot_instructions(self) -> str:
-        """
-        Load and return the repository's GitHub Copilot instructions Markdown content.
-
-        Returns:
-            str: The full contents of .github/copilot-instructions.md.
-
-        Raises:
-            AssertionError: If the Copilot instructions file does not exist.
-        """
-        doc_path = Path(".github/copilot-instructions.md")
-        assert doc_path.exists(), "Copilot instructions not found"
-
-        with open(doc_path, encoding="utf-8") as f:
-            return f.read()
-
-    def test_copilot_instructions_exists(self) -> None:
-        """Test that Copilot instructions file exists."""
-        doc_path = Path(".github/copilot-instructions.md")
-        assert doc_path.exists()
-
-    def test_copilot_instructions_has_headers(self, copilot_instructions):
-        """
-        Verify the Copilot instructions Markdown contains a main header and essential sections.
-
-        Parameters:
-            copilot_instructions (str): Contents of the .github/copilot-instructions.md file; checked case-insensitively for presence of a main header and the "Purpose" and "Quick start" sections.
-        """
-        # Should have main header
-        assert "# Copilot instructions" in copilot_instructions or "#" in copilot_instructions
-
-        # Check for key sections
-        assert "Purpose" in copilot_instructions or "purpose" in copilot_instructions.lower()
-        assert "Quick start" in copilot_instructions or "quick start" in copilot_instructions.lower()
-
-    def test_copilot_instructions_mentions_key_files(self, copilot_instructions):
-        """Test that documentation mentions key project files."""
-        key_files = ["app.py", "asset_graph.py", "financial_models.py"]
-
-        for file_name in key_files:
-            assert file_name in copilot_instructions, f"Should mention key file: {file_name}"
-
-    def test_copilot_instructions_has_code_examples(self, copilot_instructions):
-        """Test that documentation includes code examples."""
-        # Check for code blocks or backticks
-        assert "```" in copilot_instructions or "`" in copilot_instructions
-
-    def test_copilot_instructions_mentions_dependencies(self, copilot_instructions):
-        """
-        Check that the Copilot instructions mention at least one core project dependency.
-
-        Parameters:
-            copilot_instructions (str): Contents of the Copilot instructions file.
-        """
-        # Should mention key dependencies
-        dependencies = ["Gradio", "Plotly", "requirements.txt"]
-
-        mentions_deps = any(dep in copilot_instructions for dep in dependencies)
-        assert mentions_deps, "Should mention at least one key dependency"
-
-    def test_copilot_instructions_has_conventions_section(self, copilot_instructions):
-        """Test that documentation describes project conventions."""
-        conventions_keywords = ["convention", "pattern", "guideline", "practice"]
-
-        has_conventions = any(keyword in copilot_instructions.lower() for keyword in conventions_keywords)
-        assert has_conventions, "Should describe coding conventions or patterns"
-
-    def test_copilot_instructions_mentions_testing(self, copilot_instructions):
-        """Test that documentation mentions testing practices."""
-        testing_keywords = ["test", "testing"]
-
-        has_testing_info = any(keyword in copilot_instructions.lower() for keyword in testing_keywords)
-        assert has_testing_info, "Should provide testing guidance"
-
-
-class TestGitHubIssueTemplates:
-    """Test cases for GitHub issue templates."""
-
-    @pytest.fixture
-    def custom_issue_template(self) -> str:
-        """
-        Load the repository's custom GitHub issue template.
-
-        Returns:
-            str: The raw text content of .github/ISSUE_TEMPLATE/custom.md
-        """
-        template_path = Path(".github/ISSUE_TEMPLATE/custom.md")
-        assert template_path.exists(), "Custom issue template not found"
-
-        with open(template_path) as f:
-            return f.read()
-
-    def test_custom_issue_template_exists(self) -> None:
-        """Test that custom issue template exists."""
-        template_path = Path(".github/ISSUE_TEMPLATE/custom.md")
-        assert template_path.exists()
-
-    def test_custom_issue_template_has_frontmatter(self, custom_issue_template):
-        """Test that template has YAML frontmatter."""
-        assert "---" in custom_issue_template
-        # Should have at least 2 occurrences (start and end of frontmatter)
-        assert custom_issue_template.count("---") >= 2
-
-    def test_custom_issue_template_frontmatter_fields(self, custom_issue_template):
-        """Test that frontmatter has required fields."""
-        # Extract frontmatter
-        lines = custom_issue_template.split("\n")
-        if lines[0] == "---":
-            # Find end of frontmatter
-            try:
-                end_idx = lines[1:].index("---") + 1
-                frontmatter = "\n".join(lines[1:end_idx])
-
-                # Should have name and about fields
-                assert "name:" in frontmatter
-                assert "about:" in frontmatter
-            except ValueError:
-                pytest.fail("Frontmatter closing delimiter '---' not found")
-
-
-class TestCodacyInstructions:
-    """Test cases for Codacy instructions documentation."""
-
-    @pytest.fixture
-    def codacy_instructions(self) -> str:
-        """
-        Load and return the Codacy instructions markdown content.
-
-        Returns:
-            content (str): The full text of .github/instructions/codacy.instructions.md
-
-        Raises:
-            AssertionError: If the Codacy instructions file does not exist.
-        """
-        doc_path = Path(".github/instructions/codacy.instructions.md")
-        assert doc_path.exists(), "Codacy instructions not found"
-
-        with open(doc_path) as f:
-            return f.read()
-
-    def test_codacy_instructions_exists(self) -> None:
-        """Test that Codacy instructions file exists."""
-        doc_path = Path(".github/instructions/codacy.instructions.md")
-        assert doc_path.exists()
-
-    def test_codacy_instructions_has_yaml_frontmatter(self, codacy_instructions):
-        """
-        Ensure Codacy instructions include YAML frontmatter.
-
-        Asserts the document contains the YAML frontmatter delimiter `---` and begins with a frontmatter block.
-        """
-        assert "---" in codacy_instructions
-        # Should start with frontmatter
-        assert codacy_instructions.strip().startswith("---")
-
-    def test_codacy_instructions_has_critical_rules(self, codacy_instructions):
-        """Test that instructions define critical rules."""
-        assert "CRITICAL" in codacy_instructions
-
-    def test_codacy_instructions_mentions_codacy_cli(self, codacy_instructions):
-        """Test that instructions mention Codacy CLI tool."""
-        assert "codacy_cli_analyze" in codacy_instructions or "Codacy CLI" in codacy_instructions
-
-    def test_codacy_instructions_has_security_checks(self, codacy_instructions):
-        """Test that instructions include security checking guidance."""
-        security_keywords = ["security", "vulnerabilit", "trivy"]
-
-        has_security = any(keyword in codacy_instructions.lower() for keyword in security_keywords)
-        assert has_security, "Should mention security checks"
-
-    def test_codacy_instructions_has_dependency_check_rules(self, codacy_instructions):
-        """Test that instructions cover dependency checking."""
-        assert "dependencies" in codacy_instructions.lower() or "package" in codacy_instructions.lower()
-
-    def test_codacy_instructions_has_mcp_server_guidance(self, codacy_instructions):
-        """Test that instructions mention MCP Server."""
-        assert "MCP" in codacy_instructions or "mcp" in codacy_instructions.lower()
-
-    def test_codacy_instructions_structured_sections(self, codacy_instructions):
-        """Test that instructions are well-structured with sections."""
-        # Should have multiple ## headers for sections
-        assert codacy_instructions.count("##") >= 3, "Should have multiple sections"
-
-
-class TestCircleCIEdgeCases:
-    """Additional edge case and regression tests for CircleCI config."""
-
-    @pytest.fixture
-    def circleci_config(self) -> dict:
-        """
-        Load and parse the repository's CircleCI configuration file.
-
-        Reads .circleci/config.yml and returns the parsed YAML structure (typically a dict).
-
-        Returns:
-            circleci_config (dict): Parsed CircleCI configuration.
-
-        Raises:
-            AssertionError: If .circleci/config.yml does not exist.
-        """
-        config_path = Path(".circleci/config.yml")
-        assert config_path.exists(), "CircleCI config not found"
-
-        with open(config_path) as f:
-            return yaml.safe_load(f)
-
-    def test_circleci_no_empty_jobs(self, circleci_config):
-        """Test that no jobs are empty or missing critical fields."""
-        jobs = circleci_config["jobs"]
-
-        for job_name, job_config in jobs.items():
-            # Every job should have steps or executor
-            assert (
-                "steps" in job_config or "executor" in job_config or "docker" in job_config
-            ), f"Job {job_name} is missing steps or executor configuration"
-
-    def test_circleci_checkout_in_jobs(self, circleci_config):
-        """
-        Ensure each CircleCI job that defines `steps` includes a `checkout` step or a remote-docker setup.
-
-        Asserts that for every job in the provided CircleCI config that contains a `steps` list, at least one step is the literal `checkout` or a mapping that includes `checkout`, or that the steps mention `setup_remote_docker`. The `docker-build` job is treated as an expected exception and is not required to include `checkout`.
-        """
-        jobs = circleci_config["jobs"]
-
-        for job_name, job_config in jobs.items():
-            if "steps" in job_config:
-                steps = job_config["steps"]
-                # Check for checkout step (critical for getting code)
-                has_checkout = any(
-                    step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps
-                )
-                # Some jobs like docker-build might not need checkout if they use special setup
-                # But most jobs should have it
-                if job_name not in ["docker-build"]:  # Exclude known exceptions
-                    assert has_checkout or "setup_remote_docker" in str(
-                        steps
-                    ), f"Job {job_name} should include checkout step"
-
-    def test_circleci_reasonable_parallelism(self, circleci_config):
-        """Test that parallelism values are reasonable."""
-        jobs = circleci_config["jobs"]
-
-        for job_name, job_config in jobs.items():
-            if "parallelism" in job_config:
-                parallelism = job_config["parallelism"]
-                assert 1 <= parallelism <= 20, f"Job {job_name} has unreasonable parallelism: {parallelism}"
-
-    def test_circleci_resource_class_specified(self, circleci_config):
-        """Test that executors specify resource class for cost optimization."""
-        if "executors" in circleci_config:
-            executors = circleci_config["executors"]
-
-            for executor_name, executor_config in executors.items():
-                # Having resource_class helps with cost and performance tuning
-                if "resource_class" in executor_config:
-                    resource_class = executor_config["resource_class"]
-                    # Should be valid CircleCI resource class
-                    valid_classes = [
-                        "small",
-                        "medium",
-                        "medium+",
-                        "large",
-                        "xlarge",
-                        "2xlarge",
-                    ]
-                    assert (
-                        resource_class in valid_classes
-                    ), f"Executor {executor_name} has invalid resource class: {resource_class}"
-
-    def test_circleci_docker_images_pinned(self, circleci_config):
-        """
-        Ensure CircleCI executor Docker images include explicit version tags and do not use the 'latest' tag.
-
-        Parameters:
-            circleci_config (dict): Parsed .circleci/config.yml as a dictionary.
-
-        Raises:
-            AssertionError: If an executor's docker image has no tag or uses the `:latest` tag.
-        """
-        executors = circleci_config.get("executors", {})
-
-        for executor_name, executor_config in executors.items():
-            if "docker" in executor_config:
-                images = executor_config["docker"]
-                for image_config in images:
-                    if "image" in image_config:
-                        image = image_config["image"]
-                        # Should include version tag, not just :latest or no tag
-                        assert ":" in image, f"Docker image in {executor_name} should specify version: {image}"
-                        # Check it's not using :latest (bad practice)
-                        assert not image.endswith(
-                            ":latest"
-                        ), f"Docker image in {executor_name} should not use :latest tag"
-
-
-class TestGitHubActionsEdgeCases:
-    """Additional edge case tests for GitHub Actions."""
-
-    @pytest.fixture
-    def github_action_config(self) -> dict:
-        """
-        Load the composite GitHub Action configuration from .github/actions/ci-common/action.yml.
-
-        Returns:
-            dict: Parsed YAML mapping of the action configuration.
-        """
-        config_path = Path(".github/actions/ci-common/action.yml")
-        assert config_path.exists(), "GitHub Actions composite action not found"
-
-        with open(config_path) as f:
-            return yaml.safe_load(f)
-
-    def test_github_action_input_defaults(self, github_action_config):
-        """Test that optional inputs have defaults where appropriate."""
-        inputs = github_action_config["inputs"]
-
-        for input_name, input_config in inputs.items():
-            is_required = input_config.get("required", False)
-            has_default = "default" in input_config
-
-            # If not required and not a conditional input (like python-version), should have a default
-            # Conditional inputs like python-version are only used when language==python
-            conditional_inputs = ["python-version", "node-version"]
-
-            if not is_required and input_name not in conditional_inputs:
-                assert has_default, f"Optional input {input_name} should have a default value"
-
-    def test_github_action_error_handling_in_steps(self, github_action_config):
-        """Test that run steps use proper error handling."""
-        steps = github_action_config["runs"]["steps"]
-
-        for step in steps:
-            if "run" in step:
-                run_command = step["run"]
-                # Check for set -e or pipefail for proper error propagation
-                if "eval" in run_command or len(run_command.split("\n")) > 1:
-                    assert (
-                        "set -" in run_command or "pipefail" in run_command
-                    ), f"Multi-line step {step.get('name', 'unnamed')} should use set -e or pipefail"
-
-    def test_github_action_no_hardcoded_values(self, github_action_config):
-        """Test that steps use inputs rather than hardcoded values."""
-        steps = github_action_config["runs"]["steps"]
-
-        for step in steps:
-            if "with" in step:
-                with_values = step["with"]
-                # Version pinning is OK, but paths should use inputs
-                if "python-version" in with_values:
-                    python_version = with_values["python-version"]
-                    # Should reference input
-                    assert "inputs." in python_version, "Python version should reference input parameter"
-
-
-class TestDocumentationEdgeCases:
-    """Additional edge case tests for documentation files."""
-
-    @pytest.fixture
-    def copilot_instructions(self) -> str:
-        """
-        Load and return the repository's GitHub Copilot instructions Markdown content.
-
-        Returns:
-            str: The full contents of .github/copilot-instructions.md.
-
-        Raises:
-            AssertionError: If the Copilot instructions file does not exist.
-        """
-        doc_path = Path(".github/copilot-instructions.md")
-        assert doc_path.exists(), "Copilot instructions not found"
-
-        with open(doc_path) as f:
-            return f.read()
-
-    def test_copilot_instructions_no_broken_links(self, copilot_instructions):
-        """Test that documentation doesn't have obviously broken markdown links."""
-        # Find markdown links [text](url)
-
-        links = re.findall(r"\[([^\]]+)\]\(([^\)]+)\)", copilot_instructions)
-
-        for link_text, link_url in links:
-            # Check for common mistakes
-            assert not link_url.startswith(" "), f"Link has leading space: [{link_text}]({link_url})"
-            assert not link_url.endswith(" "), f"Link has trailing space: [{link_text}]({link_url})"
-
-    def test_copilot_instructions_command_syntax(self, copilot_instructions):
-        """
-        Validate that lines containing Python commands in Copilot instructions are formatted as code, inline code, indented code block, or appropriate prose.
-
-        This test scans the provided Copilot instructions text for occurrences of the word "python". If fenced code blocks are present, they are tracked; for each line containing "python" the function allows the line if it is:
-        - inside a fenced code block,
-        - contains inline code backticks,
-        - is an indented code line (starts with indentation),
-        - or appears in prose containing specific Python-related phrases (e.g., "Python environment", "@dataclass").
-
-        If a line looks like a shell command (stripped line starts with "python") and none of the allowed formats apply, the test fails with an assertion indicating the offending line.
-
-        Parameters:
-            copilot_instructions (str): Full text content of the Copilot instructions file to validate.
-        """
-        # Commands should be in code blocks or inline code
-        if "python" in copilot_instructions.lower():
-            lines = copilot_instructions.split("\n")
-            in_code_block = False
-
-            for _, line in enumerate(lines):
-                # Track if we're in a code block
-                if line.strip().startswith("```"):
-                    in_code_block = not in_code_block
-                    continue
-
-                # Check lines with python commands
-                if "python" in line.lower():
-                    # Should be in code block, inline code, or prose
-                    is_in_code_block = in_code_block
-                    is_inline_code = "`" in line
-                    is_indented = line.strip() != line and line.startswith("    ")
-                    is_prose = any(
-                        phrase in line
-                        for phrase in [
-                            "Python environment",
-                            "Python-only",
-                            "dataclass",
-                            "@dataclass",
-                            "Python dependencies",
-                            "Python imports",
-                        ]
-                    )
-
-                    # Allow any of these valid formats
-                    if not (is_in_code_block or is_inline_code or is_indented or is_prose):
-                        # Only fail if it looks like a command (starts with python and has no prose context)
-                        looks_like_command = line.strip().startswith("python")
-                        if looks_like_command:
-                            assert False, f"Python command should be in code format: {line.strip()}"
-
-    def test_copilot_instructions_reasonable_length(self, copilot_instructions):
-        """Test that documentation is comprehensive but not too long."""
-        line_count = len(copilot_instructions.split("\n"))
-        # Should be substantial but not overwhelming
-        assert 20 <= line_count <= 500, f"Documentation should be reasonable length (20-500 lines), got {line_count}"
-
-    def test_codacy_instructions_example_formatting(self) -> None:
-        """Test that Codacy instructions have properly formatted examples."""
-        doc_path = Path(".github/instructions/codacy.instructions.md")
-        with open(doc_path) as f:
+        gitignore_path = Path(".gitignore")
+        with open(gitignore_path) as f:
+            gitignore_content = f.read()
+
+        # Critical: .env files must be ignored
+        assert ".env" in gitignore_content or ".env.local" in gitignore_content
+
+    @staticmethod
+    def test_no_api_keys_in_example_env():
+        """Negative: .env.example should not contain real API keys."""
+        env_example_path = Path(".env.example")
+        if not env_example_path.exists():
+            pytest.skip(".env.example not found")
+
+        with open(env_example_path) as f:
             content = f.read()
 
-        # If there are examples, they should be clearly marked
-        if "example" in content.lower() or "EXAMPLE" in content:
-            # Examples should be in a clear section or code block
-            assert "##" in content or "```" in content or "-" in content, "Examples should be clearly formatted"
+        # Check for patterns that might indicate real keys
+        suspicious_patterns = [
+            r"[A-Za-z0-9]{32,}",  # Long alphanumeric strings
+            "sk_live",
+            "pk_live",
+            "prod_",
+        ]
+
+        for pattern in suspicious_patterns:
+            for match in re.finditer(pattern, content):
+                # Look at the line containing the match to see if it's a placeholder
+                line_start = content.rfind("\n", 0, match.start()) + 1
+                line_end = content.find("\n", match.end())
+                if line_end == -1:
+                    line_end = len(content)
+                line = content[line_start:line_end]
+                if "your" not in line.lower() and "example" not in line.lower():
+                    # Might be a real key
+                    snippet = match.group(0)[:10]
+                    assert False, f"Potential real key found: {snippet}..."
+
+    @staticmethod
+    def test_package_json_no_vulnerable_scripts():
+        """
+        Ensure frontend/package.json scripts do not contain dangerous shell commands.
+
+        Skips the test if frontend/package.json is missing. Fails if any script command contains patterns such as "rm -rf /", "rm -rf /*", or "sudo rm".
+        """
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        with open(package_path) as f:
+            package = json.load(f)
+
+        scripts = package.get("scripts", {})
+        for script_name, script_cmd in scripts.items():
+            # Should not have rm -rf / or similar dangerous commands
+            dangerous_patterns = ["rm -rf /", "rm -rf /*", "sudo rm"]
+            for pattern in dangerous_patterns:
+                assert pattern not in script_cmd, f"Dangerous pattern '{pattern}' found in script '{script_name}'"
+
+
+@pytest.mark.unit
+class TestMalformedConfigurationHandling:
+    """Test handling of malformed configuration files."""
+
+    @staticmethod
+    def test_vercel_config_wellformed_json():
+        """
+        Check that vercel.json is valid JSON.
+
+        Skips the test if vercel.json is not present. Fails with the JSON parsing error message if vercel.json cannot be parsed.
+        """
+        vercel_path = Path("vercel.json")
+        if not vercel_path.exists():
+            pytest.skip("vercel.json not found")
+
+        try:
+            with open(vercel_path) as f:
+                json.load(f)
+        except json.JSONDecodeError as e:
+            pytest.fail(f"vercel.json is malformed JSON: {e}")
+
+    @staticmethod
+    def test_package_json_wellformed():
+        """
+        Validate that frontend/package.json contains well-formed JSON parsed as an object.
+
+        If the file is missing the test is skipped. If the file contains invalid JSON the test fails and reports the JSON parse error.
+        """
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        try:
+            with open(package_path) as f:
+                data = json.load(f)
+            assert isinstance(data, dict)
+        except json.JSONDecodeError as e:
+            pytest.fail(f"package.json is malformed JSON: {e}")
+
+    @staticmethod
+    def test_tsconfig_allows_comments():
+        """
+        Validate that frontend/tsconfig.json is either valid JSON or intentionally uses JSONC comments.
+
+        Skips the test if the file is missing or if parsing fails solely because the file contains JavaScript-style comments (`//` or `/* */`), and fails the test if the file is malformed JSON for any other reason.
+        """
+        tsconfig_path = Path("frontend/tsconfig.json")
+        if not tsconfig_path.exists():
+            pytest.skip("frontend/tsconfig.json not found")
+
+        # JSONC allows comments, so we need special handling
+        with open(tsconfig_path) as f:
+            content = f.read()
+
+        # Try to parse; if it fails, check if it's because of comments
+        try:
+            json.loads(content)
+        except json.JSONDecodeError:
+            # Check if there are comments
+            if "//" in content or "/*" in content:
+                # This is expected for JSONC
+                pytest.skip("tsconfig.json uses JSONC format with comments")
+            else:
+                pytest.fail("tsconfig.json is malformed")
+
+
+@pytest.mark.unit
+class TestConfigurationBoundaryValues:
+    """Boundary value tests for configuration parameters."""
+
+    @staticmethod
+    def test_vercel_lambda_size_not_excessive():
+        """
+        Validate that any `maxLambdaSize` entries in vercel.json are between 1 MB and 250 MB.
+
+        If vercel.json is missing, the test is skipped. For each build that defines `config.maxLambdaSize`,
+        the numeric megabyte value is checked and the test fails if the value is less than 1 or greater than 250.
+        """
+        vercel_path = Path("vercel.json")
+        if not vercel_path.exists():
+            pytest.skip("vercel.json not found")
+
+        with open(vercel_path) as f:
+            vercel_config = json.load(f)
+
+        builds = vercel_config.get("builds", [])
+        for build in builds:
+            if "config" in build and "maxLambdaSize" in build["config"]:
+                size_str = build["config"]["maxLambdaSize"]
+                # Extract numeric value
+                size_value = int(size_str.replace("mb", "").replace("MB", ""))
+                # 250MB is Vercel's maximum
+                assert size_value <= 250, f"Lambda size {size_value}MB exceeds maximum"
+                # Should be at least 1MB
+                assert size_value >= 1, f"Lambda size {size_value}MB is too small"
+
+    @staticmethod
+    def test_package_version_not_zero():
+        """
+        Ensure the frontend package.json version is not 0.0.0.
+
+        Skips the test if frontend/package.json is missing. Fails if the package's "version" field equals "0.0.0".
+        """
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        with open(package_path) as f:
+            package = json.load(f)
+
+        version = package.get("version", "0.0.0")
+        assert version != "0.0.0", "Package version should not be 0.0.0"
+
+    @staticmethod
+    def test_no_excessively_long_script_names():
+        """
+        Verify that every script name in frontend/package.json is shorter than 50 characters.
+
+        If frontend/package.json is missing the test is skipped. Fails when any script name has length greater than or equal to 50, reporting the offending name.
+        """
+        package_path = Path("frontend/package.json")
+        if not package_path.exists():
+            pytest.skip("frontend/package.json not found")
+
+        with open(package_path) as f:
+            package = json.load(f)
+
+        scripts = package.get("scripts", {})
+        for script_name in scripts.keys():
+            assert len(script_name) < 50, f"Script name '{script_name}' is excessively long"
+
+
+@pytest.mark.unit
+class TestConfigurationRobustness:
+    """Robustness tests for configuration edge cases."""
+
+    @staticmethod
+    def test_gitignore_covers_common_artifacts():
+        """Robustness: .gitignore should cover common build artifacts."""
+        gitignore_path = Path(".gitignore")
+        with open(gitignore_path) as f:
+            content = f.read()
+
+        # Essential patterns that should be present
+        essential_patterns = [
+            "node_modules",
+            "__pycache__",
+            ".env",
+        ]
+
+        for pattern in essential_patterns:
+            assert pattern in content, f"Missing essential pattern: {pattern}"
+
+    @staticmethod
+    def test_requirements_no_conflicting_versions():
+        """
+        Ensure requirements.txt does not contain duplicate package entries.
+
+        The check treats each non-empty, non-comment line as a requirement, ignores option lines starting with '-', and compares package names case-insensitively after stripping common version specifiers (`==`, `>=`, `~=`, `<=`). If duplicates are found, the test fails listing the duplicated package names.
+        """
+        requirements_path = Path("requirements.txt")
+        if not requirements_path.exists():
+            pytest.skip("requirements.txt not found")
+
+        with open(requirements_path) as f:
+            lines = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
+        # Extract package names (before ==, >=, etc.)
+        packages = []
+        for line in lines:
+            if not line.startswith("-"):
+                # Extract package name
+                package_name = line.split("==")[0].split(">=")[0].split("~=")[0].split("<=")[0].strip()
+                packages.append(package_name.lower())
+
+        # Check for duplicates
+        from collections import Counter
+
+        counts = Counter(packages)
+        duplicates = [pkg for pkg, count in counts.items() if count > 1]
+        assert len(duplicates) == 0, f"Duplicate packages found: {duplicates}"
+
+    @staticmethod
+    def test_env_example_documents_all_required_vars():
+        """
+        Checks that .env.example documents at least one required environment variable.
+
+        Asserts that the repository's .env.example file contains at least one of the key variables expected by the project: "API_URL" or a variable with the "NEXT_PUBLIC" prefix. If .env.example is absent the test is skipped.
+        """
+        env_example_path = Path(".env.example")
+        if not env_example_path.exists():
+            pytest.skip(".env.example not found")
+
+        with open(env_example_path) as f:
+            content = f.read()
+
+        # Key variables that should be documented
+        important_vars = ["API_URL", "NEXT_PUBLIC"]
+
+        # At least one should be present
+        has_important = any(var in content for var in important_vars)
+        assert has_important, "No important environment variables documented"

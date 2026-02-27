@@ -17,9 +17,9 @@ pytestmark = pytest.mark.unit
 @pytest.fixture()
 def restore_database_module(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     """
-    Preserve and later restore api.database state and the DATABASE_URL environment variable for a test.
+    Preserve the api.database module state and the DATABASE_URL environment variable for the duration of a test, restoring them on teardown.
 
-    Yields control to the test; on teardown closes any in-memory connection stored at api.database._MEMORY_CONNECTION (if present), restores or clears the original DATABASE_URL environment variable, and reloads the api.database module to reset its state.
+    Yields control to the test. On teardown, closes any in-memory connection stored in api.database._MEMORY_CONNECTION and clears that reference, restores the original DATABASE_URL environment variable (or removes it if none was set), and reloads the api.database module to reset its state.
     """
     original_url = os.environ.get("DATABASE_URL")
 
@@ -348,7 +348,11 @@ class TestConnectWithMemoryDb:
         monkeypatch: pytest.MonkeyPatch,
         restore_database_module: None,
     ) -> None:
-        """Test that _connect correctly sets uri parameter for file: URIs."""
+        """
+        Verify that connecting with a URI-style SQLite in-memory database succeeds.
+
+        Ensures `_connect` accepts a URI like `file::memory:?cache=shared` without raising and yields a valid connection object.
+        """
         monkeypatch.setenv("DATABASE_URL", "sqlite:///file::memory:?cache=shared")
         reloaded_database = importlib.reload(database)
 

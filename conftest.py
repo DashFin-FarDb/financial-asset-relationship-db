@@ -83,24 +83,26 @@ def db_session(
 @pytest.fixture()
 def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
-    Utility fixture to set env vars in tests:
+    Return a helper that sets environment variables for a test.
 
-        def test_x(set_env):
-            set_env(ASSET_GRAPH_DATABASE_URL="sqlite:///:memory:")
+    The returned callable accepts keyword arguments where each key is an
+    environment variable name and each value is the value to set;
+    invoking it sets those environment variables for the duration of the
+    test.
+
+    Returns:
+        setter (Callable[..., None]): Callable to set environment variables
+            by passing keyword arguments (e.g., `set_env(KEY="value")`).
     """
 
     def _setter(**kwargs: str) -> None:
-        """Set one or more environment variables for the duration of a test.
+        """
+        Set environment variables for a test using the captured pytest `monkeypatch`.
 
-        This helper is returned by the `set_env` fixture and is intended to be called
-        from within tests to configure environment-dependent behaviour in a scoped,
-        reversible way via pytest's `monkeypatch`.
-
-        Args:
-            **kwargs: Environment variable names and their desired values.
-
-        Returns:
-            None
+        Each keyword argument maps an environment variable name to its string
+        value and will be set with `monkeypatch.setenv`.
+        Parameters:
+            **kwargs (str): Environment variable names and their values to set.
         """
         for key, value in kwargs.items():
             monkeypatch.setenv(key, value)
@@ -111,14 +113,24 @@ def set_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
 @pytest.fixture()
 def unset_env(monkeypatch: pytest.MonkeyPatch) -> Callable[..., None]:
     """
-    Utility fixture to unset env vars in tests:
+    Provide a fixture that returns a callable to remove environment
+    variables from the test environment.
 
-        def test_x(unset_env):
-            unset_env("ASSET_GRAPH_DATABASE_URL")
+    The returned callable accepts one or more environment variable names
+    and ensures each is removed for the duration of the test.
+
+    Returns:
+        unsetter (Callable[..., None]): Callable that deletes
+            the specified environment variables.
     """
 
     def _unsetter(*keys: str) -> None:
-        """Unset environment variables using monkeypatch, ignoring missing keys."""
+        """
+        Remove the given environment variables from the test environment.
+
+        Parameters:
+            *keys (str): One or more environment variable names to remove.
+        """
         for key in keys:
             monkeypatch.delenv(key, raising=False)
 
