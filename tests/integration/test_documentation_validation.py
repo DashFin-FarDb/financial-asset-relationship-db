@@ -435,4 +435,4 @@ class TestEdgeCases:
         # Require exactly one style among present line-terminated lines
         assert len(endings) == 1, "File should use a single line ending style throughout"
         # Additionally ensure the file uses recognized line endings
-        assert endings.pop() in {'LF', 'CRLF'}, "File should use LF or CRLF line endings"
+        assert next(iter(endings)) in {'LF', 'CRLF'}, "File should use LF or CRLF line endings"
