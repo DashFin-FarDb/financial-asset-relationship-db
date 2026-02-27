@@ -1,7 +1,7 @@
 """6. Security best practices in workflows"""
 
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import pytest
 import yaml
