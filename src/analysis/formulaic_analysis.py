@@ -394,10 +394,99 @@ class FormulaicAnalyzer:
         graph: AssetRelationshipGraph,
     ) -> Dict[str, Any]:
         """Calculate empirical relationships from the asset graph."""
-        # Minimal implementation to provide a well-formed structure
-        # that other methods can safely consume.
+        # Derive simple empirical statistics directly from the graph so that
+        # summaries and visualizations can use real data instead of placeholders.
+        correlation_matrix: Dict[str, float] = {}
+
+        # Build a basic correlation-style matrix from relationship strengths
+        for src_id, rels in graph.relationships.items():
+            for target_id, _rel_type, strength in rels:
+                if src_id == target_id:
+                    continue
+                try:
+                    strength_value = float(strength)
+                except (TypeError, ValueError):
+                    # Skip relationships without a numeric strength
+                    continue
+                pair_key = f"{src_id}-{target_id}"
+                existing = correlation_matrix.get(pair_key)
+                if existing is None or abs(strength_value) > abs(existing):
+                    correlation_matrix[pair_key] = strength_value
+
+        # Derive strongest correlations from the matrix
+        strongest_correlations: List[Dict[str, Any]] = []
+        for pair_key, corr in correlation_matrix.items():
+            asset1, asset2 = pair_key.split("-", 1)
+            if abs(corr) >= 1.0:
+                # Skip perfect/self-correlations
+                continue
+            if abs(corr) > 0.7:
+                strength_label = "Strong"
+            elif abs(corr) > 0.4:
+                strength_label = "Moderate"
+            else:
+                strength_label = "Weak"
+            strongest_correlations.append(
+                {
+                    "pair": f"{asset1}-{asset2}",
+                    "asset1": asset1,
+                    "asset2": asset2,
+                    "correlation": corr,
+                    "strength": strength_label,
+                }
+            )
+        strongest_correlations.sort(key=lambda x: abs(x["correlation"]), reverse=True)
+        strongest_correlations = strongest_correlations[:10]
+
+        # Aggregate by asset class
+        asset_class_relationships: Dict[str, Dict[str, Any]] = {}
+        for asset_id, asset in graph.assets.items():
+            asset_class = getattr(asset.asset_class, "value", str(asset.asset_class))
+            price = getattr(asset, "price", 0.0) or 0.0
+            market_cap = getattr(asset, "market_cap", 0.0) or 0.0
+
+            stats = asset_class_relationships.setdefault(
+                asset_class,
+                {"asset_count": 0, "avg_price": 0.0, "total_value": 0.0, "_total_price": 0.0},
+            )
+            stats["asset_count"] += 1
+            stats["_total_price"] += float(price)
+            stats["total_value"] += float(market_cap)
+
+        for stats in asset_class_relationships.values():
+            count = stats["asset_count"]
+            total_price = stats.pop("_total_price", 0.0)
+            stats["avg_price"] = total_price / count if count else 0.0
+
+        # Aggregate by sector
+        sector_relationships: Dict[str, Dict[str, Any]] = {}
+        for asset_id, asset in graph.assets.items():
+            sector = getattr(asset, "sector", None)
+            if not sector:
+                continue
+            price = getattr(asset, "price", 0.0) or 0.0
+
+            stats = sector_relationships.setdefault(
+                sector,
+                {"asset_count": 0, "avg_price": 0.0, "price_range": "", "_prices": []},
+            )
+            stats["asset_count"] += 1
+            stats["_prices"].append(float(price))
+
+        for stats in sector_relationships.values():
+            prices = stats.pop("_prices", [])
+            if prices:
+                stats["avg_price"] = sum(prices) / len(prices)
+                stats["price_range"] = f"${min(prices):.2f} - ${max(prices):.2f}"
+            else:
+                stats["avg_price"] = 0.0
+                stats["price_range"] = "$0.00 - $0.00"
+
         return {
-            "correlation_matrix": {},
+            "correlation_matrix": correlation_matrix,
+            "strongest_correlations": strongest_correlations,
+            "asset_class_relationships": asset_class_relationships,
+            "sector_relationships": sector_relationships,
         }
 
     @staticmethod
