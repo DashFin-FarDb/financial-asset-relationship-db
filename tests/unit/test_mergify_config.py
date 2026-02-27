@@ -120,8 +120,6 @@ class TestMergifyConfiguration:
         label_action = size_l_rule["actions"]["label"]
         labels = label_action.get("toggle", []) + label_action.get("add", [])
         assert "size/L" in labels, "size/L label not assigned"
-        labels = label_action.get("toggle", []) + label_action.get("add", [])
-        assert "size/L" in labels, "size/L label not assigned"
 
     def test_modified_lines_thresholds_are_valid(self):
         """Test that modified lines thresholds are sensible."""
