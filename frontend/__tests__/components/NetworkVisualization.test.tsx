@@ -31,7 +31,7 @@ describe("NetworkVisualization Component", () => {
     render(<NetworkVisualization data={mockVisualizationData} />);
 
     // New edge case tests
-    const dataWithMissingCoords: VisualizationData = {
+    let dataWithMissingCoords: VisualizationData = {
       nodes: [
         { id: "1", name: "N1", symbol: "S1", asset_class: "EQUITY" } as any,
       ], // missing x,y,z
