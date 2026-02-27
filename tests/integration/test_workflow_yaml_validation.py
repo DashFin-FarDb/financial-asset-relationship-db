@@ -133,12 +133,6 @@ class TestGreetingsWorkflow:
             / "workflows"
             / "greetings.yml"
         )
-        workflow_path = (
-            Path(__file__).parent.parent.parent
-            / ".github"
-            / "workflows"
-            / "greetings.yml"
-        )
         try:
             with open(workflow_path, "r") as f:
                 return yaml.safe_load(f)
