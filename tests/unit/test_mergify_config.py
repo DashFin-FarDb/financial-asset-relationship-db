@@ -47,7 +47,7 @@ class TestMergifyConfiguration:
     def test_tshirt_size_rule_exists(self):
         """
         Ensure at least one t-shirt size rule is present and that each such rule includes required fields.
-        
+
         Asserts that the configuration contains one or more entries in `pull_request_rules` whose `name` contains "t-shirt" (case-insensitive), and that every matched rule has non-empty `name`, `conditions`, and `actions` fields.
         """
         with open(self.MERGIFY_PATH, "r") as f:
@@ -223,7 +223,7 @@ class TestMergifyRuleLogic:
     def test_size_l_range_is_correct(self):
         """
         Verify the size/L t-shirt rule requires modified-lines thresholds covering 100 to 500 lines.
-        
+
         Asserts that a pull request rule which assigns the `size/L` label exists and that its conditions include thresholds for `>= 100` and `< 500` modified lines.
         """
         with open(self.MERGIFY_PATH, "r") as f:
@@ -244,7 +244,7 @@ class TestMergifyRuleLogic:
     def test_description_is_meaningful(self):
         """
         Verify that any rule with a `description` field contains a meaningful, descriptive string.
-        
+
         Checks:
         - The `description` is a string.
         - The `description` length is greater than 10 characters.
@@ -335,7 +335,7 @@ class TestMergifyAdditionalEdgeCases:
     def test_all_size_labels_are_unique(self):
         """
         Verify that t-shirt size rules assign unique size labels across all rules.
-        
+
         Collects labels from each rule whose name contains "t-shirt" by reading the label action's `toggle` and `add` lists, and asserts that no label appears more than once across those lists. Fails with an AssertionError if duplicate size labels are found.
         """
         with open(self.MERGIFY_PATH, "r") as f:
@@ -375,7 +375,7 @@ class TestMergifyAdditionalEdgeCases:
     def test_actions_are_properly_formatted(self):
         """
         Verify that every pull request rule's `actions` field is a dictionary and that any `label` action is a dictionary containing at least one of the keys `toggle`, `add`, or `remove`.
-        
+
         Raises:
             AssertionError: If a rule's `actions` is not a dict; if a `label` action is not a dict; or if a `label` action does not include `toggle`, `add`, or `remove`.
         """
@@ -452,9 +452,9 @@ class TestMergifySizeCoverage:
     def _load_tshirt_rules(self):
         """
         Load t-shirt size rules from the repository's .mergify.yml pull_request_rules.
-        
+
         Searches the YAML configuration at self.MERGIFY_PATH and returns all pull request rule dictionaries whose `name` contains the substring "t-shirt" (case-insensitive).
-        
+
         Returns:
             list[dict]: List of pull request rule objects matching the "t-shirt" name filter.
         """
@@ -523,7 +523,7 @@ class TestMergifyContentLabels:
     def _load_rules(self):
         """
         Load the `pull_request_rules` section from the repository's .mergify.yml configuration.
-        
+
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
@@ -534,10 +534,10 @@ class TestMergifyContentLabels:
     def _find_rule(self, name_fragment):
         """
         Finds the first pull request rule whose name contains the given fragment (case-insensitive).
-        
+
         Parameters:
             name_fragment (str): Substring to search for in each rule's `name` field; matching is case-insensitive.
-        
+
         Returns:
             dict | None: The first matching rule dictionary if found, `None` otherwise.
         """
@@ -592,7 +592,7 @@ class TestMergifyReviewAutomation:
     def _load_rules(self):
         """
         Load the `pull_request_rules` section from the repository's .mergify.yml configuration.
-        
+
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
@@ -646,7 +646,7 @@ class TestMergifyAutoMerge:
     def _load_rules(self):
         """
         Load the `pull_request_rules` section from the repository's .mergify.yml configuration.
-        
+
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
@@ -657,9 +657,9 @@ class TestMergifyAutoMerge:
     def _get_auto_merge_rules(self):
         """
         Selects pull request rules that define a merge action.
-        
+
         Returns:
-        	list: A list of rule dictionaries that include a 'merge' key in their `actions` mapping.
+                list: A list of rule dictionaries that include a 'merge' key in their `actions` mapping.
         """
         return [r for r in self._load_rules() if "merge" in r.get("actions", {})]
 
@@ -709,7 +709,7 @@ class TestMergifyStaleManagement:
     def _load_rules(self):
         """
         Load the `pull_request_rules` section from the repository's .mergify.yml configuration.
-        
+
         Returns:
             list: The list of pull request rule mappings defined under the `pull_request_rules` key.
         """
@@ -767,7 +767,7 @@ class TestMergifyBoundaryConditions:
     def _load_config(self):
         """
         Load and parse the repository's .mergify.yml configuration.
-        
+
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
@@ -787,7 +787,7 @@ class TestMergifyBoundaryConditions:
     def test_size_s_boundaries(self):
         """
         Verify the size/S t-shirt rule defines modified-lines thresholds covering 10 through 49 lines.
-        
+
         Searches pull_request_rules for a rule named "size/S" and asserts it exists, then checks the rule's conditions include a lower bound of >= 10 and an upper bound of < 50.
         """
         config = self._load_config()
@@ -814,8 +814,12 @@ class TestMergifyBoundaryConditions:
         config = self._load_config()
         rules = config["pull_request_rules"]
         dep_rule = next(
-            (r for r in rules if "dependabot" in str(r.get("conditions", [])).lower() and "merge" in r.get("actions", {})),
-            None
+            (
+                r
+                for r in rules
+                if "dependabot" in str(r.get("conditions", [])).lower() and "merge" in r.get("actions", {})
+            ),
+            None,
         )
         assert dep_rule is not None, "Dependabot auto-merge rule not found"
 
@@ -828,10 +832,7 @@ class TestMergifyBoundaryConditions:
         """Test that PRs are marked stale after 14 days."""
         config = self._load_config()
         rules = config["pull_request_rules"]
-        stale_rule = next(
-            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
-        )
+        stale_rule = next((r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])), None)
         assert stale_rule is not None, "Stale marking rule not found"
 
         conditions = " ".join(str(c) for c in stale_rule.get("conditions", []))
@@ -846,7 +847,7 @@ class TestMergifyNegativeCases:
     def _load_config(self):
         """
         Load and parse the repository's .mergify.yml configuration.
-        
+
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
@@ -927,7 +928,7 @@ class TestMergifyFilePatterns:
     def _load_config(self):
         """
         Load and parse the repository's .mergify.yml configuration.
-        
+
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
@@ -938,10 +939,7 @@ class TestMergifyFilePatterns:
         """Test that security label rule has file pattern conditions."""
         config = self._load_config()
         rules = config["pull_request_rules"]
-        sec_rule = next(
-            (r for r in rules if "security" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
-        )
+        sec_rule = next((r for r in rules if "security" in r.get("actions", {}).get("label", {}).get("add", [])), None)
         assert sec_rule is not None, "Security label rule not found"
 
         conditions = " ".join(str(c) for c in sec_rule.get("conditions", []))
@@ -953,10 +951,7 @@ class TestMergifyFilePatterns:
         """Test that CI label rule matches .github/workflows/ files."""
         config = self._load_config()
         rules = config["pull_request_rules"]
-        ci_rule = next(
-            (r for r in rules if "ci" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
-        )
+        ci_rule = next((r for r in rules if "ci" in r.get("actions", {}).get("label", {}).get("add", [])), None)
         assert ci_rule is not None, "CI label rule not found"
 
         conditions = " ".join(str(c) for c in ci_rule.get("conditions", []))
@@ -969,8 +964,7 @@ class TestMergifyFilePatterns:
         config = self._load_config()
         rules = config["pull_request_rules"]
         doc_rule = next(
-            (r for r in rules if "documentation" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
+            (r for r in rules if "documentation" in r.get("actions", {}).get("label", {}).get("add", [])), None
         )
         assert doc_rule is not None, "Documentation label rule not found"
 
@@ -983,15 +977,12 @@ class TestMergifyFilePatterns:
         config = self._load_config()
         rules = config["pull_request_rules"]
         dep_rule = next(
-            (r for r in rules if "dependencies" in r.get("actions", {}).get("label", {}).get("add", [])),
-            None
+            (r for r in rules if "dependencies" in r.get("actions", {}).get("label", {}).get("add", [])), None
         )
         assert dep_rule is not None, "Dependencies label rule not found"
 
         conditions = " ".join(str(c) for c in dep_rule.get("conditions", []))
-        has_pkg_files = any(
-            keyword in conditions for keyword in ["requirements", "pyproject.toml", "package.json"]
-        )
+        has_pkg_files = any(keyword in conditions for keyword in ["requirements", "pyproject.toml", "package.json"])
         assert has_pkg_files, "Dependencies rule should match package files"
 
 
@@ -1003,7 +994,7 @@ class TestMergifyRegressionCases:
     def _load_config(self):
         """
         Load and parse the repository's .mergify.yml configuration.
-        
+
         Returns:
             The parsed YAML content of .mergify.yml as native Python objects (commonly a dict), or `None` if the file is empty.
         """
@@ -1013,7 +1004,7 @@ class TestMergifyRegressionCases:
     def test_dismiss_reviews_has_when_clause(self):
         """
         Ensure dismiss_reviews actions include a 'when' clause set to 'synchronize'.
-        
+
         For every pull request rule that defines a `dismiss_reviews` action, assert the action contains the `when` key and that its value equals `"synchronize"`.
         """
         config = self._load_config()
@@ -1049,9 +1040,7 @@ class TestMergifyRegressionCases:
             if "stale" in rule.get("actions", {}).get("label", {}).get("add", []):
                 if "comment" in rule.get("actions", {}):
                     message = rule["actions"]["comment"]["message"].lower()
-                    has_removal_info = any(
-                        keyword in message for keyword in ["remove", "push", "update", "commit"]
-                    )
+                    has_removal_info = any(keyword in message for keyword in ["remove", "push", "update", "commit"])
                     assert has_removal_info, (
                         f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
                     )
@@ -1075,8 +1064,7 @@ class TestMergifyRegressionCases:
 
         # Find stale removal rule
         stale_remove_rule = next(
-            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])),
-            None
+            (r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])), None
         )
         assert stale_remove_rule is not None, "Stale removal rule not found"
 
