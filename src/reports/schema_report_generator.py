@@ -140,7 +140,7 @@ class SchemaReportGenerator:
             return lines + ["- No relationships recorded yet.", ""]
 
         for src, tgt, rtype, strength in top:
-            lines.append(f"- **{src}** → **{tgt}** ({rtype}, strength {strength:.2f})")
+            lines.append(f"- **{src}** -> **{tgt}** ({rtype}, strength {strength:.2f})")
         lines.append("")
         return lines
 
@@ -159,7 +159,7 @@ class SchemaReportGenerator:
             "",
             "### Regulatory Rules",
             "- **Event Propagation**: Regulatory/earnings events propagate impact.",
-            ("- Event nodes create directional edges to affected assets."),
+            "- Event nodes create directional edges to affected assets.",
             "",
             "### Valuation Rules",
             "- **Impact Scoring**: Normalized to -1 to +1.",
