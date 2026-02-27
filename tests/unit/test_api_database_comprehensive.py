@@ -54,28 +54,28 @@ class TestResolveSqlitePath:
 
 
     def test_resolve_sqlite_path_file_uri(self):
-        """Test resolving URI-style memory database."""
+        """Test resolving a URI-style SQLite memory database path."""
         path = _resolve_sqlite_path("sqlite:///file::memory:?cache=shared")
         assert "file::memory:" in path
 
     def test_resolve_sqlite_path_relative_file(self):
-        """Test resolving relative file path."""
+        """Test resolving a relative SQLite file path."""
         path = _resolve_sqlite_path("sqlite:///test.db")
         assert path.endswith("test.db")
 
     def test_resolve_sqlite_path_absolute_file(self):
-        """Test resolving absolute file path."""
+        """Test resolving an absolute SQLite file path."""
         path = _resolve_sqlite_path("sqlite:////absolute/path/test.db")
         assert "/absolute/path/test.db" in path
 
     def test_resolve_sqlite_path_invalid_scheme(self):
-        """Test that non-sqlite scheme raises ValueError."""
+        """Test that a non-sqlite scheme raises ValueError."""
         with pytest.raises(ValueError) as exc_info:
             _resolve_sqlite_path("postgresql://localhost/db")
         assert "Not a valid sqlite URI" in str(exc_info.value)
 
     def test_resolve_sqlite_path_percent_encoding(self):
-        """Test that percent-encoding is decoded."""
+        """Test percent-encoding decoding in SQLite path."""
         path = _resolve_sqlite_path("sqlite:///test%20file.db")
         assert "test file.db" in path
 
@@ -84,15 +84,15 @@ class TestIsMemoryDb:
     """Test cases for _is_memory_db function."""
 
     def test_is_memory_db_with_colon_memory(self):
-        """Test detecting :memory: as memory database."""
+        """Test if ':memory:' is recognized as a memory database."""
         assert _is_memory_db(":memory:") is True
 
     def test_is_memory_db_with_file_uri_memory(self):
-        """Test detecting file::memory: as memory database."""
+        """Test if 'file::memory:' is recognized as a memory database."""
         assert _is_memory_db("file::memory:?cache=shared") is True
 
     def test_is_memory_db_with_regular_file(self):
-        """Test that regular file is not detected as memory database."""
+        """Test that a regular file is not detected as a memory database."""
         assert _is_memory_db("test.db") is False
 
     def test_is_memory_db_with_absolute_path(self):
@@ -104,7 +104,7 @@ class TestConnect:
     """Test cases for _connect function."""
 
     def test_connect_creates_memory_connection(self):
-        """Test that connecting to memory database returns a sqlite3.Connection."""
+        """Test that connecting to a memory database returns a sqlite3.Connection."""
         import api.database
         from api.database import _DatabaseConnectionManager
 
@@ -119,7 +119,7 @@ class TestConnect:
                     temp_manager._memory_connection = None
 
     def test_connect_creates_file_connection(self):
-        """Test that connecting to file database delegates to the db manager."""
+        """Test that connecting to the file database uses the db manager."""
         import api.database
 
         mock_conn = MagicMock(spec=sqlite3.Connection)
@@ -133,7 +133,7 @@ class TestConnect:
         assert conn == mock_conn
 
     def test_connect_with_uri_path(self):
-        """Test connecting with URI-style database path uses URI mode."""
+        """Test connecting with a URI-style database path."""
         import api.database
         from api.database import _DatabaseConnectionManager
 
@@ -155,7 +155,7 @@ class TestGetConnection:
     @patch("api.database._connect")
     @patch("api.database._is_memory_db", return_value=False)
     def test_get_connection_closes_file_connection(self, mock_is_memory, mock_connect):
-        """Test that file database connection is closed after context."""
+        """Test that the file database connection is closed after use."""
         mock_conn = MagicMock(spec=sqlite3.Connection)
         mock_connect.return_value = mock_conn
 
@@ -169,7 +169,7 @@ class TestGetConnection:
     def test_get_connection_keeps_memory_connection_open(
         self, mock_is_memory, mock_connect
     ):
-        """Test that memory database connection stays open after context."""
+        """Test that the memory database connection remains open."""
         mock_conn = MagicMock(spec=sqlite3.Connection)
         mock_connect.return_value = mock_conn
 
