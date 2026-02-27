@@ -44,6 +44,7 @@ class TestValidationResult:
 class TestValidateWorkflow:
     """Test suite for validate_workflow function"""
 
+
 def write_temp_yaml(content: str) -> Path:
     """
     Create a temporary file with a ".yml" suffix containing the given content and return its filesystem path.
