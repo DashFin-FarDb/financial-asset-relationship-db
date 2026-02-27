@@ -1,6 +1,16 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom'
 
+// Provide default environment values used throughout the app so tests
+// do not fail due to a missing NEXT_PUBLIC_API_URL/NEXT_PUBLIC_API_BASE_URL.
+const defaultApiBaseUrl =
+  process.env.NEXT_PUBLIC_API_URL ||
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'http://localhost:8000'
+
+process.env.NEXT_PUBLIC_API_URL = defaultApiBaseUrl
+process.env.NEXT_PUBLIC_API_BASE_URL = defaultApiBaseUrl
+
 /**
  * Creates a mock matchMedia function for testing.
  * @param {Object} [options] Configuration options.

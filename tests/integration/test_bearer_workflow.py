@@ -324,9 +324,14 @@ class TestBearerWorkflowComments:
     @staticmethod
     def test_has_bearer_documentation_link(bearer_workflow_raw):
         """Verify the workflow references Bearer documentation."""
-        assert (
-            "bearer.com" in bearer_workflow_raw.lower() or "docs.bearer" in bearer_workflow_raw.lower()
-        ), "Workflow should reference Bearer documentation"
+        lower_content = bearer_workflow_raw.lower()
+        has_docs_link = (
+            "https://docs.bearer.com" in lower_content
+            or "http://docs.bearer.com" in lower_content
+            or "https://www.bearer.com" in lower_content
+            or "http://www.bearer.com" in lower_content
+        )
+        assert has_docs_link, "Workflow should reference Bearer documentation"
 
     @staticmethod
     def test_has_inline_comments(bearer_workflow_raw):
