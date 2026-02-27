@@ -49,7 +49,7 @@ describe("NetworkVisualization Component", () => {
       expect(screen.getByText(/missing coordinates/i)).toBeInTheDocument();
     });
 
-    const dataWithNullEdge: VisualizationData = {
+    let dataWithNullEdge: VisualizationData = {
       nodes: [
         {
           id: "1",
