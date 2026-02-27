@@ -147,10 +147,25 @@ class TestCacheHelpers:
 
     def test_save_to_cache_success(self, tmp_path):
         """Test saving data to cache."""
-        cache_data = {"test": "data"}
+        # Build a minimal graph instance compatible with the cache serializer.
+        graph = AssetRelationshipGraph()
+        graph.assets = {}
+        graph.regulatory_events = []
+        graph.relationships = {}
+        graph.incoming_relationships = {}
+
+        cache_path = tmp_path / "cache.json"
+
+        _save_to_cache(graph, cache_path)
+
         assert cache_path.exists(), "Cache file should have been created"
         written = json.loads(cache_path.read_text())
-        assert written == cache_data
+        assert written == {
+            "assets": [],
+            "regulatory_events": [],
+            "relationships": {},
+            "incoming_relationships": {},
+        }
 
     @ patch("src.data.real_data_fetcher.Path.write_text")
     @ patch("src.data.real_data_fetcher.Path.mkdir")
