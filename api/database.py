@@ -24,7 +24,10 @@ def _get_database_url() -> str:
     """
     database_url = os.getenv("DATABASE_URL")
     if not database_url:
-        raise ValueError("DATABASE_URL environment variable must be set before using the database")
+        raise ValueError(
+            "DATABASE_URL environment variable must be set before "
+            "using the database"
+        )
     return database_url
 
 
@@ -108,9 +111,10 @@ def _is_memory_db(path: str | None = None) -> bool:
     Per SQLite documentation, :memory: must be the entire path component for
     URI-style databases, not embedded within a longer path.
 
-    Note: The `mode = memory` URI parameter (e.g., "file:memdb1?mode=memory") is
-    NOT detected as an in-memory database by this function. Use the standard
-    patterns above for reliable detection.
+    Note: The `mode = memory` URI parameter (e.g.,
+    "file:memdb1?mode=memory")
+    is NOT detected as an in-memory database by this function.
+    Use the standard patterns above for reliable detection.
 
     Parameters:
         path (str | None): Optional database path or URI to evaluate.
@@ -122,13 +126,19 @@ def _is_memory_db(path: str | None = None) -> bool:
         False otherwise.
     """
     target = DATABASE_PATH if path is None else path
-    if target == ":memory:":
+    if target == ":memory":
         return True
 
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
     # The :memory: token must be the entire path component (not part of a longer path).
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
+    if (
+        parsed.scheme == "file"
+        and (
+            parsed.path == ":memory:"
+            or ":memory:" in parsed.query
+        )
+    ):
         return True
     return False
 
