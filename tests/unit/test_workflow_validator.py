@@ -401,6 +401,11 @@ jobs:
 
         temp_dir = tempfile.mkdtemp()
         try:
+            path = Path(temp_dir) / "workflow with spaces.yml"
+            path.write_text(
+                "name: Test\non: push\njobs:\n  test:\n    runs-on: ubuntu-latest\n",
+                encoding="utf-8",
+            )
             assert_valid(validate_workflow(str(path)))
         finally:
             import shutil
