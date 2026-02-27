@@ -8,15 +8,15 @@
 
 ## Issue Encountered
 
-After the initial merge of PR #181 (patch branch), a merge conflict marker was discovered in `bandit-report.json`:
+After the initial merge of PR #181 (patch branch), conflict marker text was discovered in `bandit-report.json`:
 
 ```json
   "results": []
-<<<<<<< HEAD
+CONFLICT_MARKER_START
 }
-=======
+CONFLICT_MARKER_MID
 }
->>>>>>> patch
+CONFLICT_MARKER_END
 ```
 
 This conflict marker was left unresolved during the automated conflict resolution process.
@@ -110,8 +110,7 @@ git commit -m "Fix merge conflict in bandit-report.json"
    ```bash
    # Search for conflict markers
    git diff --check
-   grep -r "<<<<<<< HEAD" .
-   grep -r ">>>>>>> " .
+   grep -r -e "CONFLICT_MARKER_START" -e "CONFLICT_MARKER_MID" -e "CONFLICT_MARKER_END" .
    ```
 
 3. **Validate all file types**
@@ -151,12 +150,12 @@ git add -A
 echo "Validating conflict resolution..."
 
 # Check for merge markers
-if grep -r "<<<<<<< HEAD" . --exclude-dir=.git; then
+if grep -r "CONFLICT_MARKER_START" . --exclude-dir=.git; then
     echo "❌ ERROR: Merge conflict markers found!"
     exit 1
 fi
 
-if grep -r ">>>>>>> " . --exclude-dir=.git; then
+if grep -r "CONFLICT_MARKER_END" . --exclude-dir=.git; then
     echo "❌ ERROR: Merge conflict markers found!"
     exit 1
 fi
