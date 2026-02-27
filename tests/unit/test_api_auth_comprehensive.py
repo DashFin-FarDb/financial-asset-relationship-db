@@ -14,9 +14,9 @@ import os
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, patch
 
+import jwt
 import pytest
 from fastapi import HTTPException
-import jwt
 
 from api.auth import (
     ALGORITHM,
@@ -40,7 +40,7 @@ from api.auth import (
 def mock_user_repository():
     """
     Create a MagicMock-based UserRepository suitable for tests.
-    
+
     Returns:
         MagicMock: A mock implementing the UserRepository interface (spec=UserRepository)
         with `get_user`, `has_users`, and `create_or_update_user` attributes mocked.
@@ -56,7 +56,7 @@ def mock_user_repository():
 def sample_user():
     """
     Create a reusable sample UserInDB instance for tests.
-    
+
     Returns:
         UserInDB: A UserInDB populated with username "testuser", email "test@example.com", full_name "Test User", disabled False, and a placeholder hashed_password.
     """
@@ -200,7 +200,9 @@ class TestAuthenticateUser:
         )
         mock_user_repository.get_user.return_value = user
 
-        result = authenticate_user("testuser", password, repository=mock_user_repository)
+        result = authenticate_user(
+            "testuser", password, repository=mock_user_repository
+        )
 
         assert result == user
 
@@ -214,7 +216,9 @@ class TestAuthenticateUser:
         )
         mock_user_repository.get_user.return_value = user
 
-        result = authenticate_user("testuser", "wrong_password", repository=mock_user_repository)
+        result = authenticate_user(
+            "testuser", "wrong_password", repository=mock_user_repository
+        )
 
         assert result is False
 

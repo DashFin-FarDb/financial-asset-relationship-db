@@ -77,7 +77,7 @@ class TestPasswordHashing:
         """Test that passwords are hashed correctly."""
         plain_password = "securePassword123!"
         hashed = get_password_hash(plain_password)
-        
+
         assert hashed != plain_password
         assert len(hashed) > 0
         assert "$" in hashed  # pbkdf2_sha256 format
@@ -86,7 +86,7 @@ class TestPasswordHashing:
         """Test verification of correct password."""
         plain_password = "correctPassword"
         hashed = get_password_hash(plain_password)
-        
+
         assert verify_password(plain_password, hashed)
 
     def test_verify_incorrect_password(self):
@@ -94,7 +94,7 @@ class TestPasswordHashing:
         plain_password = "correctPassword"
         wrong_password = "wrongPassword"
         hashed = get_password_hash(plain_password)
-        
+
         assert not verify_password(wrong_password, hashed)
 
     def test_hash_consistency(self):
@@ -102,7 +102,7 @@ class TestPasswordHashing:
         plain_password = "samePassword"
         hash1 = get_password_hash(plain_password)
         hash2 = get_password_hash(plain_password)
-        
+
         # Different hashes due to salt
         assert hash1 != hash2
         # Both should verify correctly
@@ -113,7 +113,7 @@ class TestPasswordHashing:
         """Test handling of empty password."""
         empty_password = ""
         hashed = get_password_hash(empty_password)
-        
+
         assert len(hashed) > 0
         assert verify_password(empty_password, hashed)
 
@@ -124,7 +124,7 @@ class TestUserModels:
     def test_token_model(self):
         """Test Token model creation."""
         token = Token(access_token="test_token", token_type="bearer")
-        
+
         assert token.access_token == "test_token"
         assert token.token_type == "bearer"
 
@@ -132,7 +132,7 @@ class TestUserModels:
         """Test TokenData model."""
         token_data = TokenData(username="testuser")
         assert token_data.username == "testuser"
-        
+
         token_data_none = TokenData()
         assert token_data_none.username is None
 
@@ -144,7 +144,7 @@ class TestUserModels:
             full_name="Test User",
             disabled=False
         )
-        
+
         assert user.username == "testuser"
         assert user.email == "test@example.com"
         assert user.full_name == "Test User"
@@ -153,7 +153,7 @@ class TestUserModels:
     def test_user_model_optional_fields(self):
         """Test User model with optional fields."""
         user = User(username="testuser")
-        
+
         assert user.username == "testuser"
         assert user.email is None
         assert user.full_name is None
@@ -166,7 +166,7 @@ class TestUserModels:
             email="test@example.com",
             hashed_password="hashed_pwd_123"
         )
-        
+
         assert user_in_db.username == "testuser"
         assert user_in_db.email == "test@example.com"
         assert user_in_db.hashed_password == "hashed_pwd_123"
@@ -191,7 +191,7 @@ class TestUserRepository:
     def user_repo(self):
         """
         Provide a fresh UserRepository instance for tests.
-        
+
         Returns:
             repo (UserRepository): A new UserRepository instance for use in a test.
         """
@@ -201,9 +201,9 @@ class TestUserRepository:
     def test_get_user_exists(self, mock_fetch_one, user_repo, mock_user_data):
         """Test getting an existing user."""
         mock_fetch_one.return_value = mock_user_data
-        
+
         user = user_repo.get_user("testuser")
-        
+
         assert user is not None
         assert isinstance(user, UserInDB)
         assert user.username == "testuser"
@@ -211,16 +211,16 @@ class TestUserRepository:
         assert user.full_name == "Test User"
         assert user.hashed_password == "hashed_password_123"
         assert user.disabled is False
-        
+
         mock_fetch_one.assert_called_once()
 
     @patch('api.auth.fetch_one')
     def test_get_user_not_exists(self, mock_fetch_one, user_repo):
         """Test getting a non-existent user returns None."""
         mock_fetch_one.return_value = None
-        
+
         user = user_repo.get_user("nonexistent")
-        
+
         assert user is None
         mock_fetch_one.assert_called_once()
 
@@ -229,18 +229,18 @@ class TestUserRepository:
         """Test that disabled flag is correctly converted to bool."""
         mock_user_data["disabled"] = 1
         mock_fetch_one.return_value = mock_user_data
-        
+
         user = user_repo.get_user("testuser")
-        
+
         assert user.disabled is True
 
     @patch('api.auth.fetch_value')
     def test_has_users_true(self, mock_fetch_value, user_repo):
         """Test has_users returns True when users exist."""
         mock_fetch_value.return_value = 1
-        
+
         result = user_repo.has_users()
-        
+
         assert result is True
         mock_fetch_value.assert_called_once()
 
@@ -248,9 +248,9 @@ class TestUserRepository:
     def test_has_users_false(self, mock_fetch_value, user_repo):
         """Test has_users returns False when no users exist."""
         mock_fetch_value.return_value = None
-        
+
         result = user_repo.has_users()
-        
+
         assert result is False
         mock_fetch_value.assert_called_once()
 
@@ -264,7 +264,7 @@ class TestUserRepository:
             full_name="New User",
             disabled=False
         )
-        
+
         mock_execute.assert_called_once()
         params = mock_execute.call_args.args[1]
         assert params[0] == "newuser"
@@ -281,7 +281,7 @@ class TestUserRepository:
             hashed_password="hashed_pwd",
             disabled=True
         )
-        
+
         call_args = mock_execute.call_args
         assert call_args[0][1][4] == 1  # disabled=True -> 1
 
@@ -292,7 +292,7 @@ class TestUserRepository:
             username="minimal",
             hashed_password="hashed"
         )
-        
+
         mock_execute.assert_called_once()
         call_args = mock_execute.call_args
         assert call_args[0][1][1] is None  # email
@@ -306,7 +306,7 @@ class TestJWTOperations:
         """Test creating a basic access token."""
         data = {"sub": "testuser"}
         token = create_access_token(data)
-        
+
         assert isinstance(token, str)
         assert len(token) > 0
         assert "." in token  # JWT format
@@ -316,7 +316,7 @@ class TestJWTOperations:
         data = {"sub": "testuser"}
         expires_delta = timedelta(minutes=15)
         token = create_access_token(data, expires_delta)
-        
+
         assert isinstance(token, str)
         assert len(token) > 0
 
@@ -324,12 +324,13 @@ class TestJWTOperations:
         """Test token creation uses default expiration."""
         data = {"sub": "testuser"}
         token = create_access_token(data)
-        
+
         # Decode to verify expiration was set
         import jwt
-        from api.auth import SECRET_KEY, ALGORITHM
+
+        from api.auth import ALGORITHM, SECRET_KEY
         decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    
+
         assert "exp" in decoded
         assert decoded["sub"] == "testuser"
 
@@ -339,11 +340,13 @@ class TestJWTOperations:
         token = create_access_token(data)
 
         import jwt
-        from api.auth import SECRET_KEY, ALGORITHM
+
+        from api.auth import ALGORITHM, SECRET_KEY
         decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
         assert decoded["sub"] == "testuser"
         assert decoded["role"] == "admin"
+
     @pytest.fixture
     def valid_token(self):
         data = {"sub": "testuser"}
@@ -444,6 +447,8 @@ class TestGetCurrentActiveUser:
         user = User(username="user", disabled=None)
         result = await get_current_active_user(user)
         assert result.username == "user"
+
+
 class TestEdgeCases:
     @pytest.fixture
     def valid_token(self):
@@ -492,7 +497,7 @@ class TestEdgeCases:
         """Test that disabled user raises HTTPException."""
         with pytest.raises(HTTPException) as exc_info:
             await get_current_active_user(disabled_user)
-        
+
         assert exc_info.value.status_code == status.HTTP_400_BAD_REQUEST
         assert "Inactive user" in exc_info.value.detail
 
@@ -500,10 +505,12 @@ class TestEdgeCases:
     async def test_get_current_active_user_none_disabled(self):
         """Test user with None disabled field is treated as active."""
         user = User(username="user", disabled=None)
-        
+
         result = await get_current_active_user(user)
-        
+
         assert result.username == "user"
+
+
 def test_special_character_usernames_do_not_break_token_creation():
     special_usernames = ["user@name", "user name", "user'name", 'user"name']
     for username in special_usernames:
@@ -516,16 +523,18 @@ def test_very_long_password():
     """Test handling of very long passwords."""
     long_password = "a" * 1000
     hashed = get_password_hash(long_password)
-    
+
     assert verify_password(long_password, hashed)
     assert not verify_password(long_password[:-1], hashed)
+
 
 def test_unicode_password():
     """Test handling of unicode characters in passwords."""
     unicode_password = "пароль123密码🔐"
     hashed = get_password_hash(unicode_password)
-    
+
     assert verify_password(unicode_password, hashed)
+
 
 @patch("api.auth.user_repository.get_user")
 def test_sql_injection_attempt(mock_get_user):
@@ -545,22 +554,23 @@ class TestSecretKeyValidation:
     def test_secret_key_is_loaded(self):
         """Test that SECRET_KEY is loaded from environment."""
         from api.auth import SECRET_KEY
-        
+
         assert SECRET_KEY is not None
         assert len(SECRET_KEY) > 0
 
     def test_secret_key_used_in_jwt(self):
         """Test that SECRET_KEY is used for JWT operations."""
         import jwt
-        from api.auth import SECRET_KEY, ALGORITHM
-        
+
+        from api.auth import ALGORITHM, SECRET_KEY
+
         data = {"sub": "testuser"}
         token = create_access_token(data)
-        
+
         # Decoding with correct key should work
         decoded = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         assert decoded["sub"] == "testuser"
-        
+
         # Decoding with wrong key should fail
         with pytest.raises(jwt.InvalidSignatureError):
             jwt.decode(token, "wrong_secret", algorithms=[ALGORITHM])
@@ -568,6 +578,7 @@ class TestSecretKeyValidation:
 
 # Mark tests that require database
 pytestmark = pytest.mark.unit
+
 
 class TestUserRepositoryParameterNameChanges:
     """Test UserRepository with new parameter names (email, full_name, disabled)."""
@@ -577,7 +588,7 @@ class TestUserRepositoryParameterNameChanges:
     def test_create_or_update_user_with_new_parameter_names(self, mock_fetch, mock_execute):
         """Test create_or_update_user uses new parameter names correctly."""
         repository = UserRepository()
-        
+
         repository.create_or_update_user(
             username="testuser",
             hashed_password="hashed_pass",
@@ -585,7 +596,7 @@ class TestUserRepositoryParameterNameChanges:
             full_name="Test User",
             disabled=False
         )
-        
+
         # Verify execute was called with correct parameters
         mock_execute.assert_called_once()
         call_args = mock_execute.call_args
@@ -599,13 +610,13 @@ class TestUserRepositoryParameterNameChanges:
     def test_create_or_update_user_disabled_true(self, mock_execute):
         """Test that disabled=True is converted to 1."""
         repository = UserRepository()
-        
+
         repository.create_or_update_user(
             username="disableduser",
             hashed_password="hashed",
             disabled=True
         )
-        
+
         call_args = mock_execute.call_args[0][1]
         assert 1 in call_args  # disabled=True should be 1
 
@@ -613,7 +624,7 @@ class TestUserRepositoryParameterNameChanges:
     def test_create_or_update_user_with_none_optionals(self, mock_execute):
         """Test create_or_update_user with None for optional fields."""
         repository = UserRepository()
-        
+
         repository.create_or_update_user(
             username="minimaluser",
             hashed_password="hash",
@@ -621,7 +632,7 @@ class TestUserRepositoryParameterNameChanges:
             full_name=None,
             disabled=False
         )
-        
+
         call_args = mock_execute.call_args[0][1]
         assert None in call_args  # email and full_name should be None
 
@@ -629,12 +640,12 @@ class TestUserRepositoryParameterNameChanges:
     def test_create_or_update_user_minimal_kwargs(self, mock_execute):
         """Test create_or_update_user with only required parameters."""
         repository = UserRepository()
-        
+
         repository.create_or_update_user(
             username="minimal",
             hashed_password="hash"
         )
-        
+
         # Should use default values for optional parameters
         mock_execute.assert_called_once()
 
@@ -664,14 +675,14 @@ class TestUserRepositoryInstanceMethods:
     def test_multiple_repository_instances_independent(self, mock_fetch):
         """Test that multiple UserRepository instances work independently."""
         mock_fetch.return_value = None
-        
+
         repo1 = UserRepository()
         repo2 = UserRepository()
-        
+
         # Both should work independently
         result1 = repo1.get_user("user1")
         result2 = repo2.get_user("user2")
-        
+
         assert result1 is None
         assert result2 is None
         assert mock_fetch.call_count == 2
@@ -722,11 +733,11 @@ class TestUserInDBSeparateClass:
             disabled=False,
             hashed_password="secret"
         )
-        
+
         # Convert to User (without hashed_password)
         user_dict = user_in_db.dict(exclude={'hashed_password'})
         user = User(**user_dict)
-        
+
         assert user.username == user_in_db.username
         assert user.email == user_in_db.email
         assert user.full_name == user_in_db.full_name
@@ -759,7 +770,7 @@ class TestPasswordHashingEdgeCases:
             "北京",
             "مرحبا"
         ]
-        
+
         for pwd in special_passwords:
             hashed = get_password_hash(pwd)
             assert verify_password(pwd, hashed), f"Failed for password: {pwd}"
@@ -768,7 +779,7 @@ class TestPasswordHashingEdgeCases:
         """Test verification with corrupted hash."""
         password = "testpass"
         hashed = get_password_hash(password)
-        
+
         # Corrupt the hash
         corrupted = hashed[:-5] + "xxxxx"
         assert not verify_password(password, corrupted)
@@ -778,7 +789,7 @@ class TestPasswordHashingEdgeCases:
         password = "test123"
         hash1 = get_password_hash(password)
         hash2 = get_password_hash(password)
-        
+
         # Hashes should be different due to salt
         assert hash1 != hash2
         # But both should verify
@@ -801,10 +812,10 @@ class TestSeedCredentialsParameterNameChanges:
         """Test that _seed_credentials_from_env uses new parameter names."""
         mock_hash.return_value = "hashed_adminpass"
         mock_repo = Mock(spec=UserRepository)
-        
+
         from api.auth import _seed_credentials_from_env
         _seed_credentials_from_env(mock_repo)
-        
+
         # Verify create_or_update_user was called with new parameter names
         mock_repo.create_or_update_user.assert_called_once_with(
             username='admin',
@@ -824,10 +835,10 @@ class TestSeedCredentialsParameterNameChanges:
         """Test seeding with ADMIN_DISABLED=true."""
         mock_hash.return_value = "hashed"
         mock_repo = Mock(spec=UserRepository)
-        
+
         from api.auth import _seed_credentials_from_env
         _seed_credentials_from_env(mock_repo)
-        
+
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
         assert call_kwargs['disabled'] is True
 
@@ -841,10 +852,10 @@ class TestSeedCredentialsParameterNameChanges:
         """Test seeding with ADMIN_DISABLED=1."""
         mock_hash.return_value = "hashed"
         mock_repo = Mock(spec=UserRepository)
-        
+
         from api.auth import _seed_credentials_from_env
         _seed_credentials_from_env(mock_repo)
-        
+
         call_kwargs = mock_repo.create_or_update_user.call_args[1]
         assert call_kwargs['disabled'] is True
 
@@ -903,7 +914,7 @@ class TestAuthenticationEdgeCases:
             hashed_password=get_password_hash("realpass")
         )
         mock_get_user.return_value = mock_user
-        
+
         result = authenticate_user("test", "")
         assert result is False
 
@@ -914,7 +925,7 @@ class TestAuthenticationEdgeCases:
             username="test",
             hashed_password="hash"
         )
-        
+
         # verify_password should handle None gracefully or raise
         try:
             result = authenticate_user("test", None)
@@ -928,10 +939,10 @@ class TestAuthenticationEdgeCases:
     def test_authenticate_nonexistent_user_case_sensitive(self, mock_get_user):
         """Test that username lookup is case-sensitive."""
         mock_get_user.return_value = None
-        
+
         result = authenticate_user("Admin", "password")
         assert result is False
-        
+
         # Verify it was called with exact case
         mock_get_user.assert_called_with("Admin")
 
@@ -967,47 +978,49 @@ class TestTokenCreationEdgeCases:
         """Test creating token with negative expiry (already expired)."""
         delta = timedelta(minutes=-30)
         token = create_access_token({"sub": "test"}, expires_delta=delta)
-        
+
         # Token should be created but immediately expired
         with pytest.raises(ExpiredSignatureError):
             import jwt
-            from api.auth import SECRET_KEY, ALGORITHM
+
+            from api.auth import ALGORITHM, SECRET_KEY
             jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
 
 
 class TestGetCurrentUserEdgeCases:
     """Additional edge cases for get_current_user."""
 
-    @pytest.mark.asyncio
+    @ pytest.mark.asyncio
     async def test_get_current_user_with_malformed_token(self):
         """Test get_current_user with malformed token."""
         with pytest.raises(HTTPException) as exc_info:
             await get_current_user("not.a.valid.jwt.token.format.here")
-        
+
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @pytest.mark.asyncio
+    @ pytest.mark.asyncio
     async def test_get_current_user_with_empty_token(self):
         """Test get_current_user with empty token."""
         with pytest.raises(HTTPException) as exc_info:
             await get_current_user("")
-        
+
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
-    @pytest.mark.asyncio
-    @patch('api.auth.user_repository.get_user')
+    @ pytest.mark.asyncio
+    @ patch('api.auth.user_repository.get_user')
     async def test_get_current_user_token_missing_sub(self, mock_get_user):
         """Test get_current_user with token missing 'sub' claim."""
         import jwt
-        from api.auth import SECRET_KEY, ALGORITHM
-        
+
+        from api.auth import ALGORITHM, SECRET_KEY
+
         # Create token without 'sub'
         token_data = {"exp": datetime.utcnow() + timedelta(minutes=30)}
         token = jwt.encode(token_data, SECRET_KEY, algorithm=ALGORITHM)
-        
+
         with pytest.raises(HTTPException) as exc_info:
             await get_current_user(token)
-        
+
         assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -1015,8 +1028,8 @@ class TestGetCurrentUserEdgeCases:
 class TestAuthenticationIntegrationFlow:
     """Test complete authentication flow with all components."""
 
-    @patch('api.auth.execute')
-    @patch('api.auth.fetch_one')
+    @ patch('api.auth.execute')
+    @ patch('api.auth.fetch_one')
     def test_full_user_registration_and_auth_flow(self, mock_fetch, mock_execute):
         """Test complete flow: create user, authenticate, get user."""
         # Step 1: Create user
@@ -1050,7 +1063,7 @@ class TestAuthenticationIntegrationFlow:
         assert authenticated is not False
         assert authenticated.username == "newuser"
 
-    @patch('api.auth.fetch_one')
+    @ patch('api.auth.fetch_one')
     def test_disabled_user_cannot_become_active_user(self, mock_fetch):
         """Test that disabled users are filtered out."""
         mock_fetch.return_value = {
@@ -1060,11 +1073,10 @@ class TestAuthenticationIntegrationFlow:
             "hashed_password": "hash",
             "disabled": 1
         }
-        
+
         repository = UserRepository()
         user = repository.get_user("disabled_user")
-        
+
         # User exists but is disabled
         assert user is not None
         assert user.disabled is True
-

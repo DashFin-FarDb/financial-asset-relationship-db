@@ -40,7 +40,9 @@ class TestGetDatabaseUrl:
         with patch.dict(os.environ, {}, clear=True):
             with pytest.raises(ValueError) as exc_info:
                 _get_database_url()
-            assert "DATABASE_URL environment variable must be set" in str(exc_info.value)
+            assert "DATABASE_URL environment variable must be set" in str(
+                exc_info.value
+            )
 
 
 class TestResolveSqlitePath:
@@ -110,8 +112,9 @@ class TestConnect:
         import api.database
 
         conn = None
-        with patch.object(api.database, "DATABASE_PATH", ":memory:"), patch.object(
-            api.database, "_MEMORY_CONNECTION", None
+        with (
+            patch.object(api.database, "DATABASE_PATH", ":memory:"),
+            patch.object(api.database, "_MEMORY_CONNECTION", None),
         ):
             try:
                 conn = _connect()
@@ -165,7 +168,9 @@ class TestGetConnection:
 
     @patch("api.database._connect")
     @patch("api.database._is_memory_db", return_value=True)
-    def test_get_connection_keeps_memory_connection_open(self, mock_is_memory, mock_connect):
+    def test_get_connection_keeps_memory_connection_open(
+        self, mock_is_memory, mock_connect
+    ):
         """Test that memory database connection stays open after context."""
         mock_conn = MagicMock(spec=sqlite3.Connection)
         mock_connect.return_value = mock_conn

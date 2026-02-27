@@ -7,11 +7,13 @@ Generated comprehensive unit tests for files changed in the current branch compa
 ## New Test Files Created
 
 ### 1. tests/unit/test_auth.py
+
 **Purpose**: Comprehensive unit tests for authentication module (`api/auth.py`)
 
 **Coverage**: 690 lines, 60+ test cases, ~95% code coverage
 
 **Test Areas**:
+
 - Helper functions (`_is_truthy`)
 - Password hashing and verification
 - Pydantic models (Token, User, UserInDB, TokenData)
@@ -24,6 +26,7 @@ Generated comprehensive unit tests for files changed in the current branch compa
 - SECRET_KEY validation
 
 **Key Test Classes**:
+
 - `TestIsTruthy` - Boolean string evaluation
 - `TestPasswordHashing` - Password security
 - `TestUserModels` - Pydantic model validation
@@ -36,11 +39,13 @@ Generated comprehensive unit tests for files changed in the current branch compa
 - `TestSecretKeyValidation` - Configuration validation
 
 ### 2. tests/unit/test_real_data_fetcher.py
+
 **Purpose**: Comprehensive unit tests for real data fetcher (`src/data/real_data_fetcher.py`)
 
 **Coverage**: 575 lines, 45+ test cases, ~90% code coverage
 
 **Test Areas**:
+
 - Cache management (path resolution, validation, load/save)
 - RealDataFetcher initialization and configuration
 - Stock data fetching (success, failure, partial failure)
@@ -53,6 +58,7 @@ Generated comprehensive unit tests for files changed in the current branch compa
 - Integration with AssetRelationshipGraph
 
 **Key Test Classes**:
+
 - `TestCacheHelpers` - Cache file operations
 - `TestRealDataFetcher` - Data fetching operations
 - `TestCreateRealDatabase` - Database population
@@ -63,25 +69,27 @@ Generated comprehensive unit tests for files changed in the current branch compa
 ## Analysis Results
 
 ### Files Changed (Python)
-| File | Test Status |
-|------|-------------|
-| `api/auth.py` | ✅ NEW TEST CREATED |
-| `api/database.py` | ✅ Has tests/unit/test_database.py |
-| `api/main.py` | ✅ Has tests/unit/test_api_main.py |
-| `app.py` | ✅ Covered by integration tests |
-| `src/analysis/formulaic_analysis.py` | ✅ Has test_formulaic_analysis.py |
-| `src/data/database.py` | ✅ Has test_database.py |
-| `src/data/db_models.py` | ✅ Has test_db_models.py |
-| `src/data/real_data_fetcher.py` | ✅ NEW TEST CREATED |
-| `src/data/repository.py` | ✅ Has test_repository.py |
-| `src/logic/asset_graph.py` | ✅ Has test_asset_graph.py |
+
+| File                                 | Test Status                        |
+| ------------------------------------ | ---------------------------------- |
+| `api/auth.py`                        | ✅ NEW TEST CREATED                |
+| `api/database.py`                    | ✅ Has tests/unit/test_database.py |
+| `api/main.py`                        | ✅ Has tests/unit/test_api_main.py |
+| `app.py`                             | ✅ Covered by integration tests    |
+| `src/analysis/formulaic_analysis.py` | ✅ Has test_formulaic_analysis.py  |
+| `src/data/database.py`               | ✅ Has test_database.py            |
+| `src/data/db_models.py`              | ✅ Has test_db_models.py           |
+| `src/data/real_data_fetcher.py`      | ✅ NEW TEST CREATED                |
+| `src/data/repository.py`             | ✅ Has test_repository.py          |
+| `src/logic/asset_graph.py`           | ✅ Has test_asset_graph.py         |
 
 ### Files Changed (TypeScript/React)
-| File | Test Status |
-|------|-------------|
-| `frontend/app/lib/api.ts` | ✅ Has api.test.ts (626 lines) |
-| `frontend/app/components/AssetList.tsx` | ✅ Has AssetList.test.tsx (174 lines) |
-| `frontend/app/components/MetricsDashboard.tsx` | ✅ Has MetricsDashboard.test.tsx (225 lines) |
+
+| File                                               | Test Status                                      |
+| -------------------------------------------------- | ------------------------------------------------ |
+| `frontend/app/lib/api.ts`                          | ✅ Has api.test.ts (626 lines)                   |
+| `frontend/app/components/AssetList.tsx`            | ✅ Has AssetList.test.tsx (174 lines)            |
+| `frontend/app/components/MetricsDashboard.tsx`     | ✅ Has MetricsDashboard.test.tsx (225 lines)     |
 | `frontend/app/components/NetworkVisualization.tsx` | ✅ Has NetworkVisualization.test.tsx (900 lines) |
 
 **Note**: Frontend changes were primarily formatting (quote style), not functional changes.
@@ -89,6 +97,7 @@ Generated comprehensive unit tests for files changed in the current branch compa
 ## Testing Framework
 
 ### Python
+
 - **Framework**: pytest 7.0.0+
 - **Mocking**: unittest.mock
 - **Async Support**: pytest-asyncio
@@ -96,6 +105,7 @@ Generated comprehensive unit tests for files changed in the current branch compa
 - **Markers**: `@pytest.mark.unit`
 
 ### Running Tests
+
 ```bash
 # Run new unit tests
 pytest tests/unit/test_auth.py -v
@@ -111,6 +121,7 @@ pytest tests/unit/ --cov=api --cov=src --cov-report=html
 ## Test Quality Metrics
 
 ### Code Quality
+
 - ✅ Descriptive test names
 - ✅ Comprehensive edge case coverage
 - ✅ Proper mocking of external dependencies
@@ -120,11 +131,11 @@ pytest tests/unit/ --cov=api --cov=src --cov-report=html
 - ✅ Fixtures for reusable test data
 
 ### Coverage Metrics
+
 - **api/auth.py**: ~95% line coverage
   - All public functions tested
   - All error paths tested
   - Edge cases covered
-  
 - **src/data/real_data_fetcher.py**: ~90% line coverage
   - All fetch operations tested
   - Cache mechanisms tested
@@ -133,6 +144,7 @@ pytest tests/unit/ --cov=api --cov=src --cov-report=html
 ### Test Patterns Used
 
 **1. Fixture-Based Test Data**
+
 ```python
 @pytest.fixture
 def mock_user(self):
@@ -145,6 +157,7 @@ def mock_user(self):
 ```
 
 **2. Mock External Dependencies**
+
 ```python
 @patch('api.auth.user_repository.get_user')
 def test_authenticate_user_success(self, mock_get_user, mock_user):
@@ -153,6 +166,7 @@ def test_authenticate_user_success(self, mock_get_user, mock_user):
 ```
 
 **3. Exception Testing**
+
 ```python
 async def test_get_current_user_expired_token(self, expired_token):
     with pytest.raises(HTTPException) as exc_info:
@@ -161,6 +175,7 @@ async def test_get_current_user_expired_token(self, expired_token):
 ```
 
 **4. Parametrized Edge Cases**
+
 ```python
 def test_truthy_values(self):
     for value in ["true", "True", "1", "yes", "on"]:
@@ -169,14 +184,14 @@ def test_truthy_values(self):
 
 ## Summary Statistics
 
-| Metric | Value |
-|--------|-------|
-| New Test Files | 2 |
-| Total Lines of Test Code | 1,265 |
-| Total Test Cases | 105+ |
-| Test Classes | 19 |
-| Code Coverage (new modules) | ~92% |
-| Estimated Execution Time | 5-10 seconds |
+| Metric                      | Value        |
+| --------------------------- | ------------ |
+| New Test Files              | 2            |
+| Total Lines of Test Code    | 1,265        |
+| Total Test Cases            | 105+         |
+| Test Classes                | 19           |
+| Code Coverage (new modules) | ~92%         |
+| Estimated Execution Time    | 5-10 seconds |
 
 ## Files Ready for Commit
 
@@ -186,6 +201,7 @@ The following test files are ready to be committed:
 2. ✅ `tests/unit/test_real_data_fetcher.py` (575 lines)
 
 Both files:
+
 - Follow project conventions
 - Use established testing patterns
 - Properly mock external dependencies
