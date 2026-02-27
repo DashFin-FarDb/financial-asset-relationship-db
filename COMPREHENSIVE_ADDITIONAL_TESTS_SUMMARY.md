@@ -16,8 +16,6 @@ Following a **bias-for-action approach**, comprehensive additional unit tests ha
 
 ### 1. Frontend Component Tests
 
-### 1. Frontend Component Tests
-
 #### **frontend/**tests**/components/MetricsDashboard.test.tsx**
 
 - **Previous**: 59 lines, 6 tests
