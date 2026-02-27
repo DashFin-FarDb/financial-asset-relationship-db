@@ -515,7 +515,7 @@ jobs:
             assert len(workflows) == 1
 
             config = load_yaml_safe(workflows[0])
-            assert config["name"] == "Complex CI/CD"
+            assert config["name"] == "Complex CI / CD"
             assert "push" in config["on"]
             assert "pull_request" in config["on"]
             assert "strategy" in config["jobs"]["test"]
