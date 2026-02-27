@@ -217,7 +217,6 @@ class TestPRAgentConfigYAMLValidity:
             content = f.read()
 
         # Simple check for obvious duplicates
-        lines = content.split("\n")
         with open(config_path, "r") as f:
             try:
                 config = yaml.safe_load(f)
