@@ -52,13 +52,15 @@ class TestWorkflowConsistency:
         return workflows
 
     def test_all_workflows_use_consistent_action_versions(self, all_workflows):
-        """
-        Ensure actions referenced across workflows are used with a single version.
-
-        Scans the provided workflows jobs and steps to detect actions specified with explicit versions and reports when the same action appears with multiple different versions. Differences between actions / checkout major versions(e.g., v4 vs v5) are allowed and will be ignored.
-
-        Parameters:
-            all_workflows(dict): Mapping from workflow file path(str) to parsed YAML content(dict).
+        """Ensure actions referenced across workflows are used with a single version.
+        
+        This function scans the provided workflows' jobs and steps to detect actions
+        specified with explicit versions. It reports when the same action appears with
+        multiple different versions, while allowing differences between major versions
+        (e.g., v4 vs v5) for specific actions like actions/checkout.
+        
+        Args:
+            all_workflows (dict): Mapping from workflow file path (str) to parsed YAML content (dict).
         """
         action_versions = {}
 
@@ -88,14 +90,17 @@ class TestWorkflowConsistency:
                 )
 
     def test_all_workflows_use_github_token_consistently(self, all_workflows):
-        """
-        Check that workflows use the approved GITHUB_TOKEN syntax.
-
-        Asserts that any occurrence of `GITHUB_TOKEN` or `github.token` in a workflow is expressed as `secrets.GITHUB_TOKEN` or `${{github.token}}`; failures include the workflow file path in the message.
-
-        Parameters:
-            all_workflows(dict): Mapping of workflow file path to parsed YAML content.
-        """
+        """def test_all_workflows_use_github_token_consistently(self, all_workflows):
+        Check that workflows use the approved GITHUB_TOKEN syntax.  Asserts that any
+        occurrence of `GITHUB_TOKEN` or `github.token` in a  workflow is expressed as
+        `secrets.GITHUB_TOKEN` or `${{github.token}}`.  The function iterates through
+        the provided `all_workflows` dictionary,  checking each workflow's string
+        representation for the correct usage of  the GITHUB_TOKEN syntax and raises an
+        assertion error if the syntax is  incorrect, including the workflow file path
+        in the error message.
+        
+        Args:
+            all_workflows (dict): Mapping of workflow file path to parsed YAML content."""
         for wf_file, workflow in all_workflows.items():
             workflow_str = yaml.dump(workflow)
 
@@ -107,13 +112,12 @@ class TestWorkflowConsistency:
                 ), f"{wf_file}: GITHUB_TOKEN should use proper syntax"
 
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
-        """
-        Verify that designated simplified workflows limit each job to at most three steps.
-
-        Parameters:
-            all_workflows(dict): Mapping from workflow file path to its parsed YAML content; only workflows present in the mapping are checked.
-        """
         # These workflows were simplified in this branch
+        """Verify that simplified workflows limit each job to at most three steps.
+        
+        Args:
+            all_workflows (dict): Mapping from workflow file path to its parsed YAML content.
+        """
         simplified = [
             ".github/workflows/label.yml",
             ".github/workflows/greetings.yml",
@@ -325,13 +329,13 @@ class TestBranchCoherence:
                 )
 
     def test_removed_complexity_not_referenced(self):
-        """
-        Assert that removed complexity indicators are not referenced in workflow files.
-
-        Scans all YAML files under .github / workflows for the feature names
-        'context_chunking', 'tiktoken', 'summarization', 'max_tokens', and 'chunk_size'.
-        If any of these names appear in a non - comment line of a workflow file, the test
-        fails with a message identifying the file and the offending feature.
+        """Assert that removed complexity indicators are not referenced in workflow files.
+        
+        This function scans all YAML files under .github/workflows for specific feature
+        names  such as 'context_chunking', 'tiktoken', 'summarization', 'max_tokens',
+        and 'chunk_size'.  It checks if any of these names appear in non-comment lines
+        of the workflow files.  If any references are found, the test fails, providing
+        a message that identifies the  offending file and feature.
         """
         complex_features = [
             "context_chunking",
@@ -359,12 +363,15 @@ class TestBranchCoherence:
                             )
 
     def test_branch_reduces_dependencies_on_external_config(self):
-        """
-        Ensure the branch removes external workflow configuration and limits external file references in workflows.
-
-        Asserts that .github/labeler.yml and .github/scripts/context_chunker.py do not exist. For each YAML file under .github/workflows, asserts that at most one step's `run` command references a path containing ".github/" or "scripts/".
-        """
         # labeler.yml was removed - workflows should work without it
+        """Ensure the branch removes external workflow configuration.
+        
+        This function verifies that the .github/labeler.yml and
+        .github/scripts/context_chunker.py files do not exist, ensuring workflows can
+        operate independently. It also checks each YAML file in the .github/workflows
+        directory to confirm that at most one step's `run` command references external
+        paths containing ".github/" or "scripts/", promoting self-contained workflows.
+        """
         assert not Path(".github/labeler.yml").exists()
 
         # context_chunker.py was removed - workflows should work without it
@@ -416,13 +423,7 @@ class TestBranchQuality:
                 pytest.fail(f"Failed to parse {wf_file}: {e}")
 
     def test_no_merge_conflict_markers(self):
-        """
-        Ensure specified files do not contain Git merge conflict markers.
-
-        Checks each workflow file and the development requirements file for the markers
-        '<<<<<<<', '=======', and '>>>>>>>' and asserts their absence. On failure the
-        assertion message identifies the file path and the offending marker.
-        """
+        """Ensure specified files do not contain Git merge conflict markers."""
         conflict_markers = ["<<<<<<<", "=======", ">>>>>>>"]
 
         files_to_check = [
@@ -445,11 +446,13 @@ class TestBranchQuality:
                     )
 
     def test_consistent_indentation_across_workflows(self):
-        """
-        Check that every workflow YAML file uses consistent 2 - space indentation.
-
-        For each non - empty line that begins with a space, the number of leading spaces must be a multiple of two.
-        If a line violates this rule, the test asserts with a message identifying the workflow file and line number.
+        """Check that every workflow YAML file uses consistent 2-space indentation.
+        
+        This function iterates through all YAML files in the `.github/workflows`
+        directory  and checks each non-empty line that begins with a space. It verifies
+        that the number  of leading spaces is a multiple of two. If any line violates
+        this rule, an assertion  is raised with a message indicating the specific
+        workflow file and line number.
         """
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
 
