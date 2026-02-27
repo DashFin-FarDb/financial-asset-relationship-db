@@ -38,12 +38,7 @@ graph_lock = threading.Lock()
 
 
 def get_graph() -> AssetRelationshipGraph:
-    """
-    Provide the global AssetRelationshipGraph, initialising it on first access if necessary.
-
-    Returns:
-        AssetRelationshipGraph: The global graph instance.
-    """
+    """Return the global AssetRelationshipGraph, initializing it if necessary."""
     global graph
     if graph is None:
         with graph_lock:
@@ -114,17 +109,9 @@ def _should_use_real_data_fetcher() -> bool:
 
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
-    """
-    Manage the application's lifespan by initialising the global graph on startup and logging shutdown.
-
-    Initialises the global asset relationship graph before the application begins handling requests;
-    if initialisation fails the exception is re-raised to abort startup. Yields control for the
-    application's running lifetime and logs on shutdown.
-
-    Parameters:
-        fastapi_app (FastAPI): The FastAPI application instance.
-    """
     # Startup
+    """Manage the application's lifespan by initializing the global graph and logging
+    shutdown."""
     try:
         get_graph()
         logger.info("Application startup complete - graph initialized")
@@ -160,17 +147,17 @@ ENV = os.getenv("ENV", "development").lower()
 def validate_origin(origin_url: str) -> bool:
     # Read environment dynamically to support runtime overrides (e.g., during tests)
     """Determine whether an HTTP origin is permitted by the application's CORS rules.
-
-    This function validates the provided origin URL against a set of rules defined
-    by the application's CORS configuration. It checks for explicitly allowed
-    origins, allows HTTPS origins with valid domains, permits Vercel preview
-    hostnames, and allows localhost/127.0.0.1 under specific conditions based on
-    the current environment.
-
+    
+    This function validates the provided origin URL against the application's CORS
+    configuration. It checks for explicitly allowed origins, permits HTTP localhost
+    only in the development environment, allows HTTPS localhost in any environment,
+    and validates Vercel preview deployment URLs. Additionally, it verifies valid
+    HTTPS URLs with proper domains.
+    
     Args:
         origin_url (str): Origin URL to validate (for example "https://example.com" or
             "http://localhost:3000").
-
+    
     Returns:
         bool: True if the origin is allowed, False otherwise.
     """
@@ -253,26 +240,19 @@ app.add_middleware(
 
 
 def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
-    """
-    Raise HTTPException for missing resources.
-
-    Args:
-        asset_id (str): ID of the asset that was not found.
-        resource_type (str): Type of resource (default: "Asset").
-    """
+    """Raise an HTTPException for a missing asset resource."""
     raise HTTPException(status_code=404, detail=f"{resource_type} {asset_id} not found")
 
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
-    """
-    Serialize an Asset object to a dictionary representation.
-
+    """Serialize an Asset object to a dictionary representation.
+    
     Args:
-        asset: Asset object to serialize
-        include_issuer: Whether to include issuer_id field (for detail views)
-
+        asset: Asset object to serialize.
+        include_issuer: Whether to include issuer_id field (for detail views).
+    
     Returns:
-        Dictionary containing asset data with additional_fields
+        Dictionary containing asset data with additional_fields.
     """
     asset_dict = {
         "id": asset.id,
@@ -467,14 +447,15 @@ async def get_asset_detail(asset_id: str):
 @app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
 async def get_asset_relationships(asset_id: str):
     """List outgoing relationships for the specified asset.
-
+    
     This function retrieves the outgoing relationships for a given asset identified
-    by  the asset_id. It first checks if the asset exists in the graph; if not, it
-    raises  an asset not found error. If the asset has relationships, it constructs
-    a list of  RelationshipResponse objects containing the target asset IDs,
-    relationship types,  and strengths. Any exceptions encountered during the
-    process are logged, and a  500 HTTPException is raised for unexpected errors.
-
+    by the asset_id. It checks the existence of the asset in the graph and raises
+    an asset not found error if the asset does not exist. If relationships are
+    found, it constructs a list of RelationshipResponse objects that include target
+    asset IDs, relationship types, and strengths. Any exceptions encountered during
+    the process are logged, and a 500 HTTPException is raised for unexpected
+    errors.
+    
     Args:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
     """
@@ -530,13 +511,13 @@ async def get_all_relationships():
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics():
     """Return computed network metrics for the asset relationship graph.
-
+    
     This function retrieves the asset relationship graph using the get_graph()
     function and calculates various metrics, including total assets and
     relationships. It builds an asset class distribution map and computes  degree
-    statistics such as average and maximum degree. Finally, it returns  a
-    MetricsResponse containing the computed metrics, including network density  and
-    relationship density.
+    statistics such as average and maximum degree. The function  handles exceptions
+    and logs errors, ensuring that a MetricsResponse  containing the computed
+    metrics is returned, including network density  and relationship density.
     """
     try:
         g = get_graph()
@@ -570,13 +551,14 @@ async def get_metrics():
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data():
     """Retrieve graph nodes and edges for 3D visualization.
-
+    
     This function generates a structured dataset containing nodes and edges
     formatted for rendering in a frontend application. It computes 3D coordinates
     for each node using a Fibonacci lattice distribution, assigns colors based on
-    asset classes, and sizes proportional to the node's degree in the graph.  The
-    edges represent relationships between the nodes, capturing their  interactions
-    and strengths.
+    asset classes, and sizes proportional to the node's degree in the graph. The
+    edges represent relationships between the nodes, capturing their interactions
+    and strengths. The function handles exceptions and logs errors during the data
+    retrieval process.
     """
     import math
 
