@@ -146,7 +146,7 @@ app.include_router(graph.router)
 
 @app.post("/token", response_model=Token)
 @limiter.limit("5/minute")
-async def login_for_access_token(
+def login_for_access_token(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
