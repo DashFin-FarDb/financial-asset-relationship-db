@@ -21,6 +21,7 @@ five areas:
    CI passes, without requiring manual approval.
 5. **Stale PR management** — flag PRs that have been inactive for 14 days and
    automatically un-flag them when activity resumes.
+
 ---
 
 ## PR Size Labels
