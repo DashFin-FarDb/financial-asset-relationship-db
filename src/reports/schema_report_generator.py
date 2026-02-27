@@ -83,12 +83,12 @@ class SchemaReportGenerator:
             "## Schema Overview",
             "",
             "### Entity Types",
-            "1. **Equity** – Stock instruments: P/E ratio, dividend yield, EPS",
-            "2. **Bond** – Fixed income: yield, coupon, maturity, rating",
-            "3. **Commodity** – Physical assets with delivery contracts",
-            "4. **Currency** – FX pairs or proxies with "
+            "1. **Equity** - Stock instruments: P/E ratio, dividend yield, EPS",
+            "2. **Bond** - Fixed income: yield, coupon, maturity, rating",
+            "3. **Commodity** - Physical assets with delivery contracts",
+            "4. **Currency** - FX pairs or proxies with "
             "exchange-rate and monetary-policy links",
-            "5. **Regulatory Events** – Corporate actions and filings",
+            "5. **Regulatory Events** - Corporate actions and filings",
             "",
         ]
 
@@ -140,7 +140,7 @@ class SchemaReportGenerator:
             return lines + ["- No relationships recorded yet.", ""]
 
         for src, tgt, rtype, strength in top:
-            lines.append(f"- **{src}** → **{tgt}** ({rtype}, strength {strength:.2f})")
+            lines.append(f"- **{src}** -> **{tgt}** ({rtype}, strength {strength:.2f})")
         lines.append("")
         return lines
 
@@ -159,7 +159,7 @@ class SchemaReportGenerator:
             "",
             "### Regulatory Rules",
             "- **Event Propagation**: Regulatory/earnings events propagate impact.",
-            ("- Event nodes create directional edges to affected assets."),
+            "- Event nodes create directional edges to affected assets.",
             "",
             "### Valuation Rules",
             "- **Impact Scoring**: Normalized to -1 to +1.",
@@ -183,11 +183,11 @@ class SchemaReportGenerator:
         ]
 
         if density > 30.0:
-            lines.append("High connectivity – consider normalization.")
+            lines.append("High connectivity - consider normalization.")
         elif density > 10.0:
-            lines.append("Well-balanced – suitable for most analytical use-cases.")
+            lines.append("Well-balanced - suitable for most analytical use-cases.")
         else:
-            lines.append("Sparse – consider enriching relationship definitions.")
+            lines.append("Sparse - consider enriching relationship definitions.")
 
         lines.append("")
         return lines
@@ -197,7 +197,7 @@ class SchemaReportGenerator:
         return [
             "## Implementation Notes",
             "- ISO 8601 timestamps.",
-            "- Strengths normalized to 0–1.",
+            "- Strengths normalized to 0-1.",
             "- Impact scores normalized to -1 to +1.",
             (
                 "- Directionality varies by relationship type: "
