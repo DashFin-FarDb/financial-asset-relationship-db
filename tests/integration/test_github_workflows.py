@@ -2554,8 +2554,7 @@ class TestWorkflowEnvironmentVariables:
         """Test that env vars aren't unnecessarily duplicated."""
         data = load_yaml_safe(workflow_file)
 
-        # Get workflow-level env vars
-        workflow_env = set(data.get("env", {}).keys())
+        # Get workflow-level env vars (reserved for future duplication checks)
 
         jobs = data.get("jobs", {})
 
