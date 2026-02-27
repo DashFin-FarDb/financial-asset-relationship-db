@@ -2329,12 +2329,7 @@ class TestWorkflowCachingStrategies:
             if "os" in matrix or "runs-on" in job:
                 steps = job.get("steps", [])
                 for step in steps:
-                    if (
-                        "uses" in step
-                        and "actions/cache" in step["uses"]
-                        and "with" in step
-                        and "key" in step["with"]
-                    ):
+                    if "uses" in step and "actions/cache" in step["uses"] and "with" in step and "key" in step["with"]:
                         # Should include runner.os in cache key
                         if "os" in matrix:
                             # Advisory: consider including OS in cache key
@@ -2377,19 +2372,13 @@ class TestWorkflowPermissionsBestPractices:
             # GitHub also allows shorthand permissions like "read-all"/"write-all"
             if isinstance(perms, str):
                 if perms.lower() in {"write-all"}:
-                    print(
-                        "Info: workflow requests write-all permissions; ensure this is intended."
-                    )
+                    print("Info: workflow requests write-all permissions; ensure this is intended.")
                 return
 
             if not isinstance(perms, dict):
                 return
 
-            write_keys = [
-                k
-                for k, v in perms.items()
-                if isinstance(v, str) and v.lower() == "write"
-            ]
+            write_keys = [k for k, v in perms.items() if isinstance(v, str) and v.lower() == "write"]
             if write_keys:
                 print(
                     "Info: workflow requests write permissions for: "
@@ -2533,7 +2522,6 @@ class TestWorkflowOutputsAndArtifactsAdvanced:
                             assert (
                                 ref in step_ids
                             ), f"Output '{output_name}' references undefined step '{ref}' in {workflow_file.name}"
-
 
         for _, job in jobs.items():
             steps = job.get("steps", [])
