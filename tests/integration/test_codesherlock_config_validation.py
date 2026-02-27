@@ -81,15 +81,15 @@ class TestCodeSherlockConfigStructure:
 
     def test_preferred_characteristics_is_list(self, codesherlock_config: Dict[str, Any]):
         """Verify that preferred_characteristics is a list."""
-        assert isinstance(codesherlock_config["preferred_characteristics"], list), (
-            "preferred_characteristics should be a list"
-        )
+        assert isinstance(
+            codesherlock_config["preferred_characteristics"], list
+        ), "preferred_characteristics should be a list"
 
     def test_preferred_characteristics_not_empty(self, codesherlock_config: Dict[str, Any]):
         """Verify that preferred_characteristics list is not empty."""
-        assert len(codesherlock_config["preferred_characteristics"]) > 0, (
-            "preferred_characteristics should not be empty"
-        )
+        assert (
+            len(codesherlock_config["preferred_characteristics"]) > 0
+        ), "preferred_characteristics should not be empty"
 
 
 class TestCodeSherlockConfigContent:
@@ -119,9 +119,9 @@ class TestCodeSherlockConfigContent:
     def test_preferred_characteristics_no_duplicates(self, codesherlock_config: Dict[str, Any]):
         """Verify that preferred_characteristics contains no duplicates."""
         characteristics = codesherlock_config["preferred_characteristics"]
-        assert len(characteristics) == len(set(characteristics)), (
-            "preferred_characteristics should not contain duplicates"
-        )
+        assert len(characteristics) == len(
+            set(characteristics)
+        ), "preferred_characteristics should not contain duplicates"
 
     def test_preferred_characteristics_valid_values(self, codesherlock_config: Dict[str, Any]):
         """Verify that preferred characteristics contain valid values."""
@@ -136,9 +136,9 @@ class TestCodeSherlockConfigContent:
         }
 
         for characteristic in codesherlock_config["preferred_characteristics"]:
-            assert characteristic in valid_characteristics, (
-                f"Characteristic '{characteristic}' is not a recognized value. Valid values: {valid_characteristics}"
-            )
+            assert (
+                characteristic in valid_characteristics
+            ), f"Characteristic '{characteristic}' is not a recognized value. Valid values: {valid_characteristics}"
 
     def test_additional_instructions_optional(self, codesherlock_config: Dict[str, Any]):
         """
@@ -148,9 +148,9 @@ class TestCodeSherlockConfigContent:
         """
         # Should not fail if additional_instructions is missing
         if "additional_instructions" in codesherlock_config:
-            assert isinstance(codesherlock_config["additional_instructions"], list), (
-                "additional_instructions should be a list when present"
-            )
+            assert isinstance(
+                codesherlock_config["additional_instructions"], list
+            ), "additional_instructions should be a list when present"
 
 
 class TestCodeSherlockConfigBestPractices:
@@ -166,9 +166,9 @@ class TestCodeSherlockConfigBestPractices:
         configured_characteristics = set(codesherlock_config["preferred_characteristics"])
 
         for security_char in security_characteristics:
-            assert security_char in configured_characteristics, (
-                f"Security characteristic '{security_char}' should be included"
-            )
+            assert (
+                security_char in configured_characteristics
+            ), f"Security characteristic '{security_char}' should be included"
 
     def test_covers_code_quality_characteristics(self, codesherlock_config: Dict[str, Any]):
         """Verify that code quality characteristics are included."""
@@ -176,9 +176,9 @@ class TestCodeSherlockConfigBestPractices:
         configured_characteristics = set(codesherlock_config["preferred_characteristics"])
 
         for quality_char in quality_characteristics:
-            assert quality_char in configured_characteristics, (
-                f"Code quality characteristic '{quality_char}' should be included"
-            )
+            assert (
+                quality_char in configured_characteristics
+            ), f"Code quality characteristic '{quality_char}' should be included"
 
     def test_covers_operational_characteristics(self, codesherlock_config: Dict[str, Any]):
         """Verify that operational characteristics are included."""
@@ -186,16 +186,16 @@ class TestCodeSherlockConfigBestPractices:
         configured_characteristics = set(codesherlock_config["preferred_characteristics"])
 
         for operational_char in operational_characteristics:
-            assert operational_char in configured_characteristics, (
-                f"Operational characteristic '{operational_char}' should be included"
-            )
+            assert (
+                operational_char in configured_characteristics
+            ), f"Operational characteristic '{operational_char}' should be included"
 
     def test_reasonable_number_of_characteristics(self, codesherlock_config: Dict[str, Any]):
         """Verify that the number of characteristics is reasonable (not too few or too many)."""
         num_characteristics = len(codesherlock_config["preferred_characteristics"])
-        assert 3 <= num_characteristics <= 10, (
-            f"Number of characteristics ({num_characteristics}) should be between 3 and 10 for focused reviews"
-        )
+        assert (
+            3 <= num_characteristics <= 10
+        ), f"Number of characteristics ({num_characteristics}) should be between 3 and 10 for focused reviews"
 
     def test_includes_common_development_branches(self, codesherlock_config: Dict[str, Any]):
         """Verify that common development branches are considered."""
@@ -203,9 +203,9 @@ class TestCodeSherlockConfigBestPractices:
 
         # At least one of the common branch names should be present
         common_branches = {"main", "master", "develop", "development"}
-        assert any(branch in branches for branch in common_branches), (
-            "At least one common development branch (main, master, develop) should be included"
-        )
+        assert any(
+            branch in branches for branch in common_branches
+        ), "At least one common development branch (main, master, develop) should be included"
 
 
 class TestCodeSherlockConfigEdgeCases:
@@ -225,9 +225,9 @@ class TestCodeSherlockConfigEdgeCases:
 
         for characteristic in codesherlock_config["preferred_characteristics"]:
             # Characteristics may contain internal spaces (e.g., "Input Validation")
-            assert characteristic == characteristic.strip(), (
-                f"Characteristic '{characteristic}' should not have leading/trailing whitespace"
-            )
+            assert (
+                characteristic == characteristic.strip()
+            ), f"Characteristic '{characteristic}' should not have leading/trailing whitespace"
 
     def test_config_handles_special_characters_in_branch_names(self, codesherlock_config: Dict[str, Any]):
         """Verify that branch names with special characters are handled correctly."""
@@ -302,9 +302,9 @@ class TestCodeSherlockConfigIntegration:
         }
 
         missing_critical = financial_critical_characteristics - characteristics
-        assert not missing_critical, (
-            f"Critical characteristics for financial applications are missing: {missing_critical}"
-        )
+        assert (
+            not missing_critical
+        ), f"Critical characteristics for financial applications are missing: {missing_critical}"
 
 
 class TestCodeSherlockConfigDocumentation:
