@@ -106,9 +106,13 @@ class TestIsMemoryDb:
 class TestConnect:
     """Test cases for _connect function."""
 
+    def test_connect_creates_memory_connection(self):
         import api.database
+
         conn = None
-        with patch.object(api.database, "DATABASE_PATH", ":memory:"), patch.object(api.database, "_MEMORY_CONNECTION", None):
+        with patch.object(api.database, "DATABASE_PATH", ":memory:"), patch.object(
+            api.database, "_MEMORY_CONNECTION", None
+        ):
             try:
                 conn = _connect()
                 assert isinstance(conn, sqlite3.Connection)
