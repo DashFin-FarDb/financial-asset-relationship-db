@@ -13,13 +13,16 @@ import re
 import sys
 import tempfile
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Tuple
 
 try:
     import yaml
     from github import Github, GithubException
 except ImportError:
-    print("Error: Required packages not installed. Run: pip install PyGithub pyyaml", file=sys.stderr)
+    print(
+        "Error: Required packages not installed. Run: pip install PyGithub pyyaml",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 
@@ -57,7 +60,7 @@ def load_config() -> Dict[str, Any]:
 
 
 def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
-    """Extract code suggestions from comment body."""
+    """Extract code suggestions from the comment body."""
     suggestions = []
 
     # Pattern 1: Code blocks with suggestion marker
@@ -84,7 +87,11 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 
     # Define category keywords with their priorities
     categories = [
-        ("critical", 1, ["security", "vulnerability", "exploit", "critical", "breaking"]),
+        (
+            "critical",
+            1,
+            ["security", "vulnerability", "exploit", "critical", "breaking"],
+        ),
         ("bug", 1, ["bug", "error", "fails", "broken", "incorrect", "wrong"]),
         ("question", 3, ["why", "what", "how", "?", "clarify", "explain"]),
         ("style", 3, ["style", "format", "lint", "naming", "convention"]),
@@ -101,13 +108,13 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 
 
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
-    """Check if comment contains actionable feedback."""
+    """Check if the comment contains actionable feedback."""
     body_lower = comment_body.lower()
     return any(keyword in body_lower for keyword in actionable_keywords)
 
 
 def parse_review_comments(pr: Any, actionable_keywords: List[str]) -> List[Dict[str, Any]]:
-    """Parse all review comments and extract actionable items."""
+    """Parse review comments and extract actionable items."""
     actionable_items = []
 
     # Helper to process a raw comment object
@@ -228,7 +235,13 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 
     # Order of presentation
     priority_order = ["critical", "bug", "improvement", "style", "question"]
-    emoji_map = {"critical": "🚨", "bug": "🐛", "improvement": "💡", "style": "🎨", "question": "❓"}
+    emoji_map = {
+        "critical": "🚨",
+        "bug": "🐛",
+        "improvement": "💡",
+        "style": "🎨",
+        "question": "❓",
+    }
 
     for category in priority_order:
         items = categorized.get(category, [])
@@ -248,8 +261,8 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 
 
 def write_output(report: str) -> None:
-    """Write report to GITHUB_STEP_SUMMARY and secure temp file."""
     # 1. GitHub Summary
+    """Write report to GITHUB_STEP_SUMMARY and a secure temp file."""
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if gh_summary:
         try:
@@ -261,7 +274,11 @@ def write_output(report: str) -> None:
     # 2. Secure Temp File
     try:
         with tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", delete=False, suffix=".md", prefix="fix_proposals_"
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+            suffix=".md",
+            prefix="fix_proposals_",
         ) as tmp:
             tmp.write(report)
             print(f"Fix proposals generated: {tmp.name}", file=sys.stderr)
@@ -288,7 +305,8 @@ def main():
 
     config = load_config()
     keywords = config.get("review_handling", {}).get(
-        "actionable_keywords", ["please", "should", "fix", "refactor", "change", "update", "add", "remove"]
+        "actionable_keywords",
+        ["please", "should", "fix", "refactor", "change", "update", "add", "remove"],
     )
 
     try:

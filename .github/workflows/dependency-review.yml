@@ -10,6 +10,7 @@
 name: 'Dependency review'
 on:
   pull_request:
+    types: [opened, synchronize, reopened]
     branches: [ "main", "Default" ]
     paths:
       - 'requirements*.txt'
