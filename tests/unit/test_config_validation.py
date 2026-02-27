@@ -371,7 +371,9 @@ class TestRequirementsTxt:
 
         with open(config_path) as f:
             return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
+                line.strip()
+                for line in f
+                if line.strip() and not line.strip().startswith("#")
             ]
 
     def test_requirements_exists(self) -> None:
@@ -719,11 +721,15 @@ class TestCircleCIConfig:
                     assert "branches" in filters
                     branches = filters["branches"]
                     assert "only" in branches
-                    # Should specify main and/or develop
+                    # Should specify only main and/or develop
                     allowed_branches = branches["only"]
                     assert isinstance(allowed_branches, list)
-                    assert any(
-                        branch in ["main", "develop"] for branch in allowed_branches
+                    assert allowed_branches, (
+                        "docker-build must specify at least one allowed branch"
+                    )
+                    invalid_branches = set(allowed_branches) - {"main", "develop"}
+                    assert not invalid_branches, (
+                        f"docker-build is restricted to 'main'/'develop' only, but found: {sorted(invalid_branches)}"
                     )
 
 
