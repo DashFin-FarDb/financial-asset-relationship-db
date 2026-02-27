@@ -17,6 +17,12 @@ pytestmark = pytest.mark.integration
 
 
 def load_config():
+    """
+    Load and parse the repository's .mergify.yml configuration.
+    
+    Returns:
+        The parsed Mergify configuration as Python objects (typically a dict), or `None` if the file is empty.
+    """
     with open(MERGIFY_PATH, "r") as f:
         return yaml.safe_load(f)
 
@@ -26,7 +32,11 @@ class TestMergifyConfigIntegration:
     """Cross-rule integration validation for .mergify.yml."""
 
     def test_config_loads_and_validates(self):
-        """Parse YAML and check top-level keys are present and correct."""
+        """
+        Validate that .mergify.yml loads and contains a non-empty top-level pull_request_rules list with required fields.
+        
+        Asserts that the parsed configuration is not empty, that "pull_request_rules" exists and is a non-empty list, and that each rule contains "name", "conditions", and "actions".
+        """
         config = load_config()
 
         assert config is not None, ".mergify.yml is empty"
@@ -80,8 +90,9 @@ class TestMergifyConfigIntegration:
 
     def test_no_duplicate_labels_across_rules(self):
         """
-        toggle_labels lists across all rules must not share duplicate label names.
-        Each size label should appear in exactly one rule.
+        Ensure label toggle actions are unique across all pull request rules.
+        
+        Asserts that no label appears in more than one rule's `actions.label.toggle` list; reports duplicates if found.
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -97,8 +108,9 @@ class TestMergifyConfigIntegration:
 
     def test_ci_check_name_in_auto_merge_rules(self):
         """
-        Auto-merge rules must reference 'check-success=Test Python 3.12',
-        matching the actual CI job name in ci.yml.
+        Verify auto-merge rules include the CI check name 'check-success=Test Python 3.12'.
+        
+        Asserts that at least one auto-merge rule is present and that each auto-merge rule's conditions contain the string "check-success=Test Python 3.12".
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -114,8 +126,9 @@ class TestMergifyConfigIntegration:
 
     def test_review_request_excludes_bots(self):
         """
-        The review-request rule must have negative conditions for both
-        dependabot[bot] and snyk-bot to avoid requesting reviews on bot PRs.
+        Ensure review-request rules exclude dependabot[bot] and snyk-bot.
+        
+        Asserts there is at least one rule with "request_reviews" in actions and that each such rule's conditions include "-author=dependabot[bot]" and "-author=snyk-bot".
         """
         config = load_config()
         rules = config["pull_request_rules"]
@@ -132,8 +145,9 @@ class TestMergifyConfigIntegration:
 
     def test_stale_rules_are_paired(self):
         """
-        Both a 'mark stale' rule (adds stale label) and a 'remove stale' rule
-        (removes stale label) must exist so stale management is reversible.
+        Ensure there is exactly one rule that adds the "stale" label and exactly one rule that removes it.
+        
+        Verifies that stale label management is paired and reversible by asserting the presence of a single add-rule and a single remove-rule for the "stale" label.
         """
         config = load_config()
         rules = config["pull_request_rules"]

@@ -36,7 +36,11 @@ class TestMergifyConfiguration:
             pytest.fail(f"Invalid YAML syntax in .mergify.yml: {e}")
 
     def test_mergify_has_pull_request_rules(self):
-        """Test that .mergify.yml contains pull_request_rules key."""
+        """
+        Ensure the repository's .mergify.yml defines a non-empty pull_request_rules list.
+        
+        Asserts that the top-level key 'pull_request_rules' exists, that its value is a list, and that the list contains at least one rule.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -77,7 +81,11 @@ class TestMergifyConfiguration:
             )
 
     def test_tshirt_rule_has_label_action(self):
-        """Test that t-shirt size rule has label action."""
+        """
+        Ensure each t-shirt size rule defines a valid `label` action.
+        
+        Verifies that rules whose name contains "t-shirt" include an `actions.label` mapping, that the mapping contains at least one of the operations `toggle`, `add`, or `remove`, and that any of those operations present are lists and non-empty (except `remove` which, if present, must be a list).
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -234,7 +242,11 @@ class TestMergifyRuleLogic:
         assert "500" in condition_str, "Missing 500 threshold"
 
     def test_description_is_meaningful(self):
-        """Test that rule descriptions are present and meaningful."""
+        """
+        Validate that rule descriptions meaningfully reference size or line changes.
+        
+        For each rule that includes a `description`, assert the description is a string, longer than 10 characters, and contains at least one of the words "line", "size", or "change" (case-insensitive).
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -370,7 +382,11 @@ class TestMergifyAdditionalEdgeCases:
                 assert "toggle" in label_action or "add" in label_action or "remove" in label_action
 
     def test_rule_names_are_descriptive(self):
-        """Test that all rule names are descriptive and meaningful."""
+        """
+        Ensure pull request rule names are descriptive.
+        
+        Asserts each rule's `name` is longer than 10 characters and is not all uppercase; raises an AssertionError with a diagnostic message if a name fails these checks.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -392,7 +408,12 @@ class TestMergifyAdditionalEdgeCases:
         assert len(names) == len(set(names)), "Duplicate rule names found"
 
     def test_conditions_list_not_empty(self):
-        """Test that all rules have at least one condition."""
+        """
+        Ensure each pull request rule contains at least one condition.
+        
+        Raises:
+            AssertionError: If any rule's `conditions` list is empty or missing. The assertion message includes the rule's name.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
 
@@ -403,7 +424,11 @@ class TestMergifyAdditionalEdgeCases:
             assert len(conditions) > 0, f"Rule {rule.get('name')} has no conditions"
 
     def test_yaml_indentation_consistency(self):
-        """Test that YAML file uses consistent indentation."""
+        """
+        Verify the .mergify.yml file uses a consistent two-space indentation.
+        
+        Checks non-empty, non-comment lines and asserts that all indented lines align to a 2-space indentation boundary; raises an assertion on inconsistency.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             content = f.read()
 
@@ -426,6 +451,15 @@ class TestMergifySizeCoverage:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_tshirt_rules(self):
+        """
+        Return pull request rules whose name contains "t-shirt" (case-insensitive).
+        
+        Loads the .mergify.yml configuration at self.MERGIFY_PATH and filters the top-level
+        `pull_request_rules` list to only rules whose `name` includes the substring "t-shirt".
+        
+        Returns:
+            list: A list of rule dictionaries matching the t-shirt naming convention.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return [r for r in config["pull_request_rules"] if "t-shirt" in r.get("name", "").lower()]
@@ -489,11 +523,26 @@ class TestMergifyContentLabels:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
+        """
+        Load and return the pull request rules from the repository's .mergify.yml.
+        
+        Returns:
+            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
     def _find_rule(self, name_fragment):
+        """
+        Find the first rule whose name contains the given fragment, case-insensitively.
+        
+        Parameters:
+            name_fragment (str): Substring to match against rule names (case-insensitive).
+        
+        Returns:
+            dict or None: The first matching rule dictionary, or `None` if no match is found.
+        """
         return next(
             (r for r in self._load_rules() if name_fragment.lower() in r.get("name", "").lower()),
             None,
@@ -543,6 +592,12 @@ class TestMergifyReviewAutomation:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
+        """
+        Load and return the pull request rules from the repository's .mergify.yml.
+        
+        Returns:
+            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
@@ -577,7 +632,11 @@ class TestMergifyReviewAutomation:
         assert dismiss_rules, "No dismiss_reviews rule found"
 
     def test_dismiss_stale_reviews_targets_main(self):
-        """Test that stale-review dismissal applies to PRs targeting main."""
+        """
+        Verify that every rule with a `dismiss_reviews` action targets pull requests whose base branch is `main`.
+        
+        Asserts that for each rule containing a `dismiss_reviews` action, the rule's conditions include `main`.
+        """
         rules = self._load_rules()
         for rule in rules:
             if "dismiss_reviews" in rule.get("actions", {}):
@@ -591,11 +650,22 @@ class TestMergifyAutoMerge:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
+        """
+        Load and return the pull request rules from the repository's .mergify.yml.
+        
+        Returns:
+            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
     def _get_auto_merge_rules(self):
+        """
+        Return rules that enable automatic merging.
+        
+        @returns A list of rule dictionaries whose `actions` mapping contains the `merge` key.
+        """
         return [r for r in self._load_rules() if "merge" in r.get("actions", {})]
 
     def test_auto_merge_rules_exist(self):
@@ -642,12 +712,22 @@ class TestMergifyStaleManagement:
     MERGIFY_PATH = Path(__file__).parent.parent.parent / ".mergify.yml"
 
     def _load_rules(self):
+        """
+        Load and return the pull request rules from the repository's .mergify.yml.
+        
+        Returns:
+            pull_request_rules (list): The parsed list found under the `pull_request_rules` key in the .mergify.yml file.
+        """
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
         return config["pull_request_rules"]
 
     def test_mark_stale_rule_exists(self):
-        """Test that a rule to mark PRs as stale exists."""
+        """
+        Verify that at least one pull request rule adds the 'stale' label.
+        
+        Asserts that among loaded pull_request_rules there exists a rule whose actions include adding the label "stale".
+        """
         rules = self._load_rules()
         stale_adders = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])]
         assert stale_adders, "No rule found that adds the 'stale' label"
