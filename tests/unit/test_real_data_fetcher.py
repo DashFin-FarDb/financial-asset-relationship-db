@@ -256,7 +256,7 @@ class TestFetchMethods:
         mock_close = Mock()
         mock_close.iloc.__getitem__ = Mock(return_value=2000.0)
         mock_close.pct_change.return_value.std.return_value = 0.02
-        mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
+        mock_hist.__getitem__.return_value = mock_close
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
         mock_ticker_class.return_value = mock_ticker
