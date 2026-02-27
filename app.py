@@ -352,11 +352,6 @@ class FinancialAssetApp:
             # Generate summary
             summary = analysis_results.get("summary", {}) or {}
             summary_text = self._format_formula_summary(summary, analysis_results)
-            formula_choices = [f.name for f in formulas]
-
-            # Generate summary
-            summary = analysis_results.get("summary", {})
-            summary_text = self._format_formula_summary(summary, analysis_results)
 
             logger.info("Generated formulaic analysis with %d formulas", len(formulas))
             return (
