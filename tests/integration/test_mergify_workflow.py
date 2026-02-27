@@ -99,9 +99,9 @@ class TestMergifyConfigIntegration:
             label_action = rule.get("actions", {}).get("label", {})
             toggle_labels.extend(label_action.get("toggle", []))
 
-        assert len(toggle_labels) == len(set(toggle_labels)), (
-            f"Duplicate toggle labels found: {[label for label in toggle_labels if toggle_labels.count(label) > 1]}"
-        )
+        assert len(toggle_labels) == len(
+            set(toggle_labels)
+        ), f"Duplicate toggle labels found: {[label for label in toggle_labels if toggle_labels.count(label) > 1]}"
 
     def test_ci_check_name_in_auto_merge_rules(self):
         """
@@ -116,9 +116,9 @@ class TestMergifyConfigIntegration:
 
         for rule in auto_merge_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
-            assert "check-success=Test Python 3.12" in conditions, (
-                f"Auto-merge rule '{rule['name']}' must reference 'check-success=Test Python 3.12'"
-            )
+            assert (
+                "check-success=Test Python 3.12" in conditions
+            ), f"Auto-merge rule '{rule['name']}' must reference 'check-success=Test Python 3.12'"
 
     def test_review_request_excludes_bots(self):
         """
@@ -135,9 +135,9 @@ class TestMergifyConfigIntegration:
 
         for rule in review_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
-            assert "-author=dependabot[bot]" in conditions, (
-                f"Review-request rule '{rule['name']}' must exclude dependabot[bot]"
-            )
+            assert (
+                "-author=dependabot[bot]" in conditions
+            ), f"Review-request rule '{rule['name']}' must exclude dependabot[bot]"
             assert "-author=snyk-bot" in conditions, f"Review-request rule '{rule['name']}' must exclude snyk-bot"
 
     def test_stale_rules_are_paired(self):
@@ -197,12 +197,12 @@ class TestMergifyComplexScenarios:
         for rule in size_rules:
             label_action = rule.get("actions", {}).get("label", {})
             # Size rules should use toggle, not add
-            assert "toggle" in label_action, (
-                f"Size rule '{rule.get('name')}' should use 'toggle' to update automatically"
-            )
-            assert "add" not in label_action, (
-                f"Size rule '{rule.get('name')}' should not use 'add' (use 'toggle' instead)"
-            )
+            assert (
+                "toggle" in label_action
+            ), f"Size rule '{rule.get('name')}' should use 'toggle' to update automatically"
+            assert (
+                "add" not in label_action
+            ), f"Size rule '{rule.get('name')}' should not use 'add' (use 'toggle' instead)"
 
     def test_content_labels_are_additive(self):
         """
@@ -244,9 +244,9 @@ class TestMergifyComplexScenarios:
         for rule in review_request_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
             # Should exclude both common bot accounts
-            assert "-author=dependabot[bot]" in conditions, (
-                f"Review request rule '{rule.get('name')}' should exclude dependabot"
-            )
+            assert (
+                "-author=dependabot[bot]" in conditions
+            ), f"Review request rule '{rule.get('name')}' should exclude dependabot"
             assert "-author=snyk-bot" in conditions, f"Review request rule '{rule.get('name')}' should exclude snyk-bot"
 
     def test_stale_workflow_prevents_premature_closure(self):
@@ -265,12 +265,12 @@ class TestMergifyComplexScenarios:
         for rule in stale_remove_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
             # Should check for stale label and recent activity
-            assert "label=stale" in conditions or "label= stale" in conditions, (
-                f"Stale removal rule '{rule.get('name')}' should check for stale label"
-            )
-            assert "updated-at >=" in conditions, (
-                f"Stale removal rule '{rule.get('name')}' should check for recent updates"
-            )
+            assert (
+                "label=stale" in conditions or "label= stale" in conditions
+            ), f"Stale removal rule '{rule.get('name')}' should check for stale label"
+            assert (
+                "updated-at >=" in conditions
+            ), f"Stale removal rule '{rule.get('name')}' should check for recent updates"
 
     def test_multiple_labels_can_apply_simultaneously(self):
         """
@@ -292,9 +292,9 @@ class TestMergifyComplexScenarios:
         for size_rule in size_rules:
             size_conditions = " ".join(str(c) for c in size_rule.get("conditions", []))
             # Size rules shouldn't exclude dependency changes
-            assert "-files~=" not in size_conditions or "requirements" not in size_conditions, (
-                "Size rules shouldn't exclude dependency files"
-            )
+            assert (
+                "-files~=" not in size_conditions or "requirements" not in size_conditions
+            ), "Size rules shouldn't exclude dependency files"
 
 
 class TestMergifySecurityAndSafety:
@@ -353,9 +353,9 @@ class TestMergifySecurityAndSafety:
         for rule in auto_merge_rules:
             merge_action = rule["actions"]["merge"]
             method = merge_action.get("method")
-            assert method == "squash", (
-                f"Auto-merge rule '{rule.get('name')}' should use 'squash' method, got '{method}'"
-            )
+            assert (
+                method == "squash"
+            ), f"Auto-merge rule '{rule.get('name')}' should use 'squash' method, got '{method}'"
 
     def test_dismiss_reviews_only_on_new_commits(self):
         """
@@ -372,9 +372,9 @@ class TestMergifySecurityAndSafety:
         for rule in dismiss_rules:
             dismiss_action = rule["actions"]["dismiss_reviews"]
             when = dismiss_action.get("when")
-            assert when == "synchronize", (
-                f"Dismiss reviews rule '{rule.get('name')}' should only trigger on 'synchronize', got '{when}'"
-            )
+            assert (
+                when == "synchronize"
+            ), f"Dismiss reviews rule '{rule.get('name')}' should only trigger on 'synchronize', got '{when}'"
 
     def test_stale_management_excludes_closed_prs(self):
         """
