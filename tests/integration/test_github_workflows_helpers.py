@@ -348,10 +348,13 @@ job2:
         # Should log an error mentioning the file and YAML parse failure
         assert any(
             ("invalid.yml" in rec.message or str(yaml_file) in rec.message)
-            and ("yaml" in rec.message.lower() or "parse" in rec.message.lower() or "failed" in rec.message.lower())
+            and (
+                "yaml" in rec.message.lower()
+                or "parse" in rec.message.lower()
+                or "failed" in rec.message.lower()
+            )
             for rec in caplog.records
         )
-
 
     def test_github_actions_pr_agent_scenario(self, tmp_path):
         """Test the specific PR Agent workflow duplicate key scenario."""
