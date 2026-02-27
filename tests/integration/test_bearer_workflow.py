@@ -14,7 +14,6 @@ This test suite validates:
 
 import re
 from pathlib import Path
-from urllib.parse import urlparse
 
 import pytest
 import yaml
