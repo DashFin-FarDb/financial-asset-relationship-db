@@ -342,6 +342,7 @@ job2:
         assert result == []
 
     def test_handles_invalid_yaml_gracefully(self, tmp_path, caplog):
+
     def test_handles_invalid_yaml_gracefully(self, tmp_path):
         """Test that invalid YAML is handled gracefully without raising and returns an empty list."""
         yaml_file = tmp_path / "invalid.yml"
