@@ -152,6 +152,7 @@ def login_for_access_token(
 ):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     # The `request` parameter is required by slowapi's limiter for dependency injection.
+    """Authenticate a user and return an access token."""
     _ = request
 
     user = authenticate_user(form_data.username, form_data.password)
@@ -176,6 +177,7 @@ async def read_users_me(
 ):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     # The `request` parameter is required by slowapi's limiter for dependency injection.
+    """Retrieve the current user's information."""
     _ = request
 
     return current_user
