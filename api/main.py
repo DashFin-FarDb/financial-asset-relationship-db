@@ -150,7 +150,7 @@ def login_for_access_token(
     request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
 ):
-    """Create a JWT access token for an authenticated user."""
+    # The `request` parameter is required by slowapi's limiter for dependency injection.
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     _ = request
 
@@ -176,7 +176,7 @@ async def read_users_me(
     request: Request,
     current_user: User = Depends(get_current_active_user),
 ):
-    """Retrieve the currently authenticated user."""
+    # The `request` parameter is required by slowapi's limiter for dependency injection.
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     _ = request
 
