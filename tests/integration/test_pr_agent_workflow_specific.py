@@ -25,9 +25,7 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
         return Path(".github/workflows/pr-agent.yml")
 
     @pytest.fixture
-    @staticmethod
-    @staticmethod
-    def workflow_content(workflow_file: Path) -> Dict[str, Any]:
+    def workflow_content(self, workflow_file: Path) -> Dict[str, Any]:
         """
         Parse the GitHub Actions workflow YAML file into a Python mapping.
 
@@ -41,8 +39,7 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
             return yaml.safe_load(f)
 
     @pytest.fixture
-    @staticmethod
-    def workflow_raw(workflow_file: Path) -> str:
+    def workflow_raw(self, workflow_file: Path) -> str:
         """
         Get the raw text of the workflow file for text-based validation.
 

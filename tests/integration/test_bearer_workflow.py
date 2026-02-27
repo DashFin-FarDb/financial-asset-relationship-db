@@ -425,21 +425,14 @@ class TestBearerWorkflowComments:
     @staticmethod
     def test_has_bearer_documentation_link(bearer_workflow_raw):
         """Verify the workflow references Bearer documentation."""
-        # Extract URLs from the workflow content and ensure at least one points to Bearer documentation.
-        url_pattern = re.compile(r"https?://[^\s)\"'>]+", re.IGNORECASE)
-        urls = url_pattern.findall(bearer_workflow_raw)
-
-        has_bearer_link = False
-        for url in urls:
-            parsed = urlparse(url)
-            host = (parsed.hostname or "").lower()
-            if host == "bearer.com" or host.endswith(".bearer.com"):
-                has_bearer_link = True
-                break
-
-        assert has_bearer_link, (
-            "Workflow should reference Bearer documentation via a Bearer-hosted URL"
+        lower_content = bearer_workflow_raw.lower()
+        has_docs_link = (
+            "https://docs.bearer.com" in lower_content
+            or "http://docs.bearer.com" in lower_content
+            or "https://www.bearer.com" in lower_content
+            or "http://www.bearer.com" in lower_content
         )
+        assert has_docs_link, "Workflow should reference Bearer documentation"
 
     @staticmethod
     def test_has_inline_comments(bearer_workflow_raw):
