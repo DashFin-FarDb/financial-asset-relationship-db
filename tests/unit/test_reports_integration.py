@@ -94,16 +94,13 @@ class TestGenerateReports:
         """Test markdown report generation."""
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
-        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
-            mock_generator = MagicMock()
-            mock_generator.generate.return_value = "# Test Report"
-            mock_generator_class.return_value = mock_generator
+        with patch("src.reports.integration.generate_schema_report") as mock_generate_schema_report:
+            mock_generate_schema_report.return_value = "# Test Report"
 
             result = generate_markdown_report(mock_graph)
 
             assert result == "# Test Report"
-            mock_generator_class.assert_called_once_with(mock_graph)
-            mock_generator.generate.assert_called_once()
+            mock_generate_schema_report.assert_called_once_with(mock_graph)
 
     @staticmethod
     def test_generate_html_report() -> None:
@@ -111,17 +108,16 @@ class TestGenerateReports:
         mock_graph = MagicMock(spec=AssetRelationshipGraph)
 
         with (
-            patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class,
+            patch("src.reports.integration.generate_markdown_report") as mock_gen_md,
             patch("src.reports.integration.markdown_to_html") as mock_md_to_html,
         ):
-            mock_generator = MagicMock()
-            mock_generator.generate.return_value = "# Test Report"
-            mock_generator_class.return_value = mock_generator
+            mock_gen_md.return_value = "# Test Report"
             mock_md_to_html.return_value = "<h1>Test Report</h1>"
 
             result = generate_html_report(mock_graph)
 
             assert result == "<h1>Test Report</h1>"
+            mock_gen_md.assert_called_once_with(mock_graph)
             mock_md_to_html.assert_called_once_with("# Test Report")
 
     @staticmethod
@@ -131,20 +127,13 @@ class TestGenerateReports:
         mock_graph.assets = {}
         mock_graph.relationships = {}
 
-        with patch("src.reports.integration.SchemaReportGenerator") as mock_generator_class:
-            mock_generator = MagicMock()
-            mock_generator.generate.return_value = "# Empty Report"
-            mock_generator_class.return_value = mock_generator
+        with patch("src.reports.integration.generate_schema_report") as mock_generate_schema_report:
+            mock_generate_schema_report.return_value = "# Empty Report"
 
             result = generate_markdown_report(mock_graph)
 
             assert "Empty Report" in result
-
-
-@pytest.mark.unit
-class TestGradioIntegration:
-    """Test cases for Gradio integration helpers."""
-
+            mock_generate_schema_report.assert_called_once_with(mock_graph)
     @staticmethod
     def test_make_gradio_report_fn_markdown() -> None:
         """Test Gradio report function creation for markdown output."""
