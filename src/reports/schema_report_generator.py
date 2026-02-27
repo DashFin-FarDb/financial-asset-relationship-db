@@ -61,7 +61,7 @@ class SchemaReportGenerator:
     # Internal helpers
     # ------------------------------------------------------------------
     def _collect_metrics(self) -> Metrics:
-        """Fetch raw metrics from the graph and return as a dict."""
+        """Fetch raw metrics from the graph."""
         return self.graph.calculate_metrics()
 
     # ------------------------------------------------------------------
@@ -75,10 +75,7 @@ class SchemaReportGenerator:
         ]
 
     def _render_schema_overview(self) -> List[str]:
-        """
-        Render the schema overview section listing entity types and
-        descriptions.
-        """
+        """Render the schema overview section listing entity types and descriptions."""
         return [
             "## Schema Overview",
             "",
@@ -101,9 +98,7 @@ class SchemaReportGenerator:
         return lines
 
     def _render_calculated_metrics(self, metrics: Metrics) -> List[str]:
-        """Render calculated network metrics such as total assets,
-        relationships, density, and events.
-        """
+        """Render calculated network metrics."""
         total_assets = _as_int(metrics.get("total_assets"))
         total_rels = _as_int(metrics.get("total_relationships"))
         avg_strength = _as_float(metrics.get("average_relationship_strength"))
@@ -123,7 +118,7 @@ class SchemaReportGenerator:
         ]
 
     def _render_asset_class_distribution(self, metrics: Metrics) -> List[str]:
-        """Render the distribution of assets by class with counts."""
+        """Render the asset class distribution with counts."""
         dist = _as_str_int_map(metrics.get("asset_class_distribution"))
         lines = ["### Asset Class Distribution"]
         for cls, count in sorted(dist.items()):
@@ -189,7 +184,7 @@ class SchemaReportGenerator:
         return lines
 
     def _render_implementation_notes(self) -> List[str]:
-        """Render implementation notes including timestamp and normalization details."""
+        """Render implementation notes with normalization details."""
         return [
             "## Implementation Notes",
             "- ISO 8601 timestamps.",
