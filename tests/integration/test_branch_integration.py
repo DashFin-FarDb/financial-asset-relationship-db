@@ -398,6 +398,7 @@ class TestBranchQuality:
                 assert "jobs" in workflow
             except Exception as e:
                 pytest.fail(f"Failed to parse {wf_file}: {e}")
+
     def test_no_merge_conflict_markers(self):
         """
         Ensure specified files do not contain Git merge conflict markers.
