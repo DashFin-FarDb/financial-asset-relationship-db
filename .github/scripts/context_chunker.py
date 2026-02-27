@@ -1,4 +1,17 @@
-class ContextChunker:
+from typing import Dict, List
+from pathlib import Path
+import sys
+
+import yaml
+
+try:
+    import tiktoken
+    TIKTOKEN_AVAILABLE = True
+except ImportError:
+    tiktoken = None
+    TIKTOKEN_AVAILABLE = False
+
+
     def __init__(self, config_path: str = ".github/pr-agent-config.yml"):
         self.config: Dict = {}
 
