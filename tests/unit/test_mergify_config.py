@@ -76,9 +76,9 @@ class TestMergifyConfiguration:
             conditions = rule.get("conditions", [])
             assert isinstance(conditions, list), "Conditions must be a list"
             assert len(conditions) > 0, f"Conditions list is empty in {rule.get('name')}"
-            assert any(
-                "#modified-lines" in str(c) for c in conditions
-            ), f"Missing #modified-lines condition in {rule.get('name')}"
+            assert any("#modified-lines" in str(c) for c in conditions), (
+                f"Missing #modified-lines condition in {rule.get('name')}"
+            )
 
     def test_tshirt_rule_has_label_action(self):
         """Test that t-shirt size rule has label action."""
@@ -94,9 +94,9 @@ class TestMergifyConfiguration:
             label_action = actions.get("label")
             assert isinstance(label_action, dict), f"Missing/invalid label action in rule {rule.get('name')}"
 
-            assert any(
-                k in label_action for k in ("toggle", "add", "remove")
-            ), f"Missing label operation in rule {rule.get('name')}"
+            assert any(k in label_action for k in ("toggle", "add", "remove")), (
+                f"Missing label operation in rule {rule.get('name')}"
+            )
 
             if "toggle" in label_action:
                 assert isinstance(label_action["toggle"], list), "Toggle must be a list"
@@ -254,9 +254,9 @@ class TestMergifyRuleLogic:
                 assert isinstance(desc, str), "Description must be string"
                 assert len(desc) > 10, f"Description too short: {desc}"
                 # Should mention lines or size
-                assert any(
-                    word in desc.lower() for word in ["line", "size", "change"]
-                ), f"Description doesn't mention lines/size/changes: {desc}"
+                assert any(word in desc.lower() for word in ["line", "size", "change"]), (
+                    f"Description doesn't mention lines/size/changes: {desc}"
+                )
 
 
 class TestMergifyEdgeCases:
@@ -297,9 +297,9 @@ class TestMergifyEdgeCases:
 
             # If both min and max are specified, min should be less than max
             if min_values and max_values:
-                assert all(
-                    m < mx for m in min_values for mx in max_values
-                ), f"Conflicting conditions in rule {rule.get('name')}: min >= max"
+                assert all(m < mx for m in min_values for mx in max_values), (
+                    f"Conflicting conditions in rule {rule.get('name')}: min >= max"
+                )
 
     def test_file_size_is_reasonable(self):
         """Test that .mergify.yml file size is reasonable."""
@@ -817,9 +817,9 @@ class TestMergifyBoundaryConditions:
         assert dep_rule is not None, "Dependabot auto-merge rule not found"
 
         conditions = " ".join(str(c) for c in dep_rule.get("conditions", []))
-        assert (
-            "#changed-files <= 5" in conditions or "#changed-files<=5" in conditions
-        ), "Dependabot auto-merge should limit to 5 changed files"
+        assert "#changed-files <= 5" in conditions or "#changed-files<=5" in conditions, (
+            "Dependabot auto-merge should limit to 5 changed files"
+        )
 
     def test_stale_threshold_is_14_days(self):
         """Test that PRs are marked stale after 14 days."""
@@ -948,9 +948,9 @@ class TestMergifyFilePatterns:
         assert ci_rule is not None, "CI label rule not found"
 
         conditions = " ".join(str(c) for c in ci_rule.get("conditions", []))
-        assert (
-            ".github/workflows" in conditions or "github/workflows" in conditions
-        ), "CI rule should match .github/workflows/ files"
+        assert ".github/workflows" in conditions or "github/workflows" in conditions, (
+            "CI rule should match .github/workflows/ files"
+        )
 
     def test_documentation_file_pattern(self):
         """Test that documentation label rule matches .md and docs/ files."""
@@ -1007,9 +1007,9 @@ class TestMergifyRegressionCases:
             if "dismiss_reviews" in rule.get("actions", {}):
                 dismiss_action = rule["actions"]["dismiss_reviews"]
                 assert "when" in dismiss_action, f"Rule '{rule.get('name')}' should have 'when' in dismiss_reviews"
-                assert (
-                    dismiss_action["when"] == "synchronize"
-                ), f"Rule '{rule.get('name')}' should dismiss reviews on synchronize"
+                assert dismiss_action["when"] == "synchronize", (
+                    f"Rule '{rule.get('name')}' should dismiss reviews on synchronize"
+                )
 
     def test_dismiss_reviews_has_message(self):
         """Test that dismiss_reviews action has a message."""
@@ -1020,9 +1020,9 @@ class TestMergifyRegressionCases:
             if "dismiss_reviews" in rule.get("actions", {}):
                 dismiss_action = rule["actions"]["dismiss_reviews"]
                 assert "message" in dismiss_action, f"Rule '{rule.get('name')}' should have message in dismiss_reviews"
-                assert (
-                    len(dismiss_action["message"]) > 0
-                ), f"Rule '{rule.get('name')}' has empty dismiss_reviews message"
+                assert len(dismiss_action["message"]) > 0, (
+                    f"Rule '{rule.get('name')}' has empty dismiss_reviews message"
+                )
 
     def test_stale_comment_mentions_removing_label(self):
         """Test that stale comment explains how to remove the label."""
@@ -1034,9 +1034,9 @@ class TestMergifyRegressionCases:
                 if "comment" in rule.get("actions", {}):
                     message = rule["actions"]["comment"]["message"].lower()
                     has_removal_info = any(keyword in message for keyword in ["remove", "push", "update", "commit"])
-                    assert (
-                        has_removal_info
-                    ), f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
+                    assert has_removal_info, (
+                        f"Rule '{rule.get('name')}' comment should explain how to remove stale label"
+                    )
 
     def test_auto_merge_has_label_conditions(self):
         """Test that auto-merge rules check for appropriate labels."""
@@ -1063,6 +1063,6 @@ class TestMergifyRegressionCases:
 
         # Should require label=stale to prevent removing label that isn't there
         conditions = " ".join(str(c) for c in stale_remove_rule.get("conditions", []))
-        assert (
-            "label=stale" in conditions or "label= stale" in conditions
-        ), "Stale removal rule should check that stale label exists"
+        assert "label=stale" in conditions or "label= stale" in conditions, (
+            "Stale removal rule should check that stale label exists"
+        )
