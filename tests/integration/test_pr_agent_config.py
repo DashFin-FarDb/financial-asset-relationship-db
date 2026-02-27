@@ -33,12 +33,12 @@ class TestPRAgentConfigStructure:
 
     @staticmethod
     def test_config_file_exists():
-        """Configuration file should exist at expected location."""
+        """Check if the configuration file exists at the expected location."""
         assert CONFIG_FILE.exists(), f"Config file not found: {CONFIG_FILE}"
 
     @staticmethod
     def test_config_is_valid_yaml():
-        """Configuration file should be valid YAML."""
+        """Check if the configuration file is valid YAML."""
         with open(CONFIG_FILE, "r") as f:
             try:
                 yaml.safe_load(f)
@@ -47,7 +47,7 @@ class TestPRAgentConfigStructure:
 
     @staticmethod
     def test_config_has_agent_section(config):
-        """Configuration should have an 'agent' section."""
+        """Check if the configuration has an 'agent' section."""
         assert "agent" in config, "Missing 'agent' section"
         assert isinstance(config["agent"], dict), "'agent' should be a dictionary"
 
@@ -62,7 +62,7 @@ class TestPRAgentConfigStructure:
 
     @staticmethod
     def test_config_has_monitoring_section(config):
-        """Configuration should have a 'monitoring' section."""
+        """Check if the configuration has a 'monitoring' section."""
         assert "monitoring" in config, "Missing 'monitoring' section"
         assert isinstance(config["monitoring"], dict), (
             "'monitoring' should be a dictionary"
@@ -74,7 +74,7 @@ class TestPRAgentSettings:
 
     @staticmethod
     def test_agent_name_is_valid(config):
-        """Agent name should be a non-empty string."""
+        """Validate the agent name in the configuration."""
         name = config.get("agent", {}).get("name")
         assert isinstance(name, str), "Agent name should be a string"
         assert len(name) > 0, "Agent name should not be empty"
@@ -82,7 +82,7 @@ class TestPRAgentSettings:
 
     @staticmethod
     def test_agent_version_format(config):
-        """Agent version should follow semantic versioning."""
+        """Validate the agent version format against semantic versioning."""
         version = config.get("agent", {}).get("version")
         assert isinstance(version, str), "Version should be a string"
 
@@ -96,7 +96,7 @@ class TestPRAgentSettings:
 
     @staticmethod
     def test_agent_enabled_is_boolean(config):
-        """Agent enabled flag should be a boolean."""
+        """Check if the agent enabled flag is a boolean."""
         enabled = config.get("agent", {}).get("enabled")
         assert isinstance(enabled, bool), "Agent 'enabled' should be a boolean"
 
@@ -119,7 +119,7 @@ class TestAutoResponseSettings:
 
     @staticmethod
     def test_auto_response_section_exists(config):
-        """Auto-response section should exist if configured."""
+        """Check if the auto-response section exists in the configuration."""
         if "auto_response" in config:
             assert isinstance(config["auto_response"], dict), (
                 "'auto_response' should be a dictionary"
@@ -127,7 +127,7 @@ class TestAutoResponseSettings:
 
     @staticmethod
     def test_enabled_events_are_valid(config):
-        """Enabled events should be valid GitHub event types."""
+        """Validate that enabled events are valid GitHub event types."""
         auto_response = config.get("auto_response", {})
         enabled_events = auto_response.get("enabled_events", [])
 
@@ -146,7 +146,7 @@ class TestAutoResponseSettings:
 
     @staticmethod
     def test_triggers_are_valid_regex(config):
-        """Trigger patterns should be valid regular expressions."""
+        """Validate that trigger patterns are valid regular expressions."""
         auto_response = config.get("auto_response", {})
         triggers = auto_response.get("triggers", [])
 
@@ -164,7 +164,7 @@ class TestActionsConfiguration:
 
     @staticmethod
     def test_actions_section_structure(config):
-        """Actions section should be properly structured."""
+        """Validate the structure of the actions section in the configuration."""
         if "actions" not in config:
             pytest.skip("No actions section configured")
 
@@ -179,7 +179,7 @@ class TestActionsConfiguration:
 
     @staticmethod
     def test_action_enabled_flags(config):
-        """Action enabled flags should be booleans."""
+        """Validate that action enabled flags are booleans."""
         actions = config.get("actions", {})
 
         for action_name, action_config in actions.items():
@@ -192,7 +192,7 @@ class TestActionsConfiguration:
 
     @staticmethod
     def test_action_commands_are_strings(config):
-        """Action commands should be non-empty strings."""
+        """Verify that action commands are non-empty strings."""
         actions = config.get("actions", {})
 
         for action_name, action_config in actions.items():
@@ -213,7 +213,7 @@ class TestCodeReviewSettings:
 
     @staticmethod
     def test_code_review_section(config):
-        """Code review section should be properly configured."""
+        """Checks if the code review section is properly configured."""
         if "code_review" not in config:
             pytest.skip("No code_review section configured")
 
@@ -222,7 +222,7 @@ class TestCodeReviewSettings:
 
     @staticmethod
     def test_review_levels_are_valid(config):
-        """Review levels should be valid severity levels."""
+        """Validate that review levels are among the defined severity levels."""
         code_review = config.get("code_review", {})
 
         if "levels" in code_review:
@@ -236,7 +236,7 @@ class TestCodeReviewSettings:
 
     @staticmethod
     def test_file_patterns_are_valid_glob(config):
-        """File patterns should be valid glob patterns."""
+        """Validate that file patterns in the config are valid glob patterns."""
         code_review = config.get("code_review", {})
 
         if "file_patterns" in code_review:
@@ -253,7 +253,7 @@ class TestLimitsConfiguration:
 
     @staticmethod
     def test_limits_section_exists(config):
-        """Limits section should exist to prevent resource exhaustion."""
+        """Check if the 'limits' section exists in the config."""
         assert "limits" in config, "Missing 'limits' section"
         assert isinstance(config["limits"], dict), "'limits' should be a dictionary"
 
@@ -272,7 +272,7 @@ class TestLimitsConfiguration:
 
     @staticmethod
     def test_rate_limit_requests_reasonable(config):
-        """Rate limit for requests should be reasonable."""
+        """Check if the rate limit for requests is reasonable."""
         rate_limit = config.get("limits", {}).get("rate_limit_requests")
 
         if rate_limit is not None:
@@ -289,7 +289,7 @@ class TestSecuritySettings:
 
     @staticmethod
     def test_no_hardcoded_secrets(config):
-        """Configuration should not contain hardcoded secrets."""
+        """Check that the configuration does not contain hardcoded secrets."""
         import re
 
         config_str = yaml.dump(config)
@@ -310,7 +310,7 @@ class TestSecuritySettings:
 
     @staticmethod
     def test_no_sensitive_paths(config):
-        """Configuration should not reference sensitive file paths."""
+        """Check that the configuration does not reference sensitive file paths."""
         config_str = yaml.dump(config)
 
         sensitive_patterns = [
@@ -327,8 +327,8 @@ class TestSecuritySettings:
 
     @staticmethod
     def test_secure_defaults(config):
-        """Security-sensitive options should have secure defaults."""
         # If debug mode exists, it should be disabled by default
+        """Check that security-sensitive options have secure defaults."""
         debug = config.get("debug", {})
         if "enabled" in debug:
             # In production, debug should typically be false
@@ -363,7 +363,7 @@ class TestNotificationSettings:
 
     @staticmethod
     def test_notification_on_events_valid(config):
-        """Notification events should be valid."""
+        """Validate the 'on_events' notification configuration."""
         notifications = config.get("notifications", {})
 
         if "on_events" in notifications:
@@ -380,7 +380,7 @@ class TestDebugConfiguration:
 
     @staticmethod
     def test_debug_section_structure(config):
-        """Debug section should be properly structured."""
+        """Check if the debug section in the config is properly structured."""
         if "debug" not in config:
             return  # Debug section is optional
 
@@ -402,7 +402,7 @@ class TestDebugConfiguration:
 
     @staticmethod
     def test_verbose_mode_is_boolean(config):
-        """Verbose mode should be a boolean if specified."""
+        """Check if the verbose mode in the config is a boolean."""
         debug = config.get("debug", {})
 
         if "verbose" in debug:
@@ -425,23 +425,7 @@ class TestConfigurationConsistency:
             """Loader that raises on duplicate keys at any depth."""
 
         def _construct_mapping(loader, node, deep=False):
-            """Construct a Python dict from a YAML MappingNode.
-
-            This function ensures the node is a mapping and builds a dictionary
-            by constructing each key and value. Duplicate keys raise an error.
-
-            Args:
-                loader: The YAML loader instance used for object construction.
-                node: The YAML MappingNode to construct from.
-                deep: Whether to construct nested objects deeply.
-
-            Returns:
-                dict: The constructed mapping of keys to values.
-
-            Raises:
-                yaml.constructor.ConstructorError: If the node is not a mapping
-                    or contains duplicate keys.
-            """
+            """Construct a Python dict from a YAML MappingNode."""
             if not isinstance(node, yaml.MappingNode):
                 raise yaml.constructor.ConstructorError(
                     None,
@@ -477,7 +461,7 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_all_sections_are_dictionaries(config):
-        """Top-level sections should all be dictionaries."""
+        """Verify that all top-level sections in the config are dictionaries."""
         for key, value in config.items():
             if value is not None and not isinstance(
                 value, (dict, list, str, int, bool, float)
@@ -486,7 +470,7 @@ class TestConfigurationConsistency:
 
     @staticmethod
     def test_config_is_not_empty(config):
-        """Configuration should not be empty."""
+        """Check that the configuration is not empty."""
         assert config is not None, "Configuration is None"
         assert len(config) > 0, "Configuration file is empty"
 
@@ -495,21 +479,21 @@ class TestBestPractices:
     """Test configuration follows best practices."""
 
     def test_has_version_field(self, config):
-        """Configuration should have version information for tracking."""
+        """Check if the configuration includes a version field."""
         agent = config.get("agent", {})
         assert "version" in agent, (
             "Configuration should include version for tracking changes"
         )
 
     def test_has_monitoring_enabled(self, config):
-        """Monitoring should be configured for production use."""
+        """Check if monitoring is configured in the provided config."""
         monitoring = config.get("monitoring", {})
         assert monitoring, "Monitoring configuration should not be empty"
         assert "monitoring" in config, "Configuration should include monitoring section"
 
     def test_has_reasonable_defaults(self, config):
-        """Configuration should have reasonable default values."""
         # Check that critical settings have sensible defaults
+        """Check that critical settings have sensible defaults."""
         monitoring = config.get("monitoring", {})
 
         # If check_interval is set, it should be reasonable
@@ -546,8 +530,8 @@ class TestEdgeCases:
     """Test edge cases and boundary conditions."""
 
     def test_handles_empty_sections(self, config):
-        """Configuration should handle empty sections gracefully."""
         # If a section exists but is empty, it should be a dict or list
+        """Test that empty sections in the configuration are handled correctly."""
         for key, value in config.items():
             if value == {}:
                 assert isinstance(value, dict), (
@@ -562,7 +546,14 @@ class TestEdgeCases:
         """Configuration values should not be excessively long."""
 
         def check_length(obj: object, path: str = "") -> None:
-            """Recursively ensure no string exceeds 10,000 characters across dicts and lists."""
+            """Recursively ensure no string exceeds 10,000 characters.
+            
+            This function traverses through the given object, which can be a  string,
+            dictionary, or list, and checks the length of any string  it encounters. If a
+            string exceeds 10,000 characters, an assertion  error is raised with the path
+            to the string. For dictionaries, it  recursively checks each value, and for
+            lists, it checks each item  by its index.
+            """
             if isinstance(obj, str):
                 assert len(obj) <= 10_000, (
                     f"String at '{path}' is excessively long ({len(obj)} chars)"
