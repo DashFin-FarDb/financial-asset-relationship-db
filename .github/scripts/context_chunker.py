@@ -81,7 +81,8 @@ except ImportError:
 
         # Precompiled regexes or any other helpers
         processed_content = self._build_limited_content(chunks)
-        return processed_content, True
+        # TODO: initialize any additional helper structures here in __init__
+        # Actual content building should be done in a separate method, not in the constructor.
 
         def main():
             """
