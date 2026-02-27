@@ -200,7 +200,7 @@ class RealDataFetcher:
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         """Fetch bond and treasury ETF market data and return Bond instances.
-        
+
         This method retrieves price and metadata for a predefined set of bond and
         treasury ETFs, which serve as proxies for individual bonds. It handles missing
         yield information by providing default values for `yield_to_maturity` and
@@ -260,7 +260,7 @@ class RealDataFetcher:
     def _fetch_commodity_data() -> List[Commodity]:
         # Define key commodity futures and their characteristics.
         """Fetch real commodity futures data.
-        
+
         This method retrieves the latest price data for key commodity futures  and
         constructs a list of Commodity objects. It defines a set of  commodity symbols
         along with their characteristics, such as name,  sector, contract size, and
@@ -319,7 +319,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data.
-        
+
         This method retrieves the latest exchange rates for a predefined set of
         currency symbols.  It utilizes the `yfinance` library to fetch historical data
         for each currency symbol and  constructs a list of `Currency` objects
