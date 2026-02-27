@@ -279,23 +279,28 @@ class TestLabelWorkflowChanges:
         checkout_steps = [s for s in steps if "actions/checkout" in s.get("uses", "")]
         assert len(checkout_steps) == 0
 
-    def test_simplified_to_single_step(self, label_workflow):
+    def test_simplified_to_single_step(self, label_workflow) -> None:
         """
         Assert the label workflow has been simplified to a single actions/labeler step.
 
-        Checks that the 'label' job contains exactly one step and that the step's `uses`
-        reference includes `actions/labeler`.
+        The workflow is expected to define a `label` job whose steps list contains
+        exactly one step, and that step must use the `actions/labeler` GitHub Action.
         """
         jobs = label_workflow.get("jobs", {})
-        label_job = jobs.get("label", {})
-        steps = label_job.get("steps", [])
+        assert "label" in jobs, "label job must be present in the workflow"
 
-        # Should only have the labeler action step
-        assert len(steps) == 1
-        assert "actions/labeler" in steps[0].get("uses", "")
+        label_job = jobs["label"]
+        steps = label_job.get("steps", [])
+        assert steps, "label job must define at least one step"
+        assert len(steps) == 1, f"expected 1 step in label job, found {len(steps)}"
+
+        uses_value = steps[0].get("uses", "")
+        assert "actions/labeler" in uses_value, f"expected actions/labeler step, got uses={uses_value!r}"
 
     def test_no_conditional_execution(self, label_workflow):
-        """Verify no conditional if statements in steps."""
+        """
+        Assert that no step in the label job defines an "if" conditional.
+        """
         jobs = label_workflow.get("jobs", {})
         label_job = jobs.get("label", {})
         steps = label_job.get("steps", [])
@@ -305,7 +310,7 @@ class TestLabelWorkflowChanges:
 
 
 class TestAPISecScanWorkflowChanges:
-    pass
+    """Tests for API security scan workflow changes."""
 
 
 class TestRequirementsDevChanges:
