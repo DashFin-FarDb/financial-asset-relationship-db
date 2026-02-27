@@ -447,7 +447,12 @@ class FormulaicAnalyzer:
 
             stats = asset_class_relationships.setdefault(
                 asset_class,
-                {"asset_count": 0, "avg_price": 0.0, "total_value": 0.0, "_total_price": 0.0},
+                {
+                    "asset_count": 0,
+                    "avg_price": 0.0,
+                    "total_value": 0.0,
+                    "_total_price": 0.0,
+                },
             )
             stats["asset_count"] += 1
             stats["_total_price"] += float(price)
