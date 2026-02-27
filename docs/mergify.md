@@ -30,14 +30,14 @@ Every PR is labelled with a t-shirt size based on the total number of modified l
 (additions + deletions). Labels are **toggled** so they update automatically if a PR
 grows or shrinks between tiers during review.
 
-| Label | Condition | Typical scope |
-|-------|-----------|---------------|
-| `size/XS` | `< 10` modified lines | Single-line fix, typo, comment |
-| `size/S` | `10 – 49` lines | Small bug fix, minor feature tweak |
-| `size/M` | `50 – 99` lines | Medium feature or refactor |
-| `size/L` | `100 – 499` lines | Large feature or multi-file change |
-| `size/XL` | `500 – 999` lines | Major feature or significant refactor |
-| `size/XXL` | `>= 1000` lines | Large-scale change; consider splitting |
+| Label      | Condition             | Typical scope                          |
+| ---------- | --------------------- | -------------------------------------- |
+| `size/XS`  | `< 10` modified lines | Single-line fix, typo, comment         |
+| `size/S`   | `10 – 49` lines       | Small bug fix, minor feature tweak     |
+| `size/M`   | `50 – 99` lines       | Medium feature or refactor             |
+| `size/L`   | `100 – 499` lines     | Large feature or multi-file change     |
+| `size/XL`  | `500 – 999` lines     | Major feature or significant refactor  |
+| `size/XXL` | `>= 1000` lines       | Large-scale change; consider splitting |
 
 > **Tip:** Aim to keep PRs at `size/M` or smaller to reduce review latency.
 
@@ -48,12 +48,12 @@ grows or shrinks between tiers during review.
 In addition to size labels, PRs are tagged based on which files they modify.
 Unlike size labels, content labels use `add` (they are not removed when files change).
 
-| Label | Triggered by |
-|-------|-------------|
-| `security` | Snyk/Bandit/CodeQL/Semgrep workflow files, `.safety-policy.json` |
-| `ci` | Any file under `.github/workflows/` |
-| `documentation` | Files matching `**/*.md` or under `docs/` |
-| `dependencies` | `requirements*.txt`, `pyproject.toml`, `frontend/package.json` |
+| Label           | Triggered by                                                     |
+| --------------- | ---------------------------------------------------------------- |
+| `security`      | Snyk/Bandit/CodeQL/Semgrep workflow files, `.safety-policy.json` |
+| `ci`            | Any file under `.github/workflows/`                              |
+| `documentation` | Files matching `**/*.md` or under `docs/`                        |
+| `dependencies`  | `requirements*.txt`, `pyproject.toml`, `frontend/package.json`   |
 
 A single PR can receive multiple content labels (e.g., a PR that updates a workflow
 and its documentation gets both `ci` and `documentation`).
@@ -69,6 +69,7 @@ reviewer has been assigned yet**, Mergify automatically requests a review from
 `@mohavro`.
 
 Conditions that suppress the request:
+
 - PR is in draft state
 - Author is `dependabot[bot]` or `snyk-bot`
 - At least one reviewer is already assigned
@@ -118,6 +119,7 @@ A PR is marked `stale` when:
 - It has had no activity for **14 days**
 
 When marked stale, Mergify:
+
 1. Adds the `stale` label.
 2. Posts a comment explaining the status and how to keep the PR open.
 

@@ -41,9 +41,7 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         assert "pull_request_rules" in config, "Missing pull_request_rules key"
-        assert isinstance(config["pull_request_rules"], list), (
-            "pull_request_rules must be a list"
-        )
+        assert isinstance(config["pull_request_rules"], list), "pull_request_rules must be a list"
         assert len(config["pull_request_rules"]) > 0, "pull_request_rules is empty"
 
     def test_tshirt_size_rule_exists(self):
@@ -73,9 +71,7 @@ class TestMergifyConfiguration:
         for rule in tshirt_rules:
             conditions = rule.get("conditions", [])
             assert isinstance(conditions, list), "Conditions must be a list"
-            assert len(conditions) > 0, (
-                f"Conditions list is empty in {rule.get('name')}"
-            )
+            assert len(conditions) > 0, f"Conditions list is empty in {rule.get('name')}"
             assert any("#modified-lines" in str(c) for c in conditions), (
                 f"Missing #modified-lines condition in {rule.get('name')}"
             )
@@ -93,9 +89,7 @@ class TestMergifyConfiguration:
             actions = rule.get("actions", {})
             label_action = actions["label"]
             label_action = actions.get("label")
-            assert isinstance(label_action, dict), (
-                f"Missing/invalid label action in rule {rule.get('name')}"
-            )
+            assert isinstance(label_action, dict), f"Missing/invalid label action in rule {rule.get('name')}"
 
             assert any(k in label_action for k in ("toggle", "add", "remove")), (
                 f"Missing label operation in rule {rule.get('name')}"
@@ -120,9 +114,7 @@ class TestMergifyConfiguration:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        size_l_rule = next(
-            (r for r in rules if "size/L" in str(r.get("actions", {}))), None
-        )
+        size_l_rule = next((r for r in rules if "size/L" in str(r.get("actions", {}))), None)
         assert size_l_rule is not None, "size/L rule not found"
 
         label_action = size_l_rule["actions"]["label"]
@@ -158,13 +150,9 @@ class TestMergifyConfiguration:
                         max_threshold = int(parts[1].strip())
 
             if min_threshold is not None:
-                assert min_threshold >= 0, (
-                    f"Min threshold must be non-negative in rule {rule.get('name')}"
-                )
+                assert min_threshold >= 0, f"Min threshold must be non-negative in rule {rule.get('name')}"
             if max_threshold is not None:
-                assert max_threshold > 0, (
-                    f"Max threshold must be positive in rule {rule.get('name')}"
-                )
+                assert max_threshold > 0, f"Max threshold must be positive in rule {rule.get('name')}"
             if min_threshold is not None and max_threshold is not None:
                 assert min_threshold < max_threshold, (
                     f"Min threshold ({min_threshold}) must be less than max "
@@ -183,12 +171,8 @@ class TestMergifyConfiguration:
             assert isinstance(rule["name"], str), f"Rule {idx} name must be string"
             assert len(rule["name"]) > 0, f"Rule {idx} name is empty"
 
-            assert "conditions" in rule, (
-                f"Rule {idx} ({rule.get('name')}) missing conditions"
-            )
-            assert isinstance(rule["conditions"], list), (
-                f"Rule {idx} conditions must be list"
-            )
+            assert "conditions" in rule, f"Rule {idx} ({rule.get('name')}) missing conditions"
+            assert isinstance(rule["conditions"], list), f"Rule {idx} conditions must be list"
 
             assert "actions" in rule, f"Rule {idx} ({rule.get('name')}) missing actions"
             assert isinstance(rule["actions"], dict), f"Rule {idx} actions must be dict"
@@ -200,9 +184,7 @@ class TestMergifyConfiguration:
 
         # Check for common YAML/Mergify issues
         assert content.strip(), "File is empty or whitespace only"
-        assert not content.startswith(" "), (
-            "File starts with indentation (invalid YAML)"
-        )
+        assert not content.startswith(" "), "File starts with indentation (invalid YAML)"
         assert "pull_request_rules:" in content, "Missing pull_request_rules section"
 
     def test_label_format_follows_convention(self):
@@ -240,9 +222,7 @@ class TestMergifyRuleLogic:
             config = yaml.safe_load(f)
 
         rules = config["pull_request_rules"]
-        size_l_rule = next(
-            (r for r in rules if "size/L" in str(r.get("actions", {}))), None
-        )
+        size_l_rule = next((r for r in rules if "size/L" in str(r.get("actions", {}))), None)
 
         assert size_l_rule is not None, "size/L rule not found"
 
@@ -266,9 +246,9 @@ class TestMergifyRuleLogic:
                 assert isinstance(desc, str), "Description must be string"
                 assert len(desc) > 10, f"Description too short: {desc}"
                 # Should mention lines or size
-                assert any(
-                    word in desc.lower() for word in ["line", "size", "change"]
-                ), f"Description doesn't mention lines/size/changes: {desc}"
+                assert any(word in desc.lower() for word in ["line", "size", "change"]), (
+                    f"Description doesn't mention lines/size/changes: {desc}"
+                )
 
 
 class TestMergifyEdgeCases:
@@ -370,9 +350,7 @@ class TestMergifyAdditionalEdgeCases:
                         thresholds.append(str(cond))
 
         # Should have both >= and < conditions
-        assert any(">=" in t for t in thresholds), (
-            "Missing minimum threshold conditions"
-        )
+        assert any(">=" in t for t in thresholds), "Missing minimum threshold conditions"
         assert any("<" in t for t in thresholds), "Missing maximum threshold conditions"
 
     def test_actions_are_properly_formatted(self):
@@ -384,18 +362,12 @@ class TestMergifyAdditionalEdgeCases:
 
         for rule in rules:
             actions = rule.get("actions", {})
-            assert isinstance(actions, dict), (
-                f"Actions must be dict in rule {rule.get('name')}"
-            )
+            assert isinstance(actions, dict), f"Actions must be dict in rule {rule.get('name')}"
 
             if "label" in actions:
                 label_action = actions["label"]
                 assert isinstance(label_action, dict), "Label action must be dict"
-                assert (
-                    "toggle" in label_action
-                    or "add" in label_action
-                    or "remove" in label_action
-                )
+                assert "toggle" in label_action or "add" in label_action or "remove" in label_action
 
     def test_rule_names_are_descriptive(self):
         """Test that all rule names are descriptive and meaningful."""
@@ -442,9 +414,7 @@ class TestMergifyAdditionalEdgeCases:
             if line and not line.startswith("#"):
                 leading_spaces = len(line) - len(line.lstrip(" "))
                 if leading_spaces > 0:
-                    indentations.add(
-                        leading_spaces % 2
-                    )  # Check if using 2-space indent
+                    indentations.add(leading_spaces % 2)  # Check if using 2-space indent
 
         # Should consistently use 2-space indentation
         assert len(indentations) <= 1, "Inconsistent indentation found"
@@ -458,11 +428,7 @@ class TestMergifySizeCoverage:
     def _load_tshirt_rules(self):
         with open(self.MERGIFY_PATH, "r") as f:
             config = yaml.safe_load(f)
-        return [
-            r
-            for r in config["pull_request_rules"]
-            if "t-shirt" in r.get("name", "").lower()
-        ]
+        return [r for r in config["pull_request_rules"] if "t-shirt" in r.get("name", "").lower()]
 
     def test_six_size_tiers_exist(self):
         """Test that exactly 6 t-shirt size tiers are defined."""
@@ -490,9 +456,7 @@ class TestMergifySizeCoverage:
             all_labels.extend(label_action.get("toggle", []))
             all_labels.extend(label_action.get("add", []))
 
-        assert len(all_labels) == len(set(all_labels)), (
-            "Overlapping size labels detected across tier rules"
-        )
+        assert len(all_labels) == len(set(all_labels)), "Overlapping size labels detected across tier rules"
 
     def test_xs_rule_has_upper_bound_only(self):
         """Test that XS rule only has an upper bound (no >= condition)."""
@@ -514,10 +478,7 @@ class TestMergifySizeCoverage:
         assert ">=" in conditions, "XXL rule should have a minimum bound"
         # The XXL rule should not have a strict upper bound
         # (a < condition on modified-lines would cap it)
-        modified_line_conditions = [
-            str(c) for c in xxl_rule.get("conditions", [])
-            if "#modified-lines" in str(c)
-        ]
+        modified_line_conditions = [str(c) for c in xxl_rule.get("conditions", []) if "#modified-lines" in str(c)]
         upper_bounds = [c for c in modified_line_conditions if "<" in c and ">=" not in c]
         assert len(upper_bounds) == 0, "XXL rule should not have an upper bound"
 
@@ -543,9 +504,7 @@ class TestMergifyContentLabels:
         rule = self._find_rule("security")
         assert rule is not None, "Security label rule not found"
         label_action = rule.get("actions", {}).get("label", {})
-        assert "security" in label_action.get("add", []), (
-            "Security rule must add 'security' label"
-        )
+        assert "security" in label_action.get("add", []), "Security rule must add 'security' label"
 
     def test_ci_label_rule_exists(self):
         """Test that a rule for labelling CI/workflow changes exists."""
@@ -559,18 +518,14 @@ class TestMergifyContentLabels:
         rule = self._find_rule("documentation")
         assert rule is not None, "Documentation label rule not found"
         label_action = rule.get("actions", {}).get("label", {})
-        assert "documentation" in label_action.get("add", []), (
-            "Documentation rule must add 'documentation' label"
-        )
+        assert "documentation" in label_action.get("add", []), "Documentation rule must add 'documentation' label"
 
     def test_dependencies_label_rule_exists(self):
         """Test that a rule for labelling dependency changes exists."""
         rule = self._find_rule("dependency")
         assert rule is not None, "Dependency label rule not found"
         label_action = rule.get("actions", {}).get("label", {})
-        assert "dependencies" in label_action.get("add", []), (
-            "Dependency rule must add 'dependencies' label"
-        )
+        assert "dependencies" in label_action.get("add", []), "Dependency rule must add 'dependencies' label"
 
     def test_content_label_rules_use_add_action(self):
         """Test that content-label rules use 'add' (not 'toggle') action."""
@@ -579,9 +534,7 @@ class TestMergifyContentLabels:
             rule = self._find_rule(fragment)
             if rule is not None:
                 label_action = rule.get("actions", {}).get("label", {})
-                assert "add" in label_action, (
-                    f"Content label rule '{fragment}' should use 'add' action"
-                )
+                assert "add" in label_action, f"Content label rule '{fragment}' should use 'add' action"
 
 
 class TestMergifyReviewAutomation:
@@ -597,9 +550,7 @@ class TestMergifyReviewAutomation:
     def test_review_request_rule_exists(self):
         """Test that a review-request rule exists."""
         rules = self._load_rules()
-        review_rules = [
-            r for r in rules if "request_reviews" in r.get("actions", {})
-        ]
+        review_rules = [r for r in rules if "request_reviews" in r.get("actions", {})]
         assert review_rules, "No request_reviews rule found"
 
     def test_review_request_targets_mohavro(self):
@@ -609,9 +560,7 @@ class TestMergifyReviewAutomation:
             action = rule.get("actions", {}).get("request_reviews", {})
             if action:
                 users = action.get("users", [])
-                assert "mohavro" in users, (
-                    f"Rule '{rule['name']}' does not request review from mohavro"
-                )
+                assert "mohavro" in users, f"Rule '{rule['name']}' does not request review from mohavro"
 
     def test_review_request_excludes_draft_prs(self):
         """Test that the review-request rule does not fire on draft PRs."""
@@ -619,16 +568,12 @@ class TestMergifyReviewAutomation:
         for rule in rules:
             if "request_reviews" in rule.get("actions", {}):
                 conditions = " ".join(str(c) for c in rule.get("conditions", []))
-                assert "-draft" in conditions, (
-                    f"Review-request rule '{rule['name']}' should exclude drafts"
-                )
+                assert "-draft" in conditions, f"Review-request rule '{rule['name']}' should exclude drafts"
 
     def test_dismiss_stale_reviews_rule_exists(self):
         """Test that a dismiss_reviews rule exists."""
         rules = self._load_rules()
-        dismiss_rules = [
-            r for r in rules if "dismiss_reviews" in r.get("actions", {})
-        ]
+        dismiss_rules = [r for r in rules if "dismiss_reviews" in r.get("actions", {})]
         assert dismiss_rules, "No dismiss_reviews rule found"
 
     def test_dismiss_stale_reviews_targets_main(self):
@@ -637,9 +582,7 @@ class TestMergifyReviewAutomation:
         for rule in rules:
             if "dismiss_reviews" in rule.get("actions", {}):
                 conditions = " ".join(str(c) for c in rule.get("conditions", []))
-                assert "main" in conditions, (
-                    f"Dismiss-reviews rule '{rule['name']}' should target base=main"
-                )
+                assert "main" in conditions, f"Dismiss-reviews rule '{rule['name']}' should target base=main"
 
 
 class TestMergifyAutoMerge:
@@ -653,9 +596,7 @@ class TestMergifyAutoMerge:
         return config["pull_request_rules"]
 
     def _get_auto_merge_rules(self):
-        return [
-            r for r in self._load_rules() if "merge" in r.get("actions", {})
-        ]
+        return [r for r in self._load_rules() if "merge" in r.get("actions", {})]
 
     def test_auto_merge_rules_exist(self):
         """Test that at least one auto-merge rule is defined."""
@@ -666,25 +607,21 @@ class TestMergifyAutoMerge:
         """Test that every auto-merge rule requires a passing check-success condition."""
         for rule in self._get_auto_merge_rules():
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
-            assert "check-success" in conditions, (
-                f"Auto-merge rule '{rule['name']}' must require a passing CI check"
-            )
+            assert "check-success" in conditions, f"Auto-merge rule '{rule['name']}' must require a passing CI check"
 
     def test_auto_merge_uses_squash(self):
         """Test that auto-merge rules use squash merge method."""
         for rule in self._get_auto_merge_rules():
             method = rule.get("actions", {}).get("merge", {}).get("method")
-            assert method == "squash", (
-                f"Auto-merge rule '{rule['name']}' should use squash merge, got {method}"
-            )
+            assert method == "squash", f"Auto-merge rule '{rule['name']}' should use squash merge, got {method}"
 
     def test_dependabot_auto_merge_rule_exists(self):
         """Test that a Dependabot-specific auto-merge rule exists."""
         rules = self._load_rules()
         dep_rules = [
-            r for r in rules
-            if "dependabot" in " ".join(str(c) for c in r.get("conditions", []))
-            and "merge" in r.get("actions", {})
+            r
+            for r in rules
+            if "dependabot" in " ".join(str(c) for c in r.get("conditions", [])) and "merge" in r.get("actions", {})
         ]
         assert dep_rules, "No Dependabot auto-merge rule found"
 
@@ -692,9 +629,9 @@ class TestMergifyAutoMerge:
         """Test that a Snyk-specific auto-merge rule exists."""
         rules = self._load_rules()
         snyk_rules = [
-            r for r in rules
-            if "snyk-bot" in " ".join(str(c) for c in r.get("conditions", []))
-            and "merge" in r.get("actions", {})
+            r
+            for r in rules
+            if "snyk-bot" in " ".join(str(c) for c in r.get("conditions", [])) and "merge" in r.get("actions", {})
         ]
         assert snyk_rules, "No Snyk auto-merge rule found"
 
@@ -712,19 +649,13 @@ class TestMergifyStaleManagement:
     def test_mark_stale_rule_exists(self):
         """Test that a rule to mark PRs as stale exists."""
         rules = self._load_rules()
-        stale_adders = [
-            r for r in rules
-            if "stale" in r.get("actions", {}).get("label", {}).get("add", [])
-        ]
+        stale_adders = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])]
         assert stale_adders, "No rule found that adds the 'stale' label"
 
     def test_remove_stale_rule_exists(self):
         """Test that a rule to remove the stale label exists."""
         rules = self._load_rules()
-        stale_removers = [
-            r for r in rules
-            if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])
-        ]
+        stale_removers = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])]
         assert stale_removers, "No rule found that removes the 'stale' label"
 
     def test_mark_stale_excludes_drafts(self):
@@ -733,18 +664,14 @@ class TestMergifyStaleManagement:
         for rule in rules:
             if "stale" in rule.get("actions", {}).get("label", {}).get("add", []):
                 conditions = " ".join(str(c) for c in rule.get("conditions", []))
-                assert "-draft" in conditions, (
-                    f"Stale rule '{rule['name']}' should exclude draft PRs"
-                )
+                assert "-draft" in conditions, f"Stale rule '{rule['name']}' should exclude draft PRs"
 
     def test_mark_stale_posts_comment(self):
         """Test that marking a PR stale also posts a comment."""
         rules = self._load_rules()
         for rule in rules:
             if "stale" in rule.get("actions", {}).get("label", {}).get("add", []):
-                assert "comment" in rule.get("actions", {}), (
-                    f"Stale rule '{rule['name']}' should post a comment"
-                )
+                assert "comment" in rule.get("actions", {}), f"Stale rule '{rule['name']}' should post a comment"
 
     def test_stale_rules_reference_stale_label(self):
         """Test that both stale rules consistently reference the 'stale' label."""
@@ -757,9 +684,5 @@ class TestMergifyStaleManagement:
             if "stale" in label_action.get("remove", []):
                 all_stale_label_references.append(("remove", rule["name"]))
 
-        assert any(ref[0] == "add" for ref in all_stale_label_references), (
-            "No rule adds 'stale' label"
-        )
-        assert any(ref[0] == "remove" for ref in all_stale_label_references), (
-            "No rule removes 'stale' label"
-        )
+        assert any(ref[0] == "add" for ref in all_stale_label_references), "No rule adds 'stale' label"
+        assert any(ref[0] == "remove" for ref in all_stale_label_references), "No rule removes 'stale' label"

@@ -37,12 +37,8 @@ class TestMergifyConfigIntegration:
 
         for idx, rule in enumerate(rules):
             assert "name" in rule, f"Rule at index {idx} is missing 'name'"
-            assert "conditions" in rule, (
-                f"Rule '{rule.get('name', idx)}' is missing 'conditions'"
-            )
-            assert "actions" in rule, (
-                f"Rule '{rule.get('name', idx)}' is missing 'actions'"
-            )
+            assert "conditions" in rule, f"Rule '{rule.get('name', idx)}' is missing 'conditions'"
+            assert "actions" in rule, f"Rule '{rule.get('name', idx)}' is missing 'actions'"
 
     def test_size_tier_continuity(self):
         """
@@ -96,8 +92,7 @@ class TestMergifyConfigIntegration:
             toggle_labels.extend(label_action.get("toggle", []))
 
         assert len(toggle_labels) == len(set(toggle_labels)), (
-            f"Duplicate toggle labels found: "
-            f"{[l for l in toggle_labels if toggle_labels.count(l) > 1]}"
+            f"Duplicate toggle labels found: {[l for l in toggle_labels if toggle_labels.count(l) > 1]}"
         )
 
     def test_ci_check_name_in_auto_merge_rules(self):
@@ -114,8 +109,7 @@ class TestMergifyConfigIntegration:
         for rule in auto_merge_rules:
             conditions = " ".join(str(c) for c in rule.get("conditions", []))
             assert "check-success=Test Python 3.12" in conditions, (
-                f"Auto-merge rule '{rule['name']}' must reference "
-                "'check-success=Test Python 3.12'"
+                f"Auto-merge rule '{rule['name']}' must reference 'check-success=Test Python 3.12'"
             )
 
     def test_review_request_excludes_bots(self):
@@ -134,9 +128,7 @@ class TestMergifyConfigIntegration:
             assert "-author=dependabot[bot]" in conditions, (
                 f"Review-request rule '{rule['name']}' must exclude dependabot[bot]"
             )
-            assert "-author=snyk-bot" in conditions, (
-                f"Review-request rule '{rule['name']}' must exclude snyk-bot"
-            )
+            assert "-author=snyk-bot" in conditions, f"Review-request rule '{rule['name']}' must exclude snyk-bot"
 
     def test_stale_rules_are_paired(self):
         """
@@ -146,20 +138,10 @@ class TestMergifyConfigIntegration:
         config = load_config()
         rules = config["pull_request_rules"]
 
-        adds_stale = [
-            r for r in rules
-            if "stale" in r.get("actions", {}).get("label", {}).get("add", [])
-        ]
-        removes_stale = [
-            r for r in rules
-            if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])
-        ]
+        adds_stale = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("add", [])]
+        removes_stale = [r for r in rules if "stale" in r.get("actions", {}).get("label", {}).get("remove", [])]
 
         assert adds_stale, "No rule found that adds the 'stale' label"
         assert removes_stale, "No rule found that removes the 'stale' label"
-        assert len(adds_stale) == 1, (
-            f"Expected exactly 1 rule to add 'stale', found {len(adds_stale)}"
-        )
-        assert len(removes_stale) == 1, (
-            f"Expected exactly 1 rule to remove 'stale', found {len(removes_stale)}"
-        )
+        assert len(adds_stale) == 1, f"Expected exactly 1 rule to add 'stale', found {len(adds_stale)}"
+        assert len(removes_stale) == 1, f"Expected exactly 1 rule to remove 'stale', found {len(removes_stale)}"
