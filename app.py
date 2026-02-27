@@ -519,6 +519,7 @@ class FinancialAssetApp:
             analysis_results = formulaic_analyzer.analyze_graph(graph)
 
             dashboard_fig = formulaic_visualizer.create_formula_dashboard(analysis_results)
+            empirical_relationships = analysis_results.get("empirical_relationships", {})
             correlation_network_fig = formulaic_visualizer.create_correlation_network(empirical_relationships)
             metric_comparison_fig = formulaic_visualizer.create_metric_comparison_chart(analysis_results)
 
