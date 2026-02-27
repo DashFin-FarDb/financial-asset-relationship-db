@@ -1045,7 +1045,7 @@ class TestAuthErrorMessages:
     def test_no_credentials_error_message_format(self, mock_user_repository):
         """Verify that no credentials error message is properly formatted."""
         # This test validates the multi-line string formatting
-        from api.auth import user_repository
+        import api.auth
 
         # Mock empty repository
         mock_user_repository.has_users.return_value = False
