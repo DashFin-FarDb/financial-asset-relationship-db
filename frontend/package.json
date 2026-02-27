@@ -16,7 +16,8 @@
     "node": ">=18.17.0",
     "npm": ">=8.0.0"
   },
-  "dependencies": {
+"jest": "^30.0.0",
+"jest-environment-jsdom": "^30.0.0",
     "@vercel/analytics": "^1.6.1",
     "axios": "^1.13.5",
     "next": "15.5.10",
