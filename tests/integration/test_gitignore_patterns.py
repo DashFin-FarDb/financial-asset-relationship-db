@@ -17,23 +17,6 @@ class TestGitignoreFileStructure:
 
     @pytest.fixture
     def gitignore_path(self) -> Path:
-        """
-        Compute the path to the repository's .gitignore file.
-
-        Returns:
-            gitignore_path (Path): Path to the repository's .gitignore file.
-        """
-        return Path(__file__).parent.parent.parent / ".gitignore"
-
-    @pytest.fixture
-    def gitignore_content(self, gitignore_path: Path) -> str:
-
-
-class TestGitignoreFileStructure:
-    """Tests for .gitignore file structure and syntax."""
-
-    @pytest.fixture
-    def gitignore_path(self) -> Path:
         """Return path to .gitignore file."""
         return Path(__file__).parent.parent.parent / ".gitignore"
 
