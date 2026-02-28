@@ -10,6 +10,7 @@ import threading
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Any, Callable, Dict, List, NoReturn, Optional
+from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -197,7 +198,7 @@ def validate_origin(origin_url: str) -> bool:
     - HTTP localhost/127.0.0.1 when running in `development`,
     - HTTPS localhost/127.0.0.1 in any environment,
     - Vercel preview hostnames (e.g., `*.vercel.app`),
-    - and valid HTTPS origins with well-formed domain names.
+    - valid HTTPS origins with well-formed domain names (including IDN support).
 
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com" or "http://localhost:3000").
@@ -235,6 +236,27 @@ def validate_origin(origin_url: str) -> bool:
         origin_url,
     ):
         return True
+
+    # Support IDN (Internationalized Domain Names) — encode host to ASCII and re-validate
+    parsed = urlparse(origin_url)
+    if parsed.scheme == "https" and parsed.netloc:
+        try:
+            ascii_host = parsed.hostname.encode("idna").decode("ascii")
+            ascii_origin = f"https://{ascii_host}"
+            if parsed.port:
+                ascii_origin += f":{parsed.port}"
+            if re.match(
+                r"^https://[a-zA-Z0-9]"
+                r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+                r"\.[a-zA-Z]{2,}$",
+                ascii_origin,
+            ):
+                return True
+        except (UnicodeError, AttributeError) as e:
+            # If the hostname cannot be IDNA-encoded, treat the origin as invalid.
+            logger.debug("Failed to IDNA-encode hostname for origin %s: %s", origin_url, e)
+            return False
 
     return False
 
