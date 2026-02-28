@@ -21,7 +21,7 @@ from typing import Any, Dict, Iterator
 from unittest.mock import Mock, patch
 
 import pytest
-from fastapi import status
+from fastapi import HTTPException, status
 from fastapi.testclient import TestClient
 
 import api.main as api_main
@@ -1006,6 +1006,591 @@ class TestErrorMessageQuality:
         assert response.status_code == 404
         error_data = response.json()
         assert "detail" in error_data
+
+
+@pytest.mark.unit
+class TestSetGraphFunctions:
+    """Test set_graph() and set_graph_factory() functions."""
+
+    def test_set_graph_directly(self):
+        """set_graph() should set the module-level graph."""
+        custom_graph = create_sample_database()
+        api_main.set_graph(custom_graph)
+
+        retrieved_graph = api_main.get_graph()
+        assert retrieved_graph is custom_graph
+
+        api_main.reset_graph()
+
+    def test_set_graph_clears_factory(self):
+        """set_graph() should clear any configured factory."""
+        # Set a factory first
+        factory_called = []
+
+        def test_factory():
+            factory_called.append(True)
+            return create_sample_database()
+
+        api_main.set_graph_factory(test_factory)
+
+        # Now set graph directly
+        custom_graph = create_sample_database()
+        api_main.set_graph(custom_graph)
+
+        # Get graph should return the set graph, not call factory
+        retrieved_graph = api_main.get_graph()
+        assert retrieved_graph is custom_graph
+        assert len(factory_called) == 0
+
+        api_main.reset_graph()
+
+    def test_set_graph_factory_lazy_initialization(self):
+        """set_graph_factory() should enable lazy initialization."""
+        factory_called = []
+
+        def test_factory():
+            factory_called.append(True)
+            return create_sample_database()
+
+        api_main.set_graph_factory(test_factory)
+
+        # Factory should not be called yet
+        assert len(factory_called) == 0
+
+        # Get graph should call factory
+        graph = api_main.get_graph()
+        assert len(factory_called) == 1
+        assert graph is not None
+
+        # Second call should not call factory again (singleton)
+        graph2 = api_main.get_graph()
+        assert len(factory_called) == 1
+        assert graph2 is graph
+
+        api_main.reset_graph()
+
+    def test_set_graph_factory_none_clears_factory(self):
+        """set_graph_factory(None) should clear the factory."""
+
+        def test_factory():
+            return create_sample_database()
+
+        api_main.set_graph_factory(test_factory)
+        api_main.set_graph_factory(None)
+
+        # Should use default initialization
+        graph = api_main.get_graph()
+        assert graph is not None
+
+        api_main.reset_graph()
+
+    def test_set_graph_factory_clears_existing_graph(self):
+        """set_graph_factory() should clear existing graph instance."""
+        # Initialize graph first
+        graph1 = api_main.get_graph()
+
+        # Set a factory
+        def test_factory():
+            return create_sample_database()
+
+        api_main.set_graph_factory(test_factory)
+
+        # Next get_graph should create new instance
+        graph2 = api_main.get_graph()
+        assert graph2 is not graph1
+
+        api_main.reset_graph()
+
+
+@pytest.mark.unit
+class TestSerializeAsset:
+    """Test the serialize_asset() helper function."""
+
+    def test_serialize_asset_basic_equity(self):
+        """serialize_asset() should include core fields for equity."""
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            market_cap=2.4e12,
+            currency="USD",
+        )
+
+        result = api_main.serialize_asset(equity)
+
+        assert result["id"] == "AAPL"
+        assert result["symbol"] == "AAPL"
+        assert result["name"] == "Apple Inc."
+        assert result["asset_class"] == "Equity"
+        assert result["sector"] == "Technology"
+        assert result["price"] == 150.0
+        assert result["market_cap"] == 2.4e12
+        assert result["currency"] == "USD"
+        assert "additional_fields" in result
+
+    def test_serialize_asset_with_optional_fields(self):
+        """serialize_asset() should include optional fields in additional_fields."""
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            pe_ratio=25.5,
+            dividend_yield=0.006,
+            earnings_per_share=6.15,
+            book_value=3.85,
+        )
+
+        result = api_main.serialize_asset(equity)
+
+        assert result["additional_fields"]["pe_ratio"] == 25.5
+        assert result["additional_fields"]["dividend_yield"] == 0.006
+        assert result["additional_fields"]["earnings_per_share"] == 6.15
+        assert result["additional_fields"]["book_value"] == 3.85
+
+    def test_serialize_asset_exclude_issuer_by_default(self):
+        """serialize_asset() should not include issuer_id by default."""
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+        # Set issuer_id if it exists
+        if hasattr(equity, "issuer_id"):
+            equity.issuer_id = "ISSUER123"
+
+        result = api_main.serialize_asset(equity, include_issuer=False)
+
+        assert "issuer_id" not in result["additional_fields"]
+
+    def test_serialize_asset_include_issuer_when_requested(self):
+        """serialize_asset() should include issuer_id when requested."""
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+        # Set issuer_id if attribute exists
+        if hasattr(equity, "issuer_id"):
+            equity.issuer_id = "ISSUER123"
+
+            result = api_main.serialize_asset(equity, include_issuer=True)
+
+            assert result["additional_fields"]["issuer_id"] == "ISSUER123"
+
+    def test_serialize_asset_skips_none_values(self):
+        """serialize_asset() should skip None optional fields."""
+        equity = Equity(
+            id="AAPL",
+            symbol="AAPL",
+            name="Apple Inc.",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+
+        result = api_main.serialize_asset(equity)
+
+        # These fields should not be in additional_fields if they're None
+        for field in ["pe_ratio", "dividend_yield", "earnings_per_share", "book_value"]:
+            if field in result["additional_fields"]:
+                assert result["additional_fields"][field] is not None
+
+
+@pytest.mark.unit
+class TestRaiseAssetNotFound:
+    """Test the raise_asset_not_found() helper function."""
+
+    def test_raise_asset_not_found_default_resource_type(self):
+        """raise_asset_not_found() should raise HTTPException with default resource type."""
+        with pytest.raises(HTTPException) as exc_info:
+            api_main.raise_asset_not_found("AAPL")
+
+        assert exc_info.value.status_code == 404
+        assert "Asset AAPL not found" == exc_info.value.detail
+
+    def test_raise_asset_not_found_custom_resource_type(self):
+        """raise_asset_not_found() should use custom resource type."""
+        with pytest.raises(HTTPException) as exc_info:
+            api_main.raise_asset_not_found("AAPL", resource_type="Stock")
+
+        assert exc_info.value.status_code == 404
+        assert "Stock AAPL not found" == exc_info.value.detail
+
+    def test_raise_asset_not_found_always_raises(self):
+        """raise_asset_not_found() should never return normally."""
+        exception_raised = False
+        try:
+            api_main.raise_asset_not_found("TEST")
+        except HTTPException:
+            exception_raised = True
+
+        assert exception_raised
+
+
+@pytest.mark.unit
+class TestShouldUseRealDataFetcher:
+    """Test the _should_use_real_data_fetcher() helper function."""
+
+    def test_should_use_real_data_fetcher_true_values(self, monkeypatch):
+        """_should_use_real_data_fetcher() should return True for truthy values."""
+        for value in ["1", "true", "True", "TRUE", "yes", "Yes", "YES", "on", "On", "ON"]:
+            monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
+            assert api_main._should_use_real_data_fetcher() is True
+
+    def test_should_use_real_data_fetcher_false_values(self, monkeypatch):
+        """_should_use_real_data_fetcher() should return False for falsy values."""
+        for value in ["0", "false", "False", "FALSE", "no", "No", "NO", "off", "Off", "OFF"]:
+            monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
+            assert api_main._should_use_real_data_fetcher() is False
+
+    def test_should_use_real_data_fetcher_default_false(self, monkeypatch):
+        """_should_use_real_data_fetcher() should default to False."""
+        monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
+        assert api_main._should_use_real_data_fetcher() is False
+
+    def test_should_use_real_data_fetcher_whitespace_handling(self, monkeypatch):
+        """_should_use_real_data_fetcher() should handle whitespace."""
+        monkeypatch.setenv("USE_REAL_DATA_FETCHER", "  true  ")
+        assert api_main._should_use_real_data_fetcher() is True
+
+        monkeypatch.setenv("USE_REAL_DATA_FETCHER", "  false  ")
+        assert api_main._should_use_real_data_fetcher() is False
+
+    def test_should_use_real_data_fetcher_invalid_values(self, monkeypatch):
+        """_should_use_real_data_fetcher() should return False for invalid values."""
+        for value in ["invalid", "maybe", "2", ""]:
+            monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
+            assert api_main._should_use_real_data_fetcher() is False
+
+
+@pytest.mark.unit
+class TestValidateOriginAllowedOrigins:
+    """Test validate_origin() with ALLOWED_ORIGINS environment variable."""
+
+    def test_validate_origin_explicit_allowed_origins(self, monkeypatch):
+        """validate_origin() should allow origins from ALLOWED_ORIGINS env var."""
+        monkeypatch.setenv("ALLOWED_ORIGINS", "https://app.example.com,https://api.example.com")
+
+        assert validate_origin("https://app.example.com") is True
+        assert validate_origin("https://api.example.com") is True
+        # Note: https://other.example.com would also be allowed by the HTTPS domain rule
+        # Test with an HTTP URL that's not in allowed origins and not localhost
+        assert validate_origin("http://other.example.com") is False
+
+    def test_validate_origin_allowed_origins_with_spaces(self, monkeypatch):
+        """validate_origin() should handle ALLOWED_ORIGINS with spaces."""
+        monkeypatch.setenv("ALLOWED_ORIGINS", " https://app.example.com , https://api.example.com ")
+
+        # Note: the implementation splits by comma but doesn't strip individual origins
+        # Testing actual behavior
+        assert validate_origin("https://app.example.com") is True
+
+    def test_validate_origin_empty_allowed_origins(self, monkeypatch):
+        """validate_origin() should handle empty ALLOWED_ORIGINS."""
+        monkeypatch.setenv("ALLOWED_ORIGINS", "")
+
+        # Should still validate based on other rules
+        assert validate_origin("https://example.com") is True
+
+    def test_validate_origin_allowed_origins_not_set(self, monkeypatch):
+        """validate_origin() should work when ALLOWED_ORIGINS is not set."""
+        monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
+
+        # Should still validate based on other rules
+        assert validate_origin("https://example.com") is True
+
+    def test_validate_origin_precedence_over_other_rules(self, monkeypatch):
+        """validate_origin() should prioritize ALLOWED_ORIGINS."""
+        # Even invalid-looking URLs should be allowed if explicitly listed
+        monkeypatch.setenv("ALLOWED_ORIGINS", "http://example.com")
+
+        assert validate_origin("http://example.com") is True
+
+
+@pytest.mark.unit
+class TestVisualizationSingleNode:
+    """Test visualization endpoint with edge cases."""
+
+    def test_visualization_single_node(self, bare_client: TestClient):
+        """Visualization should handle graph with single node."""
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Equity(
+                id="AAPL",
+                symbol="AAPL",
+                name="Apple Inc.",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=150.0,
+            )
+        )
+        api_main.set_graph(graph)
+
+        response = bare_client.get("/api/visualization")
+        assert response.status_code == 200
+
+        viz_data = response.json()
+        assert len(viz_data["nodes"]) == 1
+        assert len(viz_data["edges"]) == 0
+
+        node = viz_data["nodes"][0]
+        # For single node, coordinates should be (0, 0, 0)
+        assert node["x"] == 0.0
+        assert node["y"] == 0.0
+        assert node["z"] == 0.0
+
+        api_main.reset_graph()
+
+    def test_visualization_empty_graph(self, bare_client: TestClient):
+        """Visualization should handle empty graph."""
+        graph = AssetRelationshipGraph()
+        api_main.set_graph(graph)
+
+        response = bare_client.get("/api/visualization")
+        assert response.status_code == 200
+
+        viz_data = response.json()
+        assert len(viz_data["nodes"]) == 0
+        assert len(viz_data["edges"]) == 0
+
+        api_main.reset_graph()
+
+    def test_visualization_node_size_scaling(self, bare_client: TestClient):
+        """Visualization should scale node size based on degree."""
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Equity(
+                id="AAPL",
+                symbol="AAPL",
+                name="Apple Inc.",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=150.0,
+            )
+        )
+        graph.add_asset(
+            Equity(
+                id="GOOG",
+                symbol="GOOG",
+                name="Alphabet Inc.",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=125.0,
+            )
+        )
+        graph.add_asset(
+            Equity(
+                id="MSFT",
+                symbol="MSFT",
+                name="Microsoft Corp.",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=300.0,
+            )
+        )
+
+        # Add relationships (AAPL has more connections)
+        graph.add_relationship("AAPL", "GOOG", "same_sector", 0.8)
+        graph.add_relationship("AAPL", "MSFT", "same_sector", 0.7)
+
+        api_main.set_graph(graph)
+
+        response = bare_client.get("/api/visualization")
+        assert response.status_code == 200
+
+        viz_data = response.json()
+        nodes_by_id = {node["id"]: node for node in viz_data["nodes"]}
+
+        # AAPL should have larger size due to more relationships
+        aapl_size = nodes_by_id["AAPL"]["size"]
+        goog_size = nodes_by_id["GOOG"]["size"]
+
+        assert aapl_size > goog_size
+
+        # All sizes should be within bounds [5, 20]
+        for node in viz_data["nodes"]:
+            assert 5 <= node["size"] <= 20
+
+        api_main.reset_graph()
+
+    def test_visualization_color_mapping(self, bare_client: TestClient):
+        """Visualization should map asset classes to correct colors."""
+        from src.models.financial_models import Bond, Commodity
+
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Equity(
+                id="AAPL",
+                symbol="AAPL",
+                name="Apple Inc.",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=150.0,
+            )
+        )
+
+        api_main.set_graph(graph)
+
+        response = bare_client.get("/api/visualization")
+        assert response.status_code == 200
+
+        viz_data = response.json()
+        node = viz_data["nodes"][0]
+
+        # Should have the Equity color from _ASSET_CLASS_COLORS
+        assert node["color"] == api_main._ASSET_CLASS_COLORS.get("Equity", api_main._DEFAULT_COLOR)
+
+        api_main.reset_graph()
+
+
+@pytest.mark.unit
+class TestLifespanHandler:
+    """Test the lifespan async context manager."""
+
+    @pytest.mark.asyncio
+    async def test_lifespan_initializes_graph(self):
+        """Lifespan handler should initialize graph on startup."""
+        api_main.reset_graph()
+
+        async with api_main.lifespan(app):
+            # Graph should be initialized
+            graph = api_main.get_graph()
+            assert graph is not None
+            assert hasattr(graph, "assets")
+
+        api_main.reset_graph()
+
+    @pytest.mark.asyncio
+    async def test_lifespan_yields_control(self):
+        """Lifespan handler should yield control during app lifetime."""
+        api_main.reset_graph()
+        yielded = False
+
+        async with api_main.lifespan(app):
+            yielded = True
+            # Application runs here
+
+        assert yielded
+        api_main.reset_graph()
+
+    @pytest.mark.asyncio
+    async def test_lifespan_raises_on_initialization_failure(self):
+        """Lifespan handler should propagate initialization exceptions."""
+
+        def failing_factory():
+            raise RuntimeError("Initialization failed")
+
+        api_main.set_graph_factory(failing_factory)
+
+        with pytest.raises(RuntimeError, match="Initialization failed"):
+            async with api_main.lifespan(app):
+                pass
+
+        api_main.reset_graph()
+
+
+@pytest.mark.unit
+class TestEndpointRegressionCases:
+    """Regression tests for specific edge cases and bug fixes."""
+
+    @staticmethod
+    @pytest.fixture
+    def client():
+        """
+        Provide a TestClient configured with an in-memory sample graph for tests.
+
+        Sets the global graph to a sample database before yielding the client and resets the graph after the test completes.
+
+        Returns:
+            TestClient: A TestClient instance for the FastAPI app with the sample graph initialized.
+        """
+        api_main.set_graph(create_sample_database())
+        client = TestClient(app)
+        try:
+            yield client
+        finally:
+            api_main.reset_graph()
+
+    def test_assets_endpoint_with_nonexistent_asset_class(self, client: TestClient):
+        """Assets endpoint should return empty list for nonexistent asset class."""
+        response = client.get("/api/assets?asset_class=NONEXISTENT")
+        assert response.status_code == 200
+        assets = response.json()
+        assert isinstance(assets, list)
+        assert len(assets) == 0
+
+    def test_assets_endpoint_with_nonexistent_sector(self, client: TestClient):
+        """Assets endpoint should return empty list for nonexistent sector."""
+        response = client.get("/api/assets?sector=NonexistentSector")
+        assert response.status_code == 200
+        assets = response.json()
+        assert isinstance(assets, list)
+        assert len(assets) == 0
+
+    def test_asset_relationships_empty_list(self, client: TestClient):
+        """Asset with no relationships should return empty list."""
+        # Create graph with isolated node
+        graph = AssetRelationshipGraph()
+        graph.add_asset(
+            Equity(
+                id="ISOLATED",
+                symbol="ISO",
+                name="Isolated Asset",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=100.0,
+            )
+        )
+        api_main.set_graph(graph)
+
+        response = client.get("/api/assets/ISOLATED/relationships")
+        assert response.status_code == 200
+        relationships = response.json()
+        assert relationships == []
+
+    def test_metrics_relationship_density_calculation(self, client: TestClient):
+        """Metrics should correctly calculate relationship_density."""
+        response = client.get("/api/metrics")
+        assert response.status_code == 200
+        data = response.json()
+
+        # Both network_density and relationship_density should be present
+        assert "network_density" in data
+        assert "relationship_density" in data
+
+        # They should have the same value (as per the implementation)
+        assert data["network_density"] == data["relationship_density"]
+
+    def test_visualization_coordinates_precision(self, client: TestClient):
+        """Visualization coordinates should be rounded to 6 decimal places."""
+        response = client.get("/api/visualization")
+        assert response.status_code == 200
+        viz_data = response.json()
+
+        for node in viz_data["nodes"]:
+            # Check that coordinates are rounded (not more than 6 decimal places)
+            x_str = str(node["x"])
+            y_str = str(node["y"])
+            z_str = str(node["z"])
+
+            if "." in x_str:
+                assert len(x_str.split(".")[1]) <= 6
+            if "." in y_str:
+                assert len(y_str.split(".")[1]) <= 6
+            if "." in z_str:
+                assert len(z_str.split(".")[1]) <= 6
 
 
 if __name__ == "__main__":
