@@ -1,6 +1,7 @@
 import json
 import logging
 from dataclasses import asdict
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -230,7 +231,7 @@ class RealDataFetcher:
                 info = ticker.info
                 hist = ticker.history(period="1d")
 
-                if hist.empty:
+                if hist.empty or "Close" not in hist.columns:
                     logger.warning("No price data for %s", symbol)
                     continue
 
@@ -284,7 +285,7 @@ class RealDataFetcher:
                 ticker = yf.Ticker(symbol)
                 hist = ticker.history(period="1d")
 
-                if hist.empty:
+                if hist.empty or "Close" not in hist.columns:
                     logger.warning("No price data for %s", symbol)
                     continue
 
@@ -298,7 +299,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date="2025-03-31",  # Approximate
+                    delivery_date=(datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)
@@ -330,7 +331,7 @@ class RealDataFetcher:
                 ticker = yf.Ticker(symbol)
                 hist = ticker.history(period="1d")
 
-                if hist.empty:
+                if hist.empty or "Close" not in hist.columns:
                     logger.warning("No price data for %s", symbol)
                     continue
 
