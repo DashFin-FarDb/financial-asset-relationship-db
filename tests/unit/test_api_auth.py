@@ -7,7 +7,6 @@ user repository, and environment-based user seeding.
 
 from __future__ import annotations
 
-import os
 from datetime import datetime, timedelta, timezone
 from unittest.mock import MagicMock, Mock, patch
 
