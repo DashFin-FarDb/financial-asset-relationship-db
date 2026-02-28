@@ -264,6 +264,9 @@ def validate_origin(origin_url: str) -> bool:
     if origin_url.startswith("https://"):
         try:
             parsed = urlparse(origin_url)
+            parsed = urlparse(origin_url)
+            if parsed.path or parsed.params or parsed.query or parsed.fragment or parsed.username or parsed.password:
+                return False
             hostname = parsed.hostname
             if hostname:
                 # Convert IDN (internationalized domain names) to ASCII using IDNA encoding
