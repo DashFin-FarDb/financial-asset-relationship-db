@@ -53,7 +53,6 @@ def repository(tmp_path):
     engine.dispose()
 
 
-@pytest.mark.unit
 class TestAssetOperations:
     """Test cases for asset CRUD operations."""
 
@@ -276,7 +275,6 @@ class TestAssetOperations:
         repository.session.commit()
 
 
-@pytest.mark.unit
 class TestRelationshipOperations:
     """Test cases for relationship management."""
 
@@ -482,7 +480,6 @@ class TestRelationshipOperations:
         assert record.bidirectional is True
 
 
-@pytest.mark.unit
 class TestRegulatoryEventOperations:
     """Test cases for regulatory event handling."""
 
@@ -614,7 +611,6 @@ class TestRegulatoryEventOperations:
         assert len(event_orm.related_assets) == 2
 
 
-@pytest.mark.unit
 class TestDataTransformation:
     """Test cases for data transformation between models and ORM."""
 
@@ -717,7 +713,6 @@ class TestDataTransformation:
         assert any(isinstance(a, Commodity) for a in assets)
 
 
-@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -817,97 +812,104 @@ class TestEdgeCases:
         assert rel.strength == 1.0
 
 
-@pytest.mark.unit
 class TestComplexScenarios:
     """Test complex real-world scenarios."""
 
     @staticmethod
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
+        """Test complete workflow of building a diversified portfolio.
+        Returns:
+            None
+        Raises:
+            AssertionError: If any portfolio assertions fail.
         """
-        Create a small diversified portfolio in the repository, persist the assets, add inter-asset relationships, and verify persistence.
-
-        This test inserts four assets (equity, bond, commodity, currency), commits them, adds two relationships (one bidirectional, one unidirectional), commits again, and asserts that the repository contains four assets and at least two relationships.
-        """
-        # Add diverse assets
-        assets = [
-            Equity(
-                id="TECH1",
-                symbol="TECH1",
-                name="Tech Company",
-                asset_class=AssetClass.EQUITY,
-                sector="Technology",
-                price=150.0,
-                pe_ratio=25.0,
-                dividend_yield=0.01,
-            ),
-            Bond(
-                id="BOND1",
-                symbol="BOND1",
-                name="Gov Bond",
-                asset_class=AssetClass.FIXED_INCOME,
-                sector="Government",
-                price=1000.0,
-                yield_to_maturity=0.03,
-                coupon_rate=0.025,
-                maturity_date="2030-01-01",
-                credit_rating="AAA",
-            ),
-            Commodity(
-                id="GOLD1",
-                symbol="GC",
-                name="Gold",
-                asset_class=AssetClass.COMMODITY,
-                sector="Precious Metals",
-                price=2000.0,
-                contract_size=100.0,
-                volatility=0.15,
-            ),
-            Currency(
-                id="EUR1",
-                symbol="EUR",
-                name="Euro",
-                asset_class=AssetClass.CURRENCY,
-                sector="Forex",
-                price=1.1,
-                exchange_rate=1.1,
-                country="EU",
-            ),
-        ]
+        assets = _create_diverse_portfolio_assets()
 
         for asset in assets:
             repository.upsert_asset(asset)
         repository.session.commit()
 
-        # Add relationships between assets
-        repository.add_or_update_relationship(
-            "TECH1", "BOND1", "inverse_correlation", 0.3, bidirectional=True
-        )
-        repository.add_or_update_relationship(
-            "GOLD1", "EUR1", "commodity_currency", 0.6, bidirectional=False
-        )
+        _add_portfolio_relationships(repository)
         repository.session.commit()
 
-        # Verify all assets exist
-        assets_map = repository.get_assets_map()
-        assert len(assets_map) == 4
+        _verify_portfolio_contents(repository)
 
-        # Verify relationships
-        relationships = repository.list_relationships()
-        assert len(relationships) >= 2
-
-    @staticmethod
-    def test_regulatory_event_with_multiple_impacts(repository):
-        """Test regulatory event affecting multiple assets."""
-        # Create related assets
-        main_asset = Equity(
-            id="MAIN",
-            symbol="MAIN",
-            name="Main Company",
+def _create_diverse_portfolio_assets():
+    """Create a diverse set of financial assets for testing."""
+    return [
+        Equity(
+            id="TECH1",
+            symbol="TECH1",
+            name="Tech Company",
             asset_class=AssetClass.EQUITY,
             sector="Technology",
-            price=200.0,
-        )
-        related1 = Equity(
+            price=150.0,
+            pe_ratio=25.0,
+            dividend_yield=0.01,
+        ),
+        Bond(
+            id="BOND1",
+            symbol="BOND1",
+            name="Gov Bond",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Government",
+            price=1000.0,
+            yield_to_maturity=0.03,
+            coupon_rate=0.025,
+            maturity_date="2030-01-01",
+            credit_rating="AAA",
+        ),
+        Commodity(
+            id="GOLD1",
+            symbol="GC",
+            name="Gold",
+            asset_class=AssetClass.COMMODITY,
+            sector="Precious Metals",
+            price=2000.0,
+            contract_size=100.0,
+            volatility=0.15,
+        ),
+        Currency(
+            id="EUR1",
+            symbol="EUR",
+            name="Euro",
+            asset_class=AssetClass.CURRENCY,
+            sector="Forex",
+            price=1.1,
+            exchange_rate=1.1,
+            country="EU",
+        ),
+    ]
+
+
+def _add_portfolio_relationships(repository: AssetGraphRepository) -> None:
+    """Add relationships between portfolio assets."""
+    repository.add_or_update_relationship(
+        "TECH1", "BOND1", "inverse_correlation", 0.3, bidirectional=True
+    )
+    repository.add_or_update_relationship(
+        "GOLD1", "EUR1", "commodity_currency", 0.6, bidirectional=False
+    )
+
+
+def _verify_portfolio_contents(repository: AssetGraphRepository) -> None:
+    """Verify that the portfolio was created correctly."""
+    assets_map = repository.get_assets_map()
+    assert len(assets_map) == 4
+
+    relationships = repository.list_relationships()
+    assert len(relationships) >= 2
+
+
+@pytest.mark.unit
+class TestConcurrentAccess:
+    """Test concurrent access patterns."""
+
+    @staticmethod
+    def test_multiple_read_operations_concurrent(repository):
+        """Test multiple concurrent read operations."""
+        # Add test data
+        main_asset = Equity(
             id="REL1",
             symbol="REL1",
             name="Related 1",
@@ -915,13 +917,23 @@ class TestComplexScenarios:
             sector="Technology",
             price=150.0,
         )
-        related2 = Equity(
+        
+        related1 = Equity(
             id="REL2",
             symbol="REL2",
             name="Related 2",
             asset_class=AssetClass.EQUITY,
             sector="Technology",
             price=180.0,
+        )
+
+        related2 = Equity(
+            id="REL3",
+            symbol="REL3",
+            name="Related 3",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=200.0,
         )
 
         for asset in [main_asset, related1, related2]:
@@ -992,7 +1004,6 @@ class TestComplexScenarios:
         assert len(remaining_rels) == 0
 
 
-@pytest.mark.unit
 class TestAssetTypeConversions:
     """Test conversion between different asset types."""
 
@@ -1060,7 +1071,6 @@ class TestAssetTypeConversions:
         assert getattr(retrieved, "coupon_rate", None) is None
 
 
-@pytest.mark.unit
 @pytest.mark.slow
 class TestPerformance:
     """Test performance with large datasets."""
@@ -1118,7 +1128,6 @@ class TestPerformance:
         assert len(relationships) == 45
 
 
-@pytest.mark.unit
 class TestDataIntegrity:
     """Test data integrity constraints and validation."""
 
@@ -1195,7 +1204,6 @@ class TestDataIntegrity:
         repository.session.commit()
 
 
-@pytest.mark.unit
 class TestBoundaryValues:
     """Test boundary value conditions."""
 
@@ -1272,7 +1280,6 @@ class TestBoundaryValues:
         )
 
 
-@pytest.mark.unit
 class TestSpecialCharacters:
     """Test handling of special characters in data."""
 

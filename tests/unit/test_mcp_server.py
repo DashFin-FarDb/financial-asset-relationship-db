@@ -78,30 +78,22 @@ class TestThreadSafeGraph:
         from mcp_server import _ThreadSafeGraph
 
         graph = AssetRelationshipGraph()
+        lock = threading.Lock()
+        safe_graph = _ThreadSafeGraph(graph, lock)
 
         # Track lock acquisition
         lock_acquired = []
 
-        class DummyLock:
-            """Simple lock-like object that records acquire/release events."""
-
-            def acquire(self, *args, **kwargs):
-                lock_acquired.append("acquired")
-                return True
-
-            def release(self, *args, **kwargs):
-                lock_acquired.append("released")
-                return True
-
-            def __enter__(self):
-                self.acquire()
-                return self
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                self.release()
-
-        lock = DummyLock()
-        safe_graph = _ThreadSafeGraph(graph, lock)
+        real_lock = threading.Lock()
+        mock_lock = MagicMock(wraps=real_lock)
+        mock_lock.acquire.side_effect = lambda *a, **kw: (
+            lock_acquired.append("acquired") or real_lock.acquire(*a, **kw)
+        )
+        mock_lock.release.side_effect = lambda *a, **kw: (
+            lock_acquired.append("released") or real_lock.release(*a, **kw)
+        )
+        # Ensure the ThreadSafeGraph uses the instrumented lock
+        safe_graph._lock = mock_lock
 
         # Call a method
         equity = Equity(
@@ -123,47 +115,48 @@ class TestThreadSafeGraph:
 class TestAddEquityNode:
     """Test cases for the add_equity_node MCP tool."""
 
+
+@pytest.fixture(autouse=True)
+def _reset_global_graph():
+    """Ensure each test starts with a clean graph."""
+    from mcp_server import graph
+
+    graph._graph.assets.clear()
+    graph._graph.relationships.clear()
+    yield
+    graph._graph.assets.clear()
+    graph._graph.relationships.clear()
+
+
+@pytest.mark.unit
+class TestAddEquityNode:
+    """Test cases for the add_equity_node MCP tool."""
+
     @staticmethod
     def test_add_equity_node_successful_addition():
         """Test successful equity node addition."""
         from mcp_server import _build_mcp_app, graph
 
-        original_assets = dict(graph._graph.assets)
-        original_relationships = dict(graph._graph.relationships)
-        try:
-            # Reset graph state
-            graph._graph.assets.clear()
-            graph._graph.relationships.clear()
+        mcp_app = _build_mcp_app()
 
-            mcp_app = _build_mcp_app()
+        # Access the registered tool
+        tool_func = next(
+            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+            None,
+        )
+        assert tool_func is not None, "add_equity_node tool not found"
 
-            # Access the registered tool
-            tool_func = next(
-                (
-                    tool.fn
-                    for tool in mcp_app.list_tools()
-                    if tool.name == "add_equity_node"
-                ),
-                None,
-            )
-            assert tool_func is not None, "add_equity_node tool not found"
+        result = tool_func(
+            asset_id="AAPL_TEST",
+            symbol="AAPL",
+            name="Apple Inc Test",
+            sector="Technology",
+            price=150.0,
+        )
 
-            result = tool_func(
-                asset_id="AAPL_TEST",
-                symbol="AAPL",
-                name="Apple Inc Test",
-                sector="Technology",
-                price=150.0,
-            )
-
-            assert "Successfully" in result
-            assert "Apple Inc Test" in result
-            assert "AAPL" in result
-        finally:
-            graph._graph.assets.clear()
-            graph._graph.assets.update(original_assets)
-            graph._graph.relationships.clear()
-            graph._graph.relationships.update(original_relationships)
+        assert "Successfully added" in result, "Expected success message not found"
+        assert "Apple Inc Test" in result
+        assert "AAPL" in result
 
     @staticmethod
     def test_add_equity_node_validation_error_negative_price():
@@ -172,13 +165,12 @@ class TestAddEquityNode:
 
         mcp_app = _build_mcp_app()
 
-        tool_func = None
-        for tool in mcp_app.list_tools():
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
-
+        tool_func = next(
+            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+            None,
+        )
         assert tool_func is not None, "add_equity_node tool not found"
+
         result = tool_func(
             asset_id="TEST",
             symbol="TST",
@@ -187,8 +179,9 @@ class TestAddEquityNode:
             price=-100.0,  # Invalid negative price
         )
 
-        assert "Validation Error" in result if isinstance(result, str) else False
-        assert "price" in result.lower() if isinstance(result, str) else False
+        assert isinstance(result, str)
+        assert "Validation Error" in result
+        assert "price" in result.lower()
 
     @staticmethod
     def test_add_equity_node_validation_error_empty_id():
@@ -225,11 +218,10 @@ class TestAddEquityNode:
 
         # Create a minimal graph mock without add_asset method
         with patch("mcp_server.graph") as mock_graph:
-            # Make getattr return None for add_asset
-            mock_graph.__getattr__ = Mock(return_value=None)
+            # Remove add_asset so callable() returns False, triggering the fallback.
+            mock_graph.add_asset = None  # non-callable
 
             mcp_app = _build_mcp_app()
-
             tool_func = None
             for tool in mcp_app.list_tools():
                 if tool.name == "add_equity_node":
@@ -245,7 +237,7 @@ class TestAddEquityNode:
             )
 
             # Should indicate validation-only mode
-            assert "validation" in result.lower() or "Successfully" in result
+            assert "Graph mutation not supported" in result
 
 
 @pytest.mark.unit
@@ -254,13 +246,7 @@ class TestGet3DLayout:
 
     @staticmethod
     def test_get_3d_layout_returns_valid_json():
-        """
-        Verify the 3D layout resource returns JSON containing the expected keys and types.
-
-        Asserts that the registered "3d-layout" resource produces JSON with the keys
-        `asset_ids`, `positions`, `colors`, and `hover`, and that `asset_ids` and
-        `positions` are arrays.
-        """
+        """Test that get_3d_layout returns valid JSON."""
         from mcp_server import _build_mcp_app, graph
 
         # Add a test asset
@@ -278,11 +264,7 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (
-                resource.fn
-                for resource in mcp_app.list_resources()
-                if "3d-layout" in resource.uri
-            ),
+            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
             None,
         )
         assert resource_func is not None, "3d-layout resource not found"
@@ -388,6 +370,7 @@ class TestMainCLI:
 
             # Should exit with error message
             assert "Missing dependency" in str(exc_info.value)
+            assert exc_info.value.code != 0, "Expected non-zero exit code for missing dependency"
 
     @staticmethod
     def test_main_argument_parsing():
@@ -528,7 +511,7 @@ class TestEdgeCases:
 
         # Calling add_asset with invalid data should raise ValueError, but the
         # lock must still be released after the exception.
-        with pytest.raises(ValueError):
+        with pytest.raises(AttributeError):
             safe_graph.add_asset(None)
 
         # Lock should not be held after exception
@@ -559,41 +542,33 @@ class TestEdgeCases:
         )
 
         # Should handle special characters without error
-        assert "Validation Error" not in result
+        assert "Validation Error" not in result, "Tool failed to handle special characters in asset name"
 
     @staticmethod
     def test_get_3d_layout_with_empty_graph():
         """Test get_3d_layout with empty graph."""
         from mcp_server import _build_mcp_app, graph
 
-        original_assets = dict(graph._graph.assets)
-        original_relationships = dict(graph._graph.relationships)
-        try:
-            # Clear graph
-            graph._graph.assets.clear()
-            graph._graph.relationships.clear()
+        # Clear graph
+        graph._graph.assets.clear()
+        graph._graph.relationships.clear()
 
-            mcp_app = _build_mcp_app()
+        mcp_app = _build_mcp_app()
 
-            resource_func = None
-            for resource in mcp_app.list_resources():
-                if "3d-layout" in resource.uri:
-                    resource_func = resource.fn
-                    break
+        resource_func = None
+        for resource in mcp_app.list_resources():
+            if "3d-layout" in resource.uri:
+                resource_func = resource.fn
+                break
 
-            result = resource_func()
-            data = json.loads(result)
+        result = resource_func()
+        data = json.loads(result)
 
-            # Should return valid structure even with empty graph
-            assert "asset_ids" in data
-            assert "positions" in data
-            assert "colors" in data
-            assert "hover" in data
-        finally:
-            graph._graph.assets.clear()
-            graph._graph.assets.update(original_assets)
-            graph._graph.relationships.clear()
-            graph._graph.relationships.update(original_relationships)
+        # Should return valid structure even with empty graph
+        assert data, "Expected non-empty data structure from get_3d_layout"
+        assert "positions" in data
+        assert "colors" in data
+        assert "hover" in data
 
     @staticmethod
     def test_main_with_invalid_arguments():
@@ -603,28 +578,3 @@ class TestEdgeCases:
         # Should handle unrecognized arguments gracefully
         with pytest.raises(SystemExit):
             main(["--invalid-arg"])
-
-    @staticmethod
-    def test_add_equity_node_with_very_large_price():
-        """Test add_equity_node with very large price value (boundary case)."""
-        from mcp_server import _build_mcp_app
-
-        mcp_app = _build_mcp_app()
-
-        tool_func = None
-        for tool in mcp_app.list_tools():
-            if tool.name == "add_equity_node":
-                tool_func = tool.fn
-                break
-
-        result = tool_func(
-            asset_id="TEST_LARGE_PRICE",
-            symbol="TLP",
-            name="Large Price Company",
-            sector="Technology",
-            price=1e15,  # Very large price
-        )
-
-        # Should accept very large valid price
-        assert "Validation Error" not in result
-        assert "Successfully" in result

@@ -1,4 +1,4 @@
-name: PR Agent Workflow
+name: PR Agent
 
 permissions:
   contents: read
@@ -67,6 +67,16 @@ jobs:
           PR_DATA=$(gh api repos/${{ github.repository }}/pulls/${PR_NUMBER} \
             --jq '{number: .number, title: .title, changed_files: .changed_files}')
           echo "pr_data=${PR_DATA}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse PR Review Comments
+        id: parse-comments
+        run: |
+          echo "Action items from context: ${{ steps.fetch-context.outputs.action_items }}"
+          echo "Context was chunked: ${{ steps.fetch-context.outputs.chunked }}"
+          echo "Context size: ${{ steps.fetch-context.outputs.context_size }} bytes"
+          gh api repos/${{ github.repository }}/issues/${{ github.event.pull_request.number || github.event.issue.number }}/comments --jq '.[0].id'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

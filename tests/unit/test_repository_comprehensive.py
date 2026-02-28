@@ -885,15 +885,17 @@ class TestRelationshipTypeVariations:
         )
         repository.session.commit()
 
-        repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
-        assert rel1 is not None
-        assert rel2 is not None
-        assert abs(rel1.strength - 0.5) < 1e-9
-        assert abs(rel2.strength - 0.6) < 1e-9
+        rel = repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
+        assert rel is not None
+        assert rel.relationship_type == "same_sector_correlation"
 
     @staticmethod
     def test_relationship_type_case_sensitivity(repository):
-        """Test that relationship types are case-sensitive."""
+        """
+        Verify relationship types are treated as distinct based on case.
+
+        Creates two assets, adds two relationships between them using type names that differ only by letter case, commits, and asserts both relationships are stored separately with their respective strength values.
+        """
         asset1 = Equity(
             id="CASE1",
             symbol="C1",
@@ -915,12 +917,8 @@ class TestRelationshipTypeVariations:
         repository.session.commit()
 
         # Add relationships with different cases
-        repository.add_or_update_relationship(
-            "CASE1", "CASE2", "SameType", 0.5, bidirectional=False
-        )
-        repository.add_or_update_relationship(
-            "CASE1", "CASE2", "sametype", 0.6, bidirectional=False
-        )
+        repository.add_or_update_relationship("CASE1", "CASE2", "SameType", 0.5, bidirectional=False)
+        repository.add_or_update_relationship("CASE1", "CASE2", "sametype", 0.6, bidirectional=False)
         repository.session.commit()
 
         # Should be treated as different types

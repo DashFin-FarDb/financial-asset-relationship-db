@@ -1,0 +1,570 @@
+3a036692 Update .github/workflows/pr-agent.yml
+c6c720c5 Update api/main.py
+fa195837 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+923613c9 fix: use get_3d_visualization_data_enhanced in test_api.py mock setup
+b150b410 fix: repair malformed frontend/package.json
+74614a12 fix: add missing api/models.py (UserInDB Pydantic model)
+9eeb986c style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+ef22984c fix: resolve syntax error in test_snyk_workflow.py and restore api/main.py
+4c33be84 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+d98e769a fix: resolve PR #838 reviewer issues across 7 files
+5ec29dc2 [Penify]: Documentation for commit - 3b8e935 (#898)
+72c1f93e [pre-commit.ci] auto fixes from pre-commit.com hooks
+58435fe1 fix: resolve PR #897 reviewer issues
+cc20ab8e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+c9c1bfbc Address PR feedback: remove backup file, fix asset_class consistency, add debug logging
+61bf7e89 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+b6bfcaf7 [pre-commit.ci] auto fixes from pre-commit.com hooks
+8a0fdcfa style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+d8aac90d [pre-commit.ci] auto fixes from pre-commit.com hooks
+0481b947 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a898cb1c Refactor api/main.py into focused modules
+58b1beb2 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+5c54988e [pre-commit.ci] auto fixes from pre-commit.com hooks
+ed07761c [Penify]: Documentation for commit - 6e05ee8 (#896)
+b60810e1 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+3cb5e8bd [pre-commit.ci] auto fixes from pre-commit.com hooks
+ec6da3e2 fix: resolve PR #894 reviewer issues in test_api_integration.py and app.py
+5589a11b style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+f98d4166 refactor: address deepsource issues across tests and report generator
+60313ea4 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+0178c91d Fix import order: move api.main import after environment setup
+c5fbed2e [pre-commit.ci] auto fixes from pre-commit.com hooks
+6c1a2626 Refactor code for improved readability and consistency
+a88fa13d style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a24aaddc [pre-commit.ci] auto fixes from pre-commit.com hooks
+6ad01f01 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+4a505f3f Fix test assertion to check return code instead of parsing stderr/stdout
+af4514b9 [pre-commit.ci] auto fixes from pre-commit.com hooks
+549cc898 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+71a1bd14 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+932e0502 [pre-commit.ci] auto fixes from pre-commit.com hooks
+bd72aea6 fix: resolve all PR #892 reviewer issues
+cede33e0 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+13d5feac Update app.py
+bff4b8ee Simplify exception handling in asset retrieval
+423dc6b5 Add health check endpoint and clean up comments
+6a245f9c Update tests/integration/test_requirements_validation.py
+d2398ac3 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+32efccda Update app.py
+7a42d010 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+1c93299d Update api/main.py
+a6de5379 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+3db95ea1 Update api/main.py
+a067d429 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+f9ebfb54 Update api/main.py
+0e0bf4c9 Update tests/integration/test_requirements_validation.py
+0d40a187 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+283f25fd Merge main into Q-DEV-issue-869-1771658582 and reapply reviewer fixes
+26e42344 Merge remote-tracking branch into Q-DEV-issue-869-1771658582 with reviewer fixes
+d19f451c fix: resolve all PR #877 reviewer issues
+d3e8a794 fix: break circular import between database, repository, and db_models
+bca680b9 fix: resolve all reviewer issues in PR #886
+7b215132 fix: frontend/package.json to reduce vulnerabilities
+2742b428 Update src/data/real_data_fetcher.py
+61846b08 [Penify]: Documentation for commit - d739689 (#889)
+39598a39 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+efa8ad3e [pre-commit.ci] auto fixes from pre-commit.com hooks
+b4bb727f fix: resolve all deployment-blocking issues across app.py, api/main.py, and real_data_fetcher.py
+74447afe Update src/data/real_data_fetcher.py
+ba4b2c94 Merge branch 'main' into Q-DEV-issue-869-1771658582
+da29669a [pre-commit.ci] auto fixes from pre-commit.com hooks
+e19a7ab0 fix: address all reviewer issues in PR #885
+ba0c4c79 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+802c0858 📝 Add docstrings to `chunk/thread-safety-dynamic-delivery-dates-1771971499945`
+77a27ec5 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+2dc58cd8 refactor: replace assert statements and resolve variable shadowing
+7693deb0 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+3d3e7c22 [pre-commit.ci] auto fixes from pre-commit.com hooks
+a3b5c3c1 Add static method to assert output count in refresh
+296e738e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+48ae58a7 Update app.py
+28e2fde6 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+ccb89881 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+fc604ab0 [pre-commit.ci] auto fixes from pre-commit.com hooks
+f83391c0 Implement error logging for graph re-initialization
+21488ff6 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+9f55ca38 Refactor datetime handling in real_data_fetcher
+eaf52649 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+de9a7f96 [pre-commit.ci] auto fixes from pre-commit.com hooks
+d5e35d89 Update src/data/real_data_fetcher.py
+7833e8f2 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+f94f931f fix: add thread safety and dynamic delivery dates for commodities
+e6ef370f Update devDependencies in package.json (#884)
+b1de9107 Merge branch 'main' into Q-DEV-issue-869-1771658582
+178f98bd Integrate Vercel Speed Insights and resolve Next.js DoS vulnerability (#882)
+5d9cfa81 Update app.py
+33ff9ffd Update app.py
+5c0c94be Update api/main.py
+570160b7 Refactor test for current phase in system manifest
+abfb1464 Replace gr.update with Dropdown and Textbox
+a1cdc70d Handle HTTPExceptions in asset retrieval
+d197abd0 Update src/visualizations/graph_visuals.py
+13daa94d Update tests/unit/test_mcp_server.py
+1e0ca4d5 [pre-commit.ci] auto fixes from pre-commit.com hooks
+a1b05622 Update tests/unit/test_config_validation.py
+43dd664d Update src/visualizations/graph_visuals.py
+374d23c7 [pre-commit.ci] auto fixes from pre-commit.com hooks
+0aecf32f Update tests/unit/test_api.py
+4759a88a Update src/visualizations/graph_visuals.py
+496cd554 Update app.py
+aa1836af [pre-commit.ci] auto fixes from pre-commit.com hooks
+144a3656 Update tests/unit/test_conftest.py
+b6c944c8 Update src/visualizations/graph_visuals.py
+cf9d9786 Update tests/unit/test_conftest.py
+7a3be745 Potential fix for pull request finding 'Syntax error'
+fb46440e Update tests/unit/test_config_validation.py
+e935908e Update tests/unit/test_config_validation.py
+646e5921 Update api/main.py
+3d54b541 [pre-commit.ci] auto fixes from pre-commit.com hooks
+19d373b2 Update tests/integration/test_requirements_validation.py
+49a0f4b3 Update api/main.py
+d3bde7bc Update src/visualizations/graph_visuals.py
+a3980353 Update tests/unit/test_mcp_server.py
+a0f4f8f2 Update tests/unit/test_config_validation.py
+43c27a7f Potential fix for pull request finding 'Unused import'
+d1a4d534 Update error handling to provide generic messages
+6d849a39 [pre-commit.ci] auto fixes from pre-commit.com hooks
+20e5ce63 Update tests/unit/test_mcp_server.py
+ffa198f5 [pre-commit.ci] auto fixes from pre-commit.com hooks
+46a37862 Update test_requirements_validation.py
+20fb1f3b Simplify allowed origins validation logic
+72d9a200 Update tests/unit/test_config_validation.py
+eb412e54 Update src/visualizations/graph_visuals.py
+916635f5 [pre-commit.ci] auto fixes from pre-commit.com hooks
+b106c882 Update tests/unit/test_mcp_server.py
+4ce42fb9 [pre-commit.ci] auto fixes from pre-commit.com hooks
+2f3b21cf Update tests/unit/test_mcp_server.py
+3c000603 [pre-commit.ci] auto fixes from pre-commit.com hooks
+28cf6d6e Refactor unit tests for mcp_server.py
+5753399b [pre-commit.ci] auto fixes from pre-commit.com hooks
+68a3a941 Update tests/unit/test_mcp_server.py
+f030bb0c Update tests/unit/test_config_validation.py
+d7fd2cf6 Update api/models.py
+46837e6d Simplify origin validation logic
+155baa31 Update api/main.py
+d3696d37 Update src/data/repository.py
+a3f489cb Update src/visualizations/graph_visuals.py
+123f7893 Refactor tests for error handling and assertions
+962f521e Fix variable name in comment line extraction
+235255c2 Increase timeout for pip install dry-run
+ad415faa Update api/main.py
+0bbb6730 Update src/visualizations/graph_visuals.py
+7736d541 Update tests/unit/test_api.py
+a25b4e57 Update tests/unit/test_snyk_workflow.py
+0f9d0f1e Update tests/unit/test_snyk_workflow.py
+8b0ad1a0 Update tests/integration/test_requirements_validation.py
+0f86d12c Update tests/unit/test_api.py
+33883fae Update tests/unit/test_api.py
+2bfb9b8b Update app.py
+b363692e Update src/visualizations/graph_visuals.py
+12a355ed Update src/visualizations/graph_visuals.py
+fd51832d Update src/visualizations/graph_visuals.py
+431d1537 [pre-commit.ci] auto fixes from pre-commit.com hooks
+d05e75ad Refactor refresh_all_outputs method documentation
+42cf2762 Refine docstring for refresh_all_outputs method
+cfc52d8d Refactor assertions in test_snyk_workflow.py
+d164848d [pre-commit.ci] auto fixes from pre-commit.com hooks
+d068a0c1 Refactor unit tests for mcp_server.py
+99c494eb Potential fix for pull request finding 'Unused import'
+b3da4467 Potential fix for pull request finding 'Unused import'
+5e4ca5a0 Update tests/unit/test_conftest.py
+66d091f2 Update tests/unit/test_snyk_workflow.py
+db07aa07 [pre-commit.ci] auto fixes from pre-commit.com hooks
+631605dc Update tests/unit/test_config_validation.py
+62041f6d Update api/main.py
+72a1ad2f [pre-commit.ci] auto fixes from pre-commit.com hooks
+31605da9 Remove global MEMORY_CONNECTION and associated lock
+0c420400 [pre-commit.ci] auto fixes from pre-commit.com hooks
+43775e97 Refactor requirements validation tests for clarity
+22f17587 📝 Add docstrings to `Q-DEV-issue-869-1771658582`
+7e975443 Potential fix for pull request finding 'Unused global variable'
+55a5ec56 [pre-commit.ci] auto fixes from pre-commit.com hooks
+b6134107 Fix integration tests and align workflows
+f3f60faa style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+1ec18701 [pre-commit.ci] auto fixes from pre-commit.com hooks
+7f8a2da8 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+e70d50e6 [pre-commit.ci] auto fixes from pre-commit.com hooks
+19b62e4a style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+d022f33f [pre-commit.ci] auto fixes from pre-commit.com hooks
+41112092 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+97c2e108 [pre-commit.ci] auto fixes from pre-commit.com hooks
+d316fcec style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a806c126 [pre-commit.ci] auto fixes from pre-commit.com hooks
+29b2e5f2 Make _MEMORY_CONNECTION assignment thread-safe
+dad27535 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+cd285889 [pre-commit.ci] auto fixes from pre-commit.com hooks
+6e4aab99 Refactor login and read_users_me functions
+38cc958a style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+710e6c40 [pre-commit.ci] auto fixes from pre-commit.com hooks
+be093e58 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+37edb0e0 [pre-commit.ci] auto fixes from pre-commit.com hooks
+b4cfa977 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+041bc3da [pre-commit.ci] auto fixes from pre-commit.com hooks
+be136889 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+dd94f14a [pre-commit.ci] auto fixes from pre-commit.com hooks
+ff131101 Enhance API documentation and error responses
+dbefe6e3 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+196ecf05 [pre-commit.ci] auto fixes from pre-commit.com hooks
+3a26d275 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+5f45f344 Enhance test_no_duplicate_keys_in_yaml function
+9e3dda1f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+473e0178 [pre-commit.ci] auto fixes from pre-commit.com hooks
+b3349521 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+51e7bf0c [pre-commit.ci] auto fixes from pre-commit.com hooks
+8ef2a5e4 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+dd54746a [pre-commit.ci] auto fixes from pre-commit.com hooks
+6a2019b2 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+4ed6a4a9 [pre-commit.ci] auto fixes from pre-commit.com hooks
+8d647814 Update tests/integration/test_yaml_config_validation.py
+5f20224f [pre-commit.ci] auto fixes from pre-commit.com hooks
+b5dc9083 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+7737cf07 [pre-commit.ci] auto fixes from pre-commit.com hooks
+eca951a0 Update src/visualizations/graph_2d_visuals.py
+3d3ca8cc style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+b6fb946a [pre-commit.ci] auto fixes from pre-commit.com hooks
+ea7f9424 Update app.py
+3bbf368f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+f32e8227 [pre-commit.ci] auto fixes from pre-commit.com hooks
+e48d1113 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6b116c6f Update app.py
+4cfe80a6 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+31d9441d Update api/main.py
+0cc783a1 [pre-commit.ci] auto fixes from pre-commit.com hooks
+f696ebab style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+d12a0d9e [pre-commit.ci] auto fixes from pre-commit.com hooks
+7f1432e6 local refactors
+9052e8f6 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6224595c [pre-commit.ci] auto fixes from pre-commit.com hooks
+ffc1c944 Enhance test for Current Phase in systemManifest.md
+5085c3ef style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+905e7127 [pre-commit.ci] auto fixes from pre-commit.com hooks
+bb44febd refactor: fix invalid syntax in docstrings
+4fa8b07a style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+d2a1f7ff [pre-commit.ci] auto fixes from pre-commit.com hooks
+e63240a2 refactor: fix invalid syntax
+a37ba950 refactor: improve syntax, remove global and add docstrings
+de433919 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+e84572cf refactor: clean up syntax, add docstrings, and simplify validation
+26b92648 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+fafe0a8b refactor: streamline graph layout and clean up code
+8f4edb71 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a3e4be8d [pre-commit.ci] auto fixes from pre-commit.com hooks
+e95aef8f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+e69fb731 [pre-commit.ci] auto fixes from pre-commit.com hooks
+0300993d Merge branch 'mohavro-patch-12' into Q-DEV-issue-869-1771658582
+ca3e05be style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+e78a4561 [pre-commit.ci] auto fixes from pre-commit.com hooks
+33500941 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+affc5a84 Update tests/unit/test_documentation_validation.py
+ebe19df0 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+ea5ad3e3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+ef9d6b92 Merge branch 'main' into mohavro-patch-12
+2491ac16 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+30a11cb4 refactor: address coding and documentation issues
+1ac9be60 Fix malformed frontend/package.json with duplicate keys and peer dependency conflicts (#875)
+26af6a47 Fix invalid JSON structure and security vulnerabilities in frontend/package.json (#876)
+959aab96 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+eb8dc9c5 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+bd25bba7 [pre-commit.ci] auto fixes from pre-commit.com hooks
+c1adb6ef style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+97940a6d [pre-commit.ci] auto fixes from pre-commit.com hooks
+f69a00e3 fix: apply CodeRabbit review suggestions across source and test files
+cfa1940a style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+8fcbfdf8 [pre-commit.ci] auto fixes from pre-commit.com hooks
+4ea987f5 [Penify]: Documentation for commit - 4b5cc51 (#862)
+c9b36fe5 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+2f8f82ec [pre-commit.ci] auto fixes from pre-commit.com hooks
+103e696c Update bandit config to exclude tests directory (#860)
+4b5cc510 srv/visualizations/.* refactor
+93bcd7bd Merge branch 'main' of https://github.com/DashFin-FarDb/financial-asset-relationship-db
+3d2c0a4d local changes
+7dff5bd4 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+b71855ae [pre-commit.ci] auto fixes from pre-commit.com hooks
+7454011b style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+de8b042d [pre-commit.ci] auto fixes from pre-commit.com hooks
+7787bb15 Potential fix for pull request finding 'Variable defined multiple times'
+e5762238 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+5dd68dc9 Update tests/unit/test_snyk_workflow.py
+29d51ae3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+58a3291d style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a818f2a4 Update tests/unit/test_mcp_server.py
+a8c02b2b [pre-commit.ci] auto fixes from pre-commit.com hooks
+12cefda4 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6f78a25f [pre-commit.ci] auto fixes from pre-commit.com hooks
+c63fa1e8 Potential fix for pull request finding 'Unreachable code'
+8184a247 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+844d4559 [pre-commit.ci] auto fixes from pre-commit.com hooks
+98683582 Fix regex pattern for file dependency entries
+5664be0e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6d6bcc3d [pre-commit.ci] auto fixes from pre-commit.com hooks
+de27eeed Fix formatting of assertion error message
+fba167e1 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+645ef3e8 [pre-commit.ci] auto fixes from pre-commit.com hooks
+9b81b913 Fix regex pattern for file dependency entries
+93249813 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+c0f95ea1 [pre-commit.ci] auto fixes from pre-commit.com hooks
+2433e4a3 Fix regex pattern for file dependency entries
+58ade6c9 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6290ae3d [pre-commit.ci] auto fixes from pre-commit.com hooks
+4c31e7ac Update tests/unit/test_api_main.py
+3230f476 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6563b08b [pre-commit.ci] auto fixes from pre-commit.com hooks
+323e35c2 Fix formatting of currency entity type description
+b807e68f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+ee878bc2 [pre-commit.ci] auto fixes from pre-commit.com hooks
+074a7cb6 Format currency entity description for readability
+31b3da73 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+52683d78 [pre-commit.ci] auto fixes from pre-commit.com hooks
+87f03ec9 Refactor method definitions for consistency
+8eaa631b style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+35b3b93c [pre-commit.ci] auto fixes from pre-commit.com hooks
+a8914f2d Refactor get_relationship call for clarity
+1d085b24 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+c62b74e2 [pre-commit.ci] auto fixes from pre-commit.com hooks
+74d88d40 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6a951ec0 [pre-commit.ci] auto fixes from pre-commit.com hooks
+9e22406e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+d37f6d98 [pre-commit.ci] auto fixes from pre-commit.com hooks
+141946c3 Modify price assertion for precision
+49f0ad8d style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+6b24054c [pre-commit.ci] auto fixes from pre-commit.com hooks
+f8ef8cd4 Update tests/unit/test_snyk_workflow.py
+d56dd841 Update tests/unit/test_api.py
+24f998b8 [pre-commit.ci] auto fixes from pre-commit.com hooks
+f459ffcf Update src/data/real_data_fetcher.py
+2682b29c style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+46259f5d [pre-commit.ci] auto fixes from pre-commit.com hooks
+a88b8a6c Potential fix for pull request finding 'Unreachable code'
+182aa006 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a4f73f16 [pre-commit.ci] auto fixes from pre-commit.com hooks
+8d23c019 Update tests/unit/test_api_main.py
+5bfe46f5 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+324fd4e2 [pre-commit.ci] auto fixes from pre-commit.com hooks
+05ad0d88 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+2d0ede9e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+69b55dd5 [pre-commit.ci] auto fixes from pre-commit.com hooks
+eb1ae8a2 Update strength assertions for relationship tests
+f481ad66 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+86fb0a8c [pre-commit.ci] auto fixes from pre-commit.com hooks
+c54bf470 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+29ccba3a [pre-commit.ci] auto fixes from pre-commit.com hooks
+d17da96d Enhance relationship tests with strength assertions
+5dcd55dd style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+8d2db04e Adjust price assertion for floating-point comparison
+a9ed00dd [pre-commit.ci] auto fixes from pre-commit.com hooks
+570c140e Refactor assertions in test_repository.py
+78afccb3 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+c1c68dba [pre-commit.ci] auto fixes from pre-commit.com hooks
+77f42b11 Refactor add_or_update_relationship calls in tests
+536e0600 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+c62d0291 [pre-commit.ci] auto fixes from pre-commit.com hooks
+5bb25044 Use pytest.approx for dividend_yield assertion
+da0caf70 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+790c5b71 [pre-commit.ci] auto fixes from pre-commit.com hooks
+746d8d4a style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+43744be4 [pre-commit.ci] auto fixes from pre-commit.com hooks
+aa7a6825 Fix indentation in TestAssetDetailEndpoint assertion
+faf3e7c9 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+4af2639d Refactor strength assertions for precision
+7fe64bdb style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+166e61ad Refactor test functions for consistency
+72348c2e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+48856b57 [pre-commit.ci] auto fixes from pre-commit.com hooks
+66125492 Refactor indentation error check in YAML validation test
+99d97d81 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+9d75f5e3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+446b15d9 Fix error message formatting in app.py
+eb0cdf6b style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+dd9f7cea [pre-commit.ci] auto fixes from pre-commit.com hooks
+95c1ee31 Merge branch 'main' into claude/review-schema-report-mMq5A
+6b40feda style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+34dfc327 [pre-commit.ci] auto fixes from pre-commit.com hooks
+915008f4 Refactor test function definitions for consistency
+a8d631c1 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+694539d1 [pre-commit.ci] auto fixes from pre-commit.com hooks
+ed971bdd Refactor test_empty_graph by removing unused parameter
+0f3e566c style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+9ec8f766 [pre-commit.ci] auto fixes from pre-commit.com hooks
+e1d6564d Refactor error handling and UI component labels
+3222f3f7 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+4a2177c2 [pre-commit.ci] auto fixes from pre-commit.com hooks
+079ed9df Rename fixture method to snyk_workflow_path
+54ce808e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+f6f062aa [pre-commit.ci] auto fixes from pre-commit.com hooks
+9bb3320f Update test for hardcoded secrets in Snyk workflow
+e1ba42fd style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+94d091a4 Refactor assertion for required keys in YAML validation
+2504f215 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+b13d679e [pre-commit.ci] auto fixes from pre-commit.com hooks
+cbc0e01e Update tests/unit/test_mcp_server.py
+dadce10d style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+61f15813 [pre-commit.ci] auto fixes from pre-commit.com hooks
+1a484bb2 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+b46b1648 Update app.py
+42de9017 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+676def04 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+b4e80714 [pre-commit.ci] auto fixes from pre-commit.com hooks
+1eacdc20 Update tests/unit/test_api.py
+771376d9 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+9e0add22 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+9b7b6330 [pre-commit.ci] auto fixes from pre-commit.com hooks
+2811792c Specify return type for apply_mock_graph fixture
+633a78dc style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+253356d6 [pre-commit.ci] auto fixes from pre-commit.com hooks
+1ec8d818 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+00019d62 Update src/reports/schema_report.py
+7b3831c2 Update src/analysis/formulaic_analysis.py
+752f3e9f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+994b1c66 [pre-commit.ci] auto fixes from pre-commit.com hooks
+10e95534 Refactor error handling and improve code readability
+c3c95d54 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+fba3acb6 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+bd9dea27 [pre-commit.ci] auto fixes from pre-commit.com hooks
+1f2cd819 Update return values for formula details visibility
+be4737e1 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+fb10acf8 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+ccfdb5a3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+1bb8e9cf Update app.py
+5066a94f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+99297b8d [pre-commit.ci] auto fixes from pre-commit.com hooks
+b400416a Refactor app.py for clarity and consistency
+3904ab2e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+90ce68c8 Update tests/unit/test_summary_documentation.py
+a936c5ca style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+8b3965fb [pre-commit.ci] auto fixes from pre-commit.com hooks
+7f90203e Refactor formula definitions and improve documentation
+c32b656d style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a9c4e7f0 Update tests/unit/test_database.py
+e82381f4 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+3a58d452 Update tests/integration/test_yaml_config_validation.py
+341b6f98 [pre-commit.ci] auto fixes from pre-commit.com hooks
+fe170984 Update src/analysis/formulaic_analysis.py
+da0ce5d2 Update src/analysis/formulaic_analysis.py
+7bd242c8 Update src/analysis/formulaic_analysis.py
+19ef2368 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+c2c61954 Update src/analysis/formulaic_analysis.py
+d806cc73 [pre-commit.ci] auto fixes from pre-commit.com hooks
+aee094e9 Update tests/integration/test_yaml_config_validation.py
+4dd09083 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+1d745a5c [pre-commit.ci] auto fixes from pre-commit.com hooks
+1cc7e50d Update src/analysis/formulaic_analysis.py
+bb29ae3f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+62a74fb0 Update src/analysis/formulaic_analysis.py
+40798bb1 Update src/analysis/formulaic_analysis.py
+5aceaea4 Update src/analysis/formulaic_analysis.py
+39964448 Update src/analysis/formulaic_analysis.py
+8e67f73d Update src/analysis/formulaic_analysis.py
+c16eec97 [pre-commit.ci] auto fixes from pre-commit.com hooks
+ba5fa330 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+88a9b1cd [pre-commit.ci] auto fixes from pre-commit.com hooks
+3a42c878 📝 Add docstrings to `claude/review-schema-report-mMq5A` (#840)
+019c555d style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+60a88d50 [pre-commit.ci] auto fixes from pre-commit.com hooks
+3a9ffa73 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+0e8f7f6e [pre-commit.ci] auto fixes from pre-commit.com hooks
+a4947788 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+58720ec3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+de86635b style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+922dcdb3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+39453330 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+d55bec0a [pre-commit.ci] auto fixes from pre-commit.com hooks
+306c7696 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+7b396f80 [pre-commit.ci] auto fixes from pre-commit.com hooks
+d3f159ca Refactor schema report generation logic
+b6035e14 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+890eafc3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+a40e0778 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+f03825da [pre-commit.ci] auto fixes from pre-commit.com hooks
+9ceaac0e style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+18cfccd9 [pre-commit.ci] auto fixes from pre-commit.com hooks
+ae452bb1 fix: resolve all PR #838 review comments
+20a38ccd style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+a9ec4c35 Update visualization controls and refresh button handling
+a962fe28 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+da9834d2 [pre-commit.ci] auto fixes from pre-commit.com hooks
+33ff555f Improve error handling and visualization layout
+1b5c4552 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+cfe8a818 [pre-commit.ci] auto fixes from pre-commit.com hooks
+af59c32c Refactor error handling and method signatures in app.py
+33150823 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+c8a4be19 [pre-commit.ci] auto fixes from pre-commit.com hooks
+9bfd20e8 Add click event for refresh_formulas_btn
+d09f04be style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+3d983a11 [pre-commit.ci] auto fixes from pre-commit.com hooks
+085bd1cd Return interface from the main function
+101ca6da style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+65bc8b97 Fix indentation and formatting in app.py
+fd9465ec style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+dd1a167b [pre-commit.ci] auto fixes from pre-commit.com hooks
+27323927 Rename parameter in generate_formulaic_analysis
+77ec62c9 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+9a8178f2 refactor: address undefined names and no-return function assignments
+763b3a51 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+66b3471c [pre-commit.ci] auto fixes from pre-commit.com hooks
+7b3e4218 Update app.py
+f7f0eb03 refactor: fix undefined names, remove invalid assignment, and adjust doc formatting
+e19621cf style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+2f22e9e1 [pre-commit.ci] auto fixes from pre-commit.com hooks
+82eb801d Add TODO for empirical relationships summary formatting
+01a5bffb style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+922bb879 [pre-commit.ci] auto fixes from pre-commit.com hooks
+c4f24706 Remove 2D Layout Type options from UI
+db5865ec Potential fix for pull request finding 'Variable defined multiple times'
+ce36420f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+20000bac [pre-commit.ci] auto fixes from pre-commit.com hooks
+135d9014 Potential fix for pull request finding 'Variable defined multiple times'
+3665323f style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+b096d588 [pre-commit.ci] auto fixes from pre-commit.com hooks
+8dfb4080 Fix fixture decorator consistency in test_config_validation.py (#841)
+1515265c style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+025915f0 [pre-commit.ci] auto fixes from pre-commit.com hooks
+5656de89 Potential fix for pull request finding 'Syntax error'
+84b0274d Update test_snyk_workflow.py
+4274b025 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+3aff48cc [pre-commit.ci] auto fixes from pre-commit.com hooks
+11040994 Update tests/unit/test_snyk_workflow.py
+26a2fc3a Update app.py
+cc14d71c style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+0e199c5d [pre-commit.ci] auto fixes from pre-commit.com hooks
+6473aa2c Fix indentation in test_database.py
+1385a346 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+8f6fdd77 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+da990d38 [pre-commit.ci] auto fixes from pre-commit.com hooks
+cd91ac51 Enhance YAML config validation for checkout versions
+2ef8f921 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+f5f3fecd Apply suggestion from @coderabbitai[bot]
+8cb01343 [pre-commit.ci] auto fixes from pre-commit.com hooks
+292be15f Apply suggestion from @coderabbitai[bot]
+665304d9 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+80a9e220 [pre-commit.ci] auto fixes from pre-commit.com hooks
+39b632f1 Apply suggestion from @mohavro
+6cb797e1 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+62843ef2 [pre-commit.ci] auto fixes from pre-commit.com hooks
+31179d4d Apply suggestion from @mohavro
+d3b98fd6 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+79a06cd1 [pre-commit.ci] auto fixes from pre-commit.com hooks
+632af97b Refactor unit tests for configuration validation
+5bf06beb style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+85233be7 [pre-commit.ci] auto fixes from pre-commit.com hooks
+fde5c595 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+93f458ff [pre-commit.ci] auto fixes from pre-commit.com hooks
+033416c4 Apply suggestion from @mohavro
+1681e179 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+02029e48 [pre-commit.ci] auto fixes from pre-commit.com hooks
+ed9776c5 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+e47e3506 [pre-commit.ci] auto fixes from pre-commit.com hooks
+4c3b0dfb Update tests/unit/test_database.py
+10ef38c4 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+4f5db2a3 [pre-commit.ci] auto fixes from pre-commit.com hooks
+7ab7044f Update src/analysis/formulaic_analysis.py
+c25e13e4 style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+7536cb3b 📝 CodeRabbit Chat: Add unit tests
+65916fec style: format code with Autopep8, Black, isort, Prettier, Ruff Formatter and StandardJS
+7c354f3f [pre-commit.ci] auto fixes from pre-commit.com hooks
+2a367b97 Update app.py
+3c079316 Update app.py
+90ad3dbb Update app.py
+a274f29f [pre-commit.ci] auto fixes from pre-commit.com hooks
+62e18d41 Merge branch 'main' into claude/review-schema-report-mMq5A
+99b8d190 fix: repair schema report generation — add return, missing sections, remove duplicates

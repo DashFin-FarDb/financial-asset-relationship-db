@@ -1,0 +1,193 @@
+On branch claude/review-schema-report-mMq5A
+Your branch is up to date with 'origin/claude/review-schema-report-mMq5A'.
+
+You have unmerged paths.
+  (fix conflicts and run "git commit")
+  (use "git merge --abort" to abort the merge)
+
+Changes to be committed:
+	modified:   .circleci/config.yml
+	new file:   .codacy/codacy.yaml
+	new file:   .elastic-copilot/README.md
+	modified:   .elastic-copilot/memory/dependencyMatrix.md
+	modified:   .elastic-copilot/memory/systemManifest.md
+	modified:   .github/instructions/codacy.instructions.md
+	new file:   .github/instructions/snyk_rules.instructions.md
+	modified:   .github/pr-copilot/scripts/generate_status.py
+	modified:   .github/pr-copilot/scripts/suggest_fixes.py
+	modified:   .github/scripts/README.md
+	new file:   .github/scripts/schema_report_cli.py
+	modified:   .github/workflows/apisec-scan.yml
+	modified:   .github/workflows/bandit.yml
+	modified:   .github/workflows/bearer.yml
+	modified:   .github/workflows/ci.yml
+	modified:   .github/workflows/codacy.yml
+	modified:   .github/workflows/codeflash.yaml
+	modified:   .github/workflows/codeql.yml
+	modified:   .github/workflows/codescan.yml
+	modified:   .github/workflows/contrast-scan.yml
+	modified:   .github/workflows/debricked.yml
+	modified:   .github/workflows/dependency-review.yml
+	modified:   .github/workflows/devskim.yml
+	modified:   .github/workflows/docker-image.yml
+	modified:   .github/workflows/docker-publish.yml
+	modified:   .github/workflows/docker.yml
+	modified:   .github/workflows/dotnet-desktop.yml
+	modified:   .github/workflows/eslint.yml
+	modified:   .github/workflows/go.yml
+	modified:   .github/workflows/hadolint.yml
+	modified:   .github/workflows/mcp-check.yml
+	modified:   .github/workflows/njsscan.yml
+	modified:   .github/workflows/node.js.yml
+	new file:   .github/workflows/opencode.yml
+	modified:   .github/workflows/ossar.yml
+	modified:   .github/workflows/osv-scanner.yml
+	modified:   .github/workflows/pmd.yml
+	modified:   .github/workflows/pylint.yml
+	modified:   .github/workflows/pyre.yml
+	modified:   .github/workflows/pysa.yml
+	modified:   .github/workflows/python-app.yml
+	modified:   .github/workflows/python-package-conda.yml
+	modified:   .github/workflows/python-package.yml
+	modified:   .github/workflows/snyk-container.yml
+	modified:   .github/workflows/snyk-infrastructure.yml
+	modified:   .github/workflows/snyk-security.yml
+	modified:   .github/workflows/sonarcloud.yml
+	modified:   .github/workflows/sonarqube.yml
+	modified:   .github/workflows/soos-dast-scan.yml
+	modified:   .github/workflows/stackhawk.yml
+	modified:   .github/workflows/super-linter.yml
+	modified:   .github/workflows/trivy.yml
+	new file:   .github/workflows/validate-manifest.yml
+	modified:   .github/workflows/veracode.yml
+	modified:   .github/workflows/zscaler-iac-scan.yml
+	modified:   .gitignore
+	new file:   .markdownlint.json
+	modified:   .pre-commit-config.yaml
+	new file:   .qlty/.gitignore
+	new file:   .qlty/configs/.hadolint.yaml
+	new file:   .qlty/configs/.shellcheckrc
+	new file:   .qlty/logs
+	new file:   .qlty/out
+	new file:   .qlty/plugin_cachedir
+	new file:   .qlty/qlty.toml
+	new file:   .qlty/results
+	new file:   .sonarlint/connectedMode.json
+	modified:   .vscode/settings.json
+	modified:   AUTO_ASSIGN_TEST_DOCUMENTATION.md
+	modified:   api/auth.py
+	new file:   api/cors_utils.py
+	new file:   api/graph_lifecycle.py
+	new file:   api/routers/__init__.py
+	new file:   api/routers/assets.py
+	new file:   api/routers/graph.py
+	new file:   bin/deepsource
+	modified:   frontend/__tests__/config/package-integration.test.ts
+	modified:   frontend/app/components/AssetList.tsx
+	modified:   frontend/app/components/NetworkVisualization.tsx
+	deleted:    frontend/package-lock.json
+	new file:   install-cs-tool.ps1
+	modified:   mcp_server.py
+	modified:   pyproject.toml
+	modified:   requirements-dev.txt
+	modified:   requirements.txt
+	new file:   run_tests.py
+	new file:   scripts/deduplicate_manifest.py
+	new file:   scripts/validate_manifest.py
+	new file:   src/api/dependencies.py
+	new file:   src/api/routers/dependencies.py
+	new file:   src/api/routers/schema_report.py
+	new file:   src/data/base.py
+	modified:   src/data/db_models.py
+	modified:   src/models/financial_models.py
+	new file:   src/reports/helpers.py
+	new file:   src/reports/integration.py
+	new file:   src/reports/schema_report_generator.py
+	new file:   src/visualizations/graph_2d_visuals_constants.py
+	new file:   src/visualizations/graph_2d_visuals_layouts.py
+	new file:   src/visualizations/graph_2d_visuals_traces.py
+	new file:   src/visualizations/graph_visuals_constants.py
+	new file:   src/visualizations/graph_visuals_data.py
+	new file:   src/visualizations/graph_visuals_layout.py
+	new file:   src/visualizations/graph_visuals_traces.py
+	new file:   src/visualizations/graph_visuals_validation.py
+	modified:   src/visualizations/metric_visuals.py
+	modified:   test_postgres.py
+	modified:   tests/__init__.py
+	modified:   tests/conftest.py
+	modified:   tests/integration/test_branch_integration.py
+	new file:   tests/integration/test_data_integration.py
+	modified:   tests/integration/test_documentation_files_validation.py
+	new file:   tests/integration/test_schema_report_cli_integration.py
+	modified:   tests/integration/test_workflow_config_changes.py
+	modified:   tests/integration/test_workflow_documentation.py
+	new file:   tests/reports/test_helpers.py
+	new file:   tests/reports/test_schema_report.py
+	new file:   tests/unit/conftest.py
+	new file:   tests/unit/test_data_integration.py
+	modified:   tests/unit/test_financial_models.py
+	modified:   tests/unit/test_formulaic_analysis.py
+	new file:   tests/unit/test_generate_status.py
+	modified:   tests/unit/test_graph_2d_visuals.py
+	new file:   tests/unit/test_manifest_scripts.py
+	modified:   tests/unit/test_metric_visuals.py
+	modified:   tests/unit/test_root_conftest.py
+	modified:   tests/unit/test_sample_data.py
+	modified:   tests/unit/test_schema_report.py
+	new file:   tests/unit/test_schema_report_cli.py
+	new file:   tests/unit/test_schema_report_cli_unit.py
+	new file:   tests/unit/test_suggest_fixes.py
+	modified:   tests/unit/test_workflow_validator.py
+	new file:   tests/unit/test_workflow_yaml_files.py
+
+Unmerged paths:
+  (use "git add <file>..." to mark resolution)
+	both modified:   .github/workflows/pr-agent.yml
+	both modified:   .github/workflows/pr-copilot.yml
+	both modified:   api/database.py
+	both modified:   api/main.py
+	both added:      api/models.py
+	both modified:   app.py
+	both modified:   conftest.py
+	both modified:   frontend/package.json
+	both modified:   src/analysis/formulaic_analysis.py
+	both modified:   src/data/database.py
+	both modified:   src/data/real_data_fetcher.py
+	both modified:   src/data/repository.py
+	both modified:   src/logic/asset_graph.py
+	both modified:   src/reports/schema_report.py
+	both modified:   src/visualizations/formulaic_visuals.py
+	both modified:   src/visualizations/graph_2d_visuals.py
+	both modified:   src/visualizations/graph_visuals.py
+	both modified:   tests/integration/test_api_integration.py
+	both modified:   tests/integration/test_github_workflows.py
+	both modified:   tests/integration/test_github_workflows_helpers.py
+	both modified:   tests/integration/test_pr_agent_config_validation.py
+	both modified:   tests/integration/test_requirements_validation.py
+	both modified:   tests/integration/test_workflow_security_advanced.py
+	both modified:   tests/integration/test_yaml_config_validation.py
+	both modified:   tests/unit/test_api.py
+	both modified:   tests/unit/test_api_main.py
+	both modified:   tests/unit/test_config_validation.py
+	both modified:   tests/unit/test_conftest.py
+	both modified:   tests/unit/test_database.py
+	both modified:   tests/unit/test_database_memory.py
+	both modified:   tests/unit/test_db_models.py
+	both modified:   tests/unit/test_dev_scripts.py
+	both modified:   tests/unit/test_documentation_validation.py
+	both modified:   tests/unit/test_formulaic_visuals.py
+	both modified:   tests/unit/test_graph_visuals.py
+	both modified:   tests/unit/test_mcp_server.py
+	both modified:   tests/unit/test_microagent_validation.py
+	both modified:   tests/unit/test_real_data_fetcher.py
+	both modified:   tests/unit/test_repository.py
+	both modified:   tests/unit/test_repository_comprehensive.py
+	both modified:   tests/unit/test_snyk_workflow.py
+	both modified:   tests/unit/test_summary_documentation.py
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	.claude/
+	tmp_git_log.txt
+	tmp_git_status.txt
+

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Generator
-from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
@@ -29,27 +27,6 @@ from .db_models import (
 )
 
 
-@contextmanager
-def session_scope(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
-    """
-    Provide a transactional scope around a series of operations.
-
-    Tech spec alignment: session_scope is defined in repository.py to provide a
-    standard transaction boundary for repository interactions.
-    """
-    session = session_factory()
-    try:
-        yield session
-        session.commit()
-    except Exception:
-        session.rollback()
-        raise
-    finally:
-        session.close()
-
-
 @dataclass
 class RelationshipRecord:
     """Lightweight relationship representation returned by the repository."""
@@ -71,15 +48,7 @@ class AssetGraphRepository:
     # Asset helpers
     # ------------------------------------------------------------------
     def upsert_asset(self, asset: Asset) -> None:
-        """
-        Create or update the database record for an asset.
-
-        Maps fields from the provided domain `Asset` to the ORM representation and
-        stages the ORM instance on the repository session for persistence.
-
-        Parameters:
-            asset (Asset): Domain asset to persist or update.
-        """
+        """Create or update an asset record."""
         existing = self.session.get(AssetORM, asset.id)
         if existing is None:
             existing = AssetORM(id=asset.id)
@@ -87,27 +56,12 @@ class AssetGraphRepository:
         self.session.add(existing)
 
     def list_assets(self) -> List[Asset]:
-        """
-        Retrieve all assets ordered by id.
-
-        Returns:
-            List[Asset]: A list of domain Asset instances
-                representing all assets in the database,
-                ordered by asset id.
-        """
-        result = (
-            self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
-        )
+        """Return all assets as dataclass instances ordered by id."""
+        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
-        """
-        Return a mapping of asset id to the corresponding Asset domain object.
-
-        Returns:
-            Dict[str, Asset]: Keys are asset ids and values are the
-                corresponding Asset instances.
-        """
+        """Return mapping of asset id to asset dataclass."""
         assets = self.list_assets()
         return {asset.id: asset for asset in assets}
 
@@ -284,18 +238,15 @@ class AssetGraphRepository:
         """
         Populate an existing AssetORM row from an Asset (or subclass) instance.
 
-        Clears and repopulates optional, asset-class-specific columns so
-        missing attributes become NULL and stale values cannot persist
-        across updates.
+        Clears and repopulates optional, asset-class-specific columns so missing
+        attributes become NULL and stale values cannot persist across updates.
         """
         orm.symbol = asset.symbol
         orm.name = asset.name
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = (
-            float(asset.market_cap) if asset.market_cap is not None else None
-        )
+        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)

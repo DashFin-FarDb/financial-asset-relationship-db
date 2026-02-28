@@ -130,7 +130,7 @@ class TestDocumentationFiles:
     @staticmethod
     def test_readme_has_quick_start():
         """
-        Check that README.md includes a Quick Start or Getting Started section and an Installation or Setup section.
+        Verify README.md contains a Quick Start (or Getting Started) section and an Installation (or Setup) section.
         """
         with open("README.md") as f:
             content = f.read()
@@ -405,10 +405,7 @@ class TestShellScripts:
             content = f.read()
 
         # Should reference the analysis document
-        assert (
-            "BRANCH_CLEANUP_ANALYSIS.md" in content
-            or "documentation" in content.lower()
-        )
+        assert "BRANCH_CLEANUP_ANALYSIS.md" in content or "documentation" in content.lower()
 
     def test_shell_scripts_consistent_style(self):
         """Test that shell scripts use consistent coding style."""
@@ -500,11 +497,7 @@ class TestShellScripts:
         assert "PID=" in content
 
     def test_cleanup_branches_git_safety(self):
-        """
-        Verify cleanup-branches.sh performs safe Git deletions.
-
-        Checks that any lines which pipe branch names into xargs use the safe deletion flag `-d` (not the force `-D`) when invoking `git branch`, ensuring deletions default to non-forced removal.
-        """
+        """Test that cleanup-branches.sh uses safe git operations."""
         with open("cleanup-branches.sh") as f:
             content = f.read()
 
@@ -512,25 +505,21 @@ class TestShellScripts:
         if "git branch" in content and "-" in content:
             # Check the context of deletion
             lines = content.split("\n")
-            delete_lines = [
-                line for line in lines if "git branch -" in line and "xargs" in line
-            ]
+            delete_lines = [line for line in lines if "git branch -" in line and "xargs" in line]
             if delete_lines:
                 # Should use -d not -D in the xargs command
                 assert any("-d" in line for line in delete_lines)
 
     def test_cleanup_branches_has_dry_run_mode(self):
         """
-        Verify cleanup-branches.sh offers a dry-run or preview mode before performing deletions.
+        Verify that cleanup-branches.sh provides a dry-run or preview mechanism before deleting branches.
 
-        Asserts the script contains user-visible preview output (for example, echoing branch names or planned delete actions) so users can review changes before they are applied.
+        Asserts the script contains output or echo lines that indicate a preview of branch deletions (e.g., echoing branch names or delete actions) to allow users to review changes before they are applied.
         """
         with open("cleanup-branches.sh") as f:
             content = f.read()
 
         # Should have some mechanism for previewing changes before deleting
         # Look for common dry-run patterns
-        has_preview = "echo" in content.lower() and (
-            "branch" in content.lower() or "delete" in content.lower()
-        )
+        has_preview = "echo" in content.lower() and ("branch" in content.lower() or "delete" in content.lower())
         assert has_preview, "Script should preview changes before deleting"
