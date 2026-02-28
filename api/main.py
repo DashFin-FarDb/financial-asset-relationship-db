@@ -241,10 +241,11 @@ def validate_origin(origin_url: str) -> bool:
                 if parsed.port:
                     ascii_url += f":{parsed.port}"
                 # Validate the ASCII version against the domain regex
+                # Note: TLD pattern allows alphanumeric and hyphens to support IDNA-encoded TLDs
                 if re.match(
                     r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
                     r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
-                    r"\.[a-zA-Z]{2,}(:\d+)?$",
+                    r"\.[a-zA-Z0-9\-]{2,}(:\d+)?$",
                     ascii_url,
                 ):
                     return True
@@ -514,14 +515,14 @@ async def get_assets(
     try:
         g = get_graph()
         assets = []
-           for asset in g.assets.values():
-                if asset_class:
-                    requested = asset_class.strip().lower()
-                    if requested not in {
-                        asset.asset_class.value.lower(),
-                        asset.asset_class.name.lower(),
-                    }:
-                        continue
+        for asset in g.assets.values():
+            if asset_class:
+                requested = asset_class.strip().lower()
+                if requested not in {
+                    asset.asset_class.value.lower(),
+                    asset.asset_class.name.lower(),
+                }:
+                    continue
             if sector and asset.sector != sector:
                 continue
             assets.append(AssetResponse(**serialize_asset(asset)))
