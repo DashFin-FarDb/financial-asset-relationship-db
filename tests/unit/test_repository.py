@@ -824,13 +824,19 @@ class TestComplexScenarios:
     @staticmethod
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
         """
-        Create a small diversified portfolio in the repository, persist the assets, add inter-asset relationships, and verify persistence.
+        Create a small diversified portfolio in the repository, persist the assets,
+        add inter-asset relationships, and verify persistence.
 
-        This test inserts four assets (equity, bond, commodity, currency), commits them, adds two relationships (one bidirectional, one unidirectional), commits again, and asserts that the repository contains four assets and at least two relationships.
-        """
-        Exercise end - to - end portfolio creation, relationship linking, and verification in the repository.
+        This test inserts four assets (equity, bond, commodity, currency), commits
+        them, adds two relationships (one bidirectional, one unidirectional),
+        commits again, and asserts that the repository contains four assets and at
+        least two relationships.
 
-        Creates a diverse set of portfolio assets, upserts them to the provided repository, adds the predefined portfolio relationships, commits the changes, and verifies the repository contains the expected assets and relationships.
+        Exercise end-to-end portfolio creation, relationship linking, and verification
+        in the repository. Creates a diverse set of portfolio assets, upserts them to
+        the provided repository, adds the predefined portfolio relationships, commits
+        the changes, and verifies the repository contains the expected assets and
+        relationships.
         """
         assets = _create_diverse_portfolio_assets()
 
