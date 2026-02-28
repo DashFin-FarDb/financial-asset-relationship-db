@@ -16,7 +16,6 @@ from jwt import InvalidTokenError
 
 # Import the module to test
 from api.auth import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
     TokenData,
     User,
