@@ -96,9 +96,7 @@ class TestYAMLSyntaxAndStructure:
 
             # Reset flags per file (handled by reinitialization each loop)
 
-        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(
-            indentation_errors
-        )
+        assert not indentation_errors, "Indentation errors found:\n" + "\n".join(indentation_errors)
 
 
 def test_no_duplicate_keys_in_yaml():
@@ -223,12 +221,8 @@ class TestDefaultValueHandling:
             for job_id, job_config in jobs.items():
                 if "timeout-minutes" in job_config:
                     timeout = job_config["timeout-minutes"]
-                    assert isinstance(timeout, int), (
-                        f"Timeout should be integer in {workflow_file} job '{job_id}'"
-                    )
-                    assert 1 <= timeout <= 360, (
-                        f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
-                    )
+                    assert isinstance(timeout, int), f"Timeout should be integer in {workflow_file} job '{job_id}'"
+                    assert 1 <= timeout <= 360, f"Timeout should be 1-360 minutes in {workflow_file} job '{job_id}'"
 
 
 if __name__ == "__main__":
