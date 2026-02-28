@@ -223,8 +223,7 @@ def validate_origin(origin_url: str) -> bool:
     - HTTP localhost/127.0.0.1 when running in `development`,
     - HTTPS localhost/127.0.0.1 in any environment,
     - Vercel preview hostnames (e.g., `*.vercel.app`),
-    - valid HTTPS origins with well-formed domain names (including IDN support
-      via IDNA encoding).
+    - valid HTTPS origins with well-formed domain names (including IDN support).
 
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com",
@@ -285,6 +284,27 @@ def validate_origin(origin_url: str) -> bool:
         except (ValueError, AttributeError) as e:
             # Invalid hostname or IDNA encoding failed
             logger.debug("Failed to validate origin '%s': %s", origin_url, e)
+
+    # Support IDN (Internationalized Domain Names) — encode host to ASCII and re-validate
+    parsed = urlparse(origin_url)
+    if parsed.scheme == "https" and parsed.netloc:
+        try:
+            ascii_host = parsed.hostname.encode("idna").decode("ascii")
+            ascii_origin = f"https://{ascii_host}"
+            if parsed.port:
+                ascii_origin += f":{parsed.port}"
+            if re.match(
+                r"^https://[a-zA-Z0-9]"
+                r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+                r"\.[a-zA-Z]{2,}$",
+                ascii_origin,
+            ):
+                return True
+        except (UnicodeError, AttributeError) as e:
+            # If the hostname cannot be IDNA-encoded, treat the origin as invalid.
+            logger.debug("Failed to IDNA-encode hostname for origin %s: %s", origin_url, e)
+            return False
 
     return False
 
