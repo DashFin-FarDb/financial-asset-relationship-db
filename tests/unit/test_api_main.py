@@ -1028,6 +1028,7 @@ class TestSetGraphFunctions:
         factory_called = []
 
         def test_factory():
+            """Calls the factory and creates a sample database."""
             factory_called.append(True)
             return create_sample_database()
 
@@ -1045,10 +1046,11 @@ class TestSetGraphFunctions:
         api_main.reset_graph()
 
     def test_set_graph_factory_lazy_initialization(self):
-        """set_graph_factory() should enable lazy initialization."""
+        """Test lazy initialization of the graph factory."""
         factory_called = []
 
         def test_factory():
+            """Calls the factory and creates a sample database."""
             factory_called.append(True)
             return create_sample_database()
 
@@ -1070,9 +1072,10 @@ class TestSetGraphFunctions:
         api_main.reset_graph()
 
     def test_set_graph_factory_none_clears_factory(self):
-        """set_graph_factory(None) should clear the factory."""
 
+        """Test that setting the graph factory to None clears the factory."""
         def test_factory():
+            """Create and return a sample database."""
             return create_sample_database()
 
         api_main.set_graph_factory(test_factory)
@@ -1085,12 +1088,13 @@ class TestSetGraphFunctions:
         api_main.reset_graph()
 
     def test_set_graph_factory_clears_existing_graph(self):
-        """set_graph_factory() should clear existing graph instance."""
         # Initialize graph first
+        """Test that set_graph_factory clears the existing graph instance."""
         graph1 = api_main.get_graph()
 
         # Set a factory
         def test_factory():
+            """Set and return a sample database."""
             return create_sample_database()
 
         api_main.set_graph_factory(test_factory)
@@ -1107,7 +1111,7 @@ class TestSerializeAsset:
     """Test the serialize_asset() helper function."""
 
     def test_serialize_asset_basic_equity(self):
-        """serialize_asset() should include core fields for equity."""
+        """Test serialization of a basic equity asset."""
         equity = Equity(
             id="AAPL",
             symbol="AAPL",
@@ -1154,7 +1158,7 @@ class TestSerializeAsset:
         assert result["additional_fields"]["book_value"] == 3.85
 
     def test_serialize_asset_exclude_issuer_by_default(self):
-        """serialize_asset() should not include issuer_id by default."""
+        """Test that serialize_asset excludes issuer_id by default."""
         equity = Equity(
             id="AAPL",
             symbol="AAPL",
@@ -1172,7 +1176,7 @@ class TestSerializeAsset:
         assert "issuer_id" not in result["additional_fields"]
 
     def test_serialize_asset_include_issuer_when_requested(self):
-        """serialize_asset() should include issuer_id when requested."""
+        """Test serialization of asset including issuer_id when requested."""
         equity = Equity(
             id="AAPL",
             symbol="AAPL",
@@ -1190,7 +1194,7 @@ class TestSerializeAsset:
             assert result["additional_fields"]["issuer_id"] == "ISSUER123"
 
     def test_serialize_asset_skips_none_values(self):
-        """serialize_asset() should skip None optional fields."""
+        """Test that serialize_asset skips None optional fields."""
         equity = Equity(
             id="AAPL",
             symbol="AAPL",
@@ -1213,7 +1217,7 @@ class TestRaiseAssetNotFound:
     """Test the raise_asset_not_found() helper function."""
 
     def test_raise_asset_not_found_default_resource_type(self):
-        """raise_asset_not_found() should raise HTTPException with default resource type."""
+        """Test that raise_asset_not_found raises HTTPException for a missing asset."""
         with pytest.raises(HTTPException) as exc_info:
             api_main.raise_asset_not_found("AAPL")
 
@@ -1229,7 +1233,7 @@ class TestRaiseAssetNotFound:
         assert "Stock AAPL not found" == exc_info.value.detail
 
     def test_raise_asset_not_found_always_raises(self):
-        """raise_asset_not_found() should never return normally."""
+        """Test that raise_asset_not_found always raises an HTTPException."""
         exception_raised = False
         try:
             api_main.raise_asset_not_found("TEST")
@@ -1244,24 +1248,25 @@ class TestShouldUseRealDataFetcher:
     """Test the _should_use_real_data_fetcher() helper function."""
 
     def test_should_use_real_data_fetcher_true_values(self, monkeypatch):
-        """_should_use_real_data_fetcher() should return True for truthy values."""
+        """Test that _should_use_real_data_fetcher returns True for truthy values."""
         for value in ["1", "true", "True", "TRUE", "yes", "Yes", "YES", "on", "On", "ON"]:
             monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
             assert api_main._should_use_real_data_fetcher() is True
 
     def test_should_use_real_data_fetcher_false_values(self, monkeypatch):
-        """_should_use_real_data_fetcher() should return False for falsy values."""
+        """Test that _should_use_real_data_fetcher returns False for falsy environment
+        variable values."""
         for value in ["0", "false", "False", "FALSE", "no", "No", "NO", "off", "Off", "OFF"]:
             monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
             assert api_main._should_use_real_data_fetcher() is False
 
     def test_should_use_real_data_fetcher_default_false(self, monkeypatch):
-        """_should_use_real_data_fetcher() should default to False."""
+        """Test that _should_use_real_data_fetcher defaults to False."""
         monkeypatch.delenv("USE_REAL_DATA_FETCHER", raising=False)
         assert api_main._should_use_real_data_fetcher() is False
 
     def test_should_use_real_data_fetcher_whitespace_handling(self, monkeypatch):
-        """_should_use_real_data_fetcher() should handle whitespace."""
+        """Test handling of whitespace in USE_REAL_DATA_FETCHER environment variable."""
         monkeypatch.setenv("USE_REAL_DATA_FETCHER", "  true  ")
         assert api_main._should_use_real_data_fetcher() is True
 
@@ -1269,7 +1274,7 @@ class TestShouldUseRealDataFetcher:
         assert api_main._should_use_real_data_fetcher() is False
 
     def test_should_use_real_data_fetcher_invalid_values(self, monkeypatch):
-        """_should_use_real_data_fetcher() should return False for invalid values."""
+        """Test that _should_use_real_data_fetcher returns False for invalid values."""
         for value in ["invalid", "maybe", "2", ""]:
             monkeypatch.setenv("USE_REAL_DATA_FETCHER", value)
             assert api_main._should_use_real_data_fetcher() is False
@@ -1298,22 +1303,22 @@ class TestValidateOriginAllowedOrigins:
         assert validate_origin("https://app.example.com") is True
 
     def test_validate_origin_empty_allowed_origins(self, monkeypatch):
-        """validate_origin() should handle empty ALLOWED_ORIGINS."""
+        """Test validation of origin when ALLOWED_ORIGINS is empty."""
         monkeypatch.setenv("ALLOWED_ORIGINS", "")
 
         # Should still validate based on other rules
         assert validate_origin("https://example.com") is True
 
     def test_validate_origin_allowed_origins_not_set(self, monkeypatch):
-        """validate_origin() should work when ALLOWED_ORIGINS is not set."""
+        """Test validation when ALLOWED_ORIGINS is not set."""
         monkeypatch.delenv("ALLOWED_ORIGINS", raising=False)
 
         # Should still validate based on other rules
         assert validate_origin("https://example.com") is True
 
     def test_validate_origin_precedence_over_other_rules(self, monkeypatch):
-        """validate_origin() should prioritize ALLOWED_ORIGINS."""
         # Even invalid-looking URLs should be allowed if explicitly listed
+        """Test that validate_origin prioritizes ALLOWED_ORIGINS."""
         monkeypatch.setenv("ALLOWED_ORIGINS", "http://example.com")
 
         assert validate_origin("http://example.com") is True
@@ -1324,7 +1329,7 @@ class TestVisualizationSingleNode:
     """Test visualization endpoint with edge cases."""
 
     def test_visualization_single_node(self, bare_client: TestClient):
-        """Visualization should handle graph with single node."""
+        """Test visualization for a graph with a single node."""
         graph = AssetRelationshipGraph()
         graph.add_asset(
             Equity(
@@ -1354,7 +1359,7 @@ class TestVisualizationSingleNode:
         api_main.reset_graph()
 
     def test_visualization_empty_graph(self, bare_client: TestClient):
-        """Visualization should handle empty graph."""
+        """Test visualization for an empty graph."""
         graph = AssetRelationshipGraph()
         api_main.set_graph(graph)
 
@@ -1461,7 +1466,7 @@ class TestLifespanHandler:
 
     @pytest.mark.asyncio
     async def test_lifespan_initializes_graph(self):
-        """Lifespan handler should initialize graph on startup."""
+        """Test that the lifespan handler initializes the graph on startup."""
         api_main.reset_graph()
 
         async with api_main.lifespan(app):
@@ -1474,7 +1479,7 @@ class TestLifespanHandler:
 
     @pytest.mark.asyncio
     async def test_lifespan_yields_control(self):
-        """Lifespan handler should yield control during app lifetime."""
+        """Test that the lifespan handler yields control during app lifetime."""
         api_main.reset_graph()
         yielded = False
 
@@ -1487,9 +1492,10 @@ class TestLifespanHandler:
 
     @pytest.mark.asyncio
     async def test_lifespan_raises_on_initialization_failure(self):
-        """Lifespan handler should propagate initialization exceptions."""
 
+        """Test that lifespan raises an exception on initialization failure."""
         def failing_factory():
+            """Raises a RuntimeError indicating initialization failure."""
             raise RuntimeError("Initialization failed")
 
         api_main.set_graph_factory(failing_factory)
@@ -1508,14 +1514,7 @@ class TestEndpointRegressionCases:
     @staticmethod
     @pytest.fixture
     def client():
-        """
-        Provide a TestClient configured with an in-memory sample graph for tests.
-
-        Sets the global graph to a sample database before yielding the client and resets the graph after the test completes.
-
-        Returns:
-            TestClient: A TestClient instance for the FastAPI app with the sample graph initialized.
-        """
+        """Provide a TestClient with an in-memory sample graph for tests."""
         api_main.set_graph(create_sample_database())
         client = TestClient(app)
         try:
@@ -1532,7 +1531,7 @@ class TestEndpointRegressionCases:
         assert len(assets) == 0
 
     def test_assets_endpoint_with_nonexistent_sector(self, client: TestClient):
-        """Assets endpoint should return empty list for nonexistent sector."""
+        """Test that the assets endpoint returns an empty list for a nonexistent sector."""
         response = client.get("/api/assets?sector=NonexistentSector")
         assert response.status_code == 200
         assets = response.json()
@@ -1561,7 +1560,7 @@ class TestEndpointRegressionCases:
         assert relationships == []
 
     def test_metrics_relationship_density_calculation(self, client: TestClient):
-        """Metrics should correctly calculate relationship_density."""
+        """Test the relationship density calculation in metrics."""
         response = client.get("/api/metrics")
         assert response.status_code == 200
         data = response.json()
@@ -1574,7 +1573,14 @@ class TestEndpointRegressionCases:
         assert data["network_density"] == data["relationship_density"]
 
     def test_visualization_coordinates_precision(self, client: TestClient):
-        """Visualization coordinates should be rounded to 6 decimal places."""
+        """Test the precision of visualization coordinates.
+        
+        This function sends a GET request to the "/api/visualization" endpoint  and
+        verifies that the response status code is 200. It then checks that  the
+        coordinates (x, y, z) of each node in the returned visualization  data are
+        rounded to no more than 6 decimal places, ensuring the  precision of the
+        visualization coordinates.
+        """
         response = client.get("/api/visualization")
         assert response.status_code == 200
         viz_data = response.json()
