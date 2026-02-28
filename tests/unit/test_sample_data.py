@@ -157,9 +157,9 @@ class TestSampleAssetProperties:
         commodities = [asset for asset in graph.assets.values() if isinstance(asset, Commodity)]
 
         for commodity in commodities:
-            assert commodity.contract_size is not None or commodity.delivery_date is not None, (
-                f"Commodity {commodity.id} should have contract information"
-            )
+            assert (
+                commodity.contract_size is not None or commodity.delivery_date is not None
+            ), f"Commodity {commodity.id} should have contract information"
 
     @staticmethod
     def test_currency_assets_have_exchange_rates():
@@ -269,9 +269,9 @@ class TestSampleRegulatoryEvents:
 
         if len(graph.regulatory_events) > 0:
             for event in graph.regulatory_events:
-                assert event.asset_id in graph.assets, (
-                    f"Event {event.id} references non-existent asset {event.asset_id}"
-                )
+                assert (
+                    event.asset_id in graph.assets
+                ), f"Event {event.id} references non-existent asset {event.asset_id}"
 
 
 @pytest.mark.unit
