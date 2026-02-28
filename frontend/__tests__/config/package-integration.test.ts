@@ -217,7 +217,7 @@ describe("Package Configuration Integration", () => {
       const coreDeps = {
         react: 18,
         "react-dom": 18,
-        next: 14,
+        next: 16,
         axios: 1,
       };
 

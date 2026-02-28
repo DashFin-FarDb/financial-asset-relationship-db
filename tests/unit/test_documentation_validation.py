@@ -16,6 +16,7 @@ from pathlib import Path
 import pytest
 
 
+@pytest.mark.unit
 class TestDependencyMatrix:
     """Test cases for .elastic-copilot/memory/dependencyMatrix.md."""
 
@@ -32,10 +33,6 @@ class TestDependencyMatrix:
     @pytest.fixture
     def dependency_matrix_content(self, dependency_matrix_path):
         """
-    @pytest.fixture
-    @staticmethod
-    def dependency_matrix_content(dependency_matrix_path):
-        """
         Load the dependency matrix markdown content from disk.
 
         Returns:
@@ -49,8 +46,7 @@ class TestDependencyMatrix:
             return f.read()
 
     @pytest.fixture
-    @staticmethod
-    def dependency_matrix_lines(dependency_matrix_content):
+    def dependency_matrix_lines(self, dependency_matrix_content):
         """
         Split dependency matrix content into individual lines.
 
@@ -234,9 +230,10 @@ class TestDependencyMatrix:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content:  # Not just hashes
-                        assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestSystemManifest:
     """Test cases for .elastic - copilot / memory / systemManifest.md."""
 
@@ -268,9 +265,8 @@ class TestSystemManifest:
         with open(system_manifest_path, encoding="utf-8") as f:
             return f.read()
 
-    @staticmethod
     @pytest.fixture
-    def system_manifest_lines(system_manifest_content):
+    def system_manifest_lines(self, system_manifest_content):
         """
         Split system manifest content into lines.
 
@@ -338,19 +334,17 @@ class TestSystemManifest:
         except ValueError:
             pytest.fail(f"Invalid created timestamp format: {timestamp_str}")
 
-
     def test_system_manifest_has_current_phase(self, system_manifest_content):
-        """Test that systemManifest.md has Current Phase section."""
-        assert "## Current Phase" in system_manifest_content
-
-
+        """
         Assert that the System Manifest declares a current project phase.
 
-        Raises an assertion error if no line matching "- Current Phase: <value>" is present in the provided System Manifest content.
+        Checks both the section header and a specific "- Current Phase:" line.
 
         Parameters:
             system_manifest_content(str): Full text of the systemManifest.md file to inspect.
         """
+        assert "## Current Phase" in system_manifest_content
+
         pattern = r"- Current Phase: (.+)"
         match = re.search(pattern, system_manifest_content)
 
@@ -411,7 +405,12 @@ class TestSystemManifest:
 
     def test_system_manifest_has_language_dependency_sections(self, system_manifest_content):
         """Test that systemManifest.md has language - specific dependency sections."""
-        expected_sections = ["## PY Dependencies", "## JS Dependencies", "## TS Dependencies", "## TSX Dependencies"]
+        expected_sections = [
+            "## PY Dependencies",
+            "## JS Dependencies",
+            "## TS Dependencies",
+            "## TSX Dependencies",
+        ]
 
         found = sum(1 for section in expected_sections if section in system_manifest_content)
         assert found > 0, "No language-specific dependency sections found"
@@ -426,7 +425,7 @@ class TestSystemManifest:
             system_manifest_content(str): Full markdown text of the system manifest to inspect.
         """
         # Look for file dependency entries like: ### \path\to\file.py
-        file_pattern = r"###\s+\\[\w\\\/._-]+\.\w+"
+        file_pattern = r"###\s+\\[\w\\/._-]+\.\w+"
         matches = re.findall(file_pattern, system_manifest_content)
 
         # If there are file entries, they should be properly formatted
@@ -459,7 +458,12 @@ class TestSystemManifest:
 
     def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
         """Test that there are no duplicate major sections."""
-        major_sections = ["## Project Overview", "## Current Status", "## Project Structure", "## Dependencies"]
+        major_sections = [
+            "## Project Overview",
+            "## Current Status",
+            "## Project Structure",
+            "## Dependencies",
+        ]
 
         for section in major_sections:
             count = system_manifest_content.count(section)
@@ -482,9 +486,10 @@ class TestSystemManifest:
                 if heading_match:
                     _, content = heading_match.groups()
                     if content and not content.startswith("#"):  # Not more hashes
-                        assert content.startswith(" "), f"Line {i+1}: Heading should have space after #: {line}"
+                        assert content.startswith(" "), f"Line {i + 1}: Heading should have space after #: {line}"
 
 
+@pytest.mark.unit
 class TestDocumentationConsistency:
     """Test cases for consistency between documentation files."""
 
@@ -611,11 +616,12 @@ class TestDocumentationConsistency:
             sm_has = any(dep in d for d in sm_deps)
             # If one has it, both should (or neither)
             if dm_has or sm_has:
-                assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: " f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
-                )
+                assert (
+                    dm_has == sm_has
+                ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
 
 
+@pytest.mark.unit
 class TestDocumentationRealisticContent:
     """Test that documentation content matches reality of the codebase."""
 
@@ -678,7 +684,6 @@ class TestDocumentationRealisticContent:
         matrix_path = Path(".elastic-copilot/memory/dependencyMatrix.md")
         with open(matrix_path, encoding="utf-8") as f:
             content = f.read()
-
         # Extract dependencies
         deps = []
         for match in re.finditer(r"^- (.+)$", content, re.MULTILINE):

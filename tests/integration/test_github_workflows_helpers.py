@@ -1,6 +1,6 @@
 """
 Unit tests for helper functions in test_github_workflows.py module.
-"""
+
 This test suite validates the utility functions used for GitHub Actions workflow
 testing, ensuring they correctly identify workflow files, parse YAML, and detect
 duplicate keys.
@@ -73,23 +73,6 @@ class TestGetWorkflowFiles:
         workflows_dir.mkdir()
 
         yaml_file = workflows_dir / "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-yaml_file.write_text("name: Test")
-
-with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-    result = get_workflow_files()
-    assert len(result) == 1
-    assert result[0].name == "test.yaml"
-        yaml_file.write_text("name: Test")
-
-        with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
-            result = get_workflow_files()
-            assert len(result) == 1
-            assert result[0].name == "test.yaml"
         yaml_file.write_text("name: Test")
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
@@ -424,8 +407,7 @@ class TestIntegrationScenarios:
         workflows_dir.mkdir()
 
         valid_workflow = workflows_dir / "valid.yml"
-        valid_workflow.write_text(
-            """
+        valid_workflow.write_text("""
 name: Valid Workflow
 on: push
 jobs:
@@ -433,20 +415,17 @@ jobs:
     runs - on: ubuntu - latest
     steps:
       - uses: actions / checkout @ v4
-"""
-        )
+""")
 
         dup_workflow = workflows_dir / "duplicate.yml"
-        dup_workflow.write_text(
-            """
+        dup_workflow.write_text("""
 name: Duplicate Workflow
 name: Another Name
 on: push
 jobs:
   test:
     runs - on: ubuntu - latest
-"""
-        )
+""")
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
             workflows = get_workflow_files()
@@ -471,8 +450,7 @@ jobs:
         workflows_dir.mkdir()
 
         complex_workflow = workflows_dir / "complex.yml"
-        complex_workflow.write_text(
-            """
+        complex_workflow.write_text("""
 name: Complex CI / CD
 on:
   push:
@@ -491,8 +469,6 @@ jobs:
     steps:
       - uses: actions / checkout @ v4
         with:
-"""
-        )
             fetch - depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -505,15 +481,14 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Run tests
         run: pytest tests/ --cov
-"""
-        )
+""")
 
         with patch("tests.integration.test_github_workflows.WORKFLOWS_DIR", workflows_dir):
             workflows = get_workflow_files()
             assert len(workflows) == 1
 
             config = load_yaml_safe(workflows[0])
-            assert config["name"] == "Complex CI/CD"
+            assert config["name"] == "Complex CI / CD"
             assert "push" in config["on"]
             assert "pull_request" in config["on"]
             assert "strategy" in config["jobs"]["test"]
