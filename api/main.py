@@ -61,7 +61,7 @@ __all__ = [
 async def lifespan(app: FastAPI):
     """
     Manage the application's lifespan by initializing the global graph on startup and logging shutdown.
-    
+
     Initializes the global asset relationship graph before the application begins handling requests; if initialization fails the exception is propagated to abort startup. Yields control for the application's running lifetime and logs application shutdown.
     """
     # Startup
@@ -175,11 +175,11 @@ async def read_users_me(
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """
     Return the authenticated user associated with the incoming request.
-    
+
     Parameters:
         request (Request): Included to satisfy the rate limiter's dependency injection.
         current_user (User): The active authenticated user resolved by dependencies.
-    
+
     Returns:
         User: The currently authenticated user.
     """
@@ -196,14 +196,14 @@ async def login_for_access_token(
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """
     Create a JWT access token for a user authenticated with username and password.
-    
+
     Parameters:
         request (Request): Required for rate-limiter dependency injection; not used directly by this function.
         form_data (OAuth2PasswordRequestForm): Credentials submitted by the client.
-    
+
     Returns:
         dict: A dictionary with keys `access_token` (JWT string) and `token_type` set to `'bearer'`.
-    
+
     Raises:
         HTTPException: 401 Unauthorized if the provided username or password is incorrect.
     """
@@ -231,11 +231,11 @@ async def read_users_me(
     # The `request` parameter is required by slowapi's limiter for dependency injection.
     """
     Return the authenticated user associated with the incoming request.
-    
+
     Parameters:
         request (Request): Included to satisfy the rate limiter's dependency injection.
         current_user (User): The active authenticated user resolved by dependencies.
-    
+
     Returns:
         User: The currently authenticated user.
     """

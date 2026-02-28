@@ -27,7 +27,7 @@ class TestEnhancedTestSummary:
     def summary_path(self):
         """
         Provide the filesystem path to the enhanced test summary file.
-        
+
         Returns:
             Path: Path object pointing to "ENHANCED_TEST_SUMMARY.md".
         """
@@ -59,7 +59,7 @@ class TestEnhancedTestSummary:
     def test_summary_not_empty(self, summary_content):
         """
         Verify the provided summary content is not empty after trimming leading and trailing whitespace.
-        
+
         Parameters:
             summary_content (str): Content of the summary file to validate.
         """
@@ -81,9 +81,9 @@ class TestEnhancedTestSummary:
     def test_summary_has_statistics_table(self, summary_content):
         """
         Verify the summary contains a Markdown statistics table with expected test metric headings.
-        
+
         Parameters:
-        	summary_content (str): Full text of the summary file to inspect; must include a table header with "Metric" and the metric names "Test Classes" and "Test Functions".
+                summary_content (str): Full text of the summary file to inspect; must include a table header with "Metric" and the metric names "Test Classes" and "Test Functions".
         """
         assert "| Metric |" in summary_content
         assert "Test Classes" in summary_content
@@ -92,7 +92,7 @@ class TestEnhancedTestSummary:
     def test_summary_mentions_new_test_classes(self, summary_content):
         """
         Verify the summary mentions the four new test class names.
-        
+
         Checks that the document contains the identifiers: TestDocumentationEdgeCases, TestDocumentationPerformance, TestDocumentationRobustness, and TestDocumentationSchemaValidation.
         """
         assert "TestDocumentationEdgeCases" in summary_content
@@ -108,10 +108,10 @@ class TestEnhancedTestSummary:
     def test_summary_valid_markdown_headings(self, summary_content):
         """
         Ensure every Markdown heading has a space after the leading `#` characters.
-        
+
         Parameters:
             summary_content (str): Full text content of the Markdown summary to validate.
-        
+
         Raises:
             AssertionError: If any heading line does not have a space after its leading `#` markers; the error message includes the failing line number.
         """
@@ -126,10 +126,10 @@ class TestEnhancedTestSummary:
     def test_summary_no_broken_formatting(self, summary_content):
         """
         Ensure the markdown summary contains no malformed heading markers (e.g., heading hashes must be followed by a space).
-        
+
         Parameters:
             summary_content (str): Full text of the markdown summary to validate.
-        
+
         Raises:
             AssertionError: If any heading marker (two or more `#` characters) is not followed by a space.
         """
@@ -149,7 +149,7 @@ class TestFinalTestSummary:
     def summary_path():
         """
         Return the Path to the final test summary Markdown file.
-        
+
         Returns:
             Path: Path object pointing to "FINAL_TEST_SUMMARY.md".
         """
@@ -159,10 +159,10 @@ class TestFinalTestSummary:
     def summary_content(self, summary_path):
         """
         Retrieve the text content of the specified summary file.
-        
+
         Parameters:
             summary_path (Path): Path to the markdown summary file to read.
-        
+
         Returns:
             str: The file content as a string.
         """
@@ -178,7 +178,7 @@ class TestFinalTestSummary:
     def test_summary_not_empty(self, summary_content):
         """
         Verify the provided summary content is not empty after trimming leading and trailing whitespace.
-        
+
         Parameters:
             summary_content (str): Content of the summary file to validate.
         """
@@ -200,7 +200,7 @@ class TestFinalTestSummary:
     def test_summary_has_test_suite_section(self, summary_content):
         """
         Verify the document contains a "## Test Suite Created" section.
-        
+
         Asserts that the exact heading '## Test Suite Created' appears in the provided summary content.
         """
         assert "## Test Suite Created" in summary_content
@@ -208,7 +208,7 @@ class TestFinalTestSummary:
     def test_summary_mentions_test_file_location(self, summary_content):
         """
         Verify the summary includes a reference to the generated test file location.
-        
+
         Parameters:
             summary_content (str): Full text of the summary file to search for the test filename.
         """
@@ -263,7 +263,7 @@ class TestDocumentationSummary:
     def summary_path(self):
         """
         Return the pathlib.Path for the test documentation summary file.
-        
+
         Returns:
             Path: Path to 'TEST_DOCUMENTATION_SUMMARY.md'.
         """

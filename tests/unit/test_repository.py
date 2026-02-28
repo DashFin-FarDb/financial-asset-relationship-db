@@ -819,7 +819,7 @@ class TestComplexScenarios:
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
         """
         Exercise end-to-end portfolio creation, relationship linking, and verification in the repository.
-        
+
         Creates a diverse set of portfolio assets, upserts them to the provided repository, adds the predefined portfolio relationships, commits the changes, and verifies the repository contains the expected assets and relationships.
         """
         assets = _create_diverse_portfolio_assets()
@@ -837,7 +837,7 @@ class TestComplexScenarios:
 def _create_diverse_portfolio_assets():
     """
     Create a small, diverse set of representative financial assets for portfolio-related tests.
-    
+
     Returns:
         list: Four asset instances — an Equity (TECH1), a Bond (BOND1), a Commodity (GOLD1), and a Currency (EUR1) — populated with typical fields used by tests (e.g., price, sector, and type-specific attributes).
     """
@@ -890,7 +890,7 @@ def _create_diverse_portfolio_assets():
 def _add_portfolio_relationships(repository: AssetGraphRepository) -> None:
     """
     Create two predefined relationships used by portfolio tests.
-    
+
     Creates an `inverse_correlation` relationship (strength 0.3, bidirectional) between "TECH1" and "BOND1", and a `commodity_currency` relationship (strength 0.6, unidirectional) from "GOLD1" to "EUR1".
     """
     repository.add_or_update_relationship(
@@ -904,10 +904,10 @@ def _add_portfolio_relationships(repository: AssetGraphRepository) -> None:
 def _verify_portfolio_contents(repository: AssetGraphRepository) -> None:
     """
     Assert that a predefined portfolio exists in the repository with exactly four assets and at least two relationships.
-    
+
     Parameters:
         repository (AssetGraphRepository): Repository instance used to retrieve assets and relationships.
-    
+
     Raises:
         AssertionError: If the repository does not contain four assets or fewer than two relationships.
     """
@@ -926,7 +926,7 @@ class TestConcurrentAccess:
     def test_multiple_read_operations_concurrent(repository):
         """
         Ensure multiple read operations return consistent regulatory event data with the expected related assets.
-        
+
         Creates three Equity assets and a RegulatoryEvent referencing two of them, commits the changes, then asserts the repository lists exactly one regulatory event and that its `related_assets` contains "REL1" and "REL2".
         """
         # Add test data

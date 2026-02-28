@@ -124,7 +124,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_frontmatter_has_required_fields(repo_engineer_frontmatter: Dict[str, Any]):
         """
         Verify the frontmatter includes the required fields for a microagent.
-        
+
         Required fields: "name", "type", "version", and "agent".
         """
         required_fields = ["name", "type", "version", "agent"]
@@ -171,7 +171,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     ) -> None:
         """
         Ensure the frontmatter contains a `version` field formatted as a semantic version `x.y.z`.
-        
+
         Parameters:
             repo_engineer_frontmatter (Dict[str, Any]): Parsed YAML frontmatter for the microagent.
         """
@@ -203,11 +203,11 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_frontmatter_no_triggers(repo_engineer_frontmatter: Dict[str, Any]):
         """
         Verify the frontmatter for the repo_engineer_lead microagent does not define any triggers.
-        
+
         Acceptable states are: the `triggers` key is absent, or its value is `None`, an empty list, or an empty string.
-        
+
         Parameters:
-        	repo_engineer_frontmatter (dict): Parsed YAML frontmatter for repo_engineer_lead.
+                repo_engineer_frontmatter (dict): Parsed YAML frontmatter for repo_engineer_lead.
         """
         # The content states "the microagent doesn't have any triggers"
         # So triggers should either be absent or empty
@@ -221,9 +221,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_content_not_empty(repo_engineer_body: str):
         """
         Assert that the markdown body contains at least one non-whitespace character.
-        
+
         Parameters:
-        	repo_engineer_body (str): The markdown document body text following the YAML frontmatter.
+                repo_engineer_body (str): The markdown document body text following the YAML frontmatter.
         """
         assert len(repo_engineer_body.strip()) > 0
 
@@ -271,9 +271,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_mentions_code_changes(repo_engineer_body: str):
         """
         Assert the microagent body mentions code change capabilities.
-        
+
         Checks (case-insensitively) that the provided markdown body contains either "code changes" or "changes", failing the test if neither phrase is present.
-        
+
         Parameters:
             repo_engineer_body (str): The markdown body text of the microagent to validate.
         """
@@ -312,7 +312,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_body_no_malformed_sentences(repo_engineer_body: str):
         """
         Validate that the markdown body contains no occurrences of multiple consecutive spaces except when immediately following a period.
-        
+
         Parameters:
             repo_engineer_body (str): The markdown body text to validate for malformed spacing.
         """
@@ -362,7 +362,7 @@ class TestRepoEngineerLead(TestMicroagentValidation):
     def test_proper_line_endings(repo_engineer_path: Path):
         """
         Validate that the given microagent markdown file uses Unix-style (LF) line endings.
-        
+
         Parameters:
             repo_engineer_path (Path): Path to the microagent markdown file to check.
         """
@@ -391,7 +391,7 @@ class TestAllMicroagents(TestMicroagentValidation):
     def test_all_microagents_have_valid_structure(microagent_files: List[Path]):
         """
         Assert each microagent markdown file begins with YAML frontmatter delimited by '---'.
-        
+
         Checks that, after stripping leading whitespace, the file starts with a YAML frontmatter block enclosed by '---' on its own lines.
         """
         for file_path in microagent_files:
@@ -407,7 +407,7 @@ class TestAllMicroagents(TestMicroagentValidation):
     def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
         """
         Check that every microagent markdown file contains the YAML frontmatter keys "name", "type", "version", and "agent".
-        
+
         Asserts for each file and reports the filename when a required field is missing.
         """
         required_fields = ["name", "type", "version", "agent"]
@@ -530,7 +530,7 @@ class TestMicroagentSemantic:
     def test_autonomous_nature_described(repo_engineer_content: str):
         """
         Verify the microagent body describes autonomous or automated behavior.
-        
+
         Parameters:
             repo_engineer_content (str): Full markdown content of the microagent file to inspect.
         """
@@ -551,7 +551,7 @@ class TestMicroagentSemantic:
     def test_describes_reviewer_interaction(repo_engineer_content: str):
         """
         Asserts the microagent body describes interaction with reviewers, contributors, or comments.
-        
+
         Parameters:
             repo_engineer_content (str): Full markdown content of the repo_engineer_lead microagent.
         """
@@ -673,12 +673,12 @@ class TestMicroagentEdgeCases:
     def test_consistent_newlines(repo_engineer_path: Path):
         """
         Verify the file uses consistent newline style: either all CRLF ("\r\n") or all LF ("\n").
-        
+
         Parameters:
-        	repo_engineer_path (Path): Path to the microagent markdown file to check.
-        
+                repo_engineer_path (Path): Path to the microagent markdown file to check.
+
         Raises:
-        	AssertionError: If the file contains a mix of CRLF and LF line endings.
+                AssertionError: If the file contains a mix of CRLF and LF line endings.
         """
         with open(repo_engineer_path, "rb") as f:
             content = f.read()
@@ -781,7 +781,7 @@ class TestMicroagentBoundaryConditions:
     def test_microagent_with_minimal_valid_frontmatter(tmp_path):
         """
         Verify that a markdown file with minimal YAML frontmatter is parseable and its fields can be extracted.
-        
+
         Creates a temporary markdown file containing the minimal required frontmatter (name, type, version, agent), parses the frontmatter section using a frontmatter-delimiting pattern and YAML loader, and asserts that the parsed `name` field equals "test".
         """
         test_file = tmp_path / "minimal.md"
@@ -809,7 +809,7 @@ Minimal content."""
     def test_frontmatter_with_extra_fields_allowed(tmp_path):
         """
         Verify that YAML frontmatter parsing preserves additional (non-required) fields.
-        
+
         Asserts that a frontmatter block containing extra keys is parsed into a mapping that includes those keys with their original values.
         """
         test_file = tmp_path / "extra.md"

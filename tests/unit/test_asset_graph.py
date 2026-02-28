@@ -106,7 +106,7 @@ class TestGet3DVisualizationDataEnhanced:
     def test_colors_are_consistent():
         """
         Verify that all nodes receive the same color in the enhanced 3D visualization.
-        
+
         Checks that for a small chain of relationships the color assigned to every node equals "#4ECDC4".
         """
         graph = AssetRelationshipGraph()

@@ -54,9 +54,9 @@ class TestWorkflowConsistency:
     def test_all_workflows_use_consistent_action_versions(self, all_workflows):
         """
         Ensure that each GitHub Action is referenced with a single version across the provided workflows.
-        
+
         Scans each job step's `uses` field for explicit action versions and reports actions that appear with more than one version. Major-version differences for `actions/checkout` (for example, `v4` vs `v5`) are ignored.
-        
+
         Parameters:
             all_workflows (dict): Mapping from workflow file path to parsed YAML content; entries without jobs or steps are skipped.
         """
@@ -109,7 +109,7 @@ class TestWorkflowConsistency:
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
         """
         Ensure designated simplified workflows have at most three steps per job.
-        
+
         Parameters:
             all_workflows (dict): Mapping from workflow file path to parsed YAML content; only workflows present in the mapping are checked.
         """
@@ -203,7 +203,7 @@ class TestRemovedFilesIntegration:
     def test_label_workflow_doesnt_need_labeler_config(self):
         """
         Ensure the label workflow does not require an external labeler configuration file.
-        
+
         If .github/workflows/label.yml exists, assert that the 'label' job's first step uses "actions/labeler"
         and that the step either does not provide a `config-path` or sets it to ".github/labeler.yml".
         Skips the test when label.yml is not present.
@@ -268,7 +268,7 @@ class TestWorkflowSecurityConsistency:
     def test_workflows_use_appropriate_checkout_refs():
         """
         Ensure workflows triggered by pull_request_target specify a safe checkout reference.
-        
+
         For .github/workflows/pr-agent.yml and .github/workflows/apisec-scan.yml, when a workflow is triggered by `pull_request_target`, assert that every `actions/checkout` step includes either a `ref` or `fetch-depth` entry in its `with` configuration.
         """
         workflow_files = [
@@ -327,7 +327,7 @@ class TestBranchCoherence:
     def test_removed_complexity_not_referenced(self):
         """
         Ensure workflow YAML files do not reference removed complexity features.
-        
+
         Scans all files under .github/workflows/*.yml for the feature names
         'context_chunking', 'tiktoken', 'summarization', 'max_tokens', and 'chunk_size'.
         If any of these names appears on a non-comment line in a workflow file, the test fails
@@ -447,7 +447,7 @@ class TestBranchQuality:
     def test_consistent_indentation_across_workflows(self):
         """
         Check workflows use indentation levels that are multiples of two spaces.
-        
+
         For each non-empty line that begins with a space in files under .github/workflows/*.yml, asserts the count of leading spaces is a multiple of two. On failure the assertion message identifies the workflow file and line number.
         """
         workflow_files = list(Path(".github/workflows").glob("*.yml"))
