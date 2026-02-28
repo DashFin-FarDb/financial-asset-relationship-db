@@ -1071,6 +1071,7 @@ class TestSetGraphFunctions:
 
     def test_set_graph_factory_none_clears_factory(self):
         """set_graph_factory(None) should clear the factory."""
+
         def test_factory():
             return create_sample_database()
 
@@ -1487,6 +1488,7 @@ class TestLifespanHandler:
     @pytest.mark.asyncio
     async def test_lifespan_raises_on_initialization_failure(self):
         """Lifespan handler should propagate initialization exceptions."""
+
         def failing_factory():
             raise RuntimeError("Initialization failed")
 
