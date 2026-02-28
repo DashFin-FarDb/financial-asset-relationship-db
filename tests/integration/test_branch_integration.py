@@ -99,9 +99,9 @@ class TestWorkflowConsistency:
 
             if "GITHUB_TOKEN" in workflow_str or "github.token" in workflow_str:
                 # Should use secrets.GITHUB_TOKEN format
-                assert (
-                    "secrets.GITHUB_TOKEN" in workflow_str or "${{ github.token }}" in workflow_str
-                ), f"{wf_file}: GITHUB_TOKEN should use proper syntax"
+                assert "secrets.GITHUB_TOKEN" in workflow_str or "${{ github.token }}" in workflow_str, (
+                    f"{wf_file}: GITHUB_TOKEN should use proper syntax"
+                )
 
     def test_simplified_workflows_have_fewer_steps(self, all_workflows):
         """
@@ -280,9 +280,9 @@ class TestWorkflowSecurityConsistency:
                         if "actions/checkout" in step.get("uses", ""):
                             with_config = step.get("with", {})
                             # Should have ref or token specified
-                            assert (
-                                "ref" in with_config or "fetch-depth" in with_config
-                            ), f"{wf_file}: Checkout in pull_request_target should specify safe ref"
+                            assert "ref" in with_config or "fetch-depth" in with_config, (
+                                f"{wf_file}: Checkout in pull_request_target should specify safe ref"
+                            )
 
 
 class TestBranchCoherence:
@@ -307,9 +307,9 @@ class TestBranchCoherence:
                 with open(wf_file, "r") as f:
                     line_count = len(f.readlines())
 
-                assert (
-                    line_count <= max_lines
-                ), f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
+                assert line_count <= max_lines, (
+                    f"{wf_file} should be simplified (has {line_count} lines, expected <={max_lines})"
+                )
 
     def test_removed_complexity_not_referenced(self):
         """
