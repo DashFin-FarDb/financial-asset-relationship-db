@@ -495,7 +495,7 @@ async def get_assets(
     try:
         g = get_graph()
         assets = []
-            for asset in g.assets.values():
+           for asset in g.assets.values():
                 if asset_class:
                     requested = asset_class.strip().lower()
                     if requested not in {
