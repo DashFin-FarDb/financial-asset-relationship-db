@@ -128,7 +128,7 @@ class TestUserInDBModel:
         errors = exc_info.value.errors()
         assert any(e["loc"] == ("hashed_password",) for e in errors)
 
-    def test_user_in_db_serialization_excludes_password(self):
+    def test_user_in_db_serialization_includes_hashed_password(self):
         """UserInDB serialization should include hashed_password by default."""
         user = UserInDB(username="user", hashed_password="hash")
 
