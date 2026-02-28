@@ -834,7 +834,7 @@ class TestComplexScenarios:
         _verify_portfolio_contents(repository)
 
 
-def _create_diverse_portfolio_assets():
+def _create_diverse_portfolio_assets() -> list[Asset]:
     """
     Create a small, diverse set of representative financial assets for portfolio-related tests.
 
