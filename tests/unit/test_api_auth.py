@@ -12,7 +12,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 from fastapi import HTTPException
-from jwt import InvalidTokenError
 
 # Import the module to test
 from api.auth import (
