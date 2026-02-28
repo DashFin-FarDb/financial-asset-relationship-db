@@ -74,7 +74,7 @@ def get_graph() -> AssetRelationshipGraph:
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
     Set the module-level AssetRelationshipGraph instance and disable any configured graph factory.
-    
+
     Parameters:
         graph_instance: The AssetRelationshipGraph to use as the global graph.
     """
@@ -87,9 +87,9 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 def set_graph_factory(factory: Optional[GraphFactory]) -> None:
     """
     Configure the factory used to lazily construct the global AssetRelationshipGraph.
-    
+
     Setting a factory replaces any existing factory and clears the current global graph so that the next access will create a new graph via the provided factory. Passing `None` disables the factory and causes the graph to be reinitialized using the default strategy on next access.
-    
+
     Parameters:
         factory (Optional[GraphFactory]): A zero-argument factory that returns an AssetRelationshipGraph, or `None` to clear the factory.
     """
@@ -107,14 +107,14 @@ def reset_graph() -> None:
 def _initialize_graph() -> AssetRelationshipGraph:
     """
     Builds and returns the AssetRelationshipGraph using the configured data source.
-    
+
     Prefers a configured graph factory when present. Otherwise, if the environment variable
     GRAPH_CACHE_PATH is set it constructs a RealDataFetcher (network enabled when
     USE_REAL_DATA_FETCHER is truthy) and builds the graph from that cache. If GRAPH_CACHE_PATH
     is not set but USE_REAL_DATA_FETCHER is truthy, it constructs a RealDataFetcher using
     REAL_DATA_CACHE_PATH with network enabled. If neither path applies, a sample in-memory
     database is created.
-    
+
     Returns:
         AssetRelationshipGraph: The constructed asset-relationship graph.
     """
@@ -141,9 +141,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
 def _should_use_real_data_fetcher() -> bool:
     """
     Determine whether the application should use the real data fetcher based on environment configuration.
-    
+
     Checks the `USE_REAL_DATA_FETCHER` environment variable for a truthy value.
-    
+
     Returns:
         `True` if `USE_REAL_DATA_FETCHER` (case-insensitive, trimmed) is one of: `"1"`, `"true"`, `"yes"`, `"on"`; `False` otherwise.
     """
@@ -155,7 +155,7 @@ def _should_use_real_data_fetcher() -> bool:
 async def lifespan(_fastapi_app: FastAPI):
     """
     Initialize the global asset relationship graph during application startup and log lifecycle events.
-    
+
     Initializes the singleton graph before the application begins handling requests; if initialization fails the original exception is re-raised to abort startup. Yields control for the application's running lifespan and logs a shutdown message when the lifespan ends.
     """
     try:
@@ -191,17 +191,17 @@ ENV = os.getenv("ENV", "development").lower()
 def validate_origin(origin_url: str) -> bool:
     """
     Determine whether an HTTP origin is permitted by the application's CORS rules.
-    
+
     Re-reads the `ENV` environment variable on each call to allow runtime overrides. The check allows:
     - explicit origins listed in `ALLOWED_ORIGINS`,
     - HTTP localhost/127.0.0.1 when running in `development`,
     - HTTPS localhost/127.0.0.1 in any environment,
     - Vercel preview hostnames (e.g., `*.vercel.app`),
     - and valid HTTPS origins with well-formed domain names.
-    
+
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com" or "http://localhost:3000").
-    
+
     Returns:
         bool: `True` if the origin is allowed, `False` otherwise.
     """
@@ -395,14 +395,14 @@ async def login_for_access_token(
 ) -> Token:
     """
     Issue a JWT access token for valid user credentials.
-    
+
     Parameters:
         request (Request): The incoming request; required by slowapi for rate-limit key extraction.
         form_data (OAuth2PasswordRequestForm): Form data containing `username` and `password`.
-    
+
     Returns:
         Token: An object containing the JWT `access_token` and `token_type` ("bearer").
-    
+
     Raises:
         HTTPException: With status 401 if the provided credentials are incorrect.
     """
@@ -429,10 +429,10 @@ async def read_users_me(
 ) -> User:
     """
     Return the currently authenticated user.
-    
+
     Parameters:
         request (Request): Request object used by the rate limiter for key extraction.
-    
+
     Returns:
         User: The active authenticated user.
     """
@@ -443,7 +443,7 @@ async def read_users_me(
 async def root() -> Dict[str, Any]:
     """
     Provide basic API metadata and a listing of available endpoints.
-    
+
     Returns:
         info (Dict[str, Any]): A dictionary with keys "message", "version", and "endpoints",
             where "endpoints" maps logical names to their URL paths.
@@ -465,7 +465,7 @@ async def root() -> Dict[str, Any]:
 async def health_check() -> Dict[str, Any]:
     """
     Report service health and whether the global asset graph has been initialized.
-    
+
     Returns:
         health (Dict[str, Any]): A dictionary with:
             - `status` (str): Overall service health status (e.g., "healthy").
@@ -481,14 +481,14 @@ async def get_assets(
 ) -> List[AssetResponse]:
     """
     Retrieve assets optionally filtered by asset class and sector.
-    
+
     Parameters:
         asset_class (Optional[str]): Asset class value to filter by (e.g., "Equity").
         sector (Optional[str]): Sector name to filter by.
-    
+
     Returns:
         List[AssetResponse]: Matching assets serialized for API responses.
-    
+
     Raises:
         HTTPException: If an unexpected error occurs (HTTP 500).
     """
@@ -511,13 +511,13 @@ async def get_assets(
 async def get_asset_detail(asset_id: str) -> AssetResponse:
     """
     Retrieve detailed information for the asset identified by asset_id.
-    
+
     Parameters:
         asset_id (str): Asset identifier.
-    
+
     Returns:
         AssetResponse: Asset details including issuer information when available.
-    
+
     Raises:
         HTTPException: 404 if the asset is not found.
         HTTPException: 500 for unexpected errors.
@@ -538,10 +538,10 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
     """
     Return the outgoing relationships for the specified asset.
-    
+
     Returns:
         List[RelationshipResponse]: Outgoing relationships; each entry includes `source_id`, `target_id`, `relationship_type`, and `strength`.
-    
+
     Raises:
         HTTPException: 404 if the asset with `asset_id` is not found.
         HTTPException: 500 for unexpected internal errors.
@@ -571,10 +571,10 @@ async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
 async def get_all_relationships() -> List[RelationshipResponse]:
     """
     Return all directed relationships present in the global asset graph.
-    
+
     Returns:
         List[RelationshipResponse]: A list of relationship records, each containing `source_id`, `target_id`, `relationship_type`, and `strength`.
-    
+
     Raises:
         HTTPException: Raised with status code 500 if an unexpected error occurs while retrieving relationships.
     """
@@ -599,7 +599,7 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 async def get_metrics() -> MetricsResponse:
     """
     Compute network-level metrics for the global asset relationship graph.
-    
+
     Returns:
         MetricsResponse: Contains:
             - total_assets: total number of assets in the graph
@@ -609,7 +609,7 @@ async def get_metrics() -> MetricsResponse:
             - max_degree: maximum out-degree observed
             - network_density: network density metric
             - relationship_density: relationship density metric
-    
+
     Raises:
         HTTPException: with status code 500 and error detail for unexpected failures.
     """
@@ -644,12 +644,12 @@ async def get_metrics() -> MetricsResponse:
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Prepare nodes and edges for 3-D visualization of the asset graph.
-    
+
     Nodes are placed on a sphere using a Fibonacci-lattice distribution, colored by asset class, and sized proportionally to each node's outgoing degree. Edges contain source, target, relationship type, and strength.
-    
+
     Returns:
         VisualizationDataResponse: A response object containing `nodes` (list of node dicts with keys `id`, `symbol`, `name`, `asset_class`, `x`, `y`, `z`, `color`, `size`) and `edges` (list of edge dicts with keys `source`, `target`, `relationship_type`, `strength`).
-    
+
     Raises:
         HTTPException: HTTP 500 if an unexpected error occurs while generating visualization data.
     """
@@ -713,10 +713,10 @@ async def get_visualization_data() -> VisualizationDataResponse:
 async def get_asset_classes() -> Dict[str, List[str]]:
     """
     List all asset classes in alphabetical order.
-    
+
     Returns:
         Dict[str, List[str]]: A dictionary with the key "asset_classes" mapped to a list of asset class values (strings) sorted alphabetically.
-    
+
     Raises:
         HTTPException: Raised with status code 500 if an unexpected error occurs while collecting asset classes.
     """
@@ -731,10 +731,10 @@ async def get_asset_classes() -> Dict[str, List[str]]:
 async def get_sectors() -> Dict[str, List[str]]:
     """
     Get distinct sector names from the asset graph, sorted alphabetically.
-    
+
     Returns:
         dict: A mapping with key "sectors" to a list of sector names sorted in ascending order.
-    
+
     Raises:
         HTTPException: With status code 500 if an unexpected error occurs while accessing or processing the graph.
     """
