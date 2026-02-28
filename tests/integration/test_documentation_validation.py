@@ -75,7 +75,7 @@ class TestDocumentStructure:
 
     @staticmethod
     def test_has_benefits_section(summary_content: str):
-        """Test that document lists benefits."""
+        """Check if the document includes benefits or key features."""
         assert (
             "## Benefits" in summary_content or "## Key Features" in summary_content
         ), "Document should describe benefits or key features"
@@ -102,8 +102,8 @@ class TestMarkdownFormatting:
 
     @staticmethod
     def test_code_blocks_properly_closed(summary_content: str):
-        """Test that code blocks are properly opened and closed."""
         # Count triple backticks
+        """Test that code blocks are properly opened and closed."""
         backtick_count = summary_content.count("```")
         assert (
             backtick_count % 2 == 0
@@ -125,7 +125,7 @@ class TestContentAccuracy:
 
     @staticmethod
     def test_mentions_workflow_file(summary_content: str):
-        """Test that document mentions the pr-agent.yml workflow."""
+        """Check if the document mentions the pr-agent.yml workflow."""
         assert (
             "pr-agent.yml" in summary_content.lower() or "pr-agent" in summary_content.lower()
         ), "Document should mention pr-agent workflow"
@@ -163,7 +163,7 @@ class TestContentAccuracy:
 
     @staticmethod
     def test_includes_file_paths(summary_content: str):
-        """Test that document includes actual file paths."""
+        """Check if the document includes specific file paths."""
         assert (
             "tests/integration" in summary_content or "test_github_workflows" in summary_content
         ), "Document should include actual file paths"
@@ -181,7 +181,7 @@ class TestDocumentMaintainability:
 
     @staticmethod
     def test_line_length_reasonable(summary_lines: List[str]):
-        """Test that lines aren't excessively long."""
+        """Test that no more than 10% of lines exceed a reasonable length."""
         long_lines = [
             (i + 1, line)
             for i, line in enumerate(summary_lines)
