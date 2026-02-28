@@ -21,6 +21,7 @@ executors:
     resource_class: medium
     environment:
       NODE_ENV: production
+      NPM_CONFIG_PRODUCTION: "false"
       NPM_CONFIG_LOGLEVEL: error
 
 commands:
