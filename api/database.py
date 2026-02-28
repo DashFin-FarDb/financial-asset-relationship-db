@@ -307,17 +307,7 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
 
 
 def initialize_schema() -> None:
-    """
-    Create the `user_credentials` table if it does not already exist.
-
-    The table has the following columns:
-    - `id`: INTEGER PRIMARY KEY AUTOINCREMENT
-    - `username`: TEXT, unique and not null
-    - `email`: TEXT
-    - `full_name`: TEXT
-    - `hashed_password`: TEXT, not null
-    - `disabled`: INTEGER, not null, defaults to 0
-    """
+    """Create the user_credentials table if it does not exist."""
     execute("""
         CREATE TABLE IF NOT EXISTS user_credentials (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
