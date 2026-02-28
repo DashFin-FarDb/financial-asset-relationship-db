@@ -828,10 +828,10 @@ class TestComplexScenarios:
 
 def _create_diverse_portfolio_assets() -> list[Asset]:
     """
-    Create a small, diverse set of representative financial assets for portfolio - related tests.
+    Create a small, diverse set of representative financial assets for portfolio-related tests.
 
     Returns:
-        list: Four asset instances — an Equity(TECH1), a Bond(BOND1), a Commodity(GOLD1), and a Currency(EUR1) — populated with typical fields used by tests(e.g., price, sector, and type - specific attributes).
+        list[Asset]: Four asset instances — an Equity(TECH1), a Bond(BOND1), a Commodity(GOLD1), and a Currency(EUR1) — populated with typical fields used by tests (e.g., price, sector, and type-specific attributes).
     """
     return [
         Equity(
