@@ -703,10 +703,10 @@ async def get_metrics() -> MetricsResponse:
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
-    Prepare nodes and edges for 3-D visualization of the asset graph.
+    Prepare nodes and edges for 3 - D visualization of the asset graph.
 
-    Nodes are placed on a sphere using a Fibonacci-lattice distribution.
-    Nodes are colored by asset class.
+    Nodes are placed on a sphere using a Fibonacci - lattice distribution.
+    Nodes are colored by asset class .
     They are sized proportionally to each node's outgoing degree.
     Edges contain source, target, relationship type, and strength.
 
