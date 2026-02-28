@@ -137,6 +137,7 @@ export default function NetworkVisualization({
       const targetNode = nodeMap.get(edge.target);
 
       if (!sourceNode || !targetNode) {
+        console.warn(`Missing node for edge: source=${edge.source}, target=${edge.target}`);
         return acc;
       }
 
