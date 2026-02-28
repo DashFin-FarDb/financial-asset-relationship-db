@@ -200,9 +200,7 @@ class TestAuthenticateUser:
         )
         mock_user_repository.get_user.return_value = user
 
-        result = authenticate_user(
-            "testuser", password, repository=mock_user_repository
-        )
+        result = authenticate_user("testuser", password, repository=mock_user_repository)
 
         assert result == user
 
@@ -216,9 +214,7 @@ class TestAuthenticateUser:
         )
         mock_user_repository.get_user.return_value = user
 
-        result = authenticate_user(
-            "testuser", "wrong_password", repository=mock_user_repository
-        )
+        result = authenticate_user("testuser", "wrong_password", repository=mock_user_repository)
 
         assert result is False
 

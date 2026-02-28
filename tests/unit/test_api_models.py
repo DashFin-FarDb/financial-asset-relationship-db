@@ -430,10 +430,7 @@ class TestVisualizationDataResponseModel:
     def test_visualization_data_response_large_dataset(self):
         """VisualizationDataResponse handles large datasets."""
         nodes = [{"id": str(i), "label": f"Node {i}"} for i in range(1000)]
-        edges = [
-            {"source": str(i), "target": str(i + 1), "strength": 0.5}
-            for i in range(999)
-        ]
+        edges = [{"source": str(i), "target": str(i + 1), "strength": 0.5} for i in range(999)]
 
         viz = VisualizationDataResponse(nodes=nodes, edges=edges)
 
