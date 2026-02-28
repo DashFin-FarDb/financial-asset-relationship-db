@@ -53,7 +53,6 @@ Top dependencies:
 
 Top dependencies:
 
-- +i),a)}}catch(t){n(t.toString())}},Et.prototype.getAvailableImages=function(t){var e=this.availableImages[t];return e||(e=[]),e},Et.prototype.getLayerIndex=function(t){var e=this.layerIndexes[t];return e||(e=this.layerIndexes[t]=new n),e},Et.prototype.getWorkerSource=function(t,e,r){var n=this;if(this.workerSources[t]||(this.workerSources[t]={}),this.workerSources[t][e]||(this.workerSources[t][e]={}),!this.workerSources[t][e][r]){var i={send:function(e,r,i){n.actor.send(e,r,i,t)}};this.workerSources[t][e][r]=new this.workerSourceTypes[e](<i,this.getLayerIndex(t),this.getAvailableImages(t)>)}return this.workerSources[t][e][r]},Et.prototype.getDEMWorkerSource=function(t,e){return this.demWorkerSources[t]||(this.demWorkerSources[t]={}),this.demWorkerSources[t][e]||(this.demWorkerSources[t][e]=new u),this.demWorkerSources[t][e]},Et.prototype.enforceCacheSizeLimit=function(e,r){t.enforceCacheSizeLimit(r)},typeof WorkerGlobalScope<
 - vector
 - @testing-library/jest-dom
 
