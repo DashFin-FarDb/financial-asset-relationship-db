@@ -1072,8 +1072,8 @@ class TestSetGraphFunctions:
         api_main.reset_graph()
 
     def test_set_graph_factory_none_clears_factory(self):
-
         """Test that setting the graph factory to None clears the factory."""
+
         def test_factory():
             """Create and return a sample database."""
             return create_sample_database()
@@ -1492,8 +1492,8 @@ class TestLifespanHandler:
 
     @pytest.mark.asyncio
     async def test_lifespan_raises_on_initialization_failure(self):
-
         """Test that lifespan raises an exception on initialization failure."""
+
         def failing_factory():
             """Raises a RuntimeError indicating initialization failure."""
             raise RuntimeError("Initialization failed")
@@ -1574,7 +1574,7 @@ class TestEndpointRegressionCases:
 
     def test_visualization_coordinates_precision(self, client: TestClient):
         """Test the precision of visualization coordinates.
-        
+
         This function sends a GET request to the "/api/visualization" endpoint  and
         verifies that the response status code is 200. It then checks that  the
         coordinates (x, y, z) of each node in the returned visualization  data are

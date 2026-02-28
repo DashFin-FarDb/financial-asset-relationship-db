@@ -271,11 +271,11 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> NoRetu
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     """Serialize an Asset object to a dictionary representation.
-    
+
     Args:
         asset: Asset object to serialize.
         include_issuer (bool): Whether to include the ``issuer_id`` field.
-    
+
     Returns:
         Dict[str, Any]: Dictionary containing core asset fields and additional asset-specific
             attributes.
@@ -469,13 +469,13 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
 @app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
     """List outgoing relationships for the specified asset.
-    
+
     This function retrieves the outgoing relationships for a given asset identified
     by  `asset_id`. It first checks if the asset exists in the graph. If the asset
     is found,  it constructs a list of `RelationshipResponse` objects containing
     the target ID,  relationship type, and strength. In case of errors, appropriate
     HTTP exceptions are raised.
-    
+
     Args:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
     """
@@ -523,7 +523,7 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics() -> MetricsResponse:
     """Return computed network metrics for the asset relationship graph.
-    
+
     This function retrieves the asset relationship graph using the get_graph()
     function and calculates various metrics, including total assets, total
     relationships, and asset-class distribution. It also computes average and
@@ -561,13 +561,13 @@ async def get_metrics() -> MetricsResponse:
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
     """Retrieve graph nodes and edges formatted for 3-D visualization.
-    
+
     This function generates the data required for visualizing a graph in three
     dimensions.  It retrieves the graph structure, computes the out-degree for each
     node to determine  their size, and positions the nodes on a sphere using a
     Fibonacci lattice distribution.  The nodes are colored based on their asset
     class, and edges are constructed from the  relationships defined in the graph.
-    
+
     Raises:
         HTTPException: 500 for unexpected errors.
     """
