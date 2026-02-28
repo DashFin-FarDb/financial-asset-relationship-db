@@ -9,12 +9,79 @@ executors:
       - image: cimg/python:3.11
     working_directory: ~/project
     resource_class: medium
+    environment:
+      PIP_CACHE_DIR: /home/circleci/.cache/pip
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONUNBUFFERED: 1
 
   node-executor:
     docker:
       - image: cimg/node:25.6.1
     working_directory: ~/project
     resource_class: medium
+    environment:
+      NODE_ENV: production
+      NPM_CONFIG_PRODUCTION: "false"
+      NPM_CONFIG_LOGLEVEL: error
+
+commands:
+  install-python-deps:
+    description: "Install Python dependencies with caching"
+    parameters:
+      cache_version:
+        type: string
+        default: "v3"
+      include_dev:
+        type: boolean
+        default: true
+    steps:
+      - restore_cache:
+          keys:
+            - python-deps-<<parameters.cache_version>>-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+            - python-deps-<<parameters.cache_version>>-{{ checksum "requirements.txt" }}
+            - python-deps-<<parameters.cache_version>>-
+      - run:
+          name: Install Python dependencies
+          command: |
+            pip install --upgrade pip setuptools wheel
+            pip install -r requirements.txt
+            <<#parameters.include_dev>>
+            if [ -f requirements-dev.txt ]; then
+              pip install -r requirements-dev.txt
+            fi
+            <</parameters.include_dev>>
+      - save_cache:
+          key: python-deps-<<parameters.cache_version>>-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
+          paths:
+            - ~/.cache/pip
+            - /home/circleci/.local/lib/python3.11/site-packages
+
+  install-node-deps:
+    description: "Install Node.js dependencies with caching"
+    parameters:
+      cache_version:
+        type: string
+        default: "v3"
+    steps:
+      - restore_cache:
+          keys:
+            - node-deps-<<parameters.cache_version>>-{{ checksum "frontend/package.json" }}
+            - node-deps-<<parameters.cache_version>>-
+      - run:
+          name: Install Node.js dependencies
+          command: |
+            cd frontend
+            if [ -f package-lock.json ]; then
+              npm ci --prefer-offline --audit=false
+            else
+              echo "package-lock.json not found; running npm install instead"
+              npm install --prefer-offline --no-audit
+            fi
+      - save_cache:
+          key: node-deps-<<parameters.cache_version>>-{{ checksum "frontend/package.json" }}
+          paths:
+            - frontend/node_modules
+            - ~/.npm
 
 jobs:
   # Python Backend Jobs
@@ -22,24 +89,8 @@ jobs:
     executor: python-executor
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
-            - python-deps-v2-{{ checksum "requirements.txt" }}
-            - python-deps-v2-
-      - run:
-          name: Install dependencies
-          command: |
-            pip install --upgrade pip
-            pip install -r requirements.txt
-            if [ -f requirements-dev.txt ]; then
-              pip install -r requirements-dev.txt
-            fi
-      - save_cache:
-          key: python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
-          paths:
-            - ~/.cache/pip
-            - /home/circleci/.local/lib/python3.11/site-packages
+      - install-python-deps:
+          include_dev: true
       - run:
           name: Run flake8 (critical errors only)
           command: |
@@ -50,24 +101,8 @@ jobs:
     parallelism: 4
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
-            - python-deps-v2-{{ checksum "requirements.txt" }}
-            - python-deps-v2-
-      - run:
-          name: Install dependencies
-          command: |
-            pip install --upgrade pip
-            pip install -r requirements.txt
-            if [ -f requirements-dev.txt ]; then
-              pip install -r requirements-dev.txt
-            fi
-      - save_cache:
-          key: python-deps-v2-{{ checksum "requirements.txt" }}-{{ checksum "requirements-dev.txt" }}
-          paths:
-            - ~/.cache/pip
-            - /home/circleci/.local/lib/python3.11/site-packages
+      - install-python-deps:
+          include_dev: true
       - run:
           name: Run tests with pytest
           command: |
@@ -88,16 +123,16 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - python-security-deps-v2-{{ checksum "requirements.txt" }}
-            - python-security-deps-v2-
+            - python-security-deps-v3-{{ checksum "requirements.txt" }}
+            - python-security-deps-v3-
       - run:
           name: Install dependencies
           command: |
-            pip install --upgrade pip
+            pip install --upgrade pip setuptools wheel
             pip install -r requirements.txt
             pip install safety bandit
       - save_cache:
-          key: python-security-deps-v2-{{ checksum "requirements.txt" }}
+          key: python-security-deps-v3-{{ checksum "requirements.txt" }}
           paths:
             - ~/.cache/pip
             - /home/circleci/.local/lib/python3.11/site-packages
@@ -116,25 +151,7 @@ jobs:
     executor: node-executor
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - node-deps-v2-{{ checksum "frontend/package.json" }}
-            - node-deps-v2-
-      - run:
-          name: Install dependencies
-          command: |
-            cd frontend
-            if [ -f package-lock.json ]; then
-              npm ci --prefer-offline --no-audit
-            else
-              echo "package-lock.json not found; running npm install instead"
-              npm install
-            fi
-      - save_cache:
-          key: node-deps-v2-{{ checksum "frontend/package.json" }}
-          paths:
-            - frontend/node_modules
-            - ~/.npm
+      - install-node-deps
       - run:
           name: Run ESLint
           command: |
@@ -144,36 +161,18 @@ jobs:
     executor: node-executor
     steps:
       - checkout
+      - install-node-deps
       - restore_cache:
           keys:
-            - node-deps-v2-{{ checksum "frontend/package.json" }}
-            - node-deps-v2-
-      - run:
-          name: Install dependencies
-          command: |
-            cd frontend
-            if [ -f package-lock.json ]; then
-              npm ci --prefer-offline --no-audit
-            else
-              echo "package-lock.json not found; running npm install instead"
-              npm install
-            fi
-      - save_cache:
-          key: node-deps-v2-{{ checksum "frontend/package.json" }}
-          paths:
-            - frontend/node_modules
-            - ~/.npm
-      - restore_cache:
-          keys:
-            - nextjs-build-cache-v1-{{ .Branch }}-{{ .Revision }}
-            - nextjs-build-cache-v1-{{ .Branch }}-
-            - nextjs-build-cache-v1-
+            - nextjs-build-cache-v2-{{ .Branch }}-{{ .Revision }}
+            - nextjs-build-cache-v2-{{ .Branch }}-
+            - nextjs-build-cache-v2-
       - run:
           name: Build Next.js application
           command: |
             cd frontend && npm run build --if-present
       - save_cache:
-          key: nextjs-build-cache-v1-{{ .Branch }}-{{ .Revision }}
+          key: nextjs-build-cache-v2-{{ .Branch }}-{{ .Revision }}
           paths:
             - frontend/.next/cache
       - store_artifacts:
@@ -184,14 +183,16 @@ jobs:
   docker-build:
     docker:
       - image: cimg/base:stable
+    resource_class: medium+
     steps:
       - checkout
       - setup_remote_docker:
           docker_layer_caching: true
+          version: default
       - run:
           name: Build Docker image
           command: |
-            docker build -t financial-asset-relationship-db:${CIRCLE_SHA1} .
+            docker build --build-arg BUILDKIT_INLINE_CACHE=1 -t financial-asset-relationship-db:${CIRCLE_SHA1} .
       - run:
           name: Test Docker image
           command: |
@@ -201,7 +202,7 @@ workflows:
   version: 2
   build-and-test:
     jobs:
-      # Backend workflow - run lint and test in parallel, security can run after lint
+      # Backend workflow - run lint, test, and security in parallel
       - python-lint
       - python-test
       - python-security
@@ -210,7 +211,7 @@ workflows:
       - frontend-lint
       - frontend-build
 
-      # Docker build (only on main branch) - wait for tests to pass
+      # Docker build (only on main/develop branches) - wait for critical tests to pass
       - docker-build:
           requires:
             - python-lint
