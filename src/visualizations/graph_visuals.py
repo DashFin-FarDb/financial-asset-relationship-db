@@ -7,7 +7,6 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 # Sub-module re-exports — kept here so existing imports from this module continue to work.
 from src.visualizations.graph_visuals_constants import REL_TYPE_COLORS  # noqa: F401
-from src.visualizations.graph_visuals_data import _build_asset_id_index  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_edge_coordinates_optimized  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_hover_texts  # noqa: F401
 from src.visualizations.graph_visuals_data import _build_relationship_index  # noqa: F401
