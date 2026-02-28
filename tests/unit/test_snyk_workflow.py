@@ -54,9 +54,12 @@ class TestSnykWorkflowStructure:
 
     def test_workflow_valid_yaml(self, snyk_workflow_path):
         """
-        Verify the workflow file is valid YAML and parses to a mapping.
-
-        Asserts that loading the workflow file produces a non - None mapping(dict), indicating syntactically valid YAML suitable for further structural checks.
+        Assert the workflow file contains valid YAML that parses to a mapping.
+        
+        Opens the file at `snyk_workflow_path`, parses it with YAML safe loader, and asserts the result is a non-None mapping (`dict`) suitable for further structural tests.
+        
+        Parameters:
+            snyk_workflow_path (Path): Path to the workflow YAML file to validate.
         """
         with open(snyk_workflow_path) as f:
             data = yaml.safe_load(f)
@@ -155,7 +158,11 @@ class TestSnykWorkflowTriggers:
         assert "main" in branches or "Default" in branches
 
     def test_pull_request_triggers_on_main_branch(self, snyk_workflow):
-        """Test that PR trigger targets main branch."""
+        """
+        Ensure that when the workflow's pull_request trigger specifies branches, "main" is included.
+        
+        Locates the pull_request configuration and, if it contains a `branches` list, asserts that `"main"` is present in that list.
+        """
         triggers = snyk_workflow.get(True) or snyk_workflow.get("on")
         pr_config = triggers["pull_request"]
         if isinstance(pr_config, dict) and "branches" in pr_config:
@@ -180,7 +187,11 @@ class TestSnykWorkflowPermissions:
             return yaml.safe_load(f)
 
     def test_workflow_has_top_level_permissions(self, snyk_workflow):
-        """Test that workflow declares top - level permissions."""
+        """
+        Ensure the workflow declares top-level permissions.
+        
+        Asserts that the parsed workflow dictionary contains a top-level "permissions" key.
+        """
         assert "permissions" in snyk_workflow
 
     def test_workflow_permissions_minimal(self, snyk_workflow):
@@ -192,13 +203,12 @@ class TestSnykWorkflowPermissions:
 
     def test_job_has_specific_permissions(self, snyk_workflow):
         """
-        Verify the 'snyk' job declares required GitHub Actions permissions.
-
-        Asserts that the workflow's `jobs.snyk.permissions` mapping exists and contains
-        `contents` set to "read" and `security - events` set to "write".
-
+        Ensure the 'snyk' job declares required GitHub Actions permissions.
+        
+        Asserts that `jobs.snyk.permissions` exists and includes `contents` set to "read" and `security-events` set to "write".
+        
         Parameters:
-            snyk_workflow(dict): Parsed YAML mapping of the workflow file.
+            snyk_workflow (dict): Parsed YAML mapping of the workflow file.
         """
         snyk_job = snyk_workflow["jobs"]["snyk"]
         assert "permissions" in snyk_job
@@ -229,12 +239,10 @@ class TestSnykJobConfiguration:
     @pytest.fixture
     def snyk_job(self):
         """
-        Retrieve the 'snyk' job configuration from the Snyk workflow file.
-
-        Reads .github/workflows/snyk-infrastructure.yml and returns the mapping under `jobs` for the `snyk` job.
-
+        Retrieve the `snyk` job configuration from the workflow YAML file.
+        
         Returns:
-            snyk_job (dict): The dictionary representing the `snyk` job configuration from the workflow YAML.
+            dict: Mapping representing the `jobs.snyk` configuration from .github/workflows/snyk-infrastructure.yml.
         """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
@@ -243,9 +251,12 @@ class TestSnykJobConfiguration:
 
     def test_job_runs_on_ubuntu(self, snyk_job):
         """
-        Asserts the Snyk job is configured to run on an Ubuntu runner.
-
-        Checks that the job contains a `runs - on` field and that its value includes "ubuntu" (case-insensitive).
+        Ensure the Snyk job is configured to run on an Ubuntu runner.
+        
+        Asserts that the job contains a `runs-on` entry whose value includes the substring "ubuntu" (case-insensitive).
+        
+        Parameters:
+            snyk_job (dict): Mapping representing the Snyk job configuration loaded from the workflow YAML.
         """
         assert "runs-on" in snyk_job
         runs_on = snyk_job["runs-on"]
@@ -315,10 +326,9 @@ class TestSnykJobConfiguration:
 
     def test_snyk_token_uses_secret(self, snyk_job):
         """
-        Verifies the Snyk job sets SNYK_TOKEN from the GitHub secrets store.
-
-        Locates the Snyk action step in the job's steps and asserts the step's `env.SNYK_TOKEN`
-        contains the literal secret reference `${{secrets.SNYK_TOKEN}}`.
+        Check that the Snyk job sets the SNYK_TOKEN environment variable to reference the repository secret.
+        
+        Asserts the Snyk action step's `env.SNYK_TOKEN` contains the literal "${{ secrets.SNYK_TOKEN }}".
         """
         steps = snyk_job["steps"]
         snyk_steps = [s for s in steps if "uses" in s and "snyk" in s["uses"].lower()]
@@ -341,7 +351,11 @@ class TestSnykJobConfiguration:
         assert "file" in snyk_step["with"]
 
     def test_job_uploads_sarif(self, snyk_job):
-        """Test that job uploads SARIF results."""
+        """
+        Verify the job includes a SARIF upload step that uses the codeql-action/upload-sarif action.
+        
+        Checks that at least one step in the job has a `uses` value containing `codeql-action/upload-sarif`.
+        """
         steps = snyk_job["steps"]
         sarif_steps = [
             s
@@ -352,7 +366,7 @@ class TestSnykJobConfiguration:
 
     def test_sarif_upload_uses_v4(self, snyk_job):
         """
-        Ensure the SARIF upload step uses the CodeQL `upload - sarif` action with `@ v4`.
+        Verify the SARIF upload step invokes the CodeQL action 'codeql-action/upload-sarif' pinned to '@v4'.
         """
         steps = snyk_job["steps"]
         sarif_steps = [
@@ -463,9 +477,9 @@ class TestSnykWorkflowEdgeCases:
 
     def test_workflow_not_disabled(self, snyk_workflow_path):
         """
-        Ensure the workflow file is not entirely commented out or blank.
-
-        Reads the workflow YAML file and asserts there is at least one non-empty, non-comment line.
+        Verify the workflow file is not entirely commented out or empty.
+        
+        Asserts the file contains at least one non-empty, non-comment line.
         """
         content = snyk_workflow_path.read_text()
         lines = [
@@ -477,9 +491,9 @@ class TestSnykWorkflowEdgeCases:
 
     def test_workflow_job_names_valid(self, snyk_workflow_path):
         """
-        Ensure each job name in the workflow consists only of ASCII letters, digits, hyphens, or underscores.
-
-        Raises an assertion error if any job name contains characters outside the set A-Z, a-z, 0-9, '-', or '_'.
+        Validate that each job name in the workflow contains only ASCII letters, digits, hyphens, or underscores.
+        
+        Asserts that every key under the top-level "jobs" mapping uses only characters in the set A–Z, a–z, 0–9, '-' and '_'.
         """
         with open(snyk_workflow_path) as f:
             workflow = yaml.safe_load(f)
@@ -505,13 +519,18 @@ class TestSnykWorkflowComments:
         return workflow_path.read_text()
 
     def test_workflow_has_comments(self, snyk_workflow_content):
-        """Ensure the workflow file contains at least one comment character(`  # `)."""
+        """
+        Check that the workflow file contains at least one comment character ('#').
+        
+        Parameters:
+            snyk_workflow_content (str): Raw text content of the workflow file.
+        """
         assert "#" in snyk_workflow_content
 
     def test_workflow_documents_third_party_actions(self, snyk_workflow_content):
         """
-        Asserts the workflow file contains at least one comment documenting third-party (non-GitHub-certified) actions.
-
+        Ensure the workflow includes a comment documenting third-party (non-GitHub-certified) actions.
+        
         Parameters:
             snyk_workflow_content (str): Raw text content of the workflow YAML file used to extract comment lines.
         """
@@ -522,10 +541,10 @@ class TestSnykWorkflowComments:
 
     def test_workflow_provides_context(self, snyk_workflow_content):
         """
-        Asserts the workflow's comment lines mention scanning or security to ensure the file provides contextual purpose.
-
+        Ensure the workflow's comment lines mention scanning or security.
+        
         Parameters:
-            snyk_workflow_content (str): Raw text content of the workflow YAML file, including comment lines.
+            snyk_workflow_content (str): Raw text of the workflow YAML file (including comment lines) to search for context words.
         """
         comments = " ".join(
             l.strip("# ").lower()
@@ -536,7 +555,11 @@ class TestSnykWorkflowComments:
         assert "scan" in comments or "security" in comments
 
     def test_workflow_snyk_action_version_format(self, snyk_workflow_content):
-        """Test that Snyk action version follows expected format(SHA pinning)."""
+        """
+        Validate that the workflow contains a Snyk IaC action pinned to a 40-character hexadecimal SHA.
+        
+        Checks that at least one step uses the action path 'snyk/actions/iac@<SHA>' with exactly one '@', that the action path equals 'snyk/actions/iac', and that the SHA is 40 hexadecimal characters. Raises an AssertionError if any check fails.
+        """
         workflow_path = Path(".github/workflows/snyk-infrastructure.yml")
         with open(workflow_path) as f:
             workflow = yaml.safe_load(f)

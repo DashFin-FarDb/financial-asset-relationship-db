@@ -368,9 +368,9 @@ class TestStrengthBoundaryValues:
     @staticmethod
     def test_strength_just_above_zero(repository):
         """
-        Verify that a relationship can be created with a very small positive strength.
-
-        Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the persisted relationship strength equals 0.0001.
+        Verify the repository accepts and persists a very small positive relationship strength.
+        
+        Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the stored relationship strength equals 0.0001.
         """
         asset1 = Equity(
             id="BOUND1",
@@ -735,7 +735,11 @@ class TestEdgeCasesAndRegression:
 
     @staticmethod
     def test_get_asset_returns_fresh_data(repository):
-        """Test that get_asset_by_id returns fresh data after updates."""
+        """
+        Ensure that get_asset_by_id reflects a committed update to an asset's mutable fields.
+        
+        The test upserts an Equity with an initial price, commits, updates the price, commits again, and asserts that subsequent retrieval returns the updated price.
+        """
         equity = Equity(
             id="FRESH",
             symbol="FRS",

@@ -35,7 +35,21 @@ logger = logging.getLogger(__name__)
 
 
 def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
-    """Create a 3D visualization of the asset relationship graph."""
+    """
+    Render a 3D visualization of an asset relationship graph.
+    
+    Parameters:
+    	graph (AssetRelationshipGraph): Graph object that provides visualization data via
+    		`get_3d_visualization_data_enhanced()`; must be a valid AssetRelationshipGraph instance.
+    
+    Returns:
+    	fig (plotly.graph_objs.Figure): Plotly Figure containing node traces, relationship traces,
+    	and optional directional arrow traces representing the asset relationship graph.
+    
+    Raises:
+    	ValueError: If `graph` is not an AssetRelationshipGraph instance or lacks
+    		`get_3d_visualization_data_enhanced()`.
+    """
     if not isinstance(graph, AssetRelationshipGraph) or not hasattr(
         graph, "get_3d_visualization_data_enhanced"
     ):

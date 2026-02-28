@@ -252,7 +252,9 @@ class TestRecommendations:
 
     @staticmethod
     def test_high_density_recommendation(populated_graph):
-        """Test recommendation for high connectivity graphs."""
+        """
+        Verifies that a fully connected (high-density) graph produces a report containing guidance about high connectivity or normalization.
+        """
         # Create high density graph by connecting all pairs
         assets = list(populated_graph.assets.keys())
         for i, source in enumerate(assets):

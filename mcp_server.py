@@ -51,16 +51,14 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 def _build_mcp_app():
     """
-    Create and configure the FastMCP application used by the relationship manager.
-
-    Performs a local (lazy) import of the optional FastMCP dependency so the module can
-    be imported or inspected without requiring the MCP package to be installed. Registers
-    an `add_equity_node` tool that validates (and, if supported by the module-level
-    graph, adds) an Equity asset, and a `graph://data/3d-layout` resource that returns
-    the current 3D visualization data as a JSON string.
-
+    Create and configure the FastMCP application for the relationship manager.
+    
+    Performs a lazy import of FastMCP so the module can be imported without the optional MCP dependency.
+    Registers a tool that validates (and, if supported by the module-level graph, adds) an Equity asset,
+    and registers a resource at "graph://data/3d-layout" that returns current 3D visualization data as JSON.
+    
     Returns:
-        mcp (FastMCP): Configured FastMCP application instance.
+        FastMCP: Configured FastMCP application instance.
     """
     from mcp.server.fastmcp import FastMCP  # local import (lazy)
 
@@ -75,23 +73,15 @@ def _build_mcp_app():
         price: float,
     ) -> str:
         """
-        Validate the provided equity fields and add the resulting Equity to the
-        graph if the graph supports mutation.
-
-        Constructs an Equity instance to perform validation. If the module-level
-        graph exposes an `add_asset` callable the new Equity is added to the
-        graph; otherwise the function only validates and does not mutate graph
-        state.
-
+        Validate equity fields and add the resulting Equity to the module-level graph if the graph supports mutation.
+        
+        Constructs an Equity instance to validate the provided inputs. If the module-level `graph` exposes a callable `add_asset`, the new Equity is added to the graph; otherwise the function performs validation only and does not mutate graph state.
+        
         Returns:
-            A user-facing message string.
-            On success when the asset was added:
-                "Successfully added: <name> (<symbol>)".
-            On success when only validation occurred:
-                "Successfully validated (Graph mutation not supported):
-                <name> (<symbol>)".
-            On validation failure:
-                "Validation Error: <message>".
+            str: A user-facing message:
+                - "Successfully added: <name> (<symbol>)" when the asset was added.
+                - "Successfully validated (Graph mutation not supported): <name> (<symbol>)" when validation succeeded but the graph was not mutated.
+                - "Validation Error: <message>" when validation fails.
         """
         try:
             # Uses existing Equity dataclass for post-init validation.

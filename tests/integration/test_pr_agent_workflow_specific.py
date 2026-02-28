@@ -17,23 +17,23 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
     @pytest.fixture
     def workflow_file(self) -> Path:
         """
-        Get the path to the GitHub Actions workflow file for the PR agent.
-
+        Return the Path to the pr-agent GitHub Actions workflow file.
+        
         Returns:
-            Path: Path to .github/workflows/pr-agent.yml
+            Path: Path to ".github/workflows/pr-agent.yml"
         """
         return Path(".github/workflows/pr-agent.yml")
 
     @pytest.fixture
     def workflow_content(self, workflow_file: Path) -> Dict[str, Any]:
         """
-        Parse the GitHub Actions workflow YAML file into a Python mapping.
-
+        Load and parse a GitHub Actions workflow YAML file.
+        
         Parameters:
             workflow_file (Path): Path to the workflow YAML file.
-
+        
         Returns:
-            Dict[str, Any]: Parsed YAML content as a dictionary.
+            dict: Parsed YAML content as a mapping of the workflow structure.
         """
         with open(workflow_file, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
@@ -41,10 +41,10 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
     @pytest.fixture
     def workflow_raw(self, workflow_file: Path) -> str:
         """
-        Get the raw text of the workflow file for text-based validation.
-
+        Return the raw contents of the workflow file decoded as UTF-8.
+        
         Returns:
-            The file contents decoded as UTF-8.
+            The workflow file contents as a `str`.
         """
         with open(workflow_file, "r", encoding="utf-8") as f:
             return f.read()
@@ -64,7 +64,15 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
             )
 
     def test_no_duplicate_with_blocks_in_setup_python(self, workflow_raw: str):
-        """Test that Setup Python step doesn't have duplicate 'with:' blocks."""
+        """
+        Ensure each "Setup Python" step in the workflow text contains at most one indented `with:` block.
+        
+        Parameters:
+            workflow_raw (str): Raw workflow YAML text to scan for steps named "Setup Python".
+        
+        Raises:
+            AssertionError: If a "Setup Python" step contains more than one `with:` block.
+        """
         # Split into lines and check for pattern of duplicate 'with:' after Setup Python
         lines = workflow_raw.split("\n")
 
@@ -119,10 +127,10 @@ class TestPRAgentWorkflowStructureValidation:
 
     def test_has_pr_agent_trigger_job(self, workflow_content: Dict[str, Any]):
         """
-        Verify the workflow defines a top-level job named "pr-agent-trigger".
-
+        Assert the workflow defines a top-level job named "pr-agent-trigger".
+        
         Parameters:
-            workflow_content (Dict[str, Any]): Parsed YAML content of the workflow file.
+            workflow_content (Dict[str, Any]): Parsed YAML content of the workflow file as a mapping representing the workflow structure.
         """
         assert "jobs" in workflow_content
         assert "pr-agent-trigger" in workflow_content["jobs"], (
@@ -158,7 +166,12 @@ class TestPRAgentWorkflowStructureValidation:
                 )
 
     def test_trigger_on_pr_review(self, workflow_content: Dict[str, Any]):
-        """Test that workflow triggers on PR review events."""
+        """
+        Ensure the workflow triggers on pull request review events.
+        
+        Parameters:
+            workflow_content (Dict[str, Any]): Parsed YAML content of .github/workflows/pr-agent.yml as a dictionary.
+        """
         triggers = workflow_content.get("on", {})
         assert "pull_request_review" in triggers, (
             "Workflow should trigger on pull_request_review events"
@@ -209,10 +222,10 @@ class TestPRAgentWorkflowSetupSteps:
 
     def test_setup_python_exists(self, pr_agent_job: Dict[str, Any]):
         """
-        Assert the job contains exactly one step named "Setup Python".
-
+        Verify the job includes exactly one step named "Setup Python".
+        
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job configuration from the workflow YAML; expected to include a 'steps' list.
+            pr_agent_job (Dict[str, Any]): Parsed job configuration from the workflow YAML; expected to include a `steps` list where each step is a mapping that may contain a `name` key.
         """
         steps = pr_agent_job.get("steps", [])
         python_steps = [step for step in steps if step.get("name") == "Setup Python"]
@@ -246,10 +259,12 @@ class TestPRAgentWorkflowSetupSteps:
 
     def test_setup_order_correct(self, pr_agent_job: Dict[str, Any]):
         """
-        Ensure the pr-agent-trigger job's setup steps are ordered: checkout, Setup Python, then Setup Node.js.
-
+        Validate that the pr-agent-trigger job's setup steps appear in the order: checkout, Setup Python, then Setup Node.js.
+        
+        Asserts that when both steps are present, the checkout step occurs before the "Setup Python" step, and the "Setup Python" step occurs before the "Setup Node.js" step.
+        
         Parameters:
-            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the pr-agent-trigger job from the workflow YAML.
+            pr_agent_job (Dict[str, Any]): Parsed job dictionary for the `pr-agent-trigger` job from the workflow YAML.
         """
         steps = pr_agent_job.get("steps", [])
 

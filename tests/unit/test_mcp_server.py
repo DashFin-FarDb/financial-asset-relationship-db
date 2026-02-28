@@ -118,7 +118,11 @@ class TestAddEquityNode:
 
 @pytest.fixture(autouse=True)
 def _reset_global_graph():
-    """Ensure each test starts with a clean graph."""
+    """
+    Reset the module-level graph state before and after a test.
+    
+    Clears the global graph's assets and relationships prior to the test run and again after the test completes to ensure test isolation.
+    """
     from mcp_server import graph
 
     graph._graph.assets.clear()
@@ -441,7 +445,11 @@ class TestBuildMcpApp:
 
     @staticmethod
     def test_build_mcp_app_registers_3d_layout_resource():
-        """Test that 3d-layout resource is registered."""
+        """
+        Verify the MCP app registers a 3d-layout resource.
+        
+        Builds the MCP application and asserts that one of the registered resource URIs contains "3d-layout".
+        """
         from mcp_server import _build_mcp_app
 
         mcp_app = _build_mcp_app()

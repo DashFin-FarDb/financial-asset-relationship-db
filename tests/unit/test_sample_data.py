@@ -239,9 +239,9 @@ class TestSampleRelationships:
     @staticmethod
     def test_corporate_bond_relationships_exist():
         """
-        Verify corporate_bond relationships are present when bond assets exist.
-
-        If the generated sample database contains any Bond assets, this test asserts that at least one relationship with type "corporate_bond" appears in graph.relationships. The test does not fail when no Bond assets are present.
+        Ensure that if Bond assets exist in the generated sample graph, at least one relationship whose type contains "bond" (case-insensitive) is present.
+        
+        This test makes no assertion when no Bond assets are present.
         """
         graph = create_sample_database()
 
@@ -277,7 +277,12 @@ class TestSampleRegulatoryEvents:
 
     @staticmethod
     def test_regulatory_events_have_valid_impact_scores():
-        """Test that regulatory events have valid impact scores."""
+        """
+        Ensure each regulatory event's `impact_score` is between -1 and 1 inclusive.
+        
+        If the graph contains regulatory events, the test asserts every event's `impact_score`
+        is >= -1 and <= 1.
+        """
         graph = create_sample_database()
 
         if len(graph.regulatory_events) > 0:
@@ -331,9 +336,9 @@ class TestSampleDataConsistency:
     @staticmethod
     def test_relationship_targets_exist():
         """
-        Verify that every relationship's source and target IDs exist among the graph's assets.
-
-        Asserts that each relationship key present in graph.relationships is a valid asset ID and that every relationship's target ID refers to an existing asset.
+        Verify every relationship's source and target IDs reference assets present in the graph.
+        
+        Checks that each key in graph.relationships exists in graph.assets and that every relationship's target ID is present among graph.assets.
         """
         graph = create_sample_database()
 

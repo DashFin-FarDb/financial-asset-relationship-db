@@ -14,11 +14,11 @@ from urllib.parse import unquote, urlparse
 
 def _get_database_url() -> str:
     """
-    Read the DATABASE_URL environment variable and return its value.
-
+    Retrieve the configured database URL from the environment.
+    
     Returns:
         The value of the `DATABASE_URL` environment variable.
-
+    
     Raises:
         ValueError: If the `DATABASE_URL` environment variable is not set.
     """
@@ -98,13 +98,13 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
-    Determine whether a given SQLite path or URI refers to an in-memory database.
-
-    Recognizes the common in-memory forms such as `:memory:`, `file::memory:` and URI-style variants like `file::memory:?cache=shared`. Does not treat paths that merely contain `:memory:` as part of a filesystem path (e.g., `file:///path/:memory:`) as in-memory. The `mode=memory` URI parameter (e.g., `file:memdb1?mode=memory`) is not considered in-memory by this function.
-
+    Return whether the given SQLite path or URI refers to an in-memory database.
+    
+    Recognizes explicit in-memory forms such as `:memory:`, `file::memory:` and URI-style variants like `file::memory:?cache=shared`. Does not treat paths that merely contain `:memory:` as part of a filesystem path (for example, `file:///path/:memory:`), and does not treat `mode=memory` URI parameters (e.g., `file:memdb1?mode=memory`) as in-memory.
+    
     Parameters:
         path (str | None): Database path or URI to evaluate. If omitted, the module-configured `DATABASE_PATH` is used.
-
+    
     Returns:
         bool: `True` if the target refers to an in-memory SQLite database, `False` otherwise.
     """
@@ -133,18 +133,24 @@ class _DatabaseConnectionManager:
     LEGACY_CONNECTION = None
 
     def __init__(self, database_path: str):
+        """
+        Initialize the connection manager for a specific SQLite database path.
+        
+        Parameters:
+            database_path (str): Configured SQLite path or URI used to determine whether the manager should provide a shared in-memory connection or create per-call file-backed connections. Initializes internal cache and a lock for managing a shared in-memory connection.
+        """
         self._database_path = database_path
         self._memory_connection: sqlite3.Connection | None = None
         self._memory_connection_lock = threading.Lock()
 
     def connect(self) -> sqlite3.Connection:
         """
-        Provide a configured sqlite3.Connection for the configured database path.
-
-        For an in-memory database returns a persistent shared connection that is reused across calls; for a file-backed database returns a new connection instance each call.
-
+        Return a configured sqlite3.Connection for the manager's database path.
+        
+        For an in-memory database, returns a persistent shared connection reused across calls. For a file-backed database, returns a new connection instance on each call.
+        
         Returns:
-            sqlite3.Connection: A connection configured with PARSE_DECLTYPES, check_same_thread=False, and Row row factory. For in-memory databases this is a shared persistent connection; for file-backed databases this is a fresh connection.
+            sqlite3.Connection: A connection configured with `detect_types=sqlite3.PARSE_DECLTYPES`, `check_same_thread=False`, and `row_factory=sqlite3.Row`. For in-memory databases this is a shared persistent connection; for file-backed databases this is a fresh connection.
         """
         if _is_memory_db(self._database_path):
             with self._memory_connection_lock:

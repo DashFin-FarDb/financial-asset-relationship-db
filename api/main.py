@@ -60,14 +60,9 @@ __all__ = [
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
-    Manage the application's lifespan by initialising the global graph on startup and logging shutdown.
-
-    Initialises the global asset relationship graph before the application begins handling requests;
-    if initialisation fails the exception is re-raised to abort startup. Yields control for the
-    application's running lifetime and logs on shutdown.
-
-    Parameters:
-        app (FastAPI): The FastAPI application instance.
+    Manage the application's lifespan by initializing the global graph on startup and logging shutdown.
+    
+    Initializes the global asset relationship graph before the application begins handling requests; if initialization fails the exception is propagated to abort startup. Yields control for the application's running lifetime and logs application shutdown.
     """
     # Startup
     try:
@@ -178,7 +173,16 @@ async def read_users_me(
     request: Request, current_user: User = Depends(get_current_active_user)
 ):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
-    """Retrieve the currently authenticated user."""
+    """
+    Return the authenticated user associated with the incoming request.
+    
+    Parameters:
+        request (Request): Included to satisfy the rate limiter's dependency injection.
+        current_user (User): The active authenticated user resolved by dependencies.
+    
+    Returns:
+        User: The currently authenticated user.
+    """
     _ = request
 
     return current_user
@@ -190,7 +194,19 @@ async def login_for_access_token(
     request: Request, form_data: OAuth2PasswordRequestForm = Depends()
 ):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
-    """Create a JWT access token for authenticated users."""
+    """
+    Create a JWT access token for a user authenticated with username and password.
+    
+    Parameters:
+        request (Request): Required for rate-limiter dependency injection; not used directly by this function.
+        form_data (OAuth2PasswordRequestForm): Credentials submitted by the client.
+    
+    Returns:
+        dict: A dictionary with keys `access_token` (JWT string) and `token_type` set to `'bearer'`.
+    
+    Raises:
+        HTTPException: 401 Unauthorized if the provided username or password is incorrect.
+    """
     _ = request
 
     user = authenticate_user(form_data.username, form_data.password)
@@ -213,7 +229,16 @@ async def read_users_me(
     request: Request, current_user: User = Depends(get_current_active_user)
 ):
     # The `request` parameter is required by slowapi's limiter for dependency injection.
-    """Retrieve the currently authenticated user."""
+    """
+    Return the authenticated user associated with the incoming request.
+    
+    Parameters:
+        request (Request): Included to satisfy the rate limiter's dependency injection.
+        current_user (User): The active authenticated user resolved by dependencies.
+    
+    Returns:
+        User: The currently authenticated user.
+    """
     _ = request
 
     return current_user
