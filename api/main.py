@@ -188,60 +188,6 @@ async def read_users_me(
     return current_user
 
 
-@app.post("/token", response_model=Token)
-@limiter.limit("5/minute")
-async def login_for_access_token(
-    request: Request, form_data: OAuth2PasswordRequestForm = Depends()
-):
-    # The `request` parameter is required by slowapi's limiter for dependency injection.
-    """
-    Create a JWT access token for a user authenticated with username and password.
-
-    Parameters:
-        request (Request): Required for rate-limiter dependency injection; not used directly by this function.
-        form_data (OAuth2PasswordRequestForm): Credentials submitted by the client.
-
-    Returns:
-        dict: A dictionary with keys `access_token` (JWT string) and `token_type` set to `'bearer'`.
-
-    Raises:
-        HTTPException: 401 Unauthorized if the provided username or password is incorrect.
-    """
-    _ = request
-
-    user = authenticate_user(form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
-
-
-@app.get("/api/users/me", response_model=User)
-@limiter.limit("10/minute")
-async def read_users_me(
-    request: Request, current_user: User = Depends(get_current_active_user)
-):
-    # The `request` parameter is required by slowapi's limiter for dependency injection.
-    """
-    Return the authenticated user associated with the incoming request.
-
-    Parameters:
-        request (Request): Included to satisfy the rate limiter's dependency injection.
-        current_user (User): The active authenticated user resolved by dependencies.
-
-    Returns:
-        User: The currently authenticated user.
-    """
-    _ = request
-
-    return current_user
 
 
 @app.get("/")
