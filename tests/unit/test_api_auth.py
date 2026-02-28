@@ -475,7 +475,6 @@ class TestGetCurrentUser:
         """get_current_user raises HTTPException when sub claim is missing."""
         # Token without 'sub' claim
         data = {"other": "value"}
-        token = create_access_token(data)
 
         # Override to remove sub
         import jwt
