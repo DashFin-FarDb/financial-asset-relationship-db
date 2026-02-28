@@ -495,9 +495,14 @@ async def get_assets(
     try:
         g = get_graph()
         assets = []
-        for asset in g.assets.values():
-            if asset_class and asset.asset_class.value != asset_class:
-                continue
+            for asset in g.assets.values():
+                if asset_class:
+                    requested = asset_class.strip().lower()
+                    if requested not in {
+                        asset.asset_class.value.lower(),
+                        asset.asset_class.name.lower(),
+                    }:
+                        continue
             if sector and asset.sector != sector:
                 continue
             assets.append(AssetResponse(**serialize_asset(asset)))
