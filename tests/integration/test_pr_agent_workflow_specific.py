@@ -55,9 +55,9 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
             steps = job_config.get("steps", [])
             setup_python_count = sum(1 for step in steps if step.get("name") == "Setup Python")
 
-            assert (
-                setup_python_count <= 1
-            ), f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps, expected at most 1"
+            assert setup_python_count <= 1, (
+                f"Job '{job_name}' has {setup_python_count} 'Setup Python' steps, expected at most 1"
+            )
 
     def test_no_duplicate_with_blocks_in_setup_python(self, workflow_raw: str):
         """
@@ -100,9 +100,9 @@ class TestPRAgentWorkflowDuplicateKeyRegression:
                     if re.match(r"^\s+- name:", lines[j]):
                         break
 
-                assert (
-                    version_count == 1
-                ), f"Setup Python at line {i + 1} has {version_count} python-version definitions, expected 1"
+                assert version_count == 1, (
+                    f"Setup Python at line {i + 1} has {version_count} python-version definitions, expected 1"
+                )
 
 
 class TestPRAgentWorkflowStructureValidation:
