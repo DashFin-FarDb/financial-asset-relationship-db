@@ -252,7 +252,7 @@ class TestUserRepository:
             hashed_password="hashed_pw",
             email="new@example.com",
             full_name="New User",
-            disabled=True,
+            disabled_flag=True,
         )
 
         mock_database["execute"].assert_called_once()
@@ -282,11 +282,11 @@ class TestUserRepository:
         repo = UserRepository()
 
         # Test disabled=False
-        repo.create_or_update_user(username="user1", hashed_password="pw1", disabled=False)
+        repo.create_or_update_user(username="user1", hashed_password="pw1", disabled_flag=False)
         assert 0 in mock_database["execute"].call_args[0][1]
 
         # Test disabled=True
-        repo.create_or_update_user(username="user2", hashed_password="pw2", disabled=True)
+        repo.create_or_update_user(username="user2", hashed_password="pw2", disabled_flag=True)
         assert 1 in mock_database["execute"].call_args[0][1]
 
 
