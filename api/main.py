@@ -208,7 +208,9 @@ def validate_origin(origin_url: str) -> bool:
     # Re-read environment dynamically to support runtime overrides (e.g., during tests).
     current_env = os.getenv("ENV", "development").lower()
 
-    env_allowed_origins = [o for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o]
+    env_allowed_origins = [
+        o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()
+    ]
     if origin_url and origin_url in env_allowed_origins:
         return True
 
