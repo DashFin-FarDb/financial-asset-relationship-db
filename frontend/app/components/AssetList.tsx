@@ -71,6 +71,9 @@ const SelectFilter = ({
 
 /**
  * Fetches and displays a list of assets with filtering and pagination.
+ *
+ * The AssetList component manages the state for assets, loading status, error handling, and pagination. It utilizes hooks to fetch asset metadata and assets based on the current filter and pagination settings. The component also updates the URL query parameters to reflect the current filter and pagination state, ensuring a seamless user experience.
+ *
  * @returns {JSX.Element} The AssetList component.
  */
 export default function AssetList() {
@@ -173,7 +176,10 @@ export default function AssetList() {
   }, [filter, loadAssets, page, pageSize, querySummary]);
 
   useEffect(() => {
-    void fetchAssets();
+    void fetchAssets().catch((err) => {
+      setError(err instanceof Error ? err.message : "Failed to load assets");
+      setLoading(false);
+    });
   }, [fetchAssets]);
 
   /**
@@ -239,18 +245,117 @@ export default function AssetList() {
       {size}
     </option>
   );
-
   // Extracted component to handle loading and error display
-  const AssetListStatus = ({ loading, error }: { loading: boolean; error: string | null }) => {
-    if (!loading && !error) {
+  /**
+   * Renders the status of an asset list based on loading and error states.
+   *
+   * The component checks if the loading state is false and there is no error; if so, it returns null.
+   * If loading is true, it displays a loading message, otherwise, it shows an error message with the provided error string.
+   * The text color changes based on the loading state, indicating the current status visually.
+   *
+   * @param {Object} params - The parameters for the component.
+   * @param {boolean} params.loading - Indicates if the asset list is currently loading.
+   * @param {string | null} params.error - The error message to display if loading is complete and an error occurred.
+   */
+  const AssetListStatus = ({
+    loading: isLoading,
+    error: loadError,
+  }: {
+    loading: boolean;
+    error: string | null;
+  }) => {
+    const hasError = loadError !== null;
+
+    if (!isLoading && !hasError) {
       return null;
     }
+
     return (
-      <div className={`px-6 py-3 text-sm ${loading ? "text-gray-500" : "text-red-500"}`}>
-        {loading ? "Loading..." : `Error: ${error}`}
+      <div
+        className={`px-6 py-3 text-sm ${
+          hasError ? "text-red-500" : "text-gray-500"
+        }`}
+      >
+        {hasError ? `Error: ${loadError}` : "Loading..."}
       </div>
     );
   };
+
+  // Extracted component to handle table display
+  const AssetListTable = ({
+    assets: tableAssets,
+    loading: isLoading,
+    error: loadError,
+  }: {
+    assets: Asset[];
+    loading: boolean;
+    error: string | null;
+  }) => (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {["Symbol", "Name", "Class", "Sector", "Price", "Market Cap"].map(
+              (col) => (
+                <th
+                  key={col}
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  {col}
+                </th>
+              ),
+            )}
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {isLoading ? (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                Loading...
+              </td>
+            </tr>
+          ) : loadError ? (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center text-red-600">
+                {loadError}
+              </td>
+            </tr>
+          ) : tableAssets.length === 0 ? (
+            <tr>
+              <td colSpan={6} className="px-6 py-4 text-center text-gray-500">
+                No assets found
+              </td>
+            </tr>
+          ) : (
+            tableAssets.map((asset) => (
+              <tr key={asset.id} className="hover:bg-gray-50">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {asset.symbol}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.asset_class}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.sector}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {asset.currency} {asset.price.toFixed(2)}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {typeof asset.market_cap === "number"
+                    ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
+                    : "N/A"}
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -277,94 +382,8 @@ export default function AssetList() {
       {/* Asset List */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         <AssetListStatus loading={loading} error={error} />
-              error
-                ? "bg-red-50 text-red-700 border-b border-red-100"
-                : "bg-blue-50 text-blue-700 border-b border-blue-100"
-            }`}
-            role={error ? "alert" : "status"}
-          >
-            {error || `Loading results for ${querySummary}...`}
-          </div>
-        )}
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {[
-                  "Symbol",
-                  "Name",
-                  "Class",
-                  "Sector",
-                  "Price",
-                  "Market Cap",
-                ].map((col) => (
-                  <th
-                    key={col}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {loading ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    Loading...
-                  </td>
-                </tr>
-              ) : error ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-red-600"
-                  >
-                    {error}
-                  </td>
-                </tr>
-              ) : assets.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-6 py-4 text-center text-gray-500"
-                  >
-                    No assets found
-                  </td>
-                </tr>
-              ) : (
-                assets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {asset.symbol}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.asset_class}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.sector}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {asset.currency} {asset.price.toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {typeof asset.market_cap === "number"
-                        ? `$${(asset.market_cap / 1e9).toFixed(2)}B`
-                        : "N/A"}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AssetListTable assets={assets} loading={loading} error={error} />
 
         {/* Pagination */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gray-50 px-6 py-4 border-t border-gray-100">

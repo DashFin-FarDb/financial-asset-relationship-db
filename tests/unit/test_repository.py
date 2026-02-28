@@ -26,10 +26,22 @@ from src.models.financial_models import (
 
 pytest.importorskip("sqlalchemy")
 
+pytestmark = pytest.mark.unit
+
 
 @pytest.fixture
 def repository(tmp_path):
-    """Create a repository with a test database."""
+    """
+    Provide an AssetGraphRepository backed by a temporary SQLite database for use in tests.
+
+    Creates a SQLite database file at `tmp_path / "test_repo.db"`, initializes the schema, opens a SQLAlchemy session and returns an AssetGraphRepository using that session. After the fixture is used, the session is closed and the engine is disposed.
+
+    Parameters:
+        tmp_path (pathlib.Path): Temporary directory provided by pytest in which the test database file is created.
+
+    Returns:
+        AssetGraphRepository: Repository instance connected to the test SQLite database; cleanup (session close and engine dispose) runs after the fixture is torn down.
+    """
     db_path = tmp_path / "test_repo.db"
     engine = create_engine(f"sqlite:///{db_path}")
     init_db(engine)
@@ -41,6 +53,7 @@ def repository(tmp_path):
     engine.dispose()
 
 
+@pytest.mark.unit
 class TestAssetOperations:
     """Test cases for asset CRUD operations."""
 
@@ -263,6 +276,7 @@ class TestAssetOperations:
         repository.session.commit()
 
 
+@pytest.mark.unit
 class TestRelationshipOperations:
     """Test cases for relationship management."""
 
@@ -454,6 +468,7 @@ class TestRelationshipOperations:
         assert record.bidirectional is True
 
 
+@pytest.mark.unit
 class TestRegulatoryEventOperations:
     """Test cases for regulatory event handling."""
 
@@ -564,9 +579,9 @@ class TestRegulatoryEventOperations:
         event = RegulatoryEvent(
             id="EVENT003",
             asset_id="MAIN",
-            event_type=RegulatoryActivity.MERGER,
+            event_type=RegulatoryActivity.ACQUISITION,
             date="2024-03-01",
-            description="Merger announcement",
+            description="Acquisition announcement",
             impact_score=0.9,
             related_assets=["REL1", "REL2"],
         )
@@ -579,6 +594,7 @@ class TestRegulatoryEventOperations:
         assert len(event_orm.related_assets) == 2
 
 
+@pytest.mark.unit
 class TestDataTransformation:
     """Test cases for data transformation between models and ORM."""
 
@@ -681,6 +697,7 @@ class TestDataTransformation:
         assert any(isinstance(a, Commodity) for a in assets)
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -774,3 +791,781 @@ class TestEdgeCases:
         rel = repository.get_relationship("MAX1", "MAX2", "max_strength")
         assert rel is not None
         assert rel.strength == 1.0
+
+
+@pytest.mark.unit
+class TestComplexScenarios:
+    """Test complex real-world scenarios."""
+
+    @staticmethod
+    def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
+        """
+        Create a small diversified portfolio in the repository, persist the assets, add inter-asset relationships, and verify persistence.
+
+        This test inserts four assets (equity, bond, commodity, currency), commits them, adds two relationships (one bidirectional, one unidirectional), commits again, and asserts that the repository contains four assets and at least two relationships.
+        """
+        # Add diverse assets
+        assets = [
+            Equity(
+                id="TECH1",
+                symbol="TECH1",
+                name="Tech Company",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=150.0,
+                pe_ratio=25.0,
+                dividend_yield=0.01,
+            ),
+            Bond(
+                id="BOND1",
+                symbol="BOND1",
+                name="Gov Bond",
+                asset_class=AssetClass.FIXED_INCOME,
+                sector="Government",
+                price=1000.0,
+                yield_to_maturity=0.03,
+                coupon_rate=0.025,
+                maturity_date="2030-01-01",
+                credit_rating="AAA",
+            ),
+            Commodity(
+                id="GOLD1",
+                symbol="GC",
+                name="Gold",
+                asset_class=AssetClass.COMMODITY,
+                sector="Precious Metals",
+                price=2000.0,
+                contract_size=100.0,
+                volatility=0.15,
+            ),
+            Currency(
+                id="EUR1",
+                symbol="EUR",
+                name="Euro",
+                asset_class=AssetClass.CURRENCY,
+                sector="Forex",
+                price=1.1,
+                exchange_rate=1.1,
+                country="EU",
+            ),
+        ]
+
+        for asset in assets:
+            repository.upsert_asset(asset)
+        repository.session.commit()
+
+        # Add relationships between assets
+        repository.add_or_update_relationship("TECH1", "BOND1", "inverse_correlation", 0.3, bidirectional=True)
+        repository.add_or_update_relationship("GOLD1", "EUR1", "commodity_currency", 0.6, bidirectional=False)
+        repository.session.commit()
+
+        # Verify all assets exist
+        assets_map = repository.get_assets_map()
+        assert len(assets_map) == 4
+
+        # Verify relationships
+        relationships = repository.list_relationships()
+        assert len(relationships) >= 2
+
+    @staticmethod
+    def test_regulatory_event_with_multiple_impacts(repository):
+        """Test regulatory event affecting multiple assets."""
+        # Create related assets
+        main_asset = Equity(
+            id="MAIN",
+            symbol="MAIN",
+            name="Main Company",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=200.0,
+        )
+        related1 = Equity(
+            id="REL1",
+            symbol="REL1",
+            name="Related 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+        )
+        related2 = Equity(
+            id="REL2",
+            symbol="REL2",
+            name="Related 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=180.0,
+        )
+
+        for asset in [main_asset, related1, related2]:
+            repository.upsert_asset(asset)
+        repository.session.commit()
+
+        # Create event with multiple related assets
+        event = RegulatoryEvent(
+            id="MERGER001",
+            asset_id="MAIN",
+            event_type=RegulatoryActivity.ACQUISITION,
+            date="2024-06-15",
+            description="Major acquisition announcement",
+            impact_score=0.85,
+            related_assets=["REL1", "REL2"],
+        )
+
+        repository.upsert_regulatory_event(event)
+        repository.session.commit()
+
+        # Verify event and related assets
+        events = repository.list_regulatory_events()
+        assert len(events) == 1
+        assert len(events[0].related_assets) == 2
+        assert "REL1" in events[0].related_assets
+        assert "REL2" in events[0].related_assets
+
+    @staticmethod
+    def test_cascade_delete_relationships(repository):
+        """Test that deleting an asset cascades to relationships."""
+        asset1 = Equity(
+            id="CASCADE1",
+            symbol="C1",
+            name="Cascade 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="CASCADE2",
+            symbol="C2",
+            name="Cascade 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
+
+        repository.upsert_asset(asset1)
+        repository.upsert_asset(asset2)
+        repository.session.commit()
+
+        repository.add_or_update_relationship("CASCADE1", "CASCADE2", "test_rel", 0.5, bidirectional=False)
+        repository.session.commit()
+
+        # Delete asset
+        repository.delete_asset("CASCADE1")
+        repository.session.commit()
+
+        # Relationships should be cleaned up
+        relationships = repository.list_relationships()
+        remaining_rels = [r for r in relationships if r.source_id == "CASCADE1" or r.target_id == "CASCADE1"]
+        assert len(remaining_rels) == 0
+
+
+@pytest.mark.unit
+class TestAssetTypeConversions:
+    """Test conversion between different asset types."""
+
+    @staticmethod
+    def test_convert_equity_to_base_asset(repository):
+        """Test converting equity to base asset type."""
+        equity = Equity(
+            id="CONVERT1",
+            symbol="CVT1",
+            name="Convert 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+            pe_ratio=20.0,
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Retrieve and verify it's still an Equity
+        retrieved = repository.list_assets()[0]
+        assert isinstance(retrieved, Equity)
+        assert retrieved.pe_ratio == 20.0
+
+    @staticmethod
+    def test_update_asset_clears_stale_fields(repository):
+        """Test that updating asset type clears stale fields."""
+        # First insert as Bond
+        bond = Bond(
+            id="MORPH1",
+            symbol="MRP1",
+            name="Morph 1",
+            asset_class=AssetClass.FIXED_INCOME,
+            sector="Finance",
+            price=1000.0,
+            yield_to_maturity=0.03,
+            coupon_rate=0.025,
+            maturity_date="2030-01-01",
+            credit_rating="AAA",
+        )
+
+        repository.upsert_asset(bond)
+        repository.session.commit()
+
+        # Now update as Equity (simulating asset type change)
+        equity = Equity(
+            id="MORPH1",
+            symbol="MRP1",
+            name="Morph 1 Updated",
+            asset_class=AssetClass.EQUITY,
+            sector="Technology",
+            price=150.0,
+            pe_ratio=25.0,
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Retrieve and verify bond-specific fields are None
+        retrieved = repository.get_assets_map()["MORPH1"]
+        assert isinstance(retrieved, Equity)
+        assert retrieved.pe_ratio == 25.0
+        # Verify that old Bond-specific fields are now None
+        assert getattr(retrieved, "yield_to_maturity", None) is None
+        assert getattr(retrieved, "coupon_rate", None) is None
+
+
+@pytest.mark.unit
+@pytest.mark.slow
+class TestPerformance:
+    """Test performance with large datasets."""
+
+    @staticmethod
+    def test_bulk_asset_insertion(repository):
+        """Test inserting many assets efficiently."""
+        # Create 100 assets
+        for i in range(100):
+            asset = Equity(
+                id=f"BULK{i}",
+                symbol=f"BLK{i}",
+                name=f"Bulk Asset {i}",
+                asset_class=AssetClass.EQUITY,
+                sector="Technology",
+                price=100.0 + i,
+            )
+            repository.upsert_asset(asset)
+
+        repository.session.commit()
+
+        assets = repository.list_assets()
+        assert len(assets) == 100
+
+    @staticmethod
+    def test_many_relationships(repository):
+        """Test creating many relationships."""
+        # Create 10 assets
+        for i in range(10):
+            asset = Equity(
+                id=f"NODE{i}",
+                symbol=f"ND{i}",
+                name=f"Node {i}",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            )
+            repository.upsert_asset(asset)
+        repository.session.commit()
+
+        # Create relationships between all pairs
+        for i in range(10):
+            for j in range(i + 1, 10):
+                repository.add_or_update_relationship(
+                    f"NODE{i}",
+                    f"NODE{j}",
+                    "connected",
+                    0.5,
+                    bidirectional=False,
+                )
+        repository.session.commit()
+
+        relationships = repository.list_relationships()
+        # Should have 45 relationships (10 choose 2)
+        assert len(relationships) == 45
+
+
+@pytest.mark.unit
+class TestDataIntegrity:
+    """Test data integrity constraints and validation."""
+
+    @staticmethod
+    def test_list_regulatory_events_returns_all(repository):
+        """Test that list_regulatory_events returns all events."""
+        # Create asset
+        asset = Equity(
+            id="EVENT_HOST",
+            symbol="EH",
+            name="Event Host",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        repository.upsert_asset(asset)
+        repository.session.commit()
+
+        # Create multiple events
+        for i in range(5):
+            event = RegulatoryEvent(
+                id=f"EVENT{i}",
+                asset_id="EVENT_HOST",
+                event_type=RegulatoryActivity.SEC_FILING,
+                date=f"2024-0{i + 1}-01",
+                description=f"Event {i}",
+                impact_score=0.5,
+                related_assets=[],
+            )
+            repository.upsert_regulatory_event(event)
+        repository.session.commit()
+
+        events = repository.list_regulatory_events()
+        assert len(events) == 5
+
+    @staticmethod
+    def test_delete_regulatory_event(repository):
+        """Test deleting a regulatory event."""
+        asset = Equity(
+            id="EVENT_DEL",
+            symbol="ED",
+            name="Event Del",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        repository.upsert_asset(asset)
+
+        event = RegulatoryEvent(
+            id="DEL_EVENT",
+            asset_id="EVENT_DEL",
+            event_type=RegulatoryActivity.DIVIDEND_ANNOUNCEMENT,
+            date="2024-03-01",
+            description="To be deleted",
+            impact_score=0.3,
+            related_assets=[],
+        )
+
+        repository.upsert_regulatory_event(event)
+        repository.session.commit()
+
+        # Delete the event
+        repository.delete_regulatory_event("DEL_EVENT")
+        repository.session.commit()
+
+        events = repository.list_regulatory_events()
+        assert len(events) == 0
+
+    @staticmethod
+    def test_delete_nonexistent_regulatory_event(repository):
+        """Test deleting a regulatory event that doesn't exist."""
+        # Should not raise an error
+        repository.delete_regulatory_event("NONEXISTENT")
+        repository.session.commit()
+
+
+@pytest.mark.unit
+class TestBoundaryValues:
+    """Test boundary value conditions."""
+
+    @staticmethod
+    def test_very_small_price(repository):
+        """Test asset with very small price."""
+        equity = Equity(
+            id="MICRO",
+            symbol="MCR",
+            name="Micro Price",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=0.01,
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        retrieved = repository.list_assets()[0]
+        assert retrieved.price == 0.01
+
+    @staticmethod
+    def test_very_large_market_cap(repository):
+        """Test asset with very large market cap."""
+        equity = Equity(
+            id="MEGA",
+            symbol="MGA",
+            name="Mega Cap",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=1000.0,
+            market_cap=1e15,  # Quadrillion dollars
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        retrieved = repository.list_assets()[0]
+        assert retrieved.market_cap == 1e15
+
+    @staticmethod
+    def test_negative_strength_relationship(repository):
+        """Test relationship with negative strength (negative correlation)."""
+        asset1 = Equity(
+            id="NEG1",
+            symbol="N1",
+            name="Neg 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="NEG2",
+            symbol="N2",
+            name="Neg 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Finance",
+            price=200.0,
+        )
+
+        repository.upsert_asset(asset1)
+        repository.upsert_asset(asset2)
+        repository.session.commit()
+
+        repository.add_or_update_relationship("NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False)
+        repository.session.commit()
+
+        rel = repository.get_relationship("NEG1", "NEG2", "negative_corr")
+        assert rel.strength == -0.8
+        repository.add_or_update_relationship("NEG1", "NEG2", "negative_corr", -0.8, bidirectional=False)
+
+
+@pytest.mark.unit
+class TestSpecialCharacters:
+    """Test handling of special characters in data."""
+
+    @staticmethod
+    def test_asset_with_special_characters_in_name(repository):
+        """Test asset with special characters in name."""
+        equity = Equity(
+            id="SPECIAL",
+            symbol="SPC",
+            name="Company & Partners (Ltd.)",
+            asset_class=AssetClass.EQUITY,
+            sector="Finance",
+            price=100.0,
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        retrieved = repository.list_assets()[0]
+        assert retrieved.name == "Company & Partners (Ltd.)"
+
+    @staticmethod
+    def test_event_description_with_quotes(repository):
+        """Test regulatory event with quotes in description."""
+        asset = Equity(
+            id="QUOTE_TEST",
+            symbol="QT",
+            name="Quote Test",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        repository.upsert_asset(asset)
+
+        event = RegulatoryEvent(
+            id="QUOTE_EVENT",
+            asset_id="QUOTE_TEST",
+            event_type=RegulatoryActivity.SEC_FILING,
+            date="2024-01-01",
+            description='CEO stated: "Record growth expected"',
+            impact_score=0.7,
+            related_assets=[],
+        )
+
+        repository.upsert_regulatory_event(event)
+        repository.session.commit()
+
+        events = repository.list_regulatory_events()
+        assert 'CEO stated: "Record growth expected"' in events[0].description
+
+
+@pytest.mark.unit
+class TestConcurrentAccess:
+    """Test concurrent access patterns."""
+
+    @staticmethod
+    def test_multiple_read_operations_concurrent(repository):
+        """Test multiple concurrent read operations."""
+        # Add test data
+        equity = Equity(
+            id="CONCURRENT",
+            symbol="CNC",
+            name="Concurrent",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Perform multiple reads
+        results = []
+        for _ in range(5):
+            assets = repository.list_assets()
+            results.append(len(assets))
+
+        # All should return same count
+        assert all(r == 1 for r in results)
+
+    @staticmethod
+    def test_interleaved_read_write_operations(repository):
+        """Test interleaved read and write operations."""
+        for i in range(5):
+            equity = Equity(
+                id=f"INTERLEAVE{i}",
+                symbol=f"INT{i}",
+                name=f"Interleave {i}",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0 + i,
+            )
+            repository.upsert_asset(equity)
+            repository.session.commit()
+
+            # Read after each write
+            assets = repository.list_assets()
+            assert len(assets) == i + 1
+
+
+@pytest.mark.unit
+class TestNullAndEmptyValues:
+    """Test handling of null and empty values."""
+
+    @staticmethod
+    def test_relationship_with_empty_type_string(repository):
+        """Test that relationship with empty type is handled."""
+        asset1 = Equity(
+            id="EMPTY1",
+            symbol="E1",
+            name="Empty 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Equity(
+            id="EMPTY2",
+            symbol="E2",
+            name="Empty 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=200.0,
+        )
+
+        repository.upsert_asset(asset1)
+        repository.upsert_asset(asset2)
+        repository.session.commit()
+
+        # Empty relationship type
+        repository.add_or_update_relationship("EMPTY1", "EMPTY2", "", 0.5, bidirectional=False)
+        repository.session.commit()
+
+        rel = repository.get_relationship("EMPTY1", "EMPTY2", "")
+        assert rel is not None
+        assert rel.relationship_type == ""
+
+
+@pytest.mark.unit
+class TestTransactionBehavior:
+    """Test transaction and rollback behavior."""
+
+    @staticmethod
+    def test_rollback_after_failed_insert(repository):
+        """Test rollback after failed insert."""
+        equity = Equity(
+            id="ROLLBACK_TEST",
+            symbol="RB",
+            name="Rollback",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+
+        repository.upsert_asset(equity)
+        # Don't commit, rollback instead
+        repository.session.rollback()
+
+        assets = repository.list_assets()
+        assert len(assets) == 0
+
+    @staticmethod
+    def test_commit_persists_changes(repository):
+        """Test that commit persists changes."""
+        equity = Equity(
+            id="PERSIST",
+            symbol="PER",
+            name="Persist",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Changes should be persisted
+        assets = repository.list_assets()
+        assert len(assets) == 1
+        assert assets[0].id == "PERSIST"
+
+
+@pytest.mark.unit
+class TestComplexQueries:
+    """Test complex query scenarios."""
+
+    @staticmethod
+    def test_assets_map_after_deletions(repository):
+        """Test get_assets_map after deleting some assets."""
+        # Add multiple assets
+        for i in range(5):
+            equity = Equity(
+                id=f"DEL_TEST{i}",
+                symbol=f"DT{i}",
+                name=f"Delete Test {i}",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            )
+            repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Delete some
+        repository.delete_asset("DEL_TEST0")
+        repository.delete_asset("DEL_TEST2")
+        repository.session.commit()
+
+        assets_map = repository.get_assets_map()
+        assert len(assets_map) == 3
+        assert "DEL_TEST0" not in assets_map
+        assert "DEL_TEST1" in assets_map
+
+    @staticmethod
+    def test_relationships_after_partial_delete(repository):
+        """Test relationships after deleting some but not all assets."""
+        # Create three assets with relationships
+        for i in range(3):
+            equity = Equity(
+                id=f"PARTIAL{i}",
+                symbol=f"P{i}",
+                name=f"Partial {i}",
+                asset_class=AssetClass.EQUITY,
+                sector="Tech",
+                price=100.0,
+            )
+            repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Create relationships
+        repository.add_or_update_relationship("PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False)
+        repository.add_or_update_relationship("PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False)
+        repository.session.commit()
+
+        # Delete middle asset
+        repository.delete_asset("PARTIAL1")
+        repository.session.commit()
+
+        # Only relationships not involving PARTIAL1 should remain
+        remaining_rels = repository.list_relationships()
+        for rel in remaining_rels:
+            assert rel.source_id != "PARTIAL1"
+            assert rel.target_id != "PARTIAL1"
+
+
+@pytest.mark.unit
+class TestAssetUpdateScenarios:
+    """Test various asset update scenarios."""
+
+    @staticmethod
+    def test_update_only_price(repository):
+        """Test updating only the price field."""
+        equity = Equity(
+            id="PRICE_UPDATE",
+            symbol="PU",
+            name="Price Update",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+            pe_ratio=20.0,
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Update only price
+        equity.price = 150.0
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        retrieved = repository.list_assets()[0]
+        assert retrieved.price == pytest.approx(150.0)
+        assert retrieved.pe_ratio == pytest.approx(20.0)  # Should remain unchanged
+
+    @staticmethod
+    def test_update_add_optional_field(repository):
+        """Test adding optional field to existing asset."""
+        equity = Equity(
+            id="ADD_FIELD",
+            symbol="AF",
+            name="Add Field",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+            pe_ratio=None,
+        )
+
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        # Add pe_ratio
+        equity.pe_ratio = 25.0
+        repository.upsert_asset(equity)
+        repository.session.commit()
+
+        retrieved = repository.list_assets()[0]
+        assert retrieved.pe_ratio == 25.0
+
+    @staticmethod
+    def test_relationship_strength_boundary_values(repository):
+        """Test that relationship strength accepts valid boundary values."""
+        from src.models.financial_models import Asset, AssetClass
+
+        asset1 = Asset(
+            id="A1",
+            symbol="A1",
+            name="Asset 1",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=100.0,
+        )
+        asset2 = Asset(
+            id="A2",
+            symbol="A2",
+            name="Asset 2",
+            asset_class=AssetClass.EQUITY,
+            sector="Tech",
+            price=150.0,
+        )
+        repository.upsert_asset(asset1)
+        repository.upsert_asset(asset2)
+
+        # Test boundary values: -1.0, 0.0, 1.0
+        repository.add_or_update_relationship("A1", "A2", "test", -1.0, False)
+        repository.session.commit()
+        rel = repository.get_relationship("A1", "A2", "test")
+        assert rel.strength == -1.0
+
+        repository.add_or_update_relationship("A1", "A2", "test", 0.0, False)
+        repository.session.commit()
+        rel = repository.get_relationship("A1", "A2", "test")
+        assert abs(rel.strength - 0.0) < 1e-9
+
+        repository.add_or_update_relationship("A1", "A2", "test", 1.0, False)
+        repository.session.commit()
+        rel = repository.get_relationship("A1", "A2", "test")
+        assert abs(rel.strength - 1.0) < 1e-9
