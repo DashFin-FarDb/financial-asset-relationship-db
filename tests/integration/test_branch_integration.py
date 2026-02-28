@@ -298,7 +298,6 @@ class TestWorkflowSecurityConsistency:
                             )
 
 
-
 class TestBranchCoherence:
     """Test overall branch changes are coherent."""
 
@@ -391,7 +390,6 @@ class TestBranchCoherence:
             assert external_refs <= 1, (
                 f"{wf_file} has {external_refs} external file references (should be <=1)"
             )
-
 
 
 class TestBranchQuality:

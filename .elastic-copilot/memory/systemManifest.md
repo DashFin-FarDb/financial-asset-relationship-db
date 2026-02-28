@@ -19,7 +19,6 @@
 - 10 js files
 - 18 h files
 
-
 ## Project Directory Structure
 
 - 📂 api/

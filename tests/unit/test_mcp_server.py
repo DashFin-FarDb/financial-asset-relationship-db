@@ -141,7 +141,11 @@ class TestAddEquityNode:
 
         # Access the registered tool
         tool_func = next(
-            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+            (
+                tool.fn
+                for tool in mcp_app.list_tools()
+                if tool.name == "add_equity_node"
+            ),
             None,
         )
         assert tool_func is not None, "add_equity_node tool not found"
@@ -166,7 +170,11 @@ class TestAddEquityNode:
         mcp_app = _build_mcp_app()
 
         tool_func = next(
-            (tool.fn for tool in mcp_app.list_tools() if tool.name == "add_equity_node"),
+            (
+                tool.fn
+                for tool in mcp_app.list_tools()
+                if tool.name == "add_equity_node"
+            ),
             None,
         )
         assert tool_func is not None, "add_equity_node tool not found"
@@ -264,7 +272,11 @@ class TestGet3DLayout:
 
         # Access the registered resource
         resource_func = next(
-            (resource.fn for resource in mcp_app.list_resources() if "3d-layout" in resource.uri),
+            (
+                resource.fn
+                for resource in mcp_app.list_resources()
+                if "3d-layout" in resource.uri
+            ),
             None,
         )
         assert resource_func is not None, "3d-layout resource not found"
@@ -370,7 +382,9 @@ class TestMainCLI:
 
             # Should exit with error message
             assert "Missing dependency" in str(exc_info.value)
-            assert exc_info.value.code != 0, "Expected non-zero exit code for missing dependency"
+            assert exc_info.value.code != 0, (
+                "Expected non-zero exit code for missing dependency"
+            )
 
     @staticmethod
     def test_main_argument_parsing():
@@ -542,7 +556,9 @@ class TestEdgeCases:
         )
 
         # Should handle special characters without error
-        assert "Validation Error" not in result, "Tool failed to handle special characters in asset name"
+        assert "Validation Error" not in result, (
+            "Tool failed to handle special characters in asset name"
+        )
 
     @staticmethod
     def test_get_3d_layout_with_empty_graph():

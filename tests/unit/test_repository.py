@@ -834,6 +834,7 @@ class TestComplexScenarios:
 
         _verify_portfolio_contents(repository)
 
+
 def _create_diverse_portfolio_assets():
     """Create a diverse set of financial assets for testing."""
     return [
@@ -917,7 +918,7 @@ class TestConcurrentAccess:
             sector="Technology",
             price=150.0,
         )
-        
+
         related1 = Equity(
             id="REL2",
             symbol="REL2",
