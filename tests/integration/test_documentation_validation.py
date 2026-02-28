@@ -76,9 +76,9 @@ class TestDocumentStructure:
     @staticmethod
     def test_has_benefits_section(summary_content: str):
         """Test that document lists benefits."""
-        assert "## Benefits" in summary_content or "## Key Features" in summary_content, (
-            "Document should describe benefits or key features"
-        )
+        assert (
+            "## Benefits" in summary_content or "## Key Features" in summary_content
+        ), "Document should describe benefits or key features"
 
 
 class TestMarkdownFormatting:
@@ -105,9 +105,9 @@ class TestMarkdownFormatting:
         """Test that code blocks are properly opened and closed."""
         # Count triple backticks
         backtick_count = summary_content.count("```")
-        assert backtick_count % 2 == 0, (
-            f"Code blocks not properly closed (found {backtick_count} triple backticks, should be even)"
-        )
+        assert (
+            backtick_count % 2 == 0
+        ), f"Code blocks not properly closed (found {backtick_count} triple backticks, should be even)"
 
     @staticmethod
     def test_lists_properly_formatted(summary_lines: List[str]):
@@ -126,9 +126,9 @@ class TestContentAccuracy:
     @staticmethod
     def test_mentions_workflow_file(summary_content: str):
         """Test that document mentions the pr-agent.yml workflow."""
-        assert "pr-agent.yml" in summary_content.lower() or "pr-agent" in summary_content.lower(), (
-            "Document should mention pr-agent workflow"
-        )
+        assert (
+            "pr-agent.yml" in summary_content.lower() or "pr-agent" in summary_content.lower()
+        ), "Document should mention pr-agent workflow"
 
     @staticmethod
     def test_mentions_duplicate_keys_issue(summary_content: str):
@@ -164,16 +164,16 @@ class TestContentAccuracy:
     @staticmethod
     def test_includes_file_paths(summary_content: str):
         """Test that document includes actual file paths."""
-        assert "tests/integration" in summary_content or "test_github_workflows" in summary_content, (
-            "Document should include actual file paths"
-        )
+        assert (
+            "tests/integration" in summary_content or "test_github_workflows" in summary_content
+        ), "Document should include actual file paths"
 
     @staticmethod
     def test_mentions_requirements(summary_content: str):
         """Test that document mentions requirements or dependencies."""
-        assert "requirements" in summary_content.lower() or "pyyaml" in summary_content.lower(), (
-            "Document should mention dependencies"
-        )
+        assert (
+            "requirements" in summary_content.lower() or "pyyaml" in summary_content.lower()
+        ), "Document should mention dependencies"
 
 
 class TestDocumentMaintainability:
@@ -188,9 +188,9 @@ class TestDocumentMaintainability:
             if len(line) > 120 and not line.strip().startswith("http")
         ]
         # Allow some long lines but flag excessive ones
-        assert len(long_lines) < len(summary_lines) * 0.1, (
-            f"Too many long lines ({len(long_lines)}), consider breaking them up"
-        )
+        assert (
+            len(long_lines) < len(summary_lines) * 0.1
+        ), f"Too many long lines ({len(long_lines)}), consider breaking them up"
 
     @staticmethod
     def test_heading_hierarchy(summary_content: str):
@@ -257,9 +257,9 @@ class TestSecurityAndBestPractices:
         """Test that examples follow security best practices."""
         # If the document mentions tokens, it should mention secrets context
         if "token" in summary_content.lower():
-            assert "secrets" in summary_content.lower() or "${{" in summary_content, (
-                "Document should reference GitHub secrets context when mentioning tokens"
-            )
+            assert (
+                "secrets" in summary_content.lower() or "${{" in summary_content
+            ), "Document should reference GitHub secrets context when mentioning tokens"
 
 
 class TestReferenceAccuracy:
