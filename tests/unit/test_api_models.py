@@ -540,7 +540,7 @@ class TestEdgeCasesAndValidation:
         asset = AssetResponse(
             id="SPECIAL",
             symbol="SPECIAL",
-            name="Asset & Co. (NYSE: TEST) - \"Special\"",
+            name='Asset & Co. (NYSE: TEST) - "Special"',
             asset_class="EQUITY",
             sector="Test & Dev",
             price=100.0,

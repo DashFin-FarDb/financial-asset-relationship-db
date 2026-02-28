@@ -482,7 +482,10 @@ class TestGetCurrentUser:
 
         from api.auth import ALGORITHM, SECRET_KEY
 
-        payload = {"other": "value", "exp": datetime.now(timezone.utc) + timedelta(minutes=30)}
+        payload = {
+            "other": "value",
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=30),
+        }
         token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
         with pytest.raises(HTTPException) as exc_info:
