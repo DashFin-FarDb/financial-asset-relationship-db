@@ -213,7 +213,13 @@ workflows:
 
       # Docker build (only on main/develop branches) - wait for critical tests to pass
       - docker-build:
+- docker-build:
           requires:
+            - python-lint
+            - python-test
+            - python-security
+            - frontend-lint
+            - frontend-build
             - python-lint
             - python-test
             - python-security
