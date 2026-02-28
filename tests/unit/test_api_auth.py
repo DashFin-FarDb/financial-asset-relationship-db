@@ -473,7 +473,6 @@ class TestGetCurrentUser:
     async def test_get_current_user_missing_sub_claim(self):
         """get_current_user raises HTTPException when sub claim is missing."""
         # Token without 'sub' claim
-        data = {"other": "value"}
 
         # Override to remove sub
         import jwt
