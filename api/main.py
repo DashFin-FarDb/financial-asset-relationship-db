@@ -86,18 +86,7 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 
 
 def set_graph_factory(factory: Optional[GraphFactory]) -> None:
-    """
-    Configure a callable used to lazily construct the global AssetRelationshipGraph.
-
-    Setting a factory also clears any existing graph instance so the next call to
-    :func:`get_graph` will invoke the factory. Pass ``None`` to disable the factory
-    and force re-initialisation via the default strategy on next access.
-
-    Args:
-        factory (Optional[GraphFactory]): Zero-argument callable returning an
-            :class:`~src.logic.asset_graph.AssetRelationshipGraph`, or ``None``
-            to clear the factory.
-    """
+    """Set a factory for constructing the global AssetRelationshipGraph."""
     global graph, graph_factory
     with graph_lock:
         graph_factory = factory
@@ -105,7 +94,7 @@ def set_graph_factory(factory: Optional[GraphFactory]) -> None:
 
 
 def reset_graph() -> None:
-    """Clear the global graph and factory so the graph is reinitialised on next access."""
+    """Clear the global graph and factory for reinitialization."""
     set_graph_factory(None)
 
 
@@ -132,23 +121,15 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 
 def _should_use_real_data_fetcher() -> bool:
-    """Return True if the USE_REAL_DATA_FETCHER environment variable is set to a truthy value."""
+    """Return True if the USE_REAL_DATA_FETCHER environment variable is set to a
+    truthy value."""
     flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
     return flag.strip().lower() in {"1", "true", "yes", "on"}
 
 
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
-    """
-    Manage the application lifespan by initialising the global graph on startup.
-
-    Initialises the global asset relationship graph before the application begins
-    handling requests; if initialisation fails the exception is re-raised to abort
-    startup.
-
-    Args:
-        _fastapi_app (FastAPI): The FastAPI application instance (unused).
-    """
+    """Manage the application lifespan by initializing the global graph."""
     try:
         get_graph()
         logger.info("Application startup complete - graph initialized")
@@ -284,31 +265,20 @@ app.add_middleware(
 
 
 def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> NoReturn:
-    """
-    Raise an HTTP 404 exception for a missing resource.
-
-    Args:
-        asset_id (str): ID of the asset that was not found.
-        resource_type (str): Human-readable resource type label (default: ``"Asset"``).
-
-    Raises:
-        HTTPException: Always raised with status code 404.
-    """
+    """Raise an HTTP 404 exception for a missing resource."""
     raise HTTPException(status_code=404, detail=f"{resource_type} {asset_id} not found")
 
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
-    """
-    Serialize an Asset object to a dictionary representation.
-
+    """Serialize an Asset object to a dictionary representation.
+    
     Args:
         asset: Asset object to serialize.
-        include_issuer (bool): Whether to include the ``issuer_id`` field
-            (useful for detail views). Defaults to ``False``.
-
+        include_issuer (bool): Whether to include the ``issuer_id`` field.
+    
     Returns:
-        Dict[str, Any]: Dictionary containing core asset fields plus any
-        non-``None`` asset-specific attributes under ``additional_fields``.
+        Dict[str, Any]: Dictionary containing core asset fields and additional asset-specific
+            attributes.
     """
     asset_dict: Dict[str, Any] = {
         "id": asset.id,
@@ -428,7 +398,7 @@ async def read_users_me(
 
 @app.get("/")
 async def root() -> Dict[str, Any]:
-    """Return basic API metadata and a listing of available endpoints."""
+    """Return basic API metadata and available endpoints."""
     return {
         "message": "Financial Asset Relationship API",
         "version": "1.0.0",
@@ -444,7 +414,7 @@ async def root() -> Dict[str, Any]:
 
 @app.get("/api/health")
 async def health_check() -> Dict[str, Any]:
-    """Return service health status."""
+    """Return the health status of the service."""
     return {"status": "healthy", "graph_initialized": True}
 
 
@@ -483,19 +453,7 @@ async def get_assets(
 
 @app.get("/api/assets/{asset_id}", response_model=AssetResponse)
 async def get_asset_detail(asset_id: str) -> AssetResponse:
-    """
-    Retrieve detailed information for the asset identified by ``asset_id``.
-
-    Args:
-        asset_id (str): Identifier of the asset whose details are requested.
-
-    Returns:
-        AssetResponse: Detailed asset information including asset-specific attributes.
-
-    Raises:
-        HTTPException: 404 if the asset is not found.
-        HTTPException: 500 for unexpected errors.
-    """
+    """Retrieve detailed information for the specified asset."""
     try:
         g = get_graph()
         if asset_id not in g.assets:
@@ -510,18 +468,16 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
 
 @app.get("/api/assets/{asset_id}/relationships", response_model=List[RelationshipResponse])
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
-    """
-    List outgoing relationships for the specified asset.
-
+    """List outgoing relationships for the specified asset.
+    
+    This function retrieves the outgoing relationships for a given asset identified
+    by  `asset_id`. It first checks if the asset exists in the graph. If the asset
+    is found,  it constructs a list of `RelationshipResponse` objects containing
+    the target ID,  relationship type, and strength. In case of errors, appropriate
+    HTTP exceptions are raised.
+    
     Args:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
-
-    Returns:
-        List[RelationshipResponse]: Outgoing relationships with target ID, type, and strength.
-
-    Raises:
-        HTTPException: 404 if the asset is not found.
-        HTTPException: 500 for unexpected errors.
     """
     try:
         g = get_graph()
@@ -566,15 +522,14 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics() -> MetricsResponse:
-    """
-    Return computed network metrics for the asset relationship graph.
-
-    Returns:
-        MetricsResponse: Total assets, relationships, asset-class distribution,
-        degree statistics, and network/relationship density.
-
-    Raises:
-        HTTPException: 500 for unexpected errors.
+    """Return computed network metrics for the asset relationship graph.
+    
+    This function retrieves the asset relationship graph using the get_graph()
+    function and calculates various metrics, including total assets, total
+    relationships, and asset-class distribution. It also computes average and
+    maximum degree statistics, as well as network density. In case of any
+    unexpected errors during the process, an HTTPException is raised with a  status
+    code of 500.
     """
     try:
         g = get_graph()
@@ -605,15 +560,14 @@ async def get_metrics() -> MetricsResponse:
 
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
-    """
-    Retrieve graph nodes and edges formatted for 3-D visualisation.
-
-    Nodes are positioned using a Fibonacci-lattice sphere distribution, coloured
-    by asset class, and sized proportionally to their degree in the graph.
-
-    Returns:
-        VisualizationDataResponse: Nodes and edges ready for frontend rendering.
-
+    """Retrieve graph nodes and edges formatted for 3-D visualization.
+    
+    This function generates the data required for visualizing a graph in three
+    dimensions.  It retrieves the graph structure, computes the out-degree for each
+    node to determine  their size, and positions the nodes on a sphere using a
+    Fibonacci lattice distribution.  The nodes are colored based on their asset
+    class, and edges are constructed from the  relationships defined in the graph.
+    
     Raises:
         HTTPException: 500 for unexpected errors.
     """
