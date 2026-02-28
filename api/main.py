@@ -471,7 +471,10 @@ async def health_check() -> Dict[str, Any]:
             - `status` (str): Overall service health status (e.g., "healthy").
             - `graph_initialized` (bool): `True` if the global asset relationship graph is initialized, `False` otherwise.
     """
-    return {"status": "healthy", "graph_initialized": True}
+    global graph
+    with graph_lock:
+        graph_initialized = graph is not None
+    return {"status": "healthy", "graph_initialized": graph_initialized}
 
 
 @app.get("/api/assets", response_model=List[AssetResponse])
