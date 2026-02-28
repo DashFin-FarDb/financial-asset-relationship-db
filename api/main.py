@@ -100,7 +100,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 ENV = os.getenv("ENV", "development").lower()
 
 # Set allowed_origins based on environment
-allowed_origins: List[str] = []
+allowed_origins: list[str] = []
 if ENV == "development":
     allowed_origins.extend(
         [
