@@ -919,7 +919,7 @@ def _verify_portfolio_contents(repository: AssetGraphRepository) -> None:
 
 
 @pytest.mark.unit
-class TestConcurrentAccess:
+class TestConcurrentReadWriteAccess:
     """Test concurrent access patterns."""
 
     @staticmethod
