@@ -414,8 +414,8 @@ class VisualizationDataResponse(BaseModel):
     """Response model containing data structures for visualizing nodes and edges in a network graph."""
     nodes: List[Dict[str, Any]]
     edges: List[Dict[str, Any]]
-        Token: An object containing the JWT `access_token` and
-        `token_type` ("bearer").
+        Token: An object containing the JWT `access_token`
+        and `token_type` ("bearer").
 
     Raises:
         HTTPException: With status 401 if the provided credentials are incorrect.
@@ -445,7 +445,7 @@ async def read_users_me(
     Return the currently authenticated user.
 
     Parameters:
-        request (Request): Request object used by the rate limiter for key extraction.
+        request(Request): Request object used by the rate limiter for key extraction.
 
     Returns:
         User: The active authenticated user.
@@ -459,8 +459,8 @@ async def root() -> Dict[str, Any]:
     Provide basic API metadata and a listing of available endpoints.
 
     Returns:
-        info (Dict[str, Any]): A dictionary with keys "message", "version", and
-            "endpoints",
+        info(Dict[str, Any]): A dictionary with keys "message", "version",
+            and "endpoints",
             where "endpoints" maps logical names to their URL paths.
     """
     return {
@@ -483,8 +483,8 @@ async def health_check() -> Dict[str, Any]:
     initialized.
 
     Returns:
-        health (Dict[str, Any]): A dictionary with:
-            - `status` (str): Overall service health status (e.g., "healthy").
+        health(Dict[str, Any]): A dictionary with:
+            - `status` (str): Overall service health status(e.g., "healthy").
             - `graph_initialized` (bool): `True` if the global asset
               relationship graph is initialized, `False` otherwise.
     """
@@ -502,14 +502,14 @@ async def get_assets(
     Retrieve assets optionally filtered by asset class and sector.
 
     Parameters:
-        asset_class (Optional[str]): Asset class value to filter by (e.g., "Equity").
-        sector (Optional[str]): Sector name to filter by.
+        asset_class(Optional[str]): Asset class value to filter by(e.g., "Equity").
+        sector(Optional[str]): Sector name to filter by.
 
     Returns:
         List[AssetResponse]: Matching assets serialized for API responses.
 
     Raises:
-        HTTPException: If an unexpected error occurs (HTTP 500).
+        HTTPException: If an unexpected error occurs(HTTP 500).
     """
     try:
         g = get_graph()
@@ -537,7 +537,7 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
     Retrieve detailed information for the asset identified by asset_id.
 
     Parameters:
-        asset_id (str): Asset identifier.
+        asset_id(str): Asset identifier.
 
     Returns:
         AssetResponse: Asset details including issuer information when available.
@@ -609,8 +609,7 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 
     Returns:
         List[RelationshipResponse]: A list of relationship records.
-            Each record contains `source_id`, `target_id`,
-            `relationship_type`, and `strength`.
+            Each record contains `source_id`, `target_id`, `relationship_type`, and `strength`.
 
     Raises:
         HTTPException: Raised with status code 500 if an unexpected error occurs
@@ -636,15 +635,15 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 @app.get("/api/metrics", response_model=MetricsResponse)
 async def get_metrics() -> MetricsResponse:
     """
-    Compute network-level metrics for the global asset relationship graph.
+    Compute network - level metrics for the global asset relationship graph.
 
     Returns:
         MetricsResponse: Contains:
             - total_assets: total number of assets in the graph
             - total_relationships: total number of directed relationships
             - asset_classes: mapping from asset class name to asset count
-            - avg_degree: average out-degree across nodes
-            - max_degree: maximum out-degree observed
+            - avg_degree: average out - degree across nodes
+            - max_degree: maximum out - degree observed
             - network_density: network density metric
             - relationship_density: relationship density metric
 
@@ -681,19 +680,17 @@ async def get_metrics() -> MetricsResponse:
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
-    Prepare nodes and edges for 3-D visualization of the asset graph.
+    Prepare nodes and edges for 3 - D visualization of the asset graph.
 
-    Nodes are placed on a sphere using a Fibonacci-lattice distribution.
-    Nodes are colored by asset class.
+    Nodes are placed on a sphere using a Fibonacci - lattice distribution.
+    Nodes are colored by asset class .
     They are sized proportionally to each node's outgoing degree.
     Edges contain source, target, relationship type, and strength.
 
     Returns:
         VisualizationDataResponse: A response object containing `nodes` and `edges`.
-        `nodes`: List of node dicts with keys `id`, `symbol`, `name`, `asset_class`,
-            `x`, `y`, `z`, `color`, `size`.
-        `edges`: List of edge dicts with keys `source`, `target`,
-            `relationship_type`, `strength`.
+        `nodes`: List of node dicts with keys `id`, `symbol`, `name`, `asset_class`, `x`, `y`, `z`, `color`, `size`.
+        `edges`: List of edge dicts with keys `source`, `target`, `relationship_type`, `strength`.
 
     Raises:
         HTTPException: HTTP 500 if an unexpected error occurs while generating
