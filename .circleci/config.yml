@@ -79,7 +79,7 @@ commands:
               npm install --prefer-offline --no-audit
             fi
       - save_cache:
-          key: node-deps-<<parameters.cache_version>>-{{ checksum "frontend/package-lock.json" }}
+          key: node-deps-<<parameters.cache_version>>-{{ checksum "frontend/package.json" }}
           paths:
             - frontend/node_modules
             - ~/.npm
