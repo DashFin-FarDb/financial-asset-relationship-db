@@ -1,6 +1,4 @@
-"""
-Test script for the database module.
-"""
+"""Test script for the database module."""
 
 import logging
 

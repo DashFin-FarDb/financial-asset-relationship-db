@@ -18,8 +18,13 @@ class TestWorkflowInjectionPrevention:
 
     @staticmethod
     def test_no_unquoted_github_context_in_run_commands(all_workflows):
-        """
-        Ensure GitHub context variables in 'run' steps are enclosed in quotes.
+        """Ensure GitHub context variables in 'run' steps are enclosed in quotes.
+
+        This function checks all workflows for unquoted GitHub context variables in
+        the 'run' commands of each job's steps. It utilizes a list of dangerous
+        patterns to identify context variables that should be quoted. For each
+        matching variable found, an assertion is made to confirm that it is properly
+        enclosed in quotes, raising an error if any unquoted variables are detected.
         """
         dangerous_patterns = [
             r"\${{\s*github\.event\.[\w.]+\s*}}",  # ${{ github.event.* }}
@@ -76,7 +81,21 @@ class TestWorkflowSecretHandling:
     @staticmethod
     def test_secrets_not_echoed_in_logs(all_workflows):
         """
-        Scan each workflow's raw YAML for secret references and assert they're not echoed.
+        Ensure workflow secrets are not output to logs via `echo`, `print`, or `printf`.
+
+        Scans each workflow's raw YAML for references of the form `secrets.<name>` and verifies
+        that any line containing such a reference does not invoke `echo`, `print`, or `printf`
+        (case-insensitive).
+
+        Parameters:
+            all_workflows (Iterable[Mapping]): Iterable of workflow dictionaries. Each workflow
+                must provide a `raw` key with the YAML content as a string and a `path` key
+                used in assertion messages.
+
+        Raises:
+            AssertionError: If a secret reference appears on a line that uses `echo`, `print`,
+            or `printf`. The assertion message includes the secret name, workflow path, and line
+            number.
         """
         for workflow in all_workflows:
             raw_content = workflow["raw"]
@@ -97,7 +116,11 @@ class TestWorkflowSecretHandling:
 
     @staticmethod
     def test_secrets_not_in_artifact_uploads(all_workflows):
-        """Verify secrets are not uploaded as artifacts."""
+        """
+        Ensure steps that use actions/upload-artifact do not reference repository secrets.
+
+        Scans each workflow's jobs and steps and, for any step that uses actions/upload-artifact, asserts the step does not contain a `secrets.<name>` reference. On failure the assertion message identifies the workflow path, job name, and step index.
+        """
         for workflow in all_workflows:
             jobs = workflow["content"].get("jobs", {})
             for job_name, job_config in jobs.items():
@@ -116,13 +139,27 @@ class TestWorkflowPermissionsHardening:
 
     @staticmethod
     def test_workflows_define_explicit_permissions(all_workflows):
-        """Verify workflows explicitly define permissions."""
+        """
+        Ensure each workflow includes a top-level "permissions" key.
+
+        Parameters:
+            all_workflows (Iterable[Mapping]): Iterable of workflow objects where each item has a "content" mapping for the parsed YAML and a "path" string used in failure messages.
+        """
         for workflow in all_workflows:
             assert "permissions" in workflow["content"], f"Workflow {workflow['path']} should define permissions"
 
     @staticmethod
     def test_default_permissions_are_restrictive(all_workflows):
-        """Verify default permissions follow least privilege."""
+        """
+        Verify workflows' default permissions enforce least privilege.
+
+        If a workflow's top-level `permissions` is a string, it must be either "read-all" or "none".
+        If `permissions` is a mapping, no permission may be set to "write" except for the allowed keys: "contents", "pull-requests", "issues", and "checks".
+
+        Parameters:
+            all_workflows (iterable): Iterable of workflow mappings; each mapping must include "path" (str)
+                and "content" (dict) where "content" contains the parsed workflow YAML.
+        """
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
 
@@ -141,7 +178,18 @@ class TestWorkflowPermissionsHardening:
 
     @staticmethod
     def test_no_workflows_with_write_all_permission(all_workflows):
-        """Verify no workflow uses 'write-all' permission."""
+        """
+        Ensure no workflow sets the top-level permissions string to "write-all".
+
+        Checks each workflow's top-level `permissions` value and raises an AssertionError if it is the string "write-all".
+
+        Parameters:
+            all_workflows (Iterable[dict]): Iterable of workflow objects where each workflow is a dict
+                containing at least the keys "path" (str) and "content" (dict).
+
+        Raises:
+            AssertionError: If any workflow's top-level `permissions` is the string "write-all".
+        """
         for workflow in all_workflows:
             permissions = workflow["content"].get("permissions", {})
             if isinstance(permissions, str):
@@ -171,7 +219,14 @@ class TestWorkflowSupplyChainSecurity:
 
     @staticmethod
     def test_no_insecure_downloads(all_workflows):
-        """Verify no insecure HTTP downloads in workflows."""
+        """
+        Ensure workflows do not perform insecure HTTP downloads using `http://` URLs with common download tools.
+
+        Parameters:
+            all_workflows (iterable[dict]): Iterable of workflow dictionaries where each dictionary contains
+                'raw' (str): raw workflow YAML/content and
+                'path' (str): workflow file path used in assertion messages.
+        """
         for workflow in all_workflows:
             raw_content = workflow["raw"]
             insecure_downloads = re.findall(

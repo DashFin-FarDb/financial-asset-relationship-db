@@ -14,12 +14,13 @@ from pathlib import Path
 
 import pytest
 
-from workflow_validator import ValidationResult, validate_workflow
-
 # Add src to path before importing the module under test
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
+from workflow_validator import ValidationResult, validate_workflow  # isort: skip  # noqa: E402
 
+
+@pytest.mark.unit
 class TestValidationResult:
     """Test suite for ValidationResult class"""
 
@@ -48,6 +49,7 @@ class TestValidationResult:
         assert result.workflow_data == data
 
 
+@pytest.mark.unit
 class TestValidateWorkflow:
     """Test suite for validate_workflow function"""
 
@@ -264,6 +266,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and boundary conditions"""
 
@@ -349,6 +352,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestErrorHandling:
     """Test error handling and exception scenarios"""
 
@@ -372,7 +376,11 @@ class TestErrorHandling:
 
     @staticmethod
     def test_workflow_with_duplicate_keys():
-        """Test workflow with duplicate keys"""
+        """
+        Verify that a workflow YAML containing duplicate mapping keys parses successfully and that the parser retains the last occurrence of a duplicated key.
+
+        This test writes a temporary YAML file where "name" appears twice and asserts validation is successful and workflow_data["name"] equals "Second".
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: First
@@ -394,6 +402,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestIntegrationWithActualWorkflows:
     """Integration tests with actual project workflows"""
 
@@ -422,7 +431,11 @@ class TestIntegrationWithActualWorkflows:
 
     @staticmethod
     def test_validate_all_project_workflows():
-        """Test validation of all workflows in the project"""
+        """
+        Validate every GitHub Actions workflow file in the repository's .github/workflows directory.
+
+        Skips the test if the workflows directory or any workflow files are missing. Collects validation failures for each workflow and fails the test if any workflows are invalid, reporting their filenames and error lists.
+        """
         workflows_dir = Path(__file__).parent.parent.parent / ".github" / "workflows"
 
         if not workflows_dir.exists():
@@ -442,6 +455,7 @@ class TestIntegrationWithActualWorkflows:
         assert len(failed) == 0, f"Failed workflows: {failed}"
 
 
+@pytest.mark.unit
 class TestValidationResultDataStructure:
     """Test ValidationResult data structure integrity"""
 
@@ -451,6 +465,7 @@ class TestValidationResultDataStructure:
 
         @staticmethod
         def test_validation_result_attributes():
+            """Test that ValidationResult attributes are accessible within a static method."""
             data = {"name": "Test", "jobs": {"build": {}}}
             result = ValidationResult(True, [], data)
 
@@ -473,6 +488,7 @@ class TestValidationResultDataStructure:
         assert isinstance(result.workflow_data, dict)
 
 
+@pytest.mark.unit
 class TestAdvancedValidationScenarios:
     """Additional advanced validation scenarios with bias for action"""
 
@@ -575,7 +591,11 @@ jobs:
                 Path(f.name).unlink()
 
     def test_workflow_path_with_spaces(self):
-        """Test workflow file with spaces in path"""
+        """
+        Verify that a workflow file whose filesystem path contains spaces is parsed and accepted.
+
+        Creates a temporary file with spaces in its name, writes a minimal valid GitHub Actions workflow to it, runs validation, and asserts the result is valid.
+        """
         import os
 
         temp_dir = tempfile.mkdtemp()
@@ -680,6 +700,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestValidationResultBehavior:
     """Test ValidationResult behavior and edge cases"""
 
@@ -732,6 +753,7 @@ class TestValidationResultBehavior:
         assert len(result.errors) == 5
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorSecurityScenarios:
     """Test security-related scenarios and potential exploits"""
 
@@ -791,7 +813,11 @@ class TestWorkflowValidatorSecurityScenarios:
 
     @staticmethod
     def test_workflow_with_yaml_injection_attempts():
-        """Test workflow with potential YAML injection patterns"""
+        """
+        Ensures YAML parsing treats injection-like command strings as plain scalars and the workflow is considered valid.
+
+        Writes a temporary workflow file containing steps with values that resemble shell injection or command substitutions and asserts that validate_workflow returns a valid ValidationResult (i.e., parser does not execute or interpret those patterns).
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: Test
@@ -815,6 +841,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorPerformance:
     """Test performance-related aspects of workflow validation"""
 
@@ -862,7 +889,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_minimal_memory_footprint():
-        """Test that validation doesn't consume excessive memory"""
+        """
+        Ensure validate_workflow handles a moderately sized workflow without excessive memory usage.
+
+        Creates a temporary YAML workflow file containing 100 jobs and asserts the validator reports it as valid.
+        """
         # Create a workflow with moderate size
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("name: Test\non: push\njobs:\n")
@@ -878,6 +909,7 @@ jobs:
                 Path(f.name).unlink()
 
 
+@pytest.mark.unit
 class TestWorkflowValidatorEdgeCasesExtended:
     """Extended edge cases and corner scenarios"""
 
@@ -909,7 +941,9 @@ jobs:
 
     @staticmethod
     def test_workflow_with_scientific_notation():
-        """Test workflow with scientific notation numbers"""
+        """
+        Validate that a workflow using numeric values in scientific notation (for example `1e2`) is considered valid.
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: Scientific
@@ -931,7 +965,11 @@ jobs:
 
     @staticmethod
     def test_workflow_with_float_values():
-        """Test workflow with float values"""
+        """
+        Validate that a workflow containing float values in environment fields is considered valid.
+
+        Creates a temporary YAML workflow with float values in `env` and asserts that `validate_workflow` returns a valid result.
+        """
         with tempfile.NamedTemporaryFile(mode="w", suffix=".yml", delete=False) as f:
             f.write("""
 name: Floats
