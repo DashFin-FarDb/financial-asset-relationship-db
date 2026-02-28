@@ -349,10 +349,11 @@ class TestAuthenticateUser:
         mock_user = UserInDB(username="user", hashed_password=hashed)
         custom_repo.get_user.return_value = mock_user
 
-        with patch("api.auth.get_user", return_value=mock_user):
+        with patch("api.auth.get_user", return_value=mock_user) as mock_get_user:
             result = authenticate_user("user", password, repository=custom_repo)
 
         assert isinstance(result, UserInDB)
+        mock_get_user.assert_called_once_with("user", repository=custom_repo)
 
 
 class TestCreateAccessToken:
