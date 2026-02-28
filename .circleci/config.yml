@@ -179,10 +179,6 @@ jobs:
       - store_artifacts:
           path: frontend/.next
           destination: next-build
-      - persist_to_workspace:
-          root: ~/project
-          paths:
-            - frontend/.next
 
   # Docker Build Job
   docker-build:
