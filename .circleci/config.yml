@@ -72,7 +72,7 @@ commands:
           command: |
             cd frontend
             if [ -f package-lock.json ]; then
-              npm ci --prefer-offline --no-audit
+              npm ci --prefer-offline --audit=false
             else
               echo "package-lock.json not found; running npm install instead"
               npm install --prefer-offline --no-audit
