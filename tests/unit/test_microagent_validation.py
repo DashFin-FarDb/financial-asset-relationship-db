@@ -200,9 +200,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         # So triggers should either be absent or empty
         if "triggers" in repo_engineer_frontmatter:
             triggers = repo_engineer_frontmatter["triggers"]
-            assert triggers is None or triggers == [] or triggers == "", (
-                "repo_engineer_lead should not have triggers as per documentation"
-            )
+            assert (
+                triggers is None or triggers == [] or triggers == ""
+            ), "repo_engineer_lead should not have triggers as per documentation"
 
     @staticmethod
     def test_body_content_not_empty(repo_engineer_body: str):
@@ -229,9 +229,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
         """
         body_lower = repo_engineer_body.lower()
         # Should mention key responsibilities
-        assert any(keyword in body_lower for keyword in ["repository engineer", "issues", "prs", "pull requests"]), (
-            "Body should describe repository engineering responsibilities"
-        )
+        assert any(
+            keyword in body_lower for keyword in ["repository engineer", "issues", "prs", "pull requests"]
+        ), "Body should describe repository engineering responsibilities"
 
     @staticmethod
     def test_body_mentions_issue_review(repo_engineer_body: str):
@@ -297,9 +297,9 @@ class TestRepoEngineerLead(TestMicroagentValidation):
             repo_engineer_body (str): The markdown body text to validate.
         """
         # Check for multiple spaces in a row (except after periods)
-        assert not re.search(r"[^\.]  +", repo_engineer_body), (
-            "Should not have multiple consecutive spaces (except after periods)"
-        )
+        assert not re.search(
+            r"[^\.]  +", repo_engineer_body
+        ), "Should not have multiple consecutive spaces (except after periods)"
 
     @staticmethod
     def test_content_appropriate_length(repo_engineer_body: str) -> None:
@@ -375,9 +375,9 @@ class TestAllMicroagents(TestMicroagentValidation):
 
             # Should have frontmatter (after stripping leading whitespace)
             content = content.lstrip()
-            assert re.match(r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL), (
-                f"{file_path.name} should have valid frontmatter"
-            )
+            assert re.match(
+                r"^---\s*\n.*?\n---\s*\n", content, re.DOTALL
+            ), f"{file_path.name} should have valid frontmatter"
 
     def test_all_microagents_have_required_fields(self, microagent_files: List[Path]):
         """
@@ -419,9 +419,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             version = frontmatter["version"]
 
-            assert re.match(r"^\d+\.\d+\.\d+$", version), (
-                f"{file_path.name} should have valid semver version, got: {version}"
-            )
+            assert re.match(
+                r"^\d+\.\d+\.\d+$", version
+            ), f"{file_path.name} should have valid semver version, got: {version}"
 
     def test_all_microagents_valid_types(self, microagent_files: List[Path]):
         """Test that all microagents have valid type values."""
@@ -434,9 +434,9 @@ class TestAllMicroagents(TestMicroagentValidation):
             frontmatter, _ = self.parse_frontmatter(content)
             agent_type = frontmatter["type"]
 
-            assert agent_type in valid_types, (
-                f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
-            )
+            assert (
+                agent_type in valid_types
+            ), f"{file_path.name} has invalid type: {agent_type}, must be one of {valid_types}"
 
     def test_all_microagents_valid_agents(self, microagent_files: List[Path]):
         """Test that all microagents have valid agent values."""
@@ -515,9 +515,9 @@ class TestMicroagentSemantic:
             repo_engineer_content (str): Full markdown content of the repo_engineer_lead microagent.
         """
         body_lower = repo_engineer_content.lower()
-        assert any(term in body_lower for term in ["reviewer", "contributor", "comment"]), (
-            "Should describe interaction with reviewers and contributors"
-        )
+        assert any(
+            term in body_lower for term in ["reviewer", "contributor", "comment"]
+        ), "Should describe interaction with reviewers and contributors"
 
     @staticmethod
     def test_describes_commit_process(repo_engineer_content: str):
@@ -525,9 +525,9 @@ class TestMicroagentSemantic:
         body_lower = repo_engineer_content.lower()
         assert "commit" in body_lower, "Should describe commit process"
         # Should explain what is done in commits
-        assert any(term in body_lower for term in ["commit any changes", "commit changes"]), (
-            "Should explain committing changes"
-        )
+        assert any(
+            term in body_lower for term in ["commit any changes", "commit changes"]
+        ), "Should explain committing changes"
 
     @staticmethod
     def test_describes_post_explanation(repo_engineer_content: str):
@@ -731,15 +731,13 @@ class TestMicroagentBoundaryConditions:
         Creates a temporary markdown file containing the minimal required frontmatter (name, type, version, agent), parses the frontmatter section using a frontmatter-delimiting pattern and YAML loader, and asserts that the parsed `name` field equals "test".
         """
         test_file = tmp_path / "minimal.md"
-        test_file.write_text(
-            """---
+        test_file.write_text("""---
 name: test
 type: knowledge
 version: 1.0.0
 agent: CodeActAgent
 ---
-Minimal content."""
-        )
+Minimal content.""")
 
         with open(test_file, encoding="utf-8") as f:
             content = f.read()
@@ -759,8 +757,7 @@ Minimal content."""
         Asserts that a frontmatter block containing extra keys is parsed into a mapping that includes those keys with their original values.
         """
         test_file = tmp_path / "extra.md"
-        test_file.write_text(
-            """---
+        test_file.write_text("""---
 name: test
 type: knowledge
 version: 1.0.0
@@ -768,8 +765,7 @@ agent: CodeActAgent
 extra_field: extra_value
 custom: true
 ---
-Content."""
-        )
+Content.""")
 
         with open(test_file, encoding="utf-8") as f:
             content = f.read()
@@ -809,14 +805,12 @@ This is a sentence.. This should be caught."""
     def test_malformed_frontmatter_raises_error(tmp_path):
         """Test that malformed frontmatter raises appropriate error."""
         test_file = tmp_path / "malformed.md"
-        test_file.write_text(
-            """---
+        test_file.write_text("""---
 name: test
 type: knowledge
 version 1.0.0
 ---
-Content."""
-        )
+Content.""")
 
         with open(test_file, encoding="utf-8") as f:
             content = f.read()
