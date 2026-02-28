@@ -10,6 +10,7 @@ import threading
 from contextlib import asynccontextmanager
 from datetime import timedelta
 from typing import Any, Callable, Dict, List, NoReturn, Optional
+from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -197,10 +198,10 @@ def validate_origin(origin_url: str) -> bool:
     - HTTP localhost/127.0.0.1 when running in `development`,
     - HTTPS localhost/127.0.0.1 in any environment,
     - Vercel preview hostnames (e.g., `*.vercel.app`),
-    - and valid HTTPS origins with well-formed domain names.
+    - and valid HTTPS origins with well-formed domain names (including IDN support via IDNA encoding).
 
     Parameters:
-        origin_url (str): Origin URL to validate (e.g. "https://example.com" or "http://localhost:3000").
+        origin_url (str): Origin URL to validate (e.g. "https://example.com", "http://localhost:3000", or "https://münchen.de").
 
     Returns:
         bool: `True` if the origin is allowed, `False` otherwise.
@@ -227,14 +228,29 @@ def validate_origin(origin_url: str) -> bool:
     if re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin_url):
         return True
 
-    # Allow valid HTTPS URLs with proper domains
-    if re.match(
-        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
-        r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
-        r"\.[a-zA-Z]{2,}$",
-        origin_url,
-    ):
-        return True
+    # Allow valid HTTPS URLs with proper domains (including IDN support)
+    if origin_url.startswith("https://"):
+        try:
+            parsed = urlparse(origin_url)
+            hostname = parsed.hostname
+            if hostname:
+                # Convert IDN (internationalized domain names) to ASCII using IDNA encoding
+                ascii_hostname = hostname.encode("idna").decode("ascii")
+                # Reconstruct URL with ASCII hostname for regex validation
+                ascii_url = f"https://{ascii_hostname}"
+                if parsed.port:
+                    ascii_url += f":{parsed.port}"
+                # Validate the ASCII version against the domain regex
+                if re.match(
+                    r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+                    r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+                    r"\.[a-zA-Z]{2,}(:\d+)?$",
+                    ascii_url,
+                ):
+                    return True
+        except (UnicodeError, ValueError, AttributeError):
+            # Invalid hostname or IDNA encoding failed
+            pass
 
     return False
 
