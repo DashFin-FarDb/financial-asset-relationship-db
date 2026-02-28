@@ -282,11 +282,11 @@ class TestUserRepository:
         repo = UserRepository()
 
         # Test disabled=False
-        repo.create_or_update_user(username="user1", hashed_password="pw1", disabled=False)
+        repo.create_or_update_user(username="user1", hashed_password="pw1", disabled_flag=False)
         assert 0 in mock_database["execute"].call_args[0][1]
 
         # Test disabled=True
-        repo.create_or_update_user(username="user2", hashed_password="pw2", disabled=True)
+        repo.create_or_update_user(username="user2", hashed_password="pw2", disabled_flag=True)
         assert 1 in mock_database["execute"].call_args[0][1]
 
 
