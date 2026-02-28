@@ -224,9 +224,7 @@ class TestGet3DVisualizationDataEnhanced:
         graph.relationships["zebra"] = [("apple", "correlation", 0.8)]
         graph.relationships["mango"] = [("banana", "correlation", 0.7)]
 
-        _positions, asset_ids, _colors, _hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        _positions, asset_ids, _colors, _hover_texts = graph.get_3d_visualization_data_enhanced()
 
         # Verify they are sorted
         assert asset_ids == sorted(asset_ids)

@@ -252,9 +252,7 @@ class TestRecommendations:
 
     @staticmethod
     def test_high_density_recommendation(populated_graph):
-        """
-        Verifies that a fully connected (high-density) graph produces a report containing guidance about high connectivity or normalization.
-        """
+        """Test recommendation for high connectivity graphs."""
         # Create high density graph by connecting all pairs
         assets = list(populated_graph.assets.keys())
         for i, source in enumerate(assets):
@@ -264,9 +262,9 @@ class TestRecommendations:
         report = generate_schema_report(populated_graph)
         metrics = populated_graph.calculate_metrics()
 
-        assert metrics["relationship_density"] > 30, (
-            f"Expected density > 30 for fully connected graph, got {metrics['relationship_density']}"
-        )
+        assert (
+            metrics["relationship_density"] > 30
+        ), f"Expected density > 30 for fully connected graph, got {metrics['relationship_density']}"
         assert "High connectivity" in report or "normalization" in report
 
     @staticmethod
@@ -290,9 +288,9 @@ class TestRecommendations:
         report = generate_schema_report(empty_graph)
 
         metrics = empty_graph.calculate_metrics()
-        assert metrics["relationship_density"] <= 10, (
-            f"Expected density <= 10 for single-asset graph, got {metrics['relationship_density']}"
-        )
+        assert (
+            metrics["relationship_density"] <= 10
+        ), f"Expected density <= 10 for single-asset graph, got {metrics['relationship_density']}"
         assert "Sparse" in report or "adding more relationships" in report
 
 

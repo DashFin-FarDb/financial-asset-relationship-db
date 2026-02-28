@@ -53,6 +53,7 @@ def repository(tmp_path):
     engine.dispose()
 
 
+@pytest.mark.unit
 class TestAssetOperations:
     """Test cases for asset CRUD operations."""
 
@@ -275,6 +276,7 @@ class TestAssetOperations:
         repository.session.commit()
 
 
+@pytest.mark.unit
 class TestRelationshipOperations:
     """Test cases for relationship management."""
 
@@ -480,6 +482,7 @@ class TestRelationshipOperations:
         assert record.bidirectional is True
 
 
+@pytest.mark.unit
 class TestRegulatoryEventOperations:
     """Test cases for regulatory event handling."""
 
@@ -611,6 +614,7 @@ class TestRegulatoryEventOperations:
         assert len(event_orm.related_assets) == 2
 
 
+@pytest.mark.unit
 class TestDataTransformation:
     """Test cases for data transformation between models and ORM."""
 
@@ -713,6 +717,7 @@ class TestDataTransformation:
         assert any(isinstance(a, Commodity) for a in assets)
 
 
+@pytest.mark.unit
 class TestEdgeCases:
     """Test edge cases and error conditions."""
 
@@ -812,11 +817,16 @@ class TestEdgeCases:
         assert rel.strength == 1.0
 
 
+@pytest.mark.unit
 class TestComplexScenarios:
     """Test complex real-world scenarios."""
 
     @staticmethod
     def test_complete_portfolio_workflow(repository: AssetGraphRepository) -> None:
+        """
+        Create a small diversified portfolio in the repository, persist the assets, add inter-asset relationships, and verify persistence.
+
+        This test inserts four assets (equity, bond, commodity, currency), commits them, adds two relationships (one bidirectional, one unidirectional), commits again, and asserts that the repository contains four assets and at least two relationships.
         """
         Exercise end-to-end portfolio creation, relationship linking, and verification in the repository.
 
@@ -1025,6 +1035,7 @@ class TestConcurrentReadWriteAccess:
         assert len(remaining_rels) == 0
 
 
+@pytest.mark.unit
 class TestAssetTypeConversions:
     """Test conversion between different asset types."""
 
@@ -1092,6 +1103,7 @@ class TestAssetTypeConversions:
         assert getattr(retrieved, "coupon_rate", None) is None
 
 
+@pytest.mark.unit
 @pytest.mark.slow
 class TestPerformance:
     """Test performance with large datasets."""
@@ -1149,6 +1161,7 @@ class TestPerformance:
         assert len(relationships) == 45
 
 
+@pytest.mark.unit
 class TestDataIntegrity:
     """Test data integrity constraints and validation."""
 
@@ -1225,6 +1238,7 @@ class TestDataIntegrity:
         repository.session.commit()
 
 
+@pytest.mark.unit
 class TestBoundaryValues:
     """Test boundary value conditions."""
 
@@ -1301,6 +1315,7 @@ class TestBoundaryValues:
         )
 
 
+@pytest.mark.unit
 class TestSpecialCharacters:
     """Test handling of special characters in data."""
 
@@ -1429,9 +1444,7 @@ class TestNullAndEmptyValues:
         repository.session.commit()
 
         # Empty relationship type
-        repository.add_or_update_relationship(
-            "EMPTY1", "EMPTY2", "", 0.5, bidirectional=False
-        )
+        repository.add_or_update_relationship("EMPTY1", "EMPTY2", "", 0.5, bidirectional=False)
         repository.session.commit()
 
         rel = repository.get_relationship("EMPTY1", "EMPTY2", "")
@@ -1530,12 +1543,8 @@ class TestComplexQueries:
         repository.session.commit()
 
         # Create relationships
-        repository.add_or_update_relationship(
-            "PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False
-        )
-        repository.add_or_update_relationship(
-            "PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False
-        )
+        repository.add_or_update_relationship("PARTIAL0", "PARTIAL1", "rel1", 0.5, bidirectional=False)
+        repository.add_or_update_relationship("PARTIAL1", "PARTIAL2", "rel2", 0.6, bidirectional=False)
         repository.session.commit()
 
         # Delete middle asset

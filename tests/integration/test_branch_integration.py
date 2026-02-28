@@ -313,7 +313,6 @@ class TestBranchCoherence:
             (".github/workflows/label.yml", 30),  # Should be under 30 lines
             (".github/workflows/greetings.yml", 20),  # Should be under 20 lines
         ]
-
         for wf_file, max_lines in workflows_to_check:
             path = Path(wf_file)
             if path.exists():

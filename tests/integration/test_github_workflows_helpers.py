@@ -451,30 +451,30 @@ jobs:
 
         complex_workflow = workflows_dir / "complex.yml"
         complex_workflow.write_text("""
-name: Complex CI/CD
+name: Complex CI / CD
 on:
   push:
     branches: [main, develop]
   pull_request:
     types: [opened, synchronize]
 env:
-  NODE_VERSION: "18"
-  PYTHON_VERSION: "3.11"
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs - on: ubuntu - latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
+        python - version: ['3.9', '3.10', '3.11']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions / checkout @ v4
         with:
-          fetch-depth: 0
+            fetch - depth: 0
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: "pip"
+          cache: 'pip'
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
@@ -488,7 +488,7 @@ jobs:
             assert len(workflows) == 1
 
             config = load_yaml_safe(workflows[0])
-            assert config["name"] == "Complex CI/CD"
+            assert config["name"] == "Complex CI / CD"
             assert "push" in config["on"]
             assert "pull_request" in config["on"]
             assert "strategy" in config["jobs"]["test"]

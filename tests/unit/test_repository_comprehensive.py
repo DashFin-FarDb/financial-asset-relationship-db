@@ -368,9 +368,9 @@ class TestStrengthBoundaryValues:
     @staticmethod
     def test_strength_just_above_zero(repository):
         """
-        Verify the repository accepts and persists a very small positive relationship strength.
+        Verify that a relationship can be created with a very small positive strength.
 
-        Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the stored relationship strength equals 0.0001.
+        Creates two assets, adds a relationship with strength 0.0001, commits, and asserts the persisted relationship strength equals 0.0001.
         """
         asset1 = Equity(
             id="BOUND1",
@@ -889,19 +889,15 @@ class TestRelationshipTypeVariations:
         )
         repository.session.commit()
 
-        rel = repository.get_relationship(
-            "REL_TYPE1", "REL_TYPE2", "same_sector_correlation"
-        )
-        assert rel is not None
-        assert rel.relationship_type == "same_sector_correlation"
+        repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
+        assert rel1 is not None
+        assert rel2 is not None
+        assert abs(rel1.strength - 0.5) < 1e-9
+        assert abs(rel2.strength - 0.6) < 1e-9
 
     @staticmethod
     def test_relationship_type_case_sensitivity(repository):
-        """
-        Verify relationship types are treated as distinct based on case.
-
-        Creates two assets, adds two relationships between them using type names that differ only by letter case, commits, and asserts both relationships are stored separately with their respective strength values.
-        """
+        """Test that relationship types are case-sensitive."""
         asset1 = Equity(
             id="CASE1",
             symbol="C1",

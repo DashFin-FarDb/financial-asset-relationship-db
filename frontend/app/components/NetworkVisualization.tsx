@@ -47,7 +47,7 @@ type NodeTrace = {
       width: number;
     };
   };
-  textposition: string;
+  textposition: "top center";
   textfont: {
     size: number;
   };
@@ -55,8 +55,6 @@ type NodeTrace = {
 
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
-
-import type { Data } from "plotly.js";
 
 /**
  * Display an interactive 3D network of assets from the provided visualization payload.
@@ -71,7 +69,7 @@ import type { Data } from "plotly.js";
 export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
-  const [plotData, setPlotData] = useState<Data[]>([]);
+  const [plotData, setPlotData] = useState<Array<EdgeTrace | NodeTrace>>([]);
   const [status, setStatus] = useState<
     "loading" | "ready" | "empty" | "tooLarge"
   >("loading");
@@ -139,6 +137,7 @@ export default function NetworkVisualization({
       const targetNode = nodeMap.get(edge.target);
 
       if (!sourceNode || !targetNode) {
+        console.warn(`Missing node for edge: source=${edge.source}, target=${edge.target}`);
         return acc;
       }
 
@@ -159,7 +158,7 @@ export default function NetworkVisualization({
       return acc;
     }, []);
 
-    setPlotData([...edgeTraces, nodeTrace] as Data[]);
+    setPlotData([...edgeTraces, nodeTrace] as Array<EdgeTrace | NodeTrace>);
     setStatus("ready");
     setMessage("");
   }, [data]);

@@ -73,15 +73,23 @@ def _build_mcp_app():
         price: float,
     ) -> str:
         """
-        Validate equity fields and add the resulting Equity to the module-level graph if the graph supports mutation.
+        Validate the provided equity fields and add the resulting Equity to the
+        graph if the graph supports mutation.
 
-        Constructs an Equity instance to validate the provided inputs. If the module-level `graph` exposes a callable `add_asset`, the new Equity is added to the graph; otherwise the function performs validation only and does not mutate graph state.
+        Constructs an Equity instance to perform validation. If the module-level
+        graph exposes an `add_asset` callable the new Equity is added to the
+        graph; otherwise the function only validates and does not mutate graph
+        state.
 
         Returns:
-            str: A user-facing message:
-                - "Successfully added: <name> (<symbol>)" when the asset was added.
-                - "Successfully validated (Graph mutation not supported): <name> (<symbol>)" when validation succeeded but the graph was not mutated.
-                - "Validation Error: <message>" when validation fails.
+            A user-facing message string.
+            On success when the asset was added:
+                "Successfully added: <name> (<symbol>)".
+            On success when only validation occurred:
+                "Successfully validated (Graph mutation not supported):
+                <name> (<symbol>)".
+            On validation failure:
+                "Validation Error: <message>".
         """
         try:
             # Uses existing Equity dataclass for post-init validation.
