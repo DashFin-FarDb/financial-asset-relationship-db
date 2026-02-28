@@ -57,7 +57,7 @@ jobs:
           fi
 
       - name: Fetch PR Context
-        id: pr-context
+        id: fetch-context
         run: |
           if [ "${{ github.event_name }}" = "issue_comment" ] && [ -z "${{ github.event.issue.pull_request.url }}" ]; then
             echo "pr_data={}" >> "$GITHUB_OUTPUT"
