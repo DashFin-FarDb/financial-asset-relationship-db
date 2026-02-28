@@ -5,7 +5,7 @@ _Generated: 2026-02-27T21:47:37.205Z_
 ## Summary
 
 - Files analyzed: 1000
-- File types: py, ts, tsx, js, h
+- File types: py, ts, tsx, js
 
 ## File Type Distribution
 
