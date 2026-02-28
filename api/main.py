@@ -703,17 +703,17 @@ async def get_metrics() -> MetricsResponse:
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
-    Prepare nodes and edges for 3 - D visualization of the asset graph.
+    Prepare nodes and edges for 3-D visualization of the asset graph.
 
-    Nodes are placed on a sphere using a Fibonacci - lattice distribution.
-    Nodes are colored by asset class .
+    Nodes are placed on a sphere using a Fibonacci-lattice distribution.
+    Nodes are colored by asset class.
     They are sized proportionally to each node's outgoing degree.
     Edges contain source, target, relationship type, and strength.
 
     Returns:
-        VisualizationDataResponse: A response object containing `nodes` and `edges`.
-        `nodes`: List of node dicts with keys `id`, `symbol`, `name`, `asset_class`, `x`, `y`, `z`, `color`, `size`.
-        `edges`: List of edge dicts with keys `source`, `target`, `relationship_type`, `strength`.
+        VisualizationDataResponse: A response object containing nodes and edges.
+        nodes: List of node dicts with keys id, symbol, name, asset_class, x, y, z, color, size.
+        edges: List of edge dicts with keys source, target, relationship_type, strength.
 
     Raises:
         HTTPException: HTTP 500 if an unexpected error occurs while generating
