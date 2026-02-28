@@ -237,7 +237,7 @@ def validate_origin(origin_url: str) -> bool:
                 # Convert IDN (internationalized domain names) to ASCII using IDNA encoding
                 ascii_hostname = hostname.encode("idna").decode("ascii")
                 # Reconstruct URL with ASCII hostname for regex validation
-                # Port is included in the URL string if present, regex handles validation
+                # Port is included if present (urlparse already validates port number)
                 port_suffix = f":{parsed.port}" if parsed.port else ""
                 ascii_url = f"https://{ascii_hostname}{port_suffix}"
                 # Validate the ASCII version against the domain regex
@@ -252,7 +252,6 @@ def validate_origin(origin_url: str) -> bool:
         except (UnicodeError, ValueError, AttributeError) as e:
             # Invalid hostname or IDNA encoding failed
             logger.debug(f"Failed to validate origin '{origin_url}': {e}")
-            pass
 
     return False
 
