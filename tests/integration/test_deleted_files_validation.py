@@ -43,13 +43,13 @@ def scan_files(
     exclude_dirs: set[str] | None = None,
 ) -> Iterable[Path]:
     """Scan for files with specific suffixes while excluding certain directories.
-    
+
     This function recursively searches through the directory tree starting  from
     PROJECT_ROOT, yielding paths of files that match the specified  suffixes. It
     skips any directories listed in exclude_dirs and only  processes files that
     have the desired suffixes. The function utilizes  the rglob method for
     efficient file searching.
-    
+
     Args:
         suffixes (set[str]): A set of file suffixes to include in the search.
         exclude_dirs (set[str] | None): A set of directory names to exclude

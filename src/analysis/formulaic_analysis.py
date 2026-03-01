@@ -258,11 +258,11 @@ class FormulaicAnalyzer:
 
     def _extract_valuation_relationships(self, graph: AssetRelationshipGraph) -> List[Formula]:
         """Extract valuation-related formulas from the asset relationship graph.
-        
+
         Args:
             graph (AssetRelationshipGraph): Graph of assets and relationships
                 used to determine which valuation formulas apply.
-        
+
         Returns:
             list[Formula]: A list of Formula objects representing
                 extracted valuation relationships.
@@ -454,16 +454,16 @@ class FormulaicAnalyzer:
         # Derive simple empirical statistics directly from the graph so that
         # summaries and visualizations can use real data instead of placeholders.
         """Calculate empirical relationships from the asset graph.
-        
+
         This function derives empirical statistics from the provided
         AssetRelationshipGraph,  building a correlation matrix based on relationship
         strengths. It identifies the  strongest correlations, categorizes them by
         strength, and aggregates asset data by  class and sector, providing insights
         into asset relationships and market dynamics.
-        
+
         Args:
             graph (AssetRelationshipGraph): The graph containing asset relationships and
-        
+
         Returns:
             Dict[str, Any]: A dictionary containing the correlation matrix, strongest
             correlations, asset class relationships, and sector relationships.
@@ -714,7 +714,7 @@ class FormulaicAnalyzer:
     @staticmethod
     def _has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
         """Check if the graph contains equity assets with a positive dividend yield.
-        
+
         This method evaluates the assets in the provided AssetRelationshipGraph to
         determine if any equity asset has a dividend yield greater than zero. It
         checks each asset's class and the presence of the 'dividend_yield' attribute
@@ -750,7 +750,7 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         """Create formatted examples of dividend yields for equity assets.
-        
+
         This static method iterates through the assets in the provided  graph and
         collects up to two examples of dividend yields for  assets classified as
         EQUITY. It checks for the presence of a  dividend yield attribute and formats
@@ -775,12 +775,12 @@ class FormulaicAnalyzer:
     def _calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
         """Produce up to two example Yield-to-Maturity (YTM) strings from fixed-income
         assets.
-        
+
         This method searches the provided graph for fixed-income assets that have a
         defined YTM.  It formats each valid example as "SYMBOL: YTM ≈ X.XX%". If no
         valid YTMs are found,  it returns a default example string indicating the
         absence of valid data.
-        
+
         Args:
             graph (AssetRelationshipGraph): Asset relationship graph to source fixed-income assets from.
         """
@@ -800,13 +800,13 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
         """Builds example market-capitalization strings for up to two equity assets.
-        
+
         This function scans the provided graph's assets for items classified as EQUITY
         that have a non-null market_cap. It formats up to two examples in billions
         (e.g., "SYM: Market Cap = $1.5B") and returns a semicolon-separated string.  If
         no valid equity market-cap values are found, it returns a default example
         string.
-        
+
         Args:
             graph (AssetRelationshipGraph): Graph containing assets to sample for
                 market-cap examples.
@@ -864,7 +864,7 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example volatility calculations from graph data.
-        
+
         This static method iterates through the assets in the provided
         AssetRelationshipGraph.  It checks for assets of the COMMODITY class that have
         a defined volatility. For each  qualifying asset, it calculates the volatility
