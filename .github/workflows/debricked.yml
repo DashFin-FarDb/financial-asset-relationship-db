@@ -40,4 +40,10 @@ jobs:
         # Security: Pinned to specific SHA for actions/checkout@v4.2.2
         # This prevents supply-chain attacks from compromised action versions
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-uses: debricked/actions/scan@3a23c0b4689c231887ffe1f29ac8b0b20e38de62 # v1.0.0 - Pinned for supply chain security
+      - name: Run Debricked Scan
+        # Security: Pinned to specific commit SHA for debricked/actions/scan
+        # Authentication via GitHub Actions secrets (no hardcoded tokens)
+        uses: debricked/actions/scan@3a23c0b4689c231887ffe1f29ac8b0b20e38de62 # v1.0.0 - Pinned for supply chain security
+        env:
+          # Secret is read from GitHub Actions secrets context
+          DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}
