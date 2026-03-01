@@ -216,3 +216,159 @@ class TestGet3DVisualizationDataEnhanced:
 
         # Verify they are sorted
         assert asset_ids == sorted(asset_ids)
+
+
+# ============================================================================
+# Additional Tests for AssetRelationshipGraph Simplified Interface
+# ============================================================================
+
+
+class TestAssetGraphSimplification:
+    """Test suite for simplified AssetRelationshipGraph interface."""
+
+    def test_asset_graph_minimal_initialization(self):
+        """Test that AssetRelationshipGraph can be initialized with no parameters."""
+        graph = AssetRelationshipGraph()
+
+        assert graph is not None
+        assert hasattr(graph, "relationships")
+        assert isinstance(graph.relationships, dict)
+
+    def test_asset_graph_has_relationships_dict(self):
+        """Test that graph has relationships dictionary."""
+        graph = AssetRelationshipGraph()
+
+        assert hasattr(graph, "relationships")
+        assert isinstance(graph.relationships, dict)
+        assert len(graph.relationships) == 0  # Initially empty
+
+
+class TestGet3DVisualizationDataEnhancedV2:
+    """Additional tests for get_3d_visualization_data_enhanced method."""
+
+    def test_get_3d_visualization_data_enhanced_exists(self):
+        """Test that get_3d_visualization_data_enhanced method exists."""
+        graph = AssetRelationshipGraph()
+
+        assert hasattr(graph, "get_3d_visualization_data_enhanced")
+        assert callable(graph.get_3d_visualization_data_enhanced)
+
+    def test_get_3d_visualization_data_enhanced_return_type(self):
+        """Test return type of get_3d_visualization_data_enhanced."""
+        graph = AssetRelationshipGraph()
+        result = graph.get_3d_visualization_data_enhanced()
+
+        assert isinstance(result, tuple)
+        assert len(result) == 4
+
+        positions, asset_ids, colors, hover_texts = result
+        assert isinstance(positions, np.ndarray)
+        assert isinstance(asset_ids, list)
+        assert isinstance(colors, list)
+        assert isinstance(hover_texts, list)
+
+    def test_get_3d_visualization_data_enhanced_with_empty_graph(self):
+        """Test visualization data for empty graph."""
+        graph = AssetRelationshipGraph()
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+
+        assert len(positions) > 0
+        assert len(asset_ids) > 0
+        assert len(colors) > 0
+        assert len(hover_texts) > 0
+
+    def test_get_3d_visualization_data_enhanced_with_relationships(self):
+        """Test visualization data when relationships exist."""
+        graph = AssetRelationshipGraph()
+        graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
+        graph.relationships["asset2"] = [("asset3", "sector", 0.7)]
+
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+
+        assert len(positions) >= 2
+        assert len(asset_ids) == len(positions)
+        assert len(colors) == len(positions)
+        assert len(hover_texts) == len(positions)
+
+    def test_get_3d_visualization_data_positions_are_3d(self):
+        """Test that positions are 3D coordinates."""
+        graph = AssetRelationshipGraph()
+        positions, _, _, _ = graph.get_3d_visualization_data_enhanced()
+
+        assert positions.ndim == 2
+        assert positions.shape[1] == 3
+
+
+class TestAssetGraphMinimalInterface:
+    """Test that the graph maintains its minimal required interface."""
+
+    def test_graph_has_relationships_attribute(self):
+        """Test that graph has relationships attribute."""
+        graph = AssetRelationshipGraph()
+
+        assert hasattr(graph, "relationships")
+
+    def test_graph_relationships_is_dict(self):
+        """Test that relationships is a dictionary."""
+        graph = AssetRelationshipGraph()
+
+        assert isinstance(graph.relationships, dict)
+
+    def test_graph_relationships_format(self):
+        """Test that relationships follow expected format."""
+        graph = AssetRelationshipGraph()
+        graph.relationships["source"] = [("target", "rel_type", 0.5)]
+
+        assert "source" in graph.relationships
+        assert isinstance(graph.relationships["source"], list)
+        assert len(graph.relationships["source"]) == 1
+
+        target_id, rel_type, strength = graph.relationships["source"][0]
+        assert isinstance(target_id, str)
+        assert isinstance(rel_type, str)
+        assert isinstance(strength, (int, float))
+
+
+class TestAssetGraphDocumentation:
+    """Test that docstrings are present and descriptive."""
+
+    def test_get_3d_visualization_data_enhanced_has_docstring(self):
+        """Test that get_3d_visualization_data_enhanced has proper docstring."""
+        docstring = AssetRelationshipGraph.get_3d_visualization_data_enhanced.__doc__
+        assert docstring is not None
+        assert "Return positions" in docstring or "visualization" in docstring.lower()
+
+    def test_docstring_mentions_visualization(self):
+        """Test that docstring mentions visualization context."""
+        docstring = AssetRelationshipGraph.get_3d_visualization_data_enhanced.__doc__
+        assert docstring is not None
+        assert "compatible" in docstring.lower() or "visualization" in docstring.lower()
+
+
+class TestAssetGraphCircularLayout:
+    """Test circular layout algorithm in get_3d_visualization_data_enhanced."""
+
+    def test_circular_layout_with_multiple_nodes(self):
+        """Test that nodes are laid out in a circle."""
+        graph = AssetRelationshipGraph()
+        graph.relationships = {
+            "a": [("b", "type1", 0.5)],
+            "b": [("c", "type2", 0.6)],
+            "c": [("d", "type3", 0.7)],
+            "d": [("a", "type4", 0.8)],
+        }
+
+        positions, asset_ids, _, _ = graph.get_3d_visualization_data_enhanced()
+
+        assert len(positions) == 4
+        distances = np.sqrt(np.sum(positions[:, :2] ** 2, axis=1))
+        assert np.std(distances) < 0.1  # Circular layout: roughly equal radii
+
+    def test_placeholder_node_for_empty_relationships(self):
+        """Test that single placeholder node is created for empty graph."""
+        graph = AssetRelationshipGraph()
+
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+
+        assert len(positions) >= 1
+        assert len(asset_ids) >= 1
