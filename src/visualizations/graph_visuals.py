@@ -5,6 +5,7 @@ import re
 import threading
 from collections import defaultdict
 from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 import plotly.graph_objects as go
@@ -275,7 +276,7 @@ def _prepare_layout_config(
 def _configure_3d_layout(
     fig: go.Figure,
     title: str,
-    options: dict[str, object] | None = None,
+    options: dict[str, Any] | None = None,
 ) -> None:
     """Configure the 3D layout for a figure.
 
@@ -791,9 +792,10 @@ def visualize_3d_graph_with_filters(
             f"boolean values: {', '.join(invalid_params)}"
         )
 
+    relationship_filters: dict[str, bool] | None = None
     try:
         if not show_all_relationships:
-            relationship_filters: dict[str, bool] | None = {
+            relationship_filters = {
                 "same_sector": show_same_sector,
                 "market_cap_similar": show_market_cap,
                 "correlation": show_correlation,
