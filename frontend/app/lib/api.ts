@@ -57,7 +57,9 @@ export const api = {
   },
 
   // Relationships
-  getAllRelationships: async (signal?: AbortSignal): Promise<Relationship[]> => {
+  getAllRelationships: async (
+    signal?: AbortSignal,
+  ): Promise<Relationship[]> => {
     const response = await apiClient.get("/api/relationships", { signal });
     return response.data;
   },

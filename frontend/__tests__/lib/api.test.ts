@@ -241,9 +241,9 @@ describe("API Client", () => {
       const controller = new AbortController();
       controller.abort();
 
-      await expect(
-        api.getAssets(undefined, controller.signal),
-      ).rejects.toThrow("Aborted");
+      await expect(api.getAssets(undefined, controller.signal)).rejects.toThrow(
+        "Aborted",
+      );
     });
   });
 
@@ -256,9 +256,12 @@ describe("API Client", () => {
 
       const result = await api.getAssetDetail("ASSET_1");
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1", {
-        signal: undefined,
-      });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/ASSET_1",
+        {
+          signal: undefined,
+        },
+      );
       expect(result).toEqual(mockAsset);
       expect(result.additional_fields).toBeDefined();
     });
@@ -290,9 +293,12 @@ describe("API Client", () => {
 
       await api.getAssetDetail("ASSET_1", controller.signal);
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/api/assets/ASSET_1", {
-        signal: controller.signal,
-      });
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/api/assets/ASSET_1",
+        {
+          signal: controller.signal,
+        },
+      );
     });
   });
 
