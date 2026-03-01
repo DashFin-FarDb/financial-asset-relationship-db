@@ -95,6 +95,7 @@ export const mockMetrics: Metrics = {
   avg_degree: 5.6,
   max_degree: 12,
   network_density: 0.42,
+  relationship_density: 0.28,
 };
 
 export const mockVisualizationData: VisualizationData = {
