@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Final, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.models.financial_models import AssetClass
 
 logger = logging.getLogger(__name__)
 
@@ -304,7 +305,7 @@ class FormulaicAnalyzer:
                 "Debt": "Total Debt ($)",
                 "Cash": "Cash and Cash Equivalents ($)",
             },
-            example_calculation=("EV calculation requires debt and cash data " "(not available in current dataset)"),
+            example_calculation=("EV calculation requires debt and cash data (not available in current dataset)"),
             category="Valuation",
             r_squared=0.95,
         )
@@ -456,13 +457,106 @@ class FormulaicAnalyzer:
     def _calculate_empirical_relationships(
         graph: AssetRelationshipGraph,
     ) -> Dict[str, Any]:
-        """
-        Stub for calculating empirical relationships between assets.
+        """Calculate empirical relationships from the asset graph."""
+        # Derive simple empirical statistics directly from the graph so that
+        # summaries and visualizations can use real data instead of placeholders.
+        correlation_matrix: Dict[str, float] = {}
 
-        Returns:
-            Empty dictionary. Actual implementation pending.
-        """
-        return {}
+        # Build a basic correlation-style matrix from relationship strengths
+        for src_id, rels in graph.relationships.items():
+            for target_id, _rel_type, strength in rels:
+                if src_id == target_id:
+                    continue
+                try:
+                    strength_value = float(strength)
+                except (TypeError, ValueError):
+                    # Skip relationships without a numeric strength
+                    continue
+                pair_key = f"{src_id}-{target_id}"
+                existing = correlation_matrix.get(pair_key)
+                if existing is None or abs(strength_value) > abs(existing):
+                    correlation_matrix[pair_key] = strength_value
+
+        # Derive strongest correlations from the matrix
+        strongest_correlations: List[Dict[str, Any]] = []
+        for pair_key, corr in correlation_matrix.items():
+            asset1, asset2 = pair_key.split("-", 1)
+            if abs(corr) >= 1.0:
+                # Skip perfect/self-correlations
+                continue
+            if abs(corr) > 0.7:
+                strength_label = "Strong"
+            elif abs(corr) > 0.4:
+                strength_label = "Moderate"
+            else:
+                strength_label = "Weak"
+            strongest_correlations.append(
+                {
+                    "pair": f"{asset1}-{asset2}",
+                    "asset1": asset1,
+                    "asset2": asset2,
+                    "correlation": corr,
+                    "strength": strength_label,
+                }
+            )
+        strongest_correlations.sort(key=lambda x: abs(x["correlation"]), reverse=True)
+        strongest_correlations = strongest_correlations[:10]
+
+        # Aggregate by asset class
+        asset_class_relationships: Dict[str, Dict[str, Any]] = {}
+        for asset_id, asset in graph.assets.items():
+            asset_class = getattr(asset.asset_class, "value", str(asset.asset_class))
+            price = getattr(asset, "price", 0.0) or 0.0
+            market_cap = getattr(asset, "market_cap", 0.0) or 0.0
+
+            stats = asset_class_relationships.setdefault(
+                asset_class,
+                {
+                    "asset_count": 0,
+                    "avg_price": 0.0,
+                    "total_value": 0.0,
+                    "_total_price": 0.0,
+                },
+            )
+            stats["asset_count"] += 1
+            stats["_total_price"] += float(price)
+            stats["total_value"] += float(market_cap)
+
+        for stats in asset_class_relationships.values():
+            count = stats["asset_count"]
+            total_price = stats.pop("_total_price", 0.0)
+            stats["avg_price"] = total_price / count if count else 0.0
+
+        # Aggregate by sector
+        sector_relationships: Dict[str, Dict[str, Any]] = {}
+        for asset_id, asset in graph.assets.items():
+            sector = getattr(asset, "sector", None)
+            if not sector:
+                continue
+            price = getattr(asset, "price", 0.0) or 0.0
+
+            stats = sector_relationships.setdefault(
+                sector,
+                {"asset_count": 0, "avg_price": 0.0, "price_range": "", "_prices": []},
+            )
+            stats["asset_count"] += 1
+            stats["_prices"].append(float(price))
+
+        for stats in sector_relationships.values():
+            prices = stats.pop("_prices", [])
+            if prices:
+                stats["avg_price"] = sum(prices) / len(prices)
+                stats["price_range"] = f"${min(prices):.2f} - ${max(prices):.2f}"
+            else:
+                stats["avg_price"] = 0.0
+                stats["price_range"] = "$0.00 - $0.00"
+
+        return {
+            "correlation_matrix": correlation_matrix,
+            "strongest_correlations": strongest_correlations,
+            "asset_class_relationships": asset_class_relationships,
+            "sector_relationships": sector_relationships,
+        }
 
     @staticmethod
     def _calculate_avg_correlation_strength(graph: AssetRelationshipGraph) -> float:
@@ -520,17 +614,25 @@ class FormulaicAnalyzer:
                     derived from the formulas and empirical data.
         """
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
+
+        if formulas:
+            avg_r_squared = sum(
+                f.r_squared for f in formulas if isinstance(f.r_squared, (int, float))
+            ) / len(formulas)
+        else:
+            avg_r_squared = 0.0
+
         return {
             "total_formulas": len(formulas),
-            "avg_r_squared": (sum(f.r_squared for f in formulas) / len(formulas) if formulas else 0),
+            "avg_r_squared": avg_r_squared,
             "formula_categories": self._categorize_formulas(formulas),
             "empirical_data_points": len(empirical_relationships.get("correlation_matrix", {})),
             "key_insights": [
-                (f"Identified {len(formulas)} mathematical relationships"),
+                f"Identified {len(formulas)} mathematical relationships",
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
-                ("Portfolio theory formulas available for multi-asset analysis"),
-                ("Cross-asset relationships identified between " "commodities and currencies"),
+                "Portfolio theory formulas available for multi-asset analysis",
+                "Cross-asset relationships identified between commodities and currencies",
             ],
         }
 
@@ -566,8 +668,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _has_equities(graph: AssetRelationshipGraph) -> bool:
         """Check if the graph contains equity assets."""
-        from src.models.financial_models import AssetClass
-
         return any(asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values())
 
     @staticmethod
@@ -581,8 +681,6 @@ class FormulaicAnalyzer:
         Returns:
             True if the graph contains at least one fixed-income asset, False otherwise.
         """
-        from src.models.financial_models import AssetClass
-
         return any(asset.asset_class == AssetClass.FIXED_INCOME for asset in graph.assets.values())
 
     @staticmethod
@@ -594,8 +692,6 @@ class FormulaicAnalyzer:
             bool: `true` if the graph contains at least one asset
                   with AssetClass.COMMODITY, `false` otherwise.
         """
-        from src.models.financial_models import AssetClass
-
         return any(asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values())
 
     @staticmethod
@@ -607,8 +703,6 @@ class FormulaicAnalyzer:
             `true` if the graph contains at least one asset with
             `AssetClass.CURRENCY`, `false` otherwise.
         """
-        from src.models.financial_models import AssetClass
-
         return any(asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values())
 
     @staticmethod
@@ -621,8 +715,6 @@ class FormulaicAnalyzer:
             `true` if at least one equity asset has a dividend yield greater than
             zero, `false` otherwise.
         """
-        from src.models.financial_models import AssetClass
-
         return any(
             asset.asset_class == AssetClass.EQUITY
             and hasattr(asset, "dividend_yield")
@@ -642,8 +734,6 @@ class FormulaicAnalyzer:
         examples and formats them for output. If no valid examples are found,
         a default example is returned.
         """
-        from src.models.financial_models import AssetClass
-
         examples = []
         for asset in graph.assets.values():
             if asset.asset_class == AssetClass.EQUITY and hasattr(asset, "pe_ratio") and asset.pe_ratio is not None:
@@ -665,8 +755,6 @@ class FormulaicAnalyzer:
             If no equity with a dividend yield is found, returns a default
             illustrative example string.
         """
-        from src.models.financial_models import AssetClass
-
         examples = []
         for asset in graph.assets.values():
             if (
@@ -675,7 +763,7 @@ class FormulaicAnalyzer:
                 and asset.dividend_yield is not None
             ):
                 yield_pct = asset.dividend_yield * 100
-                examples.append(f"{asset.symbol}: Yield = {yield_pct:.2f}% " f"at price ${asset.price:.2f}")
+                examples.append(f"{asset.symbol}: Yield = {yield_pct:.2f}% at price ${asset.price:.2f}")
                 if len(examples) >= 2:
                     break
         return "; ".join(examples) if examples else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
@@ -699,8 +787,6 @@ class FormulaicAnalyzer:
                 "SYMBOL: YTM ≈ 3.45%", or "Example: YTM ≈ 3.0%"
                 when no valid YTMs are available.
         """
-        from src.models.financial_models import AssetClass
-
         examples = []
         for asset in graph.assets.values():
             if (
@@ -734,8 +820,6 @@ class FormulaicAnalyzer:
         Returns:
             str: Formatted example(s) or the default example message.
         """
-        from src.models.financial_models import AssetClass
-
         examples = []
         for asset in graph.assets.values():
             if asset.asset_class == AssetClass.EQUITY and hasattr(asset, "market_cap") and asset.market_cap is not None:
@@ -772,8 +856,6 @@ class FormulaicAnalyzer:
             A single string containing up to two examples separated by "; ",
             or the default example when no qualifying equities exist.
         """
-        from src.models.financial_models import AssetClass
-
         examples = []
         for asset in graph.assets.values():
             if asset.asset_class == AssetClass.EQUITY and hasattr(asset, "book_value") and asset.book_value is not None:
@@ -791,8 +873,6 @@ class FormulaicAnalyzer:
     @staticmethod
     def _calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
         """Generate example volatility calculations from graph data."""
-        from src.models.financial_models import AssetClass
-
         examples = []
         for asset in graph.assets.values():
             if (
@@ -825,7 +905,7 @@ class FormulaicAnalyzer:
             example (str): A formatted example string showing the portfolio variance
                 expression (σ²_p) with numeric terms.
         """
-        return "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + " "(2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
+        return "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + (2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
 
     @staticmethod
     def _calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
@@ -839,8 +919,6 @@ class FormulaicAnalyzer:
             if fewer than two currencies are available, returns
             a default example string.
         """
-        from src.models.financial_models import AssetClass
-
         currencies = [asset for asset in graph.assets.values() if asset.asset_class == AssetClass.CURRENCY]
         if len(currencies) >= 2:
             c1, c2 = currencies[0], currencies[1]

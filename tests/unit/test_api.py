@@ -1005,3 +1005,175 @@ class TestNegativeScenarios:
         data = response.json()
         assert data["total_assets"] == 0
         assert data["network_density"] == 0
+
+
+class TestUserInDBClassRefactoring:
+    """Test suite for UserInDB class that was moved from api.models."""
+
+    def test_user_in_db_class_exists_in_auth_module(self):
+        """Test that UserInDB is accessible via api.auth module."""
+        from api.auth import UserInDB
+
+        assert UserInDB is not None
+        assert hasattr(UserInDB, "__annotations__")
+
+    def test_user_in_db_inherits_from_user_base_class(self):
+        """Test that UserInDB properly inherits from User."""
+        from api.auth import User, UserInDB
+
+        user_in_db = UserInDB(
+            username="testuser",
+            email="test@example.com",
+            full_name="Test User",
+            disabled=False,
+            hashed_password="$2b$12$hashedpasswordexample",
+        )
+
+        assert isinstance(user_in_db, User)
+        assert user_in_db.username == "testuser"
+        assert user_in_db.email == "test@example.com"
+        assert user_in_db.full_name == "Test User"
+        assert user_in_db.disabled is False
+        assert user_in_db.hashed_password == "$2b$12$hashedpasswordexample"
+
+    def test_user_in_db_requires_hashed_password_field(self):
+        """Test that UserInDB requires hashed_password field."""
+        from api.auth import UserInDB
+
+        user = UserInDB(username="test", hashed_password="$2b$12$hash")
+        assert user.hashed_password == "$2b$12$hash"
+        assert "hashed_password" in UserInDB.__annotations__
+
+    def test_user_in_db_optional_fields(self):
+        """Test that UserInDB handles optional fields correctly."""
+        from api.auth import UserInDB
+
+        user = UserInDB(username="minimaluser", hashed_password="$2b$12$hash")
+
+        assert user.username == "minimaluser"
+        assert user.hashed_password == "$2b$12$hash"
+
+
+class TestIsTruthyHelperFunction:
+    """Comprehensive tests for the _is_truthy helper function."""
+
+    def test_is_truthy_with_true_variations(self):
+        """Test _is_truthy recognizes 'true' in various cases."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("true") is True
+        assert _is_truthy("True") is True
+        assert _is_truthy("TRUE") is True
+        assert _is_truthy("TrUe") is True
+
+    def test_is_truthy_with_numeric_one(self):
+        """Test _is_truthy recognizes '1' as truthy."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("1") is True
+
+    def test_is_truthy_with_yes_variations(self):
+        """Test _is_truthy recognizes 'yes' in various cases."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("yes") is True
+        assert _is_truthy("Yes") is True
+        assert _is_truthy("YES") is True
+        assert _is_truthy("YeS") is True
+
+    def test_is_truthy_with_on_variations(self):
+        """Test _is_truthy recognizes 'on' in various cases."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("on") is True
+        assert _is_truthy("On") is True
+        assert _is_truthy("ON") is True
+        assert _is_truthy("oN") is True
+
+    def test_is_truthy_with_false_string(self):
+        """Test _is_truthy returns False for 'false' string."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("false") is False
+        assert _is_truthy("False") is False
+        assert _is_truthy("FALSE") is False
+
+    def test_is_truthy_with_numeric_zero(self):
+        """Test _is_truthy returns False for '0'."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("0") is False
+
+    def test_is_truthy_with_no_string(self):
+        """Test _is_truthy returns False for 'no'."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("no") is False
+        assert _is_truthy("No") is False
+        assert _is_truthy("NO") is False
+
+    def test_is_truthy_with_none_value(self):
+        """Test _is_truthy handles None gracefully."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy(None) is False
+
+    def test_is_truthy_with_empty_string(self):
+        """Test _is_truthy handles empty string."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("") is False
+
+    def test_is_truthy_with_whitespace_string(self):
+        """Test _is_truthy with whitespace string."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("   ") is False
+
+    def test_is_truthy_with_arbitrary_strings(self):
+        """Test _is_truthy returns False for unrecognized strings."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy("maybe") is False
+        assert _is_truthy("random") is False
+        assert _is_truthy("2") is False
+        assert _is_truthy("off") is False
+        assert _is_truthy("disabled") is False
+
+    def test_is_truthy_with_truthy_strings_containing_spaces(self):
+        """Test _is_truthy with truthy values that have leading/trailing spaces."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy(" true") is False  # Has leading space
+        assert _is_truthy("true ") is False  # Has trailing space
+
+
+class TestAuthModuleDocstringUpdates:
+    """Test that auth module docstrings are present and descriptive."""
+
+    def test_is_truthy_function_has_proper_docstring(self):
+        """Test that _is_truthy has updated docstring."""
+        from api.auth import _is_truthy
+
+        assert _is_truthy.__doc__ is not None
+        assert (
+            "Determine whether a string value represents a truthy boolean"
+            in _is_truthy.__doc__
+        )
+
+    def test_user_repository_get_user_docstring(self):
+        """Test that UserRepository.get_user has proper docstring."""
+        from api.auth import UserRepository
+
+        assert UserRepository.get_user.__doc__ is not None
+        assert "Retrieve a user record by username" in UserRepository.get_user.__doc__
+
+    def test_user_repository_has_users_docstring(self):
+        """Test that UserRepository.has_users has proper docstring."""
+        from api.auth import UserRepository
+
+        assert UserRepository.has_users.__doc__ is not None
+        assert (
+            "Check whether any user credential records exist"
+            in UserRepository.has_users.__doc__
+        )

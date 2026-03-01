@@ -315,9 +315,12 @@ class TestPrAgentWorkflow:
 
     def test_pr_agent_review_runs_on_ubuntu(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job runs on Ubuntu."""
-        review_job = pr_agent_workflow["jobs"]["review"]
+        jobs = pr_agent_workflow.get("jobs", {})
+        review_job_key = "review" if "review" in jobs else "pr-agent-trigger"
+        assert review_job_key in jobs, "pr-agent workflow must define a review job ('review' or 'pr-agent-trigger')"
+        review_job = jobs[review_job_key]
         runs_on = review_job.get("runs-on", "")
-        assert "ubuntu" in runs_on.lower(), "Review job should run on Ubuntu runner"
+        assert "ubuntu" in str(runs_on).lower(), "Review job should run on Ubuntu runner"
 
     def test_pr_agent_has_checkout_step(self, pr_agent_workflow: Dict[str, Any]):
         """Test that review job checks out the code."""
@@ -502,28 +505,26 @@ class TestWorkflowMaintainability:
 
     @pytest.mark.parametrize("workflow_file", get_workflow_files())
     def test_workflow_reasonable_size(self, workflow_file: Path):
-        @staticmethod
-        def assert_workflow_file_size(workflow_file: Path):
-            """
-            Assert the workflow file is within reasonable size limits.
+        """
+        Assert the workflow file is within reasonable size limits.
 
-            If the file is larger than 10,240 bytes (10 KB) a warning is printed to encourage splitting complex workflows.
-            If the file is 51,200 bytes (50 KB) or larger the test fails with an assertion instructing to split the workflow or use reusable workflows.
-            """
-            file_size = workflow_file.stat().st_size
+        If the file is larger than 10,240 bytes (10 KB) a warning is printed to encourage splitting complex workflows.
+        If the file is 51,200 bytes (50 KB) or larger the test fails with an assertion instructing to split the workflow or use reusable workflows.
+        """
+        file_size = workflow_file.stat().st_size
 
-            # Warn if workflow file exceeds 10KB (reasonable limit)
-            if file_size > 10240:
-                print(
-                    f"\nWarning: {workflow_file.name} is {file_size} bytes. "
-                    "Consider splitting into multiple workflows if it gets too complex."
-                )
-
-            # Fail if exceeds 50KB (definitely too large)
-            assert file_size < 51200, (
-                f"Workflow {workflow_file.name} is too large ({file_size} bytes). "
-                "Consider splitting into multiple workflows or using reusable workflows."
+        # Warn if workflow file exceeds 10KB (reasonable limit)
+        if file_size > 10240:
+            print(
+                f"\nWarning: {workflow_file.name} is {file_size} bytes. "
+                "Consider splitting into multiple workflows if it gets too complex."
             )
+
+        # Fail if exceeds 50KB (definitely too large)
+        assert file_size < 51200, (
+            f"Workflow {workflow_file.name} is too large ({file_size} bytes). "
+            "Consider splitting into multiple workflows or using reusable workflows."
+        )
 
 
 class TestWorkflowEdgeCases:
