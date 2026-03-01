@@ -160,22 +160,8 @@ class FinancialAssetApp:
 
     @staticmethod
     def _create_database() -> AssetRelationshipGraph:
-        """
-        Create an AssetRelationshipGraph by locating and invoking a
-        factory function in src.data.real_data_fetcher.
-
-        The function probes a set of known factory names and calls the first
-        callable it finds to obtain the graph.
-
-        Returns:
-            AssetRelationshipGraph: The constructed asset relationship graph.
-
-        Raises:
-            TypeError: If a discovered factory is callable but returns
-                a value that is not an AssetRelationshipGraph.
-            AttributeError: If no recognized factory function is present in
-                src.data.real_data_fetcher.
-        """
+        """Create an AssetRelationshipGraph by invoking a factory function from
+        src.data.real_data_fetcher."""
         candidates = (
             "create_real_database",
             "create_sample_database",
