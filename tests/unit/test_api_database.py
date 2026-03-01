@@ -52,9 +52,7 @@ class TestDatabaseURLConfiguration:
         from api import database as db_module
 
         # Need to reload the module to trigger the error
-        with pytest.raises(
-            ValueError, match="DATABASE_URL environment variable must be set"
-        ):
+        with pytest.raises(ValueError, match="DATABASE_URL environment variable must be set"):
             # Import will fail due to module-level check
             import importlib
 

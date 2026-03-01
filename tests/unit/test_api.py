@@ -1156,10 +1156,7 @@ class TestAuthModuleDocstringUpdates:
         from api.auth import _is_truthy
 
         assert _is_truthy.__doc__ is not None
-        assert (
-            "Determine whether a string value represents a truthy boolean"
-            in _is_truthy.__doc__
-        )
+        assert "Determine whether a string value represents a truthy boolean" in _is_truthy.__doc__
 
     def test_user_repository_get_user_docstring(self):
         """Test that UserRepository.get_user has proper docstring."""
@@ -1173,7 +1170,4 @@ class TestAuthModuleDocstringUpdates:
         from api.auth import UserRepository
 
         assert UserRepository.has_users.__doc__ is not None
-        assert (
-            "Check whether any user credential records exist"
-            in UserRepository.has_users.__doc__
-        )
+        assert "Check whether any user credential records exist" in UserRepository.has_users.__doc__

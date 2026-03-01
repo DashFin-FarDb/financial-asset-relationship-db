@@ -270,9 +270,7 @@ class TestGet3DVisualizationDataEnhancedV2:
     def test_get_3d_visualization_data_enhanced_with_empty_graph(self):
         """Test visualization data for empty graph."""
         graph = AssetRelationshipGraph()
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert len(positions) > 0
         assert len(asset_ids) > 0
@@ -285,9 +283,7 @@ class TestGet3DVisualizationDataEnhancedV2:
         graph.relationships["asset1"] = [("asset2", "correlation", 0.8)]
         graph.relationships["asset2"] = [("asset3", "sector", 0.7)]
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert len(positions) >= 2
         assert len(asset_ids) == len(positions)
@@ -372,9 +368,7 @@ class TestAssetGraphCircularLayout:
         """Test that single placeholder node is created for empty graph."""
         graph = AssetRelationshipGraph()
 
-        positions, asset_ids, colors, hover_texts = (
-            graph.get_3d_visualization_data_enhanced()
-        )
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
 
         assert len(positions) >= 1
         assert len(asset_ids) >= 1

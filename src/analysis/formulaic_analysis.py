@@ -616,9 +616,7 @@ class FormulaicAnalyzer:
         avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
 
         if formulas:
-            avg_r_squared = sum(
-                f.r_squared for f in formulas if isinstance(f.r_squared, (int, float))
-            ) / len(formulas)
+            avg_r_squared = sum(f.r_squared for f in formulas if isinstance(f.r_squared, (int, float))) / len(formulas)
         else:
             avg_r_squared = 0.0
 

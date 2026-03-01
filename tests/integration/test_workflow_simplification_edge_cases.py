@@ -6,7 +6,6 @@ from typing import Any, Dict, Iterable, Iterator, List, Mapping, Set, TypedDict
 import pytest
 import yaml
 
-
 # ---------------------------------------------------------------------------
 # Paths
 # ---------------------------------------------------------------------------
@@ -18,6 +17,7 @@ WORKFLOWS_DIR = ROOT_DIR / ".github" / "workflows"
 # ---------------------------------------------------------------------------
 # Typed models
 # ---------------------------------------------------------------------------
+
 
 class Step(TypedDict, total=False):
     uses: str
@@ -36,6 +36,7 @@ Workflow = Dict[str, Any]
 # ---------------------------------------------------------------------------
 # YAML loading
 # ---------------------------------------------------------------------------
+
 
 def load_yaml(path: Path) -> Dict[str, Any]:
     if not path.exists():
@@ -61,6 +62,7 @@ def iter_workflows() -> Iterator[tuple[Path, Workflow]]:
 # ---------------------------------------------------------------------------
 # Structured traversal helpers
 # ---------------------------------------------------------------------------
+
 
 def iter_jobs(workflow: Mapping[str, Any]) -> Iterable[Job]:
     jobs = workflow.get("jobs")
@@ -97,6 +99,7 @@ def extract_python_versions(workflow: Mapping[str, Any]) -> Set[str]:
 # Shared fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="session")
 def all_workflows() -> List[tuple[Path, Workflow]]:
     return list(iter_workflows())
@@ -115,6 +118,7 @@ def all_steps(all_workflows: List[tuple[Path, Workflow]]) -> List[Step]:
 # Greetings workflow (structured validation)
 # ---------------------------------------------------------------------------
 
+
 class TestGreetingsWorkflowEdgeCases:
     @pytest.fixture
     def workflow(self) -> Workflow:
@@ -125,8 +129,7 @@ class TestGreetingsWorkflowEdgeCases:
             step
             for job in iter_jobs(workflow)
             for step in iter_steps(job)
-            if "uses" in step
-            and "first-interaction" in step["uses"].lower()
+            if "uses" in step and "first-interaction" in step["uses"].lower()
         ]
         assert steps
         for step in steps:
@@ -136,6 +139,7 @@ class TestGreetingsWorkflowEdgeCases:
 # ---------------------------------------------------------------------------
 # APISec workflow (structured job/step validation)
 # ---------------------------------------------------------------------------
+
 
 class TestAPISecWorkflowEdgeCases:
     @pytest.fixture
@@ -166,6 +170,7 @@ class TestAPISecWorkflowEdgeCases:
 # Cross-workflow consistency (no heuristics)
 # ---------------------------------------------------------------------------
 
+
 class TestWorkflowConsistency:
     def test_python_versions_consistent(
         self,
@@ -180,11 +185,7 @@ class TestWorkflowConsistency:
             assert len(versions) <= 2
 
     def test_checkout_versions(self, all_steps: List[Step]) -> None:
-        checkouts = [
-            step["uses"]
-            for step in all_steps
-            if "uses" in step and "checkout" in step["uses"].lower()
-        ]
+        checkouts = [step["uses"] for step in all_steps if "uses" in step and "checkout" in step["uses"].lower()]
         if checkouts:
             v4 = sum("@v4" in u for u in checkouts)
             assert v4 >= len(checkouts) * 0.7

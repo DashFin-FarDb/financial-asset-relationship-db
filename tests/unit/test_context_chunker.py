@@ -81,9 +81,7 @@ limits:
         assert chunker.max_tokens == 32000
         assert isinstance(chunker.config, dict)
 
-    @patch(
-        "builtins.open", new_callable=mock_open, read_data="invalid: yaml: content: [[["
-    )
+    @patch("builtins.open", new_callable=mock_open, read_data="invalid: yaml: content: [[[")
     @patch("pathlib.Path.exists")
     def test_initialization_with_invalid_yaml(self, mock_exists, mock_file):
         """Test initialization handles invalid YAML gracefully."""
@@ -170,9 +168,7 @@ class TestProcessContext:
         """Test processing context with only review data."""
         chunker = ContextChunker()
 
-        payload = {
-            "reviews": [{"body": "Review comment 1"}, {"body": "Review comment 2"}]
-        }
+        payload = {"reviews": [{"body": "Review comment 1"}, {"body": "Review comment 2"}]}
 
         text, has_content = chunker.process_context(payload)
 

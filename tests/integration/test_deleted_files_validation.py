@@ -6,7 +6,6 @@ from typing import Dict, Iterable, List
 import pytest
 import yaml
 
-
 # -----------------------------------------------------------------------------
 # Paths
 # -----------------------------------------------------------------------------
@@ -20,6 +19,7 @@ SCRIPTS_DIR = GITHUB_DIR / "scripts"
 # -----------------------------------------------------------------------------
 # Generic helpers
 # -----------------------------------------------------------------------------
+
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -54,6 +54,7 @@ def scan_files(
 # label.yml workflow
 # -----------------------------------------------------------------------------
 
+
 @pytest.fixture(scope="session")
 def label_workflow() -> Dict:
     path = WORKFLOWS_DIR / "label.yml"
@@ -64,15 +65,11 @@ def label_workflow() -> Dict:
 
 class TestLabelWorkflowUpdated:
     def test_no_checkout_step(self, label_workflow: Dict) -> None:
-        assert not any(
-            "checkout" in step.get("uses", "").lower()
-            for step in iter_workflow_steps(label_workflow)
-        )
+        assert not any("checkout" in step.get("uses", "").lower() for step in iter_workflow_steps(label_workflow))
 
     def test_no_config_check_step(self, label_workflow: Dict) -> None:
         assert not any(
-            "check" in step.get("name", "").lower()
-            and "config" in step.get("name", "").lower()
+            "check" in step.get("name", "").lower() and "config" in step.get("name", "").lower()
             for step in iter_workflow_steps(label_workflow)
         )
 
@@ -90,6 +87,7 @@ class TestLabelWorkflowUpdated:
 # -----------------------------------------------------------------------------
 # pr-agent workflow
 # -----------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def pr_agent_path() -> Path:
@@ -117,10 +115,7 @@ class TestPRAgentWorkflowCleaned:
         assert "tiktoken" not in pr_agent_text.lower()
 
     def test_no_chunking_steps(self, pr_agent_workflow: Dict) -> None:
-        assert not any(
-            "chunk" in step.get("name", "").lower()
-            for step in iter_workflow_steps(pr_agent_workflow)
-        )
+        assert not any("chunk" in step.get("name", "").lower() for step in iter_workflow_steps(pr_agent_workflow))
 
     def test_no_context_files_or_size_logic(self, pr_agent_workflow: Dict) -> None:
         for step in iter_workflow_steps(pr_agent_workflow):
@@ -130,15 +125,13 @@ class TestPRAgentWorkflowCleaned:
 
     def test_no_inline_pyyaml_install(self, pr_agent_text: str) -> None:
         for line in pr_agent_text.splitlines():
-            assert not (
-                "pip install" in line.lower()
-                and "pyyaml" in line.lower()
-            )
+            assert not ("pip install" in line.lower() and "pyyaml" in line.lower())
 
 
 # -----------------------------------------------------------------------------
 # Orphaned references
 # -----------------------------------------------------------------------------
+
 
 class TestNoOrphanedReferences:
     def test_no_labeler_file_reference(self) -> None:
@@ -149,6 +142,7 @@ class TestNoOrphanedReferences:
 # -----------------------------------------------------------------------------
 # Codecov cleanup
 # -----------------------------------------------------------------------------
+
 
 class TestCodecovCleanup:
     def test_no_codecov_configs(self) -> None:
@@ -165,6 +159,7 @@ class TestCodecovCleanup:
 # -----------------------------------------------------------------------------
 # Greetings workflow
 # -----------------------------------------------------------------------------
+
 
 @pytest.fixture(scope="session")
 def greetings_workflow() -> Dict:
@@ -184,6 +179,7 @@ class TestGreetingsWorkflowStructure:
 # Dependencies
 # -----------------------------------------------------------------------------
 
+
 class TestDependencyCleanup:
     def test_requirements_dev(self) -> None:
         path = PROJECT_ROOT / "requirements-dev.txt"
@@ -199,15 +195,14 @@ class TestDependencyCleanup:
 # Project structure
 # -----------------------------------------------------------------------------
 
+
 class TestProjectStructureIntegrity:
     def test_github_dirs_exist(self) -> None:
         assert GITHUB_DIR.is_dir()
         assert WORKFLOWS_DIR.is_dir()
 
     def test_sufficient_workflows(self) -> None:
-        workflows = list(WORKFLOWS_DIR.glob("*.yml")) + list(
-            WORKFLOWS_DIR.glob("*.yaml")
-        )
+        workflows = list(WORKFLOWS_DIR.glob("*.yml")) + list(WORKFLOWS_DIR.glob("*.yaml"))
         assert len(workflows) >= 3
 
     def test_pr_agent_config_exists(self) -> None:

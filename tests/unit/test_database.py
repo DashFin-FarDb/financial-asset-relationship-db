@@ -869,9 +869,7 @@ class TestExecuteFunctionEnhancements:
 
         execute("INSERT INTO test VALUES (?, ?)", [1, 2])
 
-        mock_conn.execute.assert_called_once_with(
-            "INSERT INTO test VALUES (?, ?)", [1, 2]
-        )
+        mock_conn.execute.assert_called_once_with("INSERT INTO test VALUES (?, ?)", [1, 2])
 
 
 @pytest.mark.unit
