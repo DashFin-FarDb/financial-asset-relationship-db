@@ -10,6 +10,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const apiClient = axios.create({
   baseURL: API_URL,
+  timeout: 10_000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -23,45 +24,57 @@ export const api = {
   },
 
   // Assets
-  getAssets: async (params?: {
-    asset_class?: string;
-    sector?: string;
-    page?: number;
-    per_page?: number;
-  }): Promise<
-    Asset[] | { items: Asset[]; total: number; page: number; per_page: number }
-  > => {
-    const response = await apiClient.get("/api/assets", { params });
+  getAssets: async (
+    params?: {
+      asset_class?: string;
+      sector?: string;
+      page?: number;
+      per_page?: number;
+    },
+    signal?: AbortSignal,
+  ): Promise<Asset[]> => {
+    const response = await apiClient.get("/api/assets", { params, signal });
     return response.data;
   },
 
-  getAssetDetail: async (assetId: string): Promise<Asset> => {
-    const response = await apiClient.get(`/api/assets/${assetId}`);
+  getAssetDetail: async (
+    assetId: string,
+    signal?: AbortSignal,
+  ): Promise<Asset> => {
+    const response = await apiClient.get(`/api/assets/${assetId}`, { signal });
     return response.data;
   },
 
-  getAssetRelationships: async (assetId: string): Promise<Relationship[]> => {
+  getAssetRelationships: async (
+    assetId: string,
+    signal?: AbortSignal,
+  ): Promise<Relationship[]> => {
     const response = await apiClient.get(
       `/api/assets/${assetId}/relationships`,
+      { signal },
     );
     return response.data;
   },
 
   // Relationships
-  getAllRelationships: async (): Promise<Relationship[]> => {
-    const response = await apiClient.get("/api/relationships");
+  getAllRelationships: async (
+    signal?: AbortSignal,
+  ): Promise<Relationship[]> => {
+    const response = await apiClient.get("/api/relationships", { signal });
     return response.data;
   },
 
   // Metrics
-  getMetrics: async (): Promise<Metrics> => {
-    const response = await apiClient.get("/api/metrics");
+  getMetrics: async (signal?: AbortSignal): Promise<Metrics> => {
+    const response = await apiClient.get("/api/metrics", { signal });
     return response.data;
   },
 
   // Visualization
-  getVisualizationData: async (): Promise<VisualizationData> => {
-    const response = await apiClient.get("/api/visualization");
+  getVisualizationData: async (
+    signal?: AbortSignal,
+  ): Promise<VisualizationData> => {
+    const response = await apiClient.get("/api/visualization", { signal });
     return response.data;
   },
 

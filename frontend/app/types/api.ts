@@ -26,6 +26,7 @@ export interface Metrics {
   avg_degree: number;
   max_degree: number;
   network_density: number;
+  relationship_density?: number;
 }
 
 export interface VisualizationNode {
