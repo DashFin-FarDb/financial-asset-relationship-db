@@ -789,7 +789,7 @@ def visualize_3d_graph_with_filters(
         )
 
     # Validate all boolean filter parameters
-    filter_params = {
+    filter_params={
         "show_same_sector": show_same_sector,
         "show_market_cap": show_market_cap,
         "show_correlation": show_correlation,
@@ -800,17 +800,17 @@ def visualize_3d_graph_with_filters(
         "show_all_relationships": show_all_relationships,
         "toggle_arrows": toggle_arrows,
     }
-    invalid_params = [name for name, value in filter_params.items() if not isinstance(value, bool)]
+    invalid_params=[name for name, value in filter_params.items() if not isinstance(value, bool)]
     if invalid_params:
         raise TypeError(
             f"Invalid filter configuration: the following parameters must be "
             f"boolean values: {', '.join(invalid_params)}"
         )
 
-    relationship_filters: dict[str, bool] | None = None
+    relationship_filters: dict[str, bool] | None=None
     try:
         if not show_all_relationships:
-            relationship_filters = {
+            relationship_filters={
                 "same_sector": show_same_sector,
                 "market_cap_similar": show_market_cap,
                 "correlation": show_correlation,
@@ -826,7 +826,7 @@ def visualize_3d_graph_with_filters(
                     "show no relationships."
                 )
         else:
-            relationship_filters = None
+            relationship_filters=None
     except (TypeError, ValueError) as exc:
         logger.exception("Failed to build filter configuration: %s", exc)
         raise ValueError(f"Invalid filter configuration: {exc}") from exc
@@ -835,7 +835,7 @@ def visualize_3d_graph_with_filters(
         raise ValueError("Failed to build filter configuration") from exc
 
     try:
-        positions, asset_ids, colors, hover_texts = (
+        positions, asset_ids, colors, hover_texts=(
             graph.get_3d_visualization_data_enhanced()
         )
     except Exception as exc:  # pylint: disable=broad-except
@@ -848,10 +848,10 @@ def visualize_3d_graph_with_filters(
         logger.error("Invalid visualization data: %s", exc)
         raise
 
-    fig = go.Figure()
+    fig=go.Figure()
 
     try:
-        relationship_traces = _create_relationship_traces(
+        relationship_traces=_create_relationship_traces(
             graph,
             positions,
             asset_ids,
@@ -870,7 +870,7 @@ def visualize_3d_graph_with_filters(
             relationship_filters,
             exc,
         )
-        relationship_traces = []
+        relationship_traces=[]
 
     if relationship_traces:
         try:
@@ -880,13 +880,13 @@ def visualize_3d_graph_with_filters(
 
     if toggle_arrows:
         try:
-            arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
+            arrow_traces=_create_directional_arrows(graph, positions, asset_ids)
         except (TypeError, ValueError) as exc:
             logger.exception("Failed to create directional arrows due to invalid data: %s", exc)
-            arrow_traces = []
+            arrow_traces=[]
         except Exception as exc:  # pylint: disable=broad-except
             logger.exception("Unexpected error creating directional arrows: %s", exc)
-            arrow_traces = []
+            arrow_traces=[]
 
         if arrow_traces:
             try:
@@ -895,14 +895,14 @@ def visualize_3d_graph_with_filters(
                 logger.exception("Failed to add directional arrows to figure: %s", exc)
 
     try:
-        node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
+        node_trace=_create_node_trace(positions, asset_ids, colors, hover_texts)
         fig.add_trace(node_trace)
     except Exception as exc:  # pylint: disable=broad-except
         logger.exception("Failed to create or add node trace: %s", exc)
         raise ValueError("Failed to create node visualization") from exc
 
     try:
-        dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
+        dynamic_title, options=_prepare_layout_config(len(asset_ids), relationship_traces)
         _configure_3d_layout(fig, dynamic_title, options)
     except Exception as exc:  # pylint: disable=broad-except
         logger.exception("Failed to configure figure layout: %s", exc)
