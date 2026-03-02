@@ -57,8 +57,8 @@ def _is_valid_color_format(color: str) -> bool:
     if _RGB_COLOR_RE.match(color):
         return True
 
-    # Allow named colors (Plotly will validate at render time).
-    return True
+    # Allow simple named colours while rejecting malformed tokens.
+    return bool(re.fullmatch(r"[A-Za-z]+", color))
 
 
 def _build_asset_id_index(asset_ids: Sequence[str]) -> dict[str, int]:
