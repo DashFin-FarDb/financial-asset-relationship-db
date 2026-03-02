@@ -303,18 +303,17 @@ def _create_node_trace(
             toggle_arrows=toggle_arrows,
         )
 
-
         def visualize_3d_graph_with_filters(
             graph: AssetRelationshipGraph,
-            show_same_sector: bool=True,
-            show_market_cap: bool=True,
-            show_correlation: bool=True,
-            show_corporate_bond: bool=True,
-            show_commodity_currency: bool=True,
-            show_income_comparison: bool=True,
-            show_regulatory: bool=True,
-            show_all_relationships: bool=True,
-            toggle_arrows: bool=True,
+            show_same_sector: bool = True,
+            show_market_cap: bool = True,
+            show_correlation: bool = True,
+            show_corporate_bond: bool = True,
+            show_commodity_currency: bool = True,
+            show_income_comparison: bool = True,
+            show_regulatory: bool = True,
+            show_all_relationships: bool = True,
+            toggle_arrows: bool = True,
         ) -> go.Figure:
         """Create 3D visualization with selective relationship filtering."""
         graph,
@@ -338,6 +337,8 @@ def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
+
+
 ) -> list[go.Scatter3d]:
     """Create arrow markers for unidirectional relationships."""
     if not isinstance(graph, AssetRelationshipGraph):
@@ -374,21 +375,21 @@ def _create_directional_arrows(
     arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
 
     arrow_trace = go.Scatter3d(
-        x=arrow_positions[:, 0].tolist(),
-        y=arrow_positions[:, 1].tolist(),
-        z=arrow_positions[:, 2].tolist(),
-        mode="markers",
-        marker=dict(
+        x = arrow_positions[:, 0].tolist(),
+        y = arrow_positions[:, 1].tolist(),
+        z = arrow_positions[:, 2].tolist(),
+        mode = "markers",
+        marker = dict(
             symbol="diamond",
             size=8,
             color="rgba(255, 0, 0, 0.8)",
             line=dict(color="red", width=1),
         ),
-        hovertext=hover_texts,
-        hoverinfo="text",
-        name="Direction Arrows",
-        visible=True,
-        showlegend=False,
+        hovertext = hover_texts,
+        hoverinfo = "text",
+        name = "Direction Arrows",
+        visible = True,
+        showlegend = False,
     )
 
     return [arrow_trace]
