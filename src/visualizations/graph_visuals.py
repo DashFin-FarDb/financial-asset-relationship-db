@@ -124,15 +124,8 @@ def _build_relationship_index(
     # Snapshot only relevant source IDs, and pre-filter to relevant & well-formed rows.
     with _GRAPH_ACCESS_LOCK:
         try:
-            relevant_relationships: dict[str, list[tuple[Any, Any, Any]]] = {
-                source_id: [
-                    rel
-                    for rel in rels
-                    if isinstance(rel, (list, tuple))
-                    and len(rel) == 3
-                    and isinstance(rel[0], str)
-                    and rel[0] in asset_ids_set
-                ]
+            relevant_relationships: dict[str, list[Any]] = {
+                source_id: list(rels)
                 for source_id, rels in graph.relationships.items()
                 if source_id in asset_ids_set
             }
