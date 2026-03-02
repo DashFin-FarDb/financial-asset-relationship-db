@@ -282,14 +282,15 @@ def _create_node_trace(
     return go.Scatter3d(
         x=positions[:, 0],
         y=positions[:, 1],
-        def visualize_3d_graph(
-            graph: AssetRelationshipGraph,
-            toggle_arrows: bool=True,
-        ) -> go.Figure:
-        """Create a 3D visualization of the asset relationship graph.
-
-    This is the backward-compatible public entry point (no relationship filtering).
-    """
+        z=positions[:, 2],
+        mode="markers",
+        marker=dict(
+            size=5,
+            color=colors,
+        ),
+        text=hover_texts,
+        hoverinfo="text",
+    )
         if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("graph must be an AssetRelationshipGraph instance")
 
