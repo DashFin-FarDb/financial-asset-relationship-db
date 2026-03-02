@@ -329,45 +329,28 @@ def visualize_3d_graph(
     )
 
 
-def visualize_3d_graph_with_filters(
-    graph: AssetRelationshipGraph,
-    show_same_sector: bool = True,
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = True,
-    toggle_arrows: bool = True,
-) -> go.Figure:
-    """Create 3D visualization with selective relationship filtering.
-
-    Each boolean flag controls inclusion of the corresponding relationship
-    type in the visualization. If ``show_all_relationships`` is True,
-    all relationship types are shown regardless of individual flags.
-    """
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError("graph must be an AssetRelationshipGraph instance")
-
+def _build_relationship_filters(
+    show_same_sector: bool,
+    show_market_cap: bool,
+    show_correlation: bool,
+    show_corporate_bond: bool,
+    show_commodity_currency: bool,
+    show_income_comparison: bool,
+    show_regulatory: bool,
+    show_all_relationships: bool,
+) -> dict[str, bool] | None:
+    """Build relationship filter mapping from boolean flags."""
     if show_all_relationships:
-        relationship_filters: Mapping[str, bool] | None = None
-    else:
-        relationship_filters = {
-            "same_sector": show_same_sector,
-            "market_cap": show_market_cap,
-            "correlation": show_correlation,
-            "corporate_bond": show_corporate_bond,
-            "commodity_currency": show_commodity_currency,
-            "income_comparison": show_income_comparison,
-            "regulatory": show_regulatory,
-        }
-
-    return _visualize_3d_graph_core(
-        graph=graph,
-        relationship_filters=relationship_filters,
-        toggle_arrows=toggle_arrows,
-    )
+        return None
+    return {
+        "same_sector": show_same_sector,
+        "market_cap": show_market_cap,
+        "correlation": show_correlation,
+        "corporate_bond": show_corporate_bond,
+        "commodity_currency": show_commodity_currency,
+        "income_comparison": show_income_comparison,
+        "regulatory": show_regulatory,
+    }
 
 
 def _create_directional_arrows(
