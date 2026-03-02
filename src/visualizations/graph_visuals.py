@@ -157,11 +157,11 @@ def _create_node_trace(
         raise ValueError("Cannot create node trace with empty inputs")
 
     return go.Scatter3d(
-        x = positions[:, 0],
-        y = positions[:, 1],
-        z = positions[:, 2],
-        mode = "markers+text",
-        marker = dict(
+        x=positions[:, 0],
+        y=positions[:, 1],
+        z=positions[:, 2],
+        mode="markers+text",
+        marker=dict(
             size=15,
             color=colors,
             opacity=0.9,
@@ -171,13 +171,13 @@ def _create_node_trace(
             ),
             symbol="circle",
         ),
-        text = asset_ids,
-        hovertext = hover_texts,
-        hoverinfo = "text",
-        textposition = "top center",
-        textfont = dict(size=12, color="black"),
-        name = "Assets",
-        visible = True,
+        text=asset_ids,
+        hovertext=hover_texts,
+        hoverinfo="text",
+        textposition="top center",
+        textfont=dict(size=12, color="black"),
+        name="Assets",
+        visible=True,
     )
 
 
@@ -726,6 +726,7 @@ def _validate_relationship_filters(
             f"dictionary or None, got {type(relationship_filters).__name__}"
         )
 
+
 def _validate_relationship_filters(relationship_filters: dict):
     invalid_keys = [key for key in relationship_filters if not isinstance(key, str)]
     invalid_values = [k for k, v in relationship_filters.items() if not isinstance(v, bool)]
@@ -780,7 +781,7 @@ def visualize_3d_graph_with_filters(
     _validate_relationship_filters(relationship_filters)
     # existing visualization logic follows unchanged
     ...
-            apply (default: True).
+            apply(default: True).
         toggle_arrows: Show directional arrows for unidirectional relationships
             (default: True).
 
