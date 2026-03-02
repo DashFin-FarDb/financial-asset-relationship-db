@@ -282,293 +282,40 @@ def _create_node_trace(
     return go.Scatter3d(
         x=positions[:, 0],
         y=positions[:, 1],
-        z=positions[:, 2],
-        mode="markers+text",
-        marker=dict(
-            size=15,
-            color=colors,
-            opacity=0.9,
-            line=dict(color="rgba(0,0,0,0.8)", width=2),
-            symbol="circle",
-        ),
-        text=asset_ids,
-        hovertext=hover_texts,
-        hoverinfo="text",
-        textposition="top center",
-        textfont=dict(size=12, color="black"),
-        name="Assets",
-        visible=True,
-    )
-
-
-def _generate_dynamic_title(
-    num_assets: int,
-    num_relationships: int,
-    base_title: str = "Financial Asset Network",
-) -> str:
-    """Generate a dynamic visualization title with asset and relationship counts."""
-    return f"{base_title} - {num_assets} Assets, {num_relationships} Relationships"
-
-
-def _calculate_visible_relationships(relationship_traces: Sequence[go.Scatter3d]) -> int:
-    """Calculate the number of visible relationship edges from traces."""
-    try:
-        # Each edge is encoded as [x0, x1, None] => 3 elements per edge.
-        total = sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces)
-        return total // 3
-    except Exception:  # pylint: disable=broad-except
-        return 0
-
-
-def _prepare_layout_config(
-    num_assets: int,
-    relationship_traces: Sequence[go.Scatter3d],
-    base_title: str = "Financial Asset Network",
-    layout_options: Mapping[str, object] | None = None,
-) -> tuple[str, dict[str, object]]:
-    """Prepare layout configuration with a dynamic title."""
-    num_relationships = _calculate_visible_relationships(relationship_traces)
-    dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
-    options: dict[str, object] = dict(layout_options or {})
-    return dynamic_title, options
-
-
-def _configure_3d_layout(
-    fig: go.Figure,
-    title: str,
-    options: Mapping[str, Any] | None = None,
-) -> None:
-    """Configure the 3D layout for a figure."""
-    opts = dict(options or {})
-    width = int(opts.get("width", 1200))
-    height = int(opts.get("height", 800))
-    gridcolor = str(opts.get("gridcolor", "rgba(200, 200, 200, 0.3)"))
-    bgcolor = str(opts.get("bgcolor", "rgba(248, 248, 248, 0.95)"))
-    legend_bgcolor = str(opts.get("legend_bgcolor", "rgba(255, 255, 255, 0.8)"))
-    legend_bordercolor = str(opts.get("legend_bordercolor", "rgba(0, 0, 0, 0.3)"))
-
-    fig.update_layout(
-        title={"text": title, "x": 0.5, "xanchor": "center", "font": {"size": 16}},
-        scene=dict(
-            xaxis=dict(title="Dimension 1", showgrid=True, gridcolor=gridcolor),
-            yaxis=dict(title="Dimension 2", showgrid=True, gridcolor=gridcolor),
-            zaxis=dict(title="Dimension 3", showgrid=True, gridcolor=gridcolor),
-            bgcolor=bgcolor,
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.5)),
-        ),
-        width=width,
-        height=height,
-        showlegend=True,
-        hovermode="closest",
-        legend=dict(
-            x=0.02,
-            y=0.98,
-            bgcolor=legend_bgcolor,
-            bordercolor=legend_bordercolor,
-            borderwidth=1,
-        ),
-    )
-
-
-def _build_relationship_filters(
-    show_same_sector: bool,
-    show_market_cap: bool,
-    show_correlation: bool,
-    show_corporate_bond: bool,
-    show_commodity_currency: bool,
-    show_income_comparison: bool,
-    show_regulatory: bool,
-    show_all_relationships: bool,
-) -> dict[str, bool] | None:
-    """Build per-relationship-type filter mapping or return None (no filtering)."""
-    if show_all_relationships:
-        return None
-
-    relationship_filters = {
-        "same_sector": show_same_sector,
-        "market_cap_similar": show_market_cap,
-        "correlation": show_correlation,
-        "corporate_bond_to_equity": show_corporate_bond,
-        "commodity_currency": show_commodity_currency,
-        "income_comparison": show_income_comparison,
-        "regulatory_impact": show_regulatory,
-    }
-    _validate_relationship_filters(relationship_filters)
-    return relationship_filters
-
-
-def _validate_relationship_filters(relationship_filters: Mapping[str, bool] | None) -> None:
-    """Validate relationship filter mapping structure and values."""
-    if relationship_filters is None:
-        return
-
-    if not isinstance(relationship_filters, Mapping):
-        raise TypeError(
-            "Invalid filter configuration: relationship_filters must be a mapping or None, "
-            f"got {type(relationship_filters).__name__}"
-        )
-
-    invalid_keys = [k for k in relationship_filters.keys() if not isinstance(k, str)]
-    if invalid_keys:
-        raise ValueError("Invalid filter configuration: all filter keys must be strings")
-
-    invalid_values = [k for k, v in relationship_filters.items() if not isinstance(v, bool)]
-    if invalid_values:
-        raise ValueError(
-            f"Invalid filter configuration: all filter values must be booleans (invalid: {', '.join(invalid_values)})"
-        )
-
-
-def _collect_and_group_relationships(
+def visualize_3d_graph(
     graph: AssetRelationshipGraph,
-    asset_ids: Iterable[str],
-    relationship_filters: Mapping[str, bool] | None = None,
-) -> dict[tuple[str, bool], list[dict[str, Any]]]:
-    """Collect and group relationships with directionality info in a single pass."""
-    relationship_index = _build_relationship_index(graph, asset_ids)
+    toggle_arrows: bool = True,
+) -> go.Figure:
+    """Create a 3D visualization of the asset relationship graph.
 
-    processed_pairs: set[tuple[str, str, str]] = set()
-    relationship_groups: dict[tuple[str, bool], list[dict[str, Any]]] = defaultdict(list)
+    This is the backward-compatible public entry point (no relationship filtering).
+    """
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError("graph must be an AssetRelationshipGraph instance")
 
-    for (source_id, target_id, rel_type), strength in relationship_index.items():
-        if relationship_filters is not None and rel_type in relationship_filters:
-            if not relationship_filters[rel_type]:
-                continue
+    if not isinstance(toggle_arrows, bool):
+        raise TypeError("toggle_arrows must be a boolean value")
 
-        pair_key: tuple[str, str, str] = (
-            (source_id, target_id, rel_type) if source_id <= target_id else (target_id, source_id, rel_type)
-        )
-
-        is_bidirectional = (target_id, source_id, rel_type) in relationship_index
-
-        if is_bidirectional and pair_key in processed_pairs:
-            continue
-        if is_bidirectional:
-            processed_pairs.add(pair_key)
-
-        relationship_groups[(rel_type, is_bidirectional)].append(
-            {"source_id": source_id, "target_id": target_id, "strength": float(strength)}
-        )
-
-    return relationship_groups
-
-
-def _build_edge_coordinates_optimized(
-    relationships: Sequence[Mapping[str, Any]],
-    positions: np.ndarray,
-    asset_id_index: Mapping[str, int],
-) -> tuple[list[float | None], list[float | None], list[float | None]]:
-    """Build edge coordinate lists using optimized O(1) lookups."""
-    num_edges = len(relationships)
-    edges_x: list[float | None] = [None] * (num_edges * 3)
-    edges_y: list[float | None] = [None] * (num_edges * 3)
-    edges_z: list[float | None] = [None] * (num_edges * 3)
-
-    for i, rel in enumerate(relationships):
-        source_id = str(rel["source_id"])
-        target_id = str(rel["target_id"])
-
-        try:
-            source_idx = asset_id_index[source_id]
-            target_idx = asset_id_index[target_id]
-        except KeyError as exc:
-            raise ValueError(f"Relationship references unknown asset id: {exc.args[0]}") from exc
-
-        base_idx = i * 3
-        edges_x[base_idx] = float(positions[source_idx, 0])
-        edges_x[base_idx + 1] = float(positions[target_idx, 0])
-
-        edges_y[base_idx] = float(positions[source_idx, 1])
-        edges_y[base_idx + 1] = float(positions[target_idx, 1])
-
-        edges_z[base_idx] = float(positions[source_idx, 2])
-        edges_z[base_idx + 1] = float(positions[target_idx, 2])
-
-    return edges_x, edges_y, edges_z
-
-
-def _build_hover_texts(
-    relationships: Sequence[Mapping[str, Any]],
-    rel_type: str,
-    is_bidirectional: bool,
-) -> list[str | None]:
-    """Build hover text list for relationships with pre-allocation for performance."""
-    direction_text = "↔" if is_bidirectional else "→"
-
-    num_rels = len(relationships)
-    hover_texts: list[str | None] = [None] * (num_rels * 3)
-
-    for i, rel in enumerate(relationships):
-        hover_text = (
-            f"{rel['source_id']} {direction_text} {rel['target_id']}<br>"
-            f"Type: {rel_type}<br>Strength: {float(rel['strength']):.2f}"
-        )
-        base_idx = i * 3
-        hover_texts[base_idx] = hover_text
-        hover_texts[base_idx + 1] = hover_text
-
-    return hover_texts
-
-
-def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict[str, Any]:
-    """Get line style configuration for a relationship with color validation."""
-    color = REL_TYPE_COLORS[rel_type]
-    if not _is_valid_color_format(color):
-        logger.warning(
-            "Invalid color format for relationship type '%s': '%s'. Using default gray.",
-            rel_type,
-            color,
-        )
-        color = "#888888"
-
-    return {
-        "color": color,
-        "width": 4 if is_bidirectional else 2,
-        "dash": "solid" if is_bidirectional else "dash",
-    }
-
-
-def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
-    """Format trace name for legend."""
-    base_name = rel_type.replace("_", " ").title()
-    direction_symbol = " (↔)" if is_bidirectional else " (→)"
-    return base_name + direction_symbol
-
-
-def _create_trace_for_group(
-    rel_type: str,
-    is_bidirectional: bool,
-    relationships: list[dict[str, Any]],
-    positions: np.ndarray,
-    asset_id_index: dict[str, int],
-) -> go.Scatter3d:
-    """Create a single trace for a relationship group."""
-    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(relationships, positions, asset_id_index)
-    hover_texts = _build_hover_texts(relationships, rel_type, is_bidirectional)
-
-    return go.Scatter3d(
-        x=edges_x,
-        y=edges_y,
-        z=edges_z,
-        mode="lines",
-        line=_get_line_style(rel_type, is_bidirectional),
-        hovertext=hover_texts,
-        hoverinfo="text",
-        name=_format_trace_name(rel_type, is_bidirectional),
-        visible=True,
-        legendgroup=rel_type,
+    return _visualize_3d_graph_core(
+        graph=graph,
+        relationship_filters=None,
+        toggle_arrows=toggle_arrows,
     )
 
 
-def _create_relationship_traces(
+def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
-    positions: np.ndarray,
-    asset_ids: list[str],
-    relationship_filters: Mapping[str, bool] | None = None,
-) -> list[go.Scatter3d]:
-    """Create separate traces for different relationship types."""
-    asset_id_index = _build_asset_id_index(asset_ids)
-    relationship_groups = _collect_and_group_relationships(
+    show_same_sector: bool = True,
+    show_market_cap: bool = True,
+    show_correlation: bool = True,
+    show_corporate_bond: bool = True,
+    show_commodity_currency: bool = True,
+    show_income_comparison: bool = True,
+    show_regulatory: bool = True,
+    show_all_relationships: bool = True,
+    toggle_arrows: bool = True,
+) -> go.Figure:
+    """Create 3D visualization with selective relationship filtering."""
         graph,
         asset_ids,
         relationship_filters,
