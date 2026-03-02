@@ -726,20 +726,6 @@ def _validate_relationship_filters(
         )
 
 
-def _validate_relationship_filters(relationship_filters: dict):
-    invalid_keys=[key for key in relationship_filters if not isinstance(key, str)]
-    invalid_values=[k for k, v in relationship_filters.items() if not isinstance(v, bool)]
-    errors=[]
-    if invalid_keys:
-        errors.append(f"relationship_filters keys must be strings. Invalid keys: {invalid_keys}")
-    if invalid_values:
-        errors.append(f"relationship_filters must contain only boolean values. Invalid keys: {', '.join(invalid_values)}")
-    if errors:
-        raise ValueError(
-            f"Invalid filter configuration: {' '.join(errors)}"
-        )
-
-
 def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
     show_same_sector: bool=True,
