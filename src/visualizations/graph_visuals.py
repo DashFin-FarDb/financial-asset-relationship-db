@@ -11,6 +11,8 @@ import numpy as np
 import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.visualizations.graph_visuals_layout import _configure_3d_layout, _prepare_layout_config
+from src.visualizations.graph_visuals_traces import _create_relationship_traces
 
 logger = logging.getLogger(__name__)
 
@@ -333,6 +335,7 @@ def visualize_3d_graph(
 
 
 def _build_relationship_filters(
+    *,
     show_same_sector: bool,
     show_market_cap: bool,
     show_correlation: bool,
@@ -342,7 +345,6 @@ def _build_relationship_filters(
     show_regulatory: bool,
     show_all_relationships: bool,
 ) -> dict[str, bool] | None:
-    """Build relationship filter mapping from boolean flags."""
     if show_all_relationships:
         return None
     return {
