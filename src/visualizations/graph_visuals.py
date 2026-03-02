@@ -364,8 +364,6 @@ def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
-
-
 ) -> list[go.Scatter3d]:
     """Create arrow markers for unidirectional relationships."""
     if not isinstance(graph, AssetRelationshipGraph):
@@ -402,21 +400,21 @@ def _create_directional_arrows(
     arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
 
     arrow_trace = go.Scatter3d(
-        x = arrow_positions[:, 0].tolist(),
-        y = arrow_positions[:, 1].tolist(),
-        z = arrow_positions[:, 2].tolist(),
-        mode = "markers",
-        marker = dict(
+        x=arrow_positions[:, 0].tolist(),
+        y=arrow_positions[:, 1].tolist(),
+        z=arrow_positions[:, 2].tolist(),
+        mode="markers",
+        marker=dict(
             symbol="diamond",
             size=8,
             color="rgba(255, 0, 0, 0.8)",
             line=dict(color="red", width=1),
         ),
-        hovertext = hover_texts,
-        hoverinfo = "text",
-        name = "Direction Arrows",
-        visible = True,
-        showlegend = False,
+        hovertext=hover_texts,
+        hoverinfo="text",
+        name="Direction Arrows",
+        visible=True,
+        showlegend=False,
     )
 
     return [arrow_trace]
