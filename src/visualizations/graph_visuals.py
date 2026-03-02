@@ -19,7 +19,10 @@ _GRAPH_ACCESS_LOCK: Final[threading.RLock] = threading.RLock()
 
 # Precompiled regex patterns for color validation.
 _HEX_COLOR_RE: Final[re.Pattern[str]] = re.compile(r"^#(?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$")
-_RGB_COLOR_RE: Final[re.Pattern[str]] = re.compile(r"^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$")
+_RGB_COLOR_RE: Final[re.Pattern[str]] = re.compile(r"^rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)$")
+_RGBA_COLOR_RE: Final[re.Pattern[str]] = re.compile(
+    r"^rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*(?:0|1|0?\.\d+)\s*\)$"
+)
 
 # Color and style mapping for relationship types (shared constant).
 REL_TYPE_COLORS: Final[defaultdict[str, str]] = defaultdict(
