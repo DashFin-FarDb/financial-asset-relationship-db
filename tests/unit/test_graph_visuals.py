@@ -147,7 +147,7 @@ def test_create_directional_arrows_none_asset_ids():
     """Test that passing None for asset_ids raises a ValueError."""
     graph = DummyGraph({})
     positions = np.array([[0, 0, 0], [1, 1, 1]])
-    with pytest.raises(ValueError, match="asset_ids must be an iterable of strings"):
+    with pytest.raises(ValueError, match="asset_ids must be a list or tuple"):
         _create_directional_arrows(graph, positions, None)  # type: ignore[arg-type]
 
 
