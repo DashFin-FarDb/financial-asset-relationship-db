@@ -67,6 +67,9 @@ def _is_valid_color_format(color: str) -> bool:
     if _RGB_COLOR_RE.match(color):
         return True
 
+    if _RGBA_COLOR_RE.match(color):
+        return True
+
     # Allow simple named colours while rejecting malformed tokens.
     return bool(re.fullmatch(r"[A-Za-z]+", color))
 
