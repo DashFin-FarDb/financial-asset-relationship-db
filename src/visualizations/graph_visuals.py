@@ -291,46 +291,73 @@ def _create_node_trace(
         text=hover_texts,
         hoverinfo="text",
     )
-        if not isinstance(graph, AssetRelationshipGraph):
+
+
+def visualize_3d_graph(
+    graph: AssetRelationshipGraph,
+    toggle_arrows: bool = True,
+) -> go.Figure:
+    """Create 3D visualization for the full asset graph.
+
+    Parameters
+    ----------
+    graph:
+        AssetRelationshipGraph instance to visualize.
+    toggle_arrows:
+        Whether to display directional arrows on relationships.
+    """
+    if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("graph must be an AssetRelationshipGraph instance")
 
-        if not isinstance(toggle_arrows, bool):
+    if not isinstance(toggle_arrows, bool):
         raise TypeError("toggle_arrows must be a boolean value")
 
-        return _visualize_3d_graph_core(
-            graph=graph,
-            relationship_filters=None,
-            toggle_arrows=toggle_arrows,
-        )
-
-        def visualize_3d_graph_with_filters(
-            graph: AssetRelationshipGraph,
-            show_same_sector: bool = True,
-            show_market_cap: bool = True,
-            show_correlation: bool = True,
-            show_corporate_bond: bool = True,
-            show_commodity_currency: bool = True,
-            show_income_comparison: bool = True,
-            show_regulatory: bool = True,
-            show_all_relationships: bool = True,
-            toggle_arrows: bool = True,
-        ) -> go.Figure:
-        """Create 3D visualization with selective relationship filtering."""
-        graph,
-        asset_ids,
-        relationship_filters,
+    return _visualize_3d_graph_core(
+        graph=graph,
+        relationship_filters=None,
+        toggle_arrows=toggle_arrows,
     )
-    return [
-        _create_trace_for_group(
-            rel_type,
-            is_bidirectional,
-            rels,
-            positions,
-            asset_id_index,
-        )
-        for (rel_type, is_bidirectional), rels in relationship_groups.items()
-        if rels
-    ]
+
+
+def visualize_3d_graph_with_filters(
+    graph: AssetRelationshipGraph,
+    show_same_sector: bool = True,
+    show_market_cap: bool = True,
+    show_correlation: bool = True,
+    show_corporate_bond: bool = True,
+    show_commodity_currency: bool = True,
+    show_income_comparison: bool = True,
+    show_regulatory: bool = True,
+    show_all_relationships: bool = True,
+    toggle_arrows: bool = True,
+) -> go.Figure:
+    """Create 3D visualization with selective relationship filtering.
+
+    Each boolean flag controls inclusion of the corresponding relationship
+    type in the visualization. If ``show_all_relationships`` is True,
+    all relationship types are shown regardless of individual flags.
+    """
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError("graph must be an AssetRelationshipGraph instance")
+
+    if show_all_relationships:
+        relationship_filters: Mapping[str, bool] | None = None
+    else:
+        relationship_filters = {
+            "same_sector": show_same_sector,
+            "market_cap": show_market_cap,
+            "correlation": show_correlation,
+            "corporate_bond": show_corporate_bond,
+            "commodity_currency": show_commodity_currency,
+            "income_comparison": show_income_comparison,
+            "regulatory": show_regulatory,
+        }
+
+    return _visualize_3d_graph_core(
+        graph=graph,
+        relationship_filters=relationship_filters,
+        toggle_arrows=toggle_arrows,
+    )
 
 
 def _create_directional_arrows(
