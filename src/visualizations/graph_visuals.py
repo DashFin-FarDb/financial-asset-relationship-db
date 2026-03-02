@@ -392,17 +392,16 @@ def _validate_visualization_data(
     if positions.shape[0] != n:
         raise ValueError(
             f"Invalid graph data: positions length ({positions.shape[0]}) "
-            f"must match asset_ids length ({n})"
+def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
+    """Validate that asset IDs are unique."""
+    if len(set(asset_ids)) != len(asset_ids):
+        from collections import Counter
+
+        counts = Counter(asset_ids)
+        dup_ids = sorted(aid for aid, count in counts.items() if count > 1)
+        raise ValueError(
+            f"Invalid graph data: duplicate asset_ids detected: {', '.join(dup_ids)}"
         )
-
-    _validate_colors_list(colors, n)
-    _validate_hover_texts_list(hover_texts, n)
-    _validate_asset_ids_uniqueness(asset_ids)
-
-
-def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
-    """Create enhanced 3D visualization of asset relationship graph."""
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
         raise ValueError("Invalid graph data provided")
 
     positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
