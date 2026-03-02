@@ -124,6 +124,32 @@ def _build_relationship_index(
         raise ValueError(f"Failed to create snapshot of graph.relationships: {exc}") from exc
 
     relationship_index: dict[tuple[str, str, str], float] = {}
+    for source_id, rels in relevant_relationships.items():
+        if not isinstance(rels, (list, tuple)):
+            raise TypeError(
+                f"Invalid graph data: relationships for '{source_id}' must be a list/tuple, "
+                f"got {type(rels).__name__}"
+            )
+        for idx, rel in enumerate(rels):
+            if not isinstance(rel, (list, tuple)) or len(rel) != 3:
+                raise ValueError(
+                    f"Invalid graph data: relationship at index {idx} for '{source_id}' "
+                    f"must be a 3-element tuple (target_id, rel_type, strength)"
+                )
+            target_id, rel_type, strength = rel
+            if not isinstance(target_id, str) or not isinstance(rel_type, str):
+                raise TypeError(
+                    f"Invalid graph data: relationship at index {idx} for '{source_id}' "
+                    "must use string target_id and rel_type"
+                )
+            try:
+                strength_float = float(strength)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"Invalid graph data: strength at index {idx} for '{source_id}' must be numeric"
+                ) from exc
+            if target_id in asset_ids_set:
+                relationship_index[(source_id, target_id, rel_type)] = strength_float
 
     return relationship_index
 
