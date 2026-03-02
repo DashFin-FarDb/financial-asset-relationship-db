@@ -392,6 +392,8 @@ def _validate_visualization_data(
     if positions.shape[0] != n:
         raise ValueError(
             f"Invalid graph data: positions length ({positions.shape[0]}) "
+
+
 def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
     """Validate that asset IDs are unique."""
     if len(set(asset_ids)) != len(asset_ids):
@@ -765,11 +767,10 @@ def visualize_3d_graph_with_filters(
     }
     _validate_relationship_filters(relationship_filters)
     # existing visualization logic follows unchanged
-    ...
             apply(default: True).
         toggle_arrows: Show directional arrows for unidirectional relationships
             (default: True).
-
+    """
     Returns:
         Plotly Figure object with 3D visualization.
 
