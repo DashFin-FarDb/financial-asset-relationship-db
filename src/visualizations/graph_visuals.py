@@ -221,7 +221,7 @@ def _create_node_trace(
 def _generate_dynamic_title(
     num_assets: int,
     num_relationships: int,
-    base_title: str = "Financial Asset Network",
+    base_title: str="Financial Asset Network",
 ) -> str:
     """Generate a dynamic visualization title with asset and relationship counts.
 
@@ -254,8 +254,8 @@ def _calculate_visible_relationships(relationship_traces: list[go.Scatter3d]) ->
 def _prepare_layout_config(
     num_assets: int,
     relationship_traces: list[go.Scatter3d],
-    base_title: str = "Financial Asset Network",
-    layout_options: dict[str, object] | None = None,
+    base_title: str="Financial Asset Network",
+    layout_options: dict[str, object] | None=None,
 ) -> tuple[str, dict[str, object]]:
     """Prepare layout configuration with a dynamic title.
 
@@ -278,7 +278,7 @@ def _prepare_layout_config(
 def _configure_3d_layout(
     fig: go.Figure,
     title: str,
-    options: dict[str, Any] | None = None,
+    options: dict[str, Any] | None=None,
 ) -> None:
     """Configure the 3D layout for a figure.
 
@@ -461,7 +461,7 @@ def visualize_3d_graph(graph: AssetRelationshipGraph) -> go.Figure:
 def _collect_and_group_relationships(
     graph: AssetRelationshipGraph,
     asset_ids: Iterable[str],
-    relationship_filters: dict[str, bool] | None = None,
+    relationship_filters: dict[str, bool] | None=None,
 ) -> dict[tuple[str, bool], list[dict]]:
     """Collect and group relationships with directionality info in a single pass."""
     relationship_index = _build_relationship_index(graph, asset_ids)
@@ -597,7 +597,7 @@ def _create_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
-    relationship_filters: dict[str, bool] | None = None,
+    relationship_filters: dict[str, bool] | None=None,
 ) -> list[go.Scatter3d]:
     """Create separate traces for different relationship types.
 
@@ -734,15 +734,15 @@ def _validate_relationship_filters(
 
 def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
-    show_same_sector: bool = True,
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = True,
-    toggle_arrows: bool = True,
+    show_same_sector: bool=True,
+    show_market_cap: bool=True,
+    show_correlation: bool=True,
+    show_corporate_bond: bool=True,
+    show_commodity_currency: bool=True,
+    show_income_comparison: bool=True,
+    show_regulatory: bool=True,
+    show_all_relationships: bool=True,
+    toggle_arrows: bool=True,
 ) -> go.Figure:
     """Create 3D visualization with selective relationship filtering.
 
