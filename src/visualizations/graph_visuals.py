@@ -68,6 +68,9 @@ def _build_asset_id_index(asset_ids: Sequence[str]) -> dict[str, int]:
 
 def _coerce_asset_ids(asset_ids: Iterable[str]) -> set[str]:
     """Normalize and validate asset IDs to a set of non-empty strings."""
+    if isinstance(asset_ids, (str, bytes)):
+        raise TypeError("Invalid input: asset_ids must be an iterable of strings, not a single string")
+
     try:
         asset_ids_set = set(asset_ids)
     except TypeError as exc:
