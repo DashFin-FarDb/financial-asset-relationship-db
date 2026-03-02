@@ -184,6 +184,8 @@ def _create_node_trace(
     asset_ids: list[str],
     colors: list[str],
     hover_texts: list[str],
+
+
 ) -> go.Scatter3d:
     """Create node trace for 3D visualization.
 
@@ -206,11 +208,11 @@ def _create_node_trace(
         raise ValueError("Cannot create node trace with empty inputs")
 
     return go.Scatter3d(
-        x=positions[:, 0],
-        y=positions[:, 1],
-        z=positions[:, 2],
-        mode="markers+text",
-        marker=dict(
+        x = positions[:, 0],
+        y = positions[:, 1],
+        z = positions[:, 2],
+        mode = "markers+text",
+        marker = dict(
             size=15,
             color=colors,
             opacity=0.9,
@@ -220,13 +222,13 @@ def _create_node_trace(
             ),
             symbol="circle",
         ),
-        text=asset_ids,
-        hovertext=hover_texts,
-        hoverinfo="text",
-        textposition="top center",
-        textfont=dict(size=12, color="black"),
-        name="Assets",
-        visible=True,
+        text = asset_ids,
+        hovertext = hover_texts,
+        hoverinfo = "text",
+        textposition = "top center",
+        textfont = dict(size=12, color="black"),
+        name = "Assets",
+        visible = True,
     )
 
 
