@@ -125,9 +125,7 @@ def _build_relationship_index(
     with _GRAPH_ACCESS_LOCK:
         try:
             relevant_relationships: dict[str, list[Any]] = {
-                source_id: list(rels)
-                for source_id, rels in graph.relationships.items()
-                if source_id in asset_ids_set
+                source_id: list(rels) for source_id, rels in graph.relationships.items() if source_id in asset_ids_set
             }
         except Exception as exc:  # pylint: disable=broad-except
             raise ValueError(f"Failed to snapshot graph.relationships: {exc}") from exc
