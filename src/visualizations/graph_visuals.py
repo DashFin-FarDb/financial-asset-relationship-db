@@ -282,40 +282,40 @@ def _create_node_trace(
     return go.Scatter3d(
         x=positions[:, 0],
         y=positions[:, 1],
-def visualize_3d_graph(
-    graph: AssetRelationshipGraph,
-    toggle_arrows: bool = True,
-) -> go.Figure:
-    """Create a 3D visualization of the asset relationship graph.
+        def visualize_3d_graph(
+            graph: AssetRelationshipGraph,
+            toggle_arrows: bool=True,
+        ) -> go.Figure:
+        """Create a 3D visualization of the asset relationship graph.
 
     This is the backward-compatible public entry point (no relationship filtering).
     """
-    if not isinstance(graph, AssetRelationshipGraph):
+        if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("graph must be an AssetRelationshipGraph instance")
 
-    if not isinstance(toggle_arrows, bool):
+        if not isinstance(toggle_arrows, bool):
         raise TypeError("toggle_arrows must be a boolean value")
 
-    return _visualize_3d_graph_core(
-        graph=graph,
-        relationship_filters=None,
-        toggle_arrows=toggle_arrows,
-    )
+        return _visualize_3d_graph_core(
+            graph=graph,
+            relationship_filters=None,
+            toggle_arrows=toggle_arrows,
+        )
 
 
-def visualize_3d_graph_with_filters(
-    graph: AssetRelationshipGraph,
-    show_same_sector: bool = True,
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = True,
-    toggle_arrows: bool = True,
-) -> go.Figure:
-    """Create 3D visualization with selective relationship filtering."""
+        def visualize_3d_graph_with_filters(
+            graph: AssetRelationshipGraph,
+            show_same_sector: bool=True,
+            show_market_cap: bool=True,
+            show_correlation: bool=True,
+            show_corporate_bond: bool=True,
+            show_commodity_currency: bool=True,
+            show_income_comparison: bool=True,
+            show_regulatory: bool=True,
+            show_all_relationships: bool=True,
+            toggle_arrows: bool=True,
+        ) -> go.Figure:
+        """Create 3D visualization with selective relationship filtering."""
         graph,
         asset_ids,
         relationship_filters,
