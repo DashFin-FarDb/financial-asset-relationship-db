@@ -114,67 +114,16 @@ def _build_relationship_index(
 
     with _graph_access_lock:
         try:
+            # Snapshot only relevant source IDs, and pre-filter to relevant target IDs
             relevant_relationships = {
-                source_id: list(rels)
+                source_id: [rel for rel in rels if isinstance(rel, (list, tuple)) and len(rel) >= 1 and rel[0] in asset_ids_set]
                 for source_id, rels in graph.relationships.items()
                 if source_id in asset_ids_set
             }
-        except Exception as exc:  # pylint: disable=broad-except
-            raise ValueError(
-                f"Failed to create snapshot of graph.relationships: {exc}"
-            ) from exc
+    except Exception as exc:  # pylint: disable=broad-except
+        raise ValueError(f"Failed to create snapshot of graph.relationships: {exc}") from exc
 
     relationship_index: dict[tuple[str, str, str], float] = {}
-
-    for source_id, rels in relevant_relationships.items():
-        if not isinstance(rels, (list, tuple)):
-            raise TypeError(
-                f"Invalid graph data: relationships for source_id "
-                f"'{source_id}' must be a list or tuple, "
-                f"got {type(rels).__name__}"
-            )
-
-        for idx, rel in enumerate(rels):
-            if not isinstance(rel, (list, tuple)):
-                raise TypeError(
-                    f"Invalid graph data: relationship at index {idx} for "
-                    f"source_id '{source_id}' must be a list or tuple, "
-                    f"got {type(rel).__name__}"
-                )
-
-            if len(rel) != 3:
-                raise ValueError(
-                    f"Invalid graph data: relationship at index {idx} for "
-                    f"source_id '{source_id}' must have exactly 3 elements "
-                    f"(target_id, rel_type, strength), got {len(rel)} elements"
-                )
-                )
-
-            target_id, rel_type, strength = rel
-
-            if not isinstance(target_id, str):
-                raise TypeError(
-                    f"Invalid graph data: target_id at index {idx} for source_id "
-                    f"'{source_id}' must be a string, got {type(target_id).__name__}"
-                )
-
-            if not isinstance(rel_type, str):
-                raise TypeError(
-                    f"Invalid graph data: rel_type at index {idx} for source_id "
-                    f"'{source_id}' must be a string, got {type(rel_type).__name__}"
-                )
-
-            try:
-                strength_float = float(strength)
-            except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"Invalid graph data: strength at index {idx} for source_id "
-                    f"'{source_id}' must be numeric "
-                    f"(got {type(strength).__name__} with value '{strength}')"
-                ) from exc
-
-            if target_id in asset_ids_set:
-                relationship_index[(source_id, target_id, rel_type)] = strength_float
 
     return relationship_index
 
