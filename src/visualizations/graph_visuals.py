@@ -36,6 +36,15 @@ REL_TYPE_COLORS: Final[defaultdict[str, str]] = defaultdict(
 )
 
 
+def _get_relationship_color(rel_type: str) -> str:
+    """Return the configured color for a given relationship type.
+
+    Falls back to the default color specified by REL_TYPE_COLORS when
+    *rel_type* has no explicit entry.
+    """
+    return REL_TYPE_COLORS[rel_type]
+
+
 def _is_valid_color_format(color: str) -> bool:
     """Return True if *color* looks like a Plotly-acceptable color string.
 
