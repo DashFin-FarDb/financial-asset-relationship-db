@@ -113,7 +113,9 @@ def _build_relationship_index(
         except Exception as exc:  # pylint: disable=broad-except
             raise ValueError(f"Failed to create snapshot of graph.relationships: {exc}") from exc
 
-    relationship_index: dict[tuple[str, str, str], float] = {}
+                relevant_relationships = {
+                    source_id: [rel for rel in rels if rel[0] in asset_ids_set]
+                    for source_id, rels in graph.relationships.items()
 
     for source_id, rels in relevant_relationships.items():
         if not isinstance(rels, (list, tuple)):
