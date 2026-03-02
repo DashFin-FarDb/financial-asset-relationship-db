@@ -397,24 +397,24 @@ def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
     if len(set(asset_ids)) != len(asset_ids):
         from collections import Counter
 
-        counts = Counter(asset_ids)
-        dup_ids = sorted(aid for aid, count in counts.items() if count > 1)
+        counts=Counter(asset_ids)
+        dup_ids=sorted(aid for aid, count in counts.items() if count > 1)
         raise ValueError(
             f"Invalid graph data: duplicate asset_ids detected: {', '.join(dup_ids)}"
         )
         raise ValueError("Invalid graph data provided")
 
-    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+    positions, asset_ids, colors, hover_texts=graph.get_3d_visualization_data_enhanced()
 
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-    fig = go.Figure()
+    fig=go.Figure()
 
     try:
-        relationship_traces = _create_relationship_traces(graph, positions, asset_ids)
+        relationship_traces=_create_relationship_traces(graph, positions, asset_ids)
     except Exception as exc:  # pylint: disable=broad-except
         logger.exception("Failed to create relationship traces: %s", exc)
-        relationship_traces = []
+        relationship_traces=[]
 
     if relationship_traces:
         try:
@@ -423,10 +423,10 @@ def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
             logger.exception("Failed to add relationship traces to figure: %s", exc)
 
     try:
-        arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
+        arrow_traces=_create_directional_arrows(graph, positions, asset_ids)
     except Exception as exc:  # pylint: disable=broad-except
         logger.exception("Failed to create directional arrow traces: %s", exc)
-        arrow_traces = []
+        arrow_traces=[]
 
     if arrow_traces:
         try:
@@ -434,10 +434,10 @@ def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
         except Exception as exc:  # pylint: disable=broad-except
             logger.exception("Failed to add arrow traces to figure: %s", exc)
 
-    node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
+    node_trace=_create_node_trace(positions, asset_ids, colors, hover_texts)
     fig.add_trace(node_trace)
 
-    dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
+    dynamic_title, options=_prepare_layout_config(len(asset_ids), relationship_traces)
     _configure_3d_layout(fig, dynamic_title, options)
 
     return fig
@@ -446,13 +446,13 @@ def _validate_asset_ids_uniqueness(asset_ids: list[str]) -> None:
 def _collect_and_group_relationships(
     graph: AssetRelationshipGraph,
     asset_ids: Iterable[str],
-    relationship_filters: dict[str, bool] | None = None,
+    relationship_filters: dict[str, bool] | None=None,
 ) -> dict[tuple[str, bool], list[dict]]:
     """Collect and group relationships with directionality info in a single pass."""
-    relationship_index = _build_relationship_index(graph, asset_ids)
+    relationship_index=_build_relationship_index(graph, asset_ids)
 
-    processed_pairs: set[tuple[str, str, str]] = set()
-    relationship_groups: dict[tuple[str, bool], list[dict]] = defaultdict(list)
+    processed_pairs: set[tuple[str, str, str]]=set()
+    relationship_groups: dict[tuple[str, bool], list[dict]]=defaultdict(list)
 
     for (source_id, target_id, rel_type), strength in relationship_index.items():
         if (
@@ -462,13 +462,13 @@ def _collect_and_group_relationships(
         ):
             continue
 
-        pair_key: tuple[str, str, str] = (
+        pair_key: tuple[str, str, str]=(
             (source_id, target_id, rel_type)
             if source_id <= target_id
             else (target_id, source_id, rel_type)
         )
 
-        is_bidirectional = (target_id, source_id, rel_type) in relationship_index
+        is_bidirectional=(target_id, source_id, rel_type) in relationship_index
 
         if is_bidirectional and pair_key in processed_pairs:
             continue
@@ -492,25 +492,25 @@ def _build_edge_coordinates_optimized(
     asset_id_index: dict[str, int],
 ) -> tuple[list[float | None], list[float | None], list[float | None]]:
     """Build edge coordinate lists using optimized O(1) lookups."""
-    num_edges = len(relationships)
-    edges_x: list[float | None] = [None] * (num_edges * 3)
-    edges_y: list[float | None] = [None] * (num_edges * 3)
-    edges_z: list[float | None] = [None] * (num_edges * 3)
+    num_edges=len(relationships)
+    edges_x: list[float | None]=[None] * (num_edges * 3)
+    edges_y: list[float | None]=[None] * (num_edges * 3)
+    edges_z: list[float | None]=[None] * (num_edges * 3)
 
     for i, rel in enumerate(relationships):
-        source_idx = asset_id_index[rel["source_id"]]
-        target_idx = asset_id_index[rel["target_id"]]
+        source_idx=asset_id_index[rel["source_id"]]
+        target_idx=asset_id_index[rel["target_id"]]
 
-        base_idx = i * 3
+        base_idx=i * 3
 
-        edges_x[base_idx] = positions[source_idx, 0]
-        edges_x[base_idx + 1] = positions[target_idx, 0]
+        edges_x[base_idx]=positions[source_idx, 0]
+        edges_x[base_idx + 1]=positions[target_idx, 0]
 
-        edges_y[base_idx] = positions[source_idx, 1]
-        edges_y[base_idx + 1] = positions[target_idx, 1]
+        edges_y[base_idx]=positions[source_idx, 1]
+        edges_y[base_idx + 1]=positions[target_idx, 1]
 
-        edges_z[base_idx] = positions[source_idx, 2]
-        edges_z[base_idx + 1] = positions[target_idx, 2]
+        edges_z[base_idx]=positions[source_idx, 2]
+        edges_z[base_idx + 1]=positions[target_idx, 2]
 
     return edges_x, edges_y, edges_z
 
@@ -522,19 +522,19 @@ def _build_hover_texts(
 ) -> list[str | None]:
     """Build hover text list for relationships with pre-allocation
     for performance."""
-    direction_text = "↔" if is_bidirectional else "→"
+    direction_text="↔" if is_bidirectional else "→"
 
-    num_rels = len(relationships)
-    hover_texts: list[str | None] = [None] * (num_rels * 3)
+    num_rels=len(relationships)
+    hover_texts: list[str | None]=[None] * (num_rels * 3)
 
     for i, rel in enumerate(relationships):
-        hover_text = (
+        hover_text=(
             f"{rel['source_id']} {direction_text} {rel['target_id']}<br>"
             f"Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
         )
-        base_idx = i * 3
-        hover_texts[base_idx] = hover_text
-        hover_texts[base_idx + 1] = hover_text
+        base_idx=i * 3
+        hover_texts[base_idx]=hover_text
+        hover_texts[base_idx + 1]=hover_text
 
     return hover_texts
 
@@ -542,14 +542,14 @@ def _build_hover_texts(
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     """Get line style configuration for a relationship with
     color validation."""
-    color = REL_TYPE_COLORS[rel_type]
+    color=REL_TYPE_COLORS[rel_type]
     if not _is_valid_color_format(color):
         logger.warning(
             "Invalid color format for relationship type '%s': '%s'. Using default gray.",
             rel_type,
             color,
         )
-        color = "#888888"
+        color="#888888"
 
     return dict(
         color=color,
@@ -560,8 +560,8 @@ def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
 
 def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
     """Format trace name for legend."""
-    base_name = rel_type.replace("_", " ").title()
-    direction_symbol = " (↔)" if is_bidirectional else " (→)"
+    base_name=rel_type.replace("_", " ").title()
+    direction_symbol=" (↔)" if is_bidirectional else " (→)"
     return base_name + direction_symbol
 
 
@@ -573,8 +573,8 @@ def _create_trace_for_group(
     asset_id_index: dict[str, int],
 ) -> go.Scatter3d:
     """Create a single trace for a relationship group."""
-    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(relationships, positions, asset_id_index)
-    hover_texts = _build_hover_texts(relationships, rel_type, is_bidirectional)
+    edges_x, edges_y, edges_z=_build_edge_coordinates_optimized(relationships, positions, asset_id_index)
+    hover_texts=_build_hover_texts(relationships, rel_type, is_bidirectional)
 
     return go.Scatter3d(
         x=edges_x,
@@ -594,14 +594,14 @@ def _create_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
-    relationship_filters: dict[str, bool] | None = None,
+    relationship_filters: dict[str, bool] | None=None,
 ) -> list[go.Scatter3d]:
     """Create separate traces for different relationship types.
 
     Returns a list of traces for batch addition via ``fig.add_traces()``.
     """
-    asset_id_index = _build_asset_id_index(asset_ids)
-    relationship_groups = _collect_and_group_relationships(
+    asset_id_index=_build_asset_id_index(asset_ids)
+    relationship_groups=_collect_and_group_relationships(
         graph,
         asset_ids,
         relationship_filters,
@@ -649,7 +649,7 @@ def _create_directional_arrows(
 
     if not isinstance(asset_ids, (list, tuple)):
         try:
-            asset_ids = list(asset_ids)
+            asset_ids=list(asset_ids)
         except Exception as exc:  # pylint: disable=broad-except
             raise ValueError("asset_ids must be an iterable of strings") from exc
 
@@ -659,15 +659,15 @@ def _create_directional_arrows(
     if not all(isinstance(a, str) and a for a in asset_ids):
         raise ValueError("asset_ids must contain non-empty strings")
 
-    relationship_index = _build_relationship_index(graph, asset_ids)
-    asset_id_index = _build_asset_id_index(asset_ids)
+    relationship_index=_build_relationship_index(graph, asset_ids)
+    asset_id_index=_build_asset_id_index(asset_ids)
 
-    source_indices: list[int] = []
-    target_indices: list[int] = []
-    hover_texts: list[str] = []
+    source_indices: list[int]=[]
+    target_indices: list[int]=[]
+    hover_texts: list[str]=[]
 
     for (source_id, target_id, rel_type), _ in relationship_index.items():
-        reverse_key = (target_id, source_id, rel_type)
+        reverse_key=(target_id, source_id, rel_type)
         if reverse_key not in relationship_index:
             source_indices.append(asset_id_index[source_id])
             target_indices.append(asset_id_index[target_id])
@@ -676,13 +676,13 @@ def _create_directional_arrows(
     if not source_indices:
         return []
 
-    src_idx_arr = np.asarray(source_indices, dtype=int)
-    tgt_idx_arr = np.asarray(target_indices, dtype=int)
-    source_positions = positions[src_idx_arr]
-    target_positions = positions[tgt_idx_arr]
-    arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
+    src_idx_arr=np.asarray(source_indices, dtype=int)
+    tgt_idx_arr=np.asarray(target_indices, dtype=int)
+    source_positions=positions[src_idx_arr]
+    target_positions=positions[tgt_idx_arr]
+    arrow_positions=source_positions + 0.7 * (target_positions - source_positions)
 
-    arrow_trace = go.Scatter3d(
+    arrow_trace=go.Scatter3d(
         x=arrow_positions[:, 0].tolist(),
         y=arrow_positions[:, 1].tolist(),
         z=arrow_positions[:, 2].tolist(),
@@ -727,9 +727,9 @@ def _validate_relationship_filters(
 
 
 def _validate_relationship_filters(relationship_filters: dict):
-    invalid_keys = [key for key in relationship_filters if not isinstance(key, str)]
-    invalid_values = [k for k, v in relationship_filters.items() if not isinstance(v, bool)]
-    errors = []
+    invalid_keys=[key for key in relationship_filters if not isinstance(key, str)]
+    invalid_values=[k for k, v in relationship_filters.items() if not isinstance(v, bool)]
+    errors=[]
     if invalid_keys:
         errors.append(f"relationship_filters keys must be strings. Invalid keys: {invalid_keys}")
     if invalid_values:
@@ -742,15 +742,15 @@ def _validate_relationship_filters(relationship_filters: dict):
 
 def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
-    show_same_sector: bool = True,
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = True,
-    toggle_arrows: bool = True,
+    show_same_sector: bool=True,
+    show_market_cap: bool=True,
+    show_correlation: bool=True,
+    show_corporate_bond: bool=True,
+    show_commodity_currency: bool=True,
+    show_income_comparison: bool=True,
+    show_regulatory: bool=True,
+    show_all_relationships: bool=True,
+    toggle_arrows: bool=True,
 ) -> go.Figure:
     """Create 3D visualization with selective relationship filtering.
 
@@ -767,7 +767,7 @@ def visualize_3d_graph_with_filters(
         show_regulatory: Show regulatory relationships (default: True).
         show_all_relationships: Master toggle — when False, per-type flags
     """
-    relationship_filters = {
+    relationship_filters={
         "same_sector": show_same_sector,
         "market_cap": show_market_cap,
         "correlation": show_correlation,
@@ -788,7 +788,7 @@ def visualize_3d_graph_with_filters(
         Plotly Figure object with 3D visualization.
 
     Raises:
-        ValueError: If *graph* is invalid or missing required attributes.
+        ValueError: If * graph * is invalid or missing required attributes.
         TypeError: If any filter parameter is not a boolean.
     """
     if not (
