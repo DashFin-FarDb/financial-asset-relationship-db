@@ -108,9 +108,7 @@ def _build_relationship_index(
     with _graph_access_lock:
         try:
             relevant_relationships = {
-                source_id: list(rels)
-                for source_id, rels in graph.relationships.items()
-                if source_id in asset_ids_set
+                source_id: list(rels) for source_id, rels in graph.relationships.items() if source_id in asset_ids_set
             }
         except Exception as exc:  # pylint: disable=broad-except
             raise ValueError(f"Failed to create snapshot of graph.relationships: {exc}") from exc
@@ -118,7 +116,6 @@ def _build_relationship_index(
     relationship_index: dict[tuple[str, str, str], float] = {}
 
     for source_id, rels in relevant_relationships.items():
-        
         if not isinstance(rels, (list, tuple)):
             raise TypeError(
                 f"Invalid graph data: relationships for source_id '{source_id}' "
