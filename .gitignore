@@ -116,3 +116,7 @@ docker-compose.override.yml
 # Ignore accidental pip/command output artifacts
 =2.8.0
 s
+
+
+#Ignore windsurf AI rules
+.windsurfrules
