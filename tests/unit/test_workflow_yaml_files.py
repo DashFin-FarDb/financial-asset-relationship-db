@@ -24,9 +24,12 @@ def _has_pytest_with_coverage(steps: list[object]) -> bool:
         if not isinstance(step, dict):
             continue
         run_step = step.get("run")
-        if not isinstance(run_step, dict):
+        if isinstance(run_step, str):
+            command = run_step
+        elif isinstance(run_step, dict):
+            command = run_step.get("command")
+        else:
             continue
-        command = run_step.get("command")
         if not isinstance(command, str):
             continue
         if "pytest" not in command:
@@ -457,7 +460,10 @@ class TestWorkflowSecurity:
             if "secrets." not in content:
                 continue
 
-            config = yaml.safe_load(content)
+            try:
+                config = yaml.safe_load(content)
+            except yaml.YAMLError as exc:
+                pytest.fail(f"{workflow_file.name} has invalid YAML syntax: {exc}")
 
             # This is a best practice, not a hard requirement.
             if not _workflow_has_permissions(config):
