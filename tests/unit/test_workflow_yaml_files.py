@@ -38,16 +38,11 @@ def _has_pytest_with_coverage(steps: list[object]) -> bool:
 
 
 def _has_codecov_upload_step(steps: list[object]) -> bool:
-    return any(
-        isinstance(step, dict) and step.get("codecov/upload") is not None for step in steps
-    )
+    return any(isinstance(step, dict) and step.get("codecov/upload") is not None for step in steps)
 
 
 def _workflow_has_job(jobs: list[object], job_name: str) -> bool:
-    return any(
-        job == job_name or (isinstance(job, dict) and job_name in job)
-        for job in jobs
-    )
+    return any(job == job_name or (isinstance(job, dict) and job_name in job) for job in jobs)
 
 
 def _workflow_job_config(jobs: list[object], job_name: str) -> dict | None:
@@ -137,9 +132,7 @@ class TestCircleCIConfig:
 
         steps = job["steps"]
         has_checkout = any(
-            step == "checkout"
-            or (isinstance(step, dict) and "checkout" in step)
-            or "checkout" in str(step)
+            step == "checkout" or (isinstance(step, dict) and "checkout" in step) or "checkout" in str(step)
             for step in steps
         )
         assert has_checkout
