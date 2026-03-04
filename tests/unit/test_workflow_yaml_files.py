@@ -28,19 +28,30 @@ def _step_run_command(step: object) -> str | None:
     if isinstance(run_step, str):
         return run_step
 
-    if isinstance(run_step, (list, tuple)):
-        parts: list[str] = []
-        for item in run_step:
-            if isinstance(item, str):
-                parts.append(item)
-            elif isinstance(item, dict):
-                cmd = item.get("command")
-                if isinstance(cmd, str):
-                    parts.append(cmd)
-        if parts:
-            return "\n".join(parts)
+    sequence_command = _command_from_run_sequence(run_step)
+    if sequence_command is not None:
+        return sequence_command
+
+    return _command_from_run_mapping(run_step)
+
+
+def _command_from_run_sequence(run_step: object) -> str | None:
+    if not isinstance(run_step, (list, tuple)):
         return None
 
+    parts: list[str] = []
+    for item in run_step:
+        if isinstance(item, str):
+            parts.append(item)
+            continue
+        if isinstance(item, dict):
+            cmd = item.get("command")
+            if isinstance(cmd, str):
+                parts.append(cmd)
+    return "\n".join(parts) if parts else None
+
+
+def _command_from_run_mapping(run_step: object) -> str | None:
     if not isinstance(run_step, dict):
         return None
 

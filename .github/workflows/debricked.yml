@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  vulnerabilities_scan:
+  vulnerabilities-scan:
     name: Vulnerability Scan
     runs-on: ubuntu-22.04
     permissions:
