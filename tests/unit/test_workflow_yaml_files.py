@@ -19,24 +19,30 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
+def _step_run_command(step: object) -> str | None:
+    if not isinstance(step, dict):
+        return None
+
+    run_step = step.get("run")
+    if isinstance(run_step, str):
+        return run_step
+
+    if not isinstance(run_step, dict):
+        return None
+
+    command_value: object = run_step.get("command")
+    if isinstance(command_value, str):
+        return command_value
+    return None
+
+
 def _has_pytest_with_coverage(steps: list[object]) -> bool:
     for step in steps:
-        if not isinstance(step, dict):
+        command = _step_run_command(step)
+        if command is None:
             continue
-        run_step = step.get("run")
-        if isinstance(run_step, str):
-            command = run_step
-        elif isinstance(run_step, dict):
-            command = run_step.get("command")
-        else:
-            continue
-        if not isinstance(command, str):
-            continue
-        if "pytest" not in command:
-            continue
-        if "--cov" not in command:
-            continue
-        return True
+        if "pytest" in command and "--cov" in command:
+            return True
     return False
 
 
@@ -287,6 +293,7 @@ class TestGitHubWorkflows:
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
+        assert config is not None
         assert "name" in config, f"{filename} missing 'name' field"
         assert isinstance(config["name"], str)
         assert len(config["name"]) > 0
@@ -296,6 +303,7 @@ class TestGitHubWorkflows:
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
+        assert config is not None
 
         # Check for 'on' or True (YAML parses 'on:' as boolean True)
         assert "on" in config or True in config, f"{filename} missing trigger configuration"
@@ -305,6 +313,7 @@ class TestGitHubWorkflows:
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
+        assert config is not None
 
         assert "jobs" in config, f"{filename} missing 'jobs' field"
         assert isinstance(config["jobs"], dict)
