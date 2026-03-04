@@ -10,6 +10,7 @@ Tests validate YAML syntax, required fields, and proper structure for:
 
 from __future__ import annotations
 
+import warnings
 from pathlib import Path
 
 import pytest
@@ -18,6 +19,61 @@ import yaml
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
+def _has_pytest_with_coverage(steps: list[object]) -> bool:
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        run_step = step.get("run")
+        if not isinstance(run_step, dict):
+            continue
+        command = run_step.get("command")
+        if not isinstance(command, str):
+            continue
+        if "pytest" not in command:
+            continue
+        if "--cov" not in command:
+            continue
+        return True
+    return False
+
+
+def _has_codecov_upload_step(steps: list[object]) -> bool:
+    return any(
+        isinstance(step, dict) and step.get("codecov/upload") is not None for step in steps
+    )
+
+
+def _workflow_has_job(jobs: list[object], job_name: str) -> bool:
+    return any(
+        job == job_name or (isinstance(job, dict) and job_name in job)
+        for job in jobs
+    )
+
+
+def _workflow_job_config(jobs: list[object], job_name: str) -> dict | None:
+    for job in jobs:
+        if isinstance(job, dict) and job_name in job:
+            config = job[job_name]
+            if isinstance(config, dict):
+                return config
+    return None
+
+
+def _workflow_has_permissions(config: object) -> bool:
+    if not isinstance(config, dict):
+        return False
+
+    if "permissions" in config:
+        return True
+
+    jobs = config.get("jobs")
+    if not isinstance(jobs, dict):
+        return False
+
+    return any(isinstance(job, dict) and "permissions" in job for job in jobs.values())
+
+
+@pytest.mark.unit
 class TestCircleCIConfig:
     """Test CircleCI configuration file."""
 
@@ -25,13 +81,13 @@ class TestCircleCIConfig:
     def circleci_config(self):
         """Load CircleCI config."""
         config_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_circleci_config_valid_yaml(self):
         """CircleCI config is valid YAML."""
         config_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         assert config is not None
 
@@ -79,37 +135,22 @@ class TestCircleCIConfig:
         assert job["executor"] == "python-executor"
         assert "steps" in job
 
-        # Check for required steps
         steps = job["steps"]
-        step_names = []
-        for step in steps:
-            if isinstance(step, dict):
-                for key in step.keys():
-                    if key != "run" and key != "restore_cache" and key != "save_cache":
-                        step_names.append(key)
-                    elif key == "run" and "name" in step[key]:
-                        step_names.append(step[key]["name"])
-
-        assert "checkout" in step_names or any("checkout" in str(s) for s in steps)
+        has_checkout = any(
+            step == "checkout"
+            or (isinstance(step, dict) and "checkout" in step)
+            or "checkout" in str(step)
+            for step in steps
+        )
+        assert has_checkout
 
     def test_circleci_python_test_job_coverage(self, circleci_config):
         """python-test job includes coverage reporting."""
         job = circleci_config["jobs"]["python-test"]
         steps = job["steps"]
 
-        # Check for pytest with coverage
-        has_pytest = False
-        has_codecov = False
-
-        for step in steps:
-            if isinstance(step, dict):
-                if "run" in step:
-                    run_step = step["run"]
-                    if isinstance(run_step, dict) and "command" in run_step:
-                        if "pytest" in run_step["command"] and "--cov" in run_step["command"]:
-                            has_pytest = True
-                elif "codecov/upload" in str(step):
-                    has_codecov = True
+        has_pytest = _has_pytest_with_coverage(steps)
+        has_codecov = _has_codecov_upload_step(steps)
 
         assert has_pytest, "pytest with coverage not found"
         assert has_codecov, "codecov upload not found"
@@ -128,23 +169,10 @@ class TestCircleCIConfig:
         jobs = workflow["jobs"]
 
         # Backend jobs can run in parallel, but docker-build should gate on them.
-        assert any(
-            job == "python-lint" or (isinstance(job, dict) and "python-lint" in job)
-            for job in jobs
-        )
-        assert any(
-            job == "python-test" or (isinstance(job, dict) and "python-test" in job)
-            for job in jobs
-        )
+        assert _workflow_has_job(jobs, "python-lint")
+        assert _workflow_has_job(jobs, "python-test")
 
-        docker_build_entry = next(
-            (
-                job["docker-build"]
-                for job in jobs
-                if isinstance(job, dict) and "docker-build" in job
-            ),
-            None,
-        )
+        docker_build_entry = _workflow_job_config(jobs, "docker-build")
 
         assert docker_build_entry is not None
         assert "requires" in docker_build_entry
@@ -162,6 +190,7 @@ class TestCircleCIConfig:
         assert "cron" in triggers[0]["schedule"]
 
 
+@pytest.mark.unit
 class TestCodacyConfig:
     """Test Codacy configuration file."""
 
@@ -169,13 +198,13 @@ class TestCodacyConfig:
     def codacy_config(self):
         """Load Codacy config."""
         config_path = PROJECT_ROOT / ".codacy" / "codacy.yaml"
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             return yaml.safe_load(f)
 
     def test_codacy_config_valid_yaml(self):
         """Codacy config is valid YAML."""
         config_path = PROJECT_ROOT / ".codacy" / "codacy.yaml"
-        with open(config_path) as f:
+        with open(config_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
         assert config is not None
 
@@ -217,6 +246,7 @@ class TestCodacyConfig:
         assert any("semgrep" in t for t in tool_strings), "semgrep not found"
 
 
+@pytest.mark.unit
 class TestGitHubWorkflows:
     """Test GitHub workflow files."""
 
@@ -245,7 +275,7 @@ class TestGitHubWorkflows:
         """Parameterized fixture for all workflow files."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / request.param
         if workflow_path.exists():
-            with open(workflow_path) as f:
+            with open(workflow_path, encoding="utf-8") as f:
                 return request.param, yaml.safe_load(f)
         return request.param, None
 
@@ -307,6 +337,7 @@ class TestGitHubWorkflows:
             assert len(job_config["steps"]) > 0, f"{filename}: job '{job_name}' has no steps"
 
 
+@pytest.mark.unit
 class TestSpecificWorkflows:
     """Test specific workflow configurations."""
 
@@ -316,7 +347,7 @@ class TestSpecificWorkflows:
         if not workflow_path.exists():
             pytest.skip("ci.yml does not exist")
 
-        with open(workflow_path) as f:
+        with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # Find test job
@@ -336,7 +367,7 @@ class TestSpecificWorkflows:
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
 
-        with open(workflow_path) as f:
+        with open(workflow_path, encoding="utf-8") as f:
             content = f.read()
 
         # Check for secret references
@@ -349,7 +380,7 @@ class TestSpecificWorkflows:
         if not workflow_path.exists():
             pytest.skip("bandit.yml does not exist")
 
-        with open(workflow_path) as f:
+        with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # Check job permissions
@@ -365,7 +396,7 @@ class TestSpecificWorkflows:
         if not workflow_path.exists():
             pytest.skip("codeql.yml does not exist")
 
-        with open(workflow_path) as f:
+        with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # Find analyze job
@@ -382,20 +413,21 @@ class TestSpecificWorkflows:
         if not workflow_path.exists():
             pytest.skip("dependency-review.yml does not exist")
 
-        with open(workflow_path) as f:
+        with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # YAML may parse 'on:' as True (boolean) so check both
         triggers = config.get("on", config.get(True, {}))
         if not triggers or triggers is True:
             # If on: is just a boolean, read the content to check
-            with open(workflow_path) as f:
+            with open(workflow_path, encoding="utf-8") as f:
                 content = f.read()
             assert "pull_request" in content or "pull_request_target" in content
         else:
             assert "pull_request" in triggers or "pull_request_target" in triggers
 
 
+@pytest.mark.unit
 class TestWorkflowSecurity:
     """Test security best practices in workflows."""
 
@@ -406,7 +438,7 @@ class TestWorkflowSecurity:
         risky_patterns = []
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file) as f:
+            with open(workflow_file, encoding="utf-8") as f:
                 content = f.read()
 
             # Check for unpinned actions (using @main or @master)
@@ -417,42 +449,39 @@ class TestWorkflowSecurity:
 
         # This is informational - pinned versions are recommended but not required
         if risky_patterns:
-            print(f"\nWorkflows with @main/@master refs (consider pinning): {risky_patterns}")
+            warnings.warn(
+                f"Workflows with @main/@master refs (consider pinning): {risky_patterns}",
+                UserWarning,
+            )
 
     def test_workflows_with_secrets_limit_permissions(self):
         """Workflows using secrets should have limited permissions."""
         workflows_dir = PROJECT_ROOT / ".github" / "workflows"
 
         for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file) as f:
+            with open(workflow_file, encoding="utf-8") as f:
                 content = f.read()
-                try:
-                    config = yaml.safe_load(content)
-                except yaml.YAMLError:
-                    continue
+            if "secrets." not in content:
+                continue
 
-            # If workflow uses secrets, check for permissions
-            if "secrets." in content:
-                # Should have top-level permissions or job-level permissions
-                has_permissions = "permissions" in config or any(
-                    "permissions" in job for job in config.get("jobs", {}).values()
-                )
+            config = yaml.safe_load(content)
 
-                # This is a best practice, not a hard requirement
-                if not has_permissions:
-                    print(f"\n{workflow_file.name} uses secrets but lacks explicit permissions")
+            # This is a best practice, not a hard requirement.
+            if not _workflow_has_permissions(config):
+                print(f"\n{workflow_file.name} uses secrets but lacks explicit permissions")
 
 
 class TestWorkflowConcurrency:
     """Test concurrency settings in workflows."""
 
+    @pytest.mark.unit
     def test_ci_workflow_has_concurrency(self):
         """CI workflow should have concurrency settings to cancel outdated runs."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
         if not workflow_path.exists():
             pytest.skip("ci.yml does not exist")
 
-        with open(workflow_path) as f:
+        with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         # Check for concurrency at workflow level
@@ -466,13 +495,14 @@ class TestWorkflowConcurrency:
 class TestWorkflowPaths:
     """Test path filters in workflows."""
 
+    @pytest.mark.unit
     def test_apisec_workflow_path_filters(self):
         """APIsec workflow has appropriate path filters."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / "apisec-scan.yml"
         if not workflow_path.exists():
             pytest.skip("apisec-scan.yml does not exist")
 
-        with open(workflow_path) as f:
+        with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
 
         on_config = config.get("on", {})
@@ -489,6 +519,7 @@ class TestWorkflowPaths:
 class TestYAMLSyntaxAllFiles:
     """Comprehensive YAML syntax validation."""
 
+    @pytest.mark.unit
     def test_all_yaml_files_valid_syntax(self):
         """All YAML files in the changed list have valid syntax."""
         yaml_files = [
@@ -516,7 +547,7 @@ class TestYAMLSyntaxAllFiles:
         for yaml_file in yaml_files:
             file_path = PROJECT_ROOT / yaml_file
             if file_path.exists():
-                with open(file_path) as f:
+                with open(file_path, encoding="utf-8") as f:
                     try:
                         config = yaml.safe_load(f)
                         assert config is not None, f"{yaml_file} is empty"
@@ -524,6 +555,7 @@ class TestYAMLSyntaxAllFiles:
                         pytest.fail(f"{yaml_file} has invalid YAML syntax: {e}")
 
 
+@pytest.mark.integration
 class TestConfigurationConsistency:
     """Test consistency across configuration files."""
 
@@ -531,13 +563,13 @@ class TestConfigurationConsistency:
         """Python versions should be consistent across configs."""
         # CircleCI
         circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        with open(circleci_path) as f:
+        with open(circleci_path, encoding="utf-8") as f:
             circleci_config = yaml.safe_load(f)
 
         # CI workflow
         ci_path = PROJECT_ROOT / ".github" / "workflows" / "ci.yml"
         if ci_path.exists():
-            with open(ci_path) as f:
+            with open(ci_path, encoding="utf-8") as f:
                 ci_config = yaml.safe_load(f)
 
             # Both should test Python (versions may differ slightly)
@@ -548,7 +580,7 @@ class TestConfigurationConsistency:
     def test_node_version_consistency(self):
         """Node versions should be reasonable across configs."""
         circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
-        with open(circleci_path) as f:
+        with open(circleci_path, encoding="utf-8") as f:
             content = f.read()
 
         # Should reference Node in frontend jobs
