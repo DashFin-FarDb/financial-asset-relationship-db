@@ -8,8 +8,9 @@ If the user gave you files as context:
  - rootPath: set to the workspace path
  - file: set to the path of the file
  - tool: leave empty or unset
-2. If any issues are found in the files, propose and apply fixes for them.
-3. If you encounter that Codacy is applying a tool to the project that it shouldn't, don't try to find the configuration of Codacy, just let the user know it's a false positive issue.
+2. If any issues are found in the files, propose fixes first.
+3. Apply fixes only after explicit user confirmation.
+4. If you encounter that Codacy is applying a tool to the project that it shouldn't, don't try to find the configuration of Codacy, just let the user know it's a false positive issue.
 
 If the user didn't provide any files as context:
 
@@ -18,5 +19,6 @@ If the user didn't provide any files as context:
  - rootPath: set to the workspace path
  - file: set to the path of the file
  - tool: leave empty or unset
-3. If any issues are found in the files, propose and apply fixes for them.
-4. If you encounter that Codacy is applying a tool to the project that it shouldn't, don't try to find the configuration of Codacy, just let the user know it's a false positive issue.
+3. If any issues are found in the files, propose fixes first.
+4. Apply fixes only after explicit user confirmation.
+5. If you encounter that Codacy is applying a tool to the project that it shouldn't, don't try to find the configuration of Codacy, just let the user know it's a false positive issue.

@@ -11,6 +11,7 @@ Tests validate YAML syntax, required fields, and proper structure for:
 from __future__ import annotations
 
 import warnings
+from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
@@ -55,11 +56,25 @@ def _has_pytest_with_coverage(steps: object) -> bool:
 
     for step in steps:
         command = _step_run_command(step)
-        if command is None:
-            continue
-        if "pytest" in command and "--cov" in command:
+        if command is not None and "pytest" in command and "--cov" in command:
+            return True
+
+        if _step_uses_cov_in_addopts(step):
             return True
     return False
+
+
+def _step_uses_cov_in_addopts(step: object) -> bool:
+    if not isinstance(step, dict):
+        return False
+    run_step = step.get("run")
+    if not isinstance(run_step, dict):
+        return False
+    environment = run_step.get("environment")
+    if not isinstance(environment, Mapping):
+        return False
+    addopts = environment.get("PYTEST_ADDOPTS")
+    return isinstance(addopts, str) and "--cov" in addopts
 
 
 def _has_codecov_upload_step(steps: object) -> bool:
@@ -83,17 +98,31 @@ def _workflow_job_config(jobs: list[object], job_name: str) -> dict | None:
 
 
 def _workflow_has_permissions(config: object) -> bool:
-    if not isinstance(config, dict):
+    if not isinstance(config, Mapping):
         return False
 
     if "permissions" in config:
         return True
 
     jobs = config.get("jobs")
-    if not isinstance(jobs, dict):
+    if not isinstance(jobs, Mapping):
         return False
 
-    return any(isinstance(job, dict) and "permissions" in job for job in jobs.values())
+    return any(isinstance(job, Mapping) and "permissions" in job for job in jobs.values())
+
+
+def _contains_string(node: object, target: str) -> bool:
+    if isinstance(node, str):
+        return target in node
+    if isinstance(node, Mapping):
+        return any(_contains_string(value, target) for value in node.values())
+    if isinstance(node, list):
+        return any(_contains_string(item, target) for item in node)
+    return False
+
+
+def _workflow_files(workflows_dir: Path) -> list[Path]:
+    return sorted({*workflows_dir.glob("*.yml"), *workflows_dir.glob("*.yaml")})
 
 
 @pytest.mark.unit
@@ -160,15 +189,20 @@ class TestCircleCIConfig:
 
         steps = job["steps"]
         has_checkout = any(
-            step == "checkout" or (isinstance(step, dict) and "checkout" in step) or "checkout" in str(step)
+            step == "checkout" or (isinstance(step, dict) and "checkout" in step)
             for step in steps
         )
         assert has_checkout
 
     def test_circleci_python_test_job_coverage(self, circleci_config):
         """python-test job includes coverage reporting."""
-        job = circleci_config["jobs"]["python-test"]
-        steps = job["steps"]
+        jobs = circleci_config.get("jobs")
+        assert isinstance(jobs, dict), "jobs section is missing or invalid"
+        assert "python-test" in jobs, "python-test job not found"
+        job = jobs["python-test"]
+        assert isinstance(job, dict), "python-test job must be a mapping/dict"
+        steps = job.get("steps")
+        assert isinstance(steps, list), "python-test.steps must be a list"
 
         has_pytest = _has_pytest_with_coverage(steps)
         has_codecov = _has_codecov_upload_step(steps)
@@ -186,8 +220,13 @@ class TestCircleCIConfig:
 
     def test_circleci_workflow_job_dependencies(self, circleci_config):
         """CircleCI workflow defines proper job dependencies."""
-        workflow = circleci_config["workflows"]["build-and-test"]
-        jobs = workflow["jobs"]
+        workflows = circleci_config.get("workflows")
+        assert isinstance(workflows, dict), "workflows section is missing or invalid"
+        assert "build-and-test" in workflows, "build-and-test workflow not found"
+        workflow = workflows["build-and-test"]
+        assert isinstance(workflow, dict), "build-and-test workflow must be a mapping/dict"
+        jobs = workflow.get("jobs")
+        assert isinstance(jobs, list), "build-and-test.jobs must be a list"
 
         # Backend jobs can run in parallel, but docker-build should gate on them.
         assert _workflow_has_job(jobs, "python-lint")
@@ -257,7 +296,8 @@ class TestCodacyConfig:
 
     def test_codacy_config_has_required_tools(self, codacy_config):
         """Codacy config includes required security and linting tools."""
-        tools = codacy_config["tools"]
+        tools = codacy_config.get("tools") if isinstance(codacy_config, dict) else None
+        assert isinstance(tools, list), "tools section is missing or invalid"
         tool_strings = [str(t) for t in tools]
 
         # Check for key tools
@@ -295,10 +335,10 @@ class TestGitHubWorkflows:
     def workflow_file(self, request):
         """Parameterized fixture for all workflow files."""
         workflow_path = PROJECT_ROOT / ".github" / "workflows" / request.param
-        if workflow_path.exists():
-            with open(workflow_path, encoding="utf-8") as f:
-                return request.param, yaml.safe_load(f)
-        return request.param, None
+        if not workflow_path.exists():
+            pytest.fail(f"{request.param} does not exist")
+        with open(workflow_path, encoding="utf-8") as f:
+            return request.param, yaml.safe_load(f)
 
     def test_workflow_valid_yaml(self, workflow_file):
         """All workflow files are valid YAML."""
@@ -310,16 +350,14 @@ class TestGitHubWorkflows:
     def test_workflow_has_name(self, workflow_file):
         """All workflows have a name."""
         filename, config = workflow_file
-        if config is None:
-            pytest.skip(f"{filename} does not exist")
         assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         assert "name" in config, f"{filename} missing 'name' field"
+        assert isinstance(config["name"], str)
+        assert len(config["name"]) > 0
 
     def test_workflow_has_trigger(self, workflow_file):
         """All workflows have at least one trigger."""
         filename, config = workflow_file
-        if config is None:
-            pytest.skip(f"{filename} does not exist")
         assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         # YAML may parse 'on:' as boolean True
         assert "on" in config or True in config, f"{filename} missing trigger configuration"
@@ -327,8 +365,6 @@ class TestGitHubWorkflows:
     def test_workflow_has_jobs(self, workflow_file):
         """All workflows define jobs."""
         filename, config = workflow_file
-        if config is None:
-            pytest.skip(f"{filename} does not exist")
         assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
 
         assert "jobs" in config, f"{filename} missing 'jobs' field"
@@ -338,23 +374,21 @@ class TestGitHubWorkflows:
     def test_workflow_jobs_have_runs_on(self, workflow_file):
         """All workflow jobs specify runs-on."""
         filename, config = workflow_file
-        if config is None:
-            pytest.skip(f"{filename} does not exist")
         assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         jobs = config.get("jobs", {})
         assert isinstance(jobs, dict), f"{filename} jobs should be a mapping/dict"
         for job_name, job_config in jobs.items():
+            assert isinstance(job_config, dict), f"{filename}: job '{job_name}' config should be a mapping/dict"
             assert "runs-on" in job_config, f"{filename}: job '{job_name}' missing 'runs-on'"
 
     def test_workflow_jobs_have_steps(self, workflow_file):
         """All workflow jobs have steps."""
         filename, config = workflow_file
-        if config is None:
-            pytest.skip(f"{filename} does not exist")
         assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         jobs = config.get("jobs", {})
         assert isinstance(jobs, dict), f"{filename} jobs should be a mapping/dict"
         for job_name, job_config in jobs.items():
+            assert isinstance(job_config, dict), f"{filename}: job '{job_name}' config should be a mapping/dict"
             assert "steps" in job_config, f"{filename}: job '{job_name}' missing 'steps'"
             assert isinstance(job_config["steps"], list)
             assert len(job_config["steps"]) > 0, f"{filename}: job '{job_name}' has no steps"
@@ -372,9 +406,12 @@ class TestSpecificWorkflows:
 
         with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
+        assert isinstance(config, dict), "ci.yml should parse to a mapping/dict"
+        jobs = config.get("jobs")
+        assert isinstance(jobs, dict), "ci.yml jobs should be a mapping/dict"
 
         # Find test job
-        test_job = config["jobs"].get("test")
+        test_job = jobs.get("test")
         if test_job:
             assert "strategy" in test_job
             assert "matrix" in test_job["strategy"]
@@ -391,11 +428,9 @@ class TestSpecificWorkflows:
             pytest.skip("apisec-scan.yml does not exist")
 
         with open(workflow_path, encoding="utf-8") as f:
-            content = f.read()
-
-        # Check for secret references
-        assert "secrets.apisec_username" in content
-        assert "secrets.apisec_password" in content
+            config = yaml.safe_load(f)
+        assert _contains_string(config, "secrets.apisec_username")
+        assert _contains_string(config, "secrets.apisec_password")
 
     def test_bandit_workflow_security_permissions(self):
         """Bandit workflow has proper security-events permissions."""
@@ -405,9 +440,12 @@ class TestSpecificWorkflows:
 
         with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
+        assert isinstance(config, dict), "bandit.yml should parse to a mapping/dict"
+        jobs = config.get("jobs")
+        assert isinstance(jobs, dict), "bandit.yml jobs should be a mapping/dict"
 
         # Check job permissions
-        bandit_job = config["jobs"].get("bandit")
+        bandit_job = jobs.get("bandit")
         if bandit_job:
             assert "permissions" in bandit_job
             assert "security-events" in bandit_job["permissions"]
@@ -421,9 +459,12 @@ class TestSpecificWorkflows:
 
         with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
+        assert isinstance(config, dict), "codeql.yml should parse to a mapping/dict"
+        jobs = config.get("jobs")
+        assert isinstance(jobs, dict), "codeql.yml jobs should be a mapping/dict"
 
         # Find analyze job
-        analyze_job = config["jobs"].get("analyze")
+        analyze_job = jobs.get("analyze")
         if analyze_job and "strategy" in analyze_job:
             matrix = analyze_job["strategy"].get("matrix", {})
             # Language can be in matrix.language or matrix.include[].language
@@ -438,6 +479,7 @@ class TestSpecificWorkflows:
 
         with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
+        assert isinstance(config, dict), "dependency-review.yml should parse to a mapping/dict"
 
         # YAML may parse 'on:' as True (boolean) so check both
         triggers = config.get("on", config.get(True, {}))
@@ -460,7 +502,7 @@ class TestWorkflowSecurity:
 
         risky_patterns = []
 
-        for workflow_file in workflows_dir.glob("*.yml"):
+        for workflow_file in _workflow_files(workflows_dir):
             with open(workflow_file, encoding="utf-8") as f:
                 content = f.read()
 
@@ -481,7 +523,7 @@ class TestWorkflowSecurity:
         """Workflows using secrets should have limited permissions."""
         workflows_dir = PROJECT_ROOT / ".github" / "workflows"
 
-        for workflow_file in workflows_dir.glob("*.yml"):
+        for workflow_file in _workflow_files(workflows_dir):
             with open(workflow_file, encoding="utf-8") as f:
                 content = f.read()
             if "secrets." not in content:
@@ -494,7 +536,10 @@ class TestWorkflowSecurity:
 
             # This is a best practice, not a hard requirement.
             if not _workflow_has_permissions(config):
-                print(f"\n{workflow_file.name} uses secrets but lacks explicit permissions")
+                warnings.warn(
+                    f"{workflow_file.name} uses secrets but lacks explicit permissions",
+                    UserWarning,
+                )
 
 
 class TestWorkflowConcurrency:
@@ -509,9 +554,11 @@ class TestWorkflowConcurrency:
 
         with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
+        assert isinstance(config, dict), "ci.yml should parse to a mapping/dict"
 
         # Check for concurrency at workflow level
         if "concurrency" in config:
+            assert isinstance(config["concurrency"], dict), "concurrency should be a mapping/dict"
             assert "group" in config["concurrency"]
             # cancel-in-progress is recommended but optional
             if "cancel-in-progress" in config["concurrency"]:
@@ -530,6 +577,7 @@ class TestWorkflowPaths:
 
         with open(workflow_path, encoding="utf-8") as f:
             config = yaml.safe_load(f)
+        assert isinstance(config, dict), "apisec-scan.yml should parse to a mapping/dict"
 
         on_config = config.get("on", {})
 
@@ -575,8 +623,7 @@ class TestYAMLSyntaxAllFiles:
             if file_path.exists():
                 with open(file_path, encoding="utf-8") as f:
                     try:
-                        config = yaml.safe_load(f)
-                        assert config is not None, f"{yaml_file} is empty"
+                        yaml.safe_load(f)
                     except yaml.YAMLError as e:
                         pytest.fail(f"{yaml_file} has invalid YAML syntax: {e}")
 
@@ -589,6 +636,8 @@ class TestConfigurationConsistency:
         """Python versions should be consistent across configs."""
         # CircleCI
         circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
+        if not circleci_path.exists():
+            pytest.fail(".circleci/config.yml does not exist")
         with open(circleci_path, encoding="utf-8") as f:
             circleci_config = yaml.safe_load(f)
 
@@ -606,6 +655,8 @@ class TestConfigurationConsistency:
     def test_node_version_consistency(self):
         """Node versions should be reasonable across configs."""
         circleci_path = PROJECT_ROOT / ".circleci" / "config.yml"
+        if not circleci_path.exists():
+            pytest.fail(".circleci/config.yml does not exist")
         with open(circleci_path, encoding="utf-8") as f:
             content = f.read()
 
