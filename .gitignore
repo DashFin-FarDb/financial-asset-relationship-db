@@ -118,5 +118,8 @@ docker-compose.override.yml
 s
 
 
+#Ignore cursor AI rules
+.cursor/rules/codacy.mdc
+
 #Ignore windsurf AI rules
 .windsurfrules

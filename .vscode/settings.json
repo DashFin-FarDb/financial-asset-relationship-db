@@ -1,7 +1,7 @@
 {
-    "circleci.filters.branchFilter": "allBranches",
+    "circleci.filters.branchFilter": "default",
     "circleci.persistedProjectSelection": [
-        "gh/mohavro/financial-asset-relationship-db"
+        "gh/DashFin-FarDb/financial-asset-relationship-db"
     ],
     "coderabbit.autoReviewMode": "auto",
     "sonarlint.connectedMode.project": {
@@ -9,5 +9,6 @@
         "projectKey": "DashFin-FarDb_financial-asset-relationship-db"
     },
     "snyk.advanced.autoSelectOrganization": true,
-    "snyk.advanced.organization": "81f332e2-3ba2-42e3-b469-b705d2a3d526"
+    "snyk.advanced.organization": "81f332e2-3ba2-42e3-b469-b705d2a3d526",
+    "circleci.filters.myPipelinesOnly": false
 }
