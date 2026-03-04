@@ -110,7 +110,7 @@ docker-compose.override.yml
 # Elastic Copilot backups
 .elastic-copilot/memory/*.backup
 
-#Ignore vscode AI rules
+# Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
 
 # Ignore accidental pip/command output artifacts
@@ -118,8 +118,8 @@ docker-compose.override.yml
 s
 
 
-#Ignore cursor AI rules
+# Ignore cursor AI rules
 .cursor/rules/codacy.mdc
 
-#Ignore windsurf AI rules
+# Ignore windsurf AI rules
 .windsurfrules
