@@ -1,10 +1,10 @@
 runtimes:
     - node@22.2.0
     - python@3.11.11
+    - go@1.22.3
 tools:
     - eslint@9.39.3
     - pylint@3.3.6
     - semgrep@1.78.0
-     - pylint@3.3.6
-     - trivy@0.66.0
-     - revive@1.7.0
+    - trivy@0.66.0
+    - revive@1.7.0
