@@ -199,10 +199,7 @@ class TestCircleCIConfig:
         assert "steps" in job
 
         steps = job["steps"]
-        has_checkout = any(
-            step == "checkout" or (isinstance(step, dict) and "checkout" in step)
-            for step in steps
-        )
+        has_checkout = any(step == "checkout" or (isinstance(step, dict) and "checkout" in step) for step in steps)
         assert has_checkout
 
     def test_circleci_python_test_job_coverage(self, circleci_config):
