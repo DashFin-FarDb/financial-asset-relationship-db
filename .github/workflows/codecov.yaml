@@ -1,7 +1,7 @@
 name: Run tests and upload coverage
 
 on:
-  push
+  push:
 
 jobs:
   test:
@@ -28,7 +28,7 @@ jobs:
         run: pytest --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5 - Pinned for supply chain security
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 

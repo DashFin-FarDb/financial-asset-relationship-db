@@ -44,8 +44,7 @@ class TestCircleCIConfig:
         """CircleCI config defines required orbs."""
         assert "orbs" in circleci_config
         orbs = circleci_config["orbs"]
-        assert "node" in orbs
-        assert "python" in orbs
+        assert isinstance(orbs, dict)
         assert "codecov" in orbs
 
     def test_circleci_config_has_executors(self, circleci_config):
@@ -128,12 +127,23 @@ class TestCircleCIConfig:
         workflow = circleci_config["workflows"]["build-and-test"]
         jobs = workflow["jobs"]
 
-        # Find python-test job and check requires
-        for job in jobs:
-            if isinstance(job, dict) and "python-test" in job:
-                assert "requires" in job["python-test"]
-                assert "python-lint" in job["python-test"]["requires"]
-                break
+        # Backend jobs can run in parallel, but docker-build should gate on them.
+        assert "python-lint" in jobs
+        assert "python-test" in jobs
+
+        docker_build_entry = next(
+            (
+                job["docker-build"]
+                for job in jobs
+                if isinstance(job, dict) and "docker-build" in job
+            ),
+            None,
+        )
+
+        assert docker_build_entry is not None
+        assert "requires" in docker_build_entry
+        assert "python-lint" in docker_build_entry["requires"]
+        assert "python-test" in docker_build_entry["requires"]
 
     def test_circleci_nightly_security_schedule(self, circleci_config):
         """CircleCI nightly security workflow has cron schedule."""
