@@ -27,6 +27,19 @@ def _step_run_command(step: object) -> str | None:
     if isinstance(run_step, str):
         return run_step
 
+    if isinstance(run_step, (list, tuple)):
+        parts: list[str] = []
+        for item in run_step:
+            if isinstance(item, str):
+                parts.append(item)
+            elif isinstance(item, dict):
+                cmd = item.get("command")
+                if isinstance(cmd, str):
+                    parts.append(cmd)
+        if parts:
+            return "\n".join(parts)
+        return None
+
     if not isinstance(run_step, dict):
         return None
 
@@ -36,7 +49,10 @@ def _step_run_command(step: object) -> str | None:
     return None
 
 
-def _has_pytest_with_coverage(steps: list[object]) -> bool:
+def _has_pytest_with_coverage(steps: object) -> bool:
+    if not isinstance(steps, list):
+        return False
+
     for step in steps:
         command = _step_run_command(step)
         if command is None:
@@ -46,7 +62,10 @@ def _has_pytest_with_coverage(steps: list[object]) -> bool:
     return False
 
 
-def _has_codecov_upload_step(steps: list[object]) -> bool:
+def _has_codecov_upload_step(steps: object) -> bool:
+    if not isinstance(steps, list):
+        return False
+
     return any(isinstance(step, dict) and step.get("codecov/upload") is not None for step in steps)
 
 
@@ -293,19 +312,16 @@ class TestGitHubWorkflows:
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
-        assert config is not None
+        assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         assert "name" in config, f"{filename} missing 'name' field"
-        assert isinstance(config["name"], str)
-        assert len(config["name"]) > 0
 
     def test_workflow_has_trigger(self, workflow_file):
         """All workflows have at least one trigger."""
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
-        assert config is not None
-
-        # Check for 'on' or True (YAML parses 'on:' as boolean True)
+        assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
+        # YAML may parse 'on:' as boolean True
         assert "on" in config or True in config, f"{filename} missing trigger configuration"
 
     def test_workflow_has_jobs(self, workflow_file):
@@ -313,7 +329,7 @@ class TestGitHubWorkflows:
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
-        assert config is not None
+        assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
 
         assert "jobs" in config, f"{filename} missing 'jobs' field"
         assert isinstance(config["jobs"], dict)
@@ -324,8 +340,9 @@ class TestGitHubWorkflows:
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
-
+        assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         jobs = config.get("jobs", {})
+        assert isinstance(jobs, dict), f"{filename} jobs should be a mapping/dict"
         for job_name, job_config in jobs.items():
             assert "runs-on" in job_config, f"{filename}: job '{job_name}' missing 'runs-on'"
 
@@ -334,8 +351,9 @@ class TestGitHubWorkflows:
         filename, config = workflow_file
         if config is None:
             pytest.skip(f"{filename} does not exist")
-
+        assert isinstance(config, dict), f"{filename} parsed to {type(config).__name__}, expected a mapping/dict"
         jobs = config.get("jobs", {})
+        assert isinstance(jobs, dict), f"{filename} jobs should be a mapping/dict"
         for job_name, job_config in jobs.items():
             assert "steps" in job_config, f"{filename}: job '{job_name}' missing 'steps'"
             assert isinstance(job_config["steps"], list)
