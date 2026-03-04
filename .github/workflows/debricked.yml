@@ -23,9 +23,9 @@ jobs:
       actions: read
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2 - pinned SHA for supply-chain security
 
       - name: Run Debricked Scan
-        uses: debricked/actions/scan@3a23c0b4689c231887ffe1f29ac8b0b20e38de62
+        uses: debricked/actions/scan@3a23c0b4689c231887ffe1f29ac8b0b20e38de62 # v1.0.0 (v1) - pinned SHA for supply-chain security
         env:
           DEBRICKED_TOKEN: ${{ secrets.DEBRICKED_TOKEN }}

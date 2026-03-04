@@ -128,8 +128,14 @@ class TestCircleCIConfig:
         jobs = workflow["jobs"]
 
         # Backend jobs can run in parallel, but docker-build should gate on them.
-        assert "python-lint" in jobs
-        assert "python-test" in jobs
+        assert any(
+            job == "python-lint" or (isinstance(job, dict) and "python-lint" in job)
+            for job in jobs
+        )
+        assert any(
+            job == "python-test" or (isinstance(job, dict) and "python-test" in job)
+            for job in jobs
+        )
 
         docker_build_entry = next(
             (
