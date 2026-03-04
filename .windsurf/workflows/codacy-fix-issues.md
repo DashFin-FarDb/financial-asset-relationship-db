@@ -2,7 +2,7 @@
 description: Find and fix issues in your project using Codacy local analysis
 ---
 
-If the user gave you files as context: 
+If the user gave you files as context:
 
 1. Run the 'codacy_cli_analyze' tool for each of the files given as context, with the following params:
  - rootPath: set to the workspace path
