@@ -131,364 +131,140 @@ def _build_relationship_index(
 
     if not isinstance(graph.relationships, dict):
         raise TypeError(
-            f"Invalid graph data: graph.relationships must be a dictionary, got {type(graph.relationships).__name__}"
+    def _create_directional_arrows(
+        graph: AssetRelationshipGraph,
+        positions: np.ndarray,
+        asset_ids: list[str],
+        relationship_filters: Mapping[str, bool] | None = None,
+    ) -> list[go.Scatter3d]:
+        """Create arrow markers for unidirectional relationships."""
+        if not isinstance(graph, AssetRelationshipGraph):
+            raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
+
+        _validate_positions_array(positions)
+        _validate_asset_ids_list(asset_ids)
+
+        if len(positions) != len(asset_ids):
+            raise ValueError("positions and asset_ids must have the same length")
+
+        relationship_index = _build_relationship_index(graph, asset_ids)
+        asset_id_index = _build_asset_id_index(asset_ids)
+
+        source_indices: list[int] = []
+        target_indices: list[int] = []
+        hover_texts: list[str] = []
+
+        for (source_id, target_id, rel_type), _ in relationship_index.items():
+            # Respect relationship filters when generating arrow markers.
+            if relationship_filters is not None and not relationship_filters.get(rel_type, True):
+                continue
+            reverse_key = (target_id, source_id, rel_type)
+            if reverse_key not in relationship_index:
+                source_indices.append(asset_id_index[source_id])
+                target_indices.append(asset_id_index[target_id])
+                hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
+
+        if not source_indices:
+            return []
+
+        src_idx_arr = np.asarray(source_indices, dtype=int)
+        tgt_idx_arr = np.asarray(target_indices, dtype=int)
+
+        source_positions = positions[src_idx_arr]
+        target_positions = positions[tgt_idx_arr]
+        arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
+
+        arrow_trace = go.Scatter3d(
+            x=arrow_positions[:, 0].tolist(),
+            y=arrow_positions[:, 1].tolist(),
+            z=arrow_positions[:, 2].tolist(),
+            mode="markers",
+            marker=dict(
+                symbol="diamond",
+                size=8,
+                color="rgba(255, 0, 0, 0.8)",
+                line=dict(color="red", width=1),
+            ),
+            hovertext=hover_texts,
+            hoverinfo="text",
+            name="Direction Arrows",
+            visible=True,
+            showlegend=False,
         )
 
-    asset_ids_set = _coerce_asset_ids(asset_ids)
+        return [arrow_trace]
 
-    # Snapshot only relevant source IDs, and pre-filter to relevant & well-formed rows.
-    with _GRAPH_ACCESS_LOCK:
+
+    def _visualize_3d_graph_core(
+        graph: AssetRelationshipGraph,
+        relationship_filters: Mapping[str, bool] | None,
+        toggle_arrows: bool,
+    ) -> go.Figure:
+        """Core visualization pipeline used by public wrappers."""
+        if not hasattr(graph, "get_3d_visualization_data_enhanced"):
+            raise ValueError("Invalid graph data provided: graph must provide get_3d_visualization_data_enhanced")
+
         try:
-            relevant_relationships: dict[str, list[Any]] = {
-                source_id: list(rels) for source_id, rels in graph.relationships.items() if source_id in asset_ids_set
-            }
+            positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
         except Exception as exc:  # pylint: disable=broad-except
-            raise ValueError(f"Failed to snapshot graph.relationships: {exc}") from exc
+            logger.exception("Failed to retrieve visualization data from graph: %s", exc)
+            raise ValueError("Failed to retrieve graph visualization data") from exc
 
-    relationship_index: dict[tuple[str, str, str], float] = {}
+        _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-    for source_id, rels in relevant_relationships.items():
-        if not isinstance(rels, (list, tuple)):
-            raise TypeError(
-                f"Invalid graph data: relationships for '{source_id}' must be a list/tuple, got {type(rels).__name__}"
+        fig = go.Figure()
+
+        try:
+            relationship_traces = _create_relationship_traces(
+                graph,
+                positions,
+                asset_ids,
+                relationship_filters,
             )
-
-        for idx, rel in enumerate(rels):
-            # rel is already prefiltered to len == 3, but keep strict checks.
-            if not isinstance(rel, (list, tuple)) or len(rel) != 3:
-                raise ValueError(
-                    "Invalid graph data: relationship at index "
-                    f"{idx} for '{source_id}' must be a 3-element tuple "
-                    "(target_id, rel_type, strength)"
-                )
-
-            target_id, rel_type, strength = rel
-
-            if not isinstance(target_id, str) or not isinstance(rel_type, str):
-                raise TypeError(
-                    "Invalid graph data: relationship at index "
-                    f"{idx} for '{source_id}' must use string target_id and rel_type"
-                )
-
-            try:
-                strength_float = float(strength)
-            except (TypeError, ValueError) as exc:
-                raise ValueError(
-                    f"Invalid graph data: strength at index {idx} for '{source_id}' must be numeric"
-                ) from exc
-
-            if target_id in asset_ids_set:
-                relationship_index[(source_id, target_id, rel_type)] = strength_float
-
-    return relationship_index
-
-
-def _validate_positions_array(positions: np.ndarray) -> None:
-    """Validate positions array structure and values.
-
-    Raises:
-        ValueError: If the array is not numeric, not shape (n, 3), or contains NaN/Inf.
-    """
-    if not isinstance(positions, np.ndarray):
-        raise ValueError(f"Invalid graph data: positions must be a numpy array, got {type(positions).__name__}")
-
-    if positions.ndim != 2 or positions.shape[1] != 3:
-        raise ValueError(
-            f"Invalid graph data: expected positions to be a (n, 3) numpy array, got array with shape {positions.shape}"
-        )
-
-    if not np.issubdtype(positions.dtype, np.number):
-        raise ValueError(f"Invalid graph data: positions must contain numeric values, got dtype {positions.dtype}")
-
-    if not np.isfinite(positions).all():
-        nan_count = int(np.isnan(positions).sum())
-        inf_count = int(np.isinf(positions).sum())
-        raise ValueError(
-            "Invalid graph data: positions must contain finite values (no NaN/Inf). "
-            f"Found {nan_count} NaN and {inf_count} Inf"
-        )
-
-
-def _validate_asset_ids_list(asset_ids: Sequence[str]) -> None:
-    """Validate asset_ids list structure and content."""
-    if not isinstance(asset_ids, (list, tuple)):
-        raise ValueError(f"Invalid graph data: asset_ids must be a list or tuple, got {type(asset_ids).__name__}")
-
-    if not all(isinstance(a, str) and a for a in asset_ids):
-        raise ValueError("Invalid graph data: asset_ids must contain non-empty strings")
-
-
-def _validate_asset_ids_uniqueness(asset_ids: Sequence[str]) -> None:
-    """Validate that asset IDs are unique."""
-    if len(set(asset_ids)) == len(asset_ids):
-        return
-
-    seen_ids: set[str] = set()
-    dup_ids: list[str] = []
-    for aid in asset_ids:
-        if aid in seen_ids and aid not in dup_ids:
-            dup_ids.append(aid)
-        else:
-            seen_ids.add(aid)
-
-    raise ValueError("Invalid graph data: duplicate asset_ids detected: " + ", ".join(dup_ids))
-
-
-def _validate_colors_list(colors: Sequence[str], expected_length: int) -> None:
-    """Validate colors list structure, content, and format."""
-    if not isinstance(colors, (list, tuple)) or len(colors) != expected_length:
-        colors_type = type(colors).__name__
-        colors_len = len(colors) if isinstance(colors, (list, tuple)) else "N/A"
-        raise ValueError(
-            "Invalid graph data: colors must be a list/tuple of length "
-            f"{expected_length}, got {colors_type} with length {colors_len}"
-        )
-
-    if not all(isinstance(c, str) and c for c in colors):
-        raise ValueError("Invalid graph data: colors must contain non-empty strings")
-
-    for i, color in enumerate(colors):
-        if not _is_valid_color_format(color):
-            raise ValueError(f"Invalid graph data: colors[{i}] has invalid color format: '{color}'")
-
-
-def _validate_hover_texts_list(hover_texts: Sequence[str], expected_length: int) -> None:
-    """Validate hover_texts list structure and content."""
-    if not isinstance(hover_texts, (list, tuple)) or len(hover_texts) != expected_length:
-        raise ValueError(f"Invalid graph data: hover_texts must be a list/tuple of length {expected_length}")
-
-    if not all(isinstance(h, str) and h for h in hover_texts):
-        raise ValueError("Invalid graph data: hover_texts must contain non-empty strings")
-
-
-def _validate_visualization_data(
-    positions: np.ndarray,
-    asset_ids: Sequence[str],
-    colors: Sequence[str],
-    hover_texts: Sequence[str],
-) -> None:
-    """Validate visualization data integrity to prevent runtime errors."""
-    _validate_positions_array(positions)
-    _validate_asset_ids_list(asset_ids)
-    _validate_asset_ids_uniqueness(asset_ids)
-
-    n = len(asset_ids)
-    if positions.shape[0] != n:
-        raise ValueError(
-            f"Invalid graph data: positions length ({positions.shape[0]}) does not match asset_ids length ({n})"
-        )
-
-    _validate_colors_list(colors, n)
-    _validate_hover_texts_list(hover_texts, n)
-
-
-def _create_node_trace(
-    positions: np.ndarray,
-    asset_ids: list[str],
-    colors: list[str],
-    hover_texts: list[str],
-) -> go.Scatter3d:
-    """Create node trace for 3D visualization."""
-    _validate_visualization_data(positions, asset_ids, colors, hover_texts)
-
-    if not asset_ids:
-        raise ValueError("Cannot create node trace with empty inputs")
-
-    return go.Scatter3d(
-        x=positions[:, 0],
-        y=positions[:, 1],
-        z=positions[:, 2],
-        mode="markers",
-        marker=dict(
-            size=5,
-            color=colors,
-        ),
-        text=hover_texts,
-        hoverinfo="text",
-    )
-
-
-def visualize_3d_graph(
-    graph: AssetRelationshipGraph,
-    toggle_arrows: bool = True,
-) -> go.Figure:
-    """Create 3D visualization for the full asset graph.
-
-    Parameters
-    ----------
-    graph:
-        AssetRelationshipGraph instance to visualize.
-    toggle_arrows:
-        Whether to display directional arrows on relationships.
-    """
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError("graph must be an AssetRelationshipGraph instance")
-
-    if not isinstance(toggle_arrows, bool):
-        raise TypeError("toggle_arrows must be a boolean value")
-
-    return _visualize_3d_graph_core(
-        graph=graph,
-        relationship_filters=None,
-        toggle_arrows=toggle_arrows,
-    )
-
-
-def _build_relationship_filters(
-    *,
-    show_same_sector: bool,
-    show_market_cap: bool,
-    show_correlation: bool,
-    show_corporate_bond: bool,
-    show_commodity_currency: bool,
-    show_income_comparison: bool,
-    show_regulatory: bool,
-    show_all_relationships: bool,
-) -> dict[str, bool] | None:
-    if show_all_relationships:
-        return None
-    # Keys must match actual relationship type names so filters take effect.
-    return {
-        "same_sector": show_same_sector,
-        "market_cap_similar": show_market_cap,
-        "correlation": show_correlation,
-        "corporate_link": show_corporate_bond,
-        "commodity_currency": show_commodity_currency,
-        "income_comparison": show_income_comparison,
-        "event_impact": show_regulatory,
-    }
-
-
-def _create_directional_arrows(
-    graph: AssetRelationshipGraph,
-    positions: np.ndarray,
-    asset_ids: list[str],
-) -> list[go.Scatter3d]:
-    """Create arrow markers for unidirectional relationships."""
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
-
-    _validate_positions_array(positions)
-    _validate_asset_ids_list(asset_ids)
-
-    if len(positions) != len(asset_ids):
-        raise ValueError("positions and asset_ids must have the same length")
-
-    relationship_index = _build_relationship_index(graph, asset_ids)
-    asset_id_index = _build_asset_id_index(asset_ids)
-
-    source_indices: list[int] = []
-    target_indices: list[int] = []
-    hover_texts: list[str] = []
-
-    for (source_id, target_id, rel_type), _ in relationship_index.items():
-        reverse_key = (target_id, source_id, rel_type)
-        if reverse_key not in relationship_index:
-            source_indices.append(asset_id_index[source_id])
-            target_indices.append(asset_id_index[target_id])
-            hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
-
-    if not source_indices:
-        return []
-
-    src_idx_arr = np.asarray(source_indices, dtype=int)
-    tgt_idx_arr = np.asarray(target_indices, dtype=int)
-
-    source_positions = positions[src_idx_arr]
-    target_positions = positions[tgt_idx_arr]
-    arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
-
-    arrow_trace = go.Scatter3d(
-        x=arrow_positions[:, 0].tolist(),
-        y=arrow_positions[:, 1].tolist(),
-        z=arrow_positions[:, 2].tolist(),
-        mode="markers",
-        marker=dict(
-            symbol="diamond",
-            size=8,
-            color="rgba(255, 0, 0, 0.8)",
-            line=dict(color="red", width=1),
-        ),
-        hovertext=hover_texts,
-        hoverinfo="text",
-        name="Direction Arrows",
-        visible=True,
-        showlegend=False,
-    )
-
-    return [arrow_trace]
-
-
-def _visualize_3d_graph_core(
-    graph: AssetRelationshipGraph,
-    relationship_filters: Mapping[str, bool] | None,
-    toggle_arrows: bool,
-) -> go.Figure:
-    """Core visualization pipeline used by public wrappers."""
-    if not hasattr(graph, "get_3d_visualization_data_enhanced"):
-        raise ValueError("Invalid graph data provided: graph must provide get_3d_visualization_data_enhanced")
-
-    try:
-        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
-    except Exception as exc:  # pylint: disable=broad-except
-        logger.exception("Failed to retrieve visualization data from graph: %s", exc)
-        raise ValueError("Failed to retrieve graph visualization data") from exc
-
-    _validate_visualization_data(positions, asset_ids, colors, hover_texts)
-
-    fig = go.Figure()
-
-    try:
-        relationship_traces = _create_relationship_traces(
-            graph,
-            positions,
-            asset_ids,
-            relationship_filters,
-        )
-    except (TypeError, ValueError) as exc:
-        logger.exception(
-            "Failed to create relationship traces (filters: %s): %s",
-            relationship_filters,
-            exc,
-        )
-        raise ValueError(f"Failed to create relationship traces: {exc}") from exc
-    except Exception as exc:  # pylint: disable=broad-except
-        logger.exception(
-            "Unexpected error creating relationship traces (filters: %s): %s",
-            relationship_filters,
-            exc,
-        )
-        relationship_traces = []
-
-    if relationship_traces:
-        try:
-            fig.add_traces(relationship_traces)
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.exception("Failed to add relationship traces to figure: %s", exc)
-
-    if toggle_arrows:
-        try:
-            arrow_traces = _create_directional_arrows(graph, positions, asset_ids)
         except (TypeError, ValueError) as exc:
-            logger.exception("Failed to create directional arrows: %s", exc)
-            arrow_traces = []
+            logger.exception(
+                "Failed to create relationship traces (filters: %s): %s",
+                relationship_filters,
+                exc,
+            )
+            raise ValueError(f"Failed to create relationship traces: {exc}") from exc
         except Exception as exc:  # pylint: disable=broad-except
-            logger.exception("Unexpected error creating directional arrows: %s", exc)
-            arrow_traces = []
+            logger.exception(
+                "Unexpected error creating relationship traces (filters: %s): %s",
+                relationship_filters,
+                exc,
+            )
+            relationship_traces = []
 
-        if arrow_traces:
+        if relationship_traces:
             try:
-                fig.add_traces(arrow_traces)
+                fig.add_traces(relationship_traces)
             except Exception as exc:  # pylint: disable=broad-except
-                logger.exception("Failed to add directional arrows to figure: %s", exc)
+                logger.exception("Failed to add relationship traces to figure: %s", exc)
 
-    node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
-    fig.add_trace(node_trace)
+        if toggle_arrows:
+            try:
+                arrow_traces = _create_directional_arrows(graph, positions, asset_ids, relationship_filters)
+            except (TypeError, ValueError) as exc:
+                logger.exception("Failed to create directional arrows: %s", exc)
+                arrow_traces = []
+            except Exception as exc:  # pylint: disable=broad-except
+                logger.exception("Unexpected error creating directional arrows: %s", exc)
+                arrow_traces = []
 
-    dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
-    _configure_3d_layout(fig, dynamic_title, options)
+            if arrow_traces:
+                try:
+                    fig.add_traces(arrow_traces)
+                except Exception as exc:  # pylint: disable=broad-except
+                    logger.exception("Failed to add directional arrows to figure: %s", exc)
 
-    return fig
+        node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
+        fig.add_trace(node_trace)
+
+        dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
+        _configure_3d_layout(fig, dynamic_title, options)
+
+        return fig
 
 
 def visualize_3d_graph_with_filters(
