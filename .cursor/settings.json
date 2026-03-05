@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "extensions": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "ms-python.debugpy",
+    "ms-python.black-formatter",
+    "charliermarsh.ruff",
+    "ms-vscode.makefile-tools",
+    "eamodio.gitlens",
+    "ms-azuretools.vscode-docker",
+    "ms-vscode-remote.remote-containers"
+  ]
+}
