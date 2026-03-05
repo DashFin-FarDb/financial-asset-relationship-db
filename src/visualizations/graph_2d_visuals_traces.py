@@ -34,9 +34,7 @@ def _collect_relationship_groups(
     for source_id in asset_ids:
         source_relationships = graph.relationships.get(source_id, [])
         for target_id, rel_type, strength in source_relationships:
-            relationship_enabled = (
-                True if relationship_filters is None else relationship_filters.get(rel_type, True)
-            )
+            relationship_enabled = True if relationship_filters is None else relationship_filters.get(rel_type, True)
             if not _should_include_relationship(
                 target_id,
                 positions,
@@ -66,11 +64,7 @@ def _build_relationship_trace(
         tx, ty = positions[target_id]
         edges_x.extend([sx, tx, None])
         edges_y.extend([sy, ty, None])
-        hover = (
-            f"{source_id} → {target_id}<br>"
-            f"Type: {rel_type}<br>"
-            f"Strength: {strength:.2f}"
-        )
+        hover = f"{source_id} → {target_id}<br>" f"Type: {rel_type}<br>" f"Strength: {strength:.2f}"
         hover_texts.extend([hover, hover, None])
 
     return go.Scatter(

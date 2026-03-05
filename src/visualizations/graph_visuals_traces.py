@@ -179,5 +179,3 @@ def _create_relationship_traces(
         for (rel_type, is_bidirectional), rels in relationship_groups.items()
         if rels
     ]
-
-

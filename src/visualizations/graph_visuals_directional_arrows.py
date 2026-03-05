@@ -37,6 +37,8 @@ def _validate_and_prepare_directional_arrows_inputs(
     positions_arr = _normalize_positions(positions)
     asset_ids_list = _validate_asset_ids(asset_ids, len(positions_arr))
     return positions_arr, asset_ids_list
+
+
 def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
     """Validate and normalize a list of asset IDs."""
     if asset_ids is None:

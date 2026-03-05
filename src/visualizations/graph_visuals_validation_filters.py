@@ -41,8 +41,7 @@ def _validate_relationship_filters(
     invalid_values = _get_invalid_value_keys(filters_dict)
     if invalid_values:
         raise ValueError(
-            "relationship_filters must contain only boolean values. "
-            f"Invalid keys: {', '.join(invalid_values)}"
+            "relationship_filters must contain only boolean values. " f"Invalid keys: {', '.join(invalid_values)}"
         )
     invalid_keys = _get_invalid_key_types(filters_dict)
     if invalid_keys:

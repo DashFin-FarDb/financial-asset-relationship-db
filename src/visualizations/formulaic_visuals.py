@@ -86,10 +86,7 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
             r_squared = getattr(formula, "r_squared", 0.0)
             totals[category] = totals.get(category, 0.0) + r_squared
             counts[category] = counts.get(category, 0) + 1
-        return {
-            category: (total / counts[category] if counts[category] else 0.0)
-            for category, total in totals.items()
-        }
+        return {category: (total / counts[category] if counts[category] else 0.0) for category, total in totals.items()}
 
     @staticmethod
     def _add_bar_trace(
@@ -220,8 +217,7 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
         """Build assets and heatmap values from flat pairwise keys."""
         assets = FormulaicVisualizer._extract_flat_correlation_assets(correlation_matrix)
         z_values = [
-            FormulaicVisualizer._flat_correlation_row(correlation_matrix, left_asset, assets)
-            for left_asset in assets
+            FormulaicVisualizer._flat_correlation_row(correlation_matrix, left_asset, assets) for left_asset in assets
         ]
         return assets, z_values
 

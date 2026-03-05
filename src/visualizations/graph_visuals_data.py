@@ -42,11 +42,7 @@ def _snapshot_relevant_relationships(
 ) -> Dict[str, List[object]]:
     """Take a thread-safe snapshot of relationships for selected source assets."""
     with _graph_access_lock:
-        return {
-            src: list(rels)
-            for src, rels in relationships.items()
-            if src in asset_ids_set
-        }
+        return {src: list(rels) for src, rels in relationships.items() if src in asset_ids_set}
 
 
 def _parse_relationship_tuple(source_id: str, idx: int, rel: object) -> Tuple[str, str, float]:
@@ -63,8 +59,7 @@ def _unpack_relationship_tuple(source_id: str, idx: int, rel: object) -> Tuple[o
     if isinstance(rel, (list, tuple)) and len(rel) == 3:
         return rel[0], rel[1], rel[2]
     raise ValueError(
-        f"relationship at index {idx} for '{source_id}' "
-        f"must be a 3-element tuple (target_id, rel_type, strength)"
+        f"relationship at index {idx} for '{source_id}' " f"must be a 3-element tuple (target_id, rel_type, strength)"
     )
 
 

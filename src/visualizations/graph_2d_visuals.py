@@ -163,11 +163,7 @@ def _build_relationship_trace(
         target_pos = positions[target_id]
         edges_x.extend([source_pos[0], target_pos[0], None])
         edges_y.extend([source_pos[1], target_pos[1], None])
-        hover_text = (
-            f"{source_id} → {target_id}<br>"
-            f"Type: {rel_type}<br>"
-            f"Strength: {strength:.2f}"
-        )
+        hover_text = f"{source_id} → {target_id}<br>" f"Type: {rel_type}<br>" f"Strength: {strength:.2f}"
         hover_texts.extend([hover_text, hover_text, None])
 
     return go.Scatter(
@@ -274,9 +270,7 @@ def visualize_2d_graph(
     if len(relationship_flags) > len(option_keys):
         raise ValueError("Too many positional relationship flags provided")
 
-    positional_options = {
-        key: bool(value) for key, value in zip(option_keys, relationship_flags, strict=False)
-    }
+    positional_options = {key: bool(value) for key, value in zip(option_keys, relationship_flags, strict=False)}
     option_defaults: Dict[str, bool] = {
         "show_same_sector": True,
         "show_market_cap": True,
@@ -328,9 +322,7 @@ def visualize_2d_graph(
 
     # Add relationship traces
     relationship_filters: Dict[str, bool] | None = (
-        None
-        if resolved_options["show_all_relationships"]
-        else _build_relationship_filters(resolved_options)
+        None if resolved_options["show_all_relationships"] else _build_relationship_filters(resolved_options)
     )
     relationship_traces = _create_2d_relationship_traces(
         graph,
