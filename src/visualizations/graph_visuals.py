@@ -347,14 +347,15 @@ def _build_relationship_filters(
 ) -> dict[str, bool] | None:
     if show_all_relationships:
         return None
+    # Keys must match actual relationship type names so filters take effect.
     return {
         "same_sector": show_same_sector,
-        "market_cap": show_market_cap,
+        "market_cap_similar": show_market_cap,
         "correlation": show_correlation,
-        "corporate_bond": show_corporate_bond,
+        "corporate_link": show_corporate_bond,
         "commodity_currency": show_commodity_currency,
         "income_comparison": show_income_comparison,
-        "regulatory": show_regulatory,
+        "event_impact": show_regulatory,
     }
 
 
