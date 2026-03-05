@@ -1,8 +1,6 @@
 import threading
 from collections import defaultdict
-from typing import Dict, Iterable, List, Optional, Set, Tuple
-
-import numpy as np
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -16,10 +14,93 @@ def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
 
 
+def _validate_graph_relationships(graph: AssetRelationshipGraph) -> Dict[str, object]:
+    """Validate graph type/shape and return its relationships mapping."""
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError(f"graph must be an AssetRelationshipGraph instance, got {type(graph).__name__}")
+    if not hasattr(graph, "relationships"):
+        raise ValueError("graph is missing 'relationships' attribute")
+    relationships = graph.relationships
+    if not isinstance(relationships, dict):
+        raise TypeError(f"graph.relationships must be a dictionary, got {type(relationships).__name__}")
+    return relationships
+
+
+def _normalize_asset_ids(asset_ids: Iterable[str]) -> Set[str]:
+    """Normalize and validate asset IDs as a set of strings."""
+    try:
+        asset_ids_set = set(asset_ids)
+    except TypeError as exc:
+        raise TypeError(f"asset_ids must be an iterable, got {type(asset_ids).__name__}") from exc
+    if not all(isinstance(aid, str) for aid in asset_ids_set):
+        raise ValueError("asset_ids must contain only string values")
+    return asset_ids_set
+
+
+def _snapshot_relevant_relationships(
+    relationships: Dict[str, object], asset_ids_set: Set[str]
+) -> Dict[str, List[object]]:
+    """Take a thread-safe snapshot of relationships for selected source assets."""
+    with _graph_access_lock:
+        return {src: list(rels) for src, rels in relationships.items() if src in asset_ids_set}
+
+
+def _parse_relationship_tuple(source_id: str, idx: int, rel: object) -> Tuple[str, str, float]:
+    """Parse and validate one relationship tuple."""
+    target_id, rel_type, strength = _unpack_relationship_tuple(source_id, idx, rel)
+    _ensure_string_field(target_id, "target_id", source_id, idx)
+    _ensure_string_field(rel_type, "rel_type", source_id, idx)
+    strength_float = _parse_numeric_strength(strength, source_id, idx)
+    return target_id, rel_type, strength_float
+
+
+def _unpack_relationship_tuple(source_id: str, idx: int, rel: object) -> Tuple[object, object, object]:
+    """Unpack one relationship tuple and validate cardinality."""
+    if isinstance(rel, (list, tuple)) and len(rel) == 3:
+        return rel[0], rel[1], rel[2]
+    raise ValueError(
+        f"relationship at index {idx} for '{source_id}' must be a " "3-element tuple (target_id, rel_type, strength)"
+    )
+
+
+def _ensure_string_field(value: object, field_name: str, source_id: str, idx: int) -> None:
+    """Ensure one relationship field is a string."""
+    if not isinstance(value, str):
+        raise TypeError(f"{field_name} at index {idx} for '{source_id}' must be a string")
+
+
+def _parse_numeric_strength(strength: object, source_id: str, idx: int) -> float:
+    """Parse relationship strength to float with clear errors."""
+    try:
+        return float(strength)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"strength at index {idx} for '{source_id}' must be numeric") from exc
+
+
+def _index_relationships_for_source(
+    source_id: str,
+    rels: List[object],
+    asset_ids_set: Set[str],
+    relationship_index: Dict[Tuple[str, str, str], float],
+) -> None:
+    """Parse and index relationships for a single source asset."""
+    for idx, rel in enumerate(rels):
+        target_id, rel_type, strength_float = _parse_relationship_tuple(source_id, idx, rel)
+        if target_id in asset_ids_set:
+            relationship_index[(source_id, target_id, rel_type)] = strength_float
+
+
+def _ensure_relationship_list(source_id: str, rels: object) -> List[object]:
+    """Validate one source relationships collection as a list."""
+    if not isinstance(rels, list):
+        raise TypeError(f"relationships for '{source_id}' must be a list, got {type(rels).__name__}")
+    return rels
+
+
 def _build_relationship_index(
     graph: AssetRelationshipGraph, asset_ids: Iterable[str]
 ) -> Dict[Tuple[str, str, str], float]:
-    """Build a (source, target, rel_type) 1 strength index for the given asset IDs.
+    """Build a (source, target, rel_type) -> strength index for the given asset IDs.
 
     Only relationships where both endpoints are in *asset_ids* are included.
 
@@ -27,45 +108,14 @@ def _build_relationship_index(
         TypeError: If graph or asset_ids types are invalid.
         ValueError: If relationship data is malformed.
     """
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(f"graph must be an AssetRelationshipGraph instance, " f"got {type(graph).__name__}")
-    if not hasattr(graph, "relationships"):
-        raise ValueError("graph is missing 'relationships' attribute")
-    if not isinstance(graph.relationships, dict):
-        raise TypeError(f"graph.relationships must be a dictionary, " f"got {type(graph.relationships).__name__}")
-
-    try:
-        asset_ids_set: Set[str] = set(asset_ids)
-    except TypeError as exc:
-        raise TypeError(f"asset_ids must be an iterable, got {type(asset_ids).__name__}") from exc
-
-    if not all(isinstance(aid, str) for aid in asset_ids_set):
-        raise ValueError("asset_ids must contain only string values")
-
-    with _graph_access_lock:
-        relevant_relationships = {src: list(rels) for src, rels in graph.relationships.items() if src in asset_ids_set}
+    relationships = _validate_graph_relationships(graph)
+    asset_ids_set = _normalize_asset_ids(asset_ids)
+    relevant_relationships = _snapshot_relevant_relationships(relationships, asset_ids_set)
 
     relationship_index: Dict[Tuple[str, str, str], float] = {}
     for source_id, rels in relevant_relationships.items():
-        if not isinstance(rels, (list, tuple)):
-            raise TypeError(f"relationships for '{source_id}' must be a list or tuple, " f"got {type(rels).__name__}")
-        for idx, rel in enumerate(rels):
-            if not isinstance(rel, (list, tuple)) or len(rel) != 3:
-                raise ValueError(
-                    f"relationship at index {idx} for '{source_id}' "
-                    f"must be a 3-element tuple (target_id, rel_type, strength)"
-                )
-            target_id, rel_type, strength = rel
-            if not isinstance(target_id, str):
-                raise TypeError(f"target_id at index {idx} for '{source_id}' must be a string")
-            if not isinstance(rel_type, str):
-                raise TypeError(f"rel_type at index {idx} for '{source_id}' must be a string")
-            try:
-                strength_float = float(strength)
-            except (TypeError, ValueError) as exc:
-                raise ValueError(f"strength at index {idx} for '{source_id}' must be numeric") from exc
-            if target_id in asset_ids_set:
-                relationship_index[(source_id, target_id, rel_type)] = strength_float
+        source_relationships = _ensure_relationship_list(source_id, rels)
+        _index_relationships_for_source(source_id, source_relationships, asset_ids_set, relationship_index)
 
     return relationship_index
 
@@ -82,7 +132,7 @@ def _collect_and_group_relationships(
     relationship_groups: Dict[Tuple[str, bool], List[dict]] = defaultdict(list)
 
     for (source_id, target_id, rel_type), strength in relationship_index.items():
-        if relationship_filters and rel_type in relationship_filters and not relationship_filters[rel_type]:
+        if _is_relationship_filtered_out(rel_type, relationship_filters):
             continue
 
         pair_key: Tuple[str, str, str] = (
@@ -94,11 +144,14 @@ def _collect_and_group_relationships(
             continue
         if is_bidirectional:
             processed_pairs.add(pair_key)
+            output_source_id, output_target_id = pair_key[0], pair_key[1]
+        else:
+            output_source_id, output_target_id = source_id, target_id
 
         relationship_groups[(rel_type, is_bidirectional)].append(
             {
-                "source_id": source_id,
-                "target_id": target_id,
+                "source_id": output_source_id,
+                "target_id": output_target_id,
                 "strength": float(strength),
             }
         )
@@ -106,9 +159,16 @@ def _collect_and_group_relationships(
     return relationship_groups
 
 
+def _is_relationship_filtered_out(rel_type: str, relationship_filters: Optional[Dict[str, bool]]) -> bool:
+    """Return True when a relationship type is explicitly disabled."""
+    if relationship_filters is None:
+        return False
+    return rel_type in relationship_filters and not relationship_filters[rel_type]
+
+
 def _build_edge_coordinates_optimized(
     relationships: List[dict],
-    positions: np.ndarray,
+    positions: Sequence[Sequence[float]],
     asset_id_index: Dict[str, int],
 ) -> Tuple[List[Optional[float]], List[Optional[float]], List[Optional[float]]]:
     """Build x/y/z coordinate lists for edge traces using pre-allocated arrays."""
@@ -121,9 +181,9 @@ def _build_edge_coordinates_optimized(
         src = asset_id_index[rel["source_id"]]
         tgt = asset_id_index[rel["target_id"]]
         base = i * 3
-        edges_x[base], edges_x[base + 1] = positions[src, 0], positions[tgt, 0]
-        edges_y[base], edges_y[base + 1] = positions[src, 1], positions[tgt, 1]
-        edges_z[base], edges_z[base + 1] = positions[src, 2], positions[tgt, 2]
+        edges_x[base], edges_x[base + 1] = positions[src][0], positions[tgt][0]
+        edges_y[base], edges_y[base + 1] = positions[src][1], positions[tgt][1]
+        edges_z[base], edges_z[base + 1] = positions[src][2], positions[tgt][2]
 
     return edges_x, edges_y, edges_z
 

@@ -1,7 +1,7 @@
 name: Run tests and upload coverage
 
 on:
-  push
+  push:
 
 jobs:
   test:
@@ -11,7 +11,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v4
@@ -28,13 +28,14 @@ jobs:
         run: pytest --cov --cov-branch --cov-report=xml --junitxml=junit.xml -o junit_family=legacy
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v5
+        if: ${{ always() && !cancelled() }}
+        uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5 tag (currently v5.5.2) - pinned SHA for supply-chain security
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+        if: ${{ always() && !cancelled() }}
+        uses: codecov/test-results-action@0fa95f0e1eeaafde2c782583b36b28ad0d8c77d3 # v1 tag (currently v1.2.1) - pinned SHA for supply-chain security
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./junit.xml

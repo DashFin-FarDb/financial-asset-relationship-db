@@ -1,18 +1,19 @@
 # Dependency Matrix
 
-_Generated: 2026-02-16T07:58:03.539Z_
+*Generated: 2026-03-03T20:51:09.132Z*
 
 ## Summary
 
-- Files analyzed: 111
-- File types: py, js, ts, tsx
+- Files analyzed: 1000
+- File types: py, ts, tsx, js, h
 
 ## File Type Distribution
 
-- 84 py files
-- 5 js files
+- 949 py files
 - 12 ts files
 - 10 tsx files
+- 10 js files
+- 19 h files
 
 ## Key Dependencies by Type
 
@@ -20,20 +21,14 @@ _Generated: 2026-02-16T07:58:03.539Z_
 
 No common dependencies found
 
-### JS
-
-Top dependencies:
-
-- @testing-library/jest-dom
-
 ### TS
 
 Top dependencies:
-
 - ../app/types/api
-- ../../app/types/api
-- ../test-utils
 - axios
+- ../../app/types/api
+- ../../app/lib/api
+- ../test-utils
 - fs
 - path
 - ./api
@@ -42,14 +37,23 @@ Top dependencies:
 ### TSX
 
 Top dependencies:
-
 - react
 - @testing-library/react
 - @testing-library/jest-dom
 - ../../app/page
 - ../../app/lib/api
-- ./lib/api
-- ./components/NetworkVisualization
-- ./components/MetricsDashboard
-- ./components/AssetList
-- ./types/api
+- ../../app/components/NetworkVisualization
+- ../../app/types/api
+- ../test-utils
+- ../../app/components/MetricsDashboard
+- ../../app/components/AssetList
+
+### JS
+
+Top dependencies:
+- @testing-library/jest-dom
+- vector
+
+### H
+
+No common dependencies found
