@@ -1,0 +1,11 @@
+{
+  "name": "Financial Asset Relationship DB",
+  "description": "Development container for Financial Asset Relationship DB",
+  "image": "python:3.11-slim",
+  "dockerComposeFile": "../docker-compose.dev.yml",
+  "service": "backend",
+  "workspaceFolder": "/app",
+  "remoteUser": "appuser",
+  "forwardPorts": [7860, 8000, 5432],
+  "postCreateCommand": "pip install -q -r requirements.txt && pip install -q pytest pytest-cov pytest-asyncio black ruff mypy ipython"
+}
