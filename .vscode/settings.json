@@ -8,7 +8,7 @@
         "connectionId": "dashfin-fardb",
         "projectKey": "DashFin-FarDb_financial-asset-relationship-db"
     },
-    "snyk.advanced.autoSelectOrganization": true,
+    "snyk.advanced.autoSelectOrganization": false,
     "circleci.filters.myPipelinesOnly": false,
     "snyk.advanced.organization": "81f332e2-3ba2-42e3-b469-b705d2a3d526"
 }
