@@ -1,5 +1,5 @@
-from typing import Any, Dict, Mapping
 from numbers import Real
+from typing import Any, Dict, Mapping
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots

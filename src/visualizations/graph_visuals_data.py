@@ -59,8 +59,7 @@ def _unpack_relationship_tuple(source_id: str, idx: int, rel: object) -> Tuple[o
     if isinstance(rel, (list, tuple)) and len(rel) == 3:
         return rel[0], rel[1], rel[2]
     raise ValueError(
-        f"relationship at index {idx} for '{source_id}' must be a "
-        "3-element tuple (target_id, rel_type, strength)"
+        f"relationship at index {idx} for '{source_id}' must be a " "3-element tuple (target_id, rel_type, strength)"
     )
 
 

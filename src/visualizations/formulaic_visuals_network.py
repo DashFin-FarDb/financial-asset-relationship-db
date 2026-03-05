@@ -42,9 +42,7 @@ class FormulaicVisualsNetworkMixin:
                 f"{safe_description}<br><br>"
                 f"<b>Category:</b> {safe_category}<br>"
                 f"<b>Reliability (R²):</b> {r_squared:.3f}<br><br>"
-                "<b>Variables:</b><br>"
-                + safe_variables
-                + "<br><br><b>Example Calculation:</b><br>"
+                "<b>Variables:</b><br>" + safe_variables + "<br><br><b>Example Calculation:</b><br>"
                 f"{safe_example}"
             ),
             showarrow=False,
