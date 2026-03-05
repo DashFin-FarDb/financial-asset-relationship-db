@@ -1,3 +1,4 @@
+from numbers import Real
 from typing import Any, Dict, Mapping
 
 import plotly.graph_objects as go
@@ -21,9 +22,40 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
             "Cross-Asset": "#F7DC6F",
         }
 
+    @staticmethod
+    def _normalize_formulas(formulas: Any) -> list[Any]:
+        """Return formulas as a reusable list for plotting."""
+        if formulas is None:
+            return []
+        if isinstance(formulas, list):
+            return formulas
+        if isinstance(formulas, Mapping):
+            return list(formulas.values())
+        try:
+            return list(formulas)
+        except TypeError:
+            return []
+
+    @staticmethod
+    def _formula_field(item: Any, field: str, default: Any = None) -> Any:
+        """Read a formula field from mapping or object."""
+        if isinstance(item, Mapping):
+            return item.get(field, default)
+        return getattr(item, field, default)
+
+    @staticmethod
+    def _float_value(value: Any, default: float = 0.0) -> float:
+        """Safely parse numeric-like values to float."""
+        if isinstance(value, bool):
+            return default
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
     def create_formula_dashboard(self, analysis_results: Dict[str, Any]) -> go.Figure:
         """Create a comprehensive dashboard showing all formulaic relationships."""
-        formulas = analysis_results.get("formulas", [])
+        formulas = self._normalize_formulas(analysis_results.get("formulas", []))
         empirical_relationships = analysis_results.get("empirical_relationships", {})
 
         fig = make_subplots(
@@ -72,7 +104,7 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
         """Return formula counts grouped by category."""
         counts: dict[str, int] = {}
         for formula in formulas:
-            category = getattr(formula, "category", "Unknown")
+            category = str(FormulaicVisualizer._formula_field(formula, "category", "Unknown"))
             counts[category] = counts.get(category, 0) + 1
         return counts
 
@@ -82,8 +114,11 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
         totals: dict[str, float] = {}
         counts: dict[str, int] = {}
         for formula in formulas:
-            category = getattr(formula, "category", "Unknown")
-            r_squared = getattr(formula, "r_squared", 0.0)
+            category = str(FormulaicVisualizer._formula_field(formula, "category", "Unknown"))
+            r_squared = FormulaicVisualizer._float_value(
+                FormulaicVisualizer._formula_field(formula, "r_squared", 0.0),
+                0.0,
+            )
             totals[category] = totals.get(category, 0.0) + r_squared
             counts[category] = counts.get(category, 0) + 1
         return {category: (total / counts[category] if counts[category] else 0.0) for category, total in totals.items()}
@@ -172,7 +207,7 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
     def _is_flat_correlation_matrix(correlation_matrix: Mapping[str, Any]) -> bool:
         """Detect flat pair format: {'A-B': value, ...}."""
         first_val = next(iter(correlation_matrix.values()), None)
-        return isinstance(first_val, (int, float))
+        return isinstance(first_val, Real) and not isinstance(first_val, bool)
 
     @staticmethod
     def _extract_flat_correlation_assets(correlation_matrix: Mapping[str, Any]) -> list[str]:
@@ -196,7 +231,8 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
             return 1.0
         key_forward = f"{left_asset}-{right_asset}"
         key_reverse = f"{right_asset}-{left_asset}"
-        return correlation_matrix.get(key_forward, correlation_matrix.get(key_reverse, 0.0))
+        raw_value = correlation_matrix.get(key_forward, correlation_matrix.get(key_reverse, 0.0))
+        return FormulaicVisualizer._float_value(raw_value, 0.0)
 
     @staticmethod
     def _flat_correlation_row(
@@ -375,14 +411,15 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
     @staticmethod
     def _get_sorted_formulas(formulas: Any) -> list[Any]:
         """Sort formulas by descending r_squared with safe fallback."""
-        try:
-            return sorted(
-                formulas,
-                key=lambda f: getattr(f, "r_squared", float("-inf")),
-                reverse=True,
-            )
-        except TypeError:
-            return list(formulas)
+        formulas_list = FormulaicVisualizer._normalize_formulas(formulas)
+        return sorted(
+            formulas_list,
+            key=lambda f: FormulaicVisualizer._float_value(
+                FormulaicVisualizer._formula_field(f, "r_squared", float("-inf")),
+                float("-inf"),
+            ),
+            reverse=True,
+        )
 
     @staticmethod
     def _format_name(name: Any, max_length: int = 30) -> str:
@@ -421,7 +458,13 @@ class FormulaicVisualizer(FormulaicVisualsNetworkMixin):
                         - r_squared_values: R-squared values formatted as
                             strings (four decimals) or "N/A" if not numeric.
         """
-        names = [FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas]
-        categories = [getattr(f, "category", "N/A") for f in formulas]
-        r_squared_values = [FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None)) for f in formulas]
+        names: list[str] = []
+        categories: list[str] = []
+        r_squared_values: list[str] = []
+        for formula in FormulaicVisualizer._normalize_formulas(formulas):
+            names.append(FormulaicVisualizer._format_name(FormulaicVisualizer._formula_field(formula, "name", None)))
+            categories.append(str(FormulaicVisualizer._formula_field(formula, "category", "N/A")))
+            r_squared_values.append(
+                FormulaicVisualizer._format_r_squared(FormulaicVisualizer._formula_field(formula, "r_squared", None))
+            )
         return names, categories, r_squared_values

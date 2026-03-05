@@ -5,7 +5,7 @@ implementation to focused submodules.
 """
 
 import logging
-from typing import Dict, Optional
+from typing import Dict, Mapping, Optional
 
 import plotly.graph_objects as go
 
@@ -44,7 +44,7 @@ def _build_optional_relationship_filters(filter_params: Dict[str, bool]) -> Opti
 def _build_filter_params(
     relationship_options: Optional[Dict[str, bool]],
     toggle_arrows: bool,
-    legacy_flags: Dict[str, bool],
+    legacy_flags: Optional[Mapping[str, bool]],
 ) -> Dict[str, bool]:
     """Build and validate full filter parameters with legacy overrides."""
     base_options = {
@@ -60,10 +60,11 @@ def _build_filter_params(
     if relationship_options is not None:
         base_options.update(relationship_options)
 
-    invalid_keys = sorted(set(legacy_flags).difference(base_options))
+    normalized_legacy_flags = dict(legacy_flags or {})
+    invalid_keys = sorted(set(normalized_legacy_flags).difference(base_options))
     if invalid_keys:
         raise TypeError(f"Unexpected filter options: {', '.join(invalid_keys)}")
-    base_options.update(legacy_flags)
+    base_options.update(normalized_legacy_flags)
 
     filter_params = {**base_options, "toggle_arrows": toggle_arrows}
     _validate_filter_parameters(filter_params)
@@ -82,7 +83,8 @@ def visualize_3d_graph_with_filters(
     **legacy_flags: bool,
 ) -> go.Figure:
     """Create 3D visualization with optional relationship filters."""
-    if not isinstance(graph, AssetRelationshipGraph) or not hasattr(graph, "get_3d_visualization_data_enhanced"):
+    get_visualization_data = getattr(graph, "get_3d_visualization_data_enhanced", None)
+    if not isinstance(graph, AssetRelationshipGraph) or not callable(get_visualization_data):
         raise ValueError(
             "graph must be an AssetRelationshipGraph instance with get_3d_visualization_data_enhanced method"
         )
@@ -91,7 +93,7 @@ def visualize_3d_graph_with_filters(
 
     relationship_filters = _build_optional_relationship_filters(filter_params)
 
-    positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+    positions, asset_ids, colors, hover_texts = get_visualization_data()
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
     fig = go.Figure()

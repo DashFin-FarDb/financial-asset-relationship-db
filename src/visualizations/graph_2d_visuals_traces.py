@@ -32,6 +32,8 @@ def _collect_relationship_groups(
     relationship_groups: Dict[str, list] = {}
 
     for source_id in asset_ids:
+        if source_id not in positions:
+            continue
         source_relationships = graph.relationships.get(source_id, [])
         for target_id, rel_type, strength in source_relationships:
             relationship_enabled = True if relationship_filters is None else relationship_filters.get(rel_type, True)
@@ -64,7 +66,7 @@ def _build_relationship_trace(
         tx, ty = positions[target_id]
         edges_x.extend([sx, tx, None])
         edges_y.extend([sy, ty, None])
-        hover = f"{source_id} → {target_id}<br>" f"Type: {rel_type}<br>" f"Strength: {strength:.2f}"
+        hover = f"{source_id} → {target_id}<br>Type: {rel_type}<br>Strength: {strength:.2f}"
         hover_texts.extend([hover, hover, None])
 
     return go.Scatter(
@@ -106,6 +108,9 @@ def _create_2d_relationship_traces(
     """
     if not asset_ids or not positions:
         return []
+    valid_asset_ids = [asset_id for asset_id in asset_ids if asset_id in positions]
+    if not valid_asset_ids:
+        return []
 
     if relationship_filters is None:
         relationship_filters = {
@@ -120,7 +125,7 @@ def _create_2d_relationship_traces(
 
     relationship_groups = _collect_relationship_groups(
         graph,
-        asset_ids,
+        valid_asset_ids,
         positions,
         relationship_filters,
     )
@@ -163,7 +168,8 @@ def _create_node_trace(
 
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
+        raw_asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else asset.asset_class
+        asset_class = str(raw_asset_class)
         colors.append(ASSET_CLASS_COLORS.get(asset_class.lower(), "#7f7f7f"))
         hover_texts.append(f"{asset_id}<br>Class: {asset_class}")
         num_connections = len(graph.relationships.get(asset_id, []))

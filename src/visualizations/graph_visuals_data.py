@@ -59,7 +59,7 @@ def _unpack_relationship_tuple(source_id: str, idx: int, rel: object) -> Tuple[o
     if isinstance(rel, (list, tuple)) and len(rel) == 3:
         return rel[0], rel[1], rel[2]
     raise ValueError(
-        f"relationship at index {idx} for '{source_id}' " f"must be a 3-element tuple (target_id, rel_type, strength)"
+        f"relationship at index {idx} for '{source_id}' must be a " "3-element tuple (target_id, rel_type, strength)"
     )
 
 
@@ -144,11 +144,14 @@ def _collect_and_group_relationships(
             continue
         if is_bidirectional:
             processed_pairs.add(pair_key)
+            output_source_id, output_target_id = pair_key[0], pair_key[1]
+        else:
+            output_source_id, output_target_id = source_id, target_id
 
         relationship_groups[(rel_type, is_bidirectional)].append(
             {
-                "source_id": source_id,
-                "target_id": target_id,
+                "source_id": output_source_id,
+                "target_id": output_target_id,
                 "strength": float(strength),
             }
         )

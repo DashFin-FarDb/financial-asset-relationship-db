@@ -16,7 +16,7 @@ def _int_option(options: Dict[str, object], key: str, default: int) -> int:
     """Return an int option value with safe fallback to default."""
     value = options.get(key, default)
     if isinstance(value, bool):
-        return int(value)
+        return default
     if isinstance(value, int):
         return value
     if isinstance(value, float):
