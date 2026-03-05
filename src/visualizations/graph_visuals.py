@@ -135,7 +135,7 @@ def _build_relationship_index(
         graph: AssetRelationshipGraph,
         positions: np.ndarray,
         asset_ids: list[str],
-        relationship_filters: Mapping[str, bool] | None = None,
+        relationship_filters: Mapping[str, bool] | None=None,
     ) -> list[go.Scatter3d]:
         """Create arrow markers for unidirectional relationships."""
         if not isinstance(graph, AssetRelationshipGraph):
@@ -147,18 +147,18 @@ def _build_relationship_index(
         if len(positions) != len(asset_ids):
             raise ValueError("positions and asset_ids must have the same length")
 
-        relationship_index = _build_relationship_index(graph, asset_ids)
-        asset_id_index = _build_asset_id_index(asset_ids)
+        relationship_index=_build_relationship_index(graph, asset_ids)
+        asset_id_index=_build_asset_id_index(asset_ids)
 
-        source_indices: list[int] = []
-        target_indices: list[int] = []
-        hover_texts: list[str] = []
+        source_indices: list[int]=[]
+        target_indices: list[int]=[]
+        hover_texts: list[str]=[]
 
         for (source_id, target_id, rel_type), _ in relationship_index.items():
             # Respect relationship filters when generating arrow markers.
             if relationship_filters is not None and not relationship_filters.get(rel_type, True):
                 continue
-            reverse_key = (target_id, source_id, rel_type)
+            reverse_key=(target_id, source_id, rel_type)
             if reverse_key not in relationship_index:
                 source_indices.append(asset_id_index[source_id])
                 target_indices.append(asset_id_index[target_id])
@@ -167,14 +167,14 @@ def _build_relationship_index(
         if not source_indices:
             return []
 
-        src_idx_arr = np.asarray(source_indices, dtype=int)
-        tgt_idx_arr = np.asarray(target_indices, dtype=int)
+        src_idx_arr=np.asarray(source_indices, dtype=int)
+        tgt_idx_arr=np.asarray(target_indices, dtype=int)
 
-        source_positions = positions[src_idx_arr]
-        target_positions = positions[tgt_idx_arr]
-        arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
+        source_positions=positions[src_idx_arr]
+        target_positions=positions[tgt_idx_arr]
+        arrow_positions=source_positions + 0.7 * (target_positions - source_positions)
 
-        arrow_trace = go.Scatter3d(
+        arrow_trace=go.Scatter3d(
             x=arrow_positions[:, 0].tolist(),
             y=arrow_positions[:, 1].tolist(),
             z=arrow_positions[:, 2].tolist(),
@@ -205,17 +205,17 @@ def _build_relationship_index(
             raise ValueError("Invalid graph data provided: graph must provide get_3d_visualization_data_enhanced")
 
         try:
-            positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+            positions, asset_ids, colors, hover_texts=graph.get_3d_visualization_data_enhanced()
         except Exception as exc:  # pylint: disable=broad-except
             logger.exception("Failed to retrieve visualization data from graph: %s", exc)
             raise ValueError("Failed to retrieve graph visualization data") from exc
 
         _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-        fig = go.Figure()
+        fig=go.Figure()
 
         try:
-            relationship_traces = _create_relationship_traces(
+            relationship_traces=_create_relationship_traces(
                 graph,
                 positions,
                 asset_ids,
@@ -234,7 +234,7 @@ def _build_relationship_index(
                 relationship_filters,
                 exc,
             )
-            relationship_traces = []
+            relationship_traces=[]
 
         if relationship_traces:
             try:
@@ -244,13 +244,13 @@ def _build_relationship_index(
 
         if toggle_arrows:
             try:
-                arrow_traces = _create_directional_arrows(graph, positions, asset_ids, relationship_filters)
+                arrow_traces=_create_directional_arrows(graph, positions, asset_ids, relationship_filters)
             except (TypeError, ValueError) as exc:
                 logger.exception("Failed to create directional arrows: %s", exc)
-                arrow_traces = []
+                arrow_traces=[]
             except Exception as exc:  # pylint: disable=broad-except
                 logger.exception("Unexpected error creating directional arrows: %s", exc)
-                arrow_traces = []
+                arrow_traces=[]
 
             if arrow_traces:
                 try:
@@ -258,10 +258,10 @@ def _build_relationship_index(
                 except Exception as exc:  # pylint: disable=broad-except
                     logger.exception("Failed to add directional arrows to figure: %s", exc)
 
-        node_trace = _create_node_trace(positions, asset_ids, colors, hover_texts)
+        node_trace=_create_node_trace(positions, asset_ids, colors, hover_texts)
         fig.add_trace(node_trace)
 
-        dynamic_title, options = _prepare_layout_config(len(asset_ids), relationship_traces)
+        dynamic_title, options=_prepare_layout_config(len(asset_ids), relationship_traces)
         _configure_3d_layout(fig, dynamic_title, options)
 
         return fig
@@ -269,21 +269,21 @@ def _build_relationship_index(
 
 def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
-    show_same_sector: bool = True,
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = True,
-    toggle_arrows: bool = True,
+    show_same_sector: bool=True,
+    show_market_cap: bool=True,
+    show_correlation: bool=True,
+    show_corporate_bond: bool=True,
+    show_commodity_currency: bool=True,
+    show_income_comparison: bool=True,
+    show_regulatory: bool=True,
+    show_all_relationships: bool=True,
+    toggle_arrows: bool=True,
 ) -> go.Figure:
     """Create 3D visualization with selective relationship filtering."""
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("graph must be an AssetRelationshipGraph instance")
 
-    filter_params = (
+    filter_params=(
         show_same_sector,
         show_market_cap,
         show_correlation,
@@ -297,7 +297,7 @@ def visualize_3d_graph_with_filters(
     if not all(isinstance(v, bool) for v in filter_params):
         raise TypeError("All filter parameters must be boolean values")
 
-    relationship_filters = _build_relationship_filters(
+    relationship_filters=_build_relationship_filters(
         show_same_sector=show_same_sector,
         show_market_cap=show_market_cap,
         show_correlation=show_correlation,
