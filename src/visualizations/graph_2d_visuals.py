@@ -132,6 +132,8 @@ def _group_relationships_by_type(
     relationship_groups: Dict[str, List[Dict[str, object]]] = {}
 
     for source_id in asset_ids:
+        if source_id not in positions:
+            continue
         source_relationships = graph.relationships.get(source_id, [])
         for target_id, rel_type, strength in source_relationships:
             if target_id not in positions or target_id not in asset_id_set:
@@ -158,12 +160,14 @@ def _build_relationship_trace(
     for rel in relationships:
         source_id = str(rel["source_id"])
         target_id = str(rel["target_id"])
+        if source_id not in positions or target_id not in positions:
+            continue
         strength = float(rel["strength"])
         source_pos = positions[source_id]
         target_pos = positions[target_id]
         edges_x.extend([source_pos[0], target_pos[0], None])
         edges_y.extend([source_pos[1], target_pos[1], None])
-        hover_text = f"{source_id} → {target_id}<br>" f"Type: {rel_type}<br>" f"Strength: {strength:.2f}"
+        hover_text = f"{source_id} → {target_id}<br>Type: {rel_type}<br>Strength: {strength:.2f}"
         hover_texts.extend([hover_text, hover_text, None])
 
     return go.Scatter(
@@ -208,9 +212,13 @@ def _create_2d_relationship_traces(
     if not asset_ids or not positions:
         return []
 
+    valid_asset_ids = [asset_id for asset_id in asset_ids if asset_id in positions]
+    if not valid_asset_ids:
+        return []
+
     relationship_groups = _group_relationships_by_type(
         graph,
-        asset_ids,
+        valid_asset_ids,
         positions,
         relationship_filters,
     )
@@ -319,6 +327,7 @@ def visualize_2d_graph(
 
     # Create figure
     fig = go.Figure()
+    valid_asset_ids = [asset_id for asset_id in asset_ids if asset_id in positions]
 
     # Add relationship traces
     relationship_filters: Dict[str, bool] | None = (
@@ -327,14 +336,14 @@ def visualize_2d_graph(
     relationship_traces = _create_2d_relationship_traces(
         graph,
         positions,
-        asset_ids,
+        valid_asset_ids,
         relationship_filters=relationship_filters,
     )
 
     for trace in relationship_traces:
         fig.add_trace(trace)
 
-    fig.add_trace(_create_node_trace(graph, positions, asset_ids))
+    fig.add_trace(_create_node_trace(graph, positions, valid_asset_ids))
 
     # Update layout
     layout_name = layout_type.capitalize()

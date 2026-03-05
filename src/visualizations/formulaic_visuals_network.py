@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import math
 from typing import Any, Dict, Mapping
 
@@ -15,22 +16,36 @@ class FormulaicVisualsNetworkMixin:
     def create_formula_detail_view(formula: Formula) -> go.Figure:
         """Build an annotated Plotly figure presenting full details for a Formula."""
         fig = go.Figure()
+        safe_name = html.escape(str(getattr(formula, "name", "")))
+        safe_expression = html.escape(str(getattr(formula, "expression", "")))
+        safe_latex = html.escape(str(getattr(formula, "latex", "")))
+        safe_description = html.escape(str(getattr(formula, "description", "")))
+        safe_category = html.escape(str(getattr(formula, "category", "")))
+        safe_example = html.escape(str(getattr(formula, "example_calculation", "")))
+        variables = getattr(formula, "variables", {})
+        if isinstance(variables, Mapping):
+            safe_variables = "<br>".join(
+                f"• {html.escape(str(var))}: {html.escape(str(desc))}" for var, desc in variables.items()
+            )
+        else:
+            safe_variables = ""
+        r_squared = FormulaicVisualsNetworkMixin._safe_float(getattr(formula, "r_squared", 0.0), 0.0)
 
         fig.add_annotation(
             text=(
-                f"<b>{formula.name}</b><br><br>"
+                f"<b>{safe_name}</b><br><br>"
                 "<b>Mathematical Expression:</b><br>"
-                f"{formula.expression}<br><br>"
+                f"{safe_expression}<br><br>"
                 "<b>LaTeX:</b><br>"
-                f"{formula.latex}<br><br>"
+                f"{safe_latex}<br><br>"
                 "<b>Description:</b><br>"
-                f"{formula.description}<br><br>"
-                f"<b>Category:</b> {formula.category}<br>"
-                f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
+                f"{safe_description}<br><br>"
+                f"<b>Category:</b> {safe_category}<br>"
+                f"<b>Reliability (R²):</b> {r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
-                + ("<br>".join(f"• {var}: {desc}" for var, desc in formula.variables.items()))
+                + safe_variables
                 + "<br><br><b>Example Calculation:</b><br>"
-                f"{formula.example_calculation}"
+                f"{safe_example}"
             ),
             showarrow=False,
         )
@@ -117,18 +132,29 @@ class FormulaicVisualsNetworkMixin:
         return sorted([a for a in assets if a])
 
     @staticmethod
+    def _safe_float(value: Any, default: float = 0.0) -> float:
+        """Safely coerce numeric-like values to float."""
+        if isinstance(value, bool):
+            return default
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return default
+
+    @staticmethod
     def _parse_correlation_item(corr: Any) -> tuple[str, str, float]:
         """Parse a correlation item into (asset1, asset2, value)."""
         if isinstance(corr, dict):
+            correlation_value = FormulaicVisualsNetworkMixin._safe_float(corr.get("correlation", 0.0), 0.0)
             return (
                 corr.get("asset1", ""),
                 corr.get("asset2", ""),
-                corr.get("correlation", 0.0),
+                correlation_value,
             )
         if isinstance(corr, (list, tuple)) and len(corr) >= 3:
-            return (corr[0], corr[1], corr[2])
+            return (str(corr[0]), str(corr[1]), FormulaicVisualsNetworkMixin._safe_float(corr[2], 0.0))
         if isinstance(corr, (list, tuple)) and len(corr) >= 2:
-            return (corr[0], corr[1], 0.0)
+            return (str(corr[0]), str(corr[1]), 0.0)
         return ("", "", 0.0)
 
     @staticmethod
@@ -168,7 +194,7 @@ class FormulaicVisualsNetworkMixin:
         x0, y0 = positions[asset1]
         x1, y1 = positions[asset2]
         color = "red" if value < 0 else "green"
-        width = max(1, abs(value) * 5)
+        width = max(1.0, abs(FormulaicVisualsNetworkMixin._safe_float(value, 0.0)) * 5.0)
 
         return go.Scatter(
             x=[x0, x1, None],
@@ -235,13 +261,15 @@ class FormulaicVisualsNetworkMixin:
                 name="Formula Count",
                 x=category_names,
                 y=count_by_category,
+                yaxis="y2",
             )
         )
 
         fig.update_layout(
             title="Formula Categories: Reliability vs Count",
             xaxis_title="Formula Category",
-            yaxis_title="Value",
+            yaxis={"title": "Average R-squared"},
+            yaxis2={"title": "Formula Count", "overlaying": "y", "side": "right", "showgrid": False},
             barmode="group",
             plot_bgcolor="white",
         )
