@@ -59,6 +59,12 @@ def _get_yfinance():
 
 
 class RealDataFetcher:
+    """Fetches real financial data from sources like Yahoo Finance (optional dependency).
+
+    Yahoo Finance data fetching requires the `yfinance` package. If not installed,
+    attempts to fetch live data will raise a RuntimeError. The fetcher can operate
+    in offline mode using cached data or sample data when network access is disabled.
+    """
     """Fetches real financial data from Yahoo Finance and other sources."""
 
     def __init__(
