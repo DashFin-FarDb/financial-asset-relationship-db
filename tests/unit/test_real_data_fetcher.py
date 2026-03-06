@@ -155,10 +155,10 @@ def _make_import_blocker(blocked_module: str):
     All other imports are forwarded to the real built-in __import__.
     """
 
-    def _blocking_import(name, *args, **kwargs):
+    def _blocking_import(name, *args, _real_import=__import__, **kwargs):
         if name == blocked_module:
             raise ImportError(f"Mocked: {blocked_module} is not installed")
-        return __import__(name, *args, **kwargs)
+        return _real_import(name, *args, **kwargs)
 
     return _blocking_import
 
