@@ -6,8 +6,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import yfinance as yf
-
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
@@ -21,6 +19,28 @@ from src.models.financial_models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_yfinance():
+    """
+    Lazily import and return the yfinance module.
+    
+    Returns:
+        module: The yfinance module.
+        
+    Raises:
+        RuntimeError: If yfinance is not installed or cannot be imported.
+    """
+    try:
+        import yfinance as yf
+        return yf
+    except Exception as exc:
+        logger.error("Failed to import yfinance. It may not be installed.")
+        raise RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work. "
+            "Install it using: pip install yfinance"
+        ) from exc
 
 
 class RealDataFetcher:
@@ -167,6 +187,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """Fetches current market data for major equities and returns Equity objects."""
+        yf = _get_yfinance()
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -214,6 +235,7 @@ class RealDataFetcher:
         """
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
+        yf = _get_yfinance()
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
@@ -267,6 +289,7 @@ class RealDataFetcher:
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity futures data."""
         # Define key commodity futures and their characteristics.
+        yf = _get_yfinance()
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
             # Example entries (adjust or extend as needed elsewhere in the file):
@@ -319,6 +342,7 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
+        yf = _get_yfinance()
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
