@@ -154,14 +154,13 @@ def _make_import_blocker(blocked_module: str):
 
     All other imports are forwarded to the real built-in __import__.
     """
+
     def _blocking_import(name, *args, **kwargs):
         if name == blocked_module:
             raise ImportError(f"Mocked: {blocked_module} is not installed")
         return __import__(name, *args, **kwargs)
 
     return _blocking_import
-
-
 
     """Test RealDataFetcher initialization."""
 
@@ -1449,9 +1448,9 @@ class TestDataFetcherConsistency:
 
         # At least some events should reference known symbols
         referenced_assets = {event.asset_id for event in events}
-        assert any(
-            asset_id in known_symbols for asset_id in referenced_assets
-        ), "Events should reference known asset IDs"
+        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
+            "Events should reference known asset IDs"
+        )
 
 
 @pytest.mark.unit
