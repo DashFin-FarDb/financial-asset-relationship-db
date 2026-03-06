@@ -25,6 +25,7 @@ from src.data.real_data_fetcher import (
     _deserialize_event,
     _deserialize_graph,
     _enum_to_value,
+    _get_yfinance,
     _load_from_cache,
     _save_to_cache,
     _serialize_dataclass,
@@ -47,7 +48,121 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.mark.unit
-class TestRealDataFetcherInitialization:
+class TestGetYfinanceLazyImport:
+    """Test the _get_yfinance lazy import helper."""
+
+    @staticmethod
+    def test_get_yfinance_returns_module_when_available():
+        """_get_yfinance() returns the yfinance module when it is installed."""
+        yf = _get_yfinance()
+        import yfinance as expected_yf
+
+        assert yf is expected_yf
+
+    @staticmethod
+    def test_get_yfinance_raises_runtime_error_on_import_error():
+        """_get_yfinance() raises RuntimeError when yfinance cannot be imported."""
+        with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
+            with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                _get_yfinance()
+
+    @staticmethod
+    def test_get_yfinance_runtime_error_chains_original_cause():
+        """RuntimeError raised by _get_yfinance() chains the original ImportError."""
+        with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
+            with pytest.raises(RuntimeError) as exc_info:
+                _get_yfinance()
+        assert isinstance(exc_info.value.__cause__, ImportError)
+
+    @staticmethod
+    def test_module_import_succeeds_without_yfinance():
+        """real_data_fetcher module-level import does not require yfinance."""
+        import importlib
+        import sys
+
+        # Remove the already-imported module so we can re-import it
+        module_name = "src.data.real_data_fetcher"
+        original = sys.modules.pop(module_name, None)
+        yf_original = sys.modules.pop("yfinance", None)
+        try:
+            # Block yfinance so the re-import happens without it available
+            sys.modules["yfinance"] = None  # type: ignore[assignment]
+            # Must not raise
+            importlib.import_module(module_name)
+        finally:
+            # Restore the original modules
+            if original is not None:
+                sys.modules[module_name] = original
+            else:
+                sys.modules.pop(module_name, None)
+            if yf_original is not None:
+                sys.modules["yfinance"] = yf_original
+            else:
+                sys.modules.pop("yfinance", None)
+
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_equity_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_equity_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
+
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_equity_data()
+
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_bond_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_bond_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
+
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_bond_data()
+
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_commodity_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_commodity_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
+
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_commodity_data()
+
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_currency_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_currency_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
+
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_currency_data()
+
+
+def _make_import_blocker(blocked_module: str):
+    """Return a side-effect function that raises ImportError for *blocked_module*.
+
+    All other imports are forwarded to the real built-in __import__.
+    """
+    def _blocking_import(name, *args, **kwargs):
+        if name == blocked_module:
+            raise ImportError(f"Mocked: {blocked_module} is not installed")
+        return __import__(name, *args, **kwargs)
+
+    return _blocking_import
+
+
+
     """Test RealDataFetcher initialization."""
 
     @staticmethod
