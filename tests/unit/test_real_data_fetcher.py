@@ -197,10 +197,11 @@ class TestCreateRealDatabase:
 class TestFetchMethods:
     """Test data fetching methods."""
 
-    @patch("yfinance.Ticker")
-    def test_fetch_equity_data_success(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_equity_data_success(self, mock_get_yfinance):
         """Test successful equity data fetching."""
-        # Setup mock
+        # Setup mock yfinance module
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {
             "marketCap": 1e12,
@@ -213,44 +214,50 @@ class TestFetchMethods:
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 150.0)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         equities = RealDataFetcher._fetch_equity_data()
         assert isinstance(equities, list)
         assert equities, "Expected at least one fetched equity"
         assert all(isinstance(eq, Equity) for eq in equities), "All items should be Equity instances"
-        assert mock_ticker_class.call_count == 4
+        assert mock_yf.Ticker.call_count == 4
 
-    @patch("yfinance.Ticker")
-    def test_fetch_equity_data_with_empty_history(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_equity_data_with_empty_history(self, mock_get_yfinance):
         """Test equity fetching when history is empty."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.history.return_value = Mock(empty=True)
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         equities = RealDataFetcher._fetch_equity_data()
 
         # Should skip equities with empty history
         assert isinstance(equities, list)
 
-    @patch("yfinance.Ticker")
-    def test_fetch_bond_data_success(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_bond_data_success(self, mock_get_yfinance):
         """Test successful bond data fetching."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {"yield": 0.03}
         mock_ticker.history.return_value = Mock(empty=False)
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 100.0)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         bonds = RealDataFetcher._fetch_bond_data()
 
         assert isinstance(bonds, list)
 
-    @patch("yfinance.Ticker")
-    def test_fetch_commodity_data_success(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_commodity_data_success(self, mock_get_yfinance):
         """Test successful commodity data fetching."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
@@ -259,7 +266,8 @@ class TestFetchMethods:
         mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         commodities = RealDataFetcher._fetch_commodity_data()
 
@@ -789,50 +797,55 @@ class TestNetworkDisabled:
 class TestAllAssetTypes:
     """Test fetching and handling all asset types."""
 
-    @patch("yfinance.Ticker")
-    def test_fetch_all_equity_symbols(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_all_equity_symbols(self, mock_get_yfinance):
         """Test that all equity symbols are attempted."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {}
         mock_ticker.history.return_value = Mock(empty=False)
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 100.0)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         RealDataFetcher._fetch_equity_data()
 
         # Should attempt AAPL, MSFT, XOM, JPM
-        assert mock_ticker_class.call_count == 4
-        called_symbols = [call[0][0] for call in mock_ticker_class.call_args_list]
+        assert mock_yf.Ticker.call_count == 4
+        called_symbols = [call[0][0] for call in mock_yf.Ticker.call_args_list]
         assert "AAPL" in called_symbols
         assert "MSFT" in called_symbols
         assert "XOM" in called_symbols
         assert "JPM" in called_symbols
 
-    @patch("yfinance.Ticker")
-    def test_fetch_all_bond_symbols(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_all_bond_symbols(self, mock_get_yfinance):
         """Test that all bond symbols are attempted."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {"yield": 0.03}
         mock_ticker.history.return_value = Mock(empty=False)
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 100.0)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         RealDataFetcher._fetch_bond_data()
 
         # Should attempt TLT, LQD, HYG
-        assert mock_ticker_class.call_count == 3
+        assert mock_yf.Ticker.call_count == 3
 
-    @patch("yfinance.Ticker")
-    def test_fetch_all_commodity_symbols(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_all_commodity_symbols(self, mock_get_yfinance):
         """
         Verifies the commodity data fetcher attempts to fetch data for every expected commodity symbol.
 
         Asserts the ticker constructor is called once for each expected symbol (GC=F, CL=F, SI=F).
         """
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
@@ -840,27 +853,30 @@ class TestAllAssetTypes:
         mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         RealDataFetcher._fetch_commodity_data()
 
         # Should attempt GC=F, CL=F, SI=F
-        assert mock_ticker_class.call_count == 3
+        assert mock_yf.Ticker.call_count == 3
 
-    @patch("yfinance.Ticker")
-    def test_fetch_all_currency_symbols(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_all_currency_symbols(self, mock_get_yfinance):
         """Test that all currency symbols are attempted."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.history.return_value = Mock(empty=False)
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 1.1)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         _ = RealDataFetcher._fetch_currency_data()
 
         # Should attempt EURUSD=X, GBPUSD=X, JPYUSD=X
-        assert mock_ticker_class.call_count == 3
+        assert mock_yf.Ticker.call_count == 3
 
 
 @pytest.mark.unit
@@ -1161,16 +1177,18 @@ class TestCacheOverwriteOperations:
 class TestFetchMethodsErrorHandling:
     """Test error handling in fetch methods."""
 
-    @patch("yfinance.Ticker")
-    def test_fetch_equity_handles_missing_info(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_equity_handles_missing_info(self, mock_get_yfinance):
         """Test equity fetch handles missing info gracefully."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {}  # Empty info
         mock_ticker.history.return_value = Mock(empty=False)
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 100.0)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         equities = RealDataFetcher._fetch_equity_data()
 
@@ -1179,9 +1197,10 @@ class TestFetchMethodsErrorHandling:
         for equity in equities:
             assert equity.price > 0
 
-    @patch("yfinance.Ticker")
-    def test_fetch_commodity_handles_volatility_calculation_error(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_commodity_handles_volatility_calculation_error(self, mock_get_yfinance):
         """Test commodity fetch handles volatility calculation errors."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_hist = Mock(empty=False)
         mock_close = Mock()
@@ -1191,7 +1210,8 @@ class TestFetchMethodsErrorHandling:
         mock_hist.__getitem__ = lambda self, key: mock_close if key == "Close" else Mock()
         mock_hist.__len__ = lambda self: 5
         mock_ticker.history.return_value = mock_hist
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         # Should not raise, might use default volatility
         commodities = RealDataFetcher._fetch_commodity_data()
@@ -1202,9 +1222,10 @@ class TestFetchMethodsErrorHandling:
 class TestAssetFieldValidation:
     """Test validation of asset fields during fetching."""
 
-    @patch("yfinance.Ticker")
-    def test_equity_with_missing_optional_fields(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_equity_with_missing_optional_fields(self, mock_get_yfinance):
         """Test equity creation when optional fields are missing."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         # Only provide minimal info
         mock_ticker.info = {"symbol": "TEST"}
@@ -1212,7 +1233,8 @@ class TestAssetFieldValidation:
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 100.0)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         equities = RealDataFetcher._fetch_equity_data()
 
@@ -1306,16 +1328,18 @@ class TestCacheEdgeCases:
 class TestDataFetcherConsistency:
     """Test consistency of fetched data."""
 
-    @patch("yfinance.Ticker")
-    def test_fetch_equity_sector_assignment_consistent(self, mock_ticker_class):
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_equity_sector_assignment_consistent(self, mock_get_yfinance):
         """Test that equity sector assignments are consistent."""
+        mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.info = {}
         mock_ticker.history.return_value = Mock(empty=False)
         mock_ticker.history.return_value.__getitem__ = lambda self, key: Mock(
             iloc=Mock(__getitem__=lambda self, idx: 100.0)
         )
-        mock_ticker_class.return_value = mock_ticker
+        mock_yf.Ticker.return_value = mock_ticker
+        mock_get_yfinance.return_value = mock_yf
 
         equities = RealDataFetcher._fetch_equity_data()
 
