@@ -6,8 +6,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import yfinance as yf
-
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
@@ -21,6 +19,28 @@ from src.models.financial_models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _get_yfinance():
+    """
+    Lazily import yfinance so optional dependency absence does not break startup.
+
+    Returns:
+        Module: The imported yfinance module.
+
+    Raises:
+        RuntimeError: If yfinance cannot be imported in the current environment.
+    """
+    try:
+        import yfinance as yf  # type: ignore
+    except Exception as exc:  # noqa: BLE001
+        logger.error(
+            "Failed to import yfinance. Install it to enable real market data fetching.",
+        )
+        raise RuntimeError(
+            "yfinance is unavailable in the current environment. Install it to enable real market data fetching.",
+        ) from exc
+    return yf
 
 
 class RealDataFetcher:
@@ -175,6 +195,7 @@ class RealDataFetcher:
         }
 
         equities = []
+        yf = _get_yfinance()
         for symbol, (name, _) in equity_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
@@ -225,6 +246,7 @@ class RealDataFetcher:
         }
 
         bonds = []
+        yf = _get_yfinance()
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
@@ -275,6 +297,7 @@ class RealDataFetcher:
         }
 
         commodities: List[Commodity] = []
+        yf = _get_yfinance()
         for symbol, (
             name,
             sector,
@@ -326,6 +349,7 @@ class RealDataFetcher:
         }
 
         currencies = []
+        yf = _get_yfinance()
         for symbol, (name, country, currency_code) in currency_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
