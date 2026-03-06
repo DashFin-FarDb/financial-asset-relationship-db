@@ -21,14 +21,16 @@ from src.models.financial_models import (
 logger = logging.getLogger(__name__)
 
 
-def _get_yfinance():
+def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is used
     """
     Lazily import and return the yfinance module.
     
     Returns:
-        module: The yfinance module.
+        The yfinance module (imported as 'yf').
         
     Raises:
+        RuntimeError: If yfinance is not installed or cannot be imported.
+    """
         ImportError: If yfinance is not installed or cannot be imported.
     """
     try:
