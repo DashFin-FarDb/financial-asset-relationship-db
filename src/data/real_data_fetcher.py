@@ -24,15 +24,16 @@ logger = logging.getLogger(__name__)
 def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is used
     """
     Lazily import and return the yfinance module.
-    
+
     Returns:
         The yfinance module (imported as 'yf').
-        
+
     Raises:
         RuntimeError: If yfinance is not installed or cannot be imported.
     """
         ImportError: If yfinance is not installed or cannot be imported.
     """
+
     try:
         import yfinance as yf
         return yf
@@ -52,6 +53,7 @@ def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is 
     Raises:
         RuntimeError: If yfinance is not installed or cannot be imported.
     """
+
     try:
         import yfinance as yf
         return yf
