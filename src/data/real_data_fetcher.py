@@ -65,6 +65,7 @@ class RealDataFetcher:
     attempts to fetch live data will raise a RuntimeError. The fetcher can operate
     in offline mode using cached data or sample data when network access is disabled.
     """
+
     """Fetches real financial data from Yahoo Finance and other sources."""
 
     def __init__(
