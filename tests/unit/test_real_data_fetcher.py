@@ -88,9 +88,7 @@ class TestGetYfinanceLazyImport:
             # Block yfinance imports during the re-import so it behaves as if
             # yfinance is not installed at all. This ensures that any accidental
             # module-level `import yfinance` in real_data_fetcher would fail.
-            with patch(
-                "builtins.__import__", side_effect=_make_import_blocker("yfinance")
-            ):
+            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
                 # Must not raise
                 importlib.import_module(module_name)
         finally:
