@@ -85,10 +85,14 @@ class TestGetYfinanceLazyImport:
         original = sys.modules.pop(module_name, None)
         yf_original = sys.modules.pop("yfinance", None)
         try:
-            # Block yfinance so the re-import happens without it available
-            sys.modules["yfinance"] = None  # type: ignore[assignment]
-            # Must not raise
-            importlib.import_module(module_name)
+            # Block yfinance imports during the re-import so it behaves as if
+            # yfinance is not installed at all. This ensures that any accidental
+            # module-level `import yfinance` in real_data_fetcher would fail.
+            with patch(
+                "builtins.__import__", side_effect=_make_import_blocker("yfinance")
+            ):
+                # Must not raise
+                importlib.import_module(module_name)
         finally:
             # Restore the original modules
             if original is not None:
