@@ -49,8 +49,6 @@ class RealDataFetcher:
     in offline mode using cached data or sample data when network access is disabled.
     """
 
-    """Fetches real financial data from Yahoo Finance and other sources."""
-
     def __init__(
         self,
         *,
