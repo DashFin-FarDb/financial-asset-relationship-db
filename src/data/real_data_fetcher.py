@@ -56,6 +56,8 @@ class _YFinancePlaceholder:
 # call :func:`_get_yfinance` to obtain yfinance. Test patches can safely attach or
 # override attributes on this placeholder instance.
 yf = _YFinancePlaceholder()
+
+
 class RealDataFetcher:
     """Fetches real financial data from sources like Yahoo Finance (optional dependency).
 
