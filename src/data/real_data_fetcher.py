@@ -41,6 +41,21 @@ def _get_yfinance():
     return yf
 
 
+class _YFinancePlaceholder:
+    """Placeholder object used for backward-compatible test patching.
+
+    Some existing tests patch ``src.data.real_data_fetcher.yf.Ticker``.
+    The real code path now uses :func:`_get_yfinance` instead of a module-level
+    ``yf`` alias, but we keep this lightweight placeholder so those tests can
+    still patch ``yf.Ticker`` without failing at import/patch time.
+    """
+
+
+# Backward-compatible alias for tests that patch ``src.data.real_data_fetcher.yf.Ticker``.
+# This is intentionally *not* the real yfinance module; runtime code should always
+# call :func:`_get_yfinance` to obtain yfinance. Test patches can safely attach or
+# override attributes on this placeholder instance.
+yf = _YFinancePlaceholder()
 class RealDataFetcher:
     """Fetches real financial data from sources like Yahoo Finance (optional dependency).
 
