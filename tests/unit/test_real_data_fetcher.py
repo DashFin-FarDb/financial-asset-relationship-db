@@ -54,8 +54,8 @@ class TestGetYfinanceLazyImport:
     @staticmethod
     def test_get_yfinance_returns_module_when_available():
         """_get_yfinance() returns the yfinance module when it is installed."""
+        expected_yf = pytest.importorskip("yfinance")
         yf = _get_yfinance()
-        import yfinance as expected_yf
 
         assert yf is expected_yf
 
