@@ -162,7 +162,6 @@ def _make_import_blocker(blocked_module: str):
 
     return _blocking_import
 
-
     @pytest.mark.unit
     class TestRealDataFetcherInitialization:
         """Test RealDataFetcher initialization."""
