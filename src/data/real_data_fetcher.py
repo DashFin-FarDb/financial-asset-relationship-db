@@ -39,23 +39,6 @@ def _get_yfinance():
             "Ensure it is installed or optional features won't work."
         ) from exc
     return yf
-    """Lazily import and return the yfinance module.
-
-    Returns:
-        module: The yfinance module.
-
-    Raises:
-        RuntimeError: If yfinance is not installed or cannot be imported.
-    """
-    try:
-        import yfinance as yf
-    except Exception as exc:
-        logger.error("Failed to import yfinance. It may not be installed. Install it with: pip install yfinance")
-        raise RuntimeError(
-            "yfinance is unavailable in the current environment. "
-            "Ensure it is installed or optional features won't work."
-        ) from exc
-    return yf
 
 
 class RealDataFetcher:
