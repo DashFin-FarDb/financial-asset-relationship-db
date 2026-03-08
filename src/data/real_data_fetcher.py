@@ -72,10 +72,10 @@ def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is 
         ) from exc
     """
     Lazily import and return the yfinance module.
-    
+
     Returns:
         module: The yfinance module.
-        
+
     Raises:
         RuntimeError: If yfinance is not installed or cannot be imported.
     """
@@ -93,11 +93,11 @@ def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is 
 
 
 class RealDataFetcher:
-    """Fetches real financial data from sources like Yahoo Finance (optional dependency).
+    """Fetches real financial data from sources like Yahoo Finance(optional dependency).
 
     Yahoo Finance data fetching requires the `yfinance` package. When `yfinance`
     is missing, methods that attempt to fetch live data will raise a RuntimeError.
-    Higher-level helpers (such as the module-level ``create_real_database``)
+    Higher - level helpers(such as the module - level ``create_real_database``)
     may catch this error and fall back to cached or sample data instead,
     depending on configuration. The fetcher can also operate in offline mode
     using cached data or sample data when network access is disabled.
@@ -115,14 +115,14 @@ class RealDataFetcher:
         fallback factory, and network control.
 
         Parameters:
-            cache_path (Optional[str]): Path to a JSON cache file used to
+            cache_path(Optional[str]): Path to a JSON cache file used to
                 load or persist a previously built AssetRelationshipGraph.
-                If None, no on-disk caching is performed.
-            fallback_factory (Optional[Callable[[], AssetRelationshipGraph]]):
+                If None, no on - disk caching is performed.
+            fallback_factory(Optional[Callable[[], AssetRelationshipGraph]]):
                 Callable that produces an AssetRelationshipGraph to use when
                 network fetching is disabled or when fetching fails.
-                If None, a built-in sample database will be used as fallback.
-            enable_network (bool): When False, disables network access and
+                If None, a built - in sample database will be used as fallback.
+            enable_network(bool): When False, disables network access and
                 causes create_real_database to return the fallback graph
                 instead of attempting live data fetches.
         """
@@ -141,12 +141,12 @@ class RealDataFetcher:
 
         When fetching succeeds and a cache path is configured, the populated
         graph is persisted to cache.
-        On any fetch or build failure, falls back to the sample/fallback
+        On any fetch or build failure, falls back to the sample / fallback
         dataset.
 
         Returns:
             AssetRelationshipGraph: Populated graph built from real financial
-                data; a fallback/sample graph if loading or fetching fails
+                data; a fallback / sample graph if loading or fetching fails
                 or network is disabled.
         """
         if self.cache_path and self.cache_path.exists():
@@ -278,13 +278,13 @@ class RealDataFetcher:
     def _fetch_bond_data() -> List[Bond]:
         """
         Fetch bond and treasury ETF market data and return Bond instances used
-        as fixed-income proxies.
+        as fixed - income proxies.
 
         Retrieves price and metadata for a small set of bond and treasury ETFs
         (used as proxies for individual bonds). If yield information is missing,
         `yield_to_maturity` defaults to 0.03 and
         `coupon_rate` defaults to 0.025; maturity dates and some
-        fields are approximate for ETF-based proxies.
+        fields are approximate for ETF - based proxies.
 
         Returns:
             List[Bond]: Bond instances populated with id, symbol, name,
@@ -455,7 +455,7 @@ class RealDataFetcher:
         """
         Create a small list of regulatory events associated with fetched assets.
 
-        Includes three sample events (an Apple earnings report, a
+        Includes three sample events(an Apple earnings report, a
         Microsoft dividend announcement, and an Exxon Mobil SEC filing).
         Each event contains an id, asset_id, event_type, date,
         description, impact_score, and related_assets.
@@ -517,11 +517,10 @@ def create_real_database() -> AssetRelationshipGraph:
     - fetch real market data when network access is enabled,
     - otherwise fall back to a provided or built sample dataset.
 
-
     Returns:
         AssetRelationshipGraph: The constructed graph populated with assets,
         regulatory events and relationship mappings; the content may come from
-        the cache, a real-data fetch, or the sample fallback.
+        the cache, a real - data fetch, or the sample fallback.
     """
     fetcher = RealDataFetcher()
     return fetcher.create_real_database()
@@ -533,7 +532,7 @@ def _enum_to_value(_value: Any) -> Any:
     Return the input unchanged otherwise.
 
     Parameters:
-        _value (Any): The value to normalise.
+        _value(Any): The value to normalise.
             If `_value` is an `Enum` member, its `.value` is returned.
 
     Returns:
@@ -545,7 +544,7 @@ def _enum_to_value(_value: Any) -> Any:
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
-    Serialize a dataclass instance into a JSON- friendly dictionary
+    Serialize a dataclass instance into a JSON - friendly dictionary
     with enum values converted.
 
     Parameters:
@@ -564,17 +563,17 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
-    Serialize an AssetRelationshipGraph into a JSON-serializable dictionary
+    Serialize an AssetRelationshipGraph into a JSON - serializable dictionary
 
     The resulting dictionary contains serialized assets and regulatory events,
     a mapping of outgoing relationships keyed by source asset id, and a computed
     mapping of incoming relationships keyed by target asset id.
 
     Parameters:
-        graph (AssetRelationshipGraph): The graph to serialize.
+        graph(AssetRelationshipGraph): The graph to serialize.
 
     Returns:
-        Dict[str, Any]: A dictionary with the following top-level keys:
+        Dict[str, Any]: A dictionary with the following top - level keys:
             - "assets": list of serialized asset objects
               (each includes a "__type__" field).
             - "regulatory_events": list of serialized regulatory event objects.
@@ -631,7 +630,7 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
             with a "__type__" key indicating the asset subclass.
 
     Returns:
-        Asset: An Asset instance (or subclass like Equity, Bond, etc.)
+        Asset: An Asset instance ( or subclass like Equity, Bond, etc.)
             constructed from the provided data.
     """
     data = dict(data)  # Make a copy to avoid modifying the original
