@@ -36,12 +36,10 @@ def _get_yfinance():
     if _YFINANCE_MODULE is None:
         try:
             import yfinance as yf
+
             _YFINANCE_MODULE = yf
         except Exception as exc:
-            logger.error(
-                "Failed to import yfinance. It may not be installed. "
-                "Install it with: pip install yfinance"
-            )
+            logger.error("Failed to import yfinance. It may not be installed. Install it with: pip install yfinance")
             raise RuntimeError(
                 "yfinance is unavailable in the current environment. "
                 "Ensure it is installed or optional features won't work."
