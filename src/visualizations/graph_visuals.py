@@ -288,7 +288,7 @@ def visualize_3d_graph_with_filters(
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("graph must be an AssetRelationshipGraph instance")
 
-    filter_params = (
+    filter_params=(
         show_same_sector,
         show_market_cap,
         show_correlation,
@@ -304,9 +304,9 @@ def visualize_3d_graph_with_filters(
 
     # Build the relationship_filters mapping inline instead of relying on an undefined helper.
     if show_all_relationships:
-        relationship_filters = None
+        relationship_filters=None
     else:
-        relationship_filters = {
+        relationship_filters={
             "same_sector": show_same_sector,
             "market_cap_similar": show_market_cap,
             "correlation": show_correlation,
