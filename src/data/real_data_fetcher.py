@@ -59,13 +59,13 @@ def _get_yfinance():
     """
     try:
         import yfinance as yf  # type: ignore
-    except Exception as exc:  # noqa: BLE001
-        logger.error(
-            "Failed to import yfinance. Install it to enable real market data fetching.",
-        )
-        raise RuntimeError(
-            "yfinance is unavailable in the current environment. Install it to enable real market data fetching.",
-        ) from exc
+except ImportError as exc:
+    logger.error(
+        "Failed to import yfinance. Install it to enable real market data fetching.",
+    )
+    raise RuntimeError(
+        "yfinance is unavailable in the current environment. Install it to enable real market data fetching.",
+    ) from exc
     return yf
 
 
