@@ -62,16 +62,18 @@ class TestGetYfinanceLazyImport:
     @staticmethod
     def test_get_yfinance_raises_runtime_error_on_import_error():
         """_get_yfinance() raises RuntimeError when yfinance cannot be imported."""
-        with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
-            with pytest.raises(RuntimeError, match="yfinance is unavailable"):
-                _get_yfinance()
+        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
+            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
+                with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                    _get_yfinance()
 
     @staticmethod
     def test_get_yfinance_runtime_error_chains_original_cause():
         """RuntimeError raised by _get_yfinance() chains the original ImportError."""
-        with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
-            with pytest.raises(RuntimeError) as exc_info:
-                _get_yfinance()
+        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
+            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
+                with pytest.raises(RuntimeError) as exc_info:
+                    _get_yfinance()
         assert isinstance(exc_info.value.__cause__, ImportError)
 
     @staticmethod

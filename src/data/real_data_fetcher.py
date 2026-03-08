@@ -20,9 +20,11 @@ from src.models.financial_models import (
 
 logger = logging.getLogger(__name__)
 
+_YFINANCE_MODULE = None
+
 
 def _get_yfinance():
-    """Lazily import and return the yfinance module.
+    """Lazily import and return the yfinance module, caching it after the first import.
 
     Returns:
         module: The yfinance module.
@@ -30,32 +32,21 @@ def _get_yfinance():
     Raises:
         RuntimeError: If yfinance is not installed or cannot be imported.
     """
-    try:
-        import yfinance as yf
-    except Exception as exc:
-        logger.error("Failed to import yfinance. It may not be installed. Install it with: pip install yfinance")
-        raise RuntimeError(
-            "yfinance is unavailable in the current environment. "
-            "Ensure it is installed or optional features won't work."
-        ) from exc
-    return yf
-
-
-class _YFinancePlaceholder:
-    """Placeholder object used for backward-compatible test patching.
-
-    Some existing tests patch ``src.data.real_data_fetcher.yf.Ticker``.
-    The real code path now uses :func:`_get_yfinance` instead of a module-level
-    ``yf`` alias, but we keep this lightweight placeholder so those tests can
-    still patch ``yf.Ticker`` without failing at import/patch time.
-    """
-
-
-# Backward-compatible alias for tests that patch ``src.data.real_data_fetcher.yf.Ticker``.
-# This is intentionally *not* the real yfinance module; runtime code should always
-# call :func:`_get_yfinance` to obtain yfinance. Test patches can safely attach or
-# override attributes on this placeholder instance.
-yf = _YFinancePlaceholder()
+    global _YFINANCE_MODULE
+    if _YFINANCE_MODULE is None:
+        try:
+            import yfinance as yf
+            _YFINANCE_MODULE = yf
+        except Exception as exc:
+            logger.error(
+                "Failed to import yfinance. It may not be installed. "
+                "Install it with: pip install yfinance"
+            )
+            raise RuntimeError(
+                "yfinance is unavailable in the current environment. "
+                "Ensure it is installed or optional features won't work."
+            ) from exc
+    return _YFINANCE_MODULE
 
 
 class RealDataFetcher:
