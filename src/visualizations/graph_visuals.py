@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.visualizations.graph_visuals_layout import _configure_3d_layout, _prepare_layout_config
-from src.visualizations.graph_visuals_traces import _create_relationship_traces, _create_node_trace
+from src.visualizations.graph_visuals_traces import _create_node_trace, _create_relationship_traces
 from src.visualizations.graph_visuals_validation import (
     _validate_asset_ids_list,
     _validate_positions_array,
