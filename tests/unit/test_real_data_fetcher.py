@@ -12,11 +12,11 @@ Tests cover:
 - Edge cases and error handling
 """
 
+import importlib.util
 import json
 import re
 import sys
 from pathlib import Path
-import importlib.util
 from types import ModuleType
 from unittest.mock import Mock, patch
 
