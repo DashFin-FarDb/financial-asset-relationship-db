@@ -255,6 +255,12 @@ class RealDataFetcher:
                 None,
                 None,
             ),
+            "HYG": (
+                "iShares iBoxx $ High Yield Corporate Bond ETF",
+                "Corporate",
+                None,
+                None,
+            ),
         }
 
         bonds = []
@@ -306,6 +312,7 @@ class RealDataFetcher:
             # Example entries (adjust or extend as needed elsewhere in the file):
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
+            "SI=F": ("Silver Futures", "Metals", 5000.0, 0.25),
         }
 
         commodities: List[Commodity] = []
