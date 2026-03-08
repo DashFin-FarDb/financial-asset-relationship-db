@@ -162,10 +162,10 @@ class TestModuleLevelYfAttribute:
         """Accessing ``real_data_fetcher.yf`` returns the yfinance module lazily."""
         import sys
 
-        # Use sys.modules to get the exact object that patch() targets; a plain
-        # `import src.data.real_data_fetcher as rdf` resolves via getattr on the
-        # parent package and can return a different module instance after a
-        # module-reload test has run.
+        # Use sys.modules to get the exact object that patch() targets. Using
+        # `from src.data import real_data_fetcher as rdf` (or
+        # `rdf = src.data.real_data_fetcher`) would read the attribute from the
+        # parent package, which may have been rebound by a prior module-reload test.
         rdf = sys.modules["src.data.real_data_fetcher"]
         expected_yf = pytest.importorskip("yfinance")
         assert rdf.yf is expected_yf
