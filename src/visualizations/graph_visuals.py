@@ -288,7 +288,7 @@ def visualize_3d_graph_with_filters(
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError("graph must be an AssetRelationshipGraph instance")
 
-    filter_params=(
+    filter_params = (
         show_same_sector,
         show_market_cap,
         show_correlation,
@@ -302,16 +302,19 @@ def visualize_3d_graph_with_filters(
     if not all(isinstance(v, bool) for v in filter_params):
         raise TypeError("All filter parameters must be boolean values")
 
-    relationship_filters=_build_relationship_filters(
-        show_same_sector=show_same_sector,
-        show_market_cap=show_market_cap,
-        show_correlation=show_correlation,
-        show_corporate_bond=show_corporate_bond,
-        show_commodity_currency=show_commodity_currency,
-        show_income_comparison=show_income_comparison,
-        show_regulatory=show_regulatory,
-        show_all_relationships=show_all_relationships,
-    )
+    # Build the relationship_filters mapping inline instead of relying on an undefined helper.
+    if show_all_relationships:
+        relationship_filters = None
+    else:
+        relationship_filters = {
+            "same_sector": show_same_sector,
+            "market_cap_similar": show_market_cap,
+            "correlation": show_correlation,
+            "corporate_bond_to_equity": show_corporate_bond,
+            "commodity_currency": show_commodity_currency,
+            "income_comparison": show_income_comparison,
+            "regulatory_impact": show_regulatory,
+        }
 
     if relationship_filters is not None and not any(relationship_filters.values()):
         logger.warning("All relationship filters are disabled. Visualization will show no relationships.")
