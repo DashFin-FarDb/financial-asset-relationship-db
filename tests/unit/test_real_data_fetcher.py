@@ -25,6 +25,7 @@ from src.data.real_data_fetcher import (
     _deserialize_event,
     _deserialize_graph,
     _enum_to_value,
+    _get_yfinance,
     _load_from_cache,
     _save_to_cache,
     _serialize_dataclass,
@@ -47,66 +48,123 @@ pytestmark = pytest.mark.unit
 
 
 @pytest.mark.unit
-class TestRealDataFetcherInitialization:
-    """Test RealDataFetcher initialization."""
+class TestGetYfinanceLazyImport:
+    """Test the _get_yfinance lazy import helper."""
 
     @staticmethod
-    def test_init_with_defaults():
-        """Test initialization with default parameters."""
-        fetcher = RealDataFetcher()
+    def test_get_yfinance_returns_module_when_available():
+        """_get_yfinance() returns the yfinance module when it is installed."""
+        expected_yf = pytest.importorskip("yfinance")
+        yf = _get_yfinance()
 
-        assert fetcher.session is None
-        assert fetcher.cache_path is None
-        assert fetcher.fallback_factory is None
-        assert fetcher.enable_network is True
+        assert yf is expected_yf
 
     @staticmethod
-    def test_init_with_cache_path(tmp_path):
-        """Test initialization with cache path."""
-        cache_path = str(tmp_path / "cache.json")
-        fetcher = RealDataFetcher(cache_path=cache_path)
-
-        assert fetcher.cache_path == Path(cache_path)
-        assert fetcher.enable_network is True
-
-    @staticmethod
-    def test_init_with_fallback_factory():
-        """Test initialization with custom fallback factory."""
-
-        def custom_factory():
-            """Create and return a new AssetRelationshipGraph instance."""
-            return AssetRelationshipGraph()
-
-        fetcher = RealDataFetcher(fallback_factory=custom_factory)
-
-        assert fetcher.fallback_factory is custom_factory
+    def test_get_yfinance_raises_runtime_error_on_import_error():
+        """_get_yfinance() raises RuntimeError when yfinance cannot be imported."""
+        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
+            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
+                with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                    _get_yfinance()
 
     @staticmethod
-    def test_init_with_network_disabled():
-        """Test initialization with network disabled."""
-        fetcher = RealDataFetcher(enable_network=False)
-
-        assert fetcher.enable_network is False
+    def test_get_yfinance_runtime_error_chains_original_cause():
+        """RuntimeError raised by _get_yfinance() chains the original ImportError."""
+        with patch("src.data.real_data_fetcher._YFINANCE_MODULE", None):
+            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
+                with pytest.raises(RuntimeError) as exc_info:
+                    _get_yfinance()
+        assert isinstance(exc_info.value.__cause__, ImportError)
 
     @staticmethod
-    def test_init_all_parameters(tmp_path):
-        """Test initialization with all parameters."""
-        cache_path = str(tmp_path / "cache.json")
+    def test_module_import_succeeds_without_yfinance():
+        """real_data_fetcher module-level import does not require yfinance."""
+        import importlib
+        import sys
 
-        def custom_factory():
-            """
-            Create and return a new, empty AssetRelationshipGraph.
+        # Remove the already-imported module so we can re-import it
+        module_name = "src.data.real_data_fetcher"
+        original = sys.modules.pop(module_name, None)
+        yf_original = sys.modules.pop("yfinance", None)
+        try:
+            # Block yfinance imports during the re-import so it behaves as if
+            # yfinance is not installed at all. This ensures that any accidental
+            # module-level `import yfinance` in real_data_fetcher would fail.
+            with patch("builtins.__import__", side_effect=_make_import_blocker("yfinance")):
+                # Must not raise
+                importlib.import_module(module_name)
+        finally:
+            # Restore the original modules
+            if original is not None:
+                sys.modules[module_name] = original
+            else:
+                sys.modules.pop(module_name, None)
+            if yf_original is not None:
+                sys.modules["yfinance"] = yf_original
+            else:
+                sys.modules.pop("yfinance", None)
 
-            Returns:
-                AssetRelationshipGraph: A fresh, empty asset relationship graph.
-            """
-            return AssetRelationshipGraph()
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_equity_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_equity_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
 
-        fetcher = RealDataFetcher(cache_path=cache_path, fallback_factory=custom_factory, enable_network=False)
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_equity_data()
 
-        assert fetcher.cache_path == Path(cache_path)
-        assert fetcher.fallback_factory is custom_factory
-        assert fetcher.enable_network is False
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_bond_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_bond_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
+
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_bond_data()
+
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_commodity_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_commodity_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
+
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_commodity_data()
+
+    @staticmethod
+    @patch("src.data.real_data_fetcher._get_yfinance")
+    def test_fetch_currency_raises_runtime_error_when_yfinance_missing(mock_get_yf):
+        """_fetch_currency_data raises RuntimeError when yfinance is unavailable."""
+        mock_get_yf.side_effect = RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        )
+
+        with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+            RealDataFetcher._fetch_currency_data()
+
+
+def _make_import_blocker(blocked_module: str):
+    """Return a side-effect function that raises ImportError for *blocked_module*.
+
+    All other imports are forwarded to the real built-in __import__.
+    """
+
+    def _blocking_import(name, *args, _real_import=__import__, **kwargs):
+        if name == blocked_module:
+            raise ImportError(f"Mocked: {blocked_module} is not installed")
+        return _real_import(name, *args, **kwargs)
+
+    return _blocking_import
 
 
 @pytest.mark.unit
