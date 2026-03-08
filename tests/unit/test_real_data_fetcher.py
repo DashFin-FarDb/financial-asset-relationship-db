@@ -14,10 +14,17 @@ Tests cover:
 
 import json
 import re
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 import pytest
+
+# Provide a lightweight yfinance stub for environments where the optional
+# dependency is not installed; patched in tests as needed.
+if "yfinance" not in sys.modules:
+    sys.modules["yfinance"] = SimpleNamespace(Ticker=Mock())
 
 from src.data.real_data_fetcher import (
     RealDataFetcher,
