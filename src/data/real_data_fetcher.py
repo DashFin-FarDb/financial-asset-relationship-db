@@ -57,41 +57,20 @@ def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is 
     Raises:
         RuntimeError: If yfinance is not installed or cannot be imported.
     """
-        ImportError: If yfinance is not installed or cannot be imported.
-    """
 
     try:
         import yfinance as yf
         return yf
     except ImportError as exc:
-        logger.error("Failed to import yfinance. It may not be installed.")
+        logger.error(
+            "Failed to import yfinance. It may not be installed.",
+            exc_info=True,
+        )
         raise RuntimeError(
             "yfinance is unavailable in the current environment. "
             "Ensure it is installed or optional features won't work. "
             "Install it using: pip install yfinance"
         ) from exc
-    """
-    Lazily import and return the yfinance module.
-
-    Returns:
-        module: The yfinance module.
-
-    Raises:
-        RuntimeError: If yfinance is not installed or cannot be imported.
-    """
-
-    try:
-        import yfinance as yf
-        return yf
-    except Exception as exc:
-        logger.error("Failed to import yfinance. It may not be installed.")
-        raise RuntimeError(
-            "yfinance is unavailable in the current environment. "
-            "Ensure it is installed or optional features won't work. "
-            "Install it using: pip install yfinance"
-        ) from exc
-
-
 class RealDataFetcher:
     """Fetches real financial data from sources like Yahoo Finance(optional dependency).
 
