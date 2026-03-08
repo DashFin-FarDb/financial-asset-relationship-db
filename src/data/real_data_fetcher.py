@@ -49,6 +49,14 @@ def _get_yfinance():
 
 
 def __getattr__(name: str) -> Any:
+    if name == "yf":
+        try:
+            return _get_yfinance()
+        except RuntimeError:
+            # Convert RuntimeError (missing yfinance) to AttributeError so that
+            # hasattr() returns False, preserving backward compatibility.
+            raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
     """Module-level __getattr__ (PEP 562) for lazy backward-compatible access.
 
     Exposes ``yf`` as a lazily-imported alias for the yfinance module so that
