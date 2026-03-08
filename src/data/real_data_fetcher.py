@@ -60,6 +60,7 @@ def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is 
 
     try:
         import yfinance as yf
+
         return yf
     except ImportError as exc:
         logger.error(
@@ -71,6 +72,8 @@ def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is 
             "Ensure it is installed or optional features won't work. "
             "Install it using: pip install yfinance"
         ) from exc
+
+
 class RealDataFetcher:
     """Fetches real financial data from sources like Yahoo Finance(optional dependency).
 
