@@ -47,6 +47,27 @@ def _get_yfinance():
     return _YFINANCE_MODULE
 
 
+def _get_yfinance():
+    """
+    Lazily import yfinance when needed.
+
+    Returns:
+        module: The yfinance module.
+
+    Raises:
+        RuntimeError: If yfinance is unavailable in the current environment.
+    """
+    try:
+        import yfinance as yf
+    except Exception as exc:
+        logger.error("Failed to import yfinance. It may not be installed.")
+        raise RuntimeError(
+            "yfinance is unavailable in the current environment. "
+            "Ensure it is installed or optional features won't work."
+        ) from exc
+    return yf
+
+
 class RealDataFetcher:
     """Fetches real financial data from sources like Yahoo Finance (optional dependency).
 
@@ -199,6 +220,8 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """Fetches current market data for major equities and returns Equity objects."""
+        yf = _get_yfinance()
+
         equity_symbols = {
             "AAPL": ("Apple Inc.", "Technology"),
             "MSFT": ("Microsoft Corporation", "Technology"),
@@ -245,6 +268,8 @@ class RealDataFetcher:
             asset_class, sector, price, yield_to_maturity, coupon_rate,
             maturity_date, credit_rating, and issuer_id.
         """
+        yf = _get_yfinance()
+
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
         bond_symbols = {
@@ -306,6 +331,8 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity futures data."""
+        yf = _get_yfinance()
+
         # Define key commodity futures and their characteristics.
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
@@ -361,6 +388,8 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
+        yf = _get_yfinance()
+
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
