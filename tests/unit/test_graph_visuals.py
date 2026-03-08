@@ -139,7 +139,7 @@ def test_create_directional_arrows_basic():
 def test_create_directional_arrows_none_positions():
     """Test that passing None for positions raises a ValueError."""
     graph = DummyGraph({})
-    with pytest.raises(ValueError, match="positions and asset_ids must not be None"):
+    with pytest.raises(ValueError, match="positions must be a numpy array"):
         _create_directional_arrows(graph, None, ["A", "B"])  # type: ignore[arg-type]
 
 
@@ -147,7 +147,7 @@ def test_create_directional_arrows_none_asset_ids():
     """Test that passing None for asset_ids raises a ValueError."""
     graph = DummyGraph({})
     positions = np.array([[0, 0, 0], [1, 1, 1]])
-    with pytest.raises(ValueError, match="positions and asset_ids must not be None"):
+    with pytest.raises(ValueError, match="asset_ids must be a list or tuple"):
         _create_directional_arrows(graph, positions, None)  # type: ignore[arg-type]
 
 
@@ -165,7 +165,7 @@ def test_create_directional_arrows_invalid_shape():
     graph = DummyGraph({})
     positions = np.array([[0, 0], [1, 1]])  # 2D instead of 3D
     asset_ids = ["A", "B"]
-    with pytest.raises(ValueError, match="Invalid positions shape: expected \\(n, 3\\)"):
+    with pytest.raises(ValueError, match="expected positions to be a \\(n, 3\\) numpy array"):
         _create_directional_arrows(graph, positions, asset_ids)
 
 
@@ -174,7 +174,7 @@ def test_create_directional_arrows_non_numeric_positions():
     graph = DummyGraph({})
     positions = np.array([["a", "b", "c"], ["d", "e", "f"]])
     asset_ids = ["A", "B"]
-    with pytest.raises(ValueError, match="values must be numeric"):
+    with pytest.raises(ValueError, match="positions must contain numeric values"):
         _create_directional_arrows(graph, positions, asset_ids)
 
 
@@ -183,7 +183,7 @@ def test_create_directional_arrows_infinite_positions():
     graph = DummyGraph({})
     positions = np.array([[0, 0, 0], [np.inf, 1, 1]])
     asset_ids = ["A", "B"]
-    with pytest.raises(ValueError, match="values must be finite numbers"):
+    with pytest.raises(ValueError, match="positions must contain finite values"):
         _create_directional_arrows(graph, positions, asset_ids)
 
 
@@ -192,7 +192,7 @@ def test_create_directional_arrows_nan_positions():
     graph = DummyGraph({})
     positions = np.array([[0, 0, 0], [np.nan, 1, 1]])
     asset_ids = ["A", "B"]
-    with pytest.raises(ValueError, match="values must be finite numbers"):
+    with pytest.raises(ValueError, match="positions must contain finite values"):
         _create_directional_arrows(graph, positions, asset_ids)
 
 
@@ -247,12 +247,12 @@ def test_create_directional_arrows_valid_inputs_with_unidirectional():
 
 
 def test_create_directional_arrows_type_coercion():
-    """Test that positions provided as a list are coerced and processed correctly."""
+    """Test that passing a list for positions raises a ValueError (numpy array required)."""
     graph = DummyGraph({})
     positions = [[0, 0, 0], [1, 1, 1]]  # List instead of numpy array
     asset_ids = ["A", "B"]
-    arrows = _create_directional_arrows(graph, positions, asset_ids)  # type: ignore[arg-type]
-    assert arrows == []
+    with pytest.raises(ValueError, match="positions must be a numpy array"):
+        _create_directional_arrows(graph, positions, asset_ids)  # type: ignore[arg-type]
 
 
 def test_create_directional_arrows_bidirectional_no_arrows():
