@@ -16,15 +16,18 @@ import json
 import re
 import sys
 from pathlib import Path
-from types import SimpleNamespace
+import importlib.util
+from types import ModuleType
 from unittest.mock import Mock, patch
 
 import pytest
 
 # Provide a lightweight yfinance stub for environments where the optional
 # dependency is not installed; patched in tests as needed.
-if "yfinance" not in sys.modules:
-    sys.modules["yfinance"] = SimpleNamespace(Ticker=Mock())
+if importlib.util.find_spec("yfinance") is None:
+    yfinance_stub = ModuleType("yfinance")
+    yfinance_stub.Ticker = Mock()
+    sys.modules["yfinance"] = yfinance_stub
 
 from src.data.real_data_fetcher import (
     RealDataFetcher,
