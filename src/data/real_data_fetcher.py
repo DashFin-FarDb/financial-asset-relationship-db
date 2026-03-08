@@ -6,8 +6,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import yfinance as yf
-
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import (
     Asset,
@@ -22,9 +20,43 @@ from src.models.financial_models import (
 
 logger = logging.getLogger(__name__)
 
+_YFINANCE_MODULE = None
+
+
+def _get_yfinance():
+    """Lazily import and return the yfinance module, caching it after the first import.
+
+    Returns:
+        module: The yfinance module.
+
+    Raises:
+        RuntimeError: If yfinance is not installed or cannot be imported.
+    """
+    global _YFINANCE_MODULE
+    if _YFINANCE_MODULE is None:
+        try:
+            import yfinance as yf
+
+            _YFINANCE_MODULE = yf
+        except Exception as exc:
+            logger.error("Failed to import yfinance. It may not be installed. Install it with: pip install yfinance")
+            raise RuntimeError(
+                "yfinance is unavailable in the current environment. "
+                "Ensure it is installed or optional features won't work."
+            ) from exc
+    return _YFINANCE_MODULE
+
 
 class RealDataFetcher:
-    """Fetches real financial data from Yahoo Finance and other sources."""
+    """Fetches real financial data from sources like Yahoo Finance (optional dependency).
+
+    Yahoo Finance data fetching requires the `yfinance` package. When `yfinance`
+    is missing, methods that attempt to fetch live data will raise a RuntimeError.
+    Higher-level helpers (such as the module-level ``create_real_database``)
+    may catch this error and fall back to cached or sample data instead,
+    depending on configuration. The fetcher can also operate in offline mode
+    using cached data or sample data when network access is disabled.
+    """
 
     def __init__(
         self,
@@ -175,6 +207,7 @@ class RealDataFetcher:
         }
 
         equities = []
+        yf = _get_yfinance()
         for symbol, (name, _) in equity_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
@@ -222,9 +255,16 @@ class RealDataFetcher:
                 None,
                 None,
             ),
+            "HYG": (
+                "iShares iBoxx $ High Yield Corporate Bond ETF",
+                "Corporate",
+                None,
+                None,
+            ),
         }
 
         bonds = []
+        yf = _get_yfinance()
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
@@ -272,9 +312,11 @@ class RealDataFetcher:
             # Example entries (adjust or extend as needed elsewhere in the file):
             "GC=F": ("Gold Futures", "Metals", 100.0, 0.20),
             "CL=F": ("Crude Oil Futures", "Energy", 1000.0, 0.35),
+            "SI=F": ("Silver Futures", "Metals", 5000.0, 0.25),
         }
 
         commodities: List[Commodity] = []
+        yf = _get_yfinance()
         for symbol, (
             name,
             sector,
@@ -326,6 +368,7 @@ class RealDataFetcher:
         }
 
         currencies = []
+        yf = _get_yfinance()
         for symbol, (name, country, currency_code) in currency_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
