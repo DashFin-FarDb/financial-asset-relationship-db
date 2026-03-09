@@ -24,7 +24,9 @@ import pytest
 
 # Provide a lightweight yfinance stub for environments where the optional
 # dependency is not installed; patched in tests as needed.
-if importlib.util.find_spec("yfinance") is None:
+try:
+    import yfinance  # noqa: F401
+except ImportError:
     yfinance_stub = ModuleType("yfinance")
     yfinance_stub.Ticker = Mock()
     sys.modules["yfinance"] = yfinance_stub
