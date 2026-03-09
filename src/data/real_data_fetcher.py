@@ -387,7 +387,6 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """Fetch real currency exchange rate data"""
-        yf = _get_yfinance()
         currency_symbols = {
             "EURUSD=X": ("Euro", "EU", "EUR"),
             "GBPUSD=X": ("British Pound", "UK", "GBP"),
