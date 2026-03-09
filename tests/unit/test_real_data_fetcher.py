@@ -192,6 +192,23 @@ class TestModuleLevelYfAttribute:
         with pytest.raises(AttributeError, match="has no attribute"):
             _ = rdf._nonexistent_attribute_xyz
 
+    @staticmethod
+    def test_patch_yf_ticker_resolves_as_patch_target():
+        """@patch("src.data.real_data_fetcher.yf.Ticker") resolves and applies correctly.
+
+        This is the core backward-compat goal: existing test suites that patch
+        ``src.data.real_data_fetcher.yf.Ticker`` must continue to work after the
+        module-level ``yf`` was converted from an eager import to a lazy attribute.
+        """
+        pytest.importorskip("yfinance")
+        mock_ticker = Mock()
+        with patch("src.data.real_data_fetcher.yf.Ticker", mock_ticker):
+            import sys
+
+            # See note in test_yf_attribute_returns_yfinance_module for why sys.modules is used.
+            rdf = sys.modules["src.data.real_data_fetcher"]
+            assert rdf.yf.Ticker is mock_ticker
+
 
 def _make_import_blocker(blocked_module: str):
     """Return a side-effect function that raises ImportError for *blocked_module*.
