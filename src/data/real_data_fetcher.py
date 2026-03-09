@@ -39,39 +39,38 @@ def _get_yfinance():
 
             _YFINANCE_MODULE = yf
         except Exception as exc:
-            logger.error("Failed to import yfinance. It may not be installed. Install it with: pip install yfinance")
+            logger.error("Failed to import yfinance. It may not be installed. Install it using: pip install yfinance")
             raise RuntimeError(
                 "yfinance is unavailable in the current environment. "
-                "Ensure it is installed or optional features won't work."
+                "Ensure it is installed or optional features won't work. "
+                "Install it using: pip install yfinance"
             ) from exc
     return _YFINANCE_MODULE
 
 
-def _get_yfinance() -> Any:  # or 'module' if 'from types import ModuleType' is used
-    """
-    Lazily import and return the yfinance module.
+def __getattr__(name: str) -> Any:
+    """Module-level __getattr__ (PEP 562) for lazy backward-compatible access.
+
+    Exposes ``yf`` as a lazily-imported alias for the yfinance module so that
+    patch targets like ``@patch("src.data.real_data_fetcher.yf.Ticker")``
+    continue to work without triggering an eager import at module load time.
+    The underlying module is cached in ``_YFINANCE_MODULE`` by
+    :func:`_get_yfinance`, so repeated accesses via ``yf`` do not re-import.
+
+    Args:
+        name: Attribute name being accessed on this module.
 
     Returns:
-        The yfinance module (imported as 'yf').
+        The yfinance module when ``name == "yf"``.
 
     Raises:
-        RuntimeError: If yfinance is not installed or cannot be imported.
+        RuntimeError: When ``name == "yf"`` and yfinance is not installed or
+            cannot be imported.
+        AttributeError: For any attribute name other than ``"yf"``.
     """
-
-    try:
-        import yfinance as yf
-
-        return yf
-    except ImportError as exc:
-        logger.error(
-            "Failed to import yfinance. It may not be installed.",
-            exc_info=True,
-        )
-        raise RuntimeError(
-            "yfinance is unavailable in the current environment. "
-            "Ensure it is installed or optional features won't work. "
-            "Install it using: pip install yfinance"
-        ) from exc
+    if name == "yf":
+        return _get_yfinance()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class RealDataFetcher:
