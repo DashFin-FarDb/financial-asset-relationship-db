@@ -334,7 +334,6 @@ class RealDataFetcher:
     def _fetch_commodity_data() -> List[Commodity]:
         """Fetch real commodity futures data."""
         # Define key commodity futures and their characteristics.
-        yf = _get_yfinance()
         commodity_symbols: Dict[str, Tuple[str, str, float, float]] = {
             # symbol: (name, sector, contract_size, volatility)
             # Example entries (adjust or extend as needed elsewhere in the file):
