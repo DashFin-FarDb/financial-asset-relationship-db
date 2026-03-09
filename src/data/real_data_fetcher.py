@@ -274,7 +274,6 @@ class RealDataFetcher:
         """
         # For bonds, we'll use Treasury ETFs and bond proxies since
         # individual bonds are harder to access
-        yf = _get_yfinance()
         bond_symbols = {
             "TLT": ("iShares 20+ Year Treasury Bond ETF", "Government", None, "AAA"),
             "LQD": (
