@@ -47,6 +47,30 @@ def _get_yfinance():
     return _YFINANCE_MODULE
 
 
+def _get_yfinance():
+    """
+    Lazily import yfinance so optional dependency absence does not break startup.
+
+    Returns:
+        Module: The imported yfinance module.
+
+    Raises:
+        RuntimeError: If yfinance cannot be imported in the current environment.
+    """
+    try:
+        import yfinance as yf  # type: ignore
+
+
+except ImportError as exc:
+    logger.error(
+        "Failed to import yfinance. Install it to enable real market data fetching.",
+    )
+    raise RuntimeError(
+        "yfinance is unavailable in the current environment. Install it to enable real market data fetching.",
+    ) from exc
+    return yf
+
+
 class RealDataFetcher:
     """Fetches real financial data from sources like Yahoo Finance (optional dependency).
 

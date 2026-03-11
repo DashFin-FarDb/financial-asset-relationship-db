@@ -12,12 +12,24 @@ Tests cover:
 - Edge cases and error handling
 """
 
+import importlib.util
 import json
 import re
+import sys
 from pathlib import Path
+from types import ModuleType
 from unittest.mock import Mock, patch
 
 import pytest
+
+# Provide a lightweight yfinance stub for environments where the optional
+# dependency is not installed; patched in tests as needed.
+try:
+    import yfinance  # noqa: F401
+except ImportError:
+    yfinance_stub = ModuleType("yfinance")
+    yfinance_stub.Ticker = Mock()
+    sys.modules["yfinance"] = yfinance_stub
 
 from src.data.real_data_fetcher import (
     RealDataFetcher,
