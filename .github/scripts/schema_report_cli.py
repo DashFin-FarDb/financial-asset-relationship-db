@@ -133,8 +133,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         "-o",
-        action="store_true",
-        help="Write report to a default file in the current directory.",
+        type=Path,
+        default=None,
+        help="Write report to the specified output file path.",
     )
     parser.add_argument(
         "--verbose",
