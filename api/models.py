@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class UserInDB(BaseModel):
@@ -26,7 +26,7 @@ class AssetResponse(BaseModel):
     price: float
     market_cap: Optional[float] = None
     currency: str = "USD"
-    additional_fields: Dict[str, Any] = {}
+    additional_fields: Dict[str, Any] = Field(default_factory=dict)
 
 
 class RelationshipResponse(BaseModel):
