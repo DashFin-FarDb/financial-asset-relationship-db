@@ -359,10 +359,7 @@ def write_output(report: str) -> None:
             if runner_temp:
                 allowed_roots.add(os.path.realpath(runner_temp))
 
-            if not any(
-                os.path.commonpath([summary_path, root]) == root
-                for root in allowed_roots
-            ):
+            if not any(os.path.commonpath([summary_path, root]) == root for root in allowed_roots):
                 print(
                     "Warning: Ignoring GITHUB_STEP_SUMMARY outside temp dir",
                     file=sys.stderr,
