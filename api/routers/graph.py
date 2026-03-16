@@ -43,7 +43,9 @@ def _build_visualization_nodes(
     """
     nodes: List[Dict[str, Any]] = []
     for i, asset_id in enumerate(asset_ids):
-        asset = graph.assets[asset_id]
+        asset = graph.assets.get(asset_id)
+        if asset is None:
+            continue
         nodes.append(
             {
                 "id": asset_id,
