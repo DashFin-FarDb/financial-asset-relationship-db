@@ -102,6 +102,7 @@ def _execute_smoke_query(client: Client, url: str) -> Any:
         pytest.fail(f"Supabase query failed (url={_redact(url)}): {exc}")
         return None
 
+
 @pytest.mark.integration
 def test_supabase_connection_smoke() -> None:
     """
