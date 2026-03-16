@@ -114,9 +114,7 @@ def _run_smoke_query(database_url: str) -> object:
         pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
         # pytest.fail is expected to raise and not return, but add an explicit
         # raise to avoid any implicit fall-through in static analysis.
-        raise AssertionError(
-            f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}"
-        )
+        raise AssertionError(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
 
 
 @pytest.mark.integration
