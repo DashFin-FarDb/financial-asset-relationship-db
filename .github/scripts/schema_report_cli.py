@@ -133,8 +133,9 @@ def parse_arguments() -> argparse.Namespace:
     parser.add_argument(
         "--output",
         "-o",
-        action="store_true",
-        help="Write report to a default file in the current directory.",
+        type=Path,
+        default=None,
+        help="Write report to the specified output file path.",
     )
     parser.add_argument(
         "--verbose",
@@ -356,7 +357,7 @@ def main() -> int:
         if output_format is None:
             return 1
 
-        safe_output = default_output_path(output_format) if args.output else None
+        safe_output = args.output
         generate_report(output_format, safe_output)
         logger.info("Schema report generation completed successfully.")
         return 0

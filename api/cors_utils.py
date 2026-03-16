@@ -137,14 +137,22 @@ def validate_origin(origin: str) -> bool:
     current_env = os.getenv("ENV", "development").lower()
 
     # Get allowed origins from environment variable or use default
-    allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
+    allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
 
-    checks = (
-        _is_allowed_list_origin(origin, allowed_origins),
-        _is_http_local_in_dev(origin, current_env),
-        _is_https_local(origin),
-        _is_vercel_preview(origin),
-        _is_valid_https_domain(origin),
-        _is_valid_https_idn(origin),
-    )
-    return any(checks)
+    if _is_allowed_list_origin(origin, allowed_origins):
+        return True
+    if _is_http_local_in_dev(origin, current_env):
+        return True
+    if _is_https_local(origin):
+        return True
+    if _is_vercel_preview(origin):
+        return True
+    if _is_valid_https_domain(origin):
+        return True
+    parsed = urlparse(origin)
+    if any([parsed.path, parsed.params, parsed.query, parsed.fragment, parsed.username, parsed.password]):
+        return False
+    try:
+        return _is_valid_https_idn(origin)
+    except ValueError:
+        return False

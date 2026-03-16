@@ -43,8 +43,9 @@ version_file="$CODACY_CLI_V2_TMP_FOLDER/version.yaml"
 
 # get_version_from_yaml reads the version_file and echoes the value of the `version` field if present; returns a non-zero status if the file or version is missing.
 get_version_from_yaml() {
-    if [ -f "$version_file" ]; then
-        local version=$(grep -o 'version: *"[^"]*"' "$version_file" | cut -d'"' -f2)
+    if [[ -f "$version_file" ]]; then
+        local version
+        version=$(grep -o 'version: *"[^"]*"' "$version_file" | cut -d'"' -f2)
         if [ -n "$version" ]; then
             echo "$version"
             return 0
@@ -87,11 +88,11 @@ download_file() {
 
     echo "Downloading from URL: ${url}"
     if command -v curl > /dev/null 2>&1; then
-        curl -# -LS "$url" -O
+        curl -# -fLS "$url" -O
     elif command -v wget > /dev/null 2>&1; then
         wget "$url"
     else
-        fatal "Error: Could not find curl or wget, please install one."
+        fatal "Could not find curl or wget, please install one."
     fi
 }
 
@@ -142,8 +143,7 @@ fi
 if [ -n "$CODACY_CLI_V2_VERSION" ]; then
     version="$CODACY_CLI_V2_VERSION"
 else
-    version=$(get_version_from_yaml)
-    if [ -z "$version" ]; then
+    if ! version=$(get_version_from_yaml); then
         fatal "Could not determine Codacy CLI version. Please set CODACY_CLI_V2_VERSION."
     fi
 fi
