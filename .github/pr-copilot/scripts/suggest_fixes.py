@@ -40,7 +40,7 @@ def load_config() -> Dict[str, Any]:
     config_path = ".github/pr-copilot-config.yml"
     try:
         with open(config_path, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f)
+            return yaml.safe_load(f) or {}
     except FileNotFoundError:
         # Defaults if config missing
         return {
