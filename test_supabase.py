@@ -91,6 +91,7 @@ def _create_supabase_client(url: str, key: str) -> Client:
         return create_client(url, key)
     except Exception as exc:  # noqa: BLE001
         pytest.fail(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}")
+        raise
 
 
 def _execute_smoke_query(client: Client, url: str) -> Any:
