@@ -87,7 +87,7 @@ download_file() {
 
     echo "Downloading from URL: ${url}"
     if command -v curl > /dev/null 2>&1; then
-        curl -# -LS "$url" -O
+        curl -# -fLS "$url" -O
     elif command -v wget > /dev/null 2>&1; then
         wget "$url"
     else
