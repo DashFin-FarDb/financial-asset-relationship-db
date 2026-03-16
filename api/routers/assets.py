@@ -15,11 +15,14 @@ router = APIRouter(prefix="/api", tags=["assets"])
 
 def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
     """
-    Raise HTTPException for missing resources.
-
-    Args:
-        asset_id (str): ID of the asset that was not found.
-        resource_type (str): Type of resource (default: "Asset").
+    Raise an HTTP 404 error indicating the specified resource was not found.
+    
+    Parameters:
+        asset_id (str): Identifier of the missing resource.
+        resource_type (str): Human-readable resource type used in the error detail (default: "Asset").
+    
+    Raises:
+        HTTPException: With status code 404 and detail "<resource_type> <asset_id> not found".
     """
     raise HTTPException(
         status_code=404,
@@ -29,14 +32,16 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     """
-    Serialize an Asset object to a dictionary representation.
-
-    Args:
-        asset: Asset object to serialize
-        include_issuer: Whether to include issuer_id field (for detail views)
-
+    Convert an Asset object into a dictionary suitable for API responses.
+    
+    The result contains core fields: `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, and `currency`, plus an `additional_fields` mapping that includes asset-type-specific attributes when their values are not None. If `include_issuer` is True and the asset has an `issuer_id`, it will be included in `additional_fields`.
+    
+    Parameters:
+        asset (Any): Asset instance to serialize.
+        include_issuer (bool): Include `issuer_id` in `additional_fields` when present.
+    
     Returns:
-        Dictionary containing asset data with additional_fields
+        Dict[str, Any]: Dictionary representation of the asset with an `additional_fields` map of non-null supplemental attributes.
     """
     asset_dict = {
         "id": asset.id,
@@ -87,7 +92,18 @@ def _matches_filters(
     asset_class_upper: Optional[str],
     sector: Optional[str],
 ) -> bool:
-    """Return whether an asset passes optional class and sector filters."""
+    """
+    Determine whether an asset matches the optional asset class and sector filters.
+    
+    Parameters:
+        asset: The asset object to evaluate. Must have `asset_class.name`, `asset_class.value`, and `sector` attributes.
+        asset_class_upper (Optional[str]): Uppercase asset class to match against the asset's `asset_class.name`
+            or the asset's `asset_class.value` converted to uppercase. If `None`, the asset class is not filtered.
+        sector (Optional[str]): Sector string to match exactly against `asset.sector`. If `None`, sector is not filtered.
+    
+    Returns:
+        bool: `True` if the asset satisfies all provided filters, `False` otherwise.
+    """
     if asset_class_upper:
         asset_class_name = asset.asset_class.name
         asset_class_value = asset.asset_class.value.upper()
@@ -106,7 +122,16 @@ def _build_filtered_asset_responses(
     asset_class: Optional[str],
     sector: Optional[str],
 ) -> List[AssetResponse]:
-    """Build serialized AssetResponse list for assets matching filters."""
+    """
+    Builds a list of AssetResponse objects for assets that match the provided class and sector filters.
+    
+    Parameters:
+        asset_class (Optional[str]): Asset class name to filter by (case-insensitive). Pass None to disable this filter.
+        sector (Optional[str]): Sector name to filter by. Pass None to disable this filter.
+    
+    Returns:
+        List[AssetResponse]: Serialized responses for all assets in the graph that satisfy the specified filters.
+    """
     asset_class_upper = asset_class.upper() if asset_class else None
     responses: List[AssetResponse] = []
     for asset in graph.assets.values():

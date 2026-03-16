@@ -30,7 +30,17 @@ __all__ = [
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
-    """Create a SQLAlchemy engine for the configured database URL."""
+    """
+    Create a SQLAlchemy Engine for the given database URL, using the module default when none is provided.
+    
+    If `url` is None, `DEFAULT_DATABASE_URL` is used. When the resolved URL is an in-memory SQLite database, the engine is configured with `connect_args={"check_same_thread": False}` and `poolclass=StaticPool` to allow connections to be shared appropriately; otherwise a standard engine is created.
+    
+    Parameters:
+        url (str | None): Database URL to use; if None the module's `DEFAULT_DATABASE_URL` is used.
+    
+    Returns:
+        Engine: A SQLAlchemy Engine bound to the resolved database URL.
+    """
     resolved_url = url or DEFAULT_DATABASE_URL
 
     if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
@@ -45,7 +55,15 @@ def create_engine_from_url(url: str | None = None) -> Engine:
 
 
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:
-    """Create a configured session factory bound to the supplied engine."""
+    """
+    Create a SQLAlchemy session factory bound to the provided engine.
+    
+    Parameters:
+        engine (Engine): The SQLAlchemy Engine to bind sessions to.
+    
+    Returns:
+        session_factory (sessionmaker[Session]): A configured session factory with autocommit disabled, autoflush disabled, and SQLAlchemy 2.0-style `future` behavior enabled.
+    """
     return sessionmaker(
         bind=engine,
         autocommit=False,
@@ -58,7 +76,15 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 def session_scope(
     session_factory: Callable[[], Session],
 ) -> Generator[Session, None, None]:
-    """Proxy to repository.session_scope while avoiding import-order lint issues."""
+    """
+    Provide a context-managed database Session by delegating to the repository's session_scope.
+    
+    Parameters:
+        session_factory (Callable[[], Session]): Factory callable that produces new Session instances.
+    
+    Returns:
+        session (Session): A Session instance yielded from the repository's session_scope for use within a context.
+    """
     # Keep compatibility for callers importing session_scope from this module.
     repository_session_scope = import_module("src.data.repository").session_scope
 
@@ -67,5 +93,9 @@ def session_scope(
 
 
 def init_db(engine: Engine) -> None:
-    """Initialise database schema if it has not been created."""
+    """
+    Initialize tables declared on Base's metadata in the database bound to the provided engine.
+    
+    Creates any tables defined on Base.metadata that do not already exist using the given SQLAlchemy Engine.
+    """
     Base.metadata.create_all(engine)

@@ -38,12 +38,27 @@ const ACTIVE_TAB_CLASS = "border-blue-500 text-blue-600";
 const INACTIVE_TAB_CLASS =
   "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300";
 
+/**
+ * Compute the CSS class string for a tab based on whether it is active.
+ *
+ * @param isActive - Whether the tab is currently active; selects the active or inactive style segment.
+ * @returns The full CSS class string combining base tab classes with the active or inactive class.
+ */
 function getTabClassName(isActive: boolean): string {
   return `py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
     isActive ? ACTIVE_TAB_CLASS : INACTIVE_TAB_CLASS
   }`;
 }
 
+/**
+ * Render the main tabbed content area for the home page based on loading, error, and the active tab.
+ *
+ * Shows a loading spinner when `loading` is true, an error block with a Retry button when `error` is set,
+ * and the appropriate tab content: 3D visualization, metrics dashboard, or asset list. Returns `null` when
+ * no content is applicable.
+ *
+ * @returns The JSX to render for the content area, or `null` if there is nothing to render.
+ */
 function HomeContent({
   loading,
   error,
@@ -94,6 +109,13 @@ function HomeContent({
   return null;
 }
 
+/**
+ * Renders the top tab navigation bar for switching between home tabs.
+ *
+ * @param activeTab - The currently active tab key.
+ * @param onTabChange - Callback invoked with the selected tab key when a tab is clicked.
+ * @returns A JSX element containing the tab buttons with appropriate active/inactive styling.
+ */
 function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
   return (
     <nav className="bg-white border-b border-gray-200">
@@ -115,13 +137,11 @@ function TabNavigation({ activeTab, onTabChange }: TabNavigationProps) {
 }
 
 /**
- * Renders the dashboard home page with a tabbed UI that loads metrics and visualization data,
- * shows loading and error states, and conditionally displays the 3D visualization, metrics dashboard, or asset explorer.
+ * Render the dashboard home page with a tabbed interface for Visualization, Metrics, and Assets.
  *
- * The component fetches metrics and visualization data on mount, provides a retry action on failure,
- * and manages which tab is active.
+ * Loads metrics and visualization data on mount, displays loading and error states, and exposes a retry action.
  *
- * @returns The top-level JSX element for the home page.
+ * @returns The top-level JSX element for the home page
  */
 export default function Home() {
   const [activeTab, setActiveTab] = useState<HomeTab>("visualization");

@@ -82,7 +82,17 @@ class AnalysisData:
 
 
 def load_config() -> Dict[str, Any]:
-    """Load configuration from YAML file safely."""
+    """
+    Load repository configuration from the expected YAML file path.
+    
+    If the config file does not exist, cannot be read, or fails YAML parsing, an empty
+    dictionary is returned and an informational or warning message is written to
+    standard error.
+    
+    Returns:
+        config (dict): Parsed configuration mapping from the YAML file, or an empty
+        dict when the file is missing or on parse/I/O errors.
+    """
     if not os.path.exists(CONFIG_PATH):
         print(
             f"Info: Config file not found at {CONFIG_PATH}, using defaults.",
@@ -115,7 +125,30 @@ def categorize_filename(filename: str) -> str:
 
 
 def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
-    """Iterate through files to gather stats."""
+    """
+    Aggregate file-level statistics for the files included in a pull request.
+    
+    Counts files per category, accumulates additions, deletions, and total changes,
+    and collects any files with more than 500 total changes.
+    
+    Parameters:
+        pr_files_iterable (Iterable): An iterable of objects representing changed files.
+            Each object must have attributes:
+            - filename (str): the file path
+            - additions (int): number of added lines
+            - deletions (int): number of deleted lines
+    
+    Returns:
+        Dict[str, Any]: A dictionary containing:
+            - file_count (int): total number of files processed
+            - file_categories (Dict[str, int]): mapping of category name to file count
+            - total_additions (int): sum of additions across all files
+            - total_deletions (int): sum of deletions across all files
+            - total_changes (int): sum of additions and deletions across all files
+            - large_files (List[Dict[str, Any]]): list of dicts for files with >500 changes;
+              each dict contains `filename`, `changes`, `additions`, and `deletions`
+            - has_large_files (bool): `True` if any large files were found, `False` otherwise
+    """
     categories: Dict[str, int] = defaultdict(int)
     stats = {"additions": 0, "deletions": 0, "changes": 0}
     large_files: List[Dict[str, Any]] = []
@@ -160,7 +193,17 @@ def calculate_score(
     thresholds: List[Tuple[int, int]],
     default: int,
 ) -> int:
-    """Helper to calculate score based on value thresholds."""
+    """
+    Map a numeric value to a score using an ordered list of thresholds.
+    
+    Parameters:
+        value (int): The value to evaluate against thresholds.
+        thresholds (List[Tuple[int, int]]): Ordered pairs of (limit, points); the first pair whose `limit` is less than `value` determines the returned points.
+        default (int): The score to return if no threshold matches.
+    
+    Returns:
+        int: The points associated with the first matching threshold, or `default` if none match.
+    """
     for limit, points in thresholds:
         if value > limit:
             return points
@@ -171,7 +214,25 @@ def assess_complexity(
     file_data: Dict[str, Any],
     commit_count: int,
 ) -> Tuple[int, str]:
-    """Calculate 0-100 complexity score and risk level."""
+    """
+    Assess overall PR complexity and map it to a risk level.
+    
+    Parameters:
+        file_data (dict): Aggregated file metrics with keys:
+            - file_count: total number of files changed
+            - total_changes: sum of additions and deletions across files
+            - has_large_files: boolean indicating presence of large-file changes
+            - large_files: list of large-file entries (each entry counted toward a penalty)
+        commit_count (int): Number of commits in the PR.
+    
+    Returns:
+        tuple: (score, risk_level)
+            - score (int): Complexity score on a 0–100 scale computed from file count,
+              total changes, large-file penalties (5 points per large file, capped at 20),
+              and commit count.
+            - risk_level (str): One of "High" (score >= 70), "Medium" (score >= 40),
+              or "Low" (score < 40).
+    """
     score = 0
 
     # File count impact
@@ -212,7 +273,24 @@ def find_scope_issues(
     file_data: Dict[str, Any],
     config: Dict[str, Any],
 ) -> List[str]:
-    """Identify potential scope creep."""
+    """
+    Detects potential PR scope issues based on title length/content, overall size, and diversity of changed file types.
+    
+    Parameters:
+        pr_title (str): The pull request title.
+        file_data (dict): Aggregated file metrics containing at least:
+            - "file_count" (int): number of files changed
+            - "total_changes" (int): total lines changed (additions + deletions)
+            - "file_categories" (dict): mapping of category -> count of files (used to determine distinct types)
+        config (dict): Configuration mapping with optional "scope" keys:
+            - "warn_on_long_title" (int): max title length before warning (default 72)
+            - "max_files_changed" (int): max files changed before warning (default 30)
+            - "max_total_changes" (int): max total line changes before warning (default 1500)
+            - "max_file_types_changed" (int): max distinct file categories before warning (default 5)
+    
+    Returns:
+        List[str]: Human-readable issue descriptions identifying scope concerns; empty if no issues detected.
+    """
     issues = []
     scope_conf = config.get("scope", {})
 
@@ -247,7 +325,19 @@ def find_related_issues(
     pr_body: Optional[str],
     repo_url: str,
 ) -> List[Dict[str, str]]:
-    """Parse PR body for linked issues."""
+    """
+    Extract issue references from a pull request body and return their numbers and URLs.
+    
+    Recognizes bare references like `#123` and keyword forms such as `fix #123`, `closes #123`, or `resolves #123` (case-insensitive). Deduplicates matches while preserving the order of first occurrence.
+    
+    Parameters:
+        pr_body (Optional[str]): The pull request description text to scan.
+        repo_url (str): Repository base URL used to build issue links.
+    
+    Returns:
+        List[Dict[str, str]]: A list of dictionaries with keys `number` (issue number as a string)
+        and `url` (full issue URL formed as `{repo_url}/issues/{number}`).
+    """
     if not pr_body:
         return []
 
@@ -274,19 +364,45 @@ def find_related_issues(
 
 
 def _format_list_items(items: List[str], header: str) -> str:
-    """Format a markdown bullet section if items exist."""
+    """
+    Format a Markdown bullet list section with a bold header when items are present.
+    
+    Parameters:
+        items (List[str]): Lines to include as bullet points.
+        header (str): Section title placed in bold above the list.
+    
+    Returns:
+        str: Markdown string containing the bold header and bullet list, or an empty string if `items` is empty.
+    """
     if not items:
         return ""
     return f"\n**{header}**\n" + "".join([f"- {item}\n" for item in items])
 
 
 def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
-    """Format changed file categories as markdown bullets."""
+    """
+    Format file category counts into a Markdown bullet list.
+    
+    Parameters:
+        file_analysis (dict): Analysis dictionary containing a "file_categories" mapping of
+            category name (str) to count (int).
+    
+    Returns:
+        str: Markdown-formatted bullets, one per category (e.g., "- Python: 5").
+    """
     return "\n".join([f"- {name.title()}: {count}" for name, count in file_analysis["file_categories"].items()])
 
 
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
-    """Format the large-files section."""
+    """
+    Create a Markdown "Large Files" section listing files with more than 500 changed lines.
+    
+    Parameters:
+        file_analysis (dict): Analysis dictionary that must include a "large_files" key containing a list of dicts with at least the keys "filename" and "changes".
+    
+    Returns:
+        str: Markdown-formatted section listing each large file as a bullet (empty string if no large files).
+    """
     large_files = file_analysis["large_files"]
     if not large_files:
         return ""
@@ -295,14 +411,30 @@ def _format_large_files(file_analysis: Dict[str, Any]) -> str:
 
 
 def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
-    """Format linked issues section."""
+    """
+    Builds a Markdown "Related Issues" section from extracted issue metadata.
+    
+    Parameters:
+        related_issues (List[Dict[str, str]]): Iterable of issue descriptors where each dict contains at least a `'number'` key (issue number as a string or int) and may include a `'url'`.
+    
+    Returns:
+        str: A Markdown string with a "**Related Issues:**" header followed by bullet lines like `- #123`, or an empty string if `related_issues` is empty.
+    """
     if not related_issues:
         return ""
     return "\n**Related Issues:**\n" + "".join([f"- #{issue['number']}\n" for issue in related_issues])
 
 
 def _get_recommendations(risk_level: str) -> List[str]:
-    """Return recommendation bullets by risk band."""
+    """
+    Provide a short list of recommendation bullets appropriate for the given risk level.
+    
+    Parameters:
+        risk_level (str): Risk band label, typically "High", "Medium", or other values treated as low risk.
+    
+    Returns:
+        List[str]: Ordered recommendation strings suitable for inclusion in the report.
+    """
     recommendations = {
         "High": [
             "⚠️ Split into smaller changes",
@@ -321,7 +453,16 @@ def _get_recommendations(risk_level: str) -> List[str]:
 
 
 def generate_markdown(pr: Any, data: AnalysisData) -> str:
-    """Build the markdown report."""
+    """
+    Constructs a Markdown report summarizing a pull request analysis.
+    
+    Parameters:
+        pr (Any): Pull request object (expects at least `.number` and `.user.login`).
+        data (AnalysisData): AnalysisData containing file_analysis, complexity_score, risk_level, scope_issues, and related_issues used to populate the report.
+    
+    Returns:
+        str: Markdown-formatted report with an overview, file breakdown (categories and large files), potential scope issues, related issues, and recommendations.
+    """
     emoji_map = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}
     risk_emoji = emoji_map.get(data.risk_level, "⚪")
     cat_str = _format_file_categories(data.file_analysis)
@@ -348,7 +489,14 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 
 
 def write_output(report: str) -> None:
-    """Write report to GITHUB_STEP_SUMMARY and a secure temp file."""
+    """
+    Write the analysis report to the GitHub Actions step summary, a secure temporary file, and standard output.
+    
+    If the GITHUB_STEP_SUMMARY environment variable is set and points inside the system temporary directory, append the report to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always attempt to create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False) and write the report there; the created temp file path is printed to stdout. Any I/O errors while writing the summary or temp file are caught and reported to stderr. Finally, the report is printed to stdout.
+    
+    Parameters:
+        report (str): The Markdown report content to be written to outputs.
+    """
     # 1. GitHub Actions Summary
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if gh_summary:
@@ -393,7 +541,11 @@ def write_output(report: str) -> None:
 
 
 def run() -> None:
-    """Main execution flow."""
+    """
+    Execute the end-to-end PR analysis workflow and produce a Markdown report.
+    
+    Validates required environment variables, loads configuration, fetches the specified pull request from GitHub, collects file and commit data, computes a complexity score and risk level, detects scope and related-issue signals, writes the generated report to the configured outputs, and exits the process. Exits with a non-zero status on missing/invalid environment variables, GitHub API errors, or other runtime failures; prints a CI warning when the risk level is "High".
+    """
     env_vars = {var: os.environ.get(var) for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")}
 
     if not all(env_vars.values()):

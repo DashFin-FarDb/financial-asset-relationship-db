@@ -3,6 +3,7 @@
 
 set -e -o pipefail
 
+# fatal prints an error message to stderr and exits the script with status 1.
 fatal() {
     echo "Error: $*" >&2
     exit 1
@@ -40,6 +41,7 @@ fi
 version_file="$CODACY_CLI_V2_TMP_FOLDER/version.yaml"
 
 
+# get_version_from_yaml reads the version_file and echoes the value of the `version` field if present; returns a non-zero status if the file or version is missing.
 get_version_from_yaml() {
     if [ -f "$version_file" ]; then
         local version=$(grep -o 'version: *"[^"]*"' "$version_file" | cut -d'"' -f2)
@@ -51,6 +53,7 @@ get_version_from_yaml() {
     return 1
 }
 
+# get_latest_version fetches the latest Codacy CLI v2 release tag from GitHub and echoes the tag (e.g., "v1.2.3"), exiting with an error if a valid version cannot be obtained.
 get_latest_version() {
     local response
     if [ -n "$GH_TOKEN" ]; then
@@ -70,6 +73,7 @@ get_latest_version() {
     echo "$version"
 }
 
+# handle_rate_limit checks the GitHub API response string for an "API rate limit exceeded" message and calls fatal with an explanatory error if the limit is exceeded.
 handle_rate_limit() {
     local response="$1"
     if echo "$response" | grep -q "API rate limit exceeded"; then
@@ -77,6 +81,7 @@ handle_rate_limit() {
     fi
 }
 
+# download_file downloads the file at the given URL into the current directory and fails if neither `curl` nor `wget` is available.
 download_file() {
     local url="$1"
 
@@ -90,6 +95,7 @@ download_file() {
     fi
 }
 
+# download downloads a file from the given URL into the specified output folder.
 download() {
     local url="$1"
     local output_folder="$2"
@@ -97,6 +103,8 @@ download() {
     ( cd "$output_folder" && download_file "$url" )
 }
 
+# download_cli downloads the Codacy CLI tarball for the specified version and extracts it into bin_folder if bin_path does not already exist.
+# Arguments: bin_folder — destination directory; bin_path — expected path of the CLI binary; version — release tag or version string.
 download_cli() {
     # OS name lower case
     suffix=$(echo "$os_name" | tr '[:upper:]' '[:lower:]')

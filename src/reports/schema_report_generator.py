@@ -78,8 +78,10 @@ class SchemaReportGenerator:
 
     def _render_schema_overview(self) -> List[str]:
         """
-        Render the schema overview section listing entity types and
-        descriptions.
+        Render the "Schema Overview" section describing supported entity types.
+        
+        Returns:
+            lines (List[str]): A list of Markdown-formatted lines for the schema overview.
         """
         return [
             "## Schema Overview",
@@ -146,7 +148,16 @@ class SchemaReportGenerator:
         return lines
 
     def _render_business_rules(self) -> List[str]:
-        """Render the business rules and constraints section of the report."""
+        """
+        Render the "Business Rules & Constraints" report section as Markdown lines.
+        
+        This section includes subsections for Cross-Asset Rules, Regulatory Rules, and Valuation Rules,
+        describing sector affinity, corporate bond linkage, currency exposure, event propagation,
+        impact scoring, and strength normalization.
+        
+        Returns:
+            lines (List[str]): Ordered list of Markdown-formatted lines composing the section.
+        """
         return [
             "## Business Rules & Constraints",
             "",
@@ -191,7 +202,12 @@ class SchemaReportGenerator:
         return lines
 
     def _render_implementation_notes(self) -> List[str]:
-        """Render implementation notes including timestamp and normalization details."""
+        """
+        Produce the "Implementation Notes" section as a list of Markdown lines detailing timestamp format, normalization ranges, and relationship directionality.
+        
+        Returns:
+            lines (List[str]): Markdown lines composing the Implementation Notes section.
+        """
         return [
             "## Implementation Notes",
             "- ISO 8601 timestamps.",

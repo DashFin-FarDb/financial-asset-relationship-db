@@ -27,7 +27,13 @@ def schema_report(
     ] = "md",
 ) -> Response:
     """
-    Return the schema report in Markdown or HTML format.
+    Serve the schema report as Markdown or HTML.
+    
+    Parameters:
+        report_format (Literal["md", "html"]): Desired output format — `"md"` returns Markdown, `"html"` returns HTML.
+    
+    Returns:
+        Response: HTTP response containing the report content; media type is `text/markdown; charset=utf-8` for `md` and `text/html; charset=utf-8` for `html`.
     """
     if report_format == "md":
         return Response(
@@ -44,7 +50,15 @@ def schema_report_raw(
     fmt: Annotated[Literal["md", "html"], Query(pattern="^(md|html)$")] = "md",
 ) -> dict[str, str]:
     """
-    Return the schema report as a downloadable file payload.
+    Produce a downloadable schema report payload in the requested format.
+    
+    Parameters:
+    	fmt (Literal["md", "html"]): Report format; "md" for Markdown or "html" for HTML.
+    
+    Returns:
+    	payload (dict[str, str]): A mapping with keys:
+    		- "filename": Suggested download filename (e.g., "schema_report.md" or "schema_report.html").
+    		- "content": The report content as a string in the requested format.
     """
     content = export_report(graph, fmt=fmt)
     return {

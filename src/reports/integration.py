@@ -92,6 +92,16 @@ def markdown_to_html(md: str) -> str:
 
     # Add rel="nofollow noopener" to links and open in new tab defensively.
     def _add_noopener(attrs: dict, _new: bool = False) -> dict:
+        """
+        Ensure the attribute mapping contains "noopener" in the `rel` attribute value.
+        
+        Parameters:
+            attrs (dict): Mapping of attribute keys (typically tuples like `(None, "rel")`) to their values; this mapping is modified in-place and returned.
+            _new (bool): Unused; present to match the callback signature expected by bleach.
+        
+        Returns:
+            dict: The same `attrs` mapping with the `rel` value updated to include `"noopener"` if it was not already present.
+        """
         rel = attrs.get((None, "rel"), "")
         if "noopener" not in rel:
             attrs[(None, "rel")] = (rel + " noopener").strip()
@@ -116,16 +126,16 @@ def markdown_to_html(md: str) -> str:
 
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown schema report for the provided graph.
-
+    Generate a Markdown-formatted schema report for an asset relationship graph.
+    
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to report on.
-
+        graph (AssetRelationshipGraph): The asset relationship graph to produce the report from.
+    
     Returns:
-        str: Markdown-formatted schema report.
-
+        str: The report rendered as Markdown.
+    
     Raises:
-        ValueError: Propagated from report generation if the graph is invalid.
+        ValueError: If the provided graph is invalid or report generation fails.
     """
     return generate_schema_report(graph)
 
@@ -153,21 +163,18 @@ ReportFormat = Literal["md", "html"]
 
 def export_report(graph: object, fmt: ReportFormat = "md") -> str:
     """
-    Export a schema report for `graph` in the requested format.
-
-    This provides a single integration point for API routes or other callers
-    that need either Markdown or HTML output.
-
+    Export a schema report for the given asset relationship graph in the requested format.
+    
     Parameters:
-        graph (object): Candidate asset relationship graph to report on.
-        fmt (Literal["md", "html"]): Output format.
-
+        graph (object): An AssetRelationshipGraph instance to generate the report from.
+        fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML (case-insensitive).
+    
     Returns:
         str: Report content in the requested format.
-
+    
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph.
-        ValueError: If `fmt` is unsupported.
+        ValueError: If `fmt` is not one of "md" or "html".
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError(f"export_report() expected AssetRelationshipGraph, got {type(graph)!r}")
@@ -218,16 +225,15 @@ def attach_to_gradio_interface(
     html: bool = False,
 ) -> Any:
     """
-    Create and return a Gradio component pre-populated with a schema report.
-
+    Create a Gradio component that renders the current schema report.
+    
     Parameters:
-        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument factory
-            returning the current graph.
-        html (bool): If True, returns a gr.HTML component; otherwise gr.Markdown.
-
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument function that returns the current graph.
+        html (bool): If True, produce an HTML-rendered report component; otherwise produce a Markdown-rendered component.
+    
     Returns:
-        Any: A gr.HTML or gr.Markdown Gradio component.
-
+        A gr.HTML component when `html` is True, otherwise a gr.Markdown component.
+    
     Raises:
         RuntimeError: If Gradio is not installed.
     """

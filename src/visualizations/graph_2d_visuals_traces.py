@@ -44,10 +44,18 @@ def create_2d_relationship_traces(
     options: RelationshipTraceOptions | None = None,
     **legacy_flags: bool,
 ) -> List[go.Scatter]:
-    """Public API for building 2D relationship traces.
-
-    The preferred API is the `options` mapping. Legacy keyword flags are still
-    accepted for backward compatibility and override `options` values when set.
+    """
+    Builds Plotly 2D line traces representing relationships between assets.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Asset relationship graph containing assets and their relationships.
+        positions (Dict[str, Tuple[float, float]]): Mapping of asset ID to (x, y) coordinates.
+        asset_ids (List[str]): Ordered list of asset IDs to include in traces.
+        options (RelationshipTraceOptions | None): Optional mapping of per-relationship-type visibility flags; preferred API.
+        **legacy_flags (bool): Legacy per-relationship boolean flags accepted for backward compatibility; when present they override values in `options`.
+    
+    Returns:
+        List[go.Scatter]: A list of Plotly Scatter traces (one per visible relationship type). Returns an empty list if `asset_ids` or `positions` are empty.
     """
     normalized_options = _resolve_trace_options(options, legacy_flags)
     return _create_2d_relationship_traces(
@@ -64,26 +72,19 @@ def _create_2d_relationship_traces(
     asset_ids: List[str],
     options: Dict[str, bool] | None = None,
 ) -> List[go.Scatter]:
-    """Create 2D relationship traces for a given asset relationship graph.
-
-    This function generates visual traces representing relationships between
-    assets based on various filters. It processes the input `graph` to identify
-    relationships between `asset_ids` and their corresponding `positions`,
-    applying filters for different relationship types. The resulting traces are
-    formatted for visualization, including hover information for each
-    relationship.
-
-    Args:
-        graph (AssetRelationshipGraph): The graph containing asset relationships.
-        positions (Dict[str, Tuple[float, float]]):
-            A dictionary mapping asset IDs to their 2D positions.
-        asset_ids (List[str]): A list of asset IDs to include in the traces.
-        options (Dict[str, bool] | None):
-            Optional visibility toggles. Missing keys fall back to defaults.
-
+    """
+    Generate Plotly Scatter traces representing relationships between the specified assets.
+    
+    Each returned trace corresponds to a relationship type and contains line segments between asset positions with hover text that includes source, target, relationship type, and strength.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Asset relationship graph to source relationships from.
+        positions (Dict[str, Tuple[float, float]]): Mapping of asset IDs to 2D coordinates.
+        asset_ids (List[str]): Asset IDs to include in the relationship traces.
+        options (Dict[str, bool] | None): Optional per-type visibility toggles; missing keys fall back to DEFAULT_TRACE_OPTIONS.
+    
     Returns:
-        List[go.Scatter]: A list of scatter traces representing the
-            relationships.
+        List[go.Scatter]: Scatter traces for each relationship type present (empty list if no assets or positions).
     """
     if not asset_ids or not positions:
         return []
@@ -107,7 +108,16 @@ def _resolve_trace_options(
     options: Dict[str, bool] | None,
     legacy_flags: Dict[str, bool],
 ) -> Dict[str, bool]:
-    """Merge defaults, options, and legacy flags into one mapping."""
+    """
+    Produce a merged mapping of trace option flags.
+    
+    Parameters:
+        options (Dict[str, bool] | None): Optional mapping of option names to boolean values that override defaults.
+        legacy_flags (Dict[str, bool]): Legacy boolean flags that take highest precedence and override both options and defaults.
+    
+    Returns:
+        resolved (Dict[str, bool]): Mapping of option names to booleans where values from `legacy_flags` override `options`, which override the module defaults.
+    """
     resolved = dict(DEFAULT_TRACE_OPTIONS)
     if options:
         resolved.update(options)
@@ -117,7 +127,20 @@ def _resolve_trace_options(
 
 
 def _build_relationship_filters(options: Dict[str, bool]) -> Dict[str, bool]:
-    """Build map of relationship-type visibility toggles."""
+    """
+    Create a mapping from normalized relationship filter keys to visibility flags.
+    
+    Parameters:
+        options (Dict[str, bool]): Input options with visibility flags. Expected keys:
+            `show_same_sector`, `show_market_cap`, `show_correlation`,
+            `show_corporate_bond`, `show_commodity_currency`,
+            `show_income_comparison`, `show_regulatory`.
+    
+    Returns:
+        Dict[str, bool]: Mapping of normalized relationship types to their visibility:
+            `same_sector`, `market_cap_similar`, `correlation`, `corporate_link`,
+            `commodity_currency`, `income_comparison`, `event_impact`.
+    """
     return {
         "same_sector": options["show_same_sector"],
         "market_cap_similar": options["show_market_cap"],
@@ -137,7 +160,22 @@ def _collect_relationship_groups(
     relationship_filters: Dict[str, bool],
     show_all_relationships: bool,
 ) -> Dict[str, list[Dict[str, object]]]:
-    """Collect relationships grouped by relationship type."""
+    """
+    Group visible relationships from the graph by relationship type for the given assets and positions.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph containing assets and their relationships.
+        positions (Dict[str, Tuple[float, float]]): Mapping of asset IDs to 2D positions; only relationships whose target appears in this mapping are considered.
+        asset_ids (List[str]): Ordered list of asset IDs to iterate as sources; only relationships with targets also in this list are considered.
+        relationship_filters (Dict[str, bool]): Visibility toggles keyed by relationship type; a relationship is excluded when its type is present and set to False, unless show_all_relationships is True.
+        show_all_relationships (bool): If True, ignore relationship_filters and include all relationship types.
+    
+    Returns:
+        Dict[str, list[Dict[str, object]]]: Mapping from relationship type to a list of relationship records. Each record contains:
+            - "source_id" (str): ID of the source asset.
+            - "target_id" (str): ID of the target asset.
+            - "strength" (object): Relationship strength value (as provided by the graph).
+    """
     asset_id_set = set(asset_ids)
     relationship_groups: Dict[str, list[Dict[str, object]]] = {}
     for source_id in asset_ids:
@@ -166,7 +204,16 @@ def _relationship_hidden(
     relationship_filters: Dict[str, bool],
     show_all_relationships: bool,
 ) -> bool:
-    """Return True when a relationship type should be hidden."""
+    """
+    Determine whether a relationship type should be hidden given the active filters and the global show-all flag.
+    
+    Parameters:
+        relationship_filters (Dict[str, bool]): Mapping from relationship type name to a boolean indicating whether that type is enabled.
+        show_all_relationships (bool): Global override; when True all relationship types are shown regardless of individual filters.
+    
+    Returns:
+        bool: `True` if the relationship should be hidden, `False` otherwise.
+    """
     return not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]
 
 
@@ -175,7 +222,19 @@ def _build_relationship_trace(
     relationships: list[Dict[str, object]],
     positions: Dict[str, Tuple[float, float]],
 ) -> go.Scatter:
-    """Build one Plotly trace for a relationship type."""
+    """
+    Create a Plotly line trace representing edges for a specific relationship type.
+    
+    Parameters:
+        rel_type (str): Relationship type label used for styling and hover text.
+        relationships (list[Dict[str, object]]): Sequence of relationship records; each record must contain
+            'source_id' and 'target_id' and may include a numeric 'strength' value.
+        positions (Dict[str, Tuple[float, float]]): Mapping from asset id (string) to its 2D (x, y) position.
+    
+    Returns:
+        go.Scatter: A Scatter trace with line segments connecting each source-target pair. Each segment's hover
+        text shows "source → target", the relationship type, and the relationship strength formatted to two decimals.
+    """
     edges_x: list[float | None] = []
     edges_y: list[float | None] = []
     hover_texts: list[str | None] = []
@@ -204,21 +263,18 @@ def _create_node_trace(
     positions: Dict[str, Tuple[float, float]],
     asset_ids: List[str],
 ) -> go.Scatter:
-    """Create a scatter plot trace for asset nodes.
-
-    This function generates a scatter plot trace using the provided asset
-    positions and their corresponding asset IDs. It retrieves the
-    asset classes to determine the colors for each node and calculates
-    node sizes based on the number of connections each asset has.
-    The resulting trace is suitable for visualization in a graphing
-    library.
-
-    Args:
-        graph(AssetRelationshipGraph): The graph containing
-            asset relationships.
-        positions(Dict[str, Tuple[float, float]]):
-            A dictionary mapping asset IDs to their(x, y) positions.
-        asset_ids(List[str]): A list of asset IDs to be included in the trace.
+    """
+    Builds a Plotly Scatter trace representing asset nodes with colors, sizes, labels, and hover text.
+    
+    Each marker's color is derived from the asset's class using ASSET_CLASS_COLORS (falls back to "#7f7f7f"), and its size is 20 plus 5 per connection capped at an additional 30. Hover text contains the asset ID and its class.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Graph containing asset objects and their relationships.
+        positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to its (x, y) position; order of `asset_ids` determines the trace ordering.
+        asset_ids (List[str]): Asset IDs to include in the trace.
+    
+    Returns:
+        go.Scatter: A configured Scatter trace with markers and text suitable for plotting asset nodes.
     """
     node_x = [positions[a][0] for a in asset_ids]
     node_y = [positions[a][1] for a in asset_ids]

@@ -41,15 +41,13 @@ def _apply_asset_class_layout(fig: go.Figure) -> None:
 
 def _relationship_distribution(distribution: dict) -> go.Figure:
     """
-    Create a bar chart showing counts for each relationship type.
-
+    Creates a bar chart of counts per relationship type.
+    
     Parameters:
-        distribution (dict): Mapping of relationship type (str)
-            to its count (int).
-
+        distribution (dict): Mapping of relationship type names (str) to counts (int).
+    
     Returns:
-        go.Figure: Plotly Figure containing a bar chart with relationship
-            types on the x-axis and their counts on the y-axis.
+        go.Figure: Plotly Figure with relationship types on the x-axis and counts on the y-axis.
     """
     rel_types = list(distribution.keys())
     rel_counts = list(distribution.values())
@@ -60,7 +58,11 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
 
 
 def _apply_relationship_layout(fig: go.Figure) -> None:
-    """Apply presentation layout to the relationship distribution chart."""
+    """
+    Apply presentation layout to a relationship distribution Plotly figure.
+    
+    Modifies the provided figure in place to set the chart title, x- and y-axis titles, and rotate x-axis tick labels by -45 degrees.
+    """
     fig.update_layout(
         title="Relationship Types Distribution",
         xaxis_title="Relationship Type",
@@ -70,22 +72,20 @@ def _apply_relationship_layout(fig: go.Figure) -> None:
 
 
 def _regulatory_events_timeline(events: list) -> go.Figure:
-    """Generate a timeline of regulatory events as a bar chart.
-
-    This function takes a list of regulatory events, sorts them by date,  and
-    constructs a bar chart displaying the impact scores of each event.
-    It extracts the dates, names, and impact scores from the sorted events
-    and uses Plotly's
-    graphing library to create a visually informative  representation of the
-    regulatory timeline.
-
-    Args:
-        events (list): A list of regulatory event objects containing date,
-            asset_id, event_type, and impact_score attributes.
-
+    """
+    Create a timeline bar chart of regulatory events showing each event's impact score over time.
+    
+    Each event object in `events` is expected to have:
+    - `date`: ISO 8601 date string,
+    - `asset_id`: identifier used in bar labels,
+    - `event_type`: object with a `value` attribute used in bar labels,
+    - `impact_score`: numeric value plotted on the y axis.
+    
+    Parameters:
+        events (list): List of regulatory event objects with the attributes described above.
+    
     Returns:
-        go.Figure: A Plotly figure object representing the regulatory events
-        timeline visualization.
+        go.Figure: A Plotly Figure with dates on the x axis and impact scores on the y axis; bars are labeled as "asset_id: event_type" and colored green for positive impacts and red for zero or negative impacts.
     """
     sorted_events = sorted(events, key=lambda e: datetime.fromisoformat(e.date))
     dates = [datetime.fromisoformat(e.date) for e in sorted_events]
@@ -107,7 +107,12 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
 
 
 def _apply_regulatory_events_layout(fig: go.Figure) -> None:
-    """Apply presentation layout to the regulatory events timeline chart."""
+    """
+    Apply consistent presentation layout for a regulatory events timeline figure.
+    
+    Parameters:
+        fig (go.Figure): Plotly Figure to update; layout settings are applied in place.
+    """
     fig.update_layout(
         title="Regulatory Events Timeline",
         xaxis_title="Date",
@@ -118,7 +123,17 @@ def _apply_regulatory_events_layout(fig: go.Figure) -> None:
 def visualize_metrics(
     graph: AssetRelationshipGraph,
 ) -> Tuple[go.Figure, go.Figure, go.Figure]:
-    """Create visualizations of graph metrics."""
+    """
+    Build three Plotly figures summarizing metrics extracted from an AssetRelationshipGraph.
+    
+    Parameters:
+        graph (AssetRelationshipGraph): Source graph whose metrics and regulatory events are used to create the figures.
+    
+    Returns:
+        asset_class_fig (go.Figure): Bar chart showing counts per asset class.
+        relationship_fig (go.Figure): Bar chart showing counts per relationship type.
+        regulatory_timeline_fig (go.Figure): Timeline bar chart of regulatory events with impact scores.
+    """
     metrics = graph.calculate_metrics()
     return (
         _asset_class_distribution(metrics["asset_class_distribution"]),

@@ -10,10 +10,20 @@ from src.logic.asset_graph import AssetRelationshipGraph
 
 @lru_cache(maxsize=1)
 def _get_cached_graph() -> AssetRelationshipGraph:
-    """Create and cache a single shared graph instance."""
+    """
+    Create and cache a single shared AssetRelationshipGraph instance.
+    
+    Returns:
+        AssetRelationshipGraph: The cached graph instance returned on subsequent calls.
+    """
     return create_sample_database()
 
 
 def get_graph() -> AssetRelationshipGraph:
-    """Return the shared graph, initializing it once on first call."""
+    """
+    Provide the module's shared AssetRelationshipGraph instance.
+    
+    Returns:
+        graph (AssetRelationshipGraph): The cached shared graph instance; created and cached on first call.
+    """
     return _get_cached_graph()

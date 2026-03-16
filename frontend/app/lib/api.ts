@@ -17,6 +17,13 @@ const apiClient = axios.create({
   },
 });
 
+/**
+ * Fetches data from the API at the specified relative path.
+ *
+ * @param path - Relative path to the API endpoint (appended to the client's baseURL)
+ * @param config - Optional Axios request configuration (for query params, headers, abort signal, etc.)
+ * @returns The response data parsed as `T`
+ */
 async function getData<T>(
   path: string,
   config?: AxiosRequestConfig,

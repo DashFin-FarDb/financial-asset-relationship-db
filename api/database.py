@@ -34,7 +34,16 @@ def _normalize_sqlite_path(parsed_path: str) -> str:
 
 
 def _is_standard_memory_path(parsed: object, normalized_path: str) -> bool:
-    """Check whether parsed URL represents a standard SQLite memory database."""
+    """
+    Determine whether a parsed SQLite URL denotes the standard in-memory database form.
+    
+    Parameters:
+        parsed (object): Parsed URL object (e.g., result of urllib.parse.urlparse) whose `netloc` may be ":memory:".
+        normalized_path (str): Decoded and normalized path component of the URL.
+    
+    Returns:
+        bool: `true` if the parsed URL represents the standard SQLite in-memory database (netloc equals ":memory:" or path equals ":memory:" or "/:memory:"), `false` otherwise.
+    """
     parsed_netloc = getattr(parsed, "netloc", "")
     return parsed_netloc == ":memory:" or normalized_path in {":memory:", "/:memory:"}
 
@@ -43,7 +52,16 @@ def _resolve_uri_style_memory_path(
     path: str,
     query: str,
 ) -> str | None:
-    """Resolve URI-style memory DB path, returning None if not applicable."""
+    """
+    Extract the URI-style SQLite memory database path (e.g. "file::memory:"), appending the query if provided.
+    
+    Parameters:
+        path (str): The URL path component which may include leading slashes and a "file:" URI indicating a memory database.
+        query (str): The raw query string (without a leading '?') to append when present.
+    
+    Returns:
+        memory_path (str) containing the URI-style memory path with the query appended when present, or `None` if the provided path is not a URI-style memory database.
+    """
     if not path.lstrip("/").startswith("file:") or ":memory:" not in path:
         return None
     result = path.lstrip("/")
@@ -53,7 +71,15 @@ def _resolve_uri_style_memory_path(
 
 
 def _resolve_file_path(path: str) -> str:
-    """Resolve a normalized SQLite file path to an absolute filesystem path."""
+    """
+    Convert a normalized SQLite file path into an absolute filesystem path.
+    
+    Parameters:
+        path (str): Normalized SQLite path component; may be absolute ("/..."), UNC-like ("//server/path"), or rootless.
+    
+    Returns:
+        str: Absolute filesystem path resolved from `path`.
+    """
     if path.startswith("/") and not path.startswith("//"):
         return str(Path(path).resolve())
     if path.startswith("//"):
@@ -108,30 +134,22 @@ _MEMORY_CONNECTION_LOCK = threading.Lock()
 
 def _is_memory_db(path: str | None = None) -> bool:
     """
-    Recognizes valid SQLite in-memory database patterns:
-    - ":memory:" - standard in-memory database
-    - "file::memory:" - URI-style in-memory database
-    - "file::memory:?cache=shared" - shared memory database with URI parameters
-
-    Does NOT recognize patterns where :memory: is part of a file path:
-    - "file:///path/:memory:" - treated as a file path, not memory database
-    - "/path/to/:memory:" - treated as a file path, not memory database
-
-    Per SQLite documentation, :memory: must be the entire path component for
-    URI-style databases, not embedded within a longer path.
-
-    Note: The `mode = memory` URI parameter
-    (e.g., "file:memdb1?mode=memory") is NOT detected as an in-memory
-    database by this function. Use the standard patterns above for reliable
-    detection.
-
+    Determine whether a SQLite database path represents an in-memory database.
+    
+    Recognizes exact in-memory forms such as ":memory:" and URI-style memory paths
+    like "file::memory:" or "file::memory:?cache=shared". Does not treat paths
+    where ":memory:" appears as part of a filesystem path (for example,
+    "file:///path/:memory:" or "/path/to/:memory:") as in-memory databases.
+    The URI form using "mode=memory" (e.g., "file:memdb1?mode=memory") is not
+    considered in-memory by this function.
+    
     Parameters:
-        path (str | None): Optional database path or URI to evaluate.
-            If omitted, the configured DATABASE_PATH is used.
-
+        path (str | None): Database path or URI to evaluate. If omitted, the
+            configured DATABASE_PATH is used.
+    
     Returns:
-        bool: True if the path (or configured database) is an in-memory SQLite
-        database. For example, ":memory:" or "file::memory:?cache=shared",
+        bool: True if the provided (or configured) path denotes an in-memory
+        SQLite database (for example, ":memory:" or "file::memory:?cache=shared"),
         False otherwise.
     """
     target = DATABASE_PATH if path is None else path
@@ -160,17 +178,24 @@ class _DatabaseConnectionManager:
     LEGACY_CONNECTION = None
 
     def __init__(self, database_path: str):
+        """
+        Initialize the connection manager with the configured SQLite database path.
+        
+        Sets up internal state for an optional shared in-memory connection and its lock.
+        
+        Parameters:
+            database_path (str): Resolved SQLite path that determines connection strategy — a filesystem path, the literal ":memory:", or a URI-style memory path (e.g., "file::memory:?cache=shared").
+        """
         self._database_path = database_path
         self._memory_connection: sqlite3.Connection | None = None
         self._memory_connection_lock = threading.Lock()
 
     def connect(self) -> sqlite3.Connection:
         """
-        Open a configured SQLite connection for the module's database path.
-
-        Returns a persistent shared connection when the configured database is
-        in-memory; for file-backed databases, returns a new connection
-        instance.
+        Open a SQLite connection for the manager's configured database path.
+        
+        Returns:
+            sqlite3.Connection: The shared in-memory connection when the configured path is an in-memory database; otherwise a new connection for a file-backed database. The returned connection has its row factory set to `sqlite3.Row`.
         """
         if _is_memory_db(self._database_path):
             with self._memory_connection_lock:
@@ -215,19 +240,12 @@ _db_manager = _DatabaseConnectionManager(DATABASE_PATH)
 
 def _connect() -> sqlite3.Connection:
     """
-    Open a configured SQLite connection for the module's database path.
-
-    Returns a persistent shared connection when the configured database is
-    in-memory; for file-backed databases, returns a new connection instance.
-    The connection has type detection enabled (PARSE_DECLTYPES), allows use
-    from multiple threads (check_same_thread=False) and uses sqlite3.Row for
-    rows.
-    When the database path is a URI beginning with "file:" the connection is
-    opened with URI handling enabled.
-
+    Open and return a SQLite connection for the configured database path.
+    
+    For in-memory databases this returns a persistent shared connection; for file-backed databases this returns a new connection instance.
+    
     Returns:
-        sqlite3.Connection: A sqlite3 connection to the configured
-            DATABASE_PATH (shared for in-memory, new per call for file-backed).
+        sqlite3.Connection: Connection to the configured DATABASE_PATH; shared for in-memory databases, new per call for file-backed databases.
     """
     return _db_manager.connect()
 
@@ -236,15 +254,9 @@ def _connect() -> sqlite3.Connection:
 def get_connection() -> Iterator[sqlite3.Connection]:
     """
     Provide a context-managed SQLite connection for the configured database.
-
-    For file-backed databases the connection is closed when the context exits;
-    for in-memory databases the shared connection is kept open.
-
+    
     Returns:
-        sqlite3.Connection: The SQLite connection.
-            For file-backed databases, the
-            connection is closed on context exit;
-            for in-memory databases, it is kept open.
+        sqlite3.Connection: The SQLite connection. For file-backed databases the connection is closed when the context exits; for in-memory databases the shared connection remains open.
     """
     connection = _connect()
     try:
@@ -258,9 +270,9 @@ def get_connection() -> Iterator[sqlite3.Connection]:
 # Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
 def _close_shared_memory_connection() -> None:
     """
-    Close the shared in-memory connection on process exit.
-
-    Delegates to the manager's public close method.
+    Close and clear the module's shared in-memory SQLite connection, if one is initialized.
+    
+    Delegates to the database connection manager's close_shared_connection() to close the cached in-memory connection and release associated resources.
     """
     _db_manager.close_shared_connection()
 

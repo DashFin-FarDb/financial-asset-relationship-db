@@ -106,6 +106,13 @@ const renderPageSizeOption = (size: number) => (
   </option>
 );
 
+/**
+ * Displays a compact status line showing either a loading indicator or an error message, and renders nothing when neither applies.
+ *
+ * @param loading - Whether the list is currently loading
+ * @param error - The error message to display, or `null` when there is no error
+ * @returns A `<div>` containing `"Loading..."` or `"Error: <message>"`, or `null` when not loading and no error
+ */
 function AssetListStatus({ loading, error }: AssetListStatusProps) {
   const hasError = error !== null;
   if (!loading && !hasError) {
@@ -123,6 +130,14 @@ function AssetListStatus({ loading, error }: AssetListStatusProps) {
   );
 }
 
+/**
+ * Render a responsive table of assets and show appropriate status rows for loading, error, or empty results.
+ *
+ * @param assets - The list of asset records to render as table rows.
+ * @param loading - When true, shows a single "Loading..." row instead of assets.
+ * @param error - When set, shows the error message in a single row instead of assets.
+ * @returns A table element containing asset rows, or a single-row status message when loading, error, or no assets.
+ */
 function AssetListTable({ assets, loading, error }: AssetListTableProps) {
   let tableRows: React.ReactNode;
   if (loading) {
@@ -207,6 +222,13 @@ type SearchState = {
   pageSize: number;
 };
 
+/**
+ * Compute the number of pages needed to display a given total of items at a specified page size.
+ *
+ * @param total - The total number of items; may be `null` when unknown.
+ * @param pageSize - Number of items per page.
+ * @returns The total number of pages (minimum 1) required to show `total` items at `pageSize`, or `null` if `total` is `null` or less than or equal to zero.
+ */
 function computeTotalPages(
   total: number | null,
   pageSize: number,
@@ -217,6 +239,13 @@ function computeTotalPages(
   return Math.max(1, Math.ceil(total / pageSize));
 }
 
+/**
+ * Create a new URLSearchParams by applying key updates and removals to an existing set.
+ *
+ * @param currentParams - The source URLSearchParams to clone and modify.
+ * @param updates - A map of keys to new values; a value of `null` or `""` removes the key from the result.
+ * @returns The resulting URLSearchParams after applying the updates.
+ */
 function createUpdatedSearchParams(
   currentParams: URLSearchParams,
   updates: Record<string, string | null>,
@@ -232,6 +261,12 @@ function createUpdatedSearchParams(
   return params;
 }
 
+/**
+ * Build a SearchState object from URL search parameters.
+ *
+ * @param searchParams - URLSearchParams to read `asset_class`, `sector`, `page`, and `per_page` from
+ * @returns The parsed SearchState with `filter` (asset_class, sector), `page` (>=1, default 1), and `pageSize` (>=1, default DEFAULT_PAGE_SIZE)
+ */
 function readSearchState(searchParams: URLSearchParams): SearchState {
   return {
     filter: {
@@ -286,6 +321,16 @@ type QueryUpdaterParams = Readonly<{
   router: ReturnType<typeof useRouter>;
 }>;
 
+/**
+ * Synchronizes component filter, page, and pageSize state with the given URL search params.
+ *
+ * Reads filter, page, and pageSize from `searchParams` and updates the provided setters only when the parsed values differ from current state.
+ *
+ * @param searchParams - URLSearchParams object to read `asset_class`, `sector`, `page`, and `pageSize` from
+ * @param setFilter - State setter for the asset filter; will be set to the parsed filter if it differs from current filter
+ * @param setPage - State setter for the current page; will be set to the parsed page if it differs from current page
+ * @param setPageSize - State setter for the page size; will be set to the parsed pageSize if it differs from current page size
+ */
 function useSearchStateSync(
   searchParams: URLSearchParams,
   setFilter: React.Dispatch<React.SetStateAction<AssetFilter>>,
@@ -309,6 +354,20 @@ function useSearchStateSync(
   }, [searchParams, setFilter, setPage, setPageSize]);
 }
 
+/**
+ * Triggers asset fetching when pagination, filter, or query summary change and updates provided state setters.
+ *
+ * Invokes `loadAssets` and ensures `setLoading`/`setError`/`setAssets`/`setTotal` are updated to reflect the request lifecycle and result.
+ *
+ * @param page - Current page number to request
+ * @param pageSize - Number of items per page to request
+ * @param filter - Asset filter to apply (e.g., asset class and sector)
+ * @param querySummary - Precomputed string summary of the current query used for logging or cache keys
+ * @param setAssets - Setter invoked with the fetched asset list
+ * @param setTotal - Setter invoked with the total number of matching assets
+ * @param setError - Setter invoked with an error message if loading fails
+ * @param setLoading - Setter invoked to indicate loading state (`true` when request starts, `false` when it finishes)
+ */
 function useAssetDataLoading({
   page,
   pageSize,
@@ -350,6 +409,14 @@ function useAssetDataLoading({
   }, [fetchAssets, setError, setLoading]);
 }
 
+/**
+ * Create a memoized updater that applies incremental changes to the current URL's search parameters using the provided router without causing page scroll.
+ *
+ * @param pathname - The current pathname to which updated search params will be appended; if falsy no update is performed.
+ * @param searchParams - The current URLSearchParams used as the base for applying `updates`.
+ * @param router - Router object with a `replace` method used to update the URL without scrolling.
+ * @returns A function that accepts an `updates` record mapping parameter names to string or `null`. The updater sets parameters to the provided string values, removes parameters when `null`, and calls `router.replace` with the new pathname and query only when the resulting search string differs from the current one.
+ */
 function useQueryParamUpdater({
   pathname,
   searchParams,
@@ -369,6 +436,19 @@ function useQueryParamUpdater({
   );
 }
 
+/**
+ * Create pagination and filter navigation controls that update local state and synchronize changes to the URL search params.
+ *
+ * The returned handlers update the corresponding state setters and replace the router search params; navigation booleans reflect whether moving pages is allowed given the current page, total pages, and loading state.
+ *
+ * @returns An object containing:
+ * - `canGoPrev` - `true` if the current page is greater than 1 and not loading, `false` otherwise.
+ * - `canGoNext` - `true` if `totalPages` is known, the current page is less than `totalPages`, and not loading, `false` otherwise.
+ * - `handleFilterChange` - A change handler for filter select elements that sets the given filter field, resets the page to 1, and updates the URL search params.
+ * - `handlePageSizeChange` - A change handler for the page-size select that parses and sets a new page size, resets the page to 1, and updates the URL search params.
+ * - `handlePrevClick` - A handler that navigates to the previous page (clamped) via the same page update logic.
+ * - `handleNextClick` - A handler that navigates to the next page (clamped) via the same page update logic.
+ */
 function useNavigationControls({
   pathname,
   searchParams,
@@ -435,6 +515,16 @@ function useNavigationControls({
   };
 }
 
+/**
+ * Assembles and returns controller state and handlers for the asset list, including filtering, pagination, loading, and metadata.
+ *
+ * @returns An `AssetListController` containing:
+ * - `assets`, `loading`, and `error` state for the current asset fetch
+ * - the active `filter` and available `assetClasses` and `sectors`
+ * - pagination state: `page`, `pageSize`, and `totalPages`
+ * - navigation booleans `canGoPrev` and `canGoNext`
+ * - handler functions `handleFilterChange`, `handlePageSizeChange`, `handlePrevClick`, and `handleNextClick`
+ */
 function useAssetListController(): AssetListController {
   const router = useRouter();
   const pathname = usePathname();
@@ -518,9 +608,11 @@ function useAssetListController(): AssetListController {
 }
 
 /**
- * Fetches and displays a list of assets with filtering and pagination.
+ * Renders the asset list UI with server-backed filtering and paginated navigation.
  *
- * @returns {JSX.Element} The AssetList component.
+ * Displays asset-class and sector filters, a status row, an asset table, and pagination controls including page navigation and page-size selection.
+ *
+ * @returns The rendered AssetList element.
  */
 export default function AssetList() {
   const {

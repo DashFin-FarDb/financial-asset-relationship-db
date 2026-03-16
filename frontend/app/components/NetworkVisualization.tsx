@@ -64,6 +64,12 @@ type VisualizationPreparation = {
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
+/**
+ * Constructs a Plotly 3D node trace from the provided node definitions.
+ *
+ * @param nodes - Array of node objects supplying the 3D coordinates, display label, hover metadata, size, and color. Each node is expected to include `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, and `color`.
+ * @returns A NodeTrace configured as a 3D scatter of markers and text. Marker sizes and colors are taken from each node; hover text includes the node name, symbol, and asset class.
+ */
 function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
   return {
     type: "scatter3d",
@@ -91,6 +97,15 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
   };
 }
 
+/**
+ * Converts node and edge lists into Plotly 3D line traces representing network edges.
+ *
+ * Skips any edge whose source or target node is not found (a warning is logged in that case).
+ *
+ * @param nodes - Array of node objects with `id`, `x`, `y`, and `z` coordinates.
+ * @param edges - Array of edge objects with `source`, `target`, and `strength` properties.
+ * @returns An array of `EdgeTrace` objects where each trace is a two-point 3D line from source to target; line color and width are derived from the edge's `strength`.
+ */
 function buildEdgeTraces(
   nodes: VisualizationData["nodes"],
   edges: VisualizationData["edges"],
@@ -125,6 +140,15 @@ function buildEdgeTraces(
   }, []);
 }
 
+/**
+ * Prepare Plotly traces and a rendering status from the provided visualization data.
+ *
+ * @param data - The visualization input containing `nodes` and `edges` to convert into traces.
+ * @returns A `VisualizationPreparation` describing the resulting `status`, a human-readable `message`, and `plotData`:
+ * - `status` is `"empty"` when there are no nodes,
+ * - `"tooLarge"` when node or edge counts exceed configured limits,
+ * - `"ready"` when `plotData` contains the edge traces followed by the node trace.
+ */
 function prepareVisualizationData(
   data: VisualizationData,
 ): VisualizationPreparation {

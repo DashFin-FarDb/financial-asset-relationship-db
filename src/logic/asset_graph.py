@@ -102,11 +102,16 @@ class AssetRelationshipGraph:
         **kwargs: Any,
     ) -> None:
         """
-        Add a relationship, skipping duplicates and optionally adding its reverse.
-
-        Supported call shapes:
-            add_relationship(src, tgt, rel_type, strength, bidirectional=False)
-            add_relationship(src, tgt, (rel_type, strength), bidirectional=False)
+        Add a directed relationship from source_id to target_id and optionally add the reverse relationship.
+        
+        This skips adding a duplicate relationship with the same type between the same source and target.
+        Accepts legacy and tuple argument shapes for relationship specification.
+        
+        Parameters:
+            relationship_args: Either a two-tuple (rel_type, strength) or positional arguments
+                rel_type, strength[, bidirectional_flag]. The optional bidirectional flag (positional)
+                or keyword `bidirectional` controls whether the reverse relationship is also added.
+            kwargs: May include `bidirectional` (bool) when not supplied positionally.
         """
         rel_type, strength, bidirectional = self._parse_relationship_args(
             relationship_args,
@@ -131,7 +136,16 @@ class AssetRelationshipGraph:
         relationship_args: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> tuple[str, float, bool]:
-        """Parse add_relationship arguments with backward-compatible signatures."""
+        """
+        Parse flexible add_relationship arguments into a normalized (rel_type, strength, bidirectional) tuple.
+        
+        Parameters:
+            relationship_args (tuple[Any, ...]): Positional arguments passed to add_relationship; supports either a single tuple of (rel_type, strength) or two/three positional values (rel_type, strength[, bidirectional]).
+            kwargs (dict[str, Any]): Keyword arguments passed to add_relationship; may include `bidirectional` and must not contain unknown keys.
+        
+        Returns:
+            tuple[str, float, bool]: A triple where `rel_type` is the relationship type as a string, `strength` is the relationship strength as a float, and `bidirectional` is a bool indicating whether the relationship should be added in both directions.
+        """
         (
             rel_type,
             strength,
@@ -152,7 +166,20 @@ class AssetRelationshipGraph:
         relationship_args: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> tuple[Any, Any, bool]:
-        """Dispatch to the parser that matches the argument shape."""
+        """
+        Selects and invokes the parser appropriate for the provided relationship argument shape.
+        
+        Parameters:
+            relationship_args (tuple[Any, ...]): Positional arguments forwarded from add_relationship; expected shapes are
+                a single tuple (rel_type, strength) or two/three positional elements (rel_type, strength[, bidirectional]).
+            kwargs (dict[str, Any]): Keyword arguments forwarded from add_relationship; used for optional `bidirectional`.
+        
+        Returns:
+            tuple[Any, Any, bool]: Parsed `(rel_type, strength, bidirectional)`.
+        
+        Raises:
+            TypeError: If `relationship_args` does not match any supported shape.
+        """
         args_count = len(relationship_args)
         if args_count == 1:
             return AssetRelationshipGraph._parse_single_relationship_arg(
@@ -173,14 +200,34 @@ class AssetRelationshipGraph:
         relationship_arg: Any,
         kwargs: dict[str, Any],
     ) -> tuple[Any, Any, bool]:
-        """Parse the single-argument shape for tuple relationship payloads."""
+        """
+        Parse a single positional relationship argument expressed as a (rel_type, strength) tuple.
+        
+        Parameters:
+            relationship_arg (Any): Expected to be a 2-tuple containing (rel_type, strength).
+            kwargs (dict[str, Any]): Keyword arguments that may include optional flags (e.g., "bidirectional").
+        
+        Returns:
+            tuple[Any, Any, bool]: A tuple of (rel_type, strength, bidirectional).
+        
+        Raises:
+            TypeError: If `relationship_arg` is not a tuple.
+        """
         if not isinstance(relationship_arg, tuple):
             raise TypeError("Single relationship argument must be a tuple of (rel_type, strength).")
         return AssetRelationshipGraph._parse_tuple_relationship(relationship_arg, kwargs)
 
     @staticmethod
     def _ensure_no_unknown_kwargs(kwargs: dict[str, Any]) -> None:
-        """Raise when unknown keyword arguments remain after parsing."""
+        """
+        Validate that no unexpected keyword arguments remain after parsing.
+        
+        Parameters:
+            kwargs (dict[str, Any]): Remaining keyword arguments to check.
+        
+        Raises:
+            TypeError: If `kwargs` is not empty; the exception message lists the unexpected keys.
+        """
         if kwargs:
             unknown = ", ".join(sorted(kwargs.keys()))
             raise TypeError(f"Unexpected keyword arguments: {unknown}")
@@ -191,7 +238,20 @@ class AssetRelationshipGraph:
         strength: Any,
         bidirectional: bool,
     ) -> tuple[str, float, bool]:
-        """Validate and coerce parsed relationship args to final types."""
+        """
+        Validate and coerce relationship argument values to their final types.
+        
+        Parameters:
+            rel_type (Any): Expected relationship type; must be a string.
+            strength (Any): Numeric value representing relationship strength; will be coerced to float.
+            bidirectional (bool): Flag indicating whether the relationship is bidirectional; will be coerced to bool.
+        
+        Returns:
+            tuple[str, float, bool]: A tuple of (rel_type, strength, bidirectional) with types (str, float, bool).
+        
+        Raises:
+            TypeError: If `rel_type` is not a string.
+        """
         if not isinstance(rel_type, str):
             raise TypeError("rel_type must be a string.")
         return rel_type, float(strength), bool(bidirectional)
@@ -201,7 +261,19 @@ class AssetRelationshipGraph:
         relationship_tuple: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> tuple[Any, Any, bool]:
-        """Parse tuple-style relationship payload and optional bidirectionality."""
+        """
+        Parse a two-element relationship tuple into (rel_type, strength) and an explicit bidirectional flag.
+        
+        Parameters:
+            relationship_tuple (tuple[Any, ...]): A 2-tuple of (rel_type, strength).
+            kwargs (dict[str, Any]): May contain a 'bidirectional' key; its value will be used and removed from this dict.
+        
+        Returns:
+            tuple[Any, Any, bool]: A tuple of (rel_type, strength, bidirectional).
+        
+        Raises:
+            ValueError: If `relationship_tuple` does not contain exactly two elements.
+        """
         if len(relationship_tuple) != 2:
             raise ValueError("Relationship tuple must contain (rel_type, strength).")
         rel_type, strength = relationship_tuple
@@ -213,7 +285,17 @@ class AssetRelationshipGraph:
         relationship_args: tuple[Any, ...],
         kwargs: dict[str, Any],
     ) -> tuple[Any, Any, bool]:
-        """Parse legacy positional relationship arguments."""
+        """
+        Parse legacy positional relationship arguments and extract the relationship type, strength, and bidirectional flag.
+        
+        Accepts a 2- or 3-element positional form:
+        - If three positional elements are provided, the third element is interpreted as the bidirectional flag.
+        - If two positional elements are provided, the `bidirectional` keyword is read from `kwargs` (defaults to `False`).
+        Raises a TypeError if `bidirectional` is supplied both positionally and via `kwargs`.
+        
+        Returns:
+            tuple: `(rel_type, strength, bidirectional)` where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` is `True` if the relationship should be added bidirectionally, `False` otherwise.
+        """
         rel_type, strength = relationship_args[0], relationship_args[1]
         if len(relationship_args) == 3:
             if "bidirectional" in kwargs:
@@ -247,32 +329,20 @@ class AssetRelationshipGraph:
 
     def calculate_metrics(self) -> dict[str, Any]:
         """
-        Compute network-level metrics, distributions, and a composite quality
-        score for the current asset graph.
-
+        Produce aggregated network metrics, distributions, and a composite quality score for the current asset graph.
+        
         Returns:
-            metrics (dict): A dictionary with the following keys:
-                - total_assets (int): Number of participating assets
-                    (present in assets or referenced by relationships).
-                - total_relationships (int): Total number of
-                    relationships stored.
-                - average_relationship_strength (float): Mean strength across all
-                    relationships.
-                - relationship_density (float): Relationship density as a percentage
-                    of the maximum possible directed links.
-                - relationship_distribution (dict[str, int]): Counts of relationships
-                    by relationship type.
-                - asset_class_distribution (dict[str, int]): Counts of assets by their
-                    asset class value.
-                - top_relationships (list[TopRelationship]):
-                    Up to 10 relationships sorted by strength as
-                    (source_id, target_id, rel_type, strength).
+            metrics (dict): Mapping of metric names to values with the following keys:
+                - total_assets (int): Number of participating assets (present in assets or referenced by relationships).
+                - total_relationships (int): Total number of relationships stored.
+                - average_relationship_strength (float): Mean strength across all relationships (0.0 if none).
+                - relationship_density (float): Percentage of possible directed links present (0.0–100.0).
+                - relationship_distribution (dict[str, int]): Counts of relationships grouped by relationship type.
+                - asset_class_distribution (dict[str, int]): Counts of assets grouped by asset class value.
+                - top_relationships (list[tuple[str, str, str, float]]): Up to 10 relationships sorted by strength as (source_id, target_id, rel_type, strength).
                 - regulatory_event_count (int): Number of stored regulatory events.
-                - regulatory_event_norm (float): Normalized regulatory event count in
-                    (0,1] using a saturating mapping.
-                - quality_score (float): Composite score in [0,1] combining
-                    normalized average strength and normalized regulatory event
-                    influence.
+                - regulatory_event_norm (float): Normalized regulatory event count in [0.0, 1.0) using a saturating mapping.
+                - quality_score (float): Composite score in [0.0, 1.0] combining normalized average strength and regulatory-event influence.
         """
         effective_assets_count = len(self._collect_participating_asset_ids())
         (
@@ -305,7 +375,15 @@ class AssetRelationshipGraph:
     def _summarize_relationships(
         self,
     ) -> tuple[dict[str, int], list[TopRelationship], int, float]:
-        """Summarize relationship distribution and aggregate strength stats."""
+        """
+        Produce relationship-type counts, the top relationships by strength, the total relationship count, and the average relationship strength.
+        
+        Returns:
+            rel_dist (dict[str, int]): Mapping from relationship type to its occurrence count.
+            top_relationships (list[TopRelationship]): Up to 10 relationships sorted by strength descending; each item is (source_id, target_id, relationship_type, strength).
+            total_relationships (int): Total number of relationships processed.
+            average_strength (float): Mean strength across all relationships, or 0.0 if no relationships exist.
+        """
         rel_dist: dict[str, int] = {}
         all_rels: list[TopRelationship] = []
         total_relationships = 0
@@ -326,7 +404,16 @@ class AssetRelationshipGraph:
         return rel_dist, all_rels[:10], total_relationships, avg_strength
 
     def _quality_metrics(self, avg_strength: float, regulatory_event_count: int) -> tuple[float, float]:
-        """Return normalized regulatory event signal and combined quality score."""
+        """
+        Compute a normalized regulatory-event signal and a composite quality score.
+        
+        The returned quality score combines a clamped average relationship strength and a normalized regulatory-event count using fixed weights (strength: 0.7, events: 0.3).
+        
+        Returns:
+            tuple:
+                reg_events_norm (float): Normalized regulatory-event signal (0.0 to <1.0).
+                quality_score (float): Composite quality score clamped to the range [0.0, 1.0].
+        """
         k = 10.0
         w_strength = 0.7
         w_events = 0.3
@@ -397,7 +484,11 @@ class AssetRelationshipGraph:
         return None
 
     def _apply_event_impacts(self) -> None:
-        """Add event-driven relationships from events to their related assets."""
+        """
+        Create relationships from regulatory events to their related assets.
+        
+        For each regulatory event, add a non-bidirectional "event_impact" relationship from the event's asset to each related asset with strength equal to the absolute value of the event's impact_score.
+        """
         for event in self.regulatory_events:
             source_id = event.asset_id
             for target_id in self._iter_valid_event_targets(
@@ -417,7 +508,18 @@ class AssetRelationshipGraph:
         source_id: str,
         related_assets: list[str],
     ) -> list[str]:
-        """Return valid event targets when source and targets exist."""
+        """
+        Return the subset of related asset IDs that are present in the graph when the source asset exists.
+        
+        If the source asset is not present in the graph, returns an empty list.
+        
+        Parameters:
+            source_id (str): The ID of the event's source asset; must be present to consider targets.
+            related_assets (list[str]): Candidate target asset IDs to validate.
+        
+        Returns:
+            list[str]: Filtered list containing only those IDs from `related_assets` that exist in the graph.
+        """
         if source_id not in self.assets:
             return []
         existing_asset_ids = set(self.assets.keys())
@@ -430,7 +532,18 @@ class AssetRelationshipGraph:
         rel_type: str,
         strength: float,
     ) -> None:
-        """Append a relationship to a source list if not already present."""
+        """
+        Append a relationship from source_id to target_id if no relationship with the same target and type already exists.
+        
+        This creates the relationship list for source_id if absent and appends a tuple (target_id, rel_type, strength).
+        Duplicate detection is based on (target_id, rel_type) only; an existing entry with the same target and type prevents appending even if strength differs.
+        
+        Parameters:
+            source_id (str): ID of the source asset whose relationship list will be updated.
+            target_id (str): ID of the target asset for the relationship.
+            rel_type (str): Semantic type of the relationship (e.g., "same_sector", "corporate_link").
+            strength (float): Numerical strength of the relationship, typically in [0.0, 1.0].
+        """
         rels = self.relationships.setdefault(source_id, [])
         if any(t == target_id and rt == rel_type for t, rt, _ in rels):
             return

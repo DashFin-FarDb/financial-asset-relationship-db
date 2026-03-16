@@ -16,7 +16,15 @@ from typing import Dict, List
 
 
 def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
-    """Return a mapping of level-2 headings to their line numbers."""
+    """
+    Collect level-2 Markdown headings and record the line numbers where they occur.
+    
+    Parameters:
+        lines (List[str]): Lines of a Markdown document, in order (may include line endings).
+    
+    Returns:
+        Dict[str, List[int]]: Mapping from each level-2 heading text to a list of 1-based line numbers where that heading appears.
+    """
     occurrences: Dict[str, List[int]] = {}
 
     for line_num, line in enumerate(lines, start=1):
@@ -32,7 +40,16 @@ def _report_duplicates(
     duplicates: Dict[str, List[int]],
     manifest_path: Path,
 ) -> int:
-    """Prints a report of duplicate headings found in the manifest."""
+    """
+    Print a detailed duplicate-heading violation report to standard error.
+    
+    Parameters:
+        duplicates (Dict[str, List[int]]): Mapping from each duplicated level-2 heading text to the list of 1-based line numbers where it appears.
+        manifest_path (Path): Path to the manifest file being validated.
+    
+    Returns:
+        int: `1` to indicate a duplicate-heading validation failure.
+    """
     print(
         f"❌ MD024 violation: Duplicate headings found in {manifest_path}\n",
         file=sys.stderr,

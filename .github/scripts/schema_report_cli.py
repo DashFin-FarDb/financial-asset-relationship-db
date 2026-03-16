@@ -107,7 +107,17 @@ DEFAULT_OUTPUT_FILENAMES = {
 
 
 def parse_arguments() -> argparse.Namespace:
-    """Parse and validate command-line arguments."""
+    """
+    Parse CLI arguments for the schema report tool.
+    
+    Recognized options:
+    - --fmt: output format (markdown, text, json); defaults to markdown
+    - --output / -o: write the report to a default file in the current working directory
+    - --verbose / -v: enable verbose logging
+    
+    Returns:
+        argparse.Namespace: Parsed arguments with attributes `fmt`, `output`, and `verbose`.
+    """
     parser = argparse.ArgumentParser(
         description=("Generate schema reports for financial asset relationships."),
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -137,12 +147,16 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def convert_markdown_to_plain_text(markdown: str) -> str:
-    """Convert Markdown to a simple plain-text representation.
-
-    Strips common Markdown markers (like '# ', '- ', '* ')
-    from the start of lines but keeps the line content.
-    This is a naive conversion and may not handle
-    complex Markdown formatting correctly.
+    """
+    Produce a simple plain-text representation of Markdown content.
+    
+    Strips common Markdown markers (e.g., leading '#', '-', '*') from the start of each line; does not perform full Markdown parsing and may not handle complex constructs correctly.
+    
+    Parameters:
+        markdown (str): The Markdown text to convert.
+    
+    Returns:
+        plain_text (str): The resulting plain-text string with leading Markdown markers removed from each line.
     """
     lines: list[str] = []
     for line in markdown.splitlines():
@@ -152,13 +166,32 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
 
 
 def convert_markdown_to_json(markdown: str) -> str:
-    """Wrap the Markdown schema report in a JSON object."""
+    """
+    Embed the given Markdown report under the `schema_report` key in a JSON object.
+    
+    Parameters:
+        markdown (str): The Markdown-formatted schema report content to wrap.
+    
+    Returns:
+        json_str (str): A pretty-printed JSON string containing the Markdown under the `schema_report` key.
+    """
     payload = {"schema_report": markdown}
     return json.dumps(payload, indent=2)
 
 
 def default_output_path(fmt: OutputFormat) -> Path:
-    """Build a safe output path in the current working directory."""
+    """
+    Return the default output file path for the given output format in the current working directory.
+    
+    Parameters:
+        fmt (OutputFormat): The desired output format.
+    
+    Returns:
+        Path: Resolved path to the default filename for `fmt` in the current working directory.
+    
+    Raises:
+        CLIError: If `fmt` is not a supported OutputFormat.
+    """
     filename = DEFAULT_OUTPUT_FILENAMES.get(fmt)
     if filename is None:
         raise CLIError(f"Unsupported format: {fmt!r}")
@@ -166,7 +199,18 @@ def default_output_path(fmt: OutputFormat) -> Path:
 
 
 def parse_output_format(value: str) -> OutputFormat | None:
-    """Parse output format value, printing a user-facing error on failure."""
+    """
+    Parse a string into an OutputFormat enum value.
+    
+    Parameters:
+        value (str): The format name to parse; expected values are "markdown", "text", or "json".
+    
+    Returns:
+        OutputFormat | None: The corresponding OutputFormat on success, `None` if the value is invalid.
+        
+    Notes:
+        On invalid input a user-facing error message is printed to stderr.
+    """
     try:
         output_format = OutputFormat(value)
         logger.debug("Using output format: %s", output_format)
@@ -181,7 +225,13 @@ def parse_output_format(value: str) -> OutputFormat | None:
 
 
 def cleanup_partial_output(temp_path: Path | None) -> None:
-    """Remove partially written temporary file when cancellation occurs."""
+    """
+    Remove a partially written temporary file if one exists.
+    
+    If `temp_path` is `None` the function is a no-op. If the path exists the file is deleted; errors during removal are ignored (the function does not raise).
+    Parameters:
+        temp_path (Path | None): Path to the temporary file to remove, or `None` to indicate no file.
+    """
     if temp_path is None:
         return
 
@@ -197,7 +247,19 @@ def cleanup_partial_output(temp_path: Path | None) -> None:
 
 
 def format_report_content(fmt: OutputFormat, report: str) -> str:
-    """Convert schema report to requested output format."""
+    """
+    Format a markdown schema report into the selected output format.
+    
+    Parameters:
+        fmt (OutputFormat): Desired output format (MARKDOWN, TEXT, or JSON).
+        report (str): Report content in Markdown.
+    
+    Returns:
+        str: The report transformed to the chosen format (Markdown unchanged, plain text for TEXT, JSON-wrapped string for JSON).
+    
+    Raises:
+        ValueError: If `fmt` is not a supported OutputFormat.
+    """
     if fmt is OutputFormat.MARKDOWN:
         return report
     if fmt is OutputFormat.TEXT:
@@ -209,9 +271,14 @@ def format_report_content(fmt: OutputFormat, report: str) -> str:
 
 def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
     """
-    Atomically write text data to a file path.
-
-    Writes to a temporary file in the same directory and then renames it.
+    Atomically write text data to the given path.
+    
+    Ensures the target directory exists, writes `data` to a temporary file in the same directory, flushes and syncs the file to disk, and then atomically replaces the target path with the temporary file. If an error occurs during writing or replacement, any partial temporary file is removed and the original exception is re-raised.
+    
+    Parameters:
+        path (Path): Destination file path to write.
+        data (str): Text content to write to the file.
+        encoding (str): Text encoding to use when writing (default: "utf-8").
     """
     parent = path.parent
     parent.mkdir(parents=True, exist_ok=True)
@@ -264,17 +331,13 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
 
 
 def main() -> int:
-    """Main entry point for the Schema Report CLI.
-
-    This function serves as the primary interface for the command-line tool,
-    handling argument parsing and adjusting log levels based on verbosity. It
-    manages the output format selection and report generation, while also  handling
-    various exceptions that may arise during execution, including  invalid output
-    formats and unexpected errors, ensuring appropriate messages  are logged and
-    displayed to the user.
-
+    """
+    Run the CLI: parse arguments, configure logging, generate the schema report, and return an exit code.
+    
+    Parses command-line arguments, adjusts logger and handler levels according to the verbose flag, validates the chosen output format, invokes report generation (optionally writing to the default output file), and maps common error conditions to user-facing exit codes while logging diagnostic details.
+    
     Returns:
-        int: Exit code (0 for success, non-zero for errors).
+        int: Exit code — 0 on success; 1 on validation or unexpected errors; 130 if cancelled by the user.
     """
     try:
         args = parse_arguments()

@@ -23,6 +23,13 @@ class _GraphState:
     """Mutable container for module graph lifecycle state."""
 
     def __init__(self) -> None:
+        """
+        Initialize the state container for a global AssetRelationshipGraph and its factory.
+        
+        Creates two attributes used to manage graph initialization:
+        - `graph`: the cached AssetRelationshipGraph instance or `None` if not initialized.
+        - `graph_factory`: an optional callable that returns an AssetRelationshipGraph; when set, it is used to construct `graph`.
+        """
         self.graph: Optional[AssetRelationshipGraph] = None
         self.graph_factory: Optional[Callable[[], AssetRelationshipGraph]] = None
 
@@ -33,7 +40,15 @@ graph_lock = threading.Lock()
 
 def get_graph() -> AssetRelationshipGraph:
     """
-    Return the global AssetRelationshipGraph, initializing it if necessary.
+    Provide the module's global AssetRelationshipGraph, initializing it if unset.
+    
+    If the graph has not been created, attempts thread-safe lazy initialization. Raises a RuntimeError if initialization fails and the graph remains unset.
+    
+    Returns:
+        AssetRelationshipGraph: The initialized global asset relationship graph.
+    
+    Raises:
+        RuntimeError: If the global graph could not be initialized and remains None.
     """
     if graph_state.graph is None:
         with graph_lock:
@@ -46,7 +61,14 @@ def get_graph() -> AssetRelationshipGraph:
 
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
-    """Set the global graph to the provided AssetRelationshipGraph."""
+    """
+    Set the module's global AssetRelationshipGraph instance used by get_graph().
+    
+    This stores the provided graph as the canonical global instance and clears any configured graph factory so subsequent accesses return this instance until changed or reset.
+    
+    Parameters:
+        graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to register as the global instance.
+    """
     with graph_lock:
         graph_state.graph = graph_instance
         graph_state.graph_factory = None
@@ -55,7 +77,12 @@ def set_graph(graph_instance: AssetRelationshipGraph) -> None:
 def set_graph_factory(
     factory: Optional[Callable[[], AssetRelationshipGraph]],
 ) -> None:
-    """Set the callable used to construct the global AssetRelationshipGraph."""
+    """
+    Configure the callable used to construct the global AssetRelationshipGraph and clear any existing graph so it will be recreated on next access.
+    
+    Parameters:
+        factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns a new AssetRelationshipGraph instance. If `None`, any configured factory is cleared and the graph will be reinitialized using environment-backed defaults or a sample database on next access.
+    """
     with graph_lock:
         graph_state.graph_factory = factory
         graph_state.graph = None
@@ -63,10 +90,7 @@ def set_graph_factory(
 
 def reset_graph() -> None:
     """
-    Clear the global graph and any configured factory so the graph will be
-    reinitialised on next access.
-
-    This removes any existing graph instance and clears the graph factory.
+    Reset the global AssetRelationshipGraph and clear any configured factory so the graph will be reinitialized on next access.
     """
     set_graph_factory(None)
 
@@ -113,12 +137,12 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 def _should_use_real_data_fetcher() -> bool:
     """
-    Decides whether the application should use the real data fetcher based on
-    the `USE_REAL_DATA_FETCHER` environment variable.
-
+    Determine whether to use the real data fetcher based on the USE_REAL_DATA_FETCHER environment variable.
+    
+    Treats the values "1", "true", "yes", and "on" (case-insensitive, surrounding whitespace ignored) as enabled.
+    
     Returns:
-        `True` if `USE_REAL_DATA_FETCHER` is set to a truthy value
-        (`1`, `true`, `yes`, `on`), `False` otherwise.
+        bool: `True` if USE_REAL_DATA_FETCHER is set to one of the enabled values, `False` otherwise.
     """
     flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
     return flag.strip().lower() in {"1", "true", "yes", "on"}

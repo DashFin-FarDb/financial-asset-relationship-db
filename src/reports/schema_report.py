@@ -55,15 +55,14 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 
 def _as_str_int_map(value: Any) -> dict[str, int]:
     """
-    Convert a mapping-like value into `dict[str, int]`,
-    keeping only string keys.
-
+    Coerce a mapping-like value into a dictionary with string keys and integer values.
+    
     Parameters:
-        value (Any): Input to coerce into a string-keyed mapping.
-
+        value (Any): Input to coerce; if not a mapping, it will be treated as absent.
+    
     Returns:
-        dict[str, int]: Dictionary with only string-key entries;
-            values are converted to integers with fallback 0.
+        dict[str, int]: A dictionary containing only entries whose keys are strings.
+            Each value is converted to an integer with a fallback of 0.
             Returns an empty dict if `value` is not a mapping.
     """
     if not isinstance(value, Mapping):
@@ -104,7 +103,15 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 
 
 def _is_valid_top_relationship_item(item: Any) -> bool:
-    """Return True when item matches (str, str, str, strength)."""
+    """
+    Validate that `item` represents a top-relationship entry.
+    
+    Parameters:
+        item (Any): Value to check.
+    
+    Returns:
+        bool: `True` if `item` is a 4-tuple whose first three elements are strings and the fourth element is present (strength), `False` otherwise.
+    """
     if not isinstance(item, tuple):
         return False
     if len(item) != 4:
@@ -113,7 +120,17 @@ def _is_valid_top_relationship_item(item: Any) -> bool:
 
 
 def _relationship_type_lines(metrics: Mapping[str, Any]) -> list[str]:
-    """Build markdown lines for relationship type distribution."""
+    """
+    Generate markdown bullet lines describing relationship type counts sorted by descending count.
+    
+    Parameters:
+        metrics (Mapping[str, Any]): Metrics mapping that may include a "relationship_distribution"
+            mapping of relationship type to integer count.
+    
+    Returns:
+        list[str]: Markdown-formatted lines (e.g., "- **{rel_type}**: {count} instances") sorted by count
+        in descending order.
+    """
     lines: list[str] = []
     relationship_dist = _as_str_int_map(metrics.get("relationship_distribution"))
     for rel_type, count in sorted(
@@ -128,7 +145,23 @@ def _relationship_type_lines(metrics: Mapping[str, Any]) -> list[str]:
 def _network_statistics_lines(
     metrics: Mapping[str, Any],
 ) -> tuple[list[str], float]:
-    """Build network statistic lines and return parsed density."""
+    """
+    Generate markdown lines for the network statistics section and return the parsed relationship density.
+    
+    Parameters:
+        metrics (Mapping[str, Any]): Mapping containing numeric metrics. Expected keys:
+            - "total_assets"
+            - "total_relationships"
+            - "average_relationship_strength"
+            - "relationship_density"
+            - "regulatory_event_count"
+        Missing or invalid values are coerced to sensible defaults.
+    
+    Returns:
+        tuple[list[str], float]: A tuple where the first element is a list of markdown lines for the
+        "Calculated Metrics" / "Network Statistics" section (including an "Asset Class Distribution" header),
+        and the second element is the relationship density parsed as a float.
+    """
     total_assets = _as_int(metrics.get("total_assets"), 0)
     total_relationships = _as_int(metrics.get("total_relationships"), 0)
     avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
@@ -152,7 +185,15 @@ def _network_statistics_lines(
 
 
 def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:
-    """Build markdown lines for asset class distribution."""
+    """
+    Generate markdown bullet lines describing the number of assets per asset class.
+    
+    Parameters:
+    	metrics (Mapping[str, Any]): Metrics mapping that may contain the key "asset_class_distribution" whose value is a mapping of asset class names to integer counts.
+    
+    Returns:
+    	list[str]: Markdown-formatted lines, each like "- **{asset_class}**: {count} assets".
+    """
     lines: list[str] = []
     class_dist = _as_str_int_map(metrics.get("asset_class_distribution"))
     for asset_class, count in sorted(class_dist.items()):
@@ -161,7 +202,15 @@ def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:
 
 
 def _top_relationship_lines(metrics: Mapping[str, Any]) -> list[str]:
-    """Build markdown lines for top relationships section."""
+    """
+    Produce the markdown lines for the "Top Relationships" section using data from the metrics mapping.
+    
+    Parameters:
+        metrics (Mapping[str, Any]): A metrics mapping that may include the "top_relationships" key; expected value is a list of relationship tuples.
+    
+    Returns:
+        list[str]: Markdown lines for the section, including a header and either a list of formatted relationship entries or a placeholder stating no relationships are recorded.
+    """
     lines = ["", "## Top Relationships", ""]
     top_rels = _as_top_relationships(metrics.get("top_relationships"))
     if top_rels:
@@ -182,7 +231,12 @@ def _density_recommendation_line(density: float) -> str:
 
 
 def _business_rules_lines() -> list[str]:
-    """Return static business rules section lines."""
+    """
+    Provide static markdown lines describing business rules, constraints, and how events and relationships are modeled.
+    
+    Returns:
+        list[str]: Ordered markdown lines for the "Business Rules & Constraints" section.
+    """
     return [
         "",
         "## Business Rules & Constraints",
@@ -209,7 +263,16 @@ def _schema_optimization_lines(
     metrics: Mapping[str, Any],
     density: float,
 ) -> list[str]:
-    """Return schema optimization section lines."""
+    """
+    Build the Schema Optimization section lines including the data quality score and a density-based recommendation.
+    
+    Parameters:
+    	metrics (Mapping[str, Any]): Mapping that may include 'quality_score' (a number between 0 and 1) used to format the Data Quality Score.
+    	density (float): Network relationship density as a percentage used to determine the recommendation text.
+    
+    Returns:
+    	section_lines (list[str]): Markdown-formatted lines for the Schema Optimization Metrics section.
+    """
     quality_score = _as_float(metrics.get("quality_score"), 0.0)
     return [
         "",
@@ -223,7 +286,12 @@ def _schema_optimization_lines(
 
 
 def _implementation_notes_lines() -> list[str]:
-    """Return static implementation notes section lines."""
+    """
+    Provide static markdown lines for the "Implementation Notes" section describing formatting and normalization conventions (timestamp format, strength normalization, impact score range, and relationship directionality).
+    
+    Returns:
+        lines (list[str]): A list of markdown strings forming the Implementation Notes section.
+    """
     return [
         "",
         "## Implementation Notes",

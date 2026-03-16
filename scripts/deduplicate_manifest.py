@@ -26,7 +26,12 @@ HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
 
 def _extract_section_heading(line: str) -> str | None:
-    """Return level-2 heading text from a line, otherwise None."""
+    """
+    Extract the text of a level-2 Markdown heading from a single line.
+    
+    Returns:
+        str: The heading text (trimmed) if the line is a level-2 heading (`##`), `None` otherwise.
+    """
     match = HEADING_RE.match(line)
     if match is None:
         return None
@@ -49,13 +54,16 @@ def _flush_current_section(
 
 def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     """
-    Parse the manifest content into preamble and sections.
-
+    Parse the manifest into a preamble and a list of level-2 sections.
+    
+    The function treats lines beginning with "## " (level-2 headings) as section delimiters and ignores deeper headings (e.g., "###"). Text before the first level-2 heading is returned as the preamble. Each section is represented as a (heading, content) tuple where `heading` is the heading text (without the leading "##") and `content` is the text that follows that heading up to, but not including, the next level-2 heading. Section order is preserved.
+    Parameters:
+        content (str): The full manifest text to parse.
+    
     Returns:
-      (preamble, sections)
-        - preamble: content before the first ## heading
-        - sections: list of (heading, content) where content is the text between
-          this heading and the next ## heading
+        Tuple[str, List[Tuple[str, str]]]: 
+            - preamble: The text preceding the first level-2 heading.
+            - sections: A list of (heading, content) tuples for each level-2 section in the manifest.
     """
     lines = content.splitlines()
 
@@ -92,7 +100,15 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
 def deduplicate_sections(
     sections: List[Tuple[str, str]],
 ) -> List[Tuple[str, str]]:
-    """Remove duplicate headings, keeping only the last occurrence."""
+    """
+    Deduplicate section entries by keeping only the last occurrence of each heading.
+    
+    Parameters:
+        sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs representing sections in the manifest.
+    
+    Returns:
+        List[Tuple[str, str]]: Sections with duplicate headings removed; for each heading, the last occurrence from the input is kept and returned in the original input order.
+    """
     seen: set[str] = set()
     out_reversed: List[Tuple[str, str]] = []
 
@@ -109,7 +125,18 @@ def reconstruct_manifest(
     preamble: str,
     sections: List[Tuple[str, str]],
 ) -> str:
-    """Reconstruct the manifest content from preamble and sections."""
+    """
+    Assembles manifest text from a preamble and an ordered list of level-2 sections.
+    
+    Each section is rendered as a "## {heading}" header followed by its content. Sections (and the preamble, if present) are separated by a single blank line. If the resulting manifest is non-empty, it ends with a single trailing newline; otherwise an empty string is returned.
+    
+    Parameters:
+        preamble (str): Text that appears before the first section; may be empty.
+        sections (List[Tuple[str, str]]): Ordered list of (heading, content) pairs for level-2 sections.
+    
+    Returns:
+        str: The reconstructed manifest text.
+    """
     parts: List[str] = []
 
     if preamble:
@@ -126,7 +153,15 @@ def reconstruct_manifest(
 
 
 def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
-    """Count occurrences of each heading in the given sections."""
+    """
+    Count how many times each section heading appears in the provided sections.
+    
+    Parameters:
+        sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs representing parsed manifest sections.
+    
+    Returns:
+        Dict[str, int]: Mapping from a heading to the number of times it appears in `sections`.
+    """
     counts: Dict[str, int] = {}
     for heading, _ in sections:
         counts[heading] = counts.get(heading, 0) + 1
@@ -134,32 +169,63 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
 
 
 def _has_invalid_path_chars(user_value: str) -> bool:
-    """Return True when path includes NUL or newline characters."""
+    """
+    Check whether a path string contains any forbidden control characters: NUL, newline, or carriage return.
+    
+    Parameters:
+        user_value (str): The path string to inspect.
+    
+    Returns:
+        true if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), false otherwise.
+    """
     forbidden_chars = ("\x00", "\n", "\r")
     return any(char in user_value for char in forbidden_chars)
 
 
 def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
-    """Resolve and return (base, resolved_path)."""
+    """
+    Resolve a user-supplied path against a base directory and return the resolved base and candidate path.
+    
+    Parameters:
+        user_value (str): Path string provided by the user; interpreted relative to `base_dir`.
+        base_dir (Path): Directory used as the resolution base.
+    
+    Returns:
+        tuple[Path, Path]: A pair `(base, resolved_path)` where `base` is the absolute, resolved `base_dir`
+        and `resolved_path` is the absolute, resolved path of `base / user_value` (symlinks and relative
+        components normalized).
+    """
     base = base_dir.resolve()
     resolved = (base / Path(user_value)).resolve()
     return base, resolved
 
 
 def _is_within_base(base: Path, candidate: Path) -> bool:
-    """Check whether candidate resolves inside base."""
+    """
+    Determine whether a filesystem path lies at or beneath a given base directory.
+    
+    Returns:
+        `true` if `candidate` is the same path as `base` or is located within it, `false` otherwise.
+    """
     return os.path.commonpath([str(base), str(candidate)]) == str(base)
 
 
 def safe_path(user_value: str, base_dir: Path) -> Path:
     # Basic input hardening (avoid multiline / NUL path tricks)
-    """Ensure the provided user_value is a safe relative path under base_dir.
-
-    This function performs several checks to validate user_value as a safe path.
-    It first checks for invalid characters and ensures that the path is not
-    absolute. Then, it resolves the path against base_dir and verifies that
-    the resolved path does not escape the base directory. If any of these
-    conditions are violated, a ValueError is raised.
+    """
+    Validate and resolve a user-supplied relative path so it stays inside the given base directory.
+    
+    Performs character checks, rejects absolute paths, resolves the value against `base_dir`, and ensures the resulting path does not escape `base_dir`.
+    
+    Parameters:
+        user_value (str): User-provided path string to validate and resolve.
+        base_dir (Path): Base directory that `user_value` must remain inside.
+    
+    Returns:
+        Path: Resolved path located inside `base_dir`.
+    
+    Raises:
+        ValueError: If `user_value` contains invalid characters, is an absolute path, or resolves outside `base_dir`.
     """
     if _has_invalid_path_chars(user_value):
         raise ValueError("Invalid path characters")
