@@ -45,7 +45,12 @@ def _build_visualization_nodes(
     for i, asset_id in enumerate(asset_ids):
         asset = graph.assets.get(asset_id)
         if asset is None:
-            continue
+            from types import SimpleNamespace
+            asset = SimpleNamespace(
+                name=asset_id,
+                symbol=asset_id,
+                asset_class=SimpleNamespace(value="UNKNOWN"),
+            )
         nodes.append(
             {
                 "id": asset_id,
