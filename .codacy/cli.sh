@@ -43,8 +43,9 @@ version_file="$CODACY_CLI_V2_TMP_FOLDER/version.yaml"
 
 # get_version_from_yaml reads the version_file and echoes the value of the `version` field if present; returns a non-zero status if the file or version is missing.
 get_version_from_yaml() {
-    if [ -f "$version_file" ]; then
-        local version=$(grep -o 'version: *"[^"]*"' "$version_file" | cut -d'"' -f2)
+    if [[ -f "$version_file" ]]; then
+        local version
+        version=$(grep -o 'version: *"[^"]*"' "$version_file" | cut -d'"' -f2)
         if [ -n "$version" ]; then
             echo "$version"
             return 0
