@@ -139,12 +139,14 @@ def validate_origin(origin: str) -> bool:
     # Get allowed origins from environment variable or use default
     allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
 
-    checks = (
-        _is_allowed_list_origin(origin, allowed_origins),
-        _is_http_local_in_dev(origin, current_env),
-        _is_https_local(origin),
-        _is_vercel_preview(origin),
-        _is_valid_https_domain(origin),
-        _is_valid_https_idn(origin),
-    )
-    return any(checks)
+    if _is_allowed_list_origin(origin, allowed_origins):
+        return True
+    if _is_http_local_in_dev(origin, current_env):
+        return True
+    if _is_https_local(origin):
+        return True
+    if _is_vercel_preview(origin):
+        return True
+    if _is_valid_https_domain(origin):
+        return True
+    return _is_valid_https_idn(origin)
