@@ -518,7 +518,7 @@ class FinancialAssetApp:
 
             return graph_viz, gr.update(visible=False)
 
-        except (RuntimeError, ValueError, TypeError, AttributeError, KeyError) as exc:
+        except Exception as exc:
             logger.error("Error refreshing visualization: %s", exc)
             empty_fig = go.Figure()
             error_msg = f"Error refreshing visualization: {exc}"
