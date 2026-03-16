@@ -357,16 +357,9 @@ def write_output(report: str) -> None:
             allowed_roots = {os.path.realpath(tempfile.gettempdir())}
             runner_temp = os.environ.get("RUNNER_TEMP")
             if runner_temp:
-                allowed_roots.add(os.path.realpath(runner_temp))
-
-            if not any(os.path.commonpath([summary_path, root]) == root for root in allowed_roots):
-                print(
-                    "Warning: Ignoring GITHUB_STEP_SUMMARY outside temp dir",
-                    file=sys.stderr,
-                )
-            else:
-                with open(summary_path, "a", encoding="utf-8") as f:
-                    f.write(report)
+            summary_path = os.path.realpath(gh_summary)
+            with open(summary_path, "a", encoding="utf-8") as f:
+                f.write(report)
         except (IOError, ValueError) as e:
             print(
                 f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}",
