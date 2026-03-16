@@ -12,7 +12,7 @@ from src.logic.asset_graph import AssetRelationshipGraph
 def _get_cached_graph() -> AssetRelationshipGraph:
     """
     Create and cache a single shared AssetRelationshipGraph instance.
-    
+
     Returns:
         AssetRelationshipGraph: The cached graph instance returned on subsequent calls.
     """
@@ -22,7 +22,7 @@ def _get_cached_graph() -> AssetRelationshipGraph:
 def get_graph() -> AssetRelationshipGraph:
     """
     Provide the module's shared AssetRelationshipGraph instance.
-    
+
     Returns:
         graph (AssetRelationshipGraph): The cached shared graph instance; created and cached on first call.
     """

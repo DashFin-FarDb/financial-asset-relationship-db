@@ -18,10 +18,10 @@ from typing import Dict, List
 def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
     """
     Collect level-2 Markdown headings and record the line numbers where they occur.
-    
+
     Parameters:
         lines (List[str]): Lines of a Markdown document, in order (may include line endings).
-    
+
     Returns:
         Dict[str, List[int]]: Mapping from each level-2 heading text to a list of 1-based line numbers where that heading appears.
     """
@@ -42,11 +42,11 @@ def _report_duplicates(
 ) -> int:
     """
     Print a detailed duplicate-heading violation report to standard error.
-    
+
     Parameters:
         duplicates (Dict[str, List[int]]): Mapping from each duplicated level-2 heading text to the list of 1-based line numbers where it appears.
         manifest_path (Path): Path to the manifest file being validated.
-    
+
     Returns:
         int: `1` to indicate a duplicate-heading validation failure.
     """

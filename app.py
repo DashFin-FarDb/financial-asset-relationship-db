@@ -206,7 +206,7 @@ class FinancialAssetApp:
     def _initialize_graph(self) -> None:
         """
         Initialize and assign the application's asset graph to self.graph.
-        
+
         Raises:
             AttributeError, ImportError, OSError, RuntimeError, TypeError, ValueError:
                 Propagated if graph creation or validation fails.
@@ -229,10 +229,10 @@ class FinancialAssetApp:
     def ensure_graph(self) -> AssetRelationshipGraph:
         """
         Ensure the application has an initialized AssetRelationshipGraph and return it.
-        
+
         Returns:
             AssetRelationshipGraph: The initialized, non-None graph instance used by the app.
-        
+
         Raises:
             RuntimeError: If graph initialization fails and no graph is available.
         """
@@ -248,12 +248,12 @@ class FinancialAssetApp:
     def _update_metrics_text(graph: AssetRelationshipGraph) -> str:
         """
         Builds a human-readable summary of network statistics for the given asset relationship graph.
-        
+
         Includes totals, averages, relationship density, regulatory event count, asset-class distribution, and a ranked list of top relationships where numeric strengths are shown as percentages and non-numeric strengths as "n/a".
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph from which metrics are calculated.
-        
+
         Returns:
             metrics_text (str): Formatted statistics summary string.
         """
@@ -293,12 +293,12 @@ class FinancialAssetApp:
     ) -> tuple[str, str, str, Any] | None:
         """
         Validate a candidate top-relationship entry and return it as a normalized 4-tuple.
-        
+
         Parameters:
             item (Any): Candidate relationship entry expected to be a 4-element tuple
                 (source, target, relationship_type, strength) where `source`, `target`,
                 and `relationship_type` are strings.
-        
+
         Returns:
             tuple[str, str, str, Any] | None: A 4-tuple (source, target, relationship_type, strength)
             when `item` matches the expected shape and types for the first three elements;
@@ -321,10 +321,10 @@ class FinancialAssetApp:
     def _format_relationship_strength(strength: Any) -> str:
         """
         Format a numeric relationship strength as a percentage string.
-        
+
         Parameters:
             strength (Any): A numeric value or string representing a proportion (e.g., 0.12). Non-numeric inputs are not interpreted.
-        
+
         Returns:
             str: Percentage formatted with one decimal place (for example, "12.3%"), or "n/a" if the input cannot be interpreted as a number.
         """
@@ -340,12 +340,12 @@ class FinancialAssetApp:
     ) -> tuple[dict, dict]:
         """
         Provide the properties of a selected asset and its incoming and outgoing relationships.
-        
+
         If `selected_asset` is None or not present in `graph.assets`, returns empty structures for both asset properties and relationships.
-        
+
         Parameters:
             selected_asset (Optional[str]): Asset identifier to look up; may be None.
-        
+
         Returns:
             tuple[dict, dict]:
                 - First element: dictionary of the asset's attributes (fields from the Asset dataclass),
@@ -388,7 +388,7 @@ class FinancialAssetApp:
     ) -> tuple[go.Figure, go.Figure, go.Figure, str]:
         """
         Create three metric visualization figures and a human-readable network statistics summary for the given asset graph.
-        
+
         Returns:
             fig1 (plotly.graph_objs.Figure): First metric visualization.
             fig2 (plotly.graph_objs.Figure): Second metric visualization.
@@ -402,9 +402,9 @@ class FinancialAssetApp:
     def refresh_all_outputs(self, _graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
         """
         Refresh all UI panels and produce the outputs expected by the Gradio interface bindings.
-        
+
         Attempts to rebuild the visualization, three metric figures, metrics text, schema report, and asset selector choices; on success returns those outputs and a hidden status update, on failure returns empty/placeholder outputs and a visible error status.
-        
+
         Returns:
             tuple[Any, ...]: Ordered outputs matching the Gradio bindings:
                 - 3D visualization figure
@@ -462,14 +462,14 @@ class FinancialAssetApp:
     ) -> tuple[go.Figure, gr.Update]:
         """
         Refresh the graph visualization using the requested view mode, layout, and relationship visibility flags.
-        
+
         Parameters:
             _graph_state (AssetRelationshipGraph): Current asset relationship graph state used for rendering.
             view_mode (str): Visualization mode, e.g., "2D" or "3D".
             layout_type (str): Layout selection for 2D rendering, e.g., "spring", "circular", or "grid".
             *relationship_flags (bool): A variable-length sequence of booleans controlling visibility of relationship types;
                 the sequence will be normalized to the application's fixed set of relationship toggles.
-        
+
         Returns:
             tuple: (figure, update) where `figure` is the Plotly figure for the rendered visualization and `update` is a
             Gradio Update value intended for status or error messaging in the UI.
@@ -490,7 +490,7 @@ class FinancialAssetApp:
     ) -> tuple[go.Figure, gr.Update]:
         """
         Render the asset relationship graph using the selected view mode, layout, and relationship visibility flags.
-        
+
         Parameters:
             _graph_state (AssetRelationshipGraph): The asset relationship graph to use for rendering.
             view_mode (str): View selector, e.g., "2D" for two-dimensional rendering; other values select 3D rendering.
@@ -500,7 +500,7 @@ class FinancialAssetApp:
                 (show_same_sector, show_market_cap, show_correlation, show_corporate_bond,
                  show_commodity_currency, show_income_comparison, show_regulatory,
                  show_all_relationships, toggle_arrows)
-        
+
         Returns:
             tuple[go.Figure, gr.Update]: A Plotly Figure for the requested visualization and a Gradio Update controlling the error/message display
             (the Update is hidden when rendering succeeds and contains a visible error message when rendering fails).
@@ -529,10 +529,10 @@ class FinancialAssetApp:
     ) -> tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool]:
         """
         Normalize a variable-length sequence of relationship flags to a nine-boolean tuple.
-        
+
         Parameters:
             relationship_flags (tuple[bool, ...]): Sequence of truthy/falsy values representing relationship visibility toggles. Can be shorter or longer than nine elements and may contain non-bool truthy/falsy values.
-        
+
         Returns:
             tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool]: A 9-tuple of booleans where input values are coerced to `bool`, missing entries are filled with `False`, and any extra entries beyond nine are ignored.
         """
@@ -564,7 +564,7 @@ class FinancialAssetApp:
     ]:
         """
         Default relationship flags with all nine toggles enabled.
-        
+
         Returns:
             tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool]: A 9-tuple where each element is `True`, indicating every relationship toggle is enabled.
         """
@@ -578,12 +578,12 @@ class FinancialAssetApp:
     ) -> tuple[go.Figure, gr.Update]:
         """
         Refresh the visualization using all relationship visibility toggles enabled.
-        
+
         Parameters:
             graph_state (AssetRelationshipGraph): Current asset relationship graph used to render the visualization.
             view_mode (str): Visualization mode, e.g. "2D" or "3D".
             layout_type (str): Layout type for 2D mode, e.g. "spring", "circular", or "grid".
-        
+
         Returns:
             tuple: A pair `(figure, update)` where `figure` is the rendered Plotly figure for the network visualization and `update` is a Gradio Update object for the UI status/message.
         """
@@ -603,7 +603,7 @@ class FinancialAssetApp:
     ) -> go.Figure:
         """
         Render the asset relationship graph as either a 2D or 3D visualization applying relationship filters.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): The asset relationship graph to visualize.
             view_mode (str): Visualization mode, e.g., "2D" for a 2D layout; any other value selects the 3D renderer.
@@ -613,7 +613,7 @@ class FinancialAssetApp:
                 (show_same_sector, show_market_cap, show_correlation, show_corporate_bond,
                  show_commodity_currency, show_income_comparison, show_regulatory,
                  show_all_relationships, toggle_arrows)
-        
+
         Returns:
             go.Figure: A Plotly figure representing the rendered visualization.
         """
@@ -660,7 +660,7 @@ class FinancialAssetApp:
     def generate_formulaic_analysis(self, _graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
         """
         Generate the formulaic analysis outputs used by the Formulaic Analysis tab.
-        
+
         Returns:
             A tuple containing: the dashboard figure, the correlation network figure, the metric comparison figure,
             a Gradio Update or choices list for the formula selector, the formatted formula summary string,
@@ -688,14 +688,14 @@ class FinancialAssetApp:
     ) -> tuple[Any, ...]:
         """
         Assemble UI outputs for a successful formulaic analysis.
-        
+
         Parameters:
             analysis_results (dict[str, Any]): Result object produced by the formulaic analyzer. Expected keys used here include:
                 - "formulas": a list of formula objects (each with a `name` attribute) for selector choices,
                 - "empirical_relationships": data for the correlation network,
                 - "summary": summary metadata used to build the human-readable summary.
                 Other analyzer output is passed through to the visualizer.
-        
+
         Returns:
             tuple[Any, ...]: A 6-tuple containing:
                 1. Dashboard figure produced for the analysis.
@@ -731,7 +731,7 @@ class FinancialAssetApp:
     def _build_formulaic_error_outputs(exc: Exception) -> tuple[Any, ...]:
         """
         Produce fallback UI outputs used when formulaic analysis fails.
-        
+
         Returns:
             tuple: A 6-tuple containing:
                 - three empty Plotly figures for dashboard/correlation/metric comparison,
@@ -754,10 +754,10 @@ class FinancialAssetApp:
     def show_formula_details(_formula_name: str, graph_state: AssetRelationshipGraph) -> tuple[go.Figure, gr.Update]:
         """
         Show a detailed visualization and status update for the selected formula.
-        
+
         _formula_name (str): The name or identifier of the formula to display; if None or the formula is not available, the function returns a placeholder message.
         graph_state (AssetRelationshipGraph): Asset relationship graph used to derive visualization data.
-        
+
         Returns:
         A Plotly Figure representing the formula detail view and a Gradio Update that sets the detail text and visibility.
         """
@@ -815,11 +815,11 @@ class FinancialAssetApp:
     ) -> str:
         """
         Builds a concise, human-readable summary that combines formula category counts, key insights, and the strongest empirical correlations.
-        
+
         Parameters:
             summary (dict[str, Any]): Aggregate metadata about formula categories and extracted insights.
             analysis_results (dict[str, Any]): Detailed results from formulaic analysis, including empirical relationships and correlation data.
-        
+
         Returns:
             str: A newline-separated formatted summary suitable for display in the UI.
         """
@@ -837,10 +837,10 @@ class FinancialAssetApp:
     ) -> None:
         """
         Append per-category formula counts to an existing summary lines list.
-        
+
         If `summary` contains a "formula_categories" mapping, appends one line per category in the form
         "  • {category}: {count} formulas". Does nothing when that key is missing or not a dict.
-        
+
         Parameters:
             summary_lines (list[str]): Mutable list of summary lines to append to.
             summary (dict[str, Any]): Summary data expected to include a "formula_categories" dict
@@ -860,9 +860,9 @@ class FinancialAssetApp:
     ) -> None:
         """
         Append formatted "Key Insights" entries from a summary dictionary into a list of summary lines.
-        
+
         If `summary` contains a "key_insights" key with a list value, this function appends a section header and each insight as a bulleted line to `summary_lines`. If the key is missing or not a list, `summary_lines` is left unchanged.
-        
+
         Parameters:
             summary_lines (list[str]): Mutable list of summary lines to which the header and insights will be appended.
             summary (dict[str, Any]): Dictionary that may contain a "key_insights" entry with a list of insight strings.
@@ -883,13 +883,13 @@ class FinancialAssetApp:
     ) -> None:
         """
         Append up to three strongest asset correlation lines to the provided summary lines.
-        
+
         Parameters:
             summary_lines (list[str]): Mutable list of summary text lines to extend.
             analysis_results (dict[str, Any]): Analysis output expected to contain an
                 "empirical_relationships" mapping with a "strongest_correlations" list.
                 If that list is missing or invalid, no lines are appended.
-        
+
         """
         empirical = analysis_results.get("empirical_relationships") or {}
         correlations = empirical.get("strongest_correlations")
@@ -905,11 +905,11 @@ class FinancialAssetApp:
     def create_interface(self) -> gr.Blocks:
         """
         Create the Gradio Blocks UI for the application.
-        
+
         Constructs the tabbed interface (network visualization, metrics and analytics, schema and rules,
         asset explorer, documentation, and formulaic analysis), wires UI events to their handlers,
         and initializes a non-null graph state to store in the interface.
-        
+
         Returns:
             gr.Blocks: Configured Gradio Blocks instance for the application UI.
         """
@@ -937,12 +937,12 @@ class FinancialAssetApp:
     def _build_interface_tabs(self) -> dict[str, Any]:
         """
         Build the application's tabbed UI and collect references to key components.
-        
+
         Constructs all top-level tabs used by the interface (Visualization, Metrics,
         Schema, Asset Explorer, Documentation, and Formulaic Analysis) and returns a
         mapping of important component names to their component objects for wiring and
         callbacks.
-        
+
         Returns:
             components (dict[str, Any]): A dictionary mapping component identifiers to
                 their corresponding Gradio component objects or related references.
@@ -960,10 +960,10 @@ class FinancialAssetApp:
     def _build_visualization_tab(self) -> dict[str, Any]:
         """
         Builds the Network Visualization tab and returns its UI component references.
-        
+
         Creates the tab layout including introductory markdown, visualization placeholder, visualization controls,
         relationship visibility toggles, and action buttons, then aggregates their Gradio component objects.
-        
+
         Returns:
             components (dict[str, Any]): Mapping of component names to Gradio components. At minimum contains
                 "visualization_3d" (the Plot placeholder); also includes keys provided by the visualization
@@ -992,7 +992,7 @@ class FinancialAssetApp:
     def _build_visualization_controls() -> dict[str, Any]:
         """
         Create UI controls for selecting the visualization mode and the 2D layout type.
-        
+
         Returns:
             controls (dict[str, Any]): Dictionary containing:
                 - "view_mode": Radio control for choosing between "3D" and "2D".
@@ -1020,7 +1020,7 @@ class FinancialAssetApp:
     def _build_relationship_visibility_controls() -> dict[str, Any]:
         """
         Create Gradio checkbox controls for toggling visibility of different relationship types.
-        
+
         Returns:
             dict[str, Any]: Mapping of control keys to their corresponding Gradio checkbox components, e.g. keys like
                 "show_same_sector", "show_market_cap", "show_correlation", "show_corporate_bond",
@@ -1086,7 +1086,7 @@ class FinancialAssetApp:
     def _build_visualization_actions() -> dict[str, Any]:
         """
         Create and return visualization action controls and a legend row for the interface.
-        
+
         Returns:
             dict[str, Any]: Dictionary containing:
                 - "refresh_viz_btn": the refresh visualization Button component.
@@ -1113,7 +1113,7 @@ class FinancialAssetApp:
     def _build_metrics_tab(self) -> dict[str, Any]:
         """
         Builds the Metrics & Analytics tab and returns its Gradio component references.
-        
+
         Returns:
             dict[str, Any]: Mapping of component names to Gradio components created for the tab:
                 - "asset_dist_chart": Plot for asset distribution.
@@ -1152,10 +1152,10 @@ class FinancialAssetApp:
     def _build_schema_tab(self) -> dict[str, Any]:
         """
         Constructs the Schema & Rules tab UI and exposes its component references.
-        
+
         Creates a tab containing a markdown guide, a read-only multiline textbox for the generated schema/report,
         and a primary button to trigger schema generation.
-        
+
         Returns:
             dict[str, Any]: Mapping with keys:
                 - "schema_report": the read-only Textbox component displaying the schema/report.
@@ -1183,7 +1183,7 @@ class FinancialAssetApp:
     def _build_asset_explorer_tab(self) -> dict[str, Any]:
         """
         Create the Asset Explorer tab and its UI components for the Gradio interface.
-        
+
         Returns:
             dict[str, Any]: Mapping of UI components:
                 - "asset_selector": Dropdown for selecting an asset.
@@ -1222,7 +1222,7 @@ class FinancialAssetApp:
     def _build_documentation_tab(self) -> None:
         """
         Create the Documentation tab in the Gradio interface containing the static markdown from AppConstants.DOC_MARKDOWN.
-        
+
         Adds a tab labeled with AppConstants.TAB_DOCUMENTATION and populates it with the module's predefined documentation content.
         """
         with gr.Tab(AppConstants.TAB_DOCUMENTATION):
@@ -1231,10 +1231,10 @@ class FinancialAssetApp:
     def _build_formulaic_tab(self) -> dict[str, Any]:
         """
         Constructs the Formulaic Analysis tab UI with all interactive components and returns their references.
-        
+
         Creates a tab containing the formulaic analysis dashboard, correlation network, metric comparison chart,
         a formula selector and detail view, a refresh button, and a read-only summary textbox.
-        
+
         Returns:
             dict[str, Any]: Mapping of component names to their Gradio component references:
                 - "formulaic_dashboard": Plot for the formulaic analysis dashboard
@@ -1306,9 +1306,9 @@ class FinancialAssetApp:
     ) -> None:
         """
         Wire Gradio UI components to the app's backend callbacks and register the initial load handler.
-        
+
         This sets up refresh, visualization, formulaic analysis, and asset event handlers using the provided component map, and schedules an initial call to refresh_all_outputs when the interface loads.
-        
+
         Parameters:
             interface (gr.Blocks): The Gradio interface container to attach the load handler to.
             graph_state (Any): Shared graph state passed to callbacks.
@@ -1330,12 +1330,12 @@ class FinancialAssetApp:
     def _get_all_refresh_outputs(c: dict[str, Any]) -> list[Any]:
         """
         List UI components that should be updated by a global refresh action.
-        
+
         Parameters:
             c (dict[str, Any]): Mapping of component identifiers to UI components. Must include the keys
                 "visualization_3d", "asset_dist_chart", "rel_types_chart", "events_timeline_chart",
                 "metrics_text", "schema_report", "asset_selector", and "error_message".
-        
+
         Returns:
             list[Any]: The components to update, returned in the following order:
                 1. visualization_3d
@@ -1365,11 +1365,11 @@ class FinancialAssetApp:
     ) -> list[Any]:
         """
         Collects and orders the inputs required by the visualization callbacks.
-        
+
         Parameters:
             graph_state (Any): Shared application graph state object passed to callbacks.
             c (dict[str, Any]): Mapping of visualization control keys to their UI components or values.
-        
+
         Returns:
             list[Any]: List containing, in this exact order:
                 - graph_state
@@ -1408,7 +1408,7 @@ class FinancialAssetApp:
     ) -> None:
         """
         Connect the common refresh buttons to the application's global refresh_all_outputs callback.
-        
+
         Parameters:
             graph_state (Any): Shared graph state object provided as the single input to the callback.
             c (dict[str, Any]): Mapping of UI component names to Gradio components; must contain
@@ -1485,13 +1485,13 @@ class FinancialAssetApp:
     ) -> None:
         """
         Wire formulaic analysis UI events to their backend callbacks.
-        
+
         Wires the formulaic refresh button to regenerate formulaic analysis and
         wires the formula selector change event to show details for the selected formula.
-        
+
         Parameters:
-        	graph_state (Any): Current graph state object passed into callbacks.
-        	c (dict[str, Any]): Mapping of UI component keys to Gradio component instances used for wiring.
+                graph_state (Any): Current graph state object passed into callbacks.
+                c (dict[str, Any]): Mapping of UI component keys to Gradio component instances used for wiring.
         """
         formulaic_outputs = [
             c["formulaic_dashboard"],
@@ -1519,11 +1519,11 @@ class FinancialAssetApp:
     ) -> None:
         """
         Register the asset selector change handler to update asset details and relationships.
-        
+
         When the asset selector value changes, calls `update_asset_info` with the selector value and
         the provided graph state, and populates the `asset_info` and `asset_relationships` components
         with the result.
-        
+
         Parameters:
             graph_state (Any): The current graph state passed into the callback.
             c (dict[str, Any]): Mapping of UI components; must contain keys 'asset_selector',

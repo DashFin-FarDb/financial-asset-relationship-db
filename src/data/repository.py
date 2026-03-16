@@ -164,10 +164,10 @@ class AssetGraphRepository:
     ) -> None:
         """
         Create or update a relationship between two assets and stage it on the repository session.
-        
+
         Accepts either a single `_RelationshipUpsertSpec` or explicit fields: (source_id, target_id, rel_type, strength, bidirectional=False).
         Strength must be a numeric value between -1.0 and 1.0 inclusive. The resulting relationship ORM is added to the repository session for persistence.
-        
+
         Parameters:
             *args: Positional form of the upsert input — either a single `_RelationshipUpsertSpec` or the explicit fields
                 (source_id, target_id, rel_type, strength[, bidirectional]).
@@ -187,22 +187,22 @@ class AssetGraphRepository:
     ) -> _RelationshipUpsertSpec:
         """
         Normalize input arguments for adding or updating an asset relationship into a _RelationshipUpsertSpec.
-        
+
         Accepts either a single _RelationshipUpsertSpec positional argument, or positional fields:
         (source_id, target_id, rel_type, strength[, bidirectional]). Validates and normalizes
         the strength to a float within [-1.0, 1.0], converts identifiers and rel_type to strings,
         and converts bidirectional to a boolean.
-        
+
         Parameters:
             *args: Either a single `_RelationshipUpsertSpec` or the explicit fields
                 `(source_id, target_id, rel_type, strength[, bidirectional])`.
             **kwargs: May include `bidirectional` when explicit fields are provided; other
                 keyword arguments are not allowed.
-        
+
         Returns:
             _RelationshipUpsertSpec: A frozen spec with `source_id`, `target_id`, and `rel_type`
             as strings, `strength` as a float within [-1.0, 1.0], and `bidirectional` as a bool.
-        
+
         Raises:
             TypeError: If an unexpected combination of positional/keyword arguments is supplied
                 (including extra keywords or insufficient positional arguments).
@@ -251,15 +251,15 @@ class AssetGraphRepository:
     def _validate_relationship_strength(strength: float) -> float:
         """
         Validate and normalize a relationship strength value.
-        
+
         Accepts a numeric strength in the range -1.0 to 1.0 (inclusive); boolean values are rejected.
-        
+
         Parameters:
             strength (int | float): The value to validate and normalize.
-        
+
         Returns:
             float: The validated strength converted to a float.
-        
+
         Raises:
             ValueError: If `strength` is a boolean, not numeric, or outside the range [-1.0, 1.0].
         """
@@ -278,11 +278,11 @@ class AssetGraphRepository:
     ) -> AssetRelationshipORM:
         """
         Return an AssetRelationshipORM corresponding to the given upsert specification.
-        
+
         Parameters:
             relationship_spec (_RelationshipUpsertSpec): Normalized relationship input containing
                 source_id, target_id, rel_type, strength, and bidirectional.
-        
+
         Returns:
             AssetRelationshipORM: An existing ORM instance matching source, target, and type with
             its strength and bidirectional fields updated, or a new ORM instance populated from
@@ -309,7 +309,7 @@ class AssetGraphRepository:
     def list_relationships(self) -> List[RelationshipRecord]:
         """
         List all asset relationships stored in the repository.
-        
+
         Returns:
             List[RelationshipRecord]: A list of RelationshipRecord instances for every relationship in the database. Each record contains string identifiers for source and target, the relationship type, the relationship strength as a `float`, and a `bool` indicating whether it is bidirectional.
         """
@@ -333,7 +333,7 @@ class AssetGraphRepository:
     ) -> Optional[RelationshipRecord]:
         """
         Retrieve the relationship between two assets specified by source_id, target_id, and rel_type.
-        
+
         Returns:
             RelationshipRecord: the matching relationship if one exists, `None` otherwise.
         """
@@ -443,10 +443,10 @@ class AssetGraphRepository:
     def _to_asset_model(orm: AssetORM) -> Asset:
         """
         Convert a persisted AssetORM row into the corresponding domain Asset instance.
-        
+
         Parameters:
             orm (AssetORM): The ORM row representing an asset.
-        
+
         Returns:
             Asset: A domain Asset object. The concrete subclass (Equity, Bond, Commodity, Currency) is returned when `orm.asset_class` indicates a specific asset class; otherwise a generic `Asset` is returned.
         """
@@ -498,7 +498,7 @@ class AssetGraphRepository:
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
         """
         Convert a RegulatoryEvent ORM row into a domain RegulatoryEvent model.
-        
+
         @param orm: The RegulatoryEventORM instance to convert.
         @returns: A RegulatoryEvent populated from the ORM row; `related_assets` is a list of related asset IDs.
         """

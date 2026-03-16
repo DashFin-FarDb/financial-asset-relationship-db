@@ -44,7 +44,7 @@ class Asset:
     def __post_init__(self) -> None:
         """
         Validate and normalize Asset fields after dataclass initialization.
-        
+
         Performs validation that `id`, `symbol`, and `name` are non-empty strings; that `price` is a number greater than or equal to zero; and that `market_cap` is a number greater than or equal to zero or None. Normalizes `currency` to uppercase when it is a string and validates the currency code format.
         """
         self._validate_non_empty_string(
@@ -76,11 +76,11 @@ class Asset:
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
         Validate that `value` is a non-empty string.
-        
+
         Parameters:
             value (object): The value to validate; must be an instance of `str` and not empty.
             error_message (str): Message used for the raised ValueError when validation fails.
-        
+
         Raises:
             ValueError: If `value` is not a string or is an empty string, raised with `error_message`.
         """
@@ -96,12 +96,12 @@ class Asset:
     ) -> None:
         """
         Validate that a numeric value is greater than or equal to zero.
-        
+
         Parameters:
             value (object): The value to validate; may be an int, float, or None.
             error_message (str): Message used when raising ValueError for invalid input.
             allow_none (bool, optional): If True, allow `value` to be None without raising. Defaults to False.
-        
+
         Raises:
             ValueError: If `value` is not an int or float, is negative, or is None while `allow_none` is False.
         """
@@ -114,10 +114,10 @@ class Asset:
     def _validate_currency_code(currency: str) -> None:
         """
         Validate that `currency` is a three-letter uppercase ISO-like currency code.
-        
+
         Parameters:
             currency (str): Currency code expected as three uppercase ASCII letters (for example, "USD").
-        
+
         Raises:
             ValueError: If `currency` is not a string of three uppercase letters.
         """
@@ -179,7 +179,7 @@ class RegulatoryEvent:
     def __post_init__(self) -> None:
         """
         Validate and normalize regulatory event fields after dataclass initialization.
-        
+
         Ensures `id`, `asset_id`, and `description` are non-empty strings, `impact_score` is between -1 and 1, and `date` begins with an ISO 8601 date prefix (YYYY-MM-DD).
         """
         self._validate_non_empty_string(
@@ -201,11 +201,11 @@ class RegulatoryEvent:
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
         Validate that a value is a non-empty string.
-        
+
         Parameters:
             value (object): The value to validate.
             error_message (str): Error message used for the raised ValueError when validation fails.
-        
+
         Raises:
             ValueError: If `value` is not a `str` or is an empty string.
         """
@@ -216,10 +216,10 @@ class RegulatoryEvent:
     def _validate_impact_score(value: object) -> None:
         """
         Validate that an event impact score is a numeric value within the inclusive range -1 to 1.
-        
+
         Parameters:
             value (object): The impact score to validate; expected to be an int or float between -1 and 1 inclusive.
-        
+
         Raises:
             ValueError: If `value` is not an int/float or is outside the range [-1, 1].
         """
@@ -230,10 +230,10 @@ class RegulatoryEvent:
     def _validate_iso_date_prefix(value: object) -> None:
         """
         Ensure the given value is a string that begins with an ISO 8601 date prefix in the form YYYY-MM-DD.
-        
+
         Parameters:
             value (object): The value to validate.
-        
+
         Raises:
             ValueError: If `value` is not a string starting with the pattern `YYYY-MM-DD`.
         """

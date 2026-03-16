@@ -53,7 +53,7 @@ class _GraphState:
     def __init__(self) -> None:
         """
         Create an empty GraphState container holding optional runtime graph and factory.
-        
+
         Initializes:
         - `graph`: the currently loaded AssetRelationshipGraph instance or `None` if not yet created.
         - `graph_factory`: a callable to lazily construct the graph or `None` if not configured.
@@ -81,9 +81,9 @@ _DEFAULT_COLOR = "#9c755f"
 def get_graph() -> AssetRelationshipGraph:
     """
     Return the module's shared AssetRelationshipGraph, initializing it on first access.
-    
+
     Initializes the graph lazily in a thread-safe manner if it has not been created yet.
-    
+
     Returns:
         The shared AssetRelationshipGraph instance.
     """
@@ -99,7 +99,7 @@ def get_graph() -> AssetRelationshipGraph:
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
     Replace the module's graph with the provided AssetRelationshipGraph instance and clear any configured graph factory.
-    
+
     Parameters:
         graph_instance (AssetRelationshipGraph): The graph to set as the module-level graph.
     """
@@ -138,9 +138,9 @@ def reset_graph() -> None:
 def _initialize_graph() -> AssetRelationshipGraph:
     """
     Construct the asset relationship graph using the configured source.
-    
+
     Chooses the construction source in this order: a configured graph factory; real-data cache pointed to by `GRAPH_CACHE_PATH`; live real-data fetcher using `REAL_DATA_CACHE_PATH` when `USE_REAL_DATA_FETCHER` is enabled; otherwise falls back to the bundled sample dataset.
-    
+
     Returns:
         AssetRelationshipGraph: The initialized asset relationship graph.
     """
@@ -173,9 +173,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
 def _should_use_real_data_fetcher() -> bool:
     """
     Determine whether the USE_REAL_DATA_FETCHER environment variable indicates the real data fetcher should be used.
-    
+
     Checks the value of the environment variable and treats the case-insensitive values "1", "true", "yes", and "on" (after trimming whitespace) as true.
-    
+
     Returns:
         True if USE_REAL_DATA_FETCHER is one of "1", "true", "yes", or "on" (case-insensitive), False otherwise.
     """
@@ -187,7 +187,7 @@ def _should_use_real_data_fetcher() -> bool:
 async def lifespan(_fastapi_app: FastAPI):
     """
     Initialize the global asset relationship graph at application startup.
-    
+
     If graph initialization fails, propagate the exception to abort application startup.
     """
     try:
@@ -223,9 +223,9 @@ ENV = os.getenv("ENV", "development").lower()
 def _read_allowed_origins() -> List[str]:
     """
     Parse the ALLOWED_ORIGINS environment variable into a list of trimmed origin strings.
-    
+
     Splits the ALLOWED_ORIGINS value on commas and returns each non-empty entry with surrounding whitespace removed.
-    
+
     Returns:
         allowed_origins (List[str]): A list of origin strings (e.g., "https://example.com").
     """
@@ -235,11 +235,11 @@ def _read_allowed_origins() -> List[str]:
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """
     Allow HTTP localhost origins only when running in the development environment.
-    
+
     Parameters:
         origin_url (str): The origin URL to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
         current_env (str): The current environment name; expected value for allowance is "development".
-    
+
     Returns:
         bool: `True` if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" (optional port allowed)
         and `current_env` equals "development", `False` otherwise.
@@ -250,10 +250,10 @@ def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
 def _is_https_local(origin_url: str) -> bool:
     """
     Determine whether an origin URL is an HTTPS localhost origin.
-    
+
     Parameters:
         origin_url (str): The origin to test (scheme + host, optional port), e.g. "https://localhost:3000".
-    
+
     Returns:
         `true` if the origin is `https://localhost` or `https://127.0.0.1` (optionally with a port), `false` otherwise.
     """
@@ -263,10 +263,10 @@ def _is_https_local(origin_url: str) -> bool:
 def _is_vercel_preview(origin_url: str) -> bool:
     """
     Determine whether an origin URL is a Vercel preview deployment hostname.
-    
+
     Parameters:
         origin_url (str): The full origin URL to test (including scheme, e.g. "https://foo.vercel.app").
-    
+
     Returns:
         bool: `True` if `origin_url` matches the pattern `https://<name>.vercel.app`, `False` otherwise.
     """
@@ -276,10 +276,10 @@ def _is_vercel_preview(origin_url: str) -> bool:
 def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
     """
     Determine whether a parsed origin contains any disallowed URL components.
-    
+
     Parameters:
         parsed_origin (object): A parsed URL-like object (for example, the result of urllib.parse.urlparse) whose attributes will be inspected.
-    
+
     Returns:
         bool: `True` if any of `path`, `params`, `query`, `fragment`, `username`, or `password` are present (non-empty); `False` otherwise.
     """
@@ -298,10 +298,10 @@ def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
 def _is_valid_https_domain(origin_url: str) -> bool:
     """
     Validate whether an origin URL is a well-formed HTTPS origin, supporting internationalized domain names (IDN) and an optional port.
-    
+
     Parameters:
         origin_url (str): The origin URL to validate.
-    
+
     Returns:
         `true` if the input is a valid HTTPS origin with a hostname (IDN allowed) and optional port, `false` otherwise.
     """
@@ -333,16 +333,16 @@ def _is_valid_https_domain(origin_url: str) -> bool:
 def validate_origin(origin_url: str) -> bool:
     """
     Determine whether a given HTTP origin is allowed by the application's CORS rules.
-    
+
     Validates the origin against configured allowed origins, local development allowances
     (e.g., localhost or 127.0.0.1 when permitted), Vercel preview hostnames, and
     valid HTTPS domains (including internationalized domains via IDNA encoding).
     The ENV environment variable is re-read on each call to allow runtime overrides.
-    
+
     Parameters:
         origin_url (str): Origin URL to validate (e.g. "https://example.com",
             "http://localhost:3000", or "https://münchen.de").
-    
+
     Returns:
         bool: `True` if the origin is allowed, `False` otherwise.
     """
@@ -409,11 +409,11 @@ def raise_asset_not_found(
 ) -> NoReturn:
     """
     Raise an HTTP 404 (Not Found) error for a missing resource.
-    
+
     Parameters:
         asset_id (str): Identifier of the missing resource.
         resource_type (str): Human-readable resource label (default: "Asset").
-    
+
     Raises:
         HTTPException: with status code 404 and detail message "<resource_type> <asset_id> not found".
     """
@@ -584,14 +584,14 @@ async def get_assets(
 ) -> List[AssetResponse]:
     """
     Retrieve assets filtered by asset class and/or sector.
-    
+
     Parameters:
         asset_class (Optional[str]): Exact asset class name to filter by (e.g. "Equity").
         sector (Optional[str]): Exact sector name to filter by.
-    
+
     Returns:
         List[AssetResponse]: Matching assets formatted as API response objects.
-    
+
     Raises:
         HTTPException: 500 if an unexpected error occurs while fetching assets.
     """
@@ -614,13 +614,13 @@ async def get_assets(
 async def get_asset_detail(asset_id: str) -> AssetResponse:
     """
     Retrieve detailed information for the asset with the given identifier.
-    
+
     Parameters:
         asset_id (str): Identifier of the asset to retrieve.
-    
+
     Returns:
         AssetResponse: Serialized asset details, including issuer identifier when available.
-    
+
     Raises:
         HTTPException: 404 if the asset with `asset_id` is not found.
         HTTPException: 500 if an unexpected error occurs while retrieving the asset.
@@ -649,13 +649,13 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
     """
     Get outgoing relationships for the given asset.
-    
+
     Parameters:
         asset_id (str): Asset identifier whose outgoing relationships are requested.
-    
+
     Returns:
         List[RelationshipResponse]: A list of relationship records containing `source_id`, `target_id`, `relationship_type`, and `strength`.
-    
+
     Raises:
         HTTPException: 404 if the asset is not found.
         HTTPException: 500 for unexpected internal errors.
@@ -708,7 +708,7 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 async def get_metrics() -> MetricsResponse:
     """
     Compute metrics summarizing the asset relationship network.
-    
+
     Returns:
         MetricsResponse: Aggregated statistics including:
             - total_assets: number of assets in the graph
@@ -718,7 +718,7 @@ async def get_metrics() -> MetricsResponse:
             - max_degree: maximum out-degree of any asset
             - network_density: density measure of the network
             - relationship_density: same as `network_density` (provided for compatibility)
-    
+
     Raises:
         HTTPException: 500 with an error message if metric computation fails.
     """
@@ -752,10 +752,10 @@ async def get_metrics() -> MetricsResponse:
 def _calculate_node_degrees(g: AssetRelationshipGraph) -> Dict[str, int]:
     """
     Compute the out-degree (number of outgoing relationships) for each asset in the graph.
-    
+
     Parameters:
         g (AssetRelationshipGraph): Graph to analyze.
-    
+
     Returns:
         Dict[str, int]: Mapping from asset ID to its out-degree (number of outgoing relationships).
     """
@@ -772,12 +772,12 @@ def _compute_fibonacci_position(
 ) -> tuple[float, float, float]:
     """
     Compute a 3D point on the unit sphere using a Fibonacci-lattice distribution.
-    
+
     Parameters:
         idx (int): Zero-based index of the node within the range [0, total_nodes).
         total_nodes (int): Total number of nodes to place on the sphere.
         golden_ratio (float): Value controlling azimuthal spacing (typically the golden ratio).
-    
+
     Returns:
         tuple[float, float, float]: (x, y, z) coordinates of the node on the unit sphere.
     """
@@ -797,11 +797,11 @@ def _build_visualization_nodes(
 ) -> List[Dict[str, Any]]:
     """
     Construct visualization node dictionaries for the given assets in the graph.
-    
+
     Parameters:
         g (AssetRelationshipGraph): Graph containing assets and relationships.
         asset_ids (List[str]): Ordered list of asset IDs to include as nodes.
-    
+
     Returns:
         List[Dict[str, Any]]: A list of node objects with keys:
             - id: asset ID string
@@ -839,10 +839,10 @@ def _build_visualization_nodes(
 def _build_visualization_edges(g: AssetRelationshipGraph) -> List[Dict[str, Any]]:
     """
     Create a list of edge dictionaries for visualization extracted from the asset relationship graph.
-    
+
     Parameters:
         g (AssetRelationshipGraph): Graph whose directed relationships will be converted into visualization edges.
-    
+
     Returns:
         List[dict]: Each dictionary represents a directed relationship with keys:
             `source` (source asset id),
@@ -866,12 +866,12 @@ def _build_visualization_edges(g: AssetRelationshipGraph) -> List[Dict[str, Any]
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Return nodes and edges representing the asset relationship graph prepared for 3-D visualization.
-    
+
     Nodes are positioned using a Fibonacci-lattice sphere distribution, colored by asset class, and sized proportionally to their degree in the graph.
-    
+
     Returns:
         VisualizationDataResponse: Container with `nodes` (list of node dictionaries) and `edges` (list of edge dictionaries) ready for frontend rendering.
-    
+
     Raises:
         HTTPException: Raised with status code 500 if an unexpected error occurs while building the visualization data.
     """

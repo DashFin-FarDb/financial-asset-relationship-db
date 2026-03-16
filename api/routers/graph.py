@@ -22,7 +22,7 @@ def _build_visualization_nodes(
 ) -> List[Dict[str, Any]]:
     """
     Construct visualization node payloads for the given assets.
-    
+
     Each node dictionary contains:
     - `id`: asset identifier string
     - `name`: asset display name
@@ -31,13 +31,13 @@ def _build_visualization_nodes(
     - `x`, `y`, `z`: 3D coordinates as floats
     - `color`: color string for the node
     - `size`: node size (fixed at 5)
-    
+
     Parameters:
         graph: Object providing access to assets via `graph.assets[asset_id]`.
         positions: Array-like of shape (N, 3) with 3D coordinates corresponding to `asset_ids`.
         asset_ids (List[str]): Ordered list of asset ids to include in the visualization.
         asset_colors (List[str]): Color strings aligned with `asset_ids`.
-    
+
     Returns:
         List[Dict[str, Any]]: List of node dictionaries suitable for the visualization response.
     """
@@ -66,11 +66,11 @@ def _build_visualization_edges(
 ) -> List[Dict[str, Any]]:
     """
     Constructs visualization edge dictionaries for relationships whose source and target are both in the allowed asset set.
-    
+
     Parameters:
         relationships (Dict[str, List[Any]]): Mapping from source asset id to a list of relationship tuples of the form (target_id, relationship_type, strength).
         allowed_asset_ids (set[str]): Set of asset ids that should be included as nodes in the visualization.
-    
+
     Returns:
         List[Dict[str, Any]]: List of edge dictionaries with keys `source`, `target`, `relationship_type`, and `strength` (float).
     """
@@ -95,12 +95,12 @@ def _append_allowed_edges(
 ) -> None:
     """
     Append edges for a source to `edges` only when the target is in `allowed_asset_ids`.
-    
+
     Iterates over `rels`, and for each (target_id, rel_type, strength) tuple whose target is allowed,
     appends a dictionary with keys `source`, `target`, `relationship_type`, and `strength` to the
     provided `edges` list. The `strength` value is converted to a `float`. This function mutates
     `edges` in place.
-    
+
     Parameters:
         edges (List[Dict[str, Any]]): The list to append edge dictionaries to.
         source_id (str): The source asset identifier for all appended edges.
@@ -180,7 +180,7 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 async def get_metrics() -> MetricsResponse:
     """
     Aggregate graph metrics and counts of assets by asset class.
-    
+
     Returns:
         MetricsResponse: Object with the following fields:
             - total_assets: total number of assets.
@@ -190,7 +190,7 @@ async def get_metrics() -> MetricsResponse:
             - max_degree: maximum node degree (int).
             - network_density: network density as a fraction (float).
             - relationship_density: relationship density as a fraction (float).
-    
+
     Raises:
         HTTPException: If metrics cannot be obtained (results in a 500 internal server error).
     """
@@ -245,10 +245,10 @@ async def get_metrics() -> MetricsResponse:
 async def get_visualization_data() -> VisualizationDataResponse:
     """
     Provides node and edge payloads for 3D visualization of the asset graph.
-    
+
     Returns:
         VisualizationDataResponse: Response containing `nodes` (list of node dicts with keys `id`, `name`, `symbol`, `asset_class`, `x`, `y`, `z`, `color`, `size`) and `edges` (list of edge dicts with keys `source`, `target`, `relationship_type`, `strength`).
-    
+
     Raises:
         HTTPException: If an internal error occurs while retrieving or processing visualization data (results in a 500 status).
     """
@@ -306,10 +306,10 @@ async def get_asset_classes() -> Dict[str, List[str]]:
 async def get_sectors() -> Dict[str, List[str]]:
     """
     Return the unique sector names present in the global asset graph, sorted alphabetically.
-    
+
     Returns:
         Dict[str, List[str]]: A mapping with the key "sectors" to a sorted list of unique sector names.
-    
+
     Raises:
         HTTPException: With status code 500 if an unexpected error occurs while retrieving sectors.
     """

@@ -101,7 +101,7 @@ class UserRepository:
     def has_users() -> bool:
         """
         Determine whether any user credential records exist.
-        
+
         Returns:
             `True` if at least one user credential exists, `False` otherwise.
         """
@@ -124,9 +124,9 @@ class UserRepository:
     ) -> None:
         """
         Create or update a user credential record in the repository.
-        
+
         Performs an upsert into the user_credentials table for the given username using the provided hashed password and optional profile data. Supports a dictionary-style `user_profile` with optional keys `user_email`, `user_full_name`, and `is_disabled`; legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are also accepted and take precedence when provided.
-        
+
         Parameters:
             username (str): Unique identifier for the user.
             hashed_password (str): Password hash (must already be hashed).
@@ -317,10 +317,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Retrieve the User corresponding to the provided JWT.
-    
+
     Returns:
         User: The User model for the token's subject.
-    
+
     Raises:
         HTTPException: 401 with detail "Token has expired" if the token is expired.
         HTTPException: 401 with detail "Could not validate credentials" if the token is invalid,
@@ -342,7 +342,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 def _build_credentials_exception() -> HTTPException:
     """
     Build the HTTPException used when authentication credentials are invalid.
-    
+
     Returns:
         HTTPException: 401 Unauthorized with detail "Could not validate credentials" and header "WWW-Authenticate: Bearer".
     """
@@ -356,7 +356,7 @@ def _build_credentials_exception() -> HTTPException:
 def _build_expired_exception() -> HTTPException:
     """
     Return an HTTP 401 Unauthorized exception representing an expired bearer token.
-    
+
     Returns:
         HTTPException: An exception with status 401, detail "Token has expired", and a
         `WWW-Authenticate: Bearer` header.
@@ -376,18 +376,18 @@ def _decode_username_from_token(
 ) -> str:
     """
     Extracts the subject username from a JWT and validates it.
-    
+
     Parameters:
-    	token (str): JWT access token containing a `sub` claim.
-    	credentials_exception (HTTPException): Exception to raise when the token is invalid or missing the subject.
-    	expired_exception (HTTPException): Exception to raise when the token has expired.
-    
+        token (str): JWT access token containing a `sub` claim.
+        credentials_exception (HTTPException): Exception to raise when the token is invalid or missing the subject.
+        expired_exception (HTTPException): Exception to raise when the token has expired.
+
     Returns:
-    	username (str): The `sub` claim value (username) from the token.
-    
+        username (str): The `sub` claim value (username) from the token.
+
     Raises:
-    	HTTPException: `expired_exception` if the token has expired.
-    	HTTPException: `credentials_exception` if the token is invalid or the `sub` claim is missing.
+        HTTPException: `expired_exception` if the token has expired.
+        HTTPException: `credentials_exception` if the token is invalid or the `sub` claim is missing.
     """
     try:
         # Explicitly specify algorithms parameter to prevent algorithm confusion attacks
@@ -405,10 +405,10 @@ def _decode_username_from_token(
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     """
     Ensure the authenticated user is active.
-    
+
     Raises:
         HTTPException: 400 with detail "Inactive user" if the user's account is disabled.
-    
+
     Returns:
         current_user (User): The authenticated user's public profile.
     """

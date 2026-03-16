@@ -94,11 +94,11 @@ def markdown_to_html(md: str) -> str:
     def _add_noopener(attrs: dict, _new: bool = False) -> dict:
         """
         Ensure the attribute mapping contains "noopener" in the `rel` attribute value.
-        
+
         Parameters:
             attrs (dict): Mapping of attribute keys (typically tuples like `(None, "rel")`) to their values; this mapping is modified in-place and returned.
             _new (bool): Unused; present to match the callback signature expected by bleach.
-        
+
         Returns:
             dict: The same `attrs` mapping with the `rel` value updated to include `"noopener"` if it was not already present.
         """
@@ -127,13 +127,13 @@ def markdown_to_html(md: str) -> str:
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
     Generate a Markdown-formatted schema report for an asset relationship graph.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The asset relationship graph to produce the report from.
-    
+
     Returns:
         str: The report rendered as Markdown.
-    
+
     Raises:
         ValueError: If the provided graph is invalid or report generation fails.
     """
@@ -164,14 +164,14 @@ ReportFormat = Literal["md", "html"]
 def export_report(graph: object, fmt: ReportFormat = "md") -> str:
     """
     Export a schema report for the given asset relationship graph in the requested format.
-    
+
     Parameters:
         graph (object): An AssetRelationshipGraph instance to generate the report from.
         fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML (case-insensitive).
-    
+
     Returns:
         str: Report content in the requested format.
-    
+
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph.
         ValueError: If `fmt` is not one of "md" or "html".
@@ -226,14 +226,14 @@ def attach_to_gradio_interface(
 ) -> Any:
     """
     Create a Gradio component that renders the current schema report.
-    
+
     Parameters:
         graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument function that returns the current graph.
         html (bool): If True, produce an HTML-rendered report component; otherwise produce a Markdown-rendered component.
-    
+
     Returns:
         A gr.HTML component when `html` is True, otherwise a gr.Markdown component.
-    
+
     Raises:
         RuntimeError: If Gradio is not installed.
     """

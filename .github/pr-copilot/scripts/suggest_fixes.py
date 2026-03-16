@@ -33,7 +33,7 @@ except ImportError:
 def load_config() -> Dict[str, Any]:
     """
     Load PR copilot configuration from .github/pr-copilot-config.yml, falling back to a built-in default when the file is absent.
-    
+
     Returns:
         dict: Parsed configuration mapping. If the YAML file is missing, returns a default config containing a "review_handling" key with an "actionable_keywords" list.
     """
@@ -68,14 +68,14 @@ def load_config() -> Dict[str, Any]:
 def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
     """
     Extracts code change suggestions from a review comment body.
-    
+
     Recognizes two kinds of suggestions:
     - fenced suggestion blocks beginning with ```suggestion and ending with ``` (captured as `code_suggestion`).
     - inline suggestions expressed with phrases like "should be", "change to", "replace with", or "use" followed by backticked code (captured as `inline_suggestion`).
-    
+
     Parameters:
         comment_body (str): Raw text of the review comment.
-    
+
     Returns:
         List[Dict[str, str]]: A list of suggestion objects in the order found. Each object has:
             - `type`: either `"code_suggestion"` or `"inline_suggestion"`.
@@ -111,10 +111,10 @@ def extract_code_suggestions(comment_body: str) -> List[Dict[str, str]]:
 def categorize_comment(comment_body: str) -> Tuple[str, int]:
     """
     Classifies a review comment into a category and assigns a priority.
-    
+
     Parameters:
         comment_body (str): Full text of the review comment to classify.
-    
+
     Returns:
         tuple: (category, priority) where `category` is one of "critical", "bug", "improvement", "style", or "question", and `priority` is an integer with 1 = high, 2 = medium, 3 = low.
     """
@@ -149,11 +149,11 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
     """
     Determine whether a comment contains any actionable keywords.
-    
+
     Parameters:
         comment_body (str): The comment text to inspect.
         actionable_keywords (List[str]): Keywords considered actionable; matching is case-insensitive.
-    
+
     Returns:
         bool: `true` if at least one actionable keyword appears in the comment (case-insensitive), `false` otherwise.
     """
@@ -167,11 +167,11 @@ def parse_review_comments(
 ) -> List[Dict[str, Any]]:
     """
     Collect actionable items from a GitHub pull request's review comments.
-    
+
     Parameters:
         pr (Any): A PullRequest-like object providing get_review_comments() and get_reviews().
         actionable_keywords (List[str]): Keywords used to determine whether a comment is actionable.
-    
+
     Returns:
         List[Dict[str, Any]]: A list of actionable item dictionaries sorted by priority (ascending) then creation time (ascending). Each dictionary contains:
             - id: comment or review identifier
@@ -270,12 +270,12 @@ def _format_item(index: int, item: Dict[str, Any]) -> str:
 def _generate_summary(items: List[Dict[str, Any]]) -> str:
     """
     Builds a Markdown summary footer with counts of actionable items by category.
-    
+
     Produces a Markdown string containing the total actionable item count, individual counts for the categories `critical`, `bug`, `improvement`, `style`, and `question`, and a priority note if any critical issues or bugs are present.
-    
+
     Parameters:
         items (List[Dict[str, Any]]): List of actionable item dictionaries that include a "category" key.
-    
+
     Returns:
         str: Markdown-formatted summary footer with per-category counts and a generated-by notice.
     """
@@ -344,7 +344,7 @@ def write_output(report: str) -> None:
     # 1. GitHub Summary
     """
     Persist the generated Markdown report to configured outputs and print it.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set and points inside the system temporary directory,
     the report is appended to that file. The report is also written to a securely created temporary file
     with a `.md` suffix; the created temporary file path is printed to stderr. Finally, the full report is
@@ -389,7 +389,7 @@ def write_output(report: str) -> None:
 def main():
     """
     Orchestrates loading configuration, fetching the specified pull request, extracting actionable review items, and writing a structured fix-proposal report.
-    
+
     Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME. Exits with status code 1 if required environment variables are missing, PR_NUMBER is not an integer, or a GitHub API error occurs. On other unexpected errors it prints a traceback and exits with status code 1.
     """
     required = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]

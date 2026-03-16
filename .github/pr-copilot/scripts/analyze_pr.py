@@ -84,11 +84,11 @@ class AnalysisData:
 def load_config() -> Dict[str, Any]:
     """
     Load repository configuration from the expected YAML file path.
-    
+
     If the config file does not exist, cannot be read, or fails YAML parsing, an empty
     dictionary is returned and an informational or warning message is written to
     standard error.
-    
+
     Returns:
         config (dict): Parsed configuration mapping from the YAML file, or an empty
         dict when the file is missing or on parse/I/O errors.
@@ -127,17 +127,17 @@ def categorize_filename(filename: str) -> str:
 def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
     """
     Aggregate file-level statistics for the files included in a pull request.
-    
+
     Counts files per category, accumulates additions, deletions, and total changes,
     and collects any files with more than 500 total changes.
-    
+
     Parameters:
         pr_files_iterable (Iterable): An iterable of objects representing changed files.
             Each object must have attributes:
             - filename (str): the file path
             - additions (int): number of added lines
             - deletions (int): number of deleted lines
-    
+
     Returns:
         Dict[str, Any]: A dictionary containing:
             - file_count (int): total number of files processed
@@ -195,12 +195,12 @@ def calculate_score(
 ) -> int:
     """
     Map a numeric value to a score using an ordered list of thresholds.
-    
+
     Parameters:
         value (int): The value to evaluate against thresholds.
         thresholds (List[Tuple[int, int]]): Ordered pairs of (limit, points); the first pair whose `limit` is less than `value` determines the returned points.
         default (int): The score to return if no threshold matches.
-    
+
     Returns:
         int: The points associated with the first matching threshold, or `default` if none match.
     """
@@ -216,7 +216,7 @@ def assess_complexity(
 ) -> Tuple[int, str]:
     """
     Assess overall PR complexity and map it to a risk level.
-    
+
     Parameters:
         file_data (dict): Aggregated file metrics with keys:
             - file_count: total number of files changed
@@ -224,7 +224,7 @@ def assess_complexity(
             - has_large_files: boolean indicating presence of large-file changes
             - large_files: list of large-file entries (each entry counted toward a penalty)
         commit_count (int): Number of commits in the PR.
-    
+
     Returns:
         tuple: (score, risk_level)
             - score (int): Complexity score on a 0–100 scale computed from file count,
@@ -275,7 +275,7 @@ def find_scope_issues(
 ) -> List[str]:
     """
     Detects potential PR scope issues based on title length/content, overall size, and diversity of changed file types.
-    
+
     Parameters:
         pr_title (str): The pull request title.
         file_data (dict): Aggregated file metrics containing at least:
@@ -287,7 +287,7 @@ def find_scope_issues(
             - "max_files_changed" (int): max files changed before warning (default 30)
             - "max_total_changes" (int): max total line changes before warning (default 1500)
             - "max_file_types_changed" (int): max distinct file categories before warning (default 5)
-    
+
     Returns:
         List[str]: Human-readable issue descriptions identifying scope concerns; empty if no issues detected.
     """
@@ -327,13 +327,13 @@ def find_related_issues(
 ) -> List[Dict[str, str]]:
     """
     Extract issue references from a pull request body and return their numbers and URLs.
-    
+
     Recognizes bare references like `#123` and keyword forms such as `fix #123`, `closes #123`, or `resolves #123` (case-insensitive). Deduplicates matches while preserving the order of first occurrence.
-    
+
     Parameters:
         pr_body (Optional[str]): The pull request description text to scan.
         repo_url (str): Repository base URL used to build issue links.
-    
+
     Returns:
         List[Dict[str, str]]: A list of dictionaries with keys `number` (issue number as a string)
         and `url` (full issue URL formed as `{repo_url}/issues/{number}`).
@@ -366,11 +366,11 @@ def find_related_issues(
 def _format_list_items(items: List[str], header: str) -> str:
     """
     Format a Markdown bullet list section with a bold header when items are present.
-    
+
     Parameters:
         items (List[str]): Lines to include as bullet points.
         header (str): Section title placed in bold above the list.
-    
+
     Returns:
         str: Markdown string containing the bold header and bullet list, or an empty string if `items` is empty.
     """
@@ -382,11 +382,11 @@ def _format_list_items(items: List[str], header: str) -> str:
 def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
     """
     Format file category counts into a Markdown bullet list.
-    
+
     Parameters:
         file_analysis (dict): Analysis dictionary containing a "file_categories" mapping of
             category name (str) to count (int).
-    
+
     Returns:
         str: Markdown-formatted bullets, one per category (e.g., "- Python: 5").
     """
@@ -396,10 +396,10 @@ def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
     """
     Create a Markdown "Large Files" section listing files with more than 500 changed lines.
-    
+
     Parameters:
         file_analysis (dict): Analysis dictionary that must include a "large_files" key containing a list of dicts with at least the keys "filename" and "changes".
-    
+
     Returns:
         str: Markdown-formatted section listing each large file as a bullet (empty string if no large files).
     """
@@ -413,10 +413,10 @@ def _format_large_files(file_analysis: Dict[str, Any]) -> str:
 def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
     """
     Builds a Markdown "Related Issues" section from extracted issue metadata.
-    
+
     Parameters:
         related_issues (List[Dict[str, str]]): Iterable of issue descriptors where each dict contains at least a `'number'` key (issue number as a string or int) and may include a `'url'`.
-    
+
     Returns:
         str: A Markdown string with a "**Related Issues:**" header followed by bullet lines like `- #123`, or an empty string if `related_issues` is empty.
     """
@@ -428,10 +428,10 @@ def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
 def _get_recommendations(risk_level: str) -> List[str]:
     """
     Provide a short list of recommendation bullets appropriate for the given risk level.
-    
+
     Parameters:
         risk_level (str): Risk band label, typically "High", "Medium", or other values treated as low risk.
-    
+
     Returns:
         List[str]: Ordered recommendation strings suitable for inclusion in the report.
     """
@@ -455,11 +455,11 @@ def _get_recommendations(risk_level: str) -> List[str]:
 def generate_markdown(pr: Any, data: AnalysisData) -> str:
     """
     Constructs a Markdown report summarizing a pull request analysis.
-    
+
     Parameters:
         pr (Any): Pull request object (expects at least `.number` and `.user.login`).
         data (AnalysisData): AnalysisData containing file_analysis, complexity_score, risk_level, scope_issues, and related_issues used to populate the report.
-    
+
     Returns:
         str: Markdown-formatted report with an overview, file breakdown (categories and large files), potential scope issues, related issues, and recommendations.
     """
@@ -491,9 +491,9 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 def write_output(report: str) -> None:
     """
     Write the analysis report to the GitHub Actions step summary, a secure temporary file, and standard output.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set and points inside the system temporary directory, append the report to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always attempt to create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False) and write the report there; the created temp file path is printed to stdout. Any I/O errors while writing the summary or temp file are caught and reported to stderr. Finally, the report is printed to stdout.
-    
+
     Parameters:
         report (str): The Markdown report content to be written to outputs.
     """
@@ -543,7 +543,7 @@ def write_output(report: str) -> None:
 def run() -> None:
     """
     Execute the end-to-end PR analysis workflow and produce a Markdown report.
-    
+
     Validates required environment variables, loads configuration, fetches the specified pull request from GitHub, collects file and commit data, computes a complexity score and risk level, detects scope and related-issue signals, writes the generated report to the configured outputs, and exits the process. Exits with a non-zero status on missing/invalid environment variables, GitHub API errors, or other runtime failures; prints a CI warning when the risk level is "High".
     """
     env_vars = {var: os.environ.get(var) for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")}

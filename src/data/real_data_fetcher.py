@@ -63,9 +63,9 @@ class RealDataFetcher:
     def create_real_database(self) -> AssetRelationshipGraph:
         """
         Builds an AssetRelationshipGraph from a cached file, live market data, or a fallback dataset.
-        
+
         Attempts to load and return a valid cached graph if present. If network access is disabled, returns the configured fallback. When network fetching is enabled, builds the graph from live market data and persists it to cache if a cache path is configured. On any IO or build failure, returns the fallback/sample graph.
-        
+
         Returns:
             AssetRelationshipGraph: Populated graph from cache or live data; a fallback/sample graph if loading or fetching fails.
         """
@@ -99,9 +99,9 @@ class RealDataFetcher:
     def _try_load_cached_graph(self) -> Optional[AssetRelationshipGraph]:
         """
         Load an AssetRelationshipGraph from the configured cache if present and valid.
-        
+
         Attempts to read and deserialize the cached graph file at the fetcher's `cache_path`. If `cache_path` is unset, the file does not exist, or the file cannot be read/deserialized, the method returns None.
-        
+
         Returns:
             AssetRelationshipGraph: The deserialized cached graph if successfully loaded, `None` otherwise.
         """
@@ -120,9 +120,9 @@ class RealDataFetcher:
     def _build_graph_from_live_data(self) -> AssetRelationshipGraph:
         """
         Builds an AssetRelationshipGraph populated from live market data and regulatory events.
-        
+
         Fetches equities, bonds, commodities, and currencies from configured live providers, adds the resulting assets and a set of regulatory events to a new AssetRelationshipGraph, then computes and attaches relationships between assets.
-        
+
         Returns:
             AssetRelationshipGraph: A graph containing the fetched assets, regulatory events, and their computed relationships.
         """
@@ -144,7 +144,7 @@ class RealDataFetcher:
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         """
         Write the provided AssetRelationshipGraph to the configured cache path atomically.
-        
+
         If no cache path was configured on this fetcher, this method is a no-op.
         Parent directories for the cache path are created as needed. On failure the
         method logs an exception; an existing cache file is not partially overwritten
@@ -178,7 +178,7 @@ class RealDataFetcher:
     def _fallback(self) -> AssetRelationshipGraph:
         """
         Provide a fallback AssetRelationshipGraph from the configured factory or a sample dataset.
-        
+
         Returns:
             AssetRelationshipGraph: The graph produced by `fallback_factory()` if configured; otherwise the sample database returned by `create_sample_database()`.
         """
@@ -191,9 +191,9 @@ class RealDataFetcher:
     def _fetch_equity_data() -> List[Equity]:
         """
         Fetch latest price data for a small set of major equities and return them as Equity instances.
-        
+
         For each predefined ticker this fetcher retrieves the most recent daily close price and constructs an Equity object with id, symbol, name, sector, asset_class, and price. Symbols with no price data are skipped (a warning is logged); individual fetch errors are logged and do not stop the overall process.
-        
+
         Returns:
             List[Equity]: Equity objects for symbols successfully fetched and parsed.
         """
@@ -232,9 +232,9 @@ class RealDataFetcher:
     def _fetch_bond_data() -> List[Bond]:
         """
         Fetches market data for selected bond and treasury ETFs and returns Bond instances used as fixed-income proxies.
-        
+
         Fetches latest price and available metadata for a predefined set of bond and treasury ETF symbols. If price data is missing for a symbol it is skipped (a warning is logged). When yield or coupon information is missing, `yield_to_maturity` defaults to 0.03 and `coupon_rate` defaults to 0.025. Maturity dates and some fields are approximate because ETFs are used as proxies; individual symbols that fail to fetch due to errors are skipped (errors are logged).
-        
+
         Returns:
             List[Bond]: Bond instances populated with id, symbol, name, asset_class, sector, price, yield_to_maturity, coupon_rate, maturity_date, credit_rating, and issuer_id.
         """
@@ -301,9 +301,9 @@ class RealDataFetcher:
     def _fetch_commodity_data() -> List[Commodity]:
         """
         Fetches current commodity futures prices and constructs Commodity objects for a predefined set of symbols.
-        
+
         Skips symbols with no available price data and continues on individual fetch failures.
-        
+
         Returns:
             List[Commodity]: A list of Commodity instances populated with id, symbol, name, asset_class, sector, price, contract_size, delivery_date, and volatility.
         """
@@ -365,9 +365,9 @@ class RealDataFetcher:
     def _fetch_currency_data() -> List[Currency]:
         """
         Fetches USD exchange rates for a small set of major currencies.
-        
+
         Attempts to retrieve the latest close price for EUR, GBP, and JPY quoted against USD and constructs currency objects populated with price, exchange_rate, country, and an approximate central_bank_rate. Entries with missing price data are skipped; individual fetch failures are logged and do not stop processing the remaining symbols.
-        
+
         Returns:
             A list of Currency objects for the successfully fetched currencies. Each object includes the latest USD rate in `price` and `exchange_rate`, the issuing `country`, and an approximate `central_bank_rate`.
         """
@@ -423,7 +423,7 @@ class RealDataFetcher:
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
         Create a small set of sample regulatory events associated with fetched assets.
-        
+
         Returns:
             List[RegulatoryEvent]: Three sample RegulatoryEvent instances (Apple earnings, Microsoft dividend, Exxon Mobil SEC filing) each populated with id, asset_id, event_type, date, description, impact_score, and related_assets.
         """
@@ -472,9 +472,9 @@ class RealDataFetcher:
 def create_real_database() -> AssetRelationshipGraph:
     """
     Create an AssetRelationshipGraph populated from cache, live market data, or a sample fallback.
-    
+
     Attempts to load a previously cached graph; if none is available and network access is enabled, builds the graph from live market data; otherwise returns a fallback/sample graph.
-    
+
     Returns:
         AssetRelationshipGraph: A graph containing assets, regulatory events, and relationship mappings sourced from the cache, live fetch, or fallback data.
     """
@@ -520,13 +520,13 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
     Serialize an AssetRelationshipGraph into a JSON-friendly payload.
-    
+
     The returned dictionary contains the graph's serialized contents under the following keys:
     - assets: list of serialized asset objects; each entry includes a "__type__" discriminator.
     - regulatory_events: list of serialized regulatory event objects.
     - relationships: mapping from source asset id to a list of outgoing relationship dictionaries with keys "target", "relationship_type", and "strength".
     - incoming_relationships: mapping from target asset id to a list of incoming relationship dictionaries with keys "source", "relationship_type", and "strength".
-    
+
     Returns:
         Dict[str, Any]: A JSON-serializable dictionary representing the graph.
     """
@@ -564,11 +564,11 @@ def _build_incoming_relationships(
 ) -> Dict[str, List[Tuple[str, str, float]]]:
     """
     Construct a mapping of incoming relationships keyed by target asset identifier.
-    
+
     Parameters:
         relationships (Dict[str, List[Tuple[str, str, float]]]): Mapping from source asset id to a list of outgoing relationships;
             each relationship is a tuple of (target_asset_id, relationship_type, strength).
-    
+
     Returns:
         Dict[str, List[Tuple[str, str, float]]]: Mapping from target asset id to a list of incoming relationships;
             each incoming relationship is a tuple of (source_asset_id, relationship_type, strength).
@@ -583,12 +583,12 @@ def _build_incoming_relationships(
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     """
     Deserialize a serialized asset dictionary into an Asset (or appropriate subclass) instance.
-    
+
     The input dictionary must include a "__type__" key with the asset subclass name (e.g. "Equity", "Bond"); unknown types default to `Asset`. The function copies the input dict, converts an "asset_class" field to the `AssetClass` enum when present, and constructs the corresponding dataclass.
-    
+
     Parameters:
         data (Dict[str, Any]): Serialized asset data; should include a "__type__" discriminator.
-    
+
     Returns:
         Asset: An instance of `Asset` or one of its subclasses reconstructed from `data`.
     """
@@ -680,10 +680,10 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
 def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
     """
     Write the serialized AssetRelationshipGraph to the given filesystem path as JSON.
-    
+
     Creates parent directories if necessary and overwrites any existing file at the path.
     The file is UTF-8 encoded and formatted with two-space indentation.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph to serialize and save.
         path (Path): Destination filesystem path for the JSON file.

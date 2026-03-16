@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 def create_sample_database() -> AssetRelationshipGraph:
     """
     Create an expanded sample financial database covering multiple asset classes and regulatory events.
-    
+
     Returns:
         AssetRelationshipGraph: Graph populated with sample assets, regulatory events, and their established relationships.
     """
@@ -366,7 +366,7 @@ def create_sample_database() -> AssetRelationshipGraph:
 def _log_asset_class_coverage(all_assets: list[object]) -> None:
     """
     Log counts of sample assets by asset class to the module logger.
-    
+
     Parameters:
         all_assets (list[object]): Iterable of sample asset instances; each item is expected to expose an `asset_class` attribute used to tally counts for Equity, Fixed Income, Commodity, and Currency.
     """
@@ -385,11 +385,11 @@ def _count_assets_by_class(
 ) -> int:
     """
     Count how many assets in the provided list have the specified AssetClass.
-    
+
     Parameters:
         all_assets (list[object]): Iterable of asset-like objects; each may have an `asset_class` attribute.
         asset_class (AssetClass): The AssetClass value to match against each asset's `asset_class` attribute.
-    
+
     Returns:
         int: Number of assets whose `asset_class` attribute equals the given `asset_class`.
     """

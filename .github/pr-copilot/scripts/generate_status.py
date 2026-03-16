@@ -281,9 +281,9 @@ def generate_markdown(status: PRStatus) -> str:
 def write_output(content: str) -> None:
     """
     Persist a generated Markdown PR report to the GitHub step summary (when safe), a standard temp file, and stdout.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set and points inside the system temporary directory, append `content` to that file; otherwise the step-summary write is skipped with a warning. Overwrite a file named `pr_status_report.md` in the system temporary directory and print its path to stderr. I/O and path-related errors are caught and printed to stderr rather than raised.
-    
+
     Parameters:
         content (str): The Markdown report content to write.
     """
@@ -326,7 +326,7 @@ def write_output(content: str) -> None:
 def main():
     """
     Main entry point for the CLI: validates environment, fetches PR status, generates a Markdown report, and writes the report to configured outputs.
-    
+
     Requires the environment variables GITHUB_TOKEN, PR_NUMBER, REPO_OWNER, and REPO_NAME. Exits with status code 0 on success and with status code 1 on any validation, API, or runtime error; prints error details to stderr before exiting.
     """
     # Env Var Validation

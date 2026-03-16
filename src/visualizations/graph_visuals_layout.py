@@ -32,10 +32,10 @@ def _calculate_visible_relationships(
 ) -> int:
     """
     Estimate the number of visible relationships represented by a list of 3D scatter traces.
-    
+
     Parameters:
         relationship_traces (List[go.Scatter3d]): Scatter3d traces whose `x` coordinate arrays represent plotted points; traces missing `x` or with empty `x` are treated as having zero points.
-    
+
     Returns:
         int: Estimated number of visible relationships, computed as the total plotted points across all traces divided by 3.
     """
@@ -51,15 +51,15 @@ def _prepare_layout_config(
 ) -> Tuple[str, Dict[str, object]]:
     """
     Generate a title summarizing asset and visible relationship counts and return it alongside layout options.
-    
+
     Estimates the number of visible relationships from the provided 3D traces, composes a dynamic title using the asset and relationship counts with the given base title, and returns that title together with the provided layout options.
-    
+
     Parameters:
         num_assets (int): Number of assets to include in the title.
         relationship_traces (List[go.Scatter3d]): Scatter3d traces used to estimate visible relationships.
         base_title (str): Base string to prefix the generated title.
         layout_options (Optional[Dict[str, object]]): Optional layout configuration to return with the title.
-    
+
     Returns:
         Tuple[str, Dict[str, object]]: The generated title and the layout options dictionary (empty dict if none provided).
     """
@@ -79,7 +79,7 @@ def _configure_3d_layout(
 ) -> None:
     """
     Apply a 3D scene layout and visual defaults to a Plotly Figure.
-    
+
     Parameters:
         fig (go.Figure): Figure to update; modified in place.
         title (str): Text to set as the figure title.

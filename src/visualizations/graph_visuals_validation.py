@@ -8,7 +8,7 @@ import numpy as np
 def _validate_positions_array(positions: np.ndarray) -> None:
     """
     Validate that `positions` is a numeric, finite NumPy array with shape (n, 3).
-    
+
     Performs the following checks and raises ValueError on failure:
     - `positions` is a NumPy ndarray.
     - `positions` has two dimensions with three columns (shape (n, 3)).
@@ -24,7 +24,7 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 def _ensure_ndarray(positions: np.ndarray) -> None:
     """
     Validate that `positions` is a NumPy ndarray.
-    
+
     Raises:
         ValueError: If `positions` is not an instance of `numpy.ndarray`; the error message includes the actual type name.
     """
@@ -35,10 +35,10 @@ def _ensure_ndarray(positions: np.ndarray) -> None:
 def _ensure_positions_shape(positions: np.ndarray) -> None:
     """
     Validate that `positions` is a two-dimensional NumPy array with exactly three columns.
-    
+
     Parameters:
         positions (np.ndarray): Array representing positions; expected shape is (n, 3).
-    
+
     Raises:
         ValueError: If `positions` does not have two dimensions or its second dimension is not 3. The error message includes the actual `positions.shape`.
     """
@@ -49,10 +49,10 @@ def _ensure_positions_shape(positions: np.ndarray) -> None:
 def _ensure_numeric_dtype(positions: np.ndarray) -> None:
     """
     Validate that the provided positions array has a numeric dtype.
-    
+
     Parameters:
         positions (np.ndarray): Array of positions to validate; expected to be a NumPy array.
-    
+
     Raises:
         ValueError: If `positions.dtype` is not a numeric dtype (includes the actual dtype in the message).
     """
@@ -63,7 +63,7 @@ def _ensure_numeric_dtype(positions: np.ndarray) -> None:
 def _ensure_finite_values(positions: np.ndarray) -> None:
     """
     Ensure all entries in the positions array are finite.
-    
+
     Raises:
         ValueError: If any NaN or infinite values are present; the error message includes counts of NaN and Inf.
     """
@@ -77,10 +77,10 @@ def _ensure_finite_values(positions: np.ndarray) -> None:
 def _validate_asset_ids_list(asset_ids: List[str]) -> None:
     """
     Validate that asset_ids is a sequence of non-empty strings.
-    
+
     Parameters:
         asset_ids (List[str] | Tuple[str, ...]): Sequence of asset identifier strings.
-    
+
     Raises:
         ValueError: If asset_ids is not a list or tuple, or if any element is not a non-empty string.
     """
@@ -94,11 +94,11 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
     """
     Ensure `colors` is a list or tuple of non-empty strings whose length equals `expected_length`.
-    
+
     Parameters:
         colors (List[str]): Sequence of color values to validate; each item must be a non-empty string.
         expected_length (int): Required number of color entries.
-    
+
     Raises:
         ValueError: If `colors` is not a list/tuple of length `expected_length`, or if any entry is not a non-empty string.
     """
@@ -118,7 +118,7 @@ def _validate_hover_texts_list(
 ) -> None:
     """
     Validate that hover_texts is a sequence of non-empty strings of the specified length.
-    
+
     Parameters:
         hover_texts (List[str]): Sequence of hover text values to validate.
         expected_length (int): Required number of entries in `hover_texts`.
@@ -138,10 +138,10 @@ def _validate_hover_texts_list(
 def _ensure_hover_texts_sequence(hover_texts: List[str]) -> None:
     """
     Validate that hover_texts is a list or tuple.
-    
+
     Parameters:
         hover_texts (List[str]): Sequence of hover text values; must be a list or tuple.
-    
+
     Raises:
         ValueError: If hover_texts is not a list or tuple.
     """
@@ -156,15 +156,15 @@ def _ensure_sequence_length(
 ) -> None:
     """
     Validate that a sequence's length equals the expected length.
-    
+
     Parameters:
-    	sequence (List[str]): The sequence to check; expected to be a list or tuple.
-    	expected_length (int): The required length for the sequence.
-    	name (str): The parameter name used in the error message if validation fails.
-    
+        sequence (List[str]): The sequence to check; expected to be a list or tuple.
+        expected_length (int): The required length for the sequence.
+        name (str): The parameter name used in the error message if validation fails.
+
     Raises:
-    	ValueError: If the sequence length does not equal `expected_length`. The error message will be
-    	"`{name} must be a list/tuple of length {expected_length}`".
+        ValueError: If the sequence length does not equal `expected_length`. The error message will be
+        "`{name} must be a list/tuple of length {expected_length}`".
     """
     if len(sequence) != expected_length:
         raise ValueError(f"{name} must be a list/tuple of length {expected_length}")
@@ -176,11 +176,11 @@ def _ensure_non_empty_string_values(
 ) -> None:
     """
     Ensure every element in the provided sequence is a non-empty string.
-    
+
     Parameters:
         values (List[str]): Sequence whose elements must be non-empty strings.
         name (str): Display name used in the error message if validation fails.
-    
+
     Raises:
         ValueError: If any element in `values` is not a string or is an empty string.
     """
@@ -209,14 +209,14 @@ def _validate_visualization_data(
 ) -> None:
     """
     Validate that positions, asset IDs, colors, and hover texts are consistent for visualization.
-    
+
     Performs these checks:
     - positions is a (n, 3) numeric finite NumPy array.
     - asset_ids is a sequence of n non-empty, unique strings.
     - colors is a sequence of n non-empty strings.
     - hover_texts is a sequence of n non-empty strings.
     - positions length (n) matches the lengths of asset_ids, colors, and hover_texts.
-    
+
     Parameters:
         positions (np.ndarray): Array of 3D coordinates with shape (n, 3).
         asset_ids (List[str]): Sequence of non-empty, unique asset identifier strings; length must equal n.
@@ -236,10 +236,10 @@ def _validate_visualization_data(
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
     """
     Validate that `filter_params` maps parameter names to boolean flags.
-    
+
     Parameters:
         filter_params (Dict[str, bool]): Mapping from parameter names to boolean values.
-    
+
     Raises:
         TypeError: If `filter_params` is not a dictionary, or if any value in the mapping is not a `bool`.
     """
@@ -255,13 +255,13 @@ def _validate_relationship_filters(
 ) -> None:
     """
     Validate relationship filter mapping.
-    
+
     If `relationship_filters` is None, no validation is performed. Otherwise verifies that `relationship_filters`
     is a dictionary whose keys are strings and whose values are booleans.
-    
+
     Parameters:
         relationship_filters (Optional[Dict[str, bool]]): Mapping of relationship names to boolean flags or None.
-    
+
     Raises:
         TypeError: If `relationship_filters` is not a dictionary when provided.
         ValueError: If any key is not a string or any value is not a boolean.
@@ -278,10 +278,10 @@ def _ensure_relationship_filters_dict(
 ) -> None:
     """
     Validate that `relationship_filters` is a dictionary.
-    
+
     Parameters:
         relationship_filters (Dict[str, bool]): The value to validate.
-    
+
     Raises:
         TypeError: If `relationship_filters` is not a dictionary; the error message includes the actual type name.
     """
@@ -294,10 +294,10 @@ def _ensure_relationship_filter_values(
 ) -> None:
     """
     Validate that every value in `relationship_filters` is a boolean.
-    
+
     Parameters:
         relationship_filters (Dict[str, bool]): Mapping from relationship names to boolean flags.
-    
+
     Raises:
         ValueError: If any value in `relationship_filters` is not a `bool`; the error message lists the invalid keys.
     """
@@ -313,10 +313,10 @@ def _ensure_relationship_filter_keys(
 ) -> None:
     """
     Validate that all keys in `relationship_filters` are strings.
-    
+
     Parameters:
         relationship_filters (Dict[str, bool]): Mapping of relationship names to booleans; keys must be strings.
-    
+
     Raises:
         ValueError: If any keys are not strings; the exception message lists the invalid keys.
     """

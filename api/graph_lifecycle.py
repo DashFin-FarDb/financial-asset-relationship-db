@@ -25,7 +25,7 @@ class _GraphState:
     def __init__(self) -> None:
         """
         Initialize the state container for a global AssetRelationshipGraph and its factory.
-        
+
         Creates two attributes used to manage graph initialization:
         - `graph`: the cached AssetRelationshipGraph instance or `None` if not initialized.
         - `graph_factory`: an optional callable that returns an AssetRelationshipGraph; when set, it is used to construct `graph`.
@@ -41,12 +41,12 @@ graph_lock = threading.Lock()
 def get_graph() -> AssetRelationshipGraph:
     """
     Provide the module's global AssetRelationshipGraph, initializing it if unset.
-    
+
     If the graph has not been created, attempts thread-safe lazy initialization. Raises a RuntimeError if initialization fails and the graph remains unset.
-    
+
     Returns:
         AssetRelationshipGraph: The initialized global asset relationship graph.
-    
+
     Raises:
         RuntimeError: If the global graph could not be initialized and remains None.
     """
@@ -63,9 +63,9 @@ def get_graph() -> AssetRelationshipGraph:
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
     Set the module's global AssetRelationshipGraph instance used by get_graph().
-    
+
     This stores the provided graph as the canonical global instance and clears any configured graph factory so subsequent accesses return this instance until changed or reset.
-    
+
     Parameters:
         graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to register as the global instance.
     """
@@ -79,7 +79,7 @@ def set_graph_factory(
 ) -> None:
     """
     Configure the callable used to construct the global AssetRelationshipGraph and clear any existing graph so it will be recreated on next access.
-    
+
     Parameters:
         factory (Optional[Callable[[], AssetRelationshipGraph]]): A zero-argument callable that returns a new AssetRelationshipGraph instance. If `None`, any configured factory is cleared and the graph will be reinitialized using environment-backed defaults or a sample database on next access.
     """
@@ -138,9 +138,9 @@ def _initialize_graph() -> AssetRelationshipGraph:
 def _should_use_real_data_fetcher() -> bool:
     """
     Determine whether to use the real data fetcher based on the USE_REAL_DATA_FETCHER environment variable.
-    
+
     Treats the values "1", "true", "yes", and "on" (case-insensitive, surrounding whitespace ignored) as enabled.
-    
+
     Returns:
         bool: `True` if USE_REAL_DATA_FETCHER is set to one of the enabled values, `False` otherwise.
     """

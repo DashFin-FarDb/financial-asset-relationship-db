@@ -20,7 +20,7 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
     def __init__(self, graph_obj: AssetRelationshipGraph, lock: threading.Lock):
         """
         Initialize the thread-safe proxy with the underlying graph and a lock used to synchronize access.
-        
+
         Parameters:
             graph_obj (AssetRelationshipGraph): The shared asset relationship graph to proxy.
             lock (threading.Lock): Lock protecting access to the underlying graph.
@@ -63,13 +63,13 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 def _get_3d_layout_resource() -> str:
     """
     Provide current 3D visualization data for spatial reasoning.
-    
+
     The returned JSON contains the following top-level keys:
     - `asset_ids`: sequence of asset identifiers corresponding to the positions.
     - `positions`: list of 3D coordinates (each a list of three numbers) for each asset.
     - `colors`: color values associated with each asset position.
     - `hover`: hover/label information for each asset used in UI displays.
-    
+
     Returns:
         json_str (str): A JSON-formatted string encoding the visualization data.
     """
@@ -87,10 +87,10 @@ def _get_3d_layout_resource() -> str:
 def _register_mcp_handlers(mcp: FastMCP) -> None:
     """
     Register MCP tools and resources on the provided FastMCP app instance.
-    
+
     Registers a tool callable "add_equity_node" that validates (and, if supported by the graph, adds) an Equity node,
     and registers a resource at "graph://data/3d-layout" that serves the current 3D visualization data.
-    
+
     Parameters:
         mcp (FastMCP): The FastMCP application instance to register tools and resources on.
     """
@@ -104,14 +104,14 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
     ) -> str:
         """
         Validate an equity's data and, if supported, add it to the shared asset graph.
-        
+
         Parameters:
             asset_id (str): Unique identifier for the equity.
             symbol (str): Ticker symbol for the equity.
             name (str): Human-readable name of the equity.
             sector (str): Market sector the equity belongs to.
             price (float): Current price of the equity.
-        
+
         Returns:
             str: On success, returns either
                 - "Successfully added: {name} ({symbol})" if the equity was inserted into the shared graph, or

@@ -36,10 +36,10 @@ def _create_circular_layout(
 ) -> Dict[str, Tuple[float, float]]:
     """
     Generate 2D positions for the given assets placed evenly around the unit circle.
-    
+
     Args:
         asset_ids: Sequence of asset IDs to position.
-    
+
     Returns:
         Mapping from each asset ID to its (x, y) coordinates on the unit circle.
     """
@@ -125,9 +125,9 @@ def _create_2d_relationship_traces(
 ) -> List[go.Scatter]:
     """
     Create 2D edge traces for asset relationships, grouped and filtered by relationship type.
-    
+
     Each returned trace draws all edges of a single relationship type as lines; hover text includes "source → target", the relationship type, and the reported strength. If `asset_ids` or `positions` is empty, an empty list is returned.
-    
+
     Parameters:
         graph: AssetRelationshipGraph containing relationships as tuples of the form (target_id, rel_type, strength).
         positions: Mapping from asset ID to 2D (x, y) coordinates used to draw edges.
@@ -140,7 +140,7 @@ def _create_2d_relationship_traces(
         show_income_comparison: Include relationships with internal key "income_comparison".
         show_regulatory: Include relationships with internal key "regulatory_impact".
         show_all_relationships: If True, ignore the individual show_* toggles and include all relationship types present in the graph.
-    
+
     Returns:
         List[go.Scatter]: A list of Plotly Scatter traces, one per included relationship type; returns an empty list if there are no asset IDs or positions.
     """
@@ -186,7 +186,7 @@ def _relationship_visibility_filters(
 ) -> Dict[str, bool]:
     """
     Builds a mapping of internal relationship type keys to visibility flags based on the provided toggles.
-    
+
     Returns:
         Dict[str, bool]: Mapping where keys are internal relationship type names and values are `True` if that relationship type should be shown, `False` otherwise. Keys returned: "same_sector", "market_cap_similar", "correlation", "corporate_bond_to_equity", "commodity_currency", "income_comparison", "regulatory_impact".
     """
@@ -208,12 +208,12 @@ def _is_relationship_filtered(
 ) -> bool:
     """
     Determine whether a relationship type should be hidden based on per-type filters and the global show-all flag.
-    
+
     Parameters:
         rel_type (str): The relationship type key to evaluate.
         relationship_filters (Dict[str, bool]): Mapping of relationship type keys to visibility flags (`True` = visible, `False` = hidden).
         show_all_relationships (bool): When `True`, ignore `relationship_filters` and show all relationship types.
-    
+
     Returns:
         `true` if the relationship type should be hidden, `false` otherwise.
     """
@@ -230,14 +230,14 @@ def _group_relationships_by_type(
 ) -> Dict[str, list[Dict[str, object]]]:
     """
     Group visible relationships from the graph by their relationship type.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing relationships keyed by source asset id.
         positions (Dict[str, Tuple[float, float]]): Mapping of asset id to 2D coordinates; only relationships whose target appears here are included.
         asset_ids (List[str]): Ordered list of asset ids to consider as sources.
         relationship_filters (Dict[str, bool]): Map of internal relationship type keys to visibility flags.
         show_all_relationships (bool): If True, ignore per-type visibility flags and include all relationship types.
-    
+
     Returns:
         Dict[str, list[Dict[str, object]]]: Mapping from relationship type to a list of relationship records.
             Each record contains:
@@ -277,12 +277,12 @@ def _build_relationship_trace(
 ) -> go.Scatter:
     """
     Create a Plotly line trace representing all edges of a single relationship type.
-    
+
     Parameters:
         rel_type (str): Internal key identifying the relationship type (used for color and legend).
         relationships (list[dict]): List of relationship records with keys "source_id", "target_id", and "strength".
         positions (dict): Mapping from asset id to (x, y) coordinates used to place edge endpoints.
-    
+
     Returns:
         go.Scatter: A Scatter trace containing line segments for each relationship of the given type,
         with hover text showing "source → target", relationship type, and strength.
@@ -321,12 +321,12 @@ def _resolve_layout_positions(
 ) -> Dict[str, Tuple[float, float]]:
     """
     Determine 2D coordinates for each asset according to the chosen layout.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph used for layouts that require graph data (e.g., spring).
         layout_type (str): Layout name; expected values include "circular", "grid", or others interpreted as a spring layout.
         asset_ids (List[str]): Ordered list of asset IDs to position.
-    
+
     Returns:
         Dict[str, Tuple[float, float]]: Mapping from asset ID to its (x, y) coordinates in 2D space.
     """
@@ -343,13 +343,13 @@ def _spring_or_fallback_positions(
 ) -> Dict[str, Tuple[float, float]]:
     """
     Resolve 2D positions using the graph's 3D spring layout when available, otherwise use a circular layout fallback.
-    
+
     If the graph exposes enhanced 3D visualization data, those 3D coordinates are used and converted to 2D (z coordinate ignored). Any asset in asset_ids missing from the 3D data will receive a position from a circular fallback layout.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph that may provide 3D layout via get_3d_visualization_data_enhanced().
         asset_ids (List[str]): Sequence of asset IDs that must have positions in the returned mapping.
-    
+
     Returns:
         Dict[str, Tuple[float, float]]: Mapping from asset ID to (x, y) coordinates for 2D placement.
     """
@@ -373,12 +373,12 @@ def _spring_or_fallback_positions(
 def _asset_class_label(asset: object) -> str:
     """
     Extracts a printable asset class label from an asset object.
-    
+
     If the asset has an `asset_class` attribute and that attribute has a `value` (e.g., an enum), returns that `value` converted to a string. If `asset_class` exists but has no `value`, returns `str(asset_class)`. If the asset has no `asset_class` attribute, returns an empty string.
-    
+
     Parameters:
         asset (object): Object expected to contain an `asset_class` attribute (may be an enum-like object or a plain value).
-    
+
     Returns:
         str: The asset class as a string, or an empty string if not present.
     """
@@ -395,12 +395,12 @@ def _build_node_visual_components(
 ) -> Tuple[list[float], list[float], list[str], list[int], list[str]]:
     """
     Construct visual attributes for each node: x/y coordinates, color, marker size, and hover text.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing asset objects and relationship mappings used to derive classes and connection counts.
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to its (x, y) coordinates.
         asset_ids (List[str]): Ordered list of asset IDs to include (order determines returned lists' order).
-    
+
     Returns:
         Tuple[list[float], list[float], list[str], list[int], list[str]]: A 5-tuple containing:
             - node_x: list of x coordinates for each asset in asset_ids.
