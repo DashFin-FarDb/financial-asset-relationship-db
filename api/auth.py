@@ -149,6 +149,14 @@ class UserRepository:
         if "is_disabled" in legacy_profile_fields:
             profile["is_disabled"] = bool(legacy_profile_fields["is_disabled"])
 
+        # Remove recognized legacy keys and error on any unexpected ones to avoid silent typos.
+        for _key in ("user_email", "user_full_name", "is_disabled"):
+            legacy_profile_fields.pop(_key, None)
+
+        if legacy_profile_fields:
+            unexpected_keys = ", ".join(sorted(legacy_profile_fields.keys()))
+            raise TypeError(f"Unexpected legacy profile field(s): {unexpected_keys}")
+
         user_email = profile.get("user_email")
         user_full_name = profile.get("user_full_name")
         is_disabled = profile.get("is_disabled", False)
