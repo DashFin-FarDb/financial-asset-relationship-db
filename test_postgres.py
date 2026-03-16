@@ -104,7 +104,7 @@ def _read_validated_database_url() -> str:
     return database_url
 
 
-def _run_smoke_query(database_url: str):
+def _run_smoke_query(database_url: str) -> object:
     """Run a lightweight Postgres smoke query and return one row."""
     try:
         with connect(database_url) as conn, conn.cursor() as cur:
@@ -112,6 +112,11 @@ def _run_smoke_query(database_url: str):
             return cur.fetchone()
     except Exception as exc:  # noqa: BLE001
         pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
+        # pytest.fail is expected to raise and not return, but add an explicit
+        # raise to avoid any implicit fall-through in static analysis.
+        raise AssertionError(
+            f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}"
+        )
 
 
 @pytest.mark.integration
