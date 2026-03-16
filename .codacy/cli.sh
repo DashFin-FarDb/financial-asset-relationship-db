@@ -142,8 +142,7 @@ fi
 if [ -n "$CODACY_CLI_V2_VERSION" ]; then
     version="$CODACY_CLI_V2_VERSION"
 else
-    version=$(get_version_from_yaml)
-    if [ -z "$version" ]; then
+    if ! version=$(get_version_from_yaml); then
         fatal "Could not determine Codacy CLI version. Please set CODACY_CLI_V2_VERSION."
     fi
 fi
