@@ -92,7 +92,7 @@ download_file() {
     elif command -v wget > /dev/null 2>&1; then
         wget "$url"
     else
-        fatal "Error: Could not find curl or wget, please install one."
+        fatal "Could not find curl or wget, please install one."
     fi
 }
 
