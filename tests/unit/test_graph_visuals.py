@@ -59,7 +59,7 @@ def test_rel_type_colors_default():
 def test_is_valid_color_format():
     """Test color string validation logic."""
     assert _is_valid_color_format("#123456") is True
-    assert _is_valid_color_format("#RGB") is True
+    assert _is_valid_color_format("#ABC") is True
     assert _is_valid_color_format("rgb(255, 0, 0)") is True
     assert _is_valid_color_format("rgba(255, 0, 0, 0.5)") is True
     assert _is_valid_color_format("blue") is True  # Plotly named colors fallback
