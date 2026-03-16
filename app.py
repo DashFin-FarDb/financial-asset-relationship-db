@@ -215,14 +215,7 @@ class FinancialAssetApp:
             logger.info("Initializing financial data graph")
             self.graph = self._create_database()
             logger.info("Database initialized with %s assets", len(self.graph.assets))
-        except (
-            AttributeError,
-            ImportError,
-            OSError,
-            RuntimeError,
-            TypeError,
-            ValueError,
-        ) as exc:
+        except Exception as exc:
             logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, exc)
             raise
 
