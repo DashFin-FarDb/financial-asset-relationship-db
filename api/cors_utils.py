@@ -149,4 +149,10 @@ def validate_origin(origin: str) -> bool:
         return True
     if _is_valid_https_domain(origin):
         return True
-    return _is_valid_https_idn(origin)
+    parsed = urlparse(origin)
+    if any([parsed.path, parsed.params, parsed.query, parsed.fragment, parsed.username, parsed.password]):
+        return False
+    try:
+        return _is_valid_https_idn(origin)
+    except ValueError:
+        return False
