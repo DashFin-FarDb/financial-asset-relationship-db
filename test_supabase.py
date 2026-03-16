@@ -25,10 +25,11 @@ import pytest
 pytest.importorskip("supabase")
 
 # pylint: disable=wrong-import-position
-from supabase import (  # noqa: E402  # pyright: ignore[reportMissingImports]
+from supabase import (  # noqa: E402  # pyright: ignore[reportMissingImports]; type: ignore[import-not-found]
     Client,
     create_client,
-)  # type: ignore[import-not-found]
+)
+
 # pylint: enable=wrong-import-position
 
 PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
@@ -61,10 +62,7 @@ def _ensure_live_test_enabled() -> None:
     """Skip test unless live Supabase integration tests are enabled."""
     if os.getenv("RUN_SUPABASE_TESTS") == "1":
         return
-    pytest.skip(
-        "Set RUN_SUPABASE_TESTS=1 to enable live Supabase "
-        "connectivity test"
-    )
+    pytest.skip("Set RUN_SUPABASE_TESTS=1 to enable live Supabase connectivity test")
 
 
 def _maybe_load_dotenv() -> None:
@@ -92,10 +90,7 @@ def _create_supabase_client(url: str, key: str) -> Client:
     try:
         return create_client(url, key)
     except Exception as exc:  # noqa: BLE001
-        pytest.fail(
-            "Failed to initialize Supabase client "
-            f"(url={_redact(url)}): {exc}"
-        )
+        pytest.fail(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}")
 
 
 def _execute_smoke_query(client: Client, url: str) -> Any:
@@ -103,9 +98,7 @@ def _execute_smoke_query(client: Client, url: str) -> Any:
     try:
         return client.table("assets").select("id").limit(1).execute()
     except Exception as exc:  # noqa: BLE001
-        pytest.fail(
-            f"Supabase query failed (url={_redact(url)}): {exc}"
-        )
+        pytest.fail(f"Supabase query failed (url={_redact(url)}): {exc}")
 
 
 @pytest.mark.integration

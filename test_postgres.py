@@ -27,6 +27,7 @@ pytest.importorskip("psycopg2")
 # pyright: ignore[reportMissingModuleSource]
 # pylint: disable=wrong-import-position,import-error
 from psycopg2 import connect  # noqa: E402  # type: ignore[import-untyped]
+
 # pylint: enable=wrong-import-position,import-error
 
 PLACEHOLDER_TOKENS: Final[tuple[str, ...]] = (
@@ -80,10 +81,7 @@ def _redact_keyword_dsn(dsn: str) -> Optional[str]:
     if "password=" not in dsn.lower():
         return None
     parts = dsn.split()
-    redacted_parts = [
-        "password=***" if part.lower().startswith("password=") else part
-        for part in parts
-    ]
+    redacted_parts = ["password=***" if part.lower().startswith("password=") else part for part in parts]
     return " ".join(redacted_parts)
 
 
@@ -91,27 +89,18 @@ def _ensure_live_test_enabled() -> None:
     """Skip test unless live Postgres integration tests are enabled."""
     if os.getenv("RUN_POSTGRES_TESTS") == "1":
         return
-    pytest.skip(
-        "Set RUN_POSTGRES_TESTS=1 to enable live Postgres "
-        "connectivity test"
-    )
+    pytest.skip("Set RUN_POSTGRES_TESTS=1 to enable live Postgres connectivity test")
 
 
 def _read_validated_database_url() -> str:
     """Read DB URL and skip on missing placeholder/SQLite values."""
     database_url = _get_database_url()
     if not database_url:
-        pytest.skip(
-            "No database URL provided. Set ASSET_GRAPH_DATABASE_URL "
-            "(preferred) or DATABASE_URL."
-        )
+        pytest.skip("No database URL provided. Set ASSET_GRAPH_DATABASE_URL (preferred) or DATABASE_URL.")
     if any(token in database_url for token in PLACEHOLDER_TOKENS):
         pytest.skip("Database URL contains a placeholder password token")
     if database_url.strip().lower().startswith("sqlite"):
-        pytest.skip(
-            "Database URL is SQLite; Postgres connectivity "
-            "test not applicable"
-        )
+        pytest.skip("Database URL is SQLite; Postgres connectivity test not applicable")
     return database_url
 
 
@@ -122,10 +111,7 @@ def _run_smoke_query(database_url: str):
             cur.execute("SELECT current_database(), current_user, version();")
             return cur.fetchone()
     except Exception as exc:  # noqa: BLE001
-        pytest.fail(
-            "Failed to connect to Postgres using "
-            f"DSN={_redact_dsn(database_url)}: {exc}"
-        )
+        pytest.fail(f"Failed to connect to Postgres using DSN={_redact_dsn(database_url)}: {exc}")
 
 
 @pytest.mark.integration

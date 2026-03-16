@@ -36,9 +36,7 @@ class RealDataFetcher:
         self,
         *,
         cache_path: Optional[str] = None,
-        fallback_factory: Optional[
-            Callable[[], AssetRelationshipGraph]
-        ] = None,
+        fallback_factory: Optional[Callable[[], AssetRelationshipGraph]] = None,
         enable_network: bool = True,
     ) -> None:
         """
@@ -85,16 +83,10 @@ class RealDataFetcher:
             return cached_graph
 
         if not self.enable_network:
-            logger.info(
-                "Network fetching disabled. Using fallback dataset "
-                "if available."
-            )
+            logger.info("Network fetching disabled. Using fallback dataset if available.")
             return self._fallback()
 
-        logger.info(
-            "Creating database with real financial data "
-            "from Yahoo Finance"
-        )
+        logger.info("Creating database with real financial data from Yahoo Finance")
 
         try:
             graph = self._build_graph_from_live_data()
@@ -110,9 +102,7 @@ class RealDataFetcher:
 
         except (OSError, RuntimeError, TypeError, ValueError) as exc:
             logger.error("Failed to create real database: %s", exc)
-        logger.warning(
-            "Falling back to sample data due to real data fetch failure"
-        )
+        logger.warning("Falling back to sample data due to real data fetch failure")
         return self._fallback()
 
     def _try_load_cached_graph(self) -> Optional[AssetRelationshipGraph]:
@@ -126,10 +116,7 @@ class RealDataFetcher:
             )
             return _load_from_cache(self.cache_path)
         except (OSError, json.JSONDecodeError, TypeError, ValueError):
-            logger.exception(
-                "Failed to load cached dataset; "
-                "proceeding with standard fetch"
-            )
+            logger.exception("Failed to load cached dataset; proceeding with standard fetch")
             return None
 
     def _build_graph_from_live_data(self) -> AssetRelationshipGraph:
@@ -339,9 +326,7 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date=(
-                        datetime.now() + timedelta(days=90)
-                    ).strftime("%Y-%m-%d"),
+                    delivery_date=(datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)
@@ -461,10 +446,7 @@ class RealDataFetcher:
             asset_id="XOM",
             event_type=RegulatoryActivity.SEC_FILING,
             date="2024-10-01",
-            description=(
-                "10-K Filing - Increased oil reserves "
-                "and sustainability initiatives"
-            ),
+            description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
             impact_score=0.05,
             related_assets=["CL_FUTURE"],  # Related to oil futures
         )
@@ -555,18 +537,10 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
               incoming relationships; each relationship is a dict with keys
               "source", "relationship_type", and "strength".
     """
-    incoming_relationships = _build_incoming_relationships(
-        graph.relationships
-    )
+    incoming_relationships = _build_incoming_relationships(graph.relationships)
     return {
-        "assets": [
-            _serialize_dataclass(asset)
-            for asset in graph.assets.values()
-        ],
-        "regulatory_events": [
-            _serialize_dataclass(event)
-            for event in graph.regulatory_events
-        ],
+        "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
+        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
         "relationships": {
             source: [
                 {
@@ -599,9 +573,7 @@ def _build_incoming_relationships(
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
     for source, rels in relationships.items():
         for target, rel_type, strength in rels:
-            incoming_relationships.setdefault(target, []).append(
-                (source, rel_type, strength)
-            )
+            incoming_relationships.setdefault(target, []).append((source, rel_type, strength))
     return incoming_relationships
 
 

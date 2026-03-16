@@ -68,34 +68,22 @@ def _collect_formatted_examples(
 
 def has_equities(graph: AssetRelationshipGraph) -> bool:
     """Return True when the graph contains at least one equity asset."""
-    return any(
-        asset.asset_class == AssetClass.EQUITY
-        for asset in graph.assets.values()
-    )
+    return any(asset.asset_class == AssetClass.EQUITY for asset in graph.assets.values())
 
 
 def has_bonds(graph: AssetRelationshipGraph) -> bool:
     """Return True when the graph contains at least one fixed-income asset."""
-    return any(
-        asset.asset_class == AssetClass.FIXED_INCOME
-        for asset in graph.assets.values()
-    )
+    return any(asset.asset_class == AssetClass.FIXED_INCOME for asset in graph.assets.values())
 
 
 def has_commodities(graph: AssetRelationshipGraph) -> bool:
     """Return True when the graph contains at least one commodity asset."""
-    return any(
-        asset.asset_class == AssetClass.COMMODITY
-        for asset in graph.assets.values()
-    )
+    return any(asset.asset_class == AssetClass.COMMODITY for asset in graph.assets.values())
 
 
 def has_currencies(graph: AssetRelationshipGraph) -> bool:
     """Return True when the graph contains at least one currency asset."""
-    return any(
-        asset.asset_class == AssetClass.CURRENCY
-        for asset in graph.assets.values()
-    )
+    return any(asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values())
 
 
 def has_dividend_stocks(graph: AssetRelationshipGraph) -> bool:
@@ -118,11 +106,7 @@ def calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
             examples.append(f"{asset.symbol}: PE = {pe_ratio:.2f}")
             if len(examples) >= 2:
                 break
-    return (
-        "; ".join(examples)
-        if examples
-        else "Example: PE = 100.00 / 5.00 = 20.00"
-    )
+    return "; ".join(examples) if examples else "Example: PE = 100.00 / 5.00 = 20.00"
 
 
 def calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
@@ -137,17 +121,10 @@ def calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
         if _is_equity_with_dividend_yield(asset):
             dividend_yield = float(getattr(asset, "dividend_yield"))
             yield_pct = dividend_yield * 100
-            examples.append(
-                f"{asset.symbol}: Yield = {yield_pct:.2f}% "
-                f"at price ${asset.price:.2f}"
-            )
+            examples.append(f"{asset.symbol}: Yield = {yield_pct:.2f}% at price ${asset.price:.2f}")
             if len(examples) >= 2:
                 break
-    return (
-        "; ".join(examples)
-        if examples
-        else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
-    )
+    return "; ".join(examples) if examples else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
 
 
 def calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
@@ -170,9 +147,7 @@ def calculate_market_cap_examples(graph: AssetRelationshipGraph) -> str:
         if _is_equity_with_market_cap(asset):
             market_cap = float(getattr(asset, "market_cap"))
             cap_billions = market_cap / 1e9
-            examples.append(
-                f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B"
-            )
+            examples.append(f"{asset.symbol}: Market Cap = ${cap_billions:.1f}B")
             if len(examples) >= 2:
                 break
     return "; ".join(examples) if examples else "Example: Market Cap = $1.5T"
@@ -194,6 +169,7 @@ def calculate_correlation_examples(graph: AssetRelationshipGraph) -> str:
 
 def calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
     """Build formatted price-to-book examples from equity assets."""
+
     def _format_pb(asset: object) -> str:
         book_value = float(getattr(asset, "book_value"))
         pb_ratio = getattr(asset, "price") / book_value if book_value else 0
@@ -235,19 +211,12 @@ def calculate_portfolio_return_examples(graph: AssetRelationshipGraph) -> str:
 def calculate_portfolio_variance_examples(graph: AssetRelationshipGraph) -> str:
     """Return a portfolio variance example string."""
     _ = graph
-    return (
-        "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + "
-        "(2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
-    )
+    return "Example: σ²p = (0.6² × 0.2²) + (0.4² × 0.1²) + (2 × 0.6 × 0.4 × 0.2 × 0.1 × 0.5)"
 
 
 def calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
     """Build an exchange-rate example from available currency assets."""
-    currencies = [
-        asset
-        for asset in graph.assets.values()
-        if asset.asset_class == AssetClass.CURRENCY
-    ]
+    currencies = [asset for asset in graph.assets.values() if asset.asset_class == AssetClass.CURRENCY]
     if len(currencies) >= 2:
         c1, c2 = currencies[0], currencies[1]
         return f"{c1.symbol}/USD × USD/{c2.symbol} = {c1.symbol}/{c2.symbol}"

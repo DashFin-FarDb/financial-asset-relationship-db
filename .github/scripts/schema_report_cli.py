@@ -23,8 +23,12 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.data.sample_data import create_sample_database  # noqa: E402  # pylint: disable=import-error  # type: ignore[import-not-found]
-from src.reports.schema_report import generate_schema_report  # noqa: E402  # pylint: disable=import-error  # type: ignore[import-not-found]
+from src.data.sample_data import (  # noqa: E402  # pylint: disable=import-error  # type: ignore[import-not-found]
+    create_sample_database,
+)
+from src.reports.schema_report import (  # noqa: E402  # pylint: disable=import-error  # type: ignore[import-not-found]
+    generate_schema_report,
+)
 
 # ---------------------------------------------------------------------------
 # Logging configuration
@@ -58,9 +62,7 @@ except OSError:
 
 file_handler = logging.FileHandler(LOG_PATH)
 file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter(
-    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 file_handler.setFormatter(file_formatter)
 
 stream_handler = logging.StreamHandler(sys.stderr)
@@ -107,9 +109,7 @@ DEFAULT_OUTPUT_FILENAMES = {
 def parse_arguments() -> argparse.Namespace:
     """Parse and validate command-line arguments."""
     parser = argparse.ArgumentParser(
-        description=(
-            "Generate schema reports for financial asset relationships."
-        ),
+        description=("Generate schema reports for financial asset relationships."),
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
 
@@ -310,8 +310,7 @@ def main() -> int:
     except (IOError, OSError, RuntimeError, TypeError, ValueError):
         logger.exception("Unexpected error occurred.")
         print(
-            "Error: An unexpected error occurred. "
-            + "Please check the logs for details.",
+            "Error: An unexpected error occurred. " + "Please check the logs for details.",
             file=sys.stderr,
         )
         return 1

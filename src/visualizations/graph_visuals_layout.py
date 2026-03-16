@@ -24,10 +24,7 @@ def _generate_dynamic_title(
         A title string formatted as
         "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
     """
-    return (
-        f"{base_title} - {num_assets} Assets, "
-        f"{num_relationships} Relationships"
-    )
+    return f"{base_title} - {num_assets} Assets, {num_relationships} Relationships"
 
 
 def _calculate_visible_relationships(
@@ -47,10 +44,7 @@ def _calculate_visible_relationships(
             computed by summing plotted points across traces and
             dividing by 3.
     """
-    total_points = sum(
-        len(getattr(trace, "x", []) or [])
-        for trace in relationship_traces
-    )
+    total_points = sum(len(getattr(trace, "x", []) or []) for trace in relationship_traces)
     return total_points // 3
 
 

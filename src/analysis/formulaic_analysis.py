@@ -103,9 +103,7 @@ class FormulaicAnalyzer:
         """
         logger.info("Starting formulaic analysis of asset relationships")
         all_formulas = self._collect_formula_groups(graph)
-        empirical_relationships = self._calculate_empirical_relationships(
-            graph
-        )
+        empirical_relationships = self._calculate_empirical_relationships(graph)
         return self._build_analysis_result(
             all_formulas,
             empirical_relationships,
@@ -194,9 +192,7 @@ class FormulaicAnalyzer:
             name="Price-to-Earnings",
             expression="P / E",
             latex=r"\frac{P}{E}",
-            description=(
-                "Market price per share divided by earnings per share."
-            ),
+            description=("Market price per share divided by earnings per share."),
             variables={
                 "P": PRICE_PER_SHARE_LABEL,
                 "E": "Earnings per share (EPS)",
@@ -232,10 +228,7 @@ class FormulaicAnalyzer:
             name="Market Capitalization",
             expression="Price × Shares Outstanding",
             latex=r"P \times \text{Shares}",
-            description=(
-                "Estimated market capitalization computed from price "
-                "and shares outstanding."
-            ),
+            description=("Estimated market capitalization computed from price and shares outstanding."),
             variables={
                 "Price": PRICE_PER_SHARE_LABEL,
                 "Shares Outstanding": "Number of shares outstanding",
@@ -272,9 +265,7 @@ class FormulaicAnalyzer:
             name="Beta (Systematic Risk)",
             expression="β = Cov(R_asset, R_market) / Var(R_market)",
             latex=r"\beta = \frac{Cov(R_i, R_m)}{Var(R_m)}",
-            description=(
-                "Measure of an asset's sensitivity to market movements"
-            ),
+            description=("Measure of an asset's sensitivity to market movements"),
             variables={
                 "β": "Beta coefficient",
                 "R_i": "Asset return",
@@ -341,9 +332,7 @@ class FormulaicAnalyzer:
             name="Price-to-Book Ratio",
             expression="P/B = Market_Price / Book_Value_per_Share",
             latex=r"P/B = \frac{P}{BV_{per\_share}}",
-            description=(
-                "Valuation metric comparing market price to book value"
-            ),
+            description=("Valuation metric comparing market price to book value"),
             variables={
                 "P/B": "Price-to-Book Ratio",
                 "P": "Market Price per Share ($)",
@@ -368,10 +357,7 @@ class FormulaicAnalyzer:
                 "Debt": "Total Debt ($)",
                 "Cash": "Cash and Cash Equivalents ($)",
             },
-            example_calculation=(
-                "EV calculation requires debt and cash data "
-                "(not available in current dataset)"
-            ),
+            example_calculation=("EV calculation requires debt and cash data (not available in current dataset)"),
             category="Valuation",
             r_squared=0.95,
         )
@@ -455,9 +441,7 @@ class FormulaicAnalyzer:
             name="Portfolio Expected Return",
             expression="E(R_p) = Σ(w_i × E(R_i))",
             latex=r"E(R_p) = \sum_{i=1}^{n} w_i \times E(R_i)",
-            description=(
-                "Weighted average of individual asset expected returns"
-            ),
+            description=("Weighted average of individual asset expected returns"),
             variables={
                 "E(R_p)": "Expected portfolio return",
                 "w_i": "Weight of asset i in portfolio",
@@ -497,13 +481,8 @@ class FormulaicAnalyzer:
             exchange_rate_formula = Formula(
                 name="Exchange Rate Relationships",
                 expression="USD/EUR × EUR/GBP = USD/GBP",
-                latex=(
-                    r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = "
-                    r"\frac{USD}{GBP}"
-                ),
-                description=(
-                    "Triangular arbitrage relationship between currencies"
-                ),
+                latex=(r"\frac{USD}{EUR} \times \frac{EUR}{GBP} = " r"\frac{USD}{GBP}"),
+                description=("Triangular arbitrage relationship between currencies"),
                 variables={
                     "USD/EUR": "US Dollar to Euro exchange rate",
                     "EUR/GBP": "Euro to British Pound exchange rate",
@@ -519,22 +498,14 @@ class FormulaicAnalyzer:
         if has_commodities(graph) and has_currencies(graph):
             commodity_currency_formula = Formula(
                 name="Commodity-Currency Relationship",
-                expression=(
-                    "Currency_Value ∝ 1/Commodity_Price "
-                    "(for commodity exporters)"
-                ),
+                expression=("Currency_Value ∝ 1/Commodity_Price (for commodity exporters)"),
                 latex=r"FX_{commodity} \propto \frac{1}{P_{commodity}}",
-                description=(
-                    "Inverse relationship between commodity prices "
-                    "and currency values"
-                ),
+                description=("Inverse relationship between commodity prices and currency values"),
                 variables={
                     "FX_commodity": "Currency value of commodity exporter",
                     "P_commodity": "Commodity price",
                 },
-                example_calculation=(
-                    calculate_commodity_currency_examples(graph)
-                ),
+                example_calculation=(calculate_commodity_currency_examples(graph)),
                 category="Cross-Asset",
                 r_squared=0.65,
             )
@@ -548,17 +519,9 @@ class FormulaicAnalyzer:
     ) -> Dict[str, Any]:
         """Calculate empirical relationships from the asset graph."""
         correlation_matrix = FormulaicAnalyzer._build_correlation_matrix(graph)
-        strongest_correlations = (
-            FormulaicAnalyzer._build_strongest_correlations(
-                correlation_matrix
-            )
-        )
-        asset_class_relationships = (
-            FormulaicAnalyzer._build_asset_class_relationships(graph)
-        )
-        sector_relationships = (
-            FormulaicAnalyzer._build_sector_relationships(graph)
-        )
+        strongest_correlations = FormulaicAnalyzer._build_strongest_correlations(correlation_matrix)
+        asset_class_relationships = FormulaicAnalyzer._build_asset_class_relationships(graph)
+        sector_relationships = FormulaicAnalyzer._build_sector_relationships(graph)
         return {
             "correlation_matrix": correlation_matrix,
             "strongest_correlations": strongest_correlations,
@@ -675,9 +638,7 @@ class FormulaicAnalyzer:
 
         for stats in sector_relationships.values():
             prices = stats.pop("_prices", [])
-            avg_price, price_range = (
-                FormulaicAnalyzer._summarize_sector_prices(prices)
-            )
+            avg_price, price_range = FormulaicAnalyzer._summarize_sector_prices(prices)
             stats["avg_price"] = avg_price
             stats["price_range"] = price_range
         return sector_relationships
@@ -705,11 +666,7 @@ class FormulaicAnalyzer:
             strength; returns 0.5 when the graph contains no relationship
             strength data.
         """
-        strengths = [
-            strength
-            for rels in graph.relationships.values()
-            for _, _, strength in rels
-        ]
+        strengths = [strength for rels in graph.relationships.values() for _, _, strength in rels]
         if strengths:
             avg_strength = sum(strengths) / len(strengths)
             return min(0.75, max(0.0, avg_strength))
@@ -755,18 +712,10 @@ class FormulaicAnalyzer:
                 key_insights (list[str]): Short human-readable insight strings
                     derived from the formulas and empirical data.
         """
-        avg_corr_strength = (
-            self._calculate_avg_correlation_strength_from_empirical(
-                empirical_relationships
-            )
-        )
+        avg_corr_strength = self._calculate_avg_correlation_strength_from_empirical(empirical_relationships)
 
         if formulas:
-            avg_r_squared = sum(
-                f.r_squared
-                for f in formulas
-                if isinstance(f.r_squared, (int, float))
-            ) / len(formulas)
+            avg_r_squared = sum(f.r_squared for f in formulas if isinstance(f.r_squared, (int, float))) / len(formulas)
         else:
             avg_r_squared = 0.0
 
@@ -774,18 +723,13 @@ class FormulaicAnalyzer:
             "total_formulas": len(formulas),
             "avg_r_squared": avg_r_squared,
             "formula_categories": self._categorize_formulas(formulas),
-            "empirical_data_points": len(
-                empirical_relationships.get("correlation_matrix", {})
-            ),
+            "empirical_data_points": len(empirical_relationships.get("correlation_matrix", {})),
             "key_insights": [
                 f"Identified {len(formulas)} mathematical relationships",
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
                 "Portfolio theory formulas available for multi-asset analysis",
-                (
-                    "Cross-asset relationships identified between "
-                    "commodities and currencies"
-                ),
+                ("Cross-asset relationships identified between commodities and currencies"),
             ],
         }
 
@@ -816,9 +760,5 @@ class FormulaicAnalyzer:
         correlations = empirical_relationships.get("correlation_matrix", {})
         if correlations:
             valid_correlations = [v for v in correlations.values() if v < 1.0]
-            return (
-                sum(valid_correlations) / len(valid_correlations)
-                if valid_correlations
-                else 0.5
-            )
+            return sum(valid_correlations) / len(valid_correlations) if valid_correlations else 0.5
         return 0.5

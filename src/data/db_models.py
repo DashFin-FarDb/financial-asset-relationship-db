@@ -71,17 +71,13 @@ class AssetORM(Base):
         nullable=True,
     )
 
-    outgoing_relationships: Mapped[
-        List["AssetRelationshipORM"]
-    ] = relationship(
+    outgoing_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
         "AssetRelationshipORM",
         back_populates="source",
         cascade=CASCADE_DELETE_ORPHAN,
         foreign_keys="AssetRelationshipORM.source_asset_id",
     )
-    incoming_relationships: Mapped[
-        List["AssetRelationshipORM"]
-    ] = relationship(
+    incoming_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
         "AssetRelationshipORM",
         back_populates="target",
         cascade=CASCADE_DELETE_ORPHAN,

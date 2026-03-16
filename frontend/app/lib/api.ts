@@ -55,10 +55,9 @@ export const api = {
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
-    return getData<Relationship[]>(
-      `/api/assets/${assetId}/relationships`,
-      { signal },
-    );
+    return getData<Relationship[]>(`/api/assets/${assetId}/relationships`, {
+      signal,
+    });
   },
 
   // Relationships

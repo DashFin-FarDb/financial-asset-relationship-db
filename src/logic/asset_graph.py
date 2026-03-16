@@ -165,8 +165,7 @@ class AssetRelationshipGraph:
                 kwargs,
             )
         raise TypeError(
-            "add_relationship expects (rel_type, strength[, bidirectional]) "
-            "or ((rel_type, strength), [bidirectional])."
+            "add_relationship expects (rel_type, strength[, bidirectional]) or ((rel_type, strength), [bidirectional])."
         )
 
     @staticmethod
@@ -176,9 +175,7 @@ class AssetRelationshipGraph:
     ) -> tuple[Any, Any, bool]:
         """Parse the single-argument shape for tuple relationship payloads."""
         if not isinstance(relationship_arg, tuple):
-            raise TypeError(
-                "Single relationship argument must be a tuple of (rel_type, strength)."
-            )
+            raise TypeError("Single relationship argument must be a tuple of (rel_type, strength).")
         return AssetRelationshipGraph._parse_tuple_relationship(relationship_arg, kwargs)
 
     @staticmethod
@@ -220,9 +217,7 @@ class AssetRelationshipGraph:
         rel_type, strength = relationship_args[0], relationship_args[1]
         if len(relationship_args) == 3:
             if "bidirectional" in kwargs:
-                raise TypeError(
-                    "bidirectional specified both positionally and by keyword."
-                )
+                raise TypeError("bidirectional specified both positionally and by keyword.")
             return rel_type, strength, bool(relationship_args[2])
         bidirectional_flag = kwargs.pop("bidirectional", False)
         return rel_type, strength, bool(bidirectional_flag)
@@ -337,9 +332,7 @@ class AssetRelationshipGraph:
         w_events = 0.3
         avg_strength_n = self._clamp01(avg_strength)
         reg_events_norm = self._saturating_norm(regulatory_event_count, k)
-        quality_score = self._clamp01(
-            (w_strength * avg_strength_n) + (w_events * reg_events_norm)
-        )
+        quality_score = self._clamp01((w_strength * avg_strength_n) + (w_events * reg_events_norm))
         return reg_events_norm, quality_score
 
     def get_3d_visualization_data_enhanced(
@@ -428,11 +421,7 @@ class AssetRelationshipGraph:
         if source_id not in self.assets:
             return []
         existing_asset_ids = set(self.assets.keys())
-        return [
-            target_id
-            for target_id in related_assets
-            if target_id in existing_asset_ids
-        ]
+        return [target_id for target_id in related_assets if target_id in existing_asset_ids]
 
     def _append_relationship(
         self,

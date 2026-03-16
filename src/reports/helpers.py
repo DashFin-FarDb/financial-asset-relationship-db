@@ -97,8 +97,4 @@ def _is_top_relationship_item(item: Any) -> bool:
         return False
     if len(item) != 4:
         return False
-    return (
-        isinstance(item[0], str)
-        and isinstance(item[1], str)
-        and isinstance(item[2], str)
-    )
+    return isinstance(item[0], str) and isinstance(item[1], str) and isinstance(item[2], str)

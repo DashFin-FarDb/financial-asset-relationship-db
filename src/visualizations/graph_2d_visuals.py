@@ -212,11 +212,7 @@ def _is_relationship_filtered(
     show_all_relationships: bool,
 ) -> bool:
     """Return True when a relationship type should be hidden."""
-    return (
-        not show_all_relationships
-        and rel_type in relationship_filters
-        and not relationship_filters[rel_type]
-    )
+    return not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]
 
 
 def _group_relationships_by_type(
@@ -232,9 +228,7 @@ def _group_relationships_by_type(
     relationship_groups: Dict[str, list[Dict[str, object]]] = {}
 
     for source_id in asset_ids:
-        for target_id, rel_type, strength in graph.relationships.get(
-            source_id, []
-        ):
+        for target_id, rel_type, strength in graph.relationships.get(source_id, []):
             if target_id not in positions or target_id not in asset_id_set:
                 continue
             if _is_relationship_filtered(
@@ -273,11 +267,7 @@ def _build_relationship_trace(
         target_pos = positions[target_id]
         edges_x.extend([source_pos[0], target_pos[0], None])
         edges_y.extend([source_pos[1], target_pos[1], None])
-        hover_text = (
-            f"{source_id} → {target_id}<br>"
-            f"Type: {rel_type}<br>"
-            f"Strength: {strength:.2f}"
-        )
+        hover_text = f"{source_id} → {target_id}<br>Type: {rel_type}<br>Strength: {strength:.2f}"
         hover_texts.extend([hover_text, hover_text, None])
 
     return go.Scatter(
@@ -318,10 +308,7 @@ def _spring_or_fallback_positions(
         _,
         _,
     ) = graph.get_3d_visualization_data_enhanced()
-    positions_3d = {
-        asset_ids_ordered[i]: tuple(positions_3d_array[i])
-        for i in range(len(asset_ids_ordered))
-    }
+    positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
     circular_fallback = _create_circular_layout(asset_ids)
     for asset_id in asset_ids:
         if asset_id not in positions_3d:

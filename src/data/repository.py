@@ -120,9 +120,7 @@ class AssetGraphRepository:
                 representing all assets in the database,
                 ordered by asset id.
         """
-        result = self.session.execute(
-            select(AssetORM).order_by(AssetORM.id)
-        ).scalars().all()
+        result = self.session.execute(select(AssetORM).order_by(AssetORM.id)).scalars().all()
         return [self._to_asset_model(record) for record in result]
 
     def get_assets_map(self) -> Dict[str, Asset]:
@@ -178,9 +176,7 @@ class AssetGraphRepository:
             *args,
             **kwargs,
         )
-        relationship = self._get_or_create_relationship_orm(
-            relationship_spec
-        )
+        relationship = self._get_or_create_relationship_orm(relationship_spec)
         self.session.add(relationship)
 
     def _build_relationship_upsert_spec(
@@ -191,13 +187,9 @@ class AssetGraphRepository:
         """Normalize add/update arguments into a relationship upsert spec."""
         if len(args) == 1 and isinstance(args[0], _RelationshipUpsertSpec):
             if kwargs:
-                raise TypeError(
-                    "Unexpected keyword arguments with spec argument"
-                )
+                raise TypeError("Unexpected keyword arguments with spec argument")
             spec = args[0]
-            normalized_strength = self._validate_relationship_strength(
-                spec.strength
-            )
+            normalized_strength = self._validate_relationship_strength(spec.strength)
             return _RelationshipUpsertSpec(
                 source_id=spec.source_id,
                 target_id=spec.target_id,
@@ -207,23 +199,22 @@ class AssetGraphRepository:
             )
 
         if len(args) < 4:
-            raise TypeError(
-                "Expected (source_id, target_id, rel_type, strength[, "
-                "bidirectional])"
-            )
+            raise TypeError("Expected (source_id, target_id, rel_type, strength[, bidirectional])")
 
         source_id = args[0]
         target_id = args[1]
         rel_type = args[2]
         strength = args[3]
-        bidirectional = args[4] if len(args) >= 5 else kwargs.pop(
-            "bidirectional",
-            False,
+        bidirectional = (
+            args[4]
+            if len(args) >= 5
+            else kwargs.pop(
+                "bidirectional",
+                False,
+            )
         )
         if kwargs:
-            raise TypeError(
-                f"Unexpected keyword arguments: {', '.join(kwargs.keys())}"
-            )
+            raise TypeError(f"Unexpected keyword arguments: {', '.join(kwargs.keys())}")
 
         normalized_strength = self._validate_relationship_strength(strength)
         return _RelationshipUpsertSpec(
@@ -241,13 +232,9 @@ class AssetGraphRepository:
             strength,
             (int, float),
         ):
-            raise ValueError(
-                "strength must be a numeric value between -1.0 and 1.0"
-            )
+            raise ValueError("strength must be a numeric value between -1.0 and 1.0")
         if strength < -1.0 or strength > 1.0:
-            raise ValueError(
-                "strength must be between -1.0 and 1.0 (inclusive)"
-            )
+            raise ValueError("strength must be between -1.0 and 1.0 (inclusive)")
         return float(strength)
 
     def _get_or_create_relationship_orm(
@@ -256,12 +243,9 @@ class AssetGraphRepository:
     ) -> AssetRelationshipORM:
         """Fetch relationship ORM row or create/update it if missing."""
         stmt = select(AssetRelationshipORM).where(
-            AssetRelationshipORM.source_asset_id
-            == relationship_spec.source_id,
-            AssetRelationshipORM.target_asset_id
-            == relationship_spec.target_id,
-            AssetRelationshipORM.relationship_type
-            == relationship_spec.rel_type,
+            AssetRelationshipORM.source_asset_id == relationship_spec.source_id,
+            AssetRelationshipORM.target_asset_id == relationship_spec.target_id,
+            AssetRelationshipORM.relationship_type == relationship_spec.rel_type,
         )
         relationship = self.session.execute(stmt).scalar_one_or_none()
         if relationship is None:
@@ -278,9 +262,7 @@ class AssetGraphRepository:
 
     def list_relationships(self) -> List[RelationshipRecord]:
         """Return all relationships from the database."""
-        result = self.session.execute(
-            select(AssetRelationshipORM)
-        ).scalars().all()
+        result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
             RelationshipRecord(
                 source_id=rel.source_asset_id,
@@ -359,17 +341,13 @@ class AssetGraphRepository:
         existing.impact_score = event.impact_score
         existing.related_assets.clear()
         for related_id in event.related_assets:
-            existing.related_assets.append(
-                RegulatoryEventAssetORM(asset_id=related_id)
-            )
+            existing.related_assets.append(RegulatoryEventAssetORM(asset_id=related_id))
 
         self.session.add(existing)
 
     def list_regulatory_events(self) -> List[RegulatoryEvent]:
         """Return all regulatory events."""
-        result = self.session.execute(
-            select(RegulatoryEventORM)
-        ).scalars().all()
+        result = self.session.execute(select(RegulatoryEventORM)).scalars().all()
         return [self._to_regulatory_event_model(record) for record in result]
 
     def delete_regulatory_event(self, event_id: str) -> None:
@@ -395,11 +373,7 @@ class AssetGraphRepository:
         orm.asset_class = asset.asset_class.value
         orm.sector = asset.sector
         orm.price = float(asset.price)
-        orm.market_cap = (
-            float(asset.market_cap)
-            if asset.market_cap is not None
-            else None
-        )
+        orm.market_cap = float(asset.market_cap) if asset.market_cap is not None else None
         orm.currency = asset.currency
 
         orm.pe_ratio = getattr(asset, "pe_ratio", None)

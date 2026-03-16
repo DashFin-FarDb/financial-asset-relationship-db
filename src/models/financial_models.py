@@ -177,8 +177,5 @@ class RegulatoryEvent:
     @staticmethod
     def _validate_iso_date_prefix(value: object) -> None:
         """Validate the basic ISO 8601 date prefix (YYYY-MM-DD)."""
-        if (
-            not isinstance(value, str)
-            or not re.match(r"^\d{4}-\d{2}-\d{2}", value)
-        ):
+        if not isinstance(value, str) or not re.match(r"^\d{4}-\d{2}-\d{2}", value):
             raise ValueError("Date must be in ISO 8601 format (YYYY-MM-DD...)")

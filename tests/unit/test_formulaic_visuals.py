@@ -2,8 +2,8 @@
 
 from unittest.mock import Mock
 
-import pytest
 import plotly.graph_objects as go
+import pytest
 
 from src.visualizations.formulaic_visuals import FormulaicVisualizer
 
@@ -84,9 +84,9 @@ def test_aggregate_category_stats_empty_category_string(visualizer: FormulaicVis
 def test_apply_dashboard_layout_mutates_figure_correctly(visualizer: FormulaicVisualizer) -> None:
     """Test that dashboard layout properties are correctly applied without adding traces."""
     fig = go.Figure()
-    
+
     visualizer._apply_dashboard_layout(fig)
-    
+
     assert fig.layout.title.text == "📊 Financial Formulaic Analysis Dashboard"
     assert fig.layout.height == 1000
     assert fig.layout.showlegend is False
@@ -99,9 +99,9 @@ def test_apply_dashboard_layout_mutates_figure_correctly(visualizer: FormulaicVi
 def test_apply_metric_comparison_layout_mutates_figure_correctly(visualizer: FormulaicVisualizer) -> None:
     """Test that metric comparison layout properties are applied correctly."""
     fig = go.Figure()
-    
+
     visualizer._apply_metric_comparison_layout(fig)
-    
+
     assert fig.layout.title.text == "Formula Categories: Reliability vs Count"
     assert fig.layout.xaxis.title.text == "Formula Category"
     assert fig.layout.yaxis.title.text == "Value"
@@ -114,7 +114,10 @@ def test_apply_metric_comparison_layout_mutates_figure_correctly(visualizer: For
 def test_format_name(visualizer: FormulaicVisualizer) -> None:
     """Test string truncation and fallback for formula names."""
     assert visualizer._format_name("Short Name") == "Short Name"
-    assert visualizer._format_name("This is a very long name that exceeds thirty characters") == "This is a very long name th..."
+    assert (
+        visualizer._format_name("This is a very long name that exceeds thirty characters")
+        == "This is a very long name th..."
+    )
     assert visualizer._format_name(None) == "N/A"
     assert visualizer._format_name("") == "N/A"
 
@@ -149,11 +152,11 @@ def test_parse_correlation_item(visualizer: FormulaicVisualizer) -> None:
     # Dictionary format
     assert visualizer._parse_correlation_item({"asset1": "A", "asset2": "B", "correlation": 0.8}) == ("A", "B", 0.8)
     assert visualizer._parse_correlation_item({"asset1": "A"}) == ("A", "", 0.0)
-    
+
     # List/Tuple format
     assert visualizer._parse_correlation_item(["A", "B", 0.8]) == ("A", "B", 0.8)
     assert visualizer._parse_correlation_item(("A", "B")) == ("A", "B", 0.0)
-    
+
     # Invalid format
     assert visualizer._parse_correlation_item("invalid string format") == ("", "", 0.0)
     assert visualizer._parse_correlation_item(None) == ("", "", 0.0)

@@ -34,10 +34,7 @@ def test_database_connection() -> bool:
             session.execute(text("SELECT 1"))
             logger.info("Connected using backend: %s", backend)
             table_rows = session.execute(
-                text(
-                    "SELECT name FROM sqlite_master "
-                    "WHERE type='table' ORDER BY name LIMIT 5"
-                )
+                text("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name LIMIT 5")
             ).all()
             if table_rows:
                 sample_tables = [row[0] for row in table_rows]
@@ -47,10 +44,7 @@ def test_database_connection() -> bool:
                 )
                 logger.info("Sample tables: %s", sample_tables[:2])
             else:
-                logger.warning(
-                    "Query returned no table rows. This may be normal for a "
-                    "new database."
-                )
+                logger.warning("Query returned no table rows. This may be normal for a new database.")
             return True
     except SQLAlchemyError:
         logger.exception("Database query failed")

@@ -1,4 +1,5 @@
 """Local script to test Supabase and PostgreSQL connectivity."""
+
 # mypy: disable-error-code=import-untyped
 # pyright: reportMissingImports=false
 
@@ -24,9 +25,7 @@ CERT_PATH = os.path.join(
 )
 
 print("Supabase URL:", SUPABASE_URL)
-SUPABASE_KEY_PREVIEW = (
-    SUPABASE_KEY[:5] + "..." if SUPABASE_KEY else "Not found"
-)
+SUPABASE_KEY_PREVIEW = SUPABASE_KEY[:5] + "..." if SUPABASE_KEY else "Not found"
 print("Supabase Key:", SUPABASE_KEY_PREVIEW)
 print("Certificate path:", CERT_PATH)
 
@@ -58,14 +57,8 @@ try:
             print("Could not retrieve table list.")
 
     except socket.gaierror:
-        print(
-            "⚠️ Network connection issue: "
-            "Unable to reach Supabase API servers."
-        )
-        print(
-            "This is expected in test environments with "
-            "network restrictions."
-        )
+        print("⚠️ Network connection issue: Unable to reach Supabase API servers.")
+        print("This is expected in test environments with network restrictions.")
     except (RuntimeError, ValueError, TypeError) as query_error:
         print(f"⚠️ Query error: {query_error}")
 

@@ -91,10 +91,7 @@ def _matches_filters(
     if asset_class_upper:
         asset_class_name = asset.asset_class.name
         asset_class_value = asset.asset_class.value.upper()
-        if (
-            asset_class_name != asset_class_upper
-            and asset_class_value != asset_class_upper
-        ):
+        if asset_class_name != asset_class_upper and asset_class_value != asset_class_upper:
             return False
 
     if sector and asset.sector != sector:
@@ -130,14 +127,7 @@ def _build_filtered_asset_responses(
         500: {
             "description": "Internal server error while listing assets.",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. "
-                            "Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
@@ -187,23 +177,12 @@ async def get_assets(
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Asset not found."}
-                }
-            },
+            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
         },
         500: {
             "description": "Internal server error while retrieving asset.",
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. "
-                            "Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },
@@ -251,25 +230,12 @@ async def get_asset_detail(asset_id: str):
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {
-                "application/json": {
-                    "example": {"detail": "Asset not found."}
-                }
-            },
+            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
         },
         500: {
-            "description": (
-                "Internal server error while retrieving asset relationships."
-            ),
+            "description": ("Internal server error while retrieving asset relationships."),
             "content": {
-                "application/json": {
-                    "example": {
-                        "detail": (
-                            "An internal error occurred. "
-                            "Please try again later."
-                        )
-                    }
-                }
+                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
             },
         },
     },

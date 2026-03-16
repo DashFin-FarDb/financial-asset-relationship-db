@@ -6,6 +6,7 @@ import json
 import threading
 
 from mcp.server.fastmcp import FastMCP
+
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
@@ -54,9 +55,7 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 def _get_3d_layout_resource() -> str:
     """Provide current 3D visualization data for AI spatial reasoning as JSON."""
-    positions, asset_ids, colors, hover = (
-        graph.get_3d_visualization_data_enhanced()
-    )
+    positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
     return json.dumps(
         {
             "asset_ids": asset_ids,
@@ -90,14 +89,8 @@ def _register_mcp_handlers(mcp: FastMCP) -> None:
             add_asset = getattr(graph, "add_asset", None)
             if callable(add_asset):
                 add_asset(new_equity)
-                return (
-                    f"Successfully added: {new_equity.name} "
-                    f"({new_equity.symbol})"
-                )
-            return (
-                "Successfully validated (Graph mutation not supported): "
-                f"{new_equity.name} ({new_equity.symbol})"
-            )
+                return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
+            return f"Successfully validated (Graph mutation not supported): {new_equity.name} ({new_equity.symbol})"
         except ValueError as e:
             return f"Validation Error: {str(e)}"
 
@@ -158,10 +151,7 @@ def main(argv: list[str] | None = None) -> int:
         # Provide a clear message for missing optional dependency
         # when invoked via the CLI.
         missing = getattr(e, "name", None) or str(e)
-        raise SystemExit(
-            f"Missing dependency '{missing}'. "
-            "Install the MCP package to run the server."
-        ) from e
+        raise SystemExit(f"Missing dependency '{missing}'. Install the MCP package to run the server.") from e
 
     mcp.run()
     return 0

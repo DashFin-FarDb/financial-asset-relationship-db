@@ -16,6 +16,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
+
 # pylint: disable=import-error
 from slowapi import (  # type: ignore[import-not-found]
     Limiter,
@@ -23,7 +24,6 @@ from slowapi import (  # type: ignore[import-not-found]
 )
 from slowapi.errors import RateLimitExceeded  # type: ignore[import-not-found]
 from slowapi.util import get_remote_address  # type: ignore[import-not-found]
-# pylint: enable=import-error
 
 from src.data.real_data_fetcher import RealDataFetcher
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -37,6 +37,9 @@ from .auth import (
     create_access_token,
     get_current_active_user,
 )
+
+# pylint: enable=import-error
+
 
 logger = logging.getLogger(__name__)
 
@@ -208,18 +211,12 @@ ENV = os.getenv("ENV", "development").lower()
 
 def _read_allowed_origins() -> List[str]:
     """Return stripped, non-empty origins from ALLOWED_ORIGINS env var."""
-    return [
-        origin.strip()
-        for origin in os.getenv("ALLOWED_ORIGINS", "").split(",")
-        if origin.strip()
-    ]
+    return [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin.strip()]
 
 
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """Allow HTTP localhost origins only in development."""
-    return current_env == "development" and bool(
-        re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url)
-    )
+    return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
 
 
 def _is_https_local(origin_url: str) -> bool:
@@ -807,15 +804,7 @@ async def get_sectors() -> Dict[str, List[str]]:
     """Return distinct sorted sector values from the graph."""
     try:
         g = get_graph()
-        return {
-            "sectors": sorted(
-                {
-                    a.sector
-                    for a in g.assets.values()
-                    if a.sector
-                }
-            )
-        }
+        return {"sectors": sorted({a.sector for a in g.assets.values() if a.sector})}
     except Exception as e:
         logger.exception("Error getting sectors:")
         raise HTTPException(status_code=500, detail=str(e)) from e

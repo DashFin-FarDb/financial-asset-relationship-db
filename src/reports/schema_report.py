@@ -109,19 +109,13 @@ def _is_valid_top_relationship_item(item: Any) -> bool:
         return False
     if len(item) != 4:
         return False
-    return (
-        isinstance(item[0], str)
-        and isinstance(item[1], str)
-        and isinstance(item[2], str)
-    )
+    return isinstance(item[0], str) and isinstance(item[1], str) and isinstance(item[2], str)
 
 
 def _relationship_type_lines(metrics: Mapping[str, Any]) -> list[str]:
     """Build markdown lines for relationship type distribution."""
     lines: list[str] = []
-    relationship_dist = _as_str_int_map(
-        metrics.get("relationship_distribution")
-    )
+    relationship_dist = _as_str_int_map(metrics.get("relationship_distribution"))
     for rel_type, count in sorted(
         relationship_dist.items(),
         key=lambda rel_tuple: rel_tuple[1],
@@ -172,10 +166,7 @@ def _top_relationship_lines(metrics: Mapping[str, Any]) -> list[str]:
     top_rels = _as_top_relationships(metrics.get("top_relationships"))
     if top_rels:
         for src, tgt, rtype, strength in top_rels:
-            lines.append(
-                f"- **{src}** \u2192 **{tgt}** ({rtype}, "
-                f"strength {strength:.2f})"
-            )
+            lines.append(f"- **{src}** \u2192 **{tgt}** ({rtype}, strength {strength:.2f})")
     else:
         lines.append("- No relationships recorded yet.")
     return lines
@@ -197,34 +188,19 @@ def _business_rules_lines() -> list[str]:
         "## Business Rules & Constraints",
         "",
         "### Cross-Asset Rules",
-        (
-            "- **Sector Affinity**: Assets in the same sector are linked "
-            "with strength 0.7 (bidirectional)"
-        ),
+        ("- **Sector Affinity**: Assets in the same sector are linked with strength 0.7 (bidirectional)"),
         (
             "- **Corporate Bond Linkage**: A bond whose issuer_id matches "
             "another asset creates a directional link (strength 0.9)"
         ),
-        (
-            "- **Currency Exposure**: Currency assets reflect FX and "
-            "central-bank policy links"
-        ),
+        ("- **Currency Exposure**: Currency assets reflect FX and central-bank policy links"),
         "",
         "### Regulatory Rules",
-        (
-            "- **Event Propagation**: Regulatory / earnings events "
-            "propagate impact to related assets"
-        ),
-        (
-            "- Events create directional relationships from the event "
-            "source to each related asset"
-        ),
+        ("- **Event Propagation**: Regulatory / earnings events propagate impact to related assets"),
+        ("- Events create directional relationships from the event source to each related asset"),
         "",
         "### Valuation Rules",
-        (
-            "- **Impact Scoring**: Event impact scores are normalized "
-            "to -1 to +1 for comparability"
-        ),
+        ("- **Impact Scoring**: Event impact scores are normalized to -1 to +1 for comparability"),
         "- Relationship strengths are clamped to the 0-1 range",
     ]
 
@@ -289,19 +265,10 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "## Schema Overview",
         "",
         "### Entity Types",
-        (
-            "1. **Equity** - Stock instruments with P/E ratio, "
-            "dividend yield, EPS"
-        ),
-        (
-            "2. **Bond** - Fixed income with yield, coupon, "
-            "maturity, credit rating"
-        ),
+        ("1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS"),
+        ("2. **Bond** - Fixed income with yield, coupon, maturity, credit rating"),
         "3. **Commodity** - Physical assets with contracts and delivery dates",
-        (
-            "4. **Currency** - FX pairs or single-currency proxies with "
-            "exchange rates and policy links"
-        ),
+        ("4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links"),
         "5. **Regulatory Events** - Corporate actions and SEC filings",
         "",
         "### Relationship Types",

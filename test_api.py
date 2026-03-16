@@ -10,9 +10,7 @@ from api.main import app
 
 def _assert_ok(response, endpoint_name: str) -> None:
     """Assert successful response status code for endpoint tests."""
-    assert response.status_code == 200, (
-        f"{endpoint_name} failed: {response.status_code}"
-    )
+    assert response.status_code == 200, f"{endpoint_name} failed: {response.status_code}"
 
 
 def _test_health(client: TestClient) -> None:
@@ -62,10 +60,7 @@ def _test_relationships(client: TestClient) -> None:
     response = client.get("/api/relationships")
     _assert_ok(response, "Relationships endpoint")
     relationships = response.json()
-    print(
-        "   ✅ Relationships endpoint passed "
-        f"(found {len(relationships)} relationships)"
-    )
+    print(f"   ✅ Relationships endpoint passed (found {len(relationships)} relationships)")
 
 
 def _test_asset_classes(client: TestClient) -> None:
@@ -73,10 +68,7 @@ def _test_asset_classes(client: TestClient) -> None:
     response = client.get("/api/asset-classes")
     _assert_ok(response, "Asset classes endpoint")
     asset_classes = response.json()
-    print(
-        "   ✅ Asset classes endpoint passed "
-        f"(found {len(asset_classes['asset_classes'])} classes)"
-    )
+    print(f"   ✅ Asset classes endpoint passed (found {len(asset_classes['asset_classes'])} classes)")
 
 
 def _test_sectors(client: TestClient) -> None:
@@ -84,10 +76,7 @@ def _test_sectors(client: TestClient) -> None:
     response = client.get("/api/sectors")
     _assert_ok(response, "Sectors endpoint")
     sectors = response.json()
-    print(
-        f"   ✅ Sectors endpoint passed (found {len(sectors['sectors'])} "
-        "sectors)"
-    )
+    print(f"   ✅ Sectors endpoint passed (found {len(sectors['sectors'])} sectors)")
 
 
 def test_api() -> bool:

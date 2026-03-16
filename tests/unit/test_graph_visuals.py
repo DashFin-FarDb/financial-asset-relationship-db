@@ -9,8 +9,8 @@ from src.visualizations.graph_visuals import (
     _build_relationship_index,
     _create_directional_arrows,
     _create_relationship_traces,
-    _is_valid_color_format,
     _generate_dynamic_title,
+    _is_valid_color_format,
 )
 
 

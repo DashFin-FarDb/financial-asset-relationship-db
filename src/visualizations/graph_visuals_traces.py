@@ -115,9 +115,7 @@ def _create_relationship_traces(
     _validate_relationship_trace_inputs(graph, positions, asset_ids)
 
     asset_id_index = _build_asset_id_index(asset_ids)
-    relationship_groups = _collect_and_group_relationships(
-        graph, asset_ids, relationship_filters
-    )
+    relationship_groups = _collect_and_group_relationships(graph, asset_ids, relationship_filters)
 
     return [
         _create_trace_for_group(
@@ -235,12 +233,8 @@ def _validate_graph(graph: AssetRelationshipGraph):
         ValueError: if graph.relationships is missing or not a dict.
     """
     if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(
-            "Expected graph to be an instance of AssetRelationshipGraph"
-        )
-    if not hasattr(graph, "relationships") or not isinstance(
-        graph.relationships, dict
-    ):
+        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
+    if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
         raise ValueError(RELATIONSHIPS_DICT_ERROR)
 
 
@@ -385,29 +379,20 @@ def _create_directional_arrows_traces(
 
     for (source_id, target_id, rel_type), _ in relationship_index.items():
         # Skip relationship types that the user has hidden via filters.
-        if (
-            relationship_filters is not None
-            and not relationship_filters.get(rel_type, True)
-        ):
+        if relationship_filters is not None and not relationship_filters.get(rel_type, True):
             continue
         # Only add an arrow if reverse relationship is absent.
         if (target_id, source_id, rel_type) not in relationship_index:
             source_indices.append(asset_id_index[source_id])
             target_indices.append(asset_id_index[target_id])
-            hover_texts.append(
-                f"Direction: {source_id} → {target_id}<br>"
-                f"Type: {rel_type}"
-            )
+            hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
 
     if not source_indices:
         return []
 
     src_arr = np.asarray(source_indices, dtype=int)
     tgt_arr = np.asarray(target_indices, dtype=int)
-    arrow_positions = (
-        positions[src_arr]
-        + 0.7 * (positions[tgt_arr] - positions[src_arr])
-    )
+    arrow_positions = positions[src_arr] + 0.7 * (positions[tgt_arr] - positions[src_arr])
 
     trace = go.Scatter3d(
         x=arrow_positions[:, 0].tolist(),

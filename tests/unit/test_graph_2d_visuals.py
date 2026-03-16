@@ -7,19 +7,20 @@ This module contains comprehensive unit tests for the graph_2d_visuals module in
 - Filtering and display options
 - Edge cases and error handling
 """
+
 from unittest.mock import Mock
 
 import plotly.graph_objects as go
 import pytest
 
 from src.visualizations.graph_2d_visuals import (
+    _asset_class_label,
     _create_2d_relationship_traces,
     _create_circular_layout,
     _create_grid_layout,
     _create_spring_layout_2d,
-    visualize_2d_graph,
     _is_relationship_filtered,
-    _asset_class_label,
+    visualize_2d_graph,
 )
 
 
@@ -306,7 +307,7 @@ class TestPureLogicHelpers:
     def test_is_relationship_filtered():
         """Test relationship visibility boolean logic."""
         filters = {"same_sector": True, "correlation": False}
-        
+
         # Show all relationships overrides individual filters
         assert _is_relationship_filtered("correlation", filters, show_all_relationships=True) is False
         # Specific filter is False, so it IS filtered (hidden)

@@ -1,4 +1,5 @@
 """Main Gradio application entrypoint for asset relationship analysis."""
+
 # pylint: disable=import-error
 
 from __future__ import annotations
@@ -65,15 +66,9 @@ class AppConstants:
     SCHEMA_REPORT_LABEL = "Schema Report"
     INITIAL_GRAPH_ERROR = "Failed to create sample database"
     REFRESH_OUTPUTS_ERROR = "Error refreshing outputs"
-    APP_START_INFO = (
-        "Starting Financial Asset Relationship Database application"
-    )
-    APP_LAUNCH_INFO = (
-        "Launching Gradio interface"
-    )
-    APP_START_ERROR = (
-        "Failed to start application"
-    )
+    APP_START_INFO = "Starting Financial Asset Relationship Database application"
+    APP_LAUNCH_INFO = "Launching Gradio interface"
+    APP_START_ERROR = "Failed to start application"
 
     INTERACTIVE_3D_GRAPH_MD = """
     ## Interactive 3D Network Graph
@@ -201,16 +196,11 @@ class FinancialAssetApp:
             if callable(fn):
                 graph = fn()
                 if not hasattr(graph, "assets"):
-                    raise TypeError(
-                        f"{name}() returned {type(graph)!r}, "
-                        "expected AssetRelationshipGraph"
-                    )
+                    raise TypeError(f"{name}() returned {type(graph)!r}, expected AssetRelationshipGraph")
                 return graph
         tried_candidates = ", ".join(candidates)
         raise AttributeError(
-            "No known database factory found in "
-            "src.data.real_data_fetcher. "
-            f"Tried: {tried_candidates}"
+            f"No known database factory found in src.data.real_data_fetcher. Tried: {tried_candidates}"
         )
 
     def _initialize_graph(self) -> None:
@@ -229,9 +219,7 @@ class FinancialAssetApp:
         try:
             logger.info("Initializing financial data graph")
             self.graph = self._create_database()
-            logger.info(
-                "Database initialized with %s assets", len(self.graph.assets)
-            )
+            logger.info("Database initialized with %s assets", len(self.graph.assets))
         except (
             AttributeError,
             ImportError,
@@ -305,9 +293,7 @@ class FinancialAssetApp:
                 continue
 
             s, t, rel, strength = parsed
-            strength_text = FinancialAssetApp._format_relationship_strength(
-                strength
-            )
+            strength_text = FinancialAssetApp._format_relationship_strength(strength)
             text += f"{idx}. {s} → {t} ({rel}): {strength_text}\n"
         return text
 
@@ -411,9 +397,7 @@ class FinancialAssetApp:
         metrics_text = self._update_metrics_text(graph)
         return fig1, fig2, fig3, metrics_text
 
-    def refresh_all_outputs(
-        self, _graph_state: AssetRelationshipGraph
-    ) -> tuple[Any, ...]:
+    def refresh_all_outputs(self, _graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
         """
         Refreshes every UI output panel:
         3D visualization, three metric figures,
@@ -521,9 +505,7 @@ class FinancialAssetApp:
         """
         try:
             graph = self.ensure_graph()
-            normalized_flags = self._normalize_relationship_flags(
-                relationship_flags
-            )
+            normalized_flags = self._normalize_relationship_flags(relationship_flags)
             graph_viz = self._render_visualization(
                 graph,
                 view_mode,
@@ -635,9 +617,7 @@ class FinancialAssetApp:
             toggle_arrows=toggle_arrows,
         )
 
-    def generate_formulaic_analysis(
-        self, _graph_state: AssetRelationshipGraph
-    ) -> tuple[Any, ...]:
+    def generate_formulaic_analysis(self, _graph_state: AssetRelationshipGraph) -> tuple[Any, ...]:
         """Generate formulaic analysis figures and UI updates."""
         try:
             logger.info("Generating formulaic analysis")
@@ -662,19 +642,14 @@ class FinancialAssetApp:
         """Build successful formulaic-analysis outputs."""
         formulaic_visualizer = FormulaicVisualizer()
         formula_choices = (
-            [
-                formula.name
-                for formula in analysis_results.get("formulas", [])
-            ]
+            [formula.name for formula in analysis_results.get("formulas", [])]
             if isinstance(analysis_results.get("formulas", []), list)
             else []
         )
         logger.info("Generated formulaic analysis with %d formulas", len(formula_choices))
         return (
             formulaic_visualizer.create_formula_dashboard(analysis_results),
-            formulaic_visualizer.create_correlation_network(
-                analysis_results.get("empirical_relationships", {})
-            ),
+            formulaic_visualizer.create_correlation_network(analysis_results.get("empirical_relationships", {})),
             formulaic_visualizer.create_metric_comparison_chart(analysis_results),
             gr.update(
                 choices=formula_choices,
@@ -882,9 +857,7 @@ class FinancialAssetApp:
             gr.Markdown(AppConstants.INTERACTIVE_3D_GRAPH_MD)
 
             controls = self._build_visualization_controls()
-            relationship_toggles = (
-                self._build_relationship_visibility_controls()
-            )
+            relationship_toggles = self._build_relationship_visibility_controls()
 
             with gr.Row():
                 visualization_3d = gr.Plot()
@@ -993,10 +966,7 @@ class FinancialAssetApp:
                     variant="secondary",
                 )
             with gr.Column(scale=2):
-                gr.Markdown(
-                    "**Legend:** ↔ = Bidirectional, "
-                    "→ = Unidirectional"
-                )
+                gr.Markdown("**Legend:** ↔ = Bidirectional, → = Unidirectional")
         return {
             "refresh_viz_btn": refresh_viz_btn,
             "reset_view_btn": reset_view_btn,
@@ -1068,9 +1038,7 @@ class FinancialAssetApp:
             with gr.Row():
                 asset_info = gr.JSON(label=AppConstants.ASSET_DETAILS_LABEL)
             with gr.Row():
-                asset_relationships = gr.JSON(
-                    label=AppConstants.RELATED_ASSETS_LABEL
-                )
+                asset_relationships = gr.JSON(label=AppConstants.RELATED_ASSETS_LABEL)
             with gr.Row():
                 refresh_explorer_btn = gr.Button(
                     AppConstants.REFRESH_BUTTON_LABEL,
@@ -1105,9 +1073,7 @@ class FinancialAssetApp:
 
             with gr.Row():
                 with gr.Column(scale=2):
-                    formulaic_dashboard = gr.Plot(
-                        label="Formulaic Analysis Dashboard"
-                    )
+                    formulaic_dashboard = gr.Plot(label="Formulaic Analysis Dashboard")
                 with gr.Column(scale=1):
                     formula_selector = gr.Dropdown(
                         label="Select Formula for Details",
@@ -1119,13 +1085,9 @@ class FinancialAssetApp:
 
             with gr.Row():
                 with gr.Column(scale=1):
-                    correlation_network = gr.Plot(
-                        label="Asset Correlation Network"
-                    )
+                    correlation_network = gr.Plot(label="Asset Correlation Network")
                 with gr.Column(scale=1):
-                    metric_comparison = gr.Plot(
-                        label="Metric Comparison Chart"
-                    )
+                    metric_comparison = gr.Plot(label="Metric Comparison Chart")
 
             with gr.Row():
                 with gr.Column(scale=1):

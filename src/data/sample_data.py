@@ -344,12 +344,9 @@ def create_sample_database() -> AssetRelationshipGraph:
         graph.build_relationships()
 
         asset_count = len(graph.assets)
-        relationship_count = sum(
-            len(rels) for rels in graph.relationships.values()
-        )
+        relationship_count = sum(len(rels) for rels in graph.relationships.values())
         logger.info(
-            "Expanded sample database created with "
-            "%s assets and %s relationships",
+            "Expanded sample database created with %s assets and %s relationships",
             asset_count,
             relationship_count,
         )
@@ -364,8 +361,7 @@ def create_sample_database() -> AssetRelationshipGraph:
 def _log_asset_class_coverage(all_assets: list[object]) -> None:
     """Log how many sample assets were created per asset class."""
     logger.info(
-        "Asset classes covered: Equity (%s), Fixed Income (%s), "
-        "Commodity (%s), Currency (%s)",
+        "Asset classes covered: Equity (%s), Fixed Income (%s), Commodity (%s), Currency (%s)",
         _count_assets_by_class(all_assets, AssetClass.EQUITY),
         _count_assets_by_class(all_assets, AssetClass.FIXED_INCOME),
         _count_assets_by_class(all_assets, AssetClass.COMMODITY),
@@ -378,8 +374,4 @@ def _count_assets_by_class(
     asset_class: AssetClass,
 ) -> int:
     """Count assets in a list matching a given asset class."""
-    return sum(
-        1
-        for asset in all_assets
-        if getattr(asset, "asset_class", None) == asset_class
-    )
+    return sum(1 for asset in all_assets if getattr(asset, "asset_class", None) == asset_class)

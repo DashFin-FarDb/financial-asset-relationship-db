@@ -23,17 +23,11 @@ def _validate_graph_relationships_structure(
 ) -> None:
     """Validate graph type and relationships container."""
     if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(
-            f"graph must be an AssetRelationshipGraph instance, "
-            f"got {type(graph).__name__}"
-        )
+        raise TypeError(f"graph must be an AssetRelationshipGraph instance, got {type(graph).__name__}")
     if not hasattr(graph, "relationships"):
         raise ValueError("graph is missing 'relationships' attribute")
     if not isinstance(graph.relationships, dict):
-        raise TypeError(
-            "graph.relationships must be a dictionary, "
-            f"got {type(graph.relationships).__name__}"
-        )
+        raise TypeError(f"graph.relationships must be a dictionary, got {type(graph.relationships).__name__}")
 
 
 def _normalize_asset_ids(asset_ids: Iterable[str]) -> Set[str]:
@@ -41,10 +35,7 @@ def _normalize_asset_ids(asset_ids: Iterable[str]) -> Set[str]:
     try:
         asset_ids_set: Set[str] = set(asset_ids)
     except TypeError as exc:
-        raise TypeError(
-            "asset_ids must be an iterable, "
-            f"got {type(asset_ids).__name__}"
-        ) from exc
+        raise TypeError(f"asset_ids must be an iterable, got {type(asset_ids).__name__}") from exc
     if not all(isinstance(aid, str) for aid in asset_ids_set):
         raise ValueError("asset_ids must contain only string values")
     return asset_ids_set
@@ -56,11 +47,7 @@ def _get_relevant_relationships(
 ) -> Dict[str, List[Tuple[object, object, object]]]:
     """Copy source relationships for provided asset IDs."""
     with _graph_access_lock:
-        return {
-            src: list(rels)
-            for src, rels in graph.relationships.items()
-            if src in asset_ids_set
-        }
+        return {src: list(rels) for src, rels in graph.relationships.items() if src in asset_ids_set}
 
 
 def _parse_relationship_record(
@@ -103,8 +90,7 @@ def _unpack_relationship_tuple(
     if isinstance(rel, (list, tuple)) and len(rel) == 3:
         return rel[0], rel[1], rel[2]
     raise ValueError(
-        f"relationship at index {idx} for '{source_id}' "
-        "must be a 3-element tuple (target_id, rel_type, strength)"
+        f"relationship at index {idx} for '{source_id}' must be a 3-element tuple (target_id, rel_type, strength)"
     )
 
 
@@ -118,9 +104,7 @@ def _require_str(
     """Return value when it is a string, otherwise raise."""
     if isinstance(value, str):
         return value
-    raise TypeError(
-        f"{field} at index {idx} for '{source_id}' must be a string"
-    )
+    raise TypeError(f"{field} at index {idx} for '{source_id}' must be a string")
 
 
 def _coerce_strength(
@@ -133,9 +117,7 @@ def _coerce_strength(
     try:
         return float(value)
     except (TypeError, ValueError) as exc:
-        raise ValueError(
-            f"strength at index {idx} for '{source_id}' must be numeric"
-        ) from exc
+        raise ValueError(f"strength at index {idx} for '{source_id}' must be numeric") from exc
 
 
 def _build_relationship_index(
@@ -174,10 +156,7 @@ def _accumulate_source_relationships(
 ) -> None:
     """Validate and add one source node's relationships into the index."""
     if not isinstance(rels, (list, tuple)):
-        raise TypeError(
-            f"relationships for '{source_id}' must be a list or tuple, "
-            f"got {type(rels).__name__}"
-        )
+        raise TypeError(f"relationships for '{source_id}' must be a list or tuple, got {type(rels).__name__}")
     for idx, rel in enumerate(rels):
         target_id, rel_type, strength_float = _parse_relationship_record(
             source_id=source_id,
@@ -223,9 +202,7 @@ def _collect_and_group_relationships(
             continue
 
         pair_key: Tuple[str, str, str] = (
-            (source_id, target_id, rel_type)
-            if source_id <= target_id
-            else (target_id, source_id, rel_type)
+            (source_id, target_id, rel_type) if source_id <= target_id else (target_id, source_id, rel_type)
         )
         is_bidirectional = (
             target_id,
@@ -260,10 +237,7 @@ def _is_filtered_relationship(
     """Return True when a relationship type is explicitly disabled."""
     if relationship_filters is None:
         return False
-    return (
-        rel_type in relationship_filters
-        and not relationship_filters[rel_type]
-    )
+    return rel_type in relationship_filters and not relationship_filters[rel_type]
 
 
 def _is_processed_bidirectional_pair(
@@ -314,8 +288,7 @@ def _build_hover_texts(
 
     for i, rel in enumerate(relationships):
         text = (
-            f"{rel['source_id']} {direction} {rel['target_id']}<br>"
-            f"Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
+            f"{rel['source_id']} {direction} {rel['target_id']}<br>Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
         )
         base = i * 3
         hover_texts[base] = text

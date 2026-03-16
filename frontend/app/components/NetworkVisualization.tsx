@@ -125,7 +125,9 @@ function buildEdgeTraces(
   }, []);
 }
 
-function prepareVisualizationData(data: VisualizationData): VisualizationPreparation {
+function prepareVisualizationData(
+  data: VisualizationData,
+): VisualizationPreparation {
   const nodes = Array.isArray(data.nodes) ? data.nodes : [];
   const edges = Array.isArray(data.edges) ? data.edges : [];
 

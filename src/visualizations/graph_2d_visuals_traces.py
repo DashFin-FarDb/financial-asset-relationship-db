@@ -167,11 +167,7 @@ def _relationship_hidden(
     show_all_relationships: bool,
 ) -> bool:
     """Return True when a relationship type should be hidden."""
-    return (
-        not show_all_relationships
-        and rel_type in relationship_filters
-        and not relationship_filters[rel_type]
-    )
+    return not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]
 
 
 def _build_relationship_trace(
@@ -191,11 +187,7 @@ def _build_relationship_trace(
         tx, ty = positions[target_id]
         edges_x.extend([sx, tx, None])
         edges_y.extend([sy, ty, None])
-        hover_text = (
-            f"{source_id} → {target_id}<br>"
-            f"Type: {rel_type}<br>"
-            f"Strength: {strength:.2f}"
-        )
+        hover_text = f"{source_id} → {target_id}<br>Type: {rel_type}<br>Strength: {strength:.2f}"
         hover_texts.extend([hover_text, hover_text, None])
     return go.Scatter(
         x=edges_x,
@@ -234,18 +226,10 @@ def _create_node_trace(
 
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = (
-            asset.asset_class.value
-            if hasattr(asset.asset_class, "value")
-            else str(asset.asset_class)
-        )
-        colors.append(
-            ASSET_CLASS_COLORS.get(asset_class.lower(), "#7f7f7f")
-        )
+        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
+        colors.append(ASSET_CLASS_COLORS.get(asset_class.lower(), "#7f7f7f"))
         hover_texts.append(f"{asset_id}<br>Class: {asset_class}")
-        num_connections = len(
-            graph.relationships.get(asset_id, [])
-        )
+        num_connections = len(graph.relationships.get(asset_id, []))
         node_sizes.append(20 + min(num_connections * 5, 30))
 
     return go.Scatter(

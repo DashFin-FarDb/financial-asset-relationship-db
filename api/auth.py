@@ -140,9 +140,7 @@ class UserRepository:
         # Backward-compatible mapping for existing call sites using keyword fields.
         if "user_email" in legacy_profile_fields:
             profile["user_email"] = (
-                str(legacy_profile_fields["user_email"])
-                if legacy_profile_fields["user_email"] is not None
-                else None
+                str(legacy_profile_fields["user_email"]) if legacy_profile_fields["user_email"] is not None else None
             )
         if "user_full_name" in legacy_profile_fields:
             profile["user_full_name"] = (
@@ -245,8 +243,7 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME and "
-        "ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME and ADMIN_PASSWORD or pre-populate the database."
     )
 
 

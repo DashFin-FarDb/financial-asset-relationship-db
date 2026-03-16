@@ -207,7 +207,10 @@ type SearchState = {
   pageSize: number;
 };
 
-function computeTotalPages(total: number | null, pageSize: number): number | null {
+function computeTotalPages(
+  total: number | null,
+  pageSize: number,
+): number | null {
   if (!total || total <= 0) {
     return null;
   }
@@ -297,7 +300,9 @@ function useSearchStateSync(
         ? prev
         : stateFromSearch.filter,
     );
-    setPage((prev) => (prev === stateFromSearch.page ? prev : stateFromSearch.page));
+    setPage((prev) =>
+      prev === stateFromSearch.page ? prev : stateFromSearch.page,
+    );
     setPageSize((prev) =>
       prev === stateFromSearch.pageSize ? prev : stateFromSearch.pageSize,
     );
@@ -326,7 +331,16 @@ function useAssetDataLoading({
       querySummary,
     });
     setLoading(false);
-  }, [filter, page, pageSize, querySummary, setAssets, setError, setLoading, setTotal]);
+  }, [
+    filter,
+    page,
+    pageSize,
+    querySummary,
+    setAssets,
+    setError,
+    setLoading,
+    setTotal,
+  ]);
 
   useEffect(() => {
     void fetchAssets().catch((err) => {
@@ -355,19 +369,17 @@ function useQueryParamUpdater({
   );
 }
 
-function useNavigationControls(
-  {
-    pathname,
-    searchParams,
-    router,
-    page,
-    totalPages,
-    loading,
-    setPage,
-    setPageSize,
-    setFilter,
-  }: NavigationControlsParams,
-): NavigationControls {
+function useNavigationControls({
+  pathname,
+  searchParams,
+  router,
+  page,
+  totalPages,
+  loading,
+  setPage,
+  setPageSize,
+  setFilter,
+}: NavigationControlsParams): NavigationControls {
   const updateQueryParams = useQueryParamUpdater({
     pathname,
     searchParams,

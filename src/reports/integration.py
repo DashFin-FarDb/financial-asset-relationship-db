@@ -113,6 +113,7 @@ def markdown_to_html(md: str) -> str:
 # Core generation interface
 # ---------------------------------------------------------------------------
 
+
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
     Generate a Markdown schema report for the provided graph.

@@ -20,109 +20,148 @@ class FormulaicVisualizer:
             "Risk Management": "#96CEB4",
             "Portfolio Theory": "#FFEAA7",Fix the following issues. The issues can be from different files or can overlap on same lines in one file.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.codacy/cli.sh around lines 140 - 143, The check comparing run_command to empty string is redundant because run_command is set from bin_path; instead verify the binary actually exists and is executable before proceeding: replace or supplement the current conditional that uses run_command with a filesystem check (e.g., test -f or test -x) against bin_path/run_command and call fatal with a clear message if the file is missing or not executable; update references around run_command, bin_path, and fatal so the script fails early with a descriptive error when the downloaded Codacy CLI binary isn't present or runnable.
+            In @ financial - asset - relationship - db / .codacy / cli.sh around lines 140 - 143, The check comparing run_command to empty string is redundant because run_command is set from bin_path
+            instead verify the binary actually exists and is executable before proceeding: replace or supplement the current conditional that uses run_command with a filesystem check(e.g., test - f or test - x) against bin_path / run_command and call fatal with a clear message if the file is missing or not executable
+            update references around run_command, bin_path, and fatal so the script fails early with a descriptive error when the downloaded Codacy CLI binary isn't present or runnable.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.codacy/cli.sh at line 4, The script currently disables pipefail by using "+o pipefail" which hides pipeline errors (e.g., in get_latest_version()); update the shell options to enable pipefail instead—replace the "set -e +o pipefail" invocation with a form that enables pipefail (for example "set -e -o pipefail" or "set -eo pipefail") so pipeline failures cause the script to exit; ensure this change is made where the initial shell options are set (the line containing set and +o pipefail) and re-run tests that exercise get_latest_version().
+            In @ financial - asset - relationship - db / .codacy / cli.sh at line 4, The script currently disables pipefail by using "+o pipefail" which hides pipeline errors(e.g., in get_latest_version())
+            update the shell options to enable pipefail instead—replace the "set -e +o pipefail" invocation with a form that enables pipefail(for example "set -e -o pipefail" or "set -eo pipefail") so pipeline failures cause the script to exit
+            ensure this change is made where the initial shell options are set(the line containing set and +o pipefail) and re - run tests that exercise get_latest_version().
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.codacy/cli.sh around lines 62 - 67, The script calls fatal() from functions like handle_rate_limit() but never defines it; add a simple fatal() function (e.g., fatal() { echo "Error: $*" >&2; exit 1; }) near the top of the script so any calls from handle_rate_limit(), the curl/wget checks, and other places print to stderr and exit non‑zero; ensure the function accepts a message parameter and uses >&2 and exit 1 so all existing fatal "..." usages work as intended.
+            In @ financial - asset - relationship - db / .codacy / cli.sh around lines 62 - 67, The script calls fatal() from functions like handle_rate_limit() but never defines it
+            add a simple fatal() function(e.g., fatal() {echo "Error: $*" > &2
+                                                         exit 1
+                                                         }) near the top of the script so any calls from handle_rate_limit(), the curl / wget checks, and other places print to stderr and exit non‑zero
+            ensure the function accepts a message parameter and uses > &2 and exit 1 so all existing fatal "..." usages work as intended.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.codacy/cli.sh around lines 122 - 127, The current assignment of version via command substitution of get_version_from_yaml can yield an empty string if get_version_from_yaml fails; update the conditional so that when CODACY_CLI_V2_VERSION is unset you call get_version_from_yaml and check its exit status and/or the resulting value before assigning to version—if get_version_from_yaml fails or returns empty, either set a sensible default or exit with an error; ensure this logic touches the conditional that references CODACY_CLI_V2_VERSION, the get_version_from_yaml invocation, and the version variable so we never proceed with an empty $version.
+            In @ financial - asset - relationship - db / .codacy / cli.sh around lines 122 - 127, The current assignment of version via command substitution of get_version_from_yaml can yield an empty string if get_version_from_yaml fails
+            update the conditional so that when CODACY_CLI_V2_VERSION is unset you call get_version_from_yaml and check its exit status and / or the resulting value before assigning to version—if get_version_from_yaml fails or returns empty, either set a sensible default or exit with an error
+            ensure this logic touches the conditional that references CODACY_CLI_V2_VERSION, the get_version_from_yaml invocation, and the version variable so we never proceed with an empty $version.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.codacy/cli.sh around lines 49 - 60, The get_latest_version function can return an empty string when the GitHub API fails, causing downstream invalid URLs; update get_latest_version to validate the parsed tag (the local variable version), check it's non-empty and matches expected pattern (e.g., semver or starts with "v"), and if invalid call handle_rate_limit if not already handled, print a clear error via process-style logger or stderr and exit with non-zero status (or return a failure code) instead of echoing an empty version; ensure callers of get_latest_version (download logic) only proceed when the function returns a valid version.
+            In @ financial - asset - relationship - db / .codacy / cli.sh around lines 49 - 60, The get_latest_version function can return an empty string when the GitHub API fails, causing downstream invalid URLs
+        update get_latest_version to validate the parsed tag (the local variable version), check it's non-empty and matches expected pattern (e.g., semver or starts with "v"), and if invalid call handle_rate_limit if not already handled, print a clear error via process-style logger or stderr and exit with non-zero status ( or return a failure code) instead of echoing an empty version
+            ensure callers of get_latest_version(download logic) only proceed when the function returns a valid version.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.editorconfig at line 17, The .editorconfig sets max_line_length = 88 which conflicts with the project's Python guideline of 120; update the configuration to enforce 120 (change max_line_length to 120) and ensure Black is configured to use 120 characters via pyproject.toml (or CI flags) so formatting is consistent, then reformat the repository or run Black to align files with the new limit; alternatively, if 88 is intended, update the project docs that reference the 120-character rule to avoid contradictions.
+            In @ financial - asset - relationship - db / .editorconfig at line 17, The .editorconfig sets max_line_length = 88 which conflicts with the project's Python guideline of 120
+        update the configuration to enforce 120 (change max_line_length to 120) and ensure Black is configured to use 120 characters via pyproject.toml ( or CI flags) so formatting is consistent, then reformat the repository or run Black to align files with the new limit
+            alternatively, if 88 is intended, update the project docs that reference the 120 - character rule to avoid contradictions.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.flake8 at line 2, The .flake8 setting currently sets max-line-length = 88 which conflicts with the project's documented guideline of 120; reconcile by either updating CONTRIBUTING.md to state Black's default 88 if you intend to adopt Black's default, or change .flake8 back to max-line-length = 120 and ensure Black is configured with --line-length 120 (e.g., in pyproject.toml) so tools and docs match; update whichever files are necessary (CONTRIBUTING.md, .flake8, and Black configuration) so the canonical line-length is consistent across code, linter, and documentation.
+            In @ financial - asset - relationship - db / .flake8 at line 2, The .flake8 setting currently sets max - line - length = 88 which conflicts with the project's documented guideline of 120; reconcile by either updating CONTRIBUTING.md to state Black's default 88 if you intend to adopt Black's default, or change .flake8 back to max - line - length = 120 and ensure Black is configured with --line - length 120 (e.g., in pyproject.toml) so tools and docs match
+            update whichever files are necessary(CONTRIBUTING.md, .flake8, and Black configuration) so the canonical line - length is consistent across code, linter, and documentation.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.github/pr-copilot/scripts/analyze_pr.py around lines 373 - 379, The current validation uses temp_root and os.path.commonpath to reject GITHUB_STEP_SUMMARY paths that are valid on GitHub-hosted runners; update the check to use the runner-provided allowed roots and robust normalization: read RUNNER_TEMP (os.environ.get("RUNNER_TEMP")) and GITHUB_WORKSPACE as allowed roots, resolve gh_summary into summary_path via pathlib.Path(...).resolve(), ensure summary_path is inside at least one of those allowed roots (e.g., summary_path.is_relative_to(runner_temp) or workspace) and reject paths containing parent traversal by comparing resolved vs. original normalized path, leaving the rest of the logic around gh_summary, summary_path and the warning intact.
+            In @ financial - asset - relationship - db / .github / pr - copilot / scripts / analyze_pr.py around lines 373 - 379, The current validation uses temp_root and os.path.commonpath to reject GITHUB_STEP_SUMMARY paths that are valid on GitHub - hosted runners
+            update the check to use the runner - provided allowed roots and robust normalization: read RUNNER_TEMP(os.environ.get("RUNNER_TEMP")) and GITHUB_WORKSPACE as allowed roots, resolve gh_summary into summary_path via pathlib.Path(...).resolve(), ensure summary_path is inside at least one of those allowed roots(e.g., summary_path.is_relative_to(runner_temp) or workspace) and reject paths containing parent traversal by comparing resolved vs. original normalized path, leaving the rest of the logic around gh_summary, summary_path and the warning intact.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.github/pr-copilot/scripts/generate_status.py around lines 307 - 321, The path validation using temp_root and os.path.commonpath (summary_path, temp_root) incorrectly rejects real GITHUB_STEP_SUMMARY locations; remove the overly restrictive check and the associated warning so the code always appends to GITHUB_STEP_SUMMARY (keep the existing try/except around open and write), or if you must validate, replace the commonpath logic with a traversal-safe check: resolve summary_path with os.path.realpath/os.path.normpath, ensure it is absolute and does not contain ".." segments (or optionally verify it resides under the runner workspace by comparing against GITHUB_WORKSPACE), referencing the summary_path and temp_root/commonpath logic near the write block to locate the code to change.
+            In @ financial - asset - relationship - db / .github / pr - copilot / scripts / generate_status.py around lines 307 - 321, The path validation using temp_root and os.path.commonpath(summary_path, temp_root) incorrectly rejects real GITHUB_STEP_SUMMARY locations
+        remove the overly restrictive check and the associated warning so the code always appends to GITHUB_STEP_SUMMARY (keep the existing try/except around open and write), or if you must validate, replace the commonpath logic with a traversal-safe check: resolve summary_path with os.path.realpath/os.path.normpath, ensure it is absolute and does not contain ".." segments (or optionally verify it resides under the runner workspace by comparing against GITHUB_WORKSPACE), referencing the summary_path and temp_root/commonpath logic near the write block to locate the code to change.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.github/pr-copilot/scripts/suggest_fixes.py around lines 304 - 318, The current check comparing summary_path to tempfile.gettempdir() prevents writing GITHUB_STEP_SUMMARY on GitHub Actions; update the logic around gh_summary/summary_path to instead validate that the path exists and is writable (os.path.exists and os.access) or, if present, confirm it is under the RUNNER_TEMP directory from the environment (os.environ.get("RUNNER_TEMP")) before writing; modify the block that uses summary_path and temp_root so it falls back to a writable-existence check when RUNNER_TEMP is not set to avoid rejecting legitimate Action step summary locations.
+            In @ financial - asset - relationship - db / .github / pr - copilot / scripts / suggest_fixes.py around lines 304 - 318, The current check comparing summary_path to tempfile.gettempdir() prevents writing GITHUB_STEP_SUMMARY on GitHub Actions
+            update the logic around gh_summary / summary_path to instead validate that the path exists and is writable(os.path.exists and os.access) or , if present, confirm it is under the RUNNER_TEMP directory from the environment(os.environ.get("RUNNER_TEMP")) before writing
+            modify the block that uses summary_path and temp_root so it falls back to a writable - existence check when RUNNER_TEMP is not set to avoid rejecting legitimate Action step summary locations.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/.github/scripts/schema_report_cli.py around lines 183 - 197, The cleanup currently can delete a finished report because safe_output points to the final file; change the logic so cleanup_partial_output only removes temporary/partial files (not the final target) by tracking completion and/or the temp path: update write_atomic to (1) write to a distinct temp Path (e.g., temp_path), only set safe_output to the final output after the atomic rename, and (2) catch BaseException (not just Exception) around the write/rename, call cleanup_partial_output(temp_path) when interrupted, then re-raise; adjust cleanup_partial_output signature to accept the temp_path or a completed flag and only unlink when the path is the temp/partial file (or completed is False) so a successfully renamed final file is never deleted (refer to functions write_atomic, cleanup_partial_output, safe_output, generate_report).
+            In @ financial - asset - relationship - db / .github / scripts / schema_report_cli.py around lines 183 - 197, The cleanup currently can delete a finished report because safe_output points to the final file
+            change the logic so cleanup_partial_output only removes temporary / partial files(not the final target) by tracking completion and / or the temp path: update write_atomic to(1) write to a distinct temp Path(e.g., temp_path), only set safe_output to the final output after the atomic rename, and (2) catch BaseException(not just Exception) around the write / rename, call cleanup_partial_output(temp_path) when interrupted, then re - raise
+        adjust cleanup_partial_output signature to accept the temp_path or a completed flag and only unlink when the path is the temp/partial file ( or completed is False) so a successfully renamed final file is never deleted (refer to functions write_atomic, cleanup_partial_output, safe_output, generate_report).
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/api/cors_utils.py around lines 17 - 22, The regex _HTTPS_DOMAIN_RE currently rejects origins with ports; update it to accept an optional port suffix or strip the port in _is_valid_https_idn before matching. E.g., modify _HTTPS_DOMAIN_RE to allow an optional ":\d{1,5}" immediately before the end anchor (so it still validates domains but permits ":<port>"), or alternatively parse the origin in _is_valid_https_idn (using urlparse) and pass only the hostname/IDN part to the regex; reference the symbols _HTTPS_DOMAIN_RE and _is_valid_https_idn when applying the change.
+            In @ financial - asset - relationship - db / api / cors_utils.py around lines 17 - 22, The regex _HTTPS_DOMAIN_RE currently rejects origins with ports
+            update it to accept an optional port suffix or strip the port in _is_valid_https_idn before matching. E.g., modify _HTTPS_DOMAIN_RE to allow an optional ":\d{1,5}" immediately before the end anchor(so it still validates domains but permits ":<port>"), or alternatively parse the origin in _is_valid_https_idn(using urlparse) and pass only the hostname / IDN part to the regex
+            reference the symbols _HTTPS_DOMAIN_RE and _is_valid_https_idn when applying the change.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/api/graph_lifecycle.py around lines 43 - 44, Replace the runtime-only assert with an explicit check that graph_state.graph is not None before returning it: locate the code that currently does "assert graph_state.graph is not None" and "return graph_state.graph", change it to test the attribute and raise a clear exception (e.g., RuntimeError or ValueError with a descriptive message) if it's None so the function never returns None under optimized Python; keep references to graph_state.graph and the surrounding function or method when making the change.
+            In @ financial - asset - relationship - db / api / graph_lifecycle.py around lines 43 - 44, Replace the runtime - only assert with an explicit check that graph_state.graph is not None before returning it: locate the code that currently does "assert graph_state.graph is not None" and "return graph_state.graph", change it to test the attribute and raise a clear exception(e.g., RuntimeError or ValueError with a descriptive message) if it's None so the function never returns None under optimized Python
+            keep references to graph_state.graph and the surrounding function or method when making the change.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/api/main.py around lines 700 - 706, Remove the stray FastAPI route decorator from the helper function _calculate_node_degrees so it is no longer registered as the "/api/visualization" endpoint; specifically, delete the @app.get("/api/visualization", response_model=VisualizationDataResponse) line that precedes the _calculate_node_degrees definition and leave the function as a private helper (accepting g: AssetRelationshipGraph) so the real route handler defined later remains the actual endpoint.
+            In @ financial - asset - relationship - db / api / main.py around lines 700 - 706, Remove the stray FastAPI route decorator from the helper function _calculate_node_degrees so it is no longer registered as the "/api/visualization" endpoint
+            specifically, delete the @ app.get("/api/visualization", response_model=VisualizationDataResponse) line that precedes the _calculate_node_degrees definition and leave the function as a private helper(accepting g: AssetRelationshipGraph) so the real route handler defined later remains the actual endpoint.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/frontend/app/components/AssetList.tsx around lines 167 - 174, The JSX in AssetList uses asset.price without guarding for null/undefined while asset.market_cap is type-checked; update the rendering for asset.price (in the AssetList component where asset.price is used) to mirror market_cap's defensive pattern — check typeof asset.price === "number" (or asset.price != null) before calling toFixed(2) and render a safe fallback like "N/A" or "-" when not a number; leave the existing market_cap handling as-is but ensure both fields use the same fallback format for consistency.
+            In @ financial - asset - relationship - db / frontend / app / components / AssetList.tsx around lines 167 - 174, The JSX in AssetList uses asset.price without guarding for null / undefined while asset.market_cap is type - checked
+        update the rendering for asset.price (in the AssetList component where asset.price is used) to mirror market_cap's defensive pattern — check typeof asset.price == = "number" ( or asset.price != null) before calling toFixed(2) and render a safe fallback like "N/A" or "-" when not a number
+            leave the existing market_cap handling as - is but ensure both fields use the same fallback format for consistency.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/pyproject.toml at line 167, The Pylint configuration in pyproject.toml sets max-line-length = 88 which conflicts with Black and the project guideline of 120; update the Pylint setting "max-line-length" in pyproject.toml to 120 so Pylint line-length checks align with Black's formatting and the project's agreed line-length policy.
+            In @ financial - asset - relationship - db / pyproject.toml at line 167, The Pylint configuration in pyproject.toml sets max - line - length = 88 which conflicts with Black and the project guideline of 120
+            update the Pylint setting "max-line-length" in pyproject.toml to 120 so Pylint line - length checks align with Black's formatting and the project's agreed line - length policy.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/pyproject.toml at line 108, Ruff's line-length is currently set to 88 in pyproject.toml which conflicts with Black and the project guideline of 120; update the "line-length" setting in pyproject.toml from 88 to 120 so Ruff, Black, and the project's coding guideline all use a 120-character limit and avoid formatter/linter conflicts.
+            In @ financial - asset - relationship - db / pyproject.toml at line 108, Ruff's line-length is currently set to 88 in pyproject.toml which conflicts with Black and the project guideline of 120; update the "line-length" setting in pyproject.toml from 88 to 120 so Ruff, Black, and the project's coding guideline all use a 120 - character limit and avoid formatter / linter conflicts.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/src/models/financial_models.py around lines 88 - 92, The validator _validate_currency_code currently uppercases only for the regex check which lets lowercase inputs like "usd" pass but leaves self.currency unchanged; update the model to normalise and validate consistently by converting the incoming currency to uppercase in __post_init__ (e.g., set self.currency = self.currency.upper() before calling _validate_currency_code) and have _validate_currency_code validate the already-normalised value (remove the .upper() inside the regex check), or alternatively enforce uppercase strictly by making _validate_currency_code reject values that are not already uppercase; apply this change around __post_init__, _validate_currency_code and any constructor/assignment points that set self.currency.
+            In @ financial - asset - relationship - db / src / models / financial_models.py around lines 88 - 92, The validator _validate_currency_code currently uppercases only for the regex check which lets lowercase inputs like "usd" pass but leaves self.currency unchanged
+            update the model to normalise and validate consistently by converting the incoming currency to uppercase in __post_init__(e.g., set self.currency=self.currency.upper() before calling _validate_currency_code) and have _validate_currency_code validate the already - normalised value(remove the .upper() inside the regex check), or alternatively enforce uppercase strictly by making _validate_currency_code reject values that are not already uppercase
+            apply this change around __post_init__, _validate_currency_code and any constructor / assignment points that set self.currency.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/src/visualizations/formulaic_visuals.py around lines 616 - 619, The parameter _correlation_matrix in _build_and_render_correlation_network is declared but unused; update the function docstring to state that _correlation_matrix (the full correlation matrix) is intentionally reserved for future/contextual use and kept for API compatibility (or alternatively remove the parameter if you prefer to simplify the signature). Locate the _build_and_render_correlation_network function and either add a single-line docstring note mentioning that _correlation_matrix is intentionally unused/reserved, or remove the _correlation_matrix parameter from the signature and update any callers to stop passing it.
+            In @ financial - asset - relationship - db / src / visualizations / formulaic_visuals.py around lines 616 - 619, The parameter _correlation_matrix in _build_and_render_correlation_network is declared but unused
+        update the function docstring to state that _correlation_matrix (the full correlation matrix) is intentionally reserved for future/contextual use and kept for API compatibility (or alternatively remove the parameter if you prefer to simplify the signature). Locate the _build_and_render_correlation_network function and either add a single-line docstring note mentioning that _correlation_matrix is intentionally unused/reserved, or remove the _correlation_matrix parameter from the signature and update any callers to stop passing it.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/src/visualizations/graph_2d_visuals.py around lines 308 - 325, _spring_or_fallback_positions can return a dict missing entries for some asset_ids when get_3d_visualization_data_enhanced() returns a different asset_ids_ordered; ensure every id in the input asset_ids gets a position by merging fallback positions for missing items before calling _create_spring_layout_2d or before returning. Specifically, after building positions_3d from graph.get_3d_visualization_data_enhanced(), compute a circular fallback via _create_circular_layout(asset_ids) and for any asset_id in asset_ids that is not in positions_3d add the circular position to positions_3d (or otherwise supply a 2D position) so _create_spring_layout_2d and later _build_node_visual_components will not KeyError on missing asset ids.
+            In @ financial - asset - relationship - db / src / visualizations / graph_2d_visuals.py around lines 308 - 325, _spring_or_fallback_positions can return a dict missing entries for some asset_ids when get_3d_visualization_data_enhanced() returns a different asset_ids_ordered
+        ensure every id in the input asset_ids gets a position by merging fallback positions for missing items before calling _create_spring_layout_2d or before returning. Specifically, after building positions_3d from graph.get_3d_visualization_data_enhanced(), compute a circular fallback via _create_circular_layout(asset_ids) and for any asset_id in asset_ids that is not in positions_3d add the circular position to positions_3d (or otherwise supply a 2D position) so _create_spring_layout_2d and later _build_node_visual_components will not KeyError on missing asset ids.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/src/visualizations/graph_2d_visuals_traces.py around lines 177 - 197, _build_relationship_trace currently returns a line trace with no hover info; update it to build a parallel hovertext list (one entry per x/y point) populated for each relationship (e.g., f"{rel_type}: {source_id} → {target_id}" or include other rel fields from rel) and insert None for the separators, then pass that list into the returned go.Scatter via hovertext=... and set hoverinfo="text" (or hovermode-appropriate property) so each relationship line segment shows the intended hover content; keep the existing color logic using REL_TYPE_COLORS and the same edges_x/edges_y construction in _build_relationship_trace.
+            In @ financial - asset - relationship - db / src / visualizations / graph_2d_visuals_traces.py around lines 177 - 197, _build_relationship_trace currently returns a line trace with no hover info
+        update it to build a parallel hovertext list (one entry per x/y point) populated for each relationship (e.g., f"{rel_type}: {source_id} → {target_id}" or include other rel fields from rel) and insert None for the separators, then pass that list into the returned go.Scatter via hovertext = ... and set hoverinfo = "text" ( or hovermode-appropriate property) so each relationship line segment shows the intended hover content
+            keep the existing color logic using REL_TYPE_COLORS and the same edges_x / edges_y construction in _build_relationship_trace.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/src/visualizations/graph_visuals.py around lines 1100 - 1107, _fix the unexpected in-place mutation in _ensure_numeric_positions: do not modify the caller's array (positions[:]=...) — instead change the function to validate and return a numeric array (e.g., def _ensure_numeric_positions(positions: np.ndarray) -> np.ndarray), returning positions unchanged if it's already numeric, otherwise return positions.astype(float) (so readonly arrays are handled) and raise ValueError only if astype(float) fails; update any callers to use the returned array.
+            In @ financial - asset - relationship - db / src / visualizations / graph_visuals.py around lines 1100 - 1107, _fix the unexpected in -place mutation in _ensure_numeric_positions: do not modify the caller's array (positions[:]=...) — instead change the function to validate and return a numeric array (e.g., def _ensure_numeric_positions(positions: np.ndarray) -> np.ndarray), returning positions unchanged if it's already numeric, otherwise return positions.astype(float)(so readonly arrays are handled) and raise ValueError only if astype(float) fails
+            update any callers to use the returned array.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/src/visualizations/graph_visuals.py around lines 56 - 61, The regex in rgb_or_rgba_pattern is double-escaped and therefore matches literal backslashes; update the pattern in graph_visuals.py (variable rgb_or_rgba_pattern) to use single backslashes (preferably a raw string) so metacharacters work as intended, e.g. r"^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$", and keep the existing re.match(color) usage that returns True when it matches.
+            In @ financial - asset - relationship - db / src / visualizations / graph_visuals.py around lines 56 - 61, The regex in rgb_or_rgba_pattern is double - escaped and therefore matches literal backslashes
+            update the pattern in graph_visuals.py(variable rgb_or_rgba_pattern) to use single backslashes(preferably a raw string) so metacharacters work as intended, e.g. r"^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$", and keep the existing re.match(color) usage that returns True when it matches.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/src/visualizations/graph_visuals_traces.py around lines 345 - 354, Remove the broad try/except in _coerce_positions_to_numeric so conversion errors are not swallowed: delete the try/except block and return positions.astype(float) directly (allowing numpy to raise its own exceptions); if you need validation instead, perform explicit checks on positions (e.g., verify dtype or use np.isfinite/np.can_cast) before calling astype rather than catching Exception.
+            In @ financial - asset - relationship - db / src / visualizations / graph_visuals_traces.py around lines 345 - 354, Remove the broad try / except in _coerce_positions_to_numeric so conversion errors are not swallowed: delete the try / except block and return positions.astype(float) directly(allowing numpy to raise its own exceptions)
+            if you need validation instead, perform explicit checks on positions(e.g., verify dtype or use np.isfinite / np.can_cast) before calling astype rather than catching Exception.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/test_db_module.py around lines 18 - 20, The test_database_connection function's docstring is missing required Returns and Raises sections; update the docstring for test_database_connection() to include a brief description, a Returns section stating it returns bool (True on successful connection, False or as appropriate), and a Raises section documenting any exceptions the function may raise (e.g., DatabaseConnectionError or generic Exception used by the database module) so it conforms to the project's docstring guidelines.
+            In @ financial - asset - relationship - db / test_db_module.py around lines 18 - 20, The test_database_connection function's docstring is missing required Returns and Raises sections; update the docstring for test_database_connection() to include a brief description, a Returns section stating it returns bool (True on successful connection, False or as appropriate), and a Raises section documenting any exceptions the function may raise (e.g., DatabaseConnectionError or generic Exception used by the database module) so it conforms to the project's docstring guidelines.
 
-- Verify each finding against the current code and only fix it if needed.
+            - Verify each finding against the current code and only fix it if needed.
 
-In @financial-asset-relationship-db/test_supabase.py around lines 101 - 108, The function _execute_smoke_query is missing a return type annotation; update its signature to include an appropriate return type such as typing.Any (import Any from typing at top of file) so the signature becomes def _execute_smoke_query(client: Client, url: str) -> Any:, and ensure the import for Any is added alongside existing imports; keep the existing exception handling and return behavior unchanged.
+            In @ financial - asset - relationship - db / test_supabase.py around lines 101 - 108, The function _execute_smoke_query is missing a return type annotation
+            update its signature to include an appropriate return type such as typing.Any(import Any from typing at top of file) so the signature becomes def _execute_smoke_query(client: Client, url: str) -> Any:, and ensure the import for Any is added alongside existing imports
+            keep the existing exception handling and return behavior unchanged.
             "Statistical Analysis": "#DDA0DD",
             "Currency Markets": "#98D8C8",
             "Cross-Asset": "#F7DC6F",
@@ -198,7 +237,7 @@ In @financial-asset-relationship-db/test_supabase.py around lines 101 - 108, The
         stats: Dict[str, Dict[str, float]] = {}
         if not formulas:
             return stats
-        
+
         for formula in formulas:
             cat = getattr(formula, "category", None) or "Unknown"
             r2 = getattr(formula, "r_squared", 0.0) or 0.0
@@ -206,10 +245,10 @@ In @financial-asset-relationship-db/test_supabase.py around lines 101 - 108, The
                 stats[cat] = {"count": 0.0, "total_r2": 0.0}
             stats[cat]["count"] += 1.0
             stats[cat]["total_r2"] += r2
-            
+
         for data in stats.values():
             data["avg_r2"] = data["total_r2"] / data["count"] if data["count"] > 0 else 0.0
-            
+
         return stats
 
     def _plot_category_distribution(self, fig: go.Figure, category_stats: Dict[str, Dict[str, float]]) -> None:

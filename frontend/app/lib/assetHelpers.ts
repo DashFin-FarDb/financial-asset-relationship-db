@@ -11,8 +11,10 @@ interface PaginatedAssetsResponse {
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
-const hasNumberProperty = (obj: Record<string, unknown>, key: string): boolean =>
-  typeof obj[key] === "number";
+const hasNumberProperty = (
+  obj: Record<string, unknown>,
+  key: string,
+): boolean => typeof obj[key] === "number";
 
 /**
  * Type guard to check if a value is a PaginatedAssetsResponse.
@@ -121,11 +123,16 @@ type LoadAssetsOptions = {
  * @param options - Configuration object for pagination, filters and state setters.
  * @returns A promise that resolves when assets are loaded.
  */
-export const loadAssets = async (
-  options: LoadAssetsOptions,
-) => {
-  const { page, pageSize, filter, setAssets, setTotal, setError, querySummary } =
-    options;
+export const loadAssets = async (options: LoadAssetsOptions) => {
+  const {
+    page,
+    pageSize,
+    filter,
+    setAssets,
+    setTotal,
+    setError,
+    querySummary,
+  } = options;
   setError(null);
 
   try {
@@ -156,8 +163,6 @@ export const loadAssets = async (
     setAssets([]);
     setTotal(null);
     const summarySuffix = querySummary ? ` for ${querySummary}` : "";
-    setError(
-      `Unable to load assets${summarySuffix}. Please try again.`,
-    );
+    setError(`Unable to load assets${summarySuffix}. Please try again.`);
   }
 };

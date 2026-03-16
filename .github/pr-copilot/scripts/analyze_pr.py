@@ -227,25 +227,18 @@ def find_scope_issues(
     # Size checks - File Count
     max_files = int(scope_conf.get("max_files_changed", 30))
     if file_data["file_count"] > max_files:
-        issues.append(
-            f"Too many files changed ({file_data['file_count']} > {max_files})"
-        )
+        issues.append(f"Too many files changed ({file_data['file_count']} > {max_files})")
 
     # FIX: Re-added missing logic for Total Changes
     max_total_changes = int(scope_conf.get("max_total_changes", 1500))
     if file_data["total_changes"] > max_total_changes:
-        issues.append(
-            "Large changeset "
-            f"({file_data['total_changes']} lines > {max_total_changes})"
-        )
+        issues.append(f"Large changeset ({file_data['total_changes']} lines > {max_total_changes})")
 
     # Context switching check
     distinct_types = len(file_data["file_categories"])
     max_types = int(scope_conf.get("max_file_types_changed", 5))
     if distinct_types > max_types:
-        issues.append(
-            f"High context switching ({distinct_types} file types changed)"
-        )
+        issues.append(f"High context switching ({distinct_types} file types changed)")
 
     return issues
 
@@ -289,12 +282,7 @@ def _format_list_items(items: List[str], header: str) -> str:
 
 def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
     """Format changed file categories as markdown bullets."""
-    return "\n".join(
-        [
-            f"- {name.title()}: {count}"
-            for name, count in file_analysis["file_categories"].items()
-        ]
-    )
+    return "\n".join([f"- {name.title()}: {count}" for name, count in file_analysis["file_categories"].items()])
 
 
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
@@ -302,10 +290,7 @@ def _format_large_files(file_analysis: Dict[str, Any]) -> str:
     large_files = file_analysis["large_files"]
     if not large_files:
         return ""
-    lines = [
-        f"- `{item['filename']}`: {item['changes']} lines"
-        for item in large_files
-    ]
+    lines = [f"- `{item['filename']}`: {item['changes']} lines" for item in large_files]
     return "\n**Large Files (>500 lines):**\n" + "\n".join(lines) + "\n"
 
 
@@ -313,9 +298,7 @@ def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
     """Format linked issues section."""
     if not related_issues:
         return ""
-    return "\n**Related Issues:**\n" + "".join(
-        [f"- #{issue['number']}\n" for issue in related_issues]
-    )
+    return "\n**Related Issues:**\n" + "".join([f"- #{issue['number']}\n" for issue in related_issues])
 
 
 def _get_recommendations(risk_level: str) -> List[str]:
@@ -352,7 +335,7 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 **Overview**
 - **PR:** #{pr.number} by @{pr.user.login}
 - **Score:** {data.complexity_score}/100 ({risk_emoji} {data.risk_level})
-- **Changes:** {data.file_analysis['file_count']} files, {data.file_analysis['total_changes']} lines
+- **Changes:** {data.file_analysis["file_count"]} files, {data.file_analysis["total_changes"]} lines
 
 **File Breakdown**
 {cat_str}
@@ -411,10 +394,7 @@ def write_output(report: str) -> None:
 
 def run() -> None:
     """Main execution flow."""
-    env_vars = {
-        var: os.environ.get(var)
-        for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")
-    }
+    env_vars = {var: os.environ.get(var) for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")}
 
     if not all(env_vars.values()):
         print(f"Error: Missing vars: {[k for k, v in env_vars.items() if not v]}", file=sys.stderr)

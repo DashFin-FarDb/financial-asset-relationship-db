@@ -60,9 +60,7 @@ def session_scope(
 ) -> Generator[Session, None, None]:
     """Proxy to repository.session_scope while avoiding import-order lint issues."""
     # Keep compatibility for callers importing session_scope from this module.
-    repository_session_scope = import_module(
-        "src.data.repository"
-    ).session_scope
+    repository_session_scope = import_module("src.data.repository").session_scope
 
     with repository_session_scope(session_factory) as session:
         yield session

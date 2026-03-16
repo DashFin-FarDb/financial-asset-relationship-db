@@ -90,12 +90,8 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     reviews = list(pr.get_reviews())
     review_stats = {
         "approved": len([r for r in reviews if r.state == "APPROVED"]),
-        "changes_requested": len(
-            [r for r in reviews if r.state == "CHANGES_REQUESTED"]
-        ),
-        "commented": len(
-            [r for r in reviews if r.state == "COMMENTED"]
-        ),
+        "changes_requested": len([r for r in reviews if r.state == "CHANGES_REQUESTED"]),
+        "commented": len([r for r in reviews if r.state == "COMMENTED"]),
         "total": len(reviews),
     }
 
@@ -243,11 +239,7 @@ def generate_markdown(status: PRStatus) -> str:
         f"- 📋 **Total Reviews:** {revs['total']}"
     )
 
-    labels_str = (
-        ", ".join([f"`{label}`" for label in status.labels])
-        if status.labels
-        else "None"
-    )
+    labels_str = ", ".join([f"`{label}`" for label in status.labels]) if status.labels else "None"
     draft_status = "📝 Yes" if status.is_draft else "✅ No"
 
     # Merge Status
