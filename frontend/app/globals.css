@@ -1,10 +1,7 @@
 @import "tailwindcss";
 
-@theme {
-  /* Custom theme configurations can go here */
-}
-
 :root {
+  /* Custom theme configurations can go here */
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;

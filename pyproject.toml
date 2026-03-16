@@ -105,7 +105,7 @@ extend-exclude = '''
 '''
 
 [tool.ruff]
-line-length = 120
+line-length = 88
 target-version = "py312"
 fix = false
 unsafe-fixes = false
@@ -164,7 +164,7 @@ disable = [
 ]
 
 [tool.pylint.format]
-max-line-length = 120
+max-line-length = 88
 
 [tool.pylint.design]
 max-args = 10
