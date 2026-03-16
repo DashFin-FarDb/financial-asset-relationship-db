@@ -322,6 +322,11 @@ def _spring_or_fallback_positions(
         asset_ids_ordered[i]: tuple(positions_3d_array[i])
         for i in range(len(asset_ids_ordered))
     }
+    circular_fallback = _create_circular_layout(asset_ids)
+    for asset_id in asset_ids:
+        if asset_id not in positions_3d:
+            fb = circular_fallback.get(asset_id, (0.0, 0.0))
+            positions_3d[asset_id] = (fb[0], fb[1], 0.0)
     return _create_spring_layout_2d(positions_3d, asset_ids)
 
 

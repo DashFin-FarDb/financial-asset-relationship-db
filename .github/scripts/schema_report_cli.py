@@ -180,20 +180,20 @@ def parse_output_format(value: str) -> OutputFormat | None:
         return None
 
 
-def cleanup_partial_output(output_path: Path | None) -> None:
-    """Remove partially written output file when cancellation occurs."""
-    if output_path is None:
+def cleanup_partial_output(temp_path: Path | None) -> None:
+    """Remove partially written temporary file when cancellation occurs."""
+    if temp_path is None:
         return
 
     try:
-        if output_path.exists():
-            output_path.unlink()
+        if temp_path.exists():
+            temp_path.unlink()
             logger.debug(
-                "Removed partial output file: %s",
-                output_path,
+                "Removed partial temporary file: %s",
+                temp_path,
             )
     except OSError:
-        logger.debug("Failed to remove partial file: %s", output_path)
+        logger.debug("Failed to remove partial file: %s", temp_path)
 
 
 def format_report_content(fmt: OutputFormat, report: str) -> str:
@@ -225,11 +225,8 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
             fh.flush()
             os.fsync(fh.fileno())
         tmp_path.replace(path)
-    except Exception:
-        try:
-            tmp_path.unlink()
-        except Exception:
-            pass
+    except BaseException:
+        cleanup_partial_output(tmp_path)
         raise
 
 
@@ -307,7 +304,6 @@ def main() -> int:
 
     except KeyboardInterrupt:
         logger.info("Operation cancelled by user.")
-        cleanup_partial_output(safe_output if "safe_output" in locals() else None)
         print("\nOperation cancelled.", file=sys.stderr)
         return 130
 

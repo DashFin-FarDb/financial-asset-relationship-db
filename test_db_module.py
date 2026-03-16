@@ -16,7 +16,14 @@ logger = logging.getLogger(__name__)
 
 
 def test_database_connection() -> bool:
-    """Test connectivity using current database module API."""
+    """Test connectivity using current database module API.
+
+    Returns:
+        bool: True if the database connection and query were successful, False otherwise.
+
+    Raises:
+        Exception: Any unexpected exception outside of SQLAlchemyError that might occur during initialization.
+    """
     logger.info("Testing database connection...")
     engine = create_engine_from_url()
     session_factory = create_session_factory(engine)

@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 
 
-set -e +o pipefail
+set -e -o pipefail
+
+fatal() {
+    echo "Error: $*" >&2
+    exit 1
+}
 
 # Set up paths first
 bin_name="codacy-cli-v2"
@@ -55,7 +60,13 @@ get_latest_version() {
     fi
 
     handle_rate_limit "$response"
-    local version=$(echo "$response" | grep -m 1 tag_name | cut -d'"' -f4)
+    local version
+    version=$(echo "$response" | grep -m 1 tag_name | cut -d'"' -f4)
+
+    if [ -z "$version" ] || ! echo "$version" | grep -qE '^[vV]?[0-9]+'; then
+        fatal "Failed to fetch a valid version from GitHub API. Response: $response"
+    fi
+
     echo "$version"
 }
 
@@ -124,6 +135,9 @@ if [ -n "$CODACY_CLI_V2_VERSION" ]; then
     version="$CODACY_CLI_V2_VERSION"
 else
     version=$(get_version_from_yaml)
+    if [ -z "$version" ]; then
+        fatal "Could not determine Codacy CLI version. Please set CODACY_CLI_V2_VERSION."
+    fi
 fi
 
 
@@ -138,8 +152,8 @@ download_cli "$bin_folder" "$bin_path" "$version"
 chmod +x "$bin_path"
 
 run_command="$bin_path"
-if [ -z "$run_command" ]; then
-    fatal "Codacy cli v2 binary could not be found."
+if [ ! -f "$run_command" ] || [ ! -x "$run_command" ]; then
+    fatal "Codacy cli v2 binary could not be found or is not executable at $run_command."
 fi
 
 if [ "$#" -eq 1 ] && [ "$1" = "download" ]; then

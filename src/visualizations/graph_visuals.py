@@ -54,8 +54,8 @@ def _is_valid_color_format(color: str) -> bool:
 
     # rgb/rgba functions
     rgb_or_rgba_pattern = (
-        r"^rgba?\\(\\s*\\d+\\s*,\\s*\\d+\\s*,\\s*\\d+\\s*"
-        r"(,\\s*[\\d.]+\\s*)?\\)$"
+        r"^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*"
+        r"(,\s*[\d.]+\s*)?\)$"
     )
     if re.match(rgb_or_rgba_pattern, color):
         return True
@@ -1038,7 +1038,7 @@ def _prepare_directional_arrow_inputs(
     positions_arr = _normalize_positions_array(positions)
     asset_ids_list = _normalize_asset_ids_list(asset_ids)
     _validate_positions_and_asset_ids_lengths(positions_arr, asset_ids_list)
-    _ensure_numeric_positions(positions_arr)
+    positions_arr = _ensure_numeric_positions(positions_arr)
     _ensure_finite_positions(positions_arr)
     _ensure_non_empty_string_asset_ids(asset_ids_list)
     return positions_arr, asset_ids_list
@@ -1097,12 +1097,12 @@ def _validate_positions_and_asset_ids_lengths(
         raise ValueError("Invalid positions shape: expected (n, 3)")
 
 
-def _ensure_numeric_positions(positions: np.ndarray) -> None:
+def _ensure_numeric_positions(positions: np.ndarray) -> np.ndarray:
     """Ensure positions contain numeric values."""
     if np.issubdtype(positions.dtype, np.number):
-        return
+        return positions
     try:
-        positions[:] = positions.astype(float)
+        return positions.astype(float)
     except Exception as exc:  # pylint: disable=broad-except
         raise ValueError("Invalid positions: values must be numeric") from exc
 

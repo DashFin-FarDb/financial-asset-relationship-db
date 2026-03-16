@@ -26,12 +26,17 @@ def _asset_class_distribution(distribution: dict) -> go.Figure:
     colors = [_BASE_COLORS[i % len(_BASE_COLORS)] for i in range(len(classes))]
     fig = go.Figure()
     fig.add_trace(go.Bar(x=classes, y=counts, marker_color=colors))
+    _apply_asset_class_layout(fig)
+    return fig
+
+
+def _apply_asset_class_layout(fig: go.Figure) -> None:
+    """Apply presentation layout to the asset class distribution chart."""
     fig.update_layout(
         title="Asset Class Distribution",
         xaxis_title="Asset Class",
         yaxis_title="Count",
     )
-    return fig
 
 
 def _relationship_distribution(distribution: dict) -> go.Figure:
@@ -50,13 +55,18 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
     rel_counts = list(distribution.values())
     fig = go.Figure()
     fig.add_trace(go.Bar(x=rel_types, y=rel_counts, marker_color="lightblue"))
+    _apply_relationship_layout(fig)
+    return fig
+
+
+def _apply_relationship_layout(fig: go.Figure) -> None:
+    """Apply presentation layout to the relationship distribution chart."""
     fig.update_layout(
         title="Relationship Types Distribution",
         xaxis_title="Relationship Type",
         yaxis_title="Count",
         xaxis_tickangle=-45,
     )
-    return fig
 
 
 def _regulatory_events_timeline(events: list) -> go.Figure:
@@ -92,12 +102,17 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
             marker_color=["green" if x > 0 else "red" for x in impacts],
         )
     )
+    _apply_regulatory_events_layout(fig)
+    return fig
+
+
+def _apply_regulatory_events_layout(fig: go.Figure) -> None:
+    """Apply presentation layout to the regulatory events timeline chart."""
     fig.update_layout(
         title="Regulatory Events Timeline",
         xaxis_title="Date",
         yaxis_title="Impact Score",
     )
-    return fig
 
 
 def visualize_metrics(

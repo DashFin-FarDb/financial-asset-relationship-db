@@ -346,12 +346,7 @@ def _coerce_positions_to_numeric(positions: np.ndarray) -> np.ndarray:
     """Convert positions to numeric dtype when needed."""
     if np.issubdtype(positions.dtype, np.number):
         return positions
-    try:
-        return positions.astype(float)
-    except Exception as exc:  # noqa: BLE001
-        raise ValueError(
-            "Invalid positions: values must be numeric"
-        ) from exc
+    return positions.astype(float)
 
 
 def _ensure_positions_finite(positions: np.ndarray) -> None:

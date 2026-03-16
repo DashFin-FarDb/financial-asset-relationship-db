@@ -18,7 +18,7 @@ _HTTPS_DOMAIN_RE = re.compile(
     r"^https://[a-zA-Z0-9]"
     r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
     r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
-    r"\.[a-zA-Z]{2,}$"
+    r"\.[a-zA-Z]{2,}(:\d{1,5})?$"
 )
 
 

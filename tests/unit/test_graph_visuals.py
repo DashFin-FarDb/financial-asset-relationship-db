@@ -9,6 +9,8 @@ from src.visualizations.graph_visuals import (
     _build_relationship_index,
     _create_directional_arrows,
     _create_relationship_traces,
+    _is_valid_color_format,
+    _generate_dynamic_title,
 )
 
 
@@ -52,6 +54,23 @@ def test_rel_type_colors_default():
     """Test that the default relationship type colors mapping returns fallback color for unknown types."""
     # Ensure defaultdict provides fallback color, and direct indexing works without KeyError
     assert REL_TYPE_COLORS["unknown_type"] == "#888888"
+
+
+def test_is_valid_color_format():
+    """Test color string validation logic."""
+    assert _is_valid_color_format("#123456") is True
+    assert _is_valid_color_format("#RGB") is True
+    assert _is_valid_color_format("rgb(255, 0, 0)") is True
+    assert _is_valid_color_format("rgba(255, 0, 0, 0.5)") is True
+    assert _is_valid_color_format("blue") is True  # Plotly named colors fallback
+    assert _is_valid_color_format("") is False
+    assert _is_valid_color_format(None) is False
+
+
+def test_generate_dynamic_title():
+    """Test dynamic title generation string formatting."""
+    title = _generate_dynamic_title(15, 30, "Base Title")
+    assert title == "Base Title - 15 Assets, 30 Relationships"
 
 
 def test_build_asset_id_index():

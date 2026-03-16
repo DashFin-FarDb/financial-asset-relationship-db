@@ -18,7 +18,7 @@ Notes:
 from __future__ import annotations
 
 import os
-from typing import Final, Optional
+from typing import Any, Final, Optional
 
 import pytest
 
@@ -98,7 +98,7 @@ def _create_supabase_client(url: str, key: str) -> Client:
         )
 
 
-def _execute_smoke_query(client: Client, url: str):
+def _execute_smoke_query(client: Client, url: str) -> Any:
     """Execute a lightweight query and return response payload."""
     try:
         return client.table("assets").select("id").limit(1).execute()

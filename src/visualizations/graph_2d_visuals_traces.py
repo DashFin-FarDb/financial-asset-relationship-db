@@ -182,18 +182,28 @@ def _build_relationship_trace(
     """Build one Plotly trace for a relationship type."""
     edges_x: list[float | None] = []
     edges_y: list[float | None] = []
+    hover_texts: list[str | None] = []
     for rel in relationships:
         source_id = str(rel["source_id"])
         target_id = str(rel["target_id"])
+        strength = float(rel.get("strength", 0.0))
         sx, sy = positions[source_id]
         tx, ty = positions[target_id]
         edges_x.extend([sx, tx, None])
         edges_y.extend([sy, ty, None])
+        hover_text = (
+            f"{source_id} → {target_id}<br>"
+            f"Type: {rel_type}<br>"
+            f"Strength: {strength:.2f}"
+        )
+        hover_texts.extend([hover_text, hover_text, None])
     return go.Scatter(
         x=edges_x,
         y=edges_y,
         mode="lines",
         line={"color": REL_TYPE_COLORS.get(rel_type, "#888888"), "width": 2},
+        hovertext=hover_texts,
+        hoverinfo="text",
     )
 
 

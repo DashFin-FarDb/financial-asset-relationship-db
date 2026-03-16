@@ -697,7 +697,6 @@ async def get_metrics() -> MetricsResponse:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-@app.get("/api/visualization", response_model=VisualizationDataResponse)
 def _calculate_node_degrees(g: AssetRelationshipGraph) -> Dict[str, int]:
     """Return out-degree per asset ID from graph relationships."""
     degree: Dict[str, int] = {asset_id: 0 for asset_id in g.assets.keys()}

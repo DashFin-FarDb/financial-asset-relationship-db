@@ -165,7 +165,9 @@ function AssetListTable({ assets, loading, error }: AssetListTableProps) {
           {asset.sector}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-          {asset.currency} {asset.price.toFixed(2)}
+          {typeof asset.price === "number"
+            ? `${asset.currency} ${asset.price.toFixed(2)}`
+            : "N/A"}
         </td>
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
           {typeof asset.market_cap === "number"

@@ -64,6 +64,8 @@ class Asset:
             "Market cap must be a non-negative number or None",
             allow_none=True,
         )
+        if isinstance(self.currency, str):
+            self.currency = self.currency.upper()
         self._validate_currency_code(self.currency)
 
     @staticmethod
@@ -88,7 +90,7 @@ class Asset:
     @staticmethod
     def _validate_currency_code(currency: str) -> None:
         """Ensure currency code is an uppercase 3-letter ISO-like token."""
-        if not re.match(r"^[A-Z]{3}$", currency.upper()):
+        if not isinstance(currency, str) or not re.match(r"^[A-Z]{3}$", currency):
             raise ValueError("Currency must be a valid 3-letter ISO code")
 
 
