@@ -28,16 +28,25 @@ def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
     return occurrences
 
 
-def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) -> int:
+def _report_duplicates(
+    duplicates: Dict[str, List[int]],
+    manifest_path: Path,
+) -> int:
     """Prints a report of duplicate headings found in the manifest."""
     print(
         f"❌ MD024 violation: Duplicate headings found in {manifest_path}\n",
         file=sys.stderr,
     )
-    print(f"Found {len(duplicates)} heading(s) with duplicates:\n", file=sys.stderr)
+    print(
+        f"Found {len(duplicates)} heading(s) with duplicates:\n",
+        file=sys.stderr,
+    )
 
     for heading, line_nums in sorted(duplicates.items()):
-        print(f"  '{heading}' appears {len(line_nums)} times:", file=sys.stderr)
+        print(
+            f"  '{heading}' appears {len(line_nums)} times:",
+            file=sys.stderr,
+        )
         for line_num in line_nums:
             print(f"    - Line {line_num}", file=sys.stderr)
         print(file=sys.stderr)
@@ -50,12 +59,13 @@ def _report_duplicates(duplicates: Dict[str, List[int]], manifest_path: Path) ->
 
 
 def check_duplicate_headings(manifest_path: Path) -> int:
-    """def check_duplicate_headings(manifest_path: Path) -> int:
-    Check for duplicate level 2 headings in the manifest.  This function verifies
-    the existence of the specified manifest file  and ensures it matches the
-    expected path within the repository. It  reads the content of the manifest,
-    collects level 2 headings, and  checks for duplicates. If duplicates are found,
-    it reports them;  otherwise, it confirms that no duplicates exist.
+    """Check for duplicate level 2 headings in the manifest.
+
+    This function verifies the existence of the specified manifest file and
+    ensures it matches the expected path within the repository. It reads the
+    content of the manifest, collects level 2 headings, and checks for
+    duplicates. If duplicates are found, it reports them; otherwise, it
+    confirms that no duplicates exist.
 
     Args:
         manifest_path: Path to the systemManifest.md file."""
@@ -65,13 +75,18 @@ def check_duplicate_headings(manifest_path: Path) -> int:
 
     # Read the manifest
     repo_root = Path(__file__).resolve().parents[1]
-    expected_manifest_path = (repo_root / ".elastic-copilot/memory/systemManifest.md").resolve()
+    expected_manifest_path = (
+        repo_root / ".elastic-copilot/memory/systemManifest.md"
+    ).resolve()
     manifest_path = manifest_path.resolve()
 
     # Ensure we only ever read the expected manifest file within the repo.
     if manifest_path != expected_manifest_path:
         print(
-            f"Error: Refusing to read unexpected manifest path: {manifest_path}",
+            (
+                "Error: Refusing to read unexpected manifest path: "
+                f"{manifest_path}"
+            ),
             file=sys.stderr,
         )
         return 1
@@ -79,7 +94,11 @@ def check_duplicate_headings(manifest_path: Path) -> int:
     lines = manifest_path.read_text(encoding="utf-8").splitlines(keepends=True)
 
     heading_occurrences = _collect_headings(lines)
-    duplicates = {heading: nums for heading, nums in heading_occurrences.items() if len(nums) > 1}
+    duplicates = {
+        heading: nums
+        for heading, nums in heading_occurrences.items()
+        if len(nums) > 1
+    }
 
     if duplicates:
         return _report_duplicates(duplicates, manifest_path)

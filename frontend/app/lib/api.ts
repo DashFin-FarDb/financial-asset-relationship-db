@@ -1,4 +1,5 @@
 import axios from "axios";
+import type { AxiosRequestConfig } from "axios";
 import type {
   Asset,
   Relationship,
@@ -16,11 +17,18 @@ const apiClient = axios.create({
   },
 });
 
+async function getData<T>(
+  path: string,
+  config?: AxiosRequestConfig,
+): Promise<T> {
+  const response = await apiClient.get<T>(path, config);
+  return response.data;
+}
+
 export const api = {
   // Health check
   healthCheck: async () => {
-    const response = await apiClient.get("/api/health");
-    return response.data;
+    return getData("/api/health");
   },
 
   // Assets
@@ -33,59 +41,51 @@ export const api = {
     },
     signal?: AbortSignal,
   ): Promise<Asset[]> => {
-    const response = await apiClient.get("/api/assets", { params, signal });
-    return response.data;
+    return getData<Asset[]>("/api/assets", { params, signal });
   },
 
   getAssetDetail: async (
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Asset> => {
-    const response = await apiClient.get(`/api/assets/${assetId}`, { signal });
-    return response.data;
+    return getData<Asset>(`/api/assets/${assetId}`, { signal });
   },
 
   getAssetRelationships: async (
     assetId: string,
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
-    const response = await apiClient.get(
+    return getData<Relationship[]>(
       `/api/assets/${assetId}/relationships`,
       { signal },
     );
-    return response.data;
   },
 
   // Relationships
   getAllRelationships: async (
     signal?: AbortSignal,
   ): Promise<Relationship[]> => {
-    const response = await apiClient.get("/api/relationships", { signal });
-    return response.data;
+    return getData<Relationship[]>("/api/relationships", { signal });
   },
 
   // Metrics
   getMetrics: async (signal?: AbortSignal): Promise<Metrics> => {
-    const response = await apiClient.get("/api/metrics", { signal });
-    return response.data;
+    return getData<Metrics>("/api/metrics", { signal });
   },
 
   // Visualization
   getVisualizationData: async (
     signal?: AbortSignal,
   ): Promise<VisualizationData> => {
-    const response = await apiClient.get("/api/visualization", { signal });
-    return response.data;
+    return getData<VisualizationData>("/api/visualization", { signal });
   },
 
   // Metadata
   getAssetClasses: async (): Promise<{ asset_classes: string[] }> => {
-    const response = await apiClient.get("/api/asset-classes");
-    return response.data;
+    return getData<{ asset_classes: string[] }>("/api/asset-classes");
   },
 
   getSectors: async (): Promise<{ sectors: string[] }> => {
-    const response = await apiClient.get("/api/sectors");
-    return response.data;
+    return getData<{ sectors: string[] }>("/api/sectors");
   },
 };

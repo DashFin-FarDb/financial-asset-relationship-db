@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from typing import Optional, TypedDict
 
 import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
-from passlib.context import CryptContext
+from passlib.context import CryptContext  # pyright: ignore[reportMissingModuleSource]
 from pydantic import BaseModel
 
 from .database import execute, fetch_one, fetch_value, initialize_schema
@@ -107,14 +107,20 @@ class UserRepository:
         """
         return fetch_value("SELECT 1 FROM user_credentials LIMIT 1") is not None
 
+    class UserProfile(TypedDict, total=False):
+        """Optional user profile fields for user upsert operations."""
+
+        user_email: str | None
+        user_full_name: str | None
+        is_disabled: bool
+
     @staticmethod
     def create_or_update_user(
         *,
         username: str,
         hashed_password: str,
-        user_email: Optional[str] = None,
-        user_full_name: Optional[str] = None,
-        is_disabled: bool = False,
+        user_profile: Optional["UserRepository.UserProfile"] = None,
+        **legacy_profile_fields: object,
     ) -> None:
         """
         Create or update a user credential record in the repository.
@@ -126,10 +132,31 @@ class UserRepository:
         Parameters:
             username (str): Unique identifier for the user.
             hashed_password (str): Password hash; must already be hashed.
-            user_email (Optional[str]): User email address, if available.
-            user_full_name (Optional[str]): User's full name, if available.
-            is_disabled (bool): Whether the user account is disabled (inactive).
+            user_profile (Optional[UserProfile]): Optional profile fields.
+            **legacy_profile_fields: Backward-compatible profile kwargs.
         """
+        profile = user_profile.copy() if user_profile is not None else {}
+
+        # Backward-compatible mapping for existing call sites using keyword fields.
+        if "user_email" in legacy_profile_fields:
+            profile["user_email"] = (
+                str(legacy_profile_fields["user_email"])
+                if legacy_profile_fields["user_email"] is not None
+                else None
+            )
+        if "user_full_name" in legacy_profile_fields:
+            profile["user_full_name"] = (
+                str(legacy_profile_fields["user_full_name"])
+                if legacy_profile_fields["user_full_name"] is not None
+                else None
+            )
+        if "is_disabled" in legacy_profile_fields:
+            profile["is_disabled"] = bool(legacy_profile_fields["is_disabled"])
+
+        user_email = profile.get("user_email")
+        user_full_name = profile.get("user_full_name")
+        is_disabled = profile.get("is_disabled", False)
+
         execute(
             """
             INSERT INTO user_credentials (
@@ -206,9 +233,11 @@ def _seed_credentials_from_env(repository: UserRepository) -> None:
     repository.create_or_update_user(
         username=username,
         hashed_password=hashed_password,
-        user_email=admin_email,
-        user_full_name=admin_full_name,
-        is_disabled=admin_disabled,
+        user_profile={
+            "user_email": admin_email,
+            "user_full_name": admin_full_name,
+            "is_disabled": admin_disabled,
+        },
     )
 
 
@@ -216,7 +245,8 @@ _seed_credentials_from_env(user_repository)
 
 if not user_repository.has_users():
     raise ValueError(
-        "No user credentials available. Provide ADMIN_USERNAME and ADMIN_PASSWORD or pre-populate the database."
+        "No user credentials available. Provide ADMIN_USERNAME and "
+        "ADMIN_PASSWORD or pre-populate the database."
     )
 
 
@@ -303,31 +333,55 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             if the token is invalid,
             missing the subject, or no matching user is found.
     """
-    credentials_exception = HTTPException(
+    credentials_exception = _build_credentials_exception()
+    expired_exception = _build_expired_exception()
+    username = _decode_username_from_token(
+        token=token,
+        credentials_exception=credentials_exception,
+        expired_exception=expired_exception,
+    )
+    user = get_user(username)
+    if user is None:
+        raise credentials_exception
+    return user
+
+
+def _build_credentials_exception() -> HTTPException:
+    """Create the shared HTTP exception for invalid credentials."""
+    return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    expired_exception = HTTPException(
+
+
+def _build_expired_exception() -> HTTPException:
+    """Create the HTTP exception used for expired tokens."""
+    return HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Token has expired",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+
+def _decode_username_from_token(
+    *,
+    token: str,
+    credentials_exception: HTTPException,
+    expired_exception: HTTPException,
+) -> str:
+    """Decode JWT token and return validated subject username."""
     try:
         # Explicitly specify algorithms parameter to prevent algorithm confusion attacks
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        username = payload.get("sub")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        return str(TokenData(username=username).username)
     except ExpiredSignatureError as e:
         raise expired_exception from e
     except InvalidTokenError as e:
         raise credentials_exception from e
-    user = get_user(token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
 
 
 async def get_current_active_user(current_user: User = Depends(get_current_user)):

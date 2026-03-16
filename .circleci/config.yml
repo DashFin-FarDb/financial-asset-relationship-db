@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@4.0.1
+  codecov: codecov/codecov@4.2.0
 
 executors:
   python-executor:
@@ -199,7 +199,6 @@ jobs:
             docker run --rm financial-asset-relationship-db:${CIRCLE_SHA1} python --version
 
 workflows:
-  version: 2
   build-and-test:
     jobs:
       # Backend workflow - run lint, test, and security in parallel

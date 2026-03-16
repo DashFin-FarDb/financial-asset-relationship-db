@@ -1,7 +1,9 @@
-from datetime import datetime
-from typing import List, Tuple
+"""Metric visualization helpers for asset relationship analytics."""
 
-import plotly.graph_objects as go
+from datetime import datetime
+from typing import Tuple
+
+import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -13,7 +15,8 @@ def _asset_class_distribution(distribution: dict) -> go.Figure:
     Create a bar chart showing counts for each asset class.
 
     Parameters:
-        distribution (dict): Mapping of asset class names to their integer counts.
+        distribution (dict): Mapping of asset class names
+            to their integer counts.
 
     Returns:
         go.Figure: Plotly Figure representing the asset class distribution.
@@ -36,10 +39,12 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
     Create a bar chart showing counts for each relationship type.
 
     Parameters:
-        distribution (dict): Mapping of relationship type (str) to its count (int).
+        distribution (dict): Mapping of relationship type (str)
+            to its count (int).
 
     Returns:
-        go.Figure: Plotly Figure containing a bar chart with relationship types on the x-axis and their counts on the y-axis.
+        go.Figure: Plotly Figure containing a bar chart with relationship
+            types on the x-axis and their counts on the y-axis.
     """
     rel_types = list(distribution.keys())
     rel_counts = list(distribution.values())
@@ -58,8 +63,9 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
     """Generate a timeline of regulatory events as a bar chart.
 
     This function takes a list of regulatory events, sorts them by date,  and
-    constructs a bar chart displaying the impact scores of each event.  It extracts
-    the dates, names, and impact scores from the sorted events  and uses Plotly's
+    constructs a bar chart displaying the impact scores of each event.
+    It extracts the dates, names, and impact scores from the sorted events
+    and uses Plotly's
     graphing library to create a visually informative  representation of the
     regulatory timeline.
 

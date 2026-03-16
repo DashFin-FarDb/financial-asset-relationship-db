@@ -25,6 +25,28 @@ from typing import Dict, List, Tuple
 HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
 
+def _extract_section_heading(line: str) -> str | None:
+    """Return level-2 heading text from a line, otherwise None."""
+    match = HEADING_RE.match(line)
+    if match is None:
+        return None
+    # Only treat level-2 headings as delimiters, not ###.
+    if line.lstrip().startswith("###"):
+        return None
+    return match.group(1)
+
+
+def _flush_current_section(
+    sections: List[Tuple[str, str]],
+    current_heading: str | None,
+    current_content: List[str],
+) -> None:
+    """Append current section to sections when heading is present."""
+    if current_heading is None:
+        return
+    sections.append((current_heading, "\n".join(current_content)))
+
+
 def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     """
     Parse the manifest content into preamble and sections.
@@ -45,29 +67,31 @@ def parse_manifest(content: str) -> Tuple[str, List[Tuple[str, str]]]:
     found_first_heading = False
 
     for line in lines:
-        m = HEADING_RE.match(line)
-        # Treat only level-2 headings as section delimiters, not ###.
-        if m and not line.lstrip().startswith("###"):
-            if not found_first_heading:
-                found_first_heading = True
-            else:
-                assert current_heading is not None
-                sections.append((current_heading, "\n".join(current_content)))
-            current_heading = m.group(1)
-            current_content = []
-        else:
-            if not found_first_heading:
-                preamble_lines.append(line)
-            else:
+        heading = _extract_section_heading(line)
+        if heading is None:
+            if found_first_heading:
                 current_content.append(line)
+            else:
+                preamble_lines.append(line)
+            continue
 
-    if found_first_heading and current_heading is not None:
-        sections.append((current_heading, "\n".join(current_content)))
+        if found_first_heading:
+            _flush_current_section(sections, current_heading, current_content)
+        else:
+            found_first_heading = True
+
+        current_heading = heading
+        current_content = []
+
+    if found_first_heading:
+        _flush_current_section(sections, current_heading, current_content)
 
     return "\n".join(preamble_lines), sections
 
 
-def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str]]:
+def deduplicate_sections(
+    sections: List[Tuple[str, str]],
+) -> List[Tuple[str, str]]:
     """Remove duplicate headings, keeping only the last occurrence."""
     seen: set[str] = set()
     out_reversed: List[Tuple[str, str]] = []
@@ -81,7 +105,10 @@ def deduplicate_sections(sections: List[Tuple[str, str]]) -> List[Tuple[str, str
     return list(reversed(out_reversed))
 
 
-def reconstruct_manifest(preamble: str, sections: List[Tuple[str, str]]) -> str:
+def reconstruct_manifest(
+    preamble: str,
+    sections: List[Tuple[str, str]],
+) -> str:
     """Reconstruct the manifest content from preamble and sections."""
     parts: List[str] = []
 
@@ -106,32 +133,49 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
     return counts
 
 
+def _has_invalid_path_chars(user_value: str) -> bool:
+    """Return True when path includes NUL or newline characters."""
+    forbidden_chars = ("\x00", "\n", "\r")
+    return any(char in user_value for char in forbidden_chars)
+
+
+def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
+    """Resolve and return (base, resolved_path)."""
+    base = base_dir.resolve()
+    resolved = (base / Path(user_value)).resolve()
+    return base, resolved
+
+
+def _is_within_base(base: Path, candidate: Path) -> bool:
+    """Check whether candidate resolves inside base."""
+    return os.path.commonpath([str(base), str(candidate)]) == str(base)
+
+
 def safe_path(user_value: str, base_dir: Path) -> Path:
     # Basic input hardening (avoid multiline / NUL path tricks)
     """Ensure the provided user_value is a safe relative path under base_dir.
 
-    This function performs several checks to validate the user_value as a  safe
-    path. It first checks for invalid characters and ensures that the  path is not
-    absolute. Then, it resolves the path against the base_dir  and verifies that
-    the resolved path does not escape the base directory.  If any of these
+    This function performs several checks to validate user_value as a safe path.
+    It first checks for invalid characters and ensures that the path is not
+    absolute. Then, it resolves the path against base_dir and verifies that
+    the resolved path does not escape the base directory. If any of these
     conditions are violated, a ValueError is raised.
     """
-    if "\x00" in user_value or "\n" in user_value or "\r" in user_value:
+    if _has_invalid_path_chars(user_value):
         raise ValueError("Invalid path characters")
 
-    p = Path(user_value)
+    candidate = Path(user_value)
 
     # Reject absolute paths outright
-    if p.is_absolute():
+    if candidate.is_absolute():
         raise ValueError("Absolute paths are not allowed")
 
     # Resolve against base_dir and normalize
-    base = base_dir.resolve()
-    resolved = (base / p).resolve()
+    base, resolved = _resolve_path_within_base(user_value, base_dir)
 
     # Enforce "must be inside base"
     # (use commonpath on strings for broad compatibility)
-    if os.path.commonpath([str(base), str(resolved)]) != str(base):
+    if not _is_within_base(base, resolved):
         raise ValueError("Path escapes allowed base directory")
 
     return resolved

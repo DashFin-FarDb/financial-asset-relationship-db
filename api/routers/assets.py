@@ -21,7 +21,10 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
         asset_id (str): ID of the asset that was not found.
         resource_type (str): Type of resource (default: "Asset").
     """
-    raise HTTPException(status_code=404, detail=f"{resource_type} {asset_id} not found")
+    raise HTTPException(
+        status_code=404,
+        detail=f"{resource_type} {asset_id} not found",
+    )
 
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
@@ -78,6 +81,48 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     return asset_dict
 
 
+def _matches_filters(
+    asset: Any,
+    *,
+    asset_class_upper: Optional[str],
+    sector: Optional[str],
+) -> bool:
+    """Return whether an asset passes optional class and sector filters."""
+    if asset_class_upper:
+        asset_class_name = asset.asset_class.name
+        asset_class_value = asset.asset_class.value.upper()
+        if (
+            asset_class_name != asset_class_upper
+            and asset_class_value != asset_class_upper
+        ):
+            return False
+
+    if sector and asset.sector != sector:
+        return False
+
+    return True
+
+
+def _build_filtered_asset_responses(
+    graph: Any,
+    *,
+    asset_class: Optional[str],
+    sector: Optional[str],
+) -> List[AssetResponse]:
+    """Build serialized AssetResponse list for assets matching filters."""
+    asset_class_upper = asset_class.upper() if asset_class else None
+    responses: List[AssetResponse] = []
+    for asset in graph.assets.values():
+        if not _matches_filters(
+            asset,
+            asset_class_upper=asset_class_upper,
+            sector=sector,
+        ):
+            continue
+        responses.append(AssetResponse(**serialize_asset(asset)))
+    return responses
+
+
 @router.get(
     "/assets",
     response_model=List[AssetResponse],
@@ -85,7 +130,14 @@ def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
         500: {
             "description": "Internal server error while listing assets.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
@@ -112,21 +164,11 @@ async def get_assets(
     """
     try:
         g = get_graph()
-        assets: List[AssetResponse] = []
-
-        for asset_id, asset in g.assets.items():
-            # Apply filters
-            # Support both enum name (e.g., "EQUITY") and value (e.g., "Equity")
-            if asset_class:
-                asset_class_upper = asset_class.upper()
-                if asset.asset_class.name != asset_class_upper and asset.asset_class.value.upper() != asset_class_upper:
-                    continue
-            if sector and asset.sector != sector:
-                continue
-
-            # Build response using serialization utility
-            asset_dict = serialize_asset(asset)
-            assets.append(AssetResponse(**asset_dict))
+        assets = _build_filtered_asset_responses(
+            g,
+            asset_class=asset_class,
+            sector=sector,
+        )
     except Exception as e:  # noqa: BLE001
         if isinstance(e, HTTPException):
             raise
@@ -145,12 +187,23 @@ async def get_assets(
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Asset not found."}
+                }
+            },
         },
         500: {
             "description": "Internal server error while retrieving asset.",
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
             },
         },
     },
@@ -198,12 +251,25 @@ async def get_asset_detail(asset_id: str):
     responses={
         404: {
             "description": "Asset not found.",
-            "content": {"application/json": {"example": {"detail": "Asset not found."}}},
+            "content": {
+                "application/json": {
+                    "example": {"detail": "Asset not found."}
+                }
+            },
         },
         500: {
-            "description": ("Internal server error while retrieving asset relationships."),
+            "description": (
+                "Internal server error while retrieving asset relationships."
+            ),
             "content": {
-                "application/json": {"example": {"detail": ("An internal error occurred. Please try again later.")}}
+                "application/json": {
+                    "example": {
+                        "detail": (
+                            "An internal error occurred. "
+                            "Please try again later."
+                        )
+                    }
+                }
             },
         },
     },

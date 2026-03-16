@@ -1,3 +1,5 @@
+"""Schema report rendering helpers for asset relationship graphs."""
+
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -53,14 +55,15 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 
 def _as_str_int_map(value: Any) -> dict[str, int]:
     """
-    Convert a mapping-like value into a dict[str, int], keeping only string keys.
+    Convert a mapping-like value into `dict[str, int]`,
+    keeping only string keys.
 
     Parameters:
         value (Any): Input to coerce into a string-keyed mapping.
 
     Returns:
-        dict[str, int]: A dictionary containing only items whose keys are strings;
-            values are converted to integers (fallback to 0 for unconvertible values).
+        dict[str, int]: Dictionary with only string-key entries;
+            values are converted to integers with fallback 0.
             Returns an empty dict if `value` is not a mapping.
     """
     if not isinstance(value, Mapping):
@@ -95,15 +98,167 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 
     out: list[tuple[str, str, str, float]] = []
     for item in value:
-        if (
-            isinstance(item, tuple)
-            and len(item) == 4
-            and isinstance(item[0], str)
-            and isinstance(item[1], str)
-            and isinstance(item[2], str)
-        ):
+        if _is_valid_top_relationship_item(item):
             out.append((item[0], item[1], item[2], _as_float(item[3], 0.0)))
     return out
+
+
+def _is_valid_top_relationship_item(item: Any) -> bool:
+    """Return True when item matches (str, str, str, strength)."""
+    if not isinstance(item, tuple):
+        return False
+    if len(item) != 4:
+        return False
+    return (
+        isinstance(item[0], str)
+        and isinstance(item[1], str)
+        and isinstance(item[2], str)
+    )
+
+
+def _relationship_type_lines(metrics: Mapping[str, Any]) -> list[str]:
+    """Build markdown lines for relationship type distribution."""
+    lines: list[str] = []
+    relationship_dist = _as_str_int_map(
+        metrics.get("relationship_distribution")
+    )
+    for rel_type, count in sorted(
+        relationship_dist.items(),
+        key=lambda rel_tuple: rel_tuple[1],
+        reverse=True,
+    ):
+        lines.append(f"- **{rel_type}**: {count} instances")
+    return lines
+
+
+def _network_statistics_lines(
+    metrics: Mapping[str, Any],
+) -> tuple[list[str], float]:
+    """Build network statistic lines and return parsed density."""
+    total_assets = _as_int(metrics.get("total_assets"), 0)
+    total_relationships = _as_int(metrics.get("total_relationships"), 0)
+    avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
+    density = _as_float(metrics.get("relationship_density"), 0.0)
+    reg_events = _as_int(metrics.get("regulatory_event_count"), 0)
+    lines = [
+        "",
+        "",
+        "## Calculated Metrics",
+        "",
+        "### Network Statistics",
+        f"- **Total Assets**: {total_assets}",
+        f"- **Total Relationships**: {total_relationships}",
+        f"- **Average Relationship Strength**: {avg_strength:.3f}",
+        f"- **Relationship Density**: {density:.2f}%",
+        f"- **Regulatory Events**: {reg_events}",
+        "",
+        "### Asset Class Distribution",
+    ]
+    return lines, density
+
+
+def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:
+    """Build markdown lines for asset class distribution."""
+    lines: list[str] = []
+    class_dist = _as_str_int_map(metrics.get("asset_class_distribution"))
+    for asset_class, count in sorted(class_dist.items()):
+        lines.append(f"- **{asset_class}**: {count} assets")
+    return lines
+
+
+def _top_relationship_lines(metrics: Mapping[str, Any]) -> list[str]:
+    """Build markdown lines for top relationships section."""
+    lines = ["", "## Top Relationships", ""]
+    top_rels = _as_top_relationships(metrics.get("top_relationships"))
+    if top_rels:
+        for src, tgt, rtype, strength in top_rels:
+            lines.append(
+                f"- **{src}** \u2192 **{tgt}** ({rtype}, "
+                f"strength {strength:.2f})"
+            )
+    else:
+        lines.append("- No relationships recorded yet.")
+    return lines
+
+
+def _density_recommendation_line(density: float) -> str:
+    """Return optimization recommendation based on relationship density."""
+    if density > 30.0:
+        return "High connectivity - consider normalization"
+    if density > 10.0:
+        return "Well-balanced relationship graph - optimal for most use cases"
+    return "Sparse connections - consider adding more relationships"
+
+
+def _business_rules_lines() -> list[str]:
+    """Return static business rules section lines."""
+    return [
+        "",
+        "## Business Rules & Constraints",
+        "",
+        "### Cross-Asset Rules",
+        (
+            "- **Sector Affinity**: Assets in the same sector are linked "
+            "with strength 0.7 (bidirectional)"
+        ),
+        (
+            "- **Corporate Bond Linkage**: A bond whose issuer_id matches "
+            "another asset creates a directional link (strength 0.9)"
+        ),
+        (
+            "- **Currency Exposure**: Currency assets reflect FX and "
+            "central-bank policy links"
+        ),
+        "",
+        "### Regulatory Rules",
+        (
+            "- **Event Propagation**: Regulatory / earnings events "
+            "propagate impact to related assets"
+        ),
+        (
+            "- Events create directional relationships from the event "
+            "source to each related asset"
+        ),
+        "",
+        "### Valuation Rules",
+        (
+            "- **Impact Scoring**: Event impact scores are normalized "
+            "to -1 to +1 for comparability"
+        ),
+        "- Relationship strengths are clamped to the 0-1 range",
+    ]
+
+
+def _schema_optimization_lines(
+    metrics: Mapping[str, Any],
+    density: float,
+) -> list[str]:
+    """Return schema optimization section lines."""
+    quality_score = _as_float(metrics.get("quality_score"), 0.0)
+    return [
+        "",
+        "## Schema Optimization Metrics",
+        "",
+        f"### Data Quality Score: {quality_score:.1%}",
+        "",
+        "### Recommendation:",
+        _density_recommendation_line(density),
+    ]
+
+
+def _implementation_notes_lines() -> list[str]:
+    """Return static implementation notes section lines."""
+    return [
+        "",
+        "## Implementation Notes",
+        "- All timestamps in ISO 8601 format",
+        "- Relationship strengths normalized to 0-1 range",
+        "- Impact scores on -1 to +1 scale for comparability",
+        (
+            "- Relationship directionality: some types are bidirectional "
+            "(e.g., same_sector, income_comparison); others are directional"
+        ),
+    ]
 
 
 def generate_schema_report(graph: AssetRelationshipGraph) -> str:
@@ -121,7 +276,8 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         - Relationship type distribution and network statistics
         - Asset class distribution and top relationships
         - Business, regulatory, and valuation rules
-        - Data quality score, density-based recommendations, and implementation notes
+        - Data quality score, density-based recommendations,
+          and implementation notes
     """
     metrics: dict[str, Any] = graph.calculate_metrics()
 
@@ -133,112 +289,32 @@ def generate_schema_report(graph: AssetRelationshipGraph) -> str:
         "## Schema Overview",
         "",
         "### Entity Types",
-        "1. **Equity** - Stock instruments with P/E ratio, dividend yield, EPS",
-        "2. **Bond** - Fixed income with yield, coupon, maturity, credit rating",
+        (
+            "1. **Equity** - Stock instruments with P/E ratio, "
+            "dividend yield, EPS"
+        ),
+        (
+            "2. **Bond** - Fixed income with yield, coupon, "
+            "maturity, credit rating"
+        ),
         "3. **Commodity** - Physical assets with contracts and delivery dates",
-        "4. **Currency** - FX pairs or single-currency proxies with exchange rates and policy links",
+        (
+            "4. **Currency** - FX pairs or single-currency proxies with "
+            "exchange rates and policy links"
+        ),
         "5. **Regulatory Events** - Corporate actions and SEC filings",
         "",
         "### Relationship Types",
     ]
 
-    relationship_dist = _as_str_int_map(metrics.get("relationship_distribution"))
-    for rel_type, count in sorted(
-        relationship_dist.items(),
-        key=lambda rel_tuple: rel_tuple[1],
-        reverse=True,
-    ):
-        lines.append(f"- **{rel_type}**: {count} instances")
+    lines.extend(_relationship_type_lines(metrics))
 
-    total_assets = _as_int(metrics.get("total_assets"), 0)
-    total_relationships = _as_int(metrics.get("total_relationships"), 0)
-    avg_strength = _as_float(metrics.get("average_relationship_strength"), 0.0)
-    density = _as_float(metrics.get("relationship_density"), 0.0)  # expected 0–100 (%)
-    reg_events = _as_int(metrics.get("regulatory_event_count"), 0)
-    lines.extend(
-        [
-            "",
-            "",
-            "## Calculated Metrics",
-            "",
-            "### Network Statistics",
-            f"- **Total Assets**: {total_assets}",
-            f"- **Total Relationships**: {total_relationships}",
-            f"- **Average Relationship Strength**: {avg_strength:.3f}",
-            f"- **Relationship Density**: {density:.2f}%",
-            f"- **Regulatory Events**: {reg_events}",
-            "",
-            "### Asset Class Distribution",
-        ]
-    )
-
-    class_dist = _as_str_int_map(metrics.get("asset_class_distribution"))
-    for asset_class, count in sorted(class_dist.items()):
-        lines.append(f"- **{asset_class}**: {count} assets")
-
-    # -- Top Relationships ------------------------------------------------
-    top_rels = _as_top_relationships(metrics.get("top_relationships"))
-    lines.extend(["", "## Top Relationships", ""])
-    if top_rels:
-        for src, tgt, rtype, strength in top_rels:
-            lines.append(f"- **{src}** \u2192 **{tgt}** ({rtype}, strength {strength:.2f})")
-    else:
-        lines.append("- No relationships recorded yet.")
-
-    # -- Business Rules & Constraints --------------------------------------
-    lines.extend(
-        [
-            "",
-            "## Business Rules & Constraints",
-            "",
-            "### Cross-Asset Rules",
-            "- **Sector Affinity**: Assets in the same sector are linked with strength 0.7 (bidirectional)",
-            "- **Corporate Bond Linkage**: A bond whose issuer_id matches another asset creates a directional link (strength 0.9)",
-            "- **Currency Exposure**: Currency assets reflect FX and central-bank policy links",
-            "",
-            "### Regulatory Rules",
-            "- **Event Propagation**: Regulatory / earnings events propagate impact to related assets",
-            "- Events create directional relationships from the event source to each related asset",
-            "",
-            "### Valuation Rules",
-            "- **Impact Scoring**: Event impact scores are normalized to -1 to +1 for comparability",
-            "- Relationship strengths are clamped to the 0-1 range",
-        ]
-    )
-
-    # -- Schema Optimization Metrics ---------------------------------------
-    quality_score = _as_float(metrics.get("quality_score"), 0.0)
-    lines.extend(
-        [
-            "",
-            "## Schema Optimization Metrics",
-            "",
-            f"### Data Quality Score: {quality_score:.1%}",
-            "",
-            "### Recommendation:",
-        ]
-    )
-
-    if density > 30.0:
-        lines.append("High connectivity - consider normalization")
-    elif density > 10.0:
-        lines.append("Well-balanced relationship graph - optimal for most use cases")
-    else:
-        lines.append("Sparse connections - consider adding more relationships")
-
-    # -- Implementation Notes ----------------------------------------------
-    lines.extend(
-        [
-            "",
-            "## Implementation Notes",
-            "- All timestamps in ISO 8601 format",
-            "- Relationship strengths normalized to 0-1 range",
-            "- Impact scores on -1 to +1 scale for comparability",
-            (
-                "- Relationship directionality: some types are bidirectional "
-                "(e.g., same_sector, income_comparison); others are directional"
-            ),
-        ]
-    )
+    stats_lines, density = _network_statistics_lines(metrics)
+    lines.extend(stats_lines)
+    lines.extend(_asset_class_lines(metrics))
+    lines.extend(_top_relationship_lines(metrics))
+    lines.extend(_business_rules_lines())
+    lines.extend(_schema_optimization_lines(metrics, density))
+    lines.extend(_implementation_notes_lines())
 
     return "\n".join(lines)

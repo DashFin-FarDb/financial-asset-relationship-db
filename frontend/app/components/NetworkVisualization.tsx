@@ -12,9 +12,9 @@ const Plot = dynamic(() => import("react-plotly.js"), {
   ),
 });
 
-interface NetworkVisualizationProps {
+type NetworkVisualizationProps = Readonly<{
   data: VisualizationData;
-}
+}>;
 
 type EdgeTrace = {
   type: "scatter3d";
@@ -53,8 +53,109 @@ type NodeTrace = {
   };
 };
 
+type VisualizationStatus = "loading" | "ready" | "empty" | "tooLarge";
+
+type VisualizationPreparation = {
+  status: VisualizationStatus;
+  message: string;
+  plotData: Array<EdgeTrace | NodeTrace>;
+};
+
 const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
+
+function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
+  return {
+    type: "scatter3d",
+    mode: "markers+text",
+    x: nodes.map((n) => n.x),
+    y: nodes.map((n) => n.y),
+    z: nodes.map((n) => n.z),
+    text: nodes.map((n) => n.symbol),
+    hovertext: nodes.map(
+      (n) => `${n.name} (${n.symbol})<br>Class: ${n.asset_class}`,
+    ),
+    hoverinfo: "text",
+    marker: {
+      size: nodes.map((n) => n.size),
+      color: nodes.map((n) => n.color),
+      line: {
+        color: "white",
+        width: 0.5,
+      },
+    },
+    textposition: "top center",
+    textfont: {
+      size: 8,
+    },
+  };
+}
+
+function buildEdgeTraces(
+  nodes: VisualizationData["nodes"],
+  edges: VisualizationData["edges"],
+): EdgeTrace[] {
+  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
+  return edges.reduce<EdgeTrace[]>((acc, edge) => {
+    const sourceNode = nodeMap.get(edge.source);
+    const targetNode = nodeMap.get(edge.target);
+
+    if (!sourceNode || !targetNode) {
+      console.warn(
+        `Missing node for edge: source=${edge.source}, target=${edge.target}`,
+      );
+      return acc;
+    }
+
+    acc.push({
+      type: "scatter3d",
+      mode: "lines",
+      x: [sourceNode.x, targetNode.x],
+      y: [sourceNode.y, targetNode.y],
+      z: [sourceNode.z, targetNode.z],
+      line: {
+        color: `rgba(125, 125, 125, ${edge.strength})`,
+        width: edge.strength * 3,
+      },
+      hoverinfo: "none",
+      showlegend: false,
+    });
+
+    return acc;
+  }, []);
+}
+
+function prepareVisualizationData(data: VisualizationData): VisualizationPreparation {
+  const nodes = Array.isArray(data.nodes) ? data.nodes : [];
+  const edges = Array.isArray(data.edges) ? data.edges : [];
+
+  if (nodes.length === 0) {
+    return {
+      status: "empty",
+      message: "Visualization data is missing nodes.",
+      plotData: [],
+    };
+  }
+
+  if (nodes.length > MAX_NODES || edges.length > MAX_EDGES) {
+    return {
+      status: "tooLarge",
+      message:
+        `Visualization is unavailable because the dataset is too large (` +
+        `${nodes.length} nodes, ${edges.length} edges). Maximum: ` +
+        `${MAX_NODES} nodes, ${MAX_EDGES} edges.`,
+      plotData: [],
+    };
+  }
+
+  const nodeTrace = buildNodeTrace(nodes);
+  const edgeTraces = buildEdgeTraces(nodes, edges);
+  return {
+    status: "ready",
+    message: "",
+    plotData: [...edgeTraces, nodeTrace],
+  };
+}
 
 /**
  * Display an interactive 3D network of assets from the provided visualization payload.
@@ -70,9 +171,7 @@ export default function NetworkVisualization({
   data,
 }: NetworkVisualizationProps) {
   const [plotData, setPlotData] = useState<Array<EdgeTrace | NodeTrace>>([]);
-  const [status, setStatus] = useState<
-    "loading" | "ready" | "empty" | "tooLarge"
-  >("loading");
+  const [status, setStatus] = useState<VisualizationStatus>("loading");
   const [message, setMessage] = useState("Loading visualization...");
 
   useEffect(() => {
@@ -82,95 +181,25 @@ export default function NetworkVisualization({
       setMessage("No visualization data available.");
       return;
     }
-
-    const nodes = Array.isArray(data.nodes) ? data.nodes : [];
-    const edges = Array.isArray(data.edges) ? data.edges : [];
-
-    if (nodes.length === 0) {
-      setPlotData([]);
-      setStatus("empty");
-      setMessage("Visualization data is missing nodes.");
-      return;
-    }
-
-    if (nodes.length > MAX_NODES || edges.length > MAX_EDGES) {
-      setPlotData([]);
-      setStatus("tooLarge");
-      setMessage(
-        `Visualization is unavailable because the dataset is too large (${nodes.length} nodes, ${edges.length} edges). Maximum: ${MAX_NODES} nodes, ${MAX_EDGES} edges.`,
-      );
-      return;
-    }
-
-    // Create node trace
-    const nodeTrace: NodeTrace = {
-      type: "scatter3d",
-      mode: "markers+text",
-      x: nodes.map((n) => n.x),
-      y: nodes.map((n) => n.y),
-      z: nodes.map((n) => n.z),
-      text: nodes.map((n) => n.symbol),
-      hovertext: nodes.map(
-        (n) => `${n.name} (${n.symbol})<br>Class: ${n.asset_class}`,
-      ),
-      hoverinfo: "text",
-      marker: {
-        size: nodes.map((n) => n.size),
-        color: nodes.map((n) => n.color),
-        line: {
-          color: "white",
-          width: 0.5,
-        },
-      },
-      textposition: "top center",
-      textfont: {
-        size: 8,
-      },
-    };
-
-    // Create node lookup map for O(1) access
-    const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-
-    // Create edge traces with type predicate to filter nulls
-    const edgeTraces = edges.reduce<EdgeTrace[]>((acc, edge) => {
-      const sourceNode = nodeMap.get(edge.source);
-      const targetNode = nodeMap.get(edge.target);
-
-      if (!sourceNode || !targetNode) {
-        console.warn(`Missing node for edge: source=${edge.source}, target=${edge.target}`);
-        return acc;
-      }
-
-      acc.push({
-        type: "scatter3d",
-        mode: "lines",
-        x: [sourceNode.x, targetNode.x],
-        y: [sourceNode.y, targetNode.y],
-        z: [sourceNode.z, targetNode.z],
-        line: {
-          color: `rgba(125, 125, 125, ${edge.strength})`,
-          width: edge.strength * 3,
-        },
-        hoverinfo: "none",
-        showlegend: false,
-      });
-
-      return acc;
-    }, []);
-
-    setPlotData([...edgeTraces, nodeTrace] as Array<EdgeTrace | NodeTrace>);
-    setStatus("ready");
-    setMessage("");
+    const preparation = prepareVisualizationData(data);
+    setPlotData(preparation.plotData);
+    setStatus(preparation.status);
+    setMessage(preparation.message);
   }, [data]);
 
   if (status !== "ready") {
+    if (status === "tooLarge") {
+      return (
+        <div className="text-center p-8 text-gray-600" role="alert">
+          {message}
+        </div>
+      );
+    }
+
     return (
-      <div
-        className="text-center p-8 text-gray-600"
-        role={status === "tooLarge" ? "alert" : "status"}
-      >
+      <output className="text-center p-8 text-gray-600" aria-live="polite">
         {message}
-      </div>
+      </output>
     );
   }
 

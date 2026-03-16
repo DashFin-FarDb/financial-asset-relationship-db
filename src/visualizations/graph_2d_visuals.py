@@ -11,9 +11,9 @@ relationship filtering.
 
 import logging
 import math
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, cast
 
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 from src.logic.asset_graph import AssetRelationshipGraph
 
@@ -31,7 +31,9 @@ REL_TYPE_COLORS = {
 }
 
 
-def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
+def _create_circular_layout(
+    asset_ids: List[str],
+) -> Dict[str, Tuple[float, float]]:
     """Create circular layout for 2D visualization.
 
     Args:
@@ -55,7 +57,9 @@ def _create_circular_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, floa
     return positions
 
 
-def _create_grid_layout(asset_ids: List[str]) -> Dict[str, Tuple[float, float]]:
+def _create_grid_layout(
+    asset_ids: List[str],
+) -> Dict[str, Tuple[float, float]]:
     """Create grid layout for 2D visualization.
 
     Args:
@@ -127,8 +131,8 @@ def _create_2d_relationship_traces(
             of the form (target_id, rel_type, strength).
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to 2D
             (x, y) coordinates used to draw edges.
-        asset_ids (List[str]): Sequence of asset IDs to consider when collecting
-            relationships.
+        asset_ids (List[str]):
+            Sequence of asset IDs to consider when collecting relationships.
         show_same_sector (bool): Include relationships of type "same_sector".
         show_market_cap (bool): Include relationships of type
             "market_cap_similar".
@@ -139,7 +143,8 @@ def _create_2d_relationship_traces(
             "commodity_currency".
         show_income_comparison (bool): Include relationships of type
             "income_comparison".
-        show_regulatory (bool): Include relationships of type "regulatory_impact".
+        show_regulatory (bool):
+            Include relationships of type "regulatory_impact".
         show_all_relationships (bool): If True, ignore individual show_* flags
             and include all relationship types found in the graph.
 
@@ -152,10 +157,45 @@ def _create_2d_relationship_traces(
     if not asset_ids or not positions:
         return []
 
-    traces = []
-    asset_id_set = set(asset_ids)
-    # Construct relationship filters dictionary
-    relationship_filters = {
+    relationship_filters = _relationship_visibility_filters(
+        show_same_sector=show_same_sector,
+        show_market_cap=show_market_cap,
+        show_correlation=show_correlation,
+        show_corporate_bond=show_corporate_bond,
+        show_commodity_currency=show_commodity_currency,
+        show_income_comparison=show_income_comparison,
+        show_regulatory=show_regulatory,
+    )
+    relationship_groups = _group_relationships_by_type(
+        graph=graph,
+        positions=positions,
+        asset_ids=asset_ids,
+        relationship_filters=relationship_filters,
+        show_all_relationships=show_all_relationships,
+    )
+    return [
+        _build_relationship_trace(
+            rel_type=rel_type,
+            relationships=relationships,
+            positions=positions,
+        )
+        for rel_type, relationships in relationship_groups.items()
+        if relationships
+    ]
+
+
+def _relationship_visibility_filters(
+    *,
+    show_same_sector: bool,
+    show_market_cap: bool,
+    show_correlation: bool,
+    show_corporate_bond: bool,
+    show_commodity_currency: bool,
+    show_income_comparison: bool,
+    show_regulatory: bool,
+) -> Dict[str, bool]:
+    """Return relationship-type filter flags keyed by internal type name."""
+    return {
         "same_sector": show_same_sector,
         "market_cap_similar": show_market_cap,
         "correlation": show_correlation,
@@ -165,73 +205,160 @@ def _create_2d_relationship_traces(
         "regulatory_impact": show_regulatory,
     }
 
-    # Group relationships by type
-    relationship_groups = {}
+
+def _is_relationship_filtered(
+    rel_type: str,
+    relationship_filters: Dict[str, bool],
+    show_all_relationships: bool,
+) -> bool:
+    """Return True when a relationship type should be hidden."""
+    return (
+        not show_all_relationships
+        and rel_type in relationship_filters
+        and not relationship_filters[rel_type]
+    )
+
+
+def _group_relationships_by_type(
+    *,
+    graph: AssetRelationshipGraph,
+    positions: Dict[str, Tuple[float, float]],
+    asset_ids: List[str],
+    relationship_filters: Dict[str, bool],
+    show_all_relationships: bool,
+) -> Dict[str, list[Dict[str, object]]]:
+    """Group source-target relationships by relationship type."""
+    asset_id_set = set(asset_ids)
+    relationship_groups: Dict[str, list[Dict[str, object]]] = {}
 
     for source_id in asset_ids:
-        if source_id not in graph.relationships:
-            continue
-
-        for target_id, rel_type, strength in graph.relationships[source_id]:
-            # Skip if target not in positions
+        for target_id, rel_type, strength in graph.relationships.get(
+            source_id, []
+        ):
             if target_id not in positions or target_id not in asset_id_set:
                 continue
-
-            # Apply filters if not showing all relationships
-            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
+            if _is_relationship_filtered(
+                rel_type=rel_type,
+                relationship_filters=relationship_filters,
+                show_all_relationships=show_all_relationships,
+            ):
                 continue
 
-            # Group by relationship type
-            if rel_type not in relationship_groups:
-                relationship_groups[rel_type] = []
-
-            relationship_groups[rel_type].append(
+            relationship_groups.setdefault(rel_type, []).append(
                 {
                     "source_id": source_id,
                     "target_id": target_id,
                     "strength": strength,
                 }
             )
+    return relationship_groups
 
-    # Create traces for each relationship type
-    for rel_type, relationships in relationship_groups.items():
-        if not relationships:
-            continue
 
-        edges_x = []
-        edges_y = []
-        hover_texts = []
+def _build_relationship_trace(
+    *,
+    rel_type: str,
+    relationships: list[Dict[str, object]],
+    positions: Dict[str, Tuple[float, float]],
+) -> go.Scatter:
+    """Create one Plotly edge trace for a single relationship type."""
+    edges_x: list[float | None] = []
+    edges_y: list[float | None] = []
+    hover_texts: list[str | None] = []
 
-        for rel in relationships:
-            source_pos = positions[rel["source_id"]]
-            target_pos = positions[rel["target_id"]]
-
-            edges_x.extend([source_pos[0], target_pos[0], None])
-            edges_y.extend([source_pos[1], target_pos[1], None])
-
-            hover_text = (
-                f"{rel['source_id']} → {rel['target_id']}<br>"
-                f"Type: {rel_type}<br>"
-                f"Strength: {rel['strength']:.2f}"
-            )
-            hover_texts.extend([hover_text, hover_text, None])
-
-        color = REL_TYPE_COLORS.get(rel_type, "#888888")
-        trace_name = rel_type.replace("_", " ").title()
-
-        trace = go.Scatter(
-            x=edges_x,
-            y=edges_y,
-            mode="lines",
-            line=dict(color=color, width=2),
-            hovertext=hover_texts,
-            hoverinfo="text",
-            name=trace_name,
-            showlegend=True,
+    for rel in relationships:
+        source_id = str(rel["source_id"])
+        target_id = str(rel["target_id"])
+        strength = cast(float, rel["strength"])
+        source_pos = positions[source_id]
+        target_pos = positions[target_id]
+        edges_x.extend([source_pos[0], target_pos[0], None])
+        edges_y.extend([source_pos[1], target_pos[1], None])
+        hover_text = (
+            f"{source_id} → {target_id}<br>"
+            f"Type: {rel_type}<br>"
+            f"Strength: {strength:.2f}"
         )
-        traces.append(trace)
+        hover_texts.extend([hover_text, hover_text, None])
 
-    return traces
+    return go.Scatter(
+        x=edges_x,
+        y=edges_y,
+        mode="lines",
+        line={"color": REL_TYPE_COLORS.get(rel_type, "#888888"), "width": 2},
+        hovertext=hover_texts,
+        hoverinfo="text",
+        name=rel_type.replace("_", " ").title(),
+        showlegend=True,
+    )
+
+
+def _resolve_layout_positions(
+    graph: AssetRelationshipGraph,
+    layout_type: str,
+    asset_ids: List[str],
+) -> Dict[str, Tuple[float, float]]:
+    """Resolve 2D positions for the requested layout type."""
+    if layout_type == "circular":
+        return _create_circular_layout(asset_ids)
+    if layout_type == "grid":
+        return _create_grid_layout(asset_ids)
+    return _spring_or_fallback_positions(graph, asset_ids)
+
+
+def _spring_or_fallback_positions(
+    graph: AssetRelationshipGraph,
+    asset_ids: List[str],
+) -> Dict[str, Tuple[float, float]]:
+    """Build spring-layout positions when available, else use circular."""
+    if not hasattr(graph, "get_3d_visualization_data_enhanced"):
+        return _create_circular_layout(asset_ids)
+    (
+        positions_3d_array,
+        asset_ids_ordered,
+        _,
+        _,
+    ) = graph.get_3d_visualization_data_enhanced()
+    positions_3d = {
+        asset_ids_ordered[i]: tuple(positions_3d_array[i])
+        for i in range(len(asset_ids_ordered))
+    }
+    return _create_spring_layout_2d(positions_3d, asset_ids)
+
+
+def _asset_class_label(asset: object) -> str:
+    """Return asset class label regardless of enum/string representation."""
+    asset_class = getattr(asset, "asset_class", "")
+    if hasattr(asset_class, "value"):
+        return str(asset_class.value)
+    return str(asset_class)
+
+
+def _build_node_visual_components(
+    graph: AssetRelationshipGraph,
+    positions: Dict[str, Tuple[float, float]],
+    asset_ids: List[str],
+) -> Tuple[list[float], list[float], list[str], list[int], list[str]]:
+    """Build x/y coordinates, colors, sizes, and hover texts for nodes."""
+    node_x = [positions[asset_id][0] for asset_id in asset_ids]
+    node_y = [positions[asset_id][1] for asset_id in asset_ids]
+    color_map = {
+        "equity": "#1f77b4",
+        "fixed_income": "#2ca02c",
+        "commodity": "#ff7f0e",
+        "currency": "#d62728",
+        "derivative": "#9467bd",
+    }
+    colors: list[str] = []
+    node_sizes: list[int] = []
+    hover_texts: list[str] = []
+    for asset_id in asset_ids:
+        asset = graph.assets[asset_id]
+        asset_class = _asset_class_label(asset)
+        colors.append(color_map.get(asset_class.lower(), "#7f7f7f"))
+        num_connections = len(graph.relationships.get(asset_id, []))
+        node_sizes.append(20 + min(num_connections * 5, 30))
+        hover_texts.append(f"{asset_id}<br>Class: {asset_class}")
+    return node_x, node_y, colors, node_sizes, hover_texts
 
 
 def visualize_2d_graph(
@@ -252,8 +379,8 @@ def visualize_2d_graph(
 
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph to visualize.
-        layout_type (str): Layout algorithm to use; one of "spring", "circular",
-            or "grid".
+        layout_type (str):
+            Layout algorithm to use; one of "spring", "circular", or "grid".
         show_same_sector (bool): Include "same sector"
             relationships when True.
         show_market_cap (bool): Include "market cap" relationships when True.
@@ -292,26 +419,7 @@ def visualize_2d_graph(
         )
         return fig
 
-    # Create layout based on type
-    if layout_type == "circular":
-        positions = _create_circular_layout(asset_ids)
-    elif layout_type == "grid":
-        positions = _create_grid_layout(asset_ids)
-    else:  # Default to spring layout
-        # Get 3D positions and convert to 2D
-        if hasattr(graph, "get_3d_visualization_data_enhanced"):
-            (
-                positions_3d_array,
-                asset_ids_ordered,
-                _,
-                _,
-            ) = graph.get_3d_visualization_data_enhanced()
-            # Convert array to dictionary
-            positions_3d = {asset_ids_ordered[i]: tuple(positions_3d_array[i]) for i in range(len(asset_ids_ordered))}
-            positions = _create_spring_layout_2d(positions_3d, asset_ids)
-        else:
-            # Fallback to circular if 3D data not available
-            positions = _create_circular_layout(asset_ids)
+    positions = _resolve_layout_positions(graph, layout_type, asset_ids)
 
     # Create figure
     fig = go.Figure()
@@ -334,57 +442,33 @@ def visualize_2d_graph(
     for trace in relationship_traces:
         fig.add_trace(trace)
 
-    # Add node trace
-    node_x = [positions[asset_id][0] for asset_id in asset_ids]
-    node_y = [positions[asset_id][1] for asset_id in asset_ids]
-
-    # Get colors for nodes
-    colors = []
-    for asset_id in asset_ids:
-        asset = graph.assets[asset_id]
-        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
-
-        # Color mapping by asset class
-        color_map = {
-            "equity": "#1f77b4",
-            "fixed_income": "#2ca02c",
-            "commodity": "#ff7f0e",
-            "currency": "#d62728",
-            "derivative": "#9467bd",
-        }
-        colors.append(color_map.get(asset_class.lower(), "#7f7f7f"))
-
-    # Calculate node sizes based on connections
-    node_sizes = []
-    for asset_id in asset_ids:
-        num_connections = len(graph.relationships.get(asset_id, []))
-        size = 20 + min(num_connections * 5, 30)  # Size between 20 and 50
-        node_sizes.append(size)
-
-    # Create hover texts
-    hover_texts = []
-    for asset_id in asset_ids:
-        asset = graph.assets[asset_id]
-        hover_text = f"{asset_id}<br>Class: " + (
-            asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
-        )
-        hover_texts.append(hover_text)
+    (
+        node_x,
+        node_y,
+        colors,
+        node_sizes,
+        hover_texts,
+    ) = _build_node_visual_components(
+        graph=graph,
+        positions=positions,
+        asset_ids=asset_ids,
+    )
 
     node_trace = go.Scatter(
         x=node_x,
         y=node_y,
         mode="markers+text",
-        marker=dict(
-            size=node_sizes,
-            color=colors,
-            opacity=0.9,
-            line=dict(color="rgba(0,0,0,0.8)", width=2),
-        ),
+        marker={
+            "size": node_sizes,
+            "color": colors,
+            "opacity": 0.9,
+            "line": {"color": "rgba(0,0,0,0.8)", "width": 2},
+        },
         text=asset_ids,
         hovertext=hover_texts,
         hoverinfo="text",
         textposition="top center",
-        textfont=dict(size=10, color="black"),
+        textfont={"size": 10, "color": "black"},
         name="Assets",
         showlegend=False,
     )
@@ -397,39 +481,39 @@ def visualize_2d_graph(
         title=f"2D Asset Relationship Network ({layout_name} Layout)",
         plot_bgcolor="white",
         paper_bgcolor="#F8F9FA",
-        xaxis=dict(
-            showgrid=True,
-            gridcolor="rgba(200, 200, 200, 0.3)",
-            zeroline=False,
-            showticklabels=False,
-        ),
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="rgba(200, 200, 200, 0.3)",
-            zeroline=False,
-            showticklabels=False,
-        ),
+        xaxis={
+            "showgrid": True,
+            "gridcolor": "rgba(200, 200, 200, 0.3)",
+            "zeroline": False,
+            "showticklabels": False,
+        },
+        yaxis={
+            "showgrid": True,
+            "gridcolor": "rgba(200, 200, 200, 0.3)",
+            "zeroline": False,
+            "showticklabels": False,
+        },
         width=1200,
         height=800,
         hovermode="closest",
         showlegend=True,
-        legend=dict(
-            x=0.02,
-            y=0.98,
-            bgcolor="rgba(255, 255, 255, 0.8)",
-            bordercolor="rgba(0, 0, 0, 0.3)",
-            borderwidth=1,
-        ),
+        legend={
+            "x": 0.02,
+            "y": 0.98,
+            "bgcolor": "rgba(255, 255, 255, 0.8)",
+            "bordercolor": "rgba(0, 0, 0, 0.3)",
+            "borderwidth": 1,
+        },
         annotations=[
-            dict(
-                text=f"Layout: {layout_name}",
-                xref="paper",
-                yref="paper",
-                x=0.5,
-                y=-0.05,
-                showarrow=False,
-                font=dict(size=12, color="gray"),
-            )
+            {
+                "text": f"Layout: {layout_name}",
+                "xref": "paper",
+                "yref": "paper",
+                "x": 0.5,
+                "y": -0.05,
+                "showarrow": False,
+                "font": {"size": 12, "color": "gray"},
+            }
         ],
     )
 

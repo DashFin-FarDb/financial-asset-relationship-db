@@ -1,8 +1,11 @@
+"""MCP server entrypoint for asset graph operations."""
+
 import argparse
 import copy
 import json
 import threading
 
+from mcp.server.fastmcp import FastMCP
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.models.financial_models import AssetClass, Equity
 
@@ -10,7 +13,7 @@ from src.models.financial_models import AssetClass, Equity
 _graph_lock = threading.Lock()
 
 
-class _ThreadSafeGraph:
+class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
     """Proxy that serializes all access to the underlying graph via a lock."""
 
     def __init__(self, graph_obj: AssetRelationshipGraph, lock: threading.Lock):
@@ -49,24 +52,24 @@ class _ThreadSafeGraph:
 graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 
-def _build_mcp_app():
-    """
-    Create and configure the FastMCP application used by the relationship manager.
+def _get_3d_layout_resource() -> str:
+    """Provide current 3D visualization data for AI spatial reasoning as JSON."""
+    positions, asset_ids, colors, hover = (
+        graph.get_3d_visualization_data_enhanced()
+    )
+    return json.dumps(
+        {
+            "asset_ids": asset_ids,
+            "positions": positions.tolist(),
+            "colors": colors,
+            "hover": hover,
+        }
+    )
 
-    Performs a local (lazy) import of the optional FastMCP dependency so the module can
-    be imported or inspected without requiring the MCP package to be installed. Registers
-    an `add_equity_node` tool that validates (and, if supported by the module-level
-    graph, adds) an Equity asset, and a `graph://data/3d-layout` resource that returns
-    the current 3D visualization data as a JSON string.
 
-    Returns:
-        mcp (FastMCP): Configured FastMCP application instance.
-    """
-    from mcp.server.fastmcp import FastMCP  # local import (lazy)
+def _register_mcp_handlers(mcp: FastMCP) -> None:
+    """Register MCP tools and resources on the provided app instance."""
 
-    mcp = FastMCP("DashFin-Relationship-Manager")
-
-    @mcp.tool()
     def add_equity_node(
         asset_id: str,
         symbol: str,
@@ -74,27 +77,8 @@ def _build_mcp_app():
         sector: str,
         price: float,
     ) -> str:
-        """
-        Validate the provided equity fields and add the resulting Equity to the
-        graph if the graph supports mutation.
-
-        Constructs an Equity instance to perform validation. If the module-level
-        graph exposes an `add_asset` callable the new Equity is added to the
-        graph; otherwise the function only validates and does not mutate graph
-        state.
-
-        Returns:
-            A user-facing message string.
-            On success when the asset was added:
-                "Successfully added: <name> (<symbol>)".
-            On success when only validation occurred:
-                "Successfully validated (Graph mutation not supported):
-                <name> (<symbol>)".
-            On validation failure:
-                "Validation Error: <message>".
-        """
+        """Validate and optionally add an equity node to the shared graph."""
         try:
-            # Uses existing Equity dataclass for post-init validation.
             new_equity = Equity(
                 id=asset_id,
                 symbol=symbol,
@@ -103,34 +87,38 @@ def _build_mcp_app():
                 sector=sector,
                 price=price,
             )
-
-            # Prefer using the graph's public add_asset API
-            # (per AssetRelationshipGraph).
             add_asset = getattr(graph, "add_asset", None)
             if callable(add_asset):
                 add_asset(new_equity)
-                return f"Successfully added: {new_equity.name} ({new_equity.symbol})"
-
-            # Fallback: validation-only behavior if the graph does not
-            # expose an add API.
-            # Explicitly indicate that no mutation occurred.
-            return f"Successfully validated (Graph mutation not supported): " f"{new_equity.name} ({new_equity.symbol})"
+                return (
+                    f"Successfully added: {new_equity.name} "
+                    f"({new_equity.symbol})"
+                )
+            return (
+                "Successfully validated (Graph mutation not supported): "
+                f"{new_equity.name} ({new_equity.symbol})"
+            )
         except ValueError as e:
             return f"Validation Error: {str(e)}"
 
-    @mcp.resource("graph://data/3d-layout")
-    def get_3d_layout() -> str:
-        """Provide current 3D visualization data for AI spatial reasoning as JSON."""
-        positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
-        return json.dumps(
-            {
-                "asset_ids": asset_ids,
-                "positions": positions.tolist(),
-                "colors": colors,
-                "hover": hover,
-            }
-        )
+    mcp.tool()(add_equity_node)
+    mcp.resource("graph://data/3d-layout")(_get_3d_layout_resource)
 
+
+def _build_mcp_app():
+    """
+    Create and configure the FastMCP application used by the relationship manager.
+
+    Registers an `add_equity_node` tool that validates (and, if supported by
+    the module-level graph, adds) an Equity asset, and a
+    `graph://data/3d-layout` resource that returns the current 3D
+    visualization data as a JSON string.
+
+    Returns:
+        mcp (FastMCP): Configured FastMCP application instance.
+    """
+    mcp = FastMCP("DashFin-Relationship-Manager")
+    _register_mcp_handlers(mcp)
     return mcp
 
 
@@ -170,7 +158,10 @@ def main(argv: list[str] | None = None) -> int:
         # Provide a clear message for missing optional dependency
         # when invoked via the CLI.
         missing = getattr(e, "name", None) or str(e)
-        raise SystemExit(f"Missing dependency '{missing}'. " "Install the MCP package to run the server.") from e
+        raise SystemExit(
+            f"Missing dependency '{missing}'. "
+            "Install the MCP package to run the server."
+        ) from e
 
     mcp.run()
     return 0

@@ -16,6 +16,7 @@ import os
 import re
 import sys
 import tempfile
+import traceback
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -83,7 +84,10 @@ class AnalysisData:
 def load_config() -> Dict[str, Any]:
     """Load configuration from YAML file safely."""
     if not os.path.exists(CONFIG_PATH):
-        print(f"Info: Config file not found at {CONFIG_PATH}, using defaults.", file=sys.stderr)
+        print(
+            f"Info: Config file not found at {CONFIG_PATH}, using defaults.",
+            file=sys.stderr,
+        )
         return {}
 
     try:
@@ -131,7 +135,14 @@ def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
         stats["changes"] += total
 
         if total > 500:
-            large_files.append({"filename": pr_file.filename, "changes": total, "additions": adds, "deletions": dels})
+            large_files.append(
+                {
+                    "filename": pr_file.filename,
+                    "changes": total,
+                    "additions": adds,
+                    "deletions": dels,
+                }
+            )
 
     return {
         "file_count": file_count,
@@ -144,7 +155,11 @@ def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
     }
 
 
-def calculate_score(value: int, thresholds: List[Tuple[int, int]], default: int) -> int:
+def calculate_score(
+    value: int,
+    thresholds: List[Tuple[int, int]],
+    default: int,
+) -> int:
     """Helper to calculate score based on value thresholds."""
     for limit, points in thresholds:
         if value > limit:
@@ -152,15 +167,26 @@ def calculate_score(value: int, thresholds: List[Tuple[int, int]], default: int)
     return default
 
 
-def assess_complexity(file_data: Dict[str, Any], commit_count: int) -> Tuple[int, str]:
+def assess_complexity(
+    file_data: Dict[str, Any],
+    commit_count: int,
+) -> Tuple[int, str]:
     """Calculate 0-100 complexity score and risk level."""
     score = 0
 
     # File count impact
-    score += calculate_score(file_data["file_count"], [(50, 30), (20, 20), (10, 10)], default=5)
+    score += calculate_score(
+        file_data["file_count"],
+        [(50, 30), (20, 20), (10, 10)],
+        default=5,
+    )
 
     # Line change impact
-    score += calculate_score(file_data["total_changes"], [(2000, 30), (1000, 20), (500, 15)], default=5)
+    score += calculate_score(
+        file_data["total_changes"],
+        [(2000, 30), (1000, 20), (500, 15)],
+        default=5,
+    )
 
     # Large file penalty (capped at 20)
     if file_data["has_large_files"]:
@@ -168,7 +194,11 @@ def assess_complexity(file_data: Dict[str, Any], commit_count: int) -> Tuple[int
         score += min(penalty, 20)
 
     # Commit count impact
-    score += calculate_score(commit_count, [(50, 20), (20, 15), (10, 10)], default=5)
+    score += calculate_score(
+        commit_count,
+        [(50, 20), (20, 15), (10, 10)],
+        default=5,
+    )
 
     if score >= 70:
         return score, "High"
@@ -177,7 +207,11 @@ def assess_complexity(file_data: Dict[str, Any], commit_count: int) -> Tuple[int
     return score, "Low"
 
 
-def find_scope_issues(pr_title: str, file_data: Dict[str, Any], config: Dict[str, Any]) -> List[str]:
+def find_scope_issues(
+    pr_title: str,
+    file_data: Dict[str, Any],
+    config: Dict[str, Any],
+) -> List[str]:
     """Identify potential scope creep."""
     issues = []
     scope_conf = config.get("scope", {})
@@ -193,23 +227,33 @@ def find_scope_issues(pr_title: str, file_data: Dict[str, Any], config: Dict[str
     # Size checks - File Count
     max_files = int(scope_conf.get("max_files_changed", 30))
     if file_data["file_count"] > max_files:
-        issues.append(f"Too many files changed ({file_data['file_count']} > {max_files})")
+        issues.append(
+            f"Too many files changed ({file_data['file_count']} > {max_files})"
+        )
 
     # FIX: Re-added missing logic for Total Changes
     max_total_changes = int(scope_conf.get("max_total_changes", 1500))
     if file_data["total_changes"] > max_total_changes:
-        issues.append(f"Large changeset ({file_data['total_changes']} lines > {max_total_changes})")
+        issues.append(
+            "Large changeset "
+            f"({file_data['total_changes']} lines > {max_total_changes})"
+        )
 
     # Context switching check
     distinct_types = len(file_data["file_categories"])
     max_types = int(scope_conf.get("max_file_types_changed", 5))
     if distinct_types > max_types:
-        issues.append(f"High context switching ({distinct_types} file types changed)")
+        issues.append(
+            f"High context switching ({distinct_types} file types changed)"
+        )
 
     return issues
 
 
-def find_related_issues(pr_body: Optional[str], repo_url: str) -> List[Dict[str, str]]:
+def find_related_issues(
+    pr_body: Optional[str],
+    repo_url: str,
+) -> List[Dict[str, str]]:
     """Parse PR body for linked issues."""
     if not pr_body:
         return []
@@ -220,44 +264,87 @@ def find_related_issues(pr_body: Optional[str], repo_url: str) -> List[Dict[str,
 
     for pattern in patterns:
         for match in re.finditer(pattern, pr_body, re.IGNORECASE):
-            issue_num = match.group(1) if match.lastindex == 1 else match.group(match.lastindex)
+            group_index = match.lastindex if match.lastindex is not None else 1
+            issue_num = match.group(group_index)
             if issue_num not in found_ids:
                 found_ids.add(issue_num)
-                results.append({"number": issue_num, "url": f"{repo_url}/issues/{issue_num}"})
+                results.append(
+                    {
+                        "number": issue_num,
+                        "url": f"{repo_url}/issues/{issue_num}",
+                    }
+                )
     return results
 
 
 # --- Reporting ---
 
 
+def _format_list_items(items: List[str], header: str) -> str:
+    """Format a markdown bullet section if items exist."""
+    if not items:
+        return ""
+    return f"\n**{header}**\n" + "".join([f"- {item}\n" for item in items])
+
+
+def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
+    """Format changed file categories as markdown bullets."""
+    return "\n".join(
+        [
+            f"- {name.title()}: {count}"
+            for name, count in file_analysis["file_categories"].items()
+        ]
+    )
+
+
+def _format_large_files(file_analysis: Dict[str, Any]) -> str:
+    """Format the large-files section."""
+    large_files = file_analysis["large_files"]
+    if not large_files:
+        return ""
+    lines = [
+        f"- `{item['filename']}`: {item['changes']} lines"
+        for item in large_files
+    ]
+    return "\n**Large Files (>500 lines):**\n" + "\n".join(lines) + "\n"
+
+
+def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
+    """Format linked issues section."""
+    if not related_issues:
+        return ""
+    return "\n**Related Issues:**\n" + "".join(
+        [f"- #{issue['number']}\n" for issue in related_issues]
+    )
+
+
+def _get_recommendations(risk_level: str) -> List[str]:
+    """Return recommendation bullets by risk band."""
+    recommendations = {
+        "High": [
+            "⚠️ Split into smaller changes",
+            "📋 Comprehensive testing required",
+            "👥 Request multiple reviewers",
+        ],
+        "Medium": [
+            "✅ Complexity manageable",
+            "📝 Ensure adequate tests",
+        ],
+    }
+    return recommendations.get(
+        risk_level,
+        ["✅ Low complexity", "🚀 Fast merge candidate"],
+    )
+
+
 def generate_markdown(pr: Any, data: AnalysisData) -> str:
     """Build the markdown report."""
     emoji_map = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}
     risk_emoji = emoji_map.get(data.risk_level, "⚪")
-
-    def list_items(items: List[str], header: str) -> str:
-        if not items:
-            return ""
-        return f"\n**{header}**\n" + "".join([f"- {i}\n" for i in items])
-
-    cat_str = "\n".join([f"- {k.title()}: {v}" for k, v in data.file_analysis["file_categories"].items()])
-
-    large_files_str = ""
-    if data.file_analysis["large_files"]:
-        lines = [f"- `{f['filename']}`: {f['changes']} lines" for f in data.file_analysis["large_files"]]
-        large_files_str = "\n**Large Files (>500 lines):**\n" + "\n".join(lines) + "\n"
-
-    related_str = ""
-    if data.related_issues:
-        related_str = "\n**Related Issues:**\n" + "".join([f"- #{i['number']}\n" for i in data.related_issues])
-
-    recs = []
-    if data.risk_level == "High":
-        recs = ["⚠️ Split into smaller changes", "📋 Comprehensive testing required", "👥 Request multiple reviewers"]
-    elif data.risk_level == "Medium":
-        recs = ["✅ Complexity manageable", "📝 Ensure adequate tests"]
-    else:
-        recs = ["✅ Low complexity", "🚀 Fast merge candidate"]
+    cat_str = _format_file_categories(data.file_analysis)
+    large_files_str = _format_large_files(data.file_analysis)
+    related_str = _format_related_issues(data.related_issues)
+    recs = _get_recommendations(data.risk_level)
 
     return f"""
 🔍 **PR Analysis Report**
@@ -270,9 +357,9 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 **File Breakdown**
 {cat_str}
 {large_files_str}
-{list_items(data.scope_issues, "⚠️ Potential Scope Issues")}
+{_format_list_items(data.scope_issues, "⚠️ Potential Scope Issues")}
 {related_str}
-{list_items(recs, "Recommendations")}
+{_format_list_items(recs, "Recommendations")}
 \n---\n*Generated by PR Copilot*
 """
 
@@ -283,16 +370,32 @@ def write_output(report: str) -> None:
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
     if gh_summary:
         try:
-            with open(gh_summary, "a", encoding="utf-8") as f:
-                f.write(report)
-        except IOError as e:
-            print(f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
+            summary_path = os.path.realpath(gh_summary)
+            temp_root = os.path.realpath(tempfile.gettempdir())
+            if os.path.commonpath([summary_path, temp_root]) != temp_root:
+                print(
+                    "Warning: Ignoring GITHUB_STEP_SUMMARY outside temp dir",
+                    file=sys.stderr,
+                )
+            else:
+                with open(summary_path, "a", encoding="utf-8") as f:
+                    f.write(report)
+        except (IOError, ValueError) as e:
+            print(
+                f"Warning: Failed to write to GITHUB_STEP_SUMMARY: {e}",
+                file=sys.stderr,
+            )
 
     # 2. FIX: Secure Temp File (Address Bandit B303)
     try:
-        # delete=False ensures other steps can read it, but the name is random/secure
+        # delete=False ensures other steps can read it,
+        # while keeping a random, secure filename.
         with tempfile.NamedTemporaryFile(
-            mode="w", encoding="utf-8", delete=False, suffix=".md", prefix="pr_analysis_"
+            mode="w",
+            encoding="utf-8",
+            delete=False,
+            suffix=".md",
+            prefix="pr_analysis_",
         ) as tmp:
             tmp.write(report)
             print(f"Report written to: {tmp.name}")
@@ -308,8 +411,10 @@ def write_output(report: str) -> None:
 
 def run() -> None:
     """Main execution flow."""
-    required_vars = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
-    env_vars = {var: os.environ.get(var) for var in required_vars}
+    env_vars = {
+        var: os.environ.get(var)
+        for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")
+    }
 
     if not all(env_vars.values()):
         print(f"Error: Missing vars: {[k for k, v in env_vars.items() if not v]}", file=sys.stderr)
@@ -348,8 +453,7 @@ def run() -> None:
             commit_count=commit_count,
         )
 
-        report = generate_markdown(pr, analysis)
-        write_output(report)
+        write_output(generate_markdown(pr, analysis))
 
         if risk == "High":
             print("::warning::PR Risk is High! Careful review required.")
@@ -359,9 +463,7 @@ def run() -> None:
     except GithubException as ge:
         print(f"GitHub API Error: {ge}", file=sys.stderr)
         sys.exit(1)
-    except Exception:
-        import traceback
-
+    except (IOError, OSError, RuntimeError, TypeError, ValueError):
         traceback.print_exc()
         sys.exit(1)
 

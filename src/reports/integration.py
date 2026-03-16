@@ -1,12 +1,14 @@
 # src/reports/integration.py
 from __future__ import annotations
 
+import importlib
 from typing import Any, Callable, Literal
 
-import bleach
+import bleach  # type: ignore[import-untyped]
 import markdown
 
 from src.logic.asset_graph import AssetRelationshipGraph
+from src.reports.schema_report import generate_schema_report
 
 # ---------------------------------------------------------------------------
 # Markdown → HTML transformation (sanitized)
@@ -89,7 +91,7 @@ def markdown_to_html(md: str) -> str:
     )
 
     # Add rel="nofollow noopener" to links and open in new tab defensively.
-    def _add_noopener(attrs: dict, new: bool = False) -> dict:
+    def _add_noopener(attrs: dict, _new: bool = False) -> dict:
         rel = attrs.get((None, "rel"), "")
         if "noopener" not in rel:
             attrs[(None, "rel")] = (rel + " noopener").strip()
@@ -110,9 +112,6 @@ def markdown_to_html(md: str) -> str:
 # ---------------------------------------------------------------------------
 # Core generation interface
 # ---------------------------------------------------------------------------
-
-from src.reports.schema_report import generate_schema_report
-
 
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
@@ -151,7 +150,7 @@ def generate_html_report(graph: AssetRelationshipGraph) -> str:
 ReportFormat = Literal["md", "html"]
 
 
-def export_report(graph: AssetRelationshipGraph, fmt: ReportFormat = "md") -> str:
+def export_report(graph: object, fmt: ReportFormat = "md") -> str:
     """
     Export a schema report for `graph` in the requested format.
 
@@ -159,7 +158,7 @@ def export_report(graph: AssetRelationshipGraph, fmt: ReportFormat = "md") -> st
     that need either Markdown or HTML output.
 
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to report on.
+        graph (object): Candidate asset relationship graph to report on.
         fmt (Literal["md", "html"]): Output format.
 
     Returns:
@@ -232,8 +231,8 @@ def attach_to_gradio_interface(
         RuntimeError: If Gradio is not installed.
     """
     try:
-        import gradio as gr
-    except ImportError as exc:  # pragma: no cover
+        gr = importlib.import_module("gradio")
+    except ModuleNotFoundError as exc:  # pragma: no cover
         raise RuntimeError("Gradio is not installed.") from exc
 
     report_fn = make_gradio_report_fn(graph_provider, html=html)

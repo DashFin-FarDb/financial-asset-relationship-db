@@ -1,3 +1,5 @@
+"""Shared constants for graph-visualization styling and defaults."""
+
 from collections import defaultdict
 
 # Color mapping for relationship types; unknown types fall back to gray.

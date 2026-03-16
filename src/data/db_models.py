@@ -4,10 +4,17 @@ from __future__ import annotations
 
 from typing import List
 
-from sqlalchemy import Boolean, Float, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from .base import Base
+from src.data.base import Base
 
 # ---------------------------------------------------------------------------
 # Foreign key target constants (avoid duplicated string literals – Sonar S1192)
@@ -15,6 +22,7 @@ from .base import Base
 
 ASSET_ID_FK = "assets.id"
 REGULATORY_EVENT_ID_FK = "regulatory_events.id"
+CASCADE_DELETE_ORPHAN = "all, delete-orphan"
 
 
 class AssetORM(Base):
@@ -34,11 +42,17 @@ class AssetORM(Base):
     # Equity-specific fields
     pe_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
     dividend_yield: Mapped[float | None] = mapped_column(Float, nullable=True)
-    earnings_per_share: Mapped[float | None] = mapped_column(Float, nullable=True)
+    earnings_per_share: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
     book_value: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     # Bond-specific fields
-    yield_to_maturity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    yield_to_maturity: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
     coupon_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
     maturity_date: Mapped[str | None] = mapped_column(String, nullable=True)
     credit_rating: Mapped[str | None] = mapped_column(String, nullable=True)
@@ -52,28 +66,35 @@ class AssetORM(Base):
     # Currency fields
     exchange_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
     country: Mapped[str | None] = mapped_column(String, nullable=True)
-    central_bank_rate: Mapped[float | None] = mapped_column(Float, nullable=True)
+    central_bank_rate: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+    )
 
-    outgoing_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
+    outgoing_relationships: Mapped[
+        List["AssetRelationshipORM"]
+    ] = relationship(
         "AssetRelationshipORM",
         back_populates="source",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_DELETE_ORPHAN,
         foreign_keys="AssetRelationshipORM.source_asset_id",
     )
-    incoming_relationships: Mapped[List["AssetRelationshipORM"]] = relationship(
+    incoming_relationships: Mapped[
+        List["AssetRelationshipORM"]
+    ] = relationship(
         "AssetRelationshipORM",
         back_populates="target",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_DELETE_ORPHAN,
         foreign_keys="AssetRelationshipORM.target_asset_id",
     )
     regulatory_events: Mapped[List["RegulatoryEventORM"]] = relationship(
         "RegulatoryEventORM",
         back_populates="asset",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_DELETE_ORPHAN,
     )
 
 
-class AssetRelationshipORM(Base):
+class AssetRelationshipORM(Base):  # pylint: disable=too-few-public-methods
     """Stores directed relationships between assets."""
 
     __tablename__ = "asset_relationships"
@@ -86,7 +107,11 @@ class AssetRelationshipORM(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
     source_asset_id: Mapped[str] = mapped_column(
         ForeignKey(ASSET_ID_FK, ondelete="CASCADE"),
         nullable=False,
@@ -137,7 +162,7 @@ class RegulatoryEventORM(Base):
     related_assets: Mapped[List["RegulatoryEventAssetORM"]] = relationship(
         "RegulatoryEventAssetORM",
         back_populates="event",
-        cascade="all, delete-orphan",
+        cascade=CASCADE_DELETE_ORPHAN,
     )
 
 
@@ -153,7 +178,11 @@ class RegulatoryEventAssetORM(Base):
         ),
     )
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+    )
     event_id: Mapped[str] = mapped_column(
         ForeignKey(REGULATORY_EVENT_ID_FK, ondelete="CASCADE"),
         nullable=False,

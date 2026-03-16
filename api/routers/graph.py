@@ -14,6 +14,69 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["graph"])
 
 
+def _build_visualization_nodes(
+    graph: Any,
+    positions: Any,
+    asset_ids: List[str],
+    asset_colors: List[str],
+) -> List[Dict[str, Any]]:
+    """Build node payloads for the visualization response."""
+    nodes: List[Dict[str, Any]] = []
+    for i, asset_id in enumerate(asset_ids):
+        asset = graph.assets[asset_id]
+        nodes.append(
+            {
+                "id": asset_id,
+                "name": asset.name,
+                "symbol": asset.symbol,
+                "asset_class": asset.asset_class.value,
+                "x": float(positions[i, 0]),
+                "y": float(positions[i, 1]),
+                "z": float(positions[i, 2]),
+                "color": asset_colors[i],
+                "size": 5,
+            }
+        )
+    return nodes
+
+
+def _build_visualization_edges(
+    relationships: Dict[str, List[Any]],
+    allowed_asset_ids: set[str],
+) -> List[Dict[str, Any]]:
+    """Build edge payloads for source/target pairs present in the node set."""
+    edges: List[Dict[str, Any]] = []
+    for source_id, rels in relationships.items():
+        if source_id in allowed_asset_ids:
+            _append_allowed_edges(
+                edges=edges,
+                source_id=source_id,
+                rels=rels,
+                allowed_asset_ids=allowed_asset_ids,
+            )
+    return edges
+
+
+def _append_allowed_edges(
+    *,
+    edges: List[Dict[str, Any]],
+    source_id: str,
+    rels: List[Any],
+    allowed_asset_ids: set[str],
+) -> None:
+    """Append only edges whose targets are present in the allowed node set."""
+    for target_id, rel_type, strength in rels:
+        if target_id in allowed_asset_ids:
+            edges.append(
+                {
+                    "source": source_id,
+                    "target": target_id,
+                    "relationship_type": rel_type,
+                    "strength": float(strength),
+                }
+            )
+
+
 @router.get(
     "/relationships",
     response_model=List[RelationshipResponse],
@@ -26,7 +89,7 @@ router = APIRouter(prefix="/api", tags=["graph"])
         },
     },
 )
-async def get_all_relationships():
+async def get_all_relationships() -> List[RelationshipResponse]:
     """
     List all directed relationships in the initialized asset graph.
 
@@ -57,8 +120,7 @@ async def get_all_relationships():
             status_code=500,
             detail="An internal error occurred. Please try again later.",
         ) from e
-    else:
-        return relationships
+    return relationships
 
 
 @router.get(
@@ -73,7 +135,7 @@ async def get_all_relationships():
         },
     },
 )
-async def get_metrics():
+async def get_metrics() -> MetricsResponse:
     """
     Aggregate network metrics and counts of assets by asset class.
 
@@ -139,7 +201,7 @@ async def get_metrics():
         },
     },
 )
-async def get_visualization_data():
+async def get_visualization_data() -> VisualizationDataResponse:
     """
     Provide nodes and edges prepared for 3D visualization of the asset graph.
 
@@ -158,46 +220,14 @@ async def get_visualization_data():
     """
     try:
         g = get_graph()
-        # get_3d_visualization_data_enhanced returns:
-        # (positions, asset_ids, colors, hover_texts)
         positions, asset_ids, asset_colors, _ = g.get_3d_visualization_data_enhanced()
-        nodes: List[Dict[str, Any]] = []
-        for i, asset_id in enumerate(asset_ids):
-            asset = g.assets[asset_id]
-            nodes.append(
-                {
-                    "id": asset_id,
-                    "name": asset.name,
-                    "symbol": asset.symbol,
-                    "asset_class": asset.asset_class.value,
-                    "x": float(positions[i, 0]),
-                    "y": float(positions[i, 1]),
-                    "z": float(positions[i, 2]),
-                    "color": asset_colors[i],
-                    "size": 5,
-                }
-            )
+        nodes = _build_visualization_nodes(g, positions, asset_ids, asset_colors)
+        edges = _build_visualization_edges(g.relationships, set(asset_ids))
 
-        edges: List[Dict[str, Any]] = []
-        # Build edges directly from graph.relationships to avoid rebuilding
-        # from intermediate data structures. Only include edges where both
-        # source and target are in the asset_ids list.
-        asset_id_set = set(asset_ids)
-        for source_id in g.relationships:
-            if source_id not in asset_id_set:
-                continue
-            for target_id, rel_type, strength in g.relationships[source_id]:
-                if target_id in asset_id_set:
-                    edges.append(
-                        {
-                            "source": source_id,
-                            "target": target_id,
-                            "relationship_type": rel_type,
-                            "strength": float(strength),
-                        }
-                    )
-
-        return VisualizationDataResponse(nodes=nodes, edges=edges)
+        return VisualizationDataResponse(
+            nodes=nodes,
+            edges=edges,
+        )
     except Exception as e:  # noqa: BLE001
         logger.exception("Error getting visualization data:")
         raise HTTPException(
@@ -214,7 +244,7 @@ async def get_visualization_data():
         },
     },
 )
-async def get_asset_classes():
+async def get_asset_classes() -> Dict[str, List[str]]:
     """
     List available asset classes.
 
@@ -239,7 +269,7 @@ async def get_asset_classes():
         },
     },
 )
-async def get_sectors():
+async def get_sectors() -> Dict[str, List[str]]:
     """
     List unique sector names present in the global asset graph in sorted
     order.

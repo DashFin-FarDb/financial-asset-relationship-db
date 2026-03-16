@@ -1,13 +1,15 @@
+"""Visualization helpers for formulaic financial analysis results."""
+
 from typing import Any, Dict, Mapping
 
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+import plotly.graph_objects as go  # type: ignore[import-untyped]
+from plotly.subplots import make_subplots  # type: ignore[import-untyped]
 
 from src.analysis.formulaic_analysis import Formula
 
 
 class FormulaicVisualizer:
-    """Visualizes mathematical formulas and relationships from financial analysis."""
+    """Visualize formulas and relationships from financial analysis."""
 
     def __init__(self) -> None:
         self.color_scheme = {
@@ -21,10 +23,16 @@ class FormulaicVisualizer:
             "Cross-Asset": "#F7DC6F",
         }
 
-    def create_formula_dashboard(self, analysis_results: Dict[str, Any]) -> go.Figure:
-        """Create a comprehensive dashboard showing all formulaic relationships."""
+    def create_formula_dashboard(
+        self,
+        analysis_results: Dict[str, Any],
+    ) -> go.Figure:
+        """Create a dashboard for formulaic relationships."""
         formulas = analysis_results.get("formulas", [])
-        empirical_relationships = analysis_results.get("empirical_relationships", {})
+        empirical_relationships = analysis_results.get(
+            "empirical_relationships",
+            {},
+        )
 
         fig = make_subplots(
             rows=3,
@@ -73,7 +81,7 @@ class FormulaicVisualizer:
         if not formulas:
             return
 
-        categories = {}
+        categories: Dict[str, int] = {}
         for formula in formulas:
             category = getattr(formula, "category", "Unknown")
             categories[category] = categories.get(category, 0) + 1
@@ -109,7 +117,7 @@ class FormulaicVisualizer:
         if not formulas:
             return
 
-        categories = {}
+        categories: Dict[str, list[float]] = {}
         for formula in formulas:
             category = getattr(formula, "category", "Unknown")
             r_squared = getattr(formula, "r_squared", 0.0)
@@ -123,7 +131,7 @@ class FormulaicVisualizer:
             go.Bar(
                 x=list(avg_r_squared.keys()),
                 y=list(avg_r_squared.values()),
-                marker=dict(color="lightcoral"),
+                marker={"color": "lightcoral"},
             ),
             row=1,
             col=2,
@@ -153,43 +161,15 @@ class FormulaicVisualizer:
                 value is a dict mapping asset names to dictionaries
                 of asset-to-correlation values.
         """
-        correlation_matrix = (
-            empirical_relationships.get("correlation_matrix") if isinstance(empirical_relationships, dict) else {}
+        correlation_matrix = FormulaicVisualizer._extract_correlation_matrix(
+            empirical_relationships
         )
-
         if not correlation_matrix:
             return
 
-        if not isinstance(correlation_matrix, dict):
+        assets, z = FormulaicVisualizer._build_correlation_grid(correlation_matrix)
+        if not assets:
             return
-
-        # Detect flat format: {"ASSET1-ASSET2": float, ...} vs nested: {"ASSET1": {"ASSET2": float}}
-        first_val = next(iter(correlation_matrix.values()), None)
-        if isinstance(first_val, (int, float)):
-            # Flat format: parse asset pairs from keys
-            assets_set: set[str] = set()
-            for key in correlation_matrix:
-                if "-" in key:
-                    parts = key.split("-", 1)
-                    assets_set.add(parts[0])
-                    assets_set.add(parts[1])
-            assets = sorted(assets_set)[:8]
-            z = []
-            for a1 in assets:
-                row: list[float] = []
-                for a2 in assets:
-                    if a1 == a2:
-                        row.append(1.0)
-                    else:
-                        key1 = f"{a1}-{a2}"
-                        key2 = f"{a2}-{a1}"
-                        val = correlation_matrix.get(key1, correlation_matrix.get(key2, 0.0))
-                        row.append(val)
-                z.append(row)
-        else:
-            # Nested format: {"ASSET1": {"ASSET2": float, ...}, ...}
-            assets = sorted(correlation_matrix.keys())[:8]
-            z = [[correlation_matrix.get(a1, {}).get(a2, 0.0) for a2 in assets] for a1 in assets]
 
         fig.add_trace(
             go.Heatmap(
@@ -205,13 +185,120 @@ class FormulaicVisualizer:
         )
 
     @staticmethod
+    def _extract_correlation_matrix(
+        empirical_relationships: Mapping[str, Any],
+    ) -> Mapping[str, Any]:
+        """Extract a dictionary-like correlation matrix from relationships."""
+        if not isinstance(empirical_relationships, dict):
+            return {}
+        matrix = empirical_relationships.get("correlation_matrix")
+        return matrix if isinstance(matrix, dict) else {}
+
+    @staticmethod
+    def _build_correlation_grid(
+        correlation_matrix: Mapping[str, Any],
+    ) -> tuple[list[str], list[list[float]]]:
+        """Build ordered assets and matrix values for correlation heatmaps."""
+        first_val = next(iter(correlation_matrix.values()), None)
+        if isinstance(first_val, (int, float)):
+            return FormulaicVisualizer._build_flat_correlation_grid(correlation_matrix)
+        return FormulaicVisualizer._build_nested_correlation_grid(correlation_matrix)
+
+    @staticmethod
+    def _build_flat_correlation_grid(
+        correlation_matrix: Mapping[str, Any],
+    ) -> tuple[list[str], list[list[float]]]:
+        """Build a heatmap grid from flat pair-keyed correlations."""
+        assets = FormulaicVisualizer._collect_flat_assets(correlation_matrix)
+        z = [
+            FormulaicVisualizer._build_flat_correlation_row(
+                source,
+                assets,
+                correlation_matrix,
+            )
+            for source in assets
+        ]
+        return assets, z
+
+    @staticmethod
+    def _collect_flat_assets(correlation_matrix: Mapping[str, Any]) -> list[str]:
+        """Collect sorted asset IDs from flat pair-keyed correlations."""
+        assets_set: set[str] = set()
+        for key in correlation_matrix:
+            source, target = FormulaicVisualizer._split_pair_key(key)
+            if source and target:
+                assets_set.add(source)
+                assets_set.add(target)
+        return sorted(assets_set)[:8]
+
+    @staticmethod
+    def _build_flat_correlation_row(
+        source: str,
+        assets: list[str],
+        correlation_matrix: Mapping[str, Any],
+    ) -> list[float]:
+        """Build one heatmap row for a source asset."""
+        return [
+            FormulaicVisualizer._flat_correlation_value(
+                source,
+                target,
+                correlation_matrix,
+            )
+            for target in assets
+        ]
+
+    @staticmethod
+    def _flat_correlation_value(
+        source: str,
+        target: str,
+        correlation_matrix: Mapping[str, Any],
+    ) -> float:
+        """Return a correlation value for an unordered asset pair."""
+        if source == target:
+            return 1.0
+        key1 = f"{source}-{target}"
+        key2 = f"{target}-{source}"
+        raw = correlation_matrix.get(key1, correlation_matrix.get(key2, 0.0))
+        return FormulaicVisualizer._to_float(raw)
+
+    @staticmethod
+    def _split_pair_key(key: str) -> tuple[str, str]:
+        """Split a `SOURCE-TARGET` key into parts."""
+        if "-" not in key:
+            return "", ""
+        source, target = key.split("-", 1)
+        return source, target
+
+    @staticmethod
+    def _build_nested_correlation_grid(
+        correlation_matrix: Mapping[str, Any],
+    ) -> tuple[list[str], list[list[float]]]:
+        """Build a heatmap grid from nested asset correlation mappings."""
+        assets = sorted(correlation_matrix.keys())[:8]
+        z: list[list[float]] = []
+        for source in assets:
+            source_map = correlation_matrix.get(source, {})
+            source_map = source_map if isinstance(source_map, dict) else {}
+            row = [FormulaicVisualizer._to_float(source_map.get(target, 0.0)) for target in assets]
+            z.append(row)
+        return assets, z
+
+    @staticmethod
+    def _to_float(value: Any) -> float:
+        """Safely coerce input values to float."""
+        try:
+            return float(value)
+        except (TypeError, ValueError):
+            return 0.0
+
+    @staticmethod
     def _plot_asset_class_relationships(fig: go.Figure, formulas: Any) -> None:
         """Plot relationships between asset classes."""
         if not formulas:
             return
 
         # Group formulas by category and count relationships
-        categories = {}
+        categories: Dict[str, int] = {}
         for formula in formulas:
             category = getattr(formula, "category", "Unknown")
             categories[category] = categories.get(category, 0) + 1
@@ -220,7 +307,7 @@ class FormulaicVisualizer:
             go.Bar(
                 x=list(categories.keys()),
                 y=list(categories.values()),
-                marker=dict(color="lightgreen"),
+                marker={"color": "lightgreen"},
             ),
             row=2,
             col=2,
@@ -244,7 +331,7 @@ class FormulaicVisualizer:
             return
 
         # Simple sector distribution based on categories
-        categories = {}
+        categories: Dict[str, Dict[str, int | float]] = {}
         for formula in formulas:
             category = getattr(formula, "category", "Unknown")
             r_squared = getattr(formula, "r_squared", 0.0)
@@ -254,14 +341,19 @@ class FormulaicVisualizer:
             categories[category]["total_r2"] += r_squared
 
         sector_performance = {
-            cat: data["total_r2"] / data["count"] if data["count"] > 0 else 0.0 for cat, data in categories.items()
+            cat: (
+                data["total_r2"] / data["count"]
+                if data["count"] > 0
+                else 0.0
+            )
+            for cat, data in categories.items()
         }
 
         fig.add_trace(
             go.Bar(
                 x=list(sector_performance.keys()),
                 y=list(sector_performance.values()),
-                marker=dict(color="lightblue"),
+                marker={"color": "lightblue"},
             ),
             row=3,
             col=1,
@@ -271,7 +363,11 @@ class FormulaicVisualizer:
     # Table rendering
     # ------------------------------------------------------------------
 
-    def _plot_key_formula_examples(self, fig: go.Figure, formulas: Any) -> None:
+    def _plot_key_formula_examples(
+        self,
+        fig: go.Figure,
+        formulas: Any,
+    ) -> None:
         """
         Add a "Key Formula Examples" table to the figure showing the
         top 10 formulas ranked by R-squared.
@@ -293,20 +389,22 @@ class FormulaicVisualizer:
         sorted_formulas = self._get_sorted_formulas(formulas)
         top_formulas = sorted_formulas[:10]
 
-        names, categories, r_squared_values = self._extract_formula_table_data(top_formulas)
+        names, categories, r_squared_values = self._extract_formula_table_data(
+            top_formulas
+        )
 
         fig.add_trace(
             go.Table(
-                header=dict(
-                    values=["Formula", "Category", "R-squared"],
-                    fill_color="#f2f2f2",
-                    align="left",
-                ),
-                cells=dict(
-                    values=[names, categories, r_squared_values],
-                    fill_color="#ffffff",
-                    align="left",
-                ),
+                header={
+                    "values": ["Formula", "Category", "R-squared"],
+                    "fill_color": "#f2f2f2",
+                    "align": "left",
+                },
+                cells={
+                    "values": [names, categories, r_squared_values],
+                    "fill_color": "#ffffff",
+                    "align": "left",
+                },
             ),
             row=3,
             col=2,
@@ -516,8 +614,8 @@ class FormulaicVisualizer:
             title="Asset Correlation Network",
             showlegend=False,
             hovermode="closest",
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+            xaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
+            yaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
         )
         return fig
 
@@ -640,7 +738,7 @@ class FormulaicVisualizer:
             x=[x0, x1, None],
             y=[y0, y1, None],
             mode="lines",
-            line=dict(color=color, width=width),
+            line={"color": color, "width": width},
             hoverinfo="text",
             text=f"{asset1} - {asset2}: {value:.3f}",
             showlegend=False,
@@ -676,14 +774,14 @@ class FormulaicVisualizer:
             mode="markers+text",
             text=assets,
             textposition="top center",
-            marker=dict(
-                size=20,
-                color="lightblue",
-                line=dict(
-                    color="black",
-                    width=2,
-                ),
-            ),
+            marker={
+                "size": 20,
+                "color": "lightblue",
+                "line": {
+                    "color": "black",
+                    "width": 2,
+                },
+            },
             hoverinfo="text",
             showlegend=False,
         )
@@ -724,7 +822,10 @@ class FormulaicVisualizer:
             categories.setdefault(category, []).append(r_sq)
 
         category_names = list(categories.keys())
-        r_squared_by_category = [sum(values) / len(values) if values else 0.0 for values in categories.values()]
+        r_squared_by_category = [
+            sum(values) / len(values) if values else 0.0
+            for values in categories.values()
+        ]
         count_by_category = [len(values) for values in categories.values()]
 
         fig.add_trace(

@@ -3,6 +3,9 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
+from importlib import import_module
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
@@ -11,16 +14,19 @@ from sqlalchemy.pool import StaticPool
 
 Base = declarative_base()
 
-# Canonical transaction helper lives in repository.py per tech spec.
-# Re-export here for backward compatibility with older imports.
-# NOTE: This import must come AFTER Base is defined to avoid a circular
-# import (database -> repository -> db_models -> database.Base).
-from .repository import session_scope  # noqa: F401, E402
-
 DEFAULT_DATABASE_URL = os.getenv(
     "ASSET_GRAPH_DATABASE_URL",
     "sqlite:///./asset_graph.db",
 )
+
+__all__ = [
+    "Base",
+    "DEFAULT_DATABASE_URL",
+    "create_engine_from_url",
+    "create_session_factory",
+    "init_db",
+    "session_scope",
+]
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
@@ -46,6 +52,20 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
         autoflush=False,
         future=True,
     )
+
+
+@contextmanager
+def session_scope(
+    session_factory: Callable[[], Session],
+) -> Generator[Session, None, None]:
+    """Proxy to repository.session_scope while avoiding import-order lint issues."""
+    # Keep compatibility for callers importing session_scope from this module.
+    repository_session_scope = import_module(
+        "src.data.repository"
+    ).session_scope
+
+    with repository_session_scope(session_factory) as session:
+        yield session
 
 
 def init_db(engine: Engine) -> None:

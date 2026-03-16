@@ -9,7 +9,7 @@ for financial asset network plots.
 
 from typing import Dict, List, Optional, Tuple
 
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 
 def _generate_dynamic_title(
@@ -18,25 +18,40 @@ def _generate_dynamic_title(
     base_title: str = "Financial Asset Network",
 ) -> str:
     """
-    Builds a title string summarizing the number of assets and relationships for the visualization.
+    Build a title summarizing asset and relationship counts.
 
     Returns:
-        A title string formatted as "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
+        A title string formatted as
+        "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
     """
-    return f"{base_title} - {num_assets} Assets, {num_relationships} Relationships"
+    return (
+        f"{base_title} - {num_assets} Assets, "
+        f"{num_relationships} Relationships"
+    )
 
 
-def _calculate_visible_relationships(relationship_traces: List[go.Scatter3d]) -> int:
+def _calculate_visible_relationships(
+    relationship_traces: List[go.Scatter3d],
+) -> int:
     """
     Estimate the number of visible relationships from a list of 3D scatter traces.
 
     Parameters:
-        relationship_traces (List[go.Scatter3d]): Scatter3d traces whose `x` coordinate arrays represent plotted points; traces missing `x` are treated as having zero points.
+        relationship_traces (List[go.Scatter3d]):
+            Scatter3d traces whose `x` coordinate arrays represent
+            plotted points; traces missing `x` are treated as having
+            zero points.
 
     Returns:
-        visible_relationships (int): Estimated number of visible relationships computed by summing all points across traces and dividing the total by 3.
+        visible_relationships (int): Estimated relationship count,
+            computed by summing plotted points across traces and
+            dividing by 3.
     """
-    return sum(len(getattr(t, "x", []) or []) for t in relationship_traces) // 3
+    total_points = sum(
+        len(getattr(trace, "x", []) or [])
+        for trace in relationship_traces
+    )
+    return total_points // 3
 
 
 def _prepare_layout_config(
@@ -46,21 +61,30 @@ def _prepare_layout_config(
     layout_options: Optional[Dict[str, object]] = None,
 ) -> Tuple[str, Dict[str, object]]:
     """
-    Create a dynamic title from the number of assets and visible relationships and return it together with layout options.
+    Create a dynamic title and return it with layout options.
 
-    Calculates the number of visible relationships from the provided 3D scatter traces, generates a title by combining that count with the base title and asset count, and returns the title along with the provided layout options (or an empty dict if none were supplied).
+    Calculates visible relationships from the provided 3D traces,
+    combines that count with asset count and base title, and returns
+    the title plus provided layout options (or an empty dict).
 
     Parameters:
         num_assets (int): Number of assets to include in the title.
-        relationship_traces (List[go.Scatter3d]): Scatter3d traces used to determine visible relationships.
+        relationship_traces (List[go.Scatter3d]):
+            Scatter3d traces used to determine visible relationships.
         base_title (str): Base string to prefix the generated title.
-        layout_options (Optional[Dict[str, object]]): Optional layout configuration to return alongside the title.
+        layout_options (Optional[Dict[str, object]]):
+            Optional layout configuration to return with the title.
 
     Returns:
-        Tuple[str, Dict[str, object]]: A tuple containing the generated dynamic title and the layout options dictionary (empty if none provided).
+        Tuple[str, Dict[str, object]]: Generated title and layout
+            options dictionary (empty if none provided).
     """
     num_relationships = _calculate_visible_relationships(relationship_traces)
-    dynamic_title = _generate_dynamic_title(num_assets, num_relationships, base_title)
+    dynamic_title = _generate_dynamic_title(
+        num_assets,
+        num_relationships,
+        base_title,
+    )
     return dynamic_title, layout_options or {}
 
 
@@ -89,22 +113,34 @@ def _configure_3d_layout(
             "xanchor": "center",
             "font": {"size": 16},
         },
-        scene=dict(
-            xaxis=dict(title="Dimension 1", showgrid=True, gridcolor=gridcolor),
-            yaxis=dict(title="Dimension 2", showgrid=True, gridcolor=gridcolor),
-            zaxis=dict(title="Dimension 3", showgrid=True, gridcolor=gridcolor),
-            bgcolor=bgcolor,
-            camera=dict(eye=dict(x=1.5, y=1.5, z=1.5)),
-        ),
+        scene={
+            "xaxis": {
+                "title": "Dimension 1",
+                "showgrid": True,
+                "gridcolor": gridcolor,
+            },
+            "yaxis": {
+                "title": "Dimension 2",
+                "showgrid": True,
+                "gridcolor": gridcolor,
+            },
+            "zaxis": {
+                "title": "Dimension 3",
+                "showgrid": True,
+                "gridcolor": gridcolor,
+            },
+            "bgcolor": bgcolor,
+            "camera": {"eye": {"x": 1.5, "y": 1.5, "z": 1.5}},
+        },
         width=width,
         height=height,
         showlegend=True,
         hovermode="closest",
-        legend=dict(
-            x=0.02,
-            y=0.98,
-            bgcolor=legend_bgcolor,
-            bordercolor=legend_bordercolor,
-            borderwidth=1,
-        ),
+        legend={
+            "x": 0.02,
+            "y": 0.98,
+            "bgcolor": legend_bgcolor,
+            "bordercolor": legend_bordercolor,
+            "borderwidth": 1,
+        },
     )

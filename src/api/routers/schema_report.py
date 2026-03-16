@@ -1,7 +1,11 @@
+"""API routes for generating and validating schema reports."""
+
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
-from fastapi.responses import HTMLResponse, Response
+from typing import Annotated, Literal
+
+from fastapi import APIRouter, Depends, Query  # pylint: disable=import-error
+from fastapi.responses import Response  # pylint: disable=import-error
 
 from src.api.dependencies import get_graph
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -16,8 +20,11 @@ router = APIRouter(prefix="/schema-report", tags=["schema-report"])
 
 @router.get("/", summary="Get schema report")
 def schema_report(
-    report_format: str = Query("md", pattern="^(md|html)$"),
-    graph: AssetRelationshipGraph = Depends(get_graph),
+    graph: Annotated[AssetRelationshipGraph, Depends(get_graph)],
+    report_format: Annotated[
+        Literal["md", "html"],
+        Query(pattern="^(md|html)$"),
+    ] = "md",
 ) -> Response:
     """
     Return the schema report in Markdown or HTML format.
@@ -28,13 +35,13 @@ def schema_report(
             media_type="text/markdown; charset=utf-8",
         )
     html = generate_html_report(graph)
-    return HTMLResponse(content=html, media_type="text/html; charset=utf-8")
+    return Response(content=html, media_type="text/html; charset=utf-8")
 
 
 @router.get("/raw", summary="Raw export of schema report")
 def schema_report_raw(
-    fmt: str = Query("md", pattern="^(md|html)$"),
-    graph: AssetRelationshipGraph = Depends(get_graph),
+    graph: Annotated[AssetRelationshipGraph, Depends(get_graph)],
+    fmt: Annotated[Literal["md", "html"], Query(pattern="^(md|html)$")] = "md",
 ) -> dict[str, str]:
     """
     Return the schema report as a downloadable file payload.

@@ -1,3 +1,5 @@
+"""Core financial domain models and enums used across the project."""
+
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -6,7 +8,7 @@ from typing import List, Optional
 
 # Asset Class Definitions
 class AssetClass(Enum):
-    """An enumeration of possible asset classes, representing categories such as equity, fixed income, commodity, currency, and derivative."""
+    """Asset-class categories used by domain models."""
 
     EQUITY = "Equity"
     FIXED_INCOME = "Fixed Income"
@@ -16,7 +18,7 @@ class AssetClass(Enum):
 
 
 class RegulatoryActivity(Enum):
-    """An enumeration of regulatory activities for financial assets, including earnings reports, SEC filings, dividend announcements, bond issuances, acquisitions, and bankruptcies."""
+    """Regulatory activities associated with tracked assets."""
 
     EARNINGS_REPORT = "Earnings Report"
     SEC_FILING = "SEC Filing"
@@ -39,19 +41,54 @@ class Asset:
     market_cap: Optional[float] = None
     currency: str = "USD"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate asset data after initialization"""
-        if not self.id or not isinstance(self.id, str):
-            raise ValueError("Asset id must be a non-empty string")
-        if not self.symbol or not isinstance(self.symbol, str):
-            raise ValueError("Asset symbol must be a non-empty string")
-        if not self.name or not isinstance(self.name, str):
-            raise ValueError("Asset name must be a non-empty string")
-        if not isinstance(self.price, (int, float)) or self.price < 0:
-            raise ValueError("Asset price must be a non-negative number")
-        if self.market_cap is not None and (not isinstance(self.market_cap, (int, float)) or self.market_cap < 0):
-            raise ValueError("Market cap must be a non-negative number or None")
-        if not re.match(r"^[A-Z]{3}$", self.currency.upper()):
+        self._validate_non_empty_string(
+            self.id,
+            "Asset id must be a non-empty string",
+        )
+        self._validate_non_empty_string(
+            self.symbol,
+            "Asset symbol must be a non-empty string",
+        )
+        self._validate_non_empty_string(
+            self.name,
+            "Asset name must be a non-empty string",
+        )
+        self._validate_non_negative_number(
+            self.price,
+            "Asset price must be a non-negative number",
+        )
+        self._validate_non_negative_number(
+            self.market_cap,
+            "Market cap must be a non-negative number or None",
+            allow_none=True,
+        )
+        self._validate_currency_code(self.currency)
+
+    @staticmethod
+    def _validate_non_empty_string(value: object, error_message: str) -> None:
+        """Ensure required string fields are non-empty strings."""
+        if not isinstance(value, str) or not value:
+            raise ValueError(error_message)
+
+    @staticmethod
+    def _validate_non_negative_number(
+        value: object,
+        error_message: str,
+        *,
+        allow_none: bool = False,
+    ) -> None:
+        """Ensure numeric fields are non-negative."""
+        if value is None and allow_none:
+            return
+        if not isinstance(value, (int, float)) or value < 0:
+            raise ValueError(error_message)
+
+    @staticmethod
+    def _validate_currency_code(currency: str) -> None:
+        """Ensure currency code is an uppercase 3-letter ISO-like token."""
+        if not re.match(r"^[A-Z]{3}$", currency.upper()):
             raise ValueError("Currency must be a valid 3-letter ISO code")
 
 
@@ -106,16 +143,40 @@ class RegulatoryEvent:
     impact_score: float  # -1 to 1
     related_assets: List[str] = field(default_factory=list)
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Validate event data after initialization"""
-        if not self.id or not isinstance(self.id, str):
-            raise ValueError("Event id must be a non-empty string")
-        if not self.asset_id or not isinstance(self.asset_id, str):
-            raise ValueError("Asset id must be a non-empty string")
-        if not isinstance(self.impact_score, (int, float)) or not -1 <= self.impact_score <= 1:
+        self._validate_non_empty_string(
+            self.id,
+            "Event id must be a non-empty string",
+        )
+        self._validate_non_empty_string(
+            self.asset_id,
+            "Asset id must be a non-empty string",
+        )
+        self._validate_impact_score(self.impact_score)
+        self._validate_iso_date_prefix(self.date)
+        self._validate_non_empty_string(
+            self.description,
+            "Description must be a non-empty string",
+        )
+
+    @staticmethod
+    def _validate_non_empty_string(value: object, error_message: str) -> None:
+        """Ensure required event fields are non-empty strings."""
+        if not isinstance(value, str) or not value:
+            raise ValueError(error_message)
+
+    @staticmethod
+    def _validate_impact_score(value: object) -> None:
+        """Ensure event impact score is numeric and normalized to [-1, 1]."""
+        if not isinstance(value, (int, float)) or not -1 <= value <= 1:
             raise ValueError("Impact score must be a float between -1 and 1")
-        # Basic ISO 8601 date validation
-        if not re.match(r"^\d{4}-\d{2}-\d{2}", self.date):
+
+    @staticmethod
+    def _validate_iso_date_prefix(value: object) -> None:
+        """Validate the basic ISO 8601 date prefix (YYYY-MM-DD)."""
+        if (
+            not isinstance(value, str)
+            or not re.match(r"^\d{4}-\d{2}-\d{2}", value)
+        ):
             raise ValueError("Date must be in ISO 8601 format (YYYY-MM-DD...)")
-        if not self.description or not isinstance(self.description, str):
-            raise ValueError("Description must be a non-empty string")

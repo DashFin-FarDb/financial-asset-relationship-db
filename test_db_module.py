@@ -2,51 +2,58 @@
 
 import logging
 
-from src.data.database import get_db
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+
+from src.data.database import create_engine_from_url, create_session_factory
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
 logger = logging.getLogger(__name__)
 
 
-def test_database_connection():
-    """Test the database connection module"""
+def test_database_connection() -> bool:
+    """Test connectivity using current database module API."""
     logger.info("Testing database connection...")
+    engine = create_engine_from_url()
+    session_factory = create_session_factory(engine)
+    backend = engine.url.get_backend_name()
 
-    # Get database connection
-    db = get_db()
-
-    # Try to connect
-    if db.connect():
-        logger.info("Connected using: %s", db.connection_type)
-
-        # Try a simple query
-        try:
-            # Query the database
-            results = db.query("assets", limit=5)
-
-            if results:
-                logger.info("Successfully queried database! Found %s records.", len(results))
-                logger.info("Sample data: %s", results[:2])
+    try:
+        with session_factory() as session:
+            session.execute(text("SELECT 1"))
+            logger.info("Connected using backend: %s", backend)
+            table_rows = session.execute(
+                text(
+                    "SELECT name FROM sqlite_master "
+                    "WHERE type='table' ORDER BY name LIMIT 5"
+                )
+            ).all()
+            if table_rows:
+                sample_tables = [row[0] for row in table_rows]
+                logger.info(
+                    "Successfully queried database! Found %s table(s).",
+                    len(sample_tables),
+                )
+                logger.info("Sample tables: %s", sample_tables[:2])
             else:
-                logger.warning("Query returned no results. This might be normal for a new database.")
-
-            # Close the connection
-            db.close()
+                logger.warning(
+                    "Query returned no table rows. This may be normal for a "
+                    "new database."
+                )
             return True
-
-        except Exception:
-            logger.exception("Query failed")
-            return False
-    else:
-        logger.error("Failed to connect to database.")
+    except SQLAlchemyError:
+        logger.exception("Database query failed")
         return False
 
 
 if __name__ == "__main__":
-    success = test_database_connection()
+    SUCCESS = test_database_connection()
 
-    if success:
+    if SUCCESS:
         logger.info("✅ Database module test completed!")
     else:
         logger.error("❌ Database module test failed!")

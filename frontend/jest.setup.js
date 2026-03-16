@@ -12,6 +12,42 @@ process.env.NEXT_PUBLIC_API_URL = defaultApiBaseUrl
 process.env.NEXT_PUBLIC_API_BASE_URL = defaultApiBaseUrl
 
 /**
+ * Invoke all registered MediaQueryList listeners and onchange callback.
+ * @param {Set<Function>} listeners Registered listeners.
+ * @param {object} event Media query change event payload.
+ * @param {Function|null} onchange Onchange callback.
+ */
+const emitMediaQueryChange = (listeners, event, onchange) => {
+  for (const listener of listeners) {
+    listener(event)
+  }
+  if (typeof onchange === 'function') {
+    onchange(event)
+  }
+}
+
+/**
+ * Add listener only if it is callable.
+ * @param {Set<Function>} listeners Registered listeners.
+ * @param {unknown} listener Candidate listener.
+ */
+const addListenerIfFunction = (listeners, listener) => {
+  if (typeof listener === 'function') listeners.add(listener)
+}
+
+/**
+ * Add event listener only for MediaQueryList "change" events.
+ * @param {Set<Function>} listeners Registered listeners.
+ * @param {string} eventName Event name.
+ * @param {unknown} listener Candidate listener.
+ */
+const addChangeEventListener = (listeners, eventName, listener) => {
+  if (eventName === 'change' && typeof listener === 'function') {
+    listeners.add(listener)
+  }
+}
+
+/**
  * Creates a mock matchMedia function for testing.
  * @param {Object} [options] Configuration options.
  * @param {boolean} [options.defaultMatches=false] Initial matches value.
@@ -39,36 +75,28 @@ const createMatchMedia = ({ defaultMatches = false } = {}) => {
       setMatches (newValue) {
         matches = Boolean(newValue)
         const event = { type: 'change', matches, media }
+        const notifyListeners = () =>
+          emitMediaQueryChange(listeners, event, mql.onchange)
 
-        setTimeout(() => {
-          listeners.forEach((listener) => listener(event))
-          if (typeof mql.onchange === 'function') {
-            mql.onchange(event)
-          }
-        }, 0)
+        setTimeout(notifyListeners, 0)
       },
 
-      addListener: jest.fn((listener) => {
-        if (typeof listener === 'function') listeners.add(listener)
-      }),
+      addListener: jest.fn((listener) =>
+        addListenerIfFunction(listeners, listener)
+      ),
       removeListener: jest.fn((listener) => {
         listeners.delete(listener)
       }),
 
-      addEventListener: jest.fn((eventName, listener) => {
-        if (eventName === 'change' && typeof listener === 'function') {
-          listeners.add(listener)
-        }
-      }),
+      addEventListener: jest.fn((eventName, listener) =>
+        addChangeEventListener(listeners, eventName, listener)
+      ),
       removeEventListener: jest.fn((eventName, listener) => {
         if (eventName === 'change') listeners.delete(listener)
       }),
 
       dispatchEvent: jest.fn((event) => {
-        listeners.forEach((listener) => listener(event))
-        if (typeof mql.onchange === 'function') {
-          mql.onchange(event)
-        }
+        emitMediaQueryChange(listeners, event, mql.onchange)
         return true
       })
     }
@@ -83,7 +111,7 @@ const createMatchMedia = ({ defaultMatches = false } = {}) => {
   return mockFn
 }
 
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(globalThis, 'matchMedia', {
   configurable: true,
   writable: true,
   value: createMatchMedia()
@@ -126,18 +154,12 @@ class MockIntersectionObserver {
   }
 }
 
-Object.defineProperty(window, 'IntersectionObserver', {
-  configurable: true,
-  writable: true,
-  value: MockIntersectionObserver
-})
-
-Object.defineProperty(global, 'IntersectionObserver', {
+Object.defineProperty(globalThis, 'IntersectionObserver', {
   configurable: true,
   writable: true,
   value: MockIntersectionObserver
 })
 
 afterEach(() => {
-  window.matchMedia = createMatchMedia()
+  globalThis.matchMedia = createMatchMedia()
 })

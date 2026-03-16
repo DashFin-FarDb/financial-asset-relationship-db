@@ -8,71 +8,102 @@ from fastapi.testclient import TestClient
 from api.main import app
 
 
-def test_api():
-    """Test basic API functionality"""
-    print("🧪 Testing Financial Asset Relationship API...")
-    print()
+def _assert_ok(response, endpoint_name: str) -> None:
+    """Assert successful response status code for endpoint tests."""
+    assert response.status_code == 200, (
+        f"{endpoint_name} failed: {response.status_code}"
+    )
 
-    # Create test client
-    client = TestClient(app)
 
-    # Test health check
+def _test_health(client: TestClient) -> None:
     print("1. Testing health check endpoint...")
     response = client.get("/api/health")
-    assert response.status_code == 200, f"Health check failed: {response.status_code}"
+    _assert_ok(response, "Health check")
     print("   ✅ Health check passed")
 
-    # Test root endpoint
+
+def _test_root(client: TestClient) -> None:
     print("2. Testing root endpoint...")
     response = client.get("/")
-    assert response.status_code == 200, f"Root endpoint failed: {response.status_code}"
+    _assert_ok(response, "Root endpoint")
     print("   ✅ Root endpoint passed")
 
-    # Test assets endpoint
+
+def _test_assets(client: TestClient) -> None:
     print("3. Testing assets endpoint...")
     response = client.get("/api/assets")
-    assert response.status_code == 200, f"Assets endpoint failed: {response.status_code}"
+    _assert_ok(response, "Assets endpoint")
     assets = response.json()
     print(f"   ✅ Assets endpoint passed (found {len(assets)} assets)")
 
-    # Test metrics endpoint
+
+def _test_metrics(client: TestClient) -> None:
     print("4. Testing metrics endpoint...")
     response = client.get("/api/metrics")
-    assert response.status_code == 200, f"Metrics endpoint failed: {response.status_code}"
+    _assert_ok(response, "Metrics endpoint")
     metrics = response.json()
     print("   ✅ Metrics endpoint passed")
     print(f"      - Total assets: {metrics['total_assets']}")
     print(f"      - Total relationships: {metrics['total_relationships']}")
 
-    # Test visualization endpoint
+
+def _test_visualization(client: TestClient) -> None:
     print("5. Testing visualization endpoint...")
     response = client.get("/api/visualization")
-    assert response.status_code == 200, f"Visualization endpoint failed: {response.status_code}"
+    _assert_ok(response, "Visualization endpoint")
     viz_data = response.json()
     print("   ✅ Visualization endpoint passed")
     print(f"      - Nodes: {len(viz_data['nodes'])}")
     print(f"      - Edges: {len(viz_data['edges'])}")
 
-    # Test relationships endpoint
+
+def _test_relationships(client: TestClient) -> None:
     print("6. Testing relationships endpoint...")
     response = client.get("/api/relationships")
-    assert response.status_code == 200, f"Relationships endpoint failed: {response.status_code}"
+    _assert_ok(response, "Relationships endpoint")
     relationships = response.json()
-    print(f"   ✅ Relationships endpoint passed (found {len(relationships)} relationships)")
+    print(
+        "   ✅ Relationships endpoint passed "
+        f"(found {len(relationships)} relationships)"
+    )
 
-    # Test asset classes endpoint
+
+def _test_asset_classes(client: TestClient) -> None:
     print("7. Testing asset classes endpoint...")
     response = client.get("/api/asset-classes")
-    assert response.status_code == 200, f"Asset classes endpoint failed: {response.status_code}"
+    _assert_ok(response, "Asset classes endpoint")
     asset_classes = response.json()
-    print(f"   ✅ Asset classes endpoint passed (found {len(asset_classes['asset_classes'])} classes)")
+    print(
+        "   ✅ Asset classes endpoint passed "
+        f"(found {len(asset_classes['asset_classes'])} classes)"
+    )
 
-    # Test sectors endpoint
+
+def _test_sectors(client: TestClient) -> None:
     print("8. Testing sectors endpoint...")
     response = client.get("/api/sectors")
-    assert response.status_code == 200, f"Sectors endpoint failed: {response.status_code}"
+    _assert_ok(response, "Sectors endpoint")
     sectors = response.json()
-    print(f"   ✅ Sectors endpoint passed (found {len(sectors['sectors'])} sectors)")
+    print(
+        f"   ✅ Sectors endpoint passed (found {len(sectors['sectors'])} "
+        "sectors)"
+    )
+
+
+def test_api() -> bool:
+    """Test basic API functionality."""
+    print("🧪 Testing Financial Asset Relationship API...")
+    print()
+
+    client = TestClient(app)
+    _test_health(client)
+    _test_root(client)
+    _test_assets(client)
+    _test_metrics(client)
+    _test_visualization(client)
+    _test_relationships(client)
+    _test_asset_classes(client)
+    _test_sectors(client)
 
     print()
     print("🎉 All API tests passed!")

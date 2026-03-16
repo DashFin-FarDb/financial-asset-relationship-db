@@ -1,6 +1,8 @@
+"""Schema report generation utilities for asset relationship graphs."""
+
 from __future__ import annotations
 
-from typing import Any, Callable, Dict, Iterable, List, Tuple
+from typing import Any, Callable, Dict, Iterable, List
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.reports.helpers import (
@@ -86,7 +88,10 @@ class SchemaReportGenerator:
             "1. **Equity** - Stock instruments: P/E ratio, dividend yield, EPS",
             "2. **Bond** - Fixed income: yield, coupon, maturity, rating",
             "3. **Commodity** - Physical assets with delivery contracts",
-            "4. **Currency** - FX pairs or proxies with " "exchange-rate and monetary-policy links",
+            (
+                "4. **Currency** - FX pairs or proxies with exchange-rate and "
+                "monetary-policy links"
+            ),
             "5. **Regulatory Events** - Corporate actions and filings",
             "",
         ]
@@ -150,7 +155,10 @@ class SchemaReportGenerator:
             "",
             "### Cross-Asset Rules",
             "- **Sector Affinity**: Same-sector assets link at strength 0.7.",
-            ("- **Corporate Bond Linkage**: issuer_id match creates a " "directional link (strength 0.9)."),
+            (
+                "- **Corporate Bond Linkage**: issuer_id match creates a "
+                "directional link (strength 0.9)."
+            ),
             "- **Currency Exposure**: FX and central-bank policy effects included.",
             "",
             "### Regulatory Rules",
@@ -195,6 +203,9 @@ class SchemaReportGenerator:
             "- ISO 8601 timestamps.",
             "- Strengths normalized to 0-1.",
             "- Impact scores normalized to -1 to +1.",
-            ("- Directionality varies by relationship type: " "some are bidirectional, others directional."),
+            (
+                "- Directionality varies by relationship type: some are "
+                "bidirectional, others directional."
+            ),
             "",
         ]

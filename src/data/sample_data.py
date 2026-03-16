@@ -1,3 +1,5 @@
+"""Build sample asset graph data for local development and demos."""
+
 import logging
 
 from src.logic.asset_graph import AssetRelationshipGraph
@@ -15,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_sample_database() -> AssetRelationshipGraph:
-    """Create expanded sample financial database with 15+ assets across all classes"""
+    """Create expanded sample financial database across all asset classes."""
     try:
         logger.info("Creating expanded sample financial database")
         graph = AssetRelationshipGraph()
@@ -342,21 +344,42 @@ def create_sample_database() -> AssetRelationshipGraph:
         graph.build_relationships()
 
         asset_count = len(graph.assets)
-        relationship_count = sum(len(rels) for rels in graph.relationships.values())
+        relationship_count = sum(
+            len(rels) for rels in graph.relationships.values()
+        )
         logger.info(
-            "Expanded sample database created with %s assets and %s relationships",
+            "Expanded sample database created with "
+            "%s assets and %s relationships",
             asset_count,
             relationship_count,
         )
-        logger.info(
-            "Asset classes covered: Equity (%s), Fixed Income (%s), " "Commodity (%s), Currency (%s)",
-            len([a for a in all_assets if a.asset_class == AssetClass.EQUITY]),
-            len([a for a in all_assets if a.asset_class == AssetClass.FIXED_INCOME]),
-            len([a for a in all_assets if a.asset_class == AssetClass.COMMODITY]),
-            len([a for a in all_assets if a.asset_class == AssetClass.CURRENCY]),
-        )
+        _log_asset_class_coverage(all_assets)
 
         return graph
     except Exception as e:
         logger.error("Failed to create sample database: %s", e)
         raise
+
+
+def _log_asset_class_coverage(all_assets: list[object]) -> None:
+    """Log how many sample assets were created per asset class."""
+    logger.info(
+        "Asset classes covered: Equity (%s), Fixed Income (%s), "
+        "Commodity (%s), Currency (%s)",
+        _count_assets_by_class(all_assets, AssetClass.EQUITY),
+        _count_assets_by_class(all_assets, AssetClass.FIXED_INCOME),
+        _count_assets_by_class(all_assets, AssetClass.COMMODITY),
+        _count_assets_by_class(all_assets, AssetClass.CURRENCY),
+    )
+
+
+def _count_assets_by_class(
+    all_assets: list[object],
+    asset_class: AssetClass,
+) -> int:
+    """Count assets in a list matching a given asset class."""
+    return sum(
+        1
+        for asset in all_assets
+        if getattr(asset, "asset_class", None) == asset_class
+    )

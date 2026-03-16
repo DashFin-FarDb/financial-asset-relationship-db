@@ -1,9 +1,9 @@
-"""This module contains functions to generate Plotly Scatter3d traces for visualizing asset relationship graphs. It includes utilities for styling relationship lines, formatting trace names, and grouping relationship data into Plotly traces."""
+"""Helpers to build Plotly Scatter3d traces for asset-graph visuals."""
 
 from typing import Dict, List, Optional
 
 import numpy as np
-import plotly.graph_objects as go
+import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.visualizations.graph_visuals_constants import REL_TYPE_COLORS
@@ -14,42 +14,50 @@ from src.visualizations.graph_visuals_data import (
     _build_relationship_index,
     _collect_and_group_relationships,
 )
-from src.visualizations.graph_visuals_validation import _validate_visualization_data
+from src.visualizations.graph_visuals_validation import (
+    _validate_visualization_data,
+)
+
+RELATIONSHIPS_DICT_ERROR = "graph must have a relationships dictionary"
 
 
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
-    """Return a style dictionary for edges based on relationship type and directionality.
+    """Return line style based on type and directionality.
 
-    The style includes color, width, and dash pattern depending on whether the connection is bidirectional.
+    Includes color, width, and dash pattern.
     """
-    return dict(
-        color=REL_TYPE_COLORS[rel_type],
-        width=4 if is_bidirectional else 2,
-        dash="solid" if is_bidirectional else "dash",
-    )
+    return {
+        "color": REL_TYPE_COLORS[rel_type],
+        "width": 4 if is_bidirectional else 2,
+        "dash": "solid" if is_bidirectional else "dash",
+    }
 
 
 def _format_trace_name(rel_type: str, is_bidirectional: bool) -> str:
-    """Format the trace name for a relationship based on its type and if it is bidirectional.
+    """Format relationship trace name and direction marker.
 
-    Replaces underscores with spaces, applies title casing, and appends an arrow symbol to indicate direction.
+    Replaces underscores with spaces and appends arrow marker.
     """
     base = rel_type.replace("_", " ").title()
     return base + (" (↔)" if is_bidirectional else " (→)")
 
 
 def _create_trace_for_group(
-    rel_type: str,
-    is_bidirectional: bool,
+    relationship_key: tuple[str, bool],
     relationships: List[dict],
     positions: np.ndarray,
     asset_id_index: Dict[str, int],
 ) -> go.Scatter3d:
-    """Build a Plotly Scatter3d trace for a group of relationships of the same type and direction.
+    """Build one Scatter3d trace for relationships with same type/direction.
 
-    Generates 3D edge coordinates, constructs hover texts, and applies line styling and naming conventions.
+    Generates edge coordinates, hover text, and line styling.
     """
-    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(relationships, positions, asset_id_index)
+    rel_type, is_bidirectional = relationship_key
+    edges_x, edges_y, edges_z = _build_edge_coordinates_optimized(
+        relationships,
+        positions,
+        asset_id_index,
+    )
     hover_texts = _build_hover_texts(relationships, rel_type, is_bidirectional)
     return go.Scatter3d(
         x=edges_x,
@@ -71,7 +79,7 @@ def _create_node_trace(
     colors: List[str],
     hover_texts: List[str],
 ) -> go.Scatter3d:
-    """Create node trace for 3D visualization. Validates all inputs before rendering."""
+    """Create validated node trace for 3D visualization."""
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
     if len(asset_ids) == 0:
         raise ValueError("Cannot create node trace with empty inputs")
@@ -80,18 +88,18 @@ def _create_node_trace(
         y=positions[:, 1],
         z=positions[:, 2],
         mode="markers+text",
-        marker=dict(
-            size=15,
-            color=colors,
-            opacity=0.9,
-            line=dict(color="rgba(0,0,0,0.8)", width=2),
-            symbol="circle",
-        ),
+        marker={
+            "size": 15,
+            "color": colors,
+            "opacity": 0.9,
+            "line": {"color": "rgba(0,0,0,0.8)", "width": 2},
+            "symbol": "circle",
+        },
         text=asset_ids,
         hovertext=hover_texts,
         hoverinfo="text",
         textposition="top center",
-        textfont=dict(size=12, color="black"),
+        textfont={"size": 12, "color": "black"},
         name="Assets",
         visible=True,
     )
@@ -103,24 +111,60 @@ def _create_relationship_traces(
     asset_ids: List[str],
     relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> List[go.Scatter3d]:
-    """Create one trace per (rel_type, directionality) group for batch addition."""
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise ValueError("graph must be an AssetRelationshipGraph instance")
-    if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
-        raise ValueError("graph must have a relationships dictionary")
-    if not isinstance(positions, np.ndarray):
-        raise ValueError("positions must be a numpy array")
-    if len(positions) != len(asset_ids):
-        raise ValueError("positions array length must match asset_ids length")
+    """Create one trace per relationship type/direction group."""
+    _validate_relationship_trace_inputs(graph, positions, asset_ids)
 
     asset_id_index = _build_asset_id_index(asset_ids)
-    relationship_groups = _collect_and_group_relationships(graph, asset_ids, relationship_filters)
+    relationship_groups = _collect_and_group_relationships(
+        graph, asset_ids, relationship_filters
+    )
 
     return [
-        _create_trace_for_group(rel_type, is_bidirectional, rels, positions, asset_id_index)
+        _create_trace_for_group(
+            (rel_type, is_bidirectional),
+            rels,
+            positions,
+            asset_id_index,
+        )
         for (rel_type, is_bidirectional), rels in relationship_groups.items()
         if rels
     ]
+
+
+def _validate_relationship_trace_inputs(
+    graph: AssetRelationshipGraph,
+    positions: np.ndarray,
+    asset_ids: List[str],
+) -> None:
+    """Validate required inputs for relationship trace creation."""
+    _validate_relationship_graph(graph)
+    _validate_positions_array(positions)
+    _validate_positions_match_asset_ids(positions, asset_ids)
+
+
+def _validate_relationship_graph(graph: AssetRelationshipGraph) -> None:
+    """Validate relationship graph type and container."""
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise ValueError("graph must be an AssetRelationshipGraph instance")
+    if not hasattr(graph, "relationships"):
+        raise ValueError(RELATIONSHIPS_DICT_ERROR)
+    if not isinstance(graph.relationships, dict):
+        raise ValueError(RELATIONSHIPS_DICT_ERROR)
+
+
+def _validate_positions_array(positions: np.ndarray) -> None:
+    """Validate positions container type."""
+    if not isinstance(positions, np.ndarray):
+        raise ValueError("positions must be a numpy array")
+
+
+def _validate_positions_match_asset_ids(
+    positions: np.ndarray,
+    asset_ids: List[str],
+) -> None:
+    """Validate positions count matches asset IDs count."""
+    if len(positions) != len(asset_ids):
+        raise ValueError("positions array length must match asset_ids length")
 
 
 def _create_directional_arrows(
@@ -139,12 +183,20 @@ def _create_directional_arrows(
             visibility flag.  When provided, arrow markers are only
             rendered for relationship types whose flag is True.
     """
-    positions_arr, asset_ids_norm = _validate_and_prepare_directional_arrows_inputs(
+    (
+        positions_arr,
+        asset_ids_norm,
+    ) = _validate_and_prepare_directional_arrows_inputs(
         graph,
         positions,
         asset_ids,
     )
-    return _create_directional_arrows_traces(graph, positions_arr, asset_ids_norm, relationship_filters)
+    return _create_directional_arrows_traces(
+        graph,
+        positions_arr,
+        asset_ids_norm,
+        relationship_filters,
+    )
 
 
 def _validate_and_prepare_directional_arrows_inputs(
@@ -165,7 +217,10 @@ def _validate_and_prepare_directional_arrows_inputs(
     """
     _validate_graph(graph)
     positions_arr = _prepare_positions(positions)
-    positions_arr, asset_ids_list = _prepare_asset_ids(asset_ids, positions_arr)
+    positions_arr, asset_ids_list = _prepare_asset_ids(
+        asset_ids,
+        positions_arr,
+    )
     return positions_arr, asset_ids_list
 
 
@@ -173,41 +228,45 @@ def _validate_graph(graph: AssetRelationshipGraph):
     """
     Validate that the provided graph is a valid AssetRelationshipGraph.
 
-    Checks that graph is an instance of AssetRelationshipGraph and has a relationships dictionary.
+    Checks type and relationships dictionary presence.
 
     Raises:
         TypeError: if graph is not an instance of AssetRelationshipGraph.
         ValueError: if graph.relationships is missing or not a dict.
     """
     if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
-    if not hasattr(graph, "relationships") or not isinstance(graph.relationships, dict):
-        raise ValueError("graph must have a relationships dictionary")
+        raise TypeError(
+            "Expected graph to be an instance of AssetRelationshipGraph"
+        )
+    if not hasattr(graph, "relationships") or not isinstance(
+        graph.relationships, dict
+    ):
+        raise ValueError(RELATIONSHIPS_DICT_ERROR)
 
 
 def _prepare_positions(positions) -> np.ndarray:
     """
-    Convert and validate positions into a (n, 3) numpy array of finite numeric values.
+    Convert positions into a NumPy array for validation.
 
     Raises:
-        ValueError: if positions is None, not a 2D array of shape (n, 3), or contains non-finite values.
+        ValueError: if positions is None.
     """
     if positions is None:
         raise ValueError("positions and asset_ids must not be None")
     return np.asarray(positions)
 
 
-def _prepare_asset_ids(asset_ids, positions_arr: np.ndarray) -> tuple[np.ndarray, list[str]]:
+def _prepare_asset_ids(
+    asset_ids,
+    positions_arr: np.ndarray,
+) -> tuple[np.ndarray, list[str]]:
     """
     Validate and normalize asset IDs corresponding to provided positions.
 
-    Ensures asset_ids is a list or tuple of non-empty strings matching the number of positions
-    and that positions_arr is a (n, 3) numeric array of finite values.
-    Returns the normalized positions array and list of validated asset IDs.
+    Ensures asset IDs are valid and positions are normalized.
 
     Raises:
-        ValueError: if asset_ids is None or length does not match positions, or if positions_arr
-                    has incorrect shape or contains non-finite values.
+        ValueError: if asset_ids is invalid or positions are invalid.
         TypeError: if asset_ids is not a list or tuple of strings.
     """
     asset_ids_list = _validate_asset_ids(asset_ids, positions_arr.shape[0])
@@ -218,51 +277,87 @@ def _prepare_asset_ids(asset_ids, positions_arr: np.ndarray) -> tuple[np.ndarray
 def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
     """Validate and normalize a list of asset IDs.
 
-    Ensures that asset_ids is a non-None list or tuple of non-empty strings matching expected length.
+    Ensures asset_ids is a non-None list/tuple of
+    non-empty strings matching expected length.
 
     Raises:
-        ValueError: if asset_ids is None, length mismatch, or contains invalid IDs.
+        ValueError: if asset_ids is None, length mismatch,
+            or contains invalid IDs.
         TypeError: if asset_ids is not a list or tuple of strings.
 
     Returns:
         A list of validated asset ID strings.
     """
+    _ensure_asset_ids_present(asset_ids)
+    _ensure_asset_ids_sequence(asset_ids)
+    _ensure_asset_ids_length(asset_ids, expected_len)
+    _ensure_asset_ids_non_empty_strings(asset_ids)
+    return list(asset_ids)
+
+
+def _ensure_asset_ids_present(asset_ids) -> None:
+    """Ensure asset IDs input is provided."""
     if asset_ids is None:
         raise ValueError("positions and asset_ids must not be None")
+
+
+def _ensure_asset_ids_sequence(asset_ids) -> None:
+    """Ensure asset IDs are a sequence type."""
     if not isinstance(asset_ids, (list, tuple)):
         raise TypeError("asset_ids must be a list or tuple of strings")
+
+
+def _ensure_asset_ids_length(asset_ids, expected_len: int) -> None:
+    """Ensure asset IDs length matches expected value."""
     if len(asset_ids) != expected_len:
         raise ValueError("positions and asset_ids must have the same length")
-    validated = []
-    for idx, aid in enumerate(asset_ids):
-        if not isinstance(aid, str) or not aid:
-            raise ValueError("asset_ids must contain non-empty strings")
-        validated.append(aid)
-    return validated
+
+
+def _ensure_asset_ids_non_empty_strings(asset_ids) -> None:
+    """Ensure each asset ID is a non-empty string."""
+    if any((not isinstance(aid, str) or not aid) for aid in asset_ids):
+        raise ValueError("asset_ids must contain non-empty strings")
 
 
 def _validate_and_normalize_positions(positions: np.ndarray) -> np.ndarray:
     """Validate and normalize position coordinates.
 
-    Ensures positions is a 2D numeric array of shape (n, 3) with finite values,
-    converting to float if necessary.
+    Ensures positions is a finite numeric array of shape (n, 3).
 
     Raises:
-        ValueError: if positions shape is invalid, contains non-numeric or non-finite values.
+        ValueError: if shape is invalid or values are non-numeric/non-finite.
 
     Returns:
         A numpy array of shape (n, 3) with float type and finite values.
     """
+    _ensure_positions_shape(positions)
+    numeric_positions = _coerce_positions_to_numeric(positions)
+    _ensure_positions_finite(numeric_positions)
+    return numeric_positions
+
+
+def _ensure_positions_shape(positions: np.ndarray) -> None:
+    """Ensure positions has expected 2D shape (n, 3)."""
     if positions.ndim != 2 or positions.shape[1] != 3:
         raise ValueError("Invalid positions shape: expected (n, 3)")
-    if not np.issubdtype(positions.dtype, np.number):
-        try:
-            positions = positions.astype(float)
-        except Exception as exc:  # noqa: BLE001
-            raise ValueError("Invalid positions: values must be numeric") from exc
+
+
+def _coerce_positions_to_numeric(positions: np.ndarray) -> np.ndarray:
+    """Convert positions to numeric dtype when needed."""
+    if np.issubdtype(positions.dtype, np.number):
+        return positions
+    try:
+        return positions.astype(float)
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(
+            "Invalid positions: values must be numeric"
+        ) from exc
+
+
+def _ensure_positions_finite(positions: np.ndarray) -> None:
+    """Ensure positions contains only finite numeric values."""
     if not np.isfinite(positions).all():
         raise ValueError("Invalid positions: values must be finite numbers")
-    return positions
 
 
 def _create_directional_arrows_traces(
@@ -295,32 +390,41 @@ def _create_directional_arrows_traces(
 
     for (source_id, target_id, rel_type), _ in relationship_index.items():
         # Skip relationship types that the user has hidden via filters.
-        if relationship_filters is not None and not relationship_filters.get(rel_type, True):
+        if (
+            relationship_filters is not None
+            and not relationship_filters.get(rel_type, True)
+        ):
             continue
-        # Only add an arrow if there is no reverse relationship of the same type
+        # Only add an arrow if reverse relationship is absent.
         if (target_id, source_id, rel_type) not in relationship_index:
             source_indices.append(asset_id_index[source_id])
             target_indices.append(asset_id_index[target_id])
-            hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
+            hover_texts.append(
+                f"Direction: {source_id} → {target_id}<br>"
+                f"Type: {rel_type}"
+            )
 
     if not source_indices:
         return []
 
     src_arr = np.asarray(source_indices, dtype=int)
     tgt_arr = np.asarray(target_indices, dtype=int)
-    arrow_positions = positions[src_arr] + 0.7 * (positions[tgt_arr] - positions[src_arr])
+    arrow_positions = (
+        positions[src_arr]
+        + 0.7 * (positions[tgt_arr] - positions[src_arr])
+    )
 
     trace = go.Scatter3d(
         x=arrow_positions[:, 0].tolist(),
         y=arrow_positions[:, 1].tolist(),
         z=arrow_positions[:, 2].tolist(),
         mode="markers",
-        marker=dict(
-            symbol="diamond",
-            size=8,
-            color="rgba(255, 0, 0, 0.8)",
-            line=dict(color="red", width=1),
-        ),
+        marker={
+            "symbol": "diamond",
+            "size": 8,
+            "color": "rgba(255, 0, 0, 0.8)",
+            "line": {"color": "red", "width": 1},
+        },
         hovertext=hover_texts,
         hoverinfo="text",
         name="Direction Arrows",

@@ -1,9 +1,13 @@
+"""Local script to test Supabase and PostgreSQL connectivity."""
+# mypy: disable-error-code=import-untyped
+# pyright: reportMissingImports=false
+
 import os
 import socket
 
-import psycopg2
+import psycopg2  # pyright: ignore[reportMissingTypeStubs]
 from dotenv import load_dotenv
-from supabase import Client, create_client
+from supabase import Client, create_client  # pylint: disable=import-error
 
 # Load environment variables from .env
 load_dotenv()
@@ -14,10 +18,16 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 # Path to SSL certificate
-CERT_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prod-ca-2021.crt")
+CERT_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "prod-ca-2021.crt",
+)
 
 print("Supabase URL:", SUPABASE_URL)
-print("Supabase Key:", SUPABASE_KEY[:5] + "..." if SUPABASE_KEY else "Not found")
+SUPABASE_KEY_PREVIEW = (
+    SUPABASE_KEY[:5] + "..." if SUPABASE_KEY else "Not found"
+)
+print("Supabase Key:", SUPABASE_KEY_PREVIEW)
 print("Certificate path:", CERT_PATH)
 
 #
@@ -48,22 +58,30 @@ try:
             print("Could not retrieve table list.")
 
     except socket.gaierror:
-        print("⚠️ Network connection issue: Unable to reach Supabase API servers.")
-        print("This is expected in test environments with network restrictions.")
-    except Exception as query_error:
+        print(
+            "⚠️ Network connection issue: "
+            "Unable to reach Supabase API servers."
+        )
+        print(
+            "This is expected in test environments with "
+            "network restrictions."
+        )
+    except (RuntimeError, ValueError, TypeError) as query_error:
         print(f"⚠️ Query error: {query_error}")
 
-except Exception as e:
+except (RuntimeError, ValueError, TypeError, OSError) as e:
     print(f"❌ Failed to initialize Supabase client: {e}")
 
 # Try direct PostgreSQL connection with SSL certificate
 try:
     print("\n--- Testing Direct PostgreSQL Connection with SSL ---")
 
-    # Use DATABASE_URL directly; if migrating projects, replace the fragment accordingly
+    # Use DATABASE_URL directly.
+    # If migrating projects, replace the fragment accordingly.
     updated_db_url = DATABASE_URL
 
-    # Parse connection parameters from DATABASE_URL or use individual parameters
+    # Parse connection parameters from DATABASE_URL.
+    # Otherwise use individual parameters.
     if updated_db_url:
         print(f"Using connection string: {updated_db_url[:20]}...")
 
@@ -72,20 +90,20 @@ try:
             print("Connection may fail if SSL is required.")
 
         # Add SSL parameters to connection
-        connection = psycopg2.connect(
+        DB_CONNECTION = psycopg2.connect(
             updated_db_url,
             sslmode="require",
             sslrootcert=CERT_PATH,
         )
     else:
         print("No DATABASE_URL found, using individual parameters")
-        connection = None
+        DB_CONNECTION = None
 
-    if connection:
+    if DB_CONNECTION:
         print("✅ PostgreSQL connection successful!")
 
         # Create a cursor to execute SQL queries
-        cursor = connection.cursor()
+        cursor = DB_CONNECTION.cursor()
 
         # Example query
         print("Executing query...")
@@ -95,10 +113,10 @@ try:
 
         # Close the cursor and connection
         cursor.close()
-        connection.close()
+        DB_CONNECTION.close()
         print("Connection closed.")
 
-except Exception as e:
+except psycopg2.Error as e:
     print(f"❌ Failed to connect to PostgreSQL: {e}")
 
 print("\nConnection tests completed.")

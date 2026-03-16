@@ -11,6 +11,57 @@ from urllib.parse import urlparse
 
 logger = logging.getLogger(__name__)
 
+_HTTP_LOCAL_RE = re.compile(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$")
+_HTTPS_LOCAL_RE = re.compile(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$")
+_VERCEL_PREVIEW_RE = re.compile(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$")
+_HTTPS_DOMAIN_RE = re.compile(
+    r"^https://[a-zA-Z0-9]"
+    r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
+    r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
+    r"\.[a-zA-Z]{2,}$"
+)
+
+
+def _is_allowed_list_origin(origin: str, allowed_origins: list[str]) -> bool:
+    return bool(origin) and origin in allowed_origins
+
+
+def _is_http_local_in_dev(origin: str, current_env: str) -> bool:
+    return current_env == "development" and bool(_HTTP_LOCAL_RE.match(origin))
+
+
+def _is_https_local(origin: str) -> bool:
+    return bool(_HTTPS_LOCAL_RE.match(origin))
+
+
+def _is_vercel_preview(origin: str) -> bool:
+    return bool(_VERCEL_PREVIEW_RE.match(origin))
+
+
+def _is_valid_https_domain(origin: str) -> bool:
+    return bool(_HTTPS_DOMAIN_RE.match(origin))
+
+
+def _is_valid_https_idn(origin: str) -> bool:
+    parsed = urlparse(origin)
+    if parsed.scheme != "https":
+        return False
+    if not parsed.netloc:
+        return False
+    if parsed.hostname is None:
+        return False
+
+    try:
+        ascii_host = parsed.hostname.encode("idna").decode("ascii")
+    except UnicodeError as e:
+        logger.debug("Failed to IDNA-encode hostname for origin %s: %s", origin, e)
+        return False
+
+    ascii_origin = f"https://{ascii_host}"
+    if parsed.port:
+        ascii_origin += f":{parsed.port}"
+    return bool(_HTTPS_DOMAIN_RE.match(ascii_origin))
+
 
 def validate_origin(origin: str) -> bool:
     """
@@ -32,43 +83,12 @@ def validate_origin(origin: str) -> bool:
     # Get allowed origins from environment variable or use default
     allowed_origins = [origin for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin]
 
-    # If origin is in explicitly allowed list, return True
-    if origin in allowed_origins and origin:
-        return True
-
-    # Allow HTTP localhost only in development
-    if current_env == "development" and re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
-        return True
-    # Allow HTTPS localhost in any environment
-    if re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin):
-        return True
-    # Allow Vercel preview deployment URLs (e.g., https://project-git-branch-user.vercel.app)
-    if re.match(r"^https://[a-zA-Z0-9\-\.]+\.vercel\.app$", origin):
-        return True
-    # Allow valid HTTPS URLs with proper domains (ASCII and IDN)
-    if re.match(
-        r"^https://[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$",
-        origin,
-    ):
-        return True
-    # Support IDN (Internationalized Domain Names) — encode host to ASCII and re-validate
-    parsed = urlparse(origin)
-    if parsed.scheme == "https" and parsed.netloc:
-        try:
-            ascii_host = parsed.hostname.encode("idna").decode("ascii")
-            ascii_origin = f"https://{ascii_host}"
-            if parsed.port:
-                ascii_origin += f":{parsed.port}"
-            if re.match(
-                r"^https://[a-zA-Z0-9]"
-                r"([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?"
-                r"(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*"
-                r"\.[a-zA-Z]{2,}$",
-                ascii_origin,
-            ):
-                return True
-        except UnicodeError as e:
-            # If the hostname cannot be IDNA-encoded, treat the origin as invalid.
-            logger.debug("Failed to IDNA-encode hostname for origin %s: %s", origin, e)
-            return False
-    return False
+    checks = (
+        _is_allowed_list_origin(origin, allowed_origins),
+        _is_http_local_in_dev(origin, current_env),
+        _is_https_local(origin),
+        _is_vercel_preview(origin),
+        _is_valid_https_domain(origin),
+        _is_valid_https_idn(origin),
+    )
+    return any(checks)
