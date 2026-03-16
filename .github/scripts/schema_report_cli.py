@@ -357,7 +357,7 @@ def main() -> int:
         if output_format is None:
             return 1
 
-        safe_output = default_output_path(output_format) if args.output else None
+        safe_output = args.output
         generate_report(output_format, safe_output)
         logger.info("Schema report generation completed successfully.")
         return 0
