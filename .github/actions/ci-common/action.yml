@@ -58,15 +58,12 @@ runs:
         CI_COMMON_INSTALL_CMD: ${{ inputs.install }}
       run: |
         set -euo pipefail
-        IFS=' ' read -r -a cmd <<< "$CI_COMMON_INSTALL_CMD"
-        if [[ ${#cmd[@]} -eq 0 || -z "${cmd[0]}" ]]; then
+        # Trim whitespace and exit early if the script body is effectively empty
+        if [[ -z "${CI_COMMON_INSTALL_CMD//[[:space:]]/}" ]]; then
           exit 0
         fi
-        if [[ ! "${cmd[0]}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-          echo "Invalid executable in install command input" >&2
-          exit 1
-        fi
-        "${cmd[@]}"
+        # Execute the full install script body, preserving newlines and quoting
+        bash -euo pipefail -c "$CI_COMMON_INSTALL_CMD"
 
     - name: Build
       if: ${{ inputs.build != '' }}
@@ -76,15 +73,12 @@ runs:
         CI_COMMON_BUILD_CMD: ${{ inputs.build }}
       run: |
         set -euo pipefail
-        IFS=' ' read -r -a cmd <<< "$CI_COMMON_BUILD_CMD"
-        if [[ ${#cmd[@]} -eq 0 || -z "${cmd[0]}" ]]; then
+        # Trim whitespace and exit early if the script body is effectively empty
+        if [[ -z "${CI_COMMON_BUILD_CMD//[[:space:]]/}" ]]; then
           exit 0
         fi
-        if [[ ! "${cmd[0]}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-          echo "Invalid executable in build command input" >&2
-          exit 1
-        fi
-        "${cmd[@]}"
+        # Execute the full build script body, preserving newlines and quoting
+        bash -euo pipefail -c "$CI_COMMON_BUILD_CMD"
 
     - name: Test
       if: ${{ inputs.test != '' }}
@@ -94,12 +88,9 @@ runs:
         CI_COMMON_TEST_CMD: ${{ inputs.test }}
       run: |
         set -euo pipefail
-        IFS=' ' read -r -a cmd <<< "$CI_COMMON_TEST_CMD"
-        if [[ ${#cmd[@]} -eq 0 || -z "${cmd[0]}" ]]; then
+        # Trim whitespace and exit early if the script body is effectively empty
+        if [[ -z "${CI_COMMON_TEST_CMD//[[:space:]]/}" ]]; then
           exit 0
         fi
-        if [[ ! "${cmd[0]}" =~ ^[A-Za-z0-9._/-]+$ ]]; then
-          echo "Invalid executable in test command input" >&2
-          exit 1
-        fi
-        "${cmd[@]}"
+        # Execute the full test script body, preserving newlines and quoting
+        bash -euo pipefail -c "$CI_COMMON_TEST_CMD"
