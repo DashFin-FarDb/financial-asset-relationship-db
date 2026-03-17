@@ -212,8 +212,8 @@ class _DatabaseConnectionManager:
                 connection = self._memory_connection
 
 
-if connection is None:
-    raise RuntimeError("Expected an initialized in-memory connection but found None.")
+                if connection is None:
+                    raise RuntimeError("Expected an initialized in-memory connection but found None.")
                 return connection
 
         # For file-backed databases, create a new connection each time
