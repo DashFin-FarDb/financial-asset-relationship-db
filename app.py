@@ -215,14 +215,7 @@ class FinancialAssetApp:
             logger.info("Initializing financial data graph")
             self.graph = self._create_database()
             logger.info("Database initialized with %s assets", len(self.graph.assets))
-        except (
-            AttributeError,
-            ImportError,
-            OSError,
-            RuntimeError,
-            TypeError,
-            ValueError,
-        ) as exc:
+        except Exception as exc:
             logger.error("%s: %s", AppConstants.INITIAL_GRAPH_ERROR, exc)
             raise
 
@@ -456,29 +449,37 @@ class FinancialAssetApp:
     def refresh_visualization(
         self,
         _graph_state: AssetRelationshipGraph,
+    def refresh_visualization(
+        self,
+        _graph_state: AssetRelationshipGraph,
         view_mode: str,
         layout_type: str,
-        *relationship_flags: bool,
+        show_same_sector: bool=True,
+        show_market_cap: bool=True,
+        show_correlation: bool=True,
+        show_corporate_bond: bool=True,
+        show_commodity_currency: bool=True,
+        show_income_comparison: bool=True,
+        show_regulatory: bool=True,
+        show_all_relationships: bool=True,
+        toggle_arrows: bool=True,
     ) -> tuple[go.Figure, gr.Update]:
-        """
-        Refresh the graph visualization using the requested view mode, layout, and relationship visibility flags.
-
-        Parameters:
-            _graph_state (AssetRelationshipGraph): Current asset relationship graph state used for rendering.
-            view_mode (str): Visualization mode, e.g., "2D" or "3D".
-            layout_type (str): Layout selection for 2D rendering, e.g., "spring", "circular", or "grid".
-            *relationship_flags (bool): A variable-length sequence of booleans controlling visibility of relationship types;
-                the sequence will be normalized to the application's fixed set of relationship toggles.
-
-        Returns:
-            tuple: (figure, update) where `figure` is the Plotly figure for the rendered visualization and `update` is a
-            Gradio Update value intended for status or error messaging in the UI.
-        """
+        """Adapter for Gradio callbacks with unpacked relationship flags."""
         return self._refresh_visualization_core(
             _graph_state,
             view_mode,
             layout_type,
-            relationship_flags,
+            (
+                show_same_sector,
+                show_market_cap,
+                show_correlation,
+                show_corporate_bond,
+                show_commodity_currency,
+                show_income_comparison,
+                show_regulatory,
+                show_all_relationships,
+                toggle_arrows,
+            ),
         )
 
     def _refresh_visualization_core(
@@ -517,13 +518,13 @@ class FinancialAssetApp:
 
             return graph_viz, gr.update(visible=False)
 
-        except (RuntimeError, ValueError, TypeError, AttributeError, KeyError) as exc:
+        except Exception as exc:
             logger.error("Error refreshing visualization: %s", exc)
             empty_fig = go.Figure()
             error_msg = f"Error refreshing visualization: {exc}"
             return empty_fig, gr.update(value=error_msg, visible=True)
 
-    @staticmethod
+    @ staticmethod
     def _normalize_relationship_flags(
         relationship_flags: tuple[bool, ...],
     ) -> tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool]:
@@ -550,7 +551,7 @@ class FinancialAssetApp:
             normalized_flags[8],
         )
 
-    @staticmethod
+    @ staticmethod
     def _default_relationship_flags() -> tuple[
         bool,
         bool,
@@ -750,7 +751,7 @@ class FinancialAssetApp:
             gr.update(visible=False),
         )
 
-    @staticmethod
+    @ staticmethod
     def _build_formulaic_error_outputs(exc: Exception) -> tuple[Any, ...]:
         """
         Produce fallback UI outputs used when formulaic analysis fails.
@@ -773,7 +774,7 @@ class FinancialAssetApp:
             gr.update(value=error_msg, visible=True),
         )
 
-    @staticmethod
+    @ staticmethod
     def show_formula_details(_formula_name: str, graph_state: AssetRelationshipGraph) -> tuple[go.Figure, gr.Update]:
         """
         Show a detailed visualization and status update for the selected formula.
@@ -797,15 +798,15 @@ class FinancialAssetApp:
             logger.error("Error showing formula details: %s", exc)
             return go.Figure(), gr.update(value=f"Error: {exc}", visible=True)
 
-    @staticmethod
+    @ staticmethod
     def _format_pair(pair: Any) -> str:
         """Format an asset pair into a human-readable string."""
         if isinstance(pair, (list, tuple)) and len(pair) == 2:
-            asset_a, asset_b = pair
+            asset_a, asset_b=pair
             return f"{asset_a} ↔ {asset_b}"
         return str(pair)
 
-    @staticmethod
+    @ staticmethod
     def _format_correlation_value(value: Any) -> str:
         """Format the correlation value as a string."""
         try:
@@ -813,7 +814,7 @@ class FinancialAssetApp:
         except (TypeError, ValueError):
             return str(value)
 
-    @classmethod
+    @ classmethod
     def _format_correlation_line(cls, corr: Any) -> str | None:
         """Return a single formatted correlation line or None."""
         if not isinstance(corr, dict):
@@ -830,7 +831,7 @@ class FinancialAssetApp:
             return f"  • {pair_str}: {corr_str} ({strength})"
         return f"  • {pair_str}: {corr_str}"
 
-    @classmethod
+    @ classmethod
     def _format_formula_summary(
         cls,
         summary: dict[str, Any],
@@ -853,7 +854,7 @@ class FinancialAssetApp:
 
         return "\n".join(summary_lines)
 
-    @staticmethod
+    @ staticmethod
     def _append_formula_categories(
         summary_lines: list[str],
         summary: dict[str, Any],
@@ -876,7 +877,7 @@ class FinancialAssetApp:
         for category, count in categories.items():
             summary_lines.append(f"  • {category}: {count} formulas")
 
-    @staticmethod
+    @ staticmethod
     def _append_key_insights(
         summary_lines: list[str],
         summary: dict[str, Any],
@@ -898,7 +899,7 @@ class FinancialAssetApp:
         for insight in insights:
             summary_lines.append(f"  • {insight}")
 
-    @classmethod
+    @ classmethod
     def _append_strongest_correlations(
         cls,
         summary_lines: list[str],
@@ -1011,7 +1012,7 @@ class FinancialAssetApp:
         components.update(actions)
         return components
 
-    @staticmethod
+    @ staticmethod
     def _build_visualization_controls() -> dict[str, Any]:
         """
         Create UI controls for selecting the visualization mode and the 2D layout type.
@@ -1039,7 +1040,7 @@ class FinancialAssetApp:
                 )
         return {"view_mode": view_mode, "layout_type": layout_type}
 
-    @staticmethod
+    @ staticmethod
     def _build_relationship_visibility_controls() -> dict[str, Any]:
         """
         Create Gradio checkbox controls for toggling visibility of different relationship types.
@@ -1105,7 +1106,7 @@ class FinancialAssetApp:
             "toggle_arrows": toggle_arrows,
         }
 
-    @staticmethod
+    @ staticmethod
     def _build_visualization_actions() -> dict[str, Any]:
         """
         Create and return visualization action controls and a legend row for the interface.
@@ -1349,7 +1350,7 @@ class FinancialAssetApp:
             outputs=all_refresh_outputs,
         )
 
-    @staticmethod
+    @ staticmethod
     def _get_all_refresh_outputs(c: dict[str, Any]) -> list[Any]:
         """
         List UI components that should be updated by a global refresh action.
@@ -1381,7 +1382,7 @@ class FinancialAssetApp:
             c["error_message"],
         ]
 
-    @staticmethod
+    @ staticmethod
     def _get_visualization_inputs(
         graph_state: Any,
         c: dict[str, Any],

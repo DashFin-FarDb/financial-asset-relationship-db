@@ -121,13 +121,14 @@ function AssetListStatus({ loading, error }: AssetListStatusProps) {
 
   return (
     <div
+      role={hasError ? "alert" : "status"}
+      aria-live={hasError ? "assertive" : "polite"}
       className={`px-6 py-3 text-sm ${
         hasError ? "text-red-500" : "text-gray-500"
       }`}
     >
       {hasError ? `Error: ${error}` : "Loading..."}
     </div>
-  );
 }
 
 /**
