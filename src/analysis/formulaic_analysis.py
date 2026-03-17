@@ -828,7 +828,11 @@ class FormulaicAnalyzer:
                 f"Average correlation strength: {avg_corr_strength:.2f}",
                 "Valuation models applicable to equity assets",
                 "Portfolio theory formulas available for multi-asset analysis",
-                ("Cross-asset relationships identified between commodities and currencies"),
+                *(
+                    ["Cross-asset relationships identified between commodities and currencies"]
+                    if any(formula.name == "Commodity-Currency Relationship" for formula in formulas)
+                    else []
+                ),
             ],
         }
 
