@@ -92,6 +92,8 @@ def get_graph() -> AssetRelationshipGraph:
             if graph_state.graph is None:
                 graph_state.graph = _initialize_graph()
                 logger.info("Graph initialized successfully")
+
+
 if graph_state.graph is None:
     raise RuntimeError("Graph failed to initialize")
     return graph_state.graph
