@@ -214,18 +214,15 @@ export default function NetworkVisualization({
   }, [data]);
 
   if (status !== "ready") {
-    if (status === "tooLarge") {
-      return (
-        <div className="text-center p-8 text-gray-600" role="alert">
-          {message}
-        </div>
-      );
-    }
-
+    const isUrgent = status === "tooLarge";
     return (
-      <output className="text-center p-8 text-gray-600" aria-live="polite">
+      <div
+        className="text-center p-8 text-gray-600"
+        role={isUrgent ? "alert" : "status"}
+        aria-live={isUrgent ? "assertive" : "polite"}
+      >
         {message}
-      </output>
+      </div>
     );
   }
 

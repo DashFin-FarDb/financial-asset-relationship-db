@@ -575,7 +575,10 @@ class FormulaicAnalyzer:
             graph (AssetRelationshipGraph): Graph whose relationships are iterated to extract numeric strength values. Each relationship entry is expected to contain (target_id, type, strength).
 
         Returns:
-            Dict[str, float]: Mapping where each key is "srcId-targetId" and the value is the largest-magnitude numeric strength seen for that ordered pair. Entries with non-numeric strengths are skipped; self-relations are not included.
+            Dict[str, float]: Mapping where each key is a canonical "assetA-assetB"
+            pair (lexicographically sorted) and the value is the largest-magnitude
+            numeric strength seen for that pair. Entries with non-numeric strengths
+            are skipped; self-relations are not included.
         """
         correlation_matrix: Dict[str, float] = {}
         for src_id, rels in graph.relationships.items():
@@ -586,7 +589,7 @@ class FormulaicAnalyzer:
                     strength_value = float(strength)
                 except (TypeError, ValueError):
                     continue
-                pair_key = f"{src_id}-{target_id}"
+                pair_key = "-".join(sorted((src_id, target_id)))
                 existing = correlation_matrix.get(pair_key)
                 if existing is None or abs(strength_value) > abs(existing):
                     correlation_matrix[pair_key] = strength_value
@@ -611,12 +614,12 @@ class FormulaicAnalyzer:
                 - "strength": one of "Strong" (>0.7), "Moderate" (>0.4), or "Weak" (otherwise)
 
         Notes:
-            Correlations with absolute value >= 1.0 are excluded.
+            Correlations with absolute value > 1.0 are excluded as invalid.
         """
         strongest_correlations: List[Dict[str, Any]] = []
         for pair_key, corr in correlation_matrix.items():
             asset1, asset2 = pair_key.split("-", 1)
-            if abs(corr) >= 1.0:
+            if abs(corr) > 1.0:
                 continue
             if abs(corr) > 0.7:
                 strength_label = "Strong"

@@ -594,6 +594,29 @@ class FinancialAssetApp:
             self._default_relationship_flags(),
         )
 
+    def _reset_visualization_and_controls(
+        self,
+        graph_state: AssetRelationshipGraph,
+        view_mode: str,
+        layout_type: str,
+    ) -> tuple[Any, ...]:
+        """
+        Reset relationship toggle controls and refresh the visualization in one action.
+
+        Returns:
+            tuple[Any, ...]: Gradio updates for the nine relationship checkboxes,
+            followed by the refreshed figure and error-message update.
+        """
+        default_flags = self._default_relationship_flags()
+        figure, error_update = self._refresh_visualization_core(
+            graph_state,
+            view_mode,
+            layout_type,
+            default_flags,
+        )
+        checkbox_updates = tuple(gr.update(value=flag) for flag in default_flags)
+        return (*checkbox_updates, figure, error_update)
+
     @staticmethod
     def _render_visualization(
         graph: AssetRelationshipGraph,
@@ -1473,9 +1496,21 @@ class FinancialAssetApp:
         )
 
         c["reset_view_btn"].click(
-            self._reset_visualization_view,
+            self._reset_visualization_and_controls,
             inputs=[graph_state, c["view_mode"], c["layout_type"]],
-            outputs=[c["visualization_3d"], c["error_message"]],
+            outputs=[
+                c["show_same_sector"],
+                c["show_market_cap"],
+                c["show_correlation"],
+                c["show_corporate_bond"],
+                c["show_commodity_currency"],
+                c["show_income_comparison"],
+                c["show_regulatory"],
+                c["show_all_relationships"],
+                c["toggle_arrows"],
+                c["visualization_3d"],
+                c["error_message"],
+            ],
         )
 
     def _wire_formulaic_events(

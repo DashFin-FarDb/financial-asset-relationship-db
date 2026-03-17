@@ -209,9 +209,16 @@ def calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
     examples: list[str] = []
     for asset in graph.assets.values():
         if _is_equity_with_dividend_yield(asset):
+            price = getattr(asset, "price", None)
+            if price is None:
+                continue
+            try:
+                price_value = float(price)
+            except (TypeError, ValueError):
+                continue
             dividend_yield = float(getattr(asset, "dividend_yield"))
             yield_pct = dividend_yield * 100
-            examples.append(f"{asset.symbol}: Yield = {yield_pct:.2f}% at price ${asset.price:.2f}")
+            examples.append(f"{asset.symbol}: Yield = {yield_pct:.2f}% at price ${price_value:.2f}")
             if len(examples) >= 2:
                 break
     return "; ".join(examples) if examples else "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%"
@@ -295,6 +302,16 @@ def calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
         A string with up to two formatted examples separated by "; ", or a default illustrative example if none are available.
     """
 
+    def _is_equity_with_book_value_and_price(asset: object) -> bool:
+        if not _is_equity_with_book_value(asset):
+            return False
+        try:
+            float(getattr(asset, "price"))
+            float(getattr(asset, "book_value"))
+        except (TypeError, ValueError):
+            return False
+        return True
+
     def _format_pb(asset: object) -> str:
         """
         Format an asset's price-to-book (P/B) ratio as a one-line string.
@@ -306,12 +323,13 @@ def calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
             str: Formatted string "SYMBOL: P/B = X.XX". If `book_value` is zero or equivalent, the ratio is formatted as 0.00.
         """
         book_value = float(getattr(asset, "book_value"))
-        pb_ratio = getattr(asset, "price") / book_value if book_value else 0
+        price = float(getattr(asset, "price"))
+        pb_ratio = price / book_value if book_value else 0
         return f"{getattr(asset, 'symbol')}: P/B = {pb_ratio:.2f}"
 
     examples = _collect_formatted_examples(
         graph,
-        _is_equity_with_book_value,
+        _is_equity_with_book_value_and_price,
         _format_pb,
     )
     return "; ".join(examples) if examples else "Example: P/B = 150 / 50 = 3.0"

@@ -165,7 +165,7 @@ def _is_memory_db(path: str | None = None) -> bool:
         return False
     if parsed.path == ":memory:":
         return True
-    return ":memory:" in parsed.query
+    return False
 
 
 class _DatabaseConnectionManager:
