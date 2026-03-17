@@ -91,7 +91,9 @@ def _create_supabase_client(url: str, key: str) -> Client:
         return create_client(url, key)
     except Exception as exc:  # noqa: BLE001
         pytest.fail(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}")
-        raise
+        # pytest.fail is expected to raise and not return, but add an explicit
+        # raise to avoid any implicit fall-through in static analysis.
+        raise AssertionError(f"Failed to initialize Supabase client (url={_redact(url)}): {exc}")
 
 
 def _execute_smoke_query(client: Client, url: str) -> Any:
@@ -102,7 +104,9 @@ def _execute_smoke_query(client: Client, url: str) -> Any:
         pytest.fail(f"Supabase query failed (url={_redact(url)}): {exc}")
         return None
 
-
+        # pytest.fail is expected to raise and not return, but add an explicit
+        # raise to avoid any implicit fall-through in static analysis.
+        raise AssertionError(f"Supabase query failed (url={_redact(url)}): {exc}")
 @pytest.mark.integration
 def test_supabase_connection_smoke() -> None:
     """
