@@ -15,15 +15,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-def test_database_connection() -> bool:
-    """Test connectivity using current database module API.
-
-    Returns:
-        bool: True if the database connection and query were successful, False otherwise.
-
-    Raises:
-        Exception: Any unexpected exception outside of SQLAlchemyError that might occur during initialization.
-    """
+def test_database_connection() -> None:
+    """Test connectivity using current database module API."""
     logger.info("Testing database connection...")
     engine = create_engine_from_url()
     session_factory = create_session_factory(engine)
@@ -45,16 +38,14 @@ def test_database_connection() -> bool:
                 logger.info("Sample tables: %s", sample_tables[:2])
             else:
                 logger.warning("Query returned no table rows. This may be normal for a new database.")
-            return True
     except SQLAlchemyError:
         logger.exception("Database query failed")
-        return False
+        raise
 
 
 if __name__ == "__main__":
-    SUCCESS = test_database_connection()
-
-    if SUCCESS:
+    try:
+        test_database_connection()
         logger.info("✅ Database module test completed!")
-    else:
+    except Exception:  # noqa: BLE001
         logger.error("❌ Database module test failed!")
