@@ -185,15 +185,11 @@ class FormulaicVisualizer:
                 value is a dict mapping asset names to dictionaries
                 of asset-to-correlation values.
         """
-        correlation_matrix = FormulaicVisualizer._extract_correlation_matrix(
-            empirical_relationships
-        )
+        correlation_matrix = FormulaicVisualizer._extract_correlation_matrix(empirical_relationships)
         if not correlation_matrix:
             return
 
-        assets, z = FormulaicVisualizer._build_correlation_grid(
-            correlation_matrix
-        )
+        assets, z = FormulaicVisualizer._build_correlation_grid(correlation_matrix)
         if not assets:
             return
 
@@ -227,12 +223,8 @@ class FormulaicVisualizer:
         """Build ordered assets and matrix values for correlation heatmaps."""
         first_val = next(iter(correlation_matrix.values()), None)
         if isinstance(first_val, (int, float)):
-            return FormulaicVisualizer._build_flat_correlation_grid(
-                correlation_matrix
-            )
-        return FormulaicVisualizer._build_nested_correlation_grid(
-            correlation_matrix
-        )
+            return FormulaicVisualizer._build_flat_correlation_grid(correlation_matrix)
+        return FormulaicVisualizer._build_nested_correlation_grid(correlation_matrix)
 
     @staticmethod
     def _build_flat_correlation_grid(
@@ -251,9 +243,7 @@ class FormulaicVisualizer:
         return assets, z
 
     @staticmethod
-    def _collect_flat_assets(
-        correlation_matrix: Mapping[str, Any]
-    ) -> list[str]:
+    def _collect_flat_assets(correlation_matrix: Mapping[str, Any]) -> list[str]:
         """Collect sorted asset IDs from flat pair-keyed correlations."""
         assets_set: set[str] = set()
         for key in correlation_matrix:
@@ -311,10 +301,7 @@ class FormulaicVisualizer:
         for source in assets:
             source_map = correlation_matrix.get(source, {})
             source_map = source_map if isinstance(source_map, dict) else {}
-            row = [
-                FormulaicVisualizer._to_float(source_map.get(target, 0.0))
-                for target in assets
-            ]
+            row = [FormulaicVisualizer._to_float(source_map.get(target, 0.0)) for target in assets]
             z.append(row)
         return assets, z
 
@@ -404,9 +391,7 @@ class FormulaicVisualizer:
         sorted_formulas = self._get_sorted_formulas(formulas)
         top_formulas = sorted_formulas[:10]
 
-        names, categories, r_squared_values = self._extract_formula_table_data(
-            top_formulas
-        )
+        names, categories, r_squared_values = self._extract_formula_table_data(top_formulas)
 
         fig.add_trace(
             go.Table(
@@ -480,17 +465,9 @@ class FormulaicVisualizer:
                         - r_squared_values: R-squared values formatted as
                             strings (four decimals) or "N/A" if not numeric.
         """
-        names = [
-            FormulaicVisualizer._format_name(getattr(f, "name", None))
-            for f in formulas
-        ]
+        names = [FormulaicVisualizer._format_name(getattr(f, "name", None)) for f in formulas]
         categories = [getattr(f, "category", "N/A") for f in formulas]
-        r_squared_values = [
-            FormulaicVisualizer._format_r_squared(
-                getattr(f, "r_squared", None)
-            )
-            for f in formulas
-        ]
+        r_squared_values = [FormulaicVisualizer._format_r_squared(getattr(f, "r_squared", None)) for f in formulas]
         return names, categories, r_squared_values
 
     # ------------------------------------------------------------------
@@ -533,12 +510,7 @@ class FormulaicVisualizer:
                 f"<b>Category:</b> {formula.category}<br>"
                 f"<b>Reliability (R²):</b> {formula.r_squared:.3f}<br><br>"
                 "<b>Variables:</b><br>"
-                + (
-                    "<br>".join(
-                        f"• {var}: {desc}"
-                        for var, desc in formula.variables.items()
-                    )
-                )
+                + ("<br>".join(f"• {var}: {desc}" for var, desc in formula.variables.items()))
                 + "<br><br><b>Example Calculation:</b><br>"
                 f"{formula.example_calculation}"
             ),
@@ -579,12 +551,8 @@ class FormulaicVisualizer:
                 with an explanatory title when no strongest correlations are
                 provided.
         """
-        strongest_correlations = empirical_relationships.get(
-            "strongest_correlations", []
-        )
-        correlation_matrix = empirical_relationships.get(
-            "correlation_matrix", {}
-        )
+        strongest_correlations = empirical_relationships.get("strongest_correlations", [])
+        correlation_matrix = empirical_relationships.get("correlation_matrix", {})
 
         if not strongest_correlations:
             return FormulaicVisualizer._create_empty_correlation_figure()
@@ -638,18 +606,14 @@ class FormulaicVisualizer:
             else list(strongest_correlations)[:10]
         )
 
-        assets = FormulaicVisualizer._extract_assets_from_correlations(
-            top_correlations
-        )
+        assets = FormulaicVisualizer._extract_assets_from_correlations(top_correlations)
         if not assets:
             fig = go.Figure()
             fig.update_layout(title="No valid asset correlations found")
             return fig
 
         positions = FormulaicVisualizer._create_circular_positions(assets)
-        edge_traces = FormulaicVisualizer._create_edge_traces(
-            top_correlations, positions
-        )
+        edge_traces = FormulaicVisualizer._create_edge_traces(top_correlations, positions)
         node_trace = FormulaicVisualizer._create_node_trace(assets, positions)
 
         fig = go.Figure(data=edge_traces + [node_trace])
@@ -675,9 +639,7 @@ class FormulaicVisualizer:
         """Extract unique sorted assets from correlation data."""
         assets = set()
         for corr in correlations:
-            asset1, asset2, _ = FormulaicVisualizer._parse_correlation_item(
-                corr
-            )
+            asset1, asset2, _ = FormulaicVisualizer._parse_correlation_item(corr)
             if asset1:
                 assets.add(asset1)
             if asset2:
@@ -748,13 +710,9 @@ class FormulaicVisualizer:
         if not isinstance(correlations, (list, tuple)):
             return []
         for corr in correlations:
-            asset1, asset2, value = FormulaicVisualizer._parse_correlation_item(
-                corr
-            )
+            asset1, asset2, value = FormulaicVisualizer._parse_correlation_item(corr)
             if asset1 in positions and asset2 in positions:
-                trace = FormulaicVisualizer._create_single_edge_trace(
-                    asset1, asset2, value, positions
-                )
+                trace = FormulaicVisualizer._create_single_edge_trace(asset1, asset2, value, positions)
                 edge_traces.append(trace)
         return edge_traces
 

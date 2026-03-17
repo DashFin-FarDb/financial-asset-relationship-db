@@ -107,6 +107,8 @@ def _execute_smoke_query(client: Client, url: str) -> Any:
         # pytest.fail is expected to raise and not return, but add an explicit
         # raise to avoid any implicit fall-through in static analysis.
         raise AssertionError(f"Supabase query failed (url={_redact(url)}): {exc}")
+
+
 @pytest.mark.integration
 def test_supabase_connection_smoke() -> None:
     """

@@ -609,16 +609,16 @@ class FinancialAssetApp:
             followed by the refreshed figure and error-message update.
         """
         default_flags = self._default_relationship_flags()
-        figure, error_update = self._refresh_visualization_core(
+        figure, error_update=self._refresh_visualization_core(
             graph_state,
             view_mode,
             layout_type,
             default_flags,
         )
-        checkbox_updates = tuple(gr.update(value=flag) for flag in default_flags)
+        checkbox_updates=tuple(gr.update(value=flag) for flag in default_flags)
         return (*checkbox_updates, figure, error_update)
 
-    @staticmethod
+    @ staticmethod
     def _render_visualization(
         graph: AssetRelationshipGraph,
         view_mode: str,
