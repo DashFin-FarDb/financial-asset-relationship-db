@@ -412,8 +412,6 @@ financial-asset-relationship-db/
 - **src/data/sample_data.py:** Sample data generation
 - **pyproject.toml:** Tool configurations
 
-## Need Help?
-
 ## Dependency Management
 
 ### File Roles and Hierarchy
@@ -490,6 +488,8 @@ When updating dependencies, follow this checklist:
    - Keep version policies consistent across files
    - Update comments to explain pins (e.g., `# pinned for API compatibility`)
    - Run CI/CD pipeline to validate changes
+## Need Help?
+
 
 - Check existing issues and pull requests
 - Read the documentation in README.md

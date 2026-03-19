@@ -59,6 +59,7 @@ jobs:
         python -c "import ruamel.yaml; print('ruamel.yaml installed')"
         python -c "import fastapi; print('FastAPI:', fastapi.__version__)"
         python -c "import gradio; print('Gradio:', gradio.__version__)"
+        python -c "import app; print('app.py entrypoint validated')"
 
   test-dev-deps:
     name: Test Dev Dependencies (Python ${{ matrix.python-version }})
