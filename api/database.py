@@ -260,16 +260,7 @@ def get_connection() -> Iterator[sqlite3.Connection]:
         sqlite3.Connection: The SQLite connection. For file-backed databases the connection is closed when the context exits; for in-memory databases the shared connection remains open.
     """
     connection = _connect()
-    try:
-        yield connection
-    finally:
-        if not _is_memory_db():
-            connection.close()
-
-
-# Register cleanup for the shared in-memory connection when the program exits.
-# Ensure cleanup is registered only once even if this module code is duplicated/imported oddly.
-def _close_shared_memory_connection() -> None:
+def _cleanup_memory_connection() -> None:
     """
     Close and clear the module's shared in-memory SQLite connection, if one is initialized.
 
@@ -277,6 +268,8 @@ def _close_shared_memory_connection() -> None:
     """
     _db_manager.close_shared_connection()
 
+
+_close_shared_memory_connection = _cleanup_memory_connection
 
 # Ensure cleanup is registered only once even if this module code is
 # duplicated/imported oddly.
