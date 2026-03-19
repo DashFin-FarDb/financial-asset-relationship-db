@@ -413,6 +413,7 @@ financial-asset-relationship-db/
 - **pyproject.toml:** Tool configurations
 
 ## Need Help?
+
 ## Dependency Management
 
 ### File Roles and Hierarchy
@@ -424,11 +425,13 @@ This project uses three files for dependency management, each with a specific ro
 **Purpose:** Authoritative source for runtime dependencies
 
 **Use when:**
+
 - Running the application in production
 - Deploying to servers or containers
 - CI/CD pipelines for application testing
 
 **Policy:**
+
 - Contains only dependencies needed to run the application
 - Uses specific pins for stability-critical packages (e.g., `fastapi==0.127.0`)
 - Uses version ranges for libraries where flexibility is acceptable
@@ -439,17 +442,20 @@ This project uses three files for dependency management, each with a specific ro
 **Purpose:** Extends runtime dependencies with development tools
 
 **Structure:**
+
 ```
 -r requirements.txt  # Extends runtime requirements
 <dev-only dependencies>
 ```
 
 **Use when:**
+
 - Local development
 - Running tests, linters, formatters
 - Contributing to the project
 
 **Policy:**
+
 - Always extends `requirements.txt` via `-r requirements.txt`
 - Adds only dev-specific tools: pytest plugins, linters, formatters, pre-commit
 - Never duplicates packages from `requirements.txt`
@@ -460,6 +466,7 @@ This project uses three files for dependency management, each with a specific ro
 **Purpose:** Project configuration and metadata
 
 **Policy:**
+
 - `[project.dependencies]` should align with `requirements.txt` core packages
 - Uses minimum version constraints (e.g., `>=`) rather than exact pins
 - `[project.optional-dependencies.dev]` aligns with development tools
@@ -483,7 +490,6 @@ When updating dependencies, follow this checklist:
    - Keep version policies consistent across files
    - Update comments to explain pins (e.g., `# pinned for API compatibility`)
    - Run CI/CD pipeline to validate changes
-
 
 - Check existing issues and pull requests
 - Read the documentation in README.md
