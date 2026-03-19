@@ -637,9 +637,9 @@ class TestDocumentationRealisticContent:
 
         # Extract file paths from the manifest (look for common patterns)
         file_patterns = [
-            r"###\s+\\([\w\\\/._-]+\.py)",
-            r"###\s+\\([\w\\\/._-]+\.tsx?)",
-            r"###\s+\\([\w\\\/._-]+\.jsx?)",
+            r"###\s+\\([\w\\\/.-]+\.py)",
+            r"###\s+\\([\w\\\/.-]+\.tsx?)",
+            r"###\s+\\([\w\\\/.-]+\.jsx?)",
         ]
 
         mentioned_files = []
