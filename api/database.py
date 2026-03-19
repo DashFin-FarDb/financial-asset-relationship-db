@@ -262,6 +262,8 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     connection = _connect()
 
 
+
+
 def _cleanup_memory_connection() -> None:
     """
     Close and clear the module's shared in-memory SQLite connection, if one is initialized.
