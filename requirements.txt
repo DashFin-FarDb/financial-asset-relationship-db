@@ -1,9 +1,10 @@
-gradio>=4.9.0,<5.0.0
+gradio==4.44.1  # pinned to align with FastAPI 0.127.0 and websockets<13
 Markdown>=3.4,<4.0
 curl-cffi>=0.5.0
 requests>=2.32.2
-websockets>=13.0
+websockets>=12.0,<13.0  # constrained for gradio/uvicorn compatibility
 plotly>=5.0.0
+numpy>=1.24.0,<3.0
 pandas>=1.5.0
 dataclasses-json>=0.5.7
 yfinance>=0.2.51
@@ -13,8 +14,8 @@ pydantic==2.12.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 
 # YAML / configuration dependencies
-PyYAML==6.0
-ruamel.yaml==0.18
+PyYAML>=6.0.3  # Py3.12-compatible build
+ruamel-yaml>=0.18.17  # aligned with PyYAML 6.x
 
 # Serverless/Database dependencies
 mangum>=0.17.0
@@ -31,8 +32,8 @@ passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
 
 # Testing dependencies
-httpx==0.28.1  # pinned for test stability
+httpx>=0.28.1  # minimum for test stability
 pytest>=7.0.0
 urllib3>=2.6.0 # not directly required, pinned by Snyk to avoid a vulnerability
-anyio==4.12.0  # pinned for httpx compatibility
+anyio>=4.12.0  # minimum for httpx compatibility
 zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability

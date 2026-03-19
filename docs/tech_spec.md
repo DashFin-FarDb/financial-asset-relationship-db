@@ -227,12 +227,12 @@ The relationship engine discovers and manages six primary relationship types:
 | FastAPI    | 0.127.0 | REST API framework                |
 | Uvicorn    | ≥0.24.0 | ASGI server                       |
 | Pydantic   | 2.12.5  | Data validation and serialization |
-| NumPy      | 2.2.6   | Numerical computing               |
+| NumPy      | ≥1.24.0,<3.0 | Numerical computing               |
 | Pandas     | ≥1.5.0  | Data analysis and manipulation    |
 | yfinance   | ≥0.2.51 | Yahoo Finance data acquisition    |
 | Plotly     | ≥6.0.0  | Visualization generation          |
 | SQLAlchemy | ≥2.0.0  | Database ORM                      |
-| Gradio     | ≥4.0.0  | Legacy UI framework               |
+| Gradio     | 4.44.1  | Legacy UI framework               |
 
 #### Frontend Technologies
 
@@ -691,7 +691,7 @@ Implemented in `src/logic/asset_graph.py`, the engine maintains a graph structur
 | Dependency Type          | Dependency                 |
 | ------------------------ | -------------------------- |
 | Prerequisite Features    | F-001, F-002               |
-| System Dependencies      | NumPy 2.2.6, Pandas ≥1.5.0 |
+| System Dependencies      | NumPy ≥1.24.0,<3.0, Pandas ≥1.5.0 |
 | External Dependencies    | None                       |
 | Integration Requirements | Thread-safe initialization |
 
@@ -2046,7 +2046,7 @@ Python 3.10+ is required for the following technical reasons:
 
 3. **Performance Optimizations**: Python 3.11 provides approximately 25% faster execution through specialization improvements, benefiting compute-intensive relationship discovery operations.
 
-4. **Ecosystem Compatibility**: The pinned versions of NumPy 2.2.6, Pandas ≥1.5.0, and Plotly ≥6.0.0 all require Python 3.10+ for full feature support.
+4. **Ecosystem Compatibility**: The tested ranges of NumPy ≥1.24.0,<3.0, Pandas ≥1.5.0, and Plotly ≥6.0.0 all require Python 3.10+ for full feature support.
 
 #### Primary Use Cases
 
@@ -2288,13 +2288,13 @@ All visualizations use `seed=42` for reproducible 3D node positioning, ensuring 
 | **fastapi**           | 0.127.0 (pinned)   | REST API framework                |
 | **uvicorn[standard]** | >=0.24.0           | ASGI server with async support    |
 | **pydantic**          | 2.12.5 (pinned)    | Data validation and serialization |
-| **gradio**            | >=4.0.0,<6.0.0     | Legacy UI framework               |
+| **gradio**            | ==4.44.1           | Legacy UI framework               |
 
 #### Data Processing Dependencies
 
 | Package              | Version Constraint | Purpose                                   |
 | -------------------- | ------------------ | ----------------------------------------- |
-| **numpy**            | 2.2.6 (pinned)     | Numerical computing for graph coordinates |
+| **numpy**            | >=1.24.0,<3.0      | Numerical computing for graph coordinates |
 | **pandas**           | >=1.5.0            | Tabular data manipulation                 |
 | **plotly**           | >=6.0.0            | Visualization generation                  |
 | **dataclasses-json** | >=0.5.7            | JSON serialization for domain models      |
@@ -2361,10 +2361,10 @@ Per project coding standards, yfinance is the **only approved finance data API**
 | **Linting**       | pylint         | >=2.17.0 | Static analysis             |
 | **Type Checking** | mypy           | >=1.0.0  | Type checking               |
 | **Formatting**    | black          | >=23.0.0 | Code formatting             |
-| **Formatting**    | isort          | >=5.12.0 | Import sorting              |
+| **Formatting**    | isort          | >=5.13.2 | Import sorting              |
 | **Git Hooks**     | pre-commit     | >=3.0.0  | Pre-commit hook management  |
-| **Configuration** | PyYAML         | >=6.0    | YAML parsing                |
-| **Type Stubs**    | types-PyYAML   | -        | Type annotations for PyYAML |
+| **Configuration** | PyYAML         | >=6.0.3  | YAML parsing                |
+| **Type Stubs**    | types-PyYAML   | >=6.0.3  | Type annotations for PyYAML |
 
 ### 3.4.3 Frontend Runtime Dependencies
 
@@ -2411,7 +2411,7 @@ flowchart TD
     subgraph PinnedPackages["Pinned (Critical Compatibility)"]
         FastAPIPkg["fastapi 0.127.0"]
         PydanticPkg["pydantic 2.12.5"]
-        NumpyPkg["numpy 2.2.6"]
+        NumpyPkg["numpy >=1.24.0,<3.0"]
         H11Pkg["h11 0.16.0"]
     end
 
@@ -2422,7 +2422,7 @@ flowchart TD
     end
 
     subgraph RangePackages["Range (Compatibility)"]
-        GradioPkg["gradio >=4.0.0,<6.0.0"]
+        GradioPkg["gradio ==4.44.1"]
         NextPkg["next ^14.2.35"]
     end
 
@@ -2902,7 +2902,7 @@ make docker-compose-up
 | Component A      | Component B     | Constraint                  |
 | ---------------- | --------------- | --------------------------- |
 | FastAPI 0.127.0  | Pydantic 2.12.5 | Pinned together             |
-| NumPy 2.2.6      | Pandas >=1.5.0  | NumPy 2.x compatibility     |
+| NumPy ≥1.24.0,<3.0 | Pandas >=1.5.0  | NumPy 2.x compatibility     |
 | Next.js 14.2.x   | React 18.2.0    | React 18 required           |
 | Uvicorn >=0.24.0 | h11 0.16.0      | HTTP protocol compatibility |
 
@@ -4001,8 +4001,8 @@ The system comprises eight major components, each with distinct responsibilities
 | -------------------- | ---------------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------- |
 | FastAPI Backend      | REST API server, request routing, middleware orchestration | FastAPI 0.127.0, Uvicorn, slowapi, PyJWT        | Frontend via HTTP/JSON, Graph via Python calls |
 | Next.js Frontend     | Modern React-based UI with TypeScript                      | Next.js 14.2.35, React 18.2.0, Axios, Plotly.js | FastAPI via REST, Users via browser            |
-| Gradio UI            | Legacy Python-native dashboard                             | Gradio ≥4.0.0, Plotly ≥6.0.0                    | Graph Engine via direct Python calls           |
-| Graph Engine         | In-memory relationship storage, 3D layout calculation      | NumPy 2.2.6                                     | All layers via singleton accessor              |
+| Gradio UI            | Legacy Python-native dashboard                             | Gradio 4.44.1, Plotly ≥6.0.0                    | Graph Engine via direct Python calls           |
+| Graph Engine         | In-memory relationship storage, 3D layout calculation      | NumPy ≥1.24.0,<3.0                              | All layers via singleton accessor              |
 | Domain Models        | Asset/Event dataclasses, validation rules                  | Python standard library                         | All components via imports                     |
 | Real Data Fetcher    | Yahoo Finance integration, caching                         | yfinance ≥0.2.51                                | Graph initialization pipeline                  |
 | Visualization Module | Plotly chart generation, color mapping                     | Plotly ≥6.0.0                                   | API endpoints, Gradio UI                       |
@@ -11107,8 +11107,8 @@ flowchart TB
 | ----------------- | -------------- | ---------------------------- |
 | `fastapi`         | ==0.127.0      | API framework (pinned)       |
 | `pydantic`        | ==2.12.5       | Data validation (pinned)     |
-| `numpy`           | ==2.2.6        | Numerical computing (pinned) |
-| `gradio`          | >=4.0.0,<6.0.0 | Legacy UI                    |
+| `numpy`           | >=1.24.0,<3.0  | Numerical computing          |
+| `gradio`          | ==4.44.1       | Legacy UI                    |
 | `plotly`          | >=6.0.0        | Visualization                |
 | `yfinance`        | >=0.2.51       | Financial data               |
 | `PyJWT`           | >=2.8.0        | Authentication               |
