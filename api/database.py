@@ -262,8 +262,6 @@ def get_connection() -> Iterator[sqlite3.Connection]:
     connection = _connect()
 
 
-
-
 def _cleanup_memory_connection() -> None:
     """
     Close and clear the module's shared in-memory SQLite connection, if one is initialized.
@@ -350,8 +348,7 @@ def initialize_schema() -> None:
     - `hashed_password`: TEXT, not null
     - `disabled`: INTEGER, not null, defaults to 0
     """
-    execute(
-        """
+    execute("""
         CREATE TABLE IF NOT EXISTS user_credentials (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
@@ -360,5 +357,4 @@ def initialize_schema() -> None:
             hashed_password TEXT NOT NULL,
             disabled INTEGER NOT NULL DEFAULT 0
         )
-        """
-    )
+        """)
