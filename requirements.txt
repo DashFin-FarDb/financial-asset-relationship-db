@@ -1,4 +1,4 @@
-gradio>=4.9.0,<5.0.0
+gradio==5.9.1  # pinned for FastAPI 0.127.0 compatibility
 Markdown>=3.4,<4.0
 curl-cffi>=0.5.0
 requests>=2.32.2
@@ -13,8 +13,8 @@ pydantic==2.12.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 
 # YAML / configuration dependencies
-PyYAML==6.0
-ruamel.yaml==0.18
+PyYAML==6.0.3  # updated for Python 3.12 compatibility
+ruamel.yaml==0.18.17  # updated for Python 3.12 compatibility
 
 # Serverless/Database dependencies
 mangum>=0.17.0

@@ -12,6 +12,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 - [Testing Guidelines](#testing-guidelines)
 - [Submitting Changes](#submitting-changes)
 - [Project Structure](#project-structure)
+- [Dependency Management](#dependency-management)
 
 ## Code of Conduct
 
@@ -22,7 +23,7 @@ This project adheres to a code of conduct that fosters an open and welcoming env
 ### Prerequisites
 
 - Python 3.8 or higher
-- Git
+- Python 3.10 or higher (Python 3.12 recommended)
 - Virtual environment tool (venv, virtualenv, or conda)
 
 ### Installation
@@ -412,6 +413,77 @@ financial-asset-relationship-db/
 - **pyproject.toml:** Tool configurations
 
 ## Need Help?
+## Dependency Management
+
+### File Roles and Hierarchy
+
+This project uses three files for dependency management, each with a specific role:
+
+#### 1. `requirements.txt` (Runtime/Production Dependencies)
+
+**Purpose:** Authoritative source for runtime dependencies
+
+**Use when:**
+- Running the application in production
+- Deploying to servers or containers
+- CI/CD pipelines for application testing
+
+**Policy:**
+- Contains only dependencies needed to run the application
+- Uses specific pins for stability-critical packages (e.g., `fastapi==0.127.0`)
+- Uses version ranges for libraries where flexibility is acceptable
+- Includes Python 3.10+ compatibility constraints
+
+#### 2. `requirements-dev.txt` (Development Dependencies)
+
+**Purpose:** Extends runtime dependencies with development tools
+
+**Structure:**
+```
+-r requirements.txt  # Extends runtime requirements
+<dev-only dependencies>
+```
+
+**Use when:**
+- Local development
+- Running tests, linters, formatters
+- Contributing to the project
+
+**Policy:**
+- Always extends `requirements.txt` via `-r requirements.txt`
+- Adds only dev-specific tools: pytest plugins, linters, formatters, pre-commit
+- Never duplicates packages from `requirements.txt`
+- Can use looser version constraints for dev tools
+
+#### 3. `pyproject.toml` (Project Metadata)
+
+**Purpose:** Project configuration and metadata
+
+**Policy:**
+- `[project.dependencies]` should align with `requirements.txt` core packages
+- Uses minimum version constraints (e.g., `>=`) rather than exact pins
+- `[project.optional-dependencies.dev]` aligns with development tools
+- Serves as the source of truth for project metadata
+
+### Updating Dependencies
+
+When updating dependencies, follow this checklist:
+
+1. **Identify the change type:**
+   - Security patch: Update all three files
+   - New runtime dependency: Add to `requirements.txt` and `pyproject.toml`
+   - New dev tool: Add to `requirements-dev.txt` and `pyproject.toml` dev extras
+
+2. **Check compatibility:**
+   - Verify Python 3.10+ compatibility
+   - Check for conflicts: `pip install -r requirements.txt && pip check`
+   - Test on multiple platforms if possible (Linux, macOS, Windows)
+
+3. **Update consistently:**
+   - Keep version policies consistent across files
+   - Update comments to explain pins (e.g., `# pinned for API compatibility`)
+   - Run CI/CD pipeline to validate changes
+
 
 - Check existing issues and pull requests
 - Read the documentation in README.md
