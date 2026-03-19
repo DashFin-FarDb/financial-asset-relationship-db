@@ -1,8 +1,8 @@
-gradio>=4.9.0,<5.0.0
+gradio>=4.44.1,<5.0.0  # pinned minimum for fastapi 0.127.0 compatibility
+huggingface-hub>=0.19.3,<1.0  # gradio 4.44.1 requires HfFolder which was removed in 1.0
 Markdown>=3.4,<4.0
 curl-cffi>=0.5.0
 requests>=2.32.2
-websockets>=13.0
 plotly>=5.0.0
 pandas>=1.5.0
 dataclasses-json>=0.5.7
@@ -13,8 +13,8 @@ pydantic==2.12.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 
 # YAML / configuration dependencies
-PyYAML==6.0
-ruamel.yaml==0.18
+PyYAML==6.0.3
+ruamel.yaml==0.18.17
 
 # Serverless/Database dependencies
 mangum>=0.17.0
