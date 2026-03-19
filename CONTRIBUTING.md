@@ -22,8 +22,8 @@ This project adheres to a code of conduct that fosters an open and welcoming env
 
 ### Prerequisites
 
-- Python 3.8 or higher
 - Python 3.10 or higher (Python 3.12 recommended)
+- Git
 - Virtual environment tool (venv, virtualenv, or conda)
 
 ### Installation
