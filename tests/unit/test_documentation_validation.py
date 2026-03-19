@@ -751,8 +751,7 @@ class TestChangedFunctionLogic:
             "## Project Directory Structure\n"
             "📂 src\n"
             "  📄 main.py\n"
-            "## PY Dependencies\n"
-            + extra_content
+            "## PY Dependencies\n" + extra_content
         )
 
     # ------------------------------------------------------------------ #
@@ -824,9 +823,7 @@ class TestChangedFunctionLogic:
     )
     def test_file_header_regex_matches_valid_paths(self, header):
         """Updated regex matches valid file headers with common path characters."""
-        assert re.search(self.FILE_HEADER_REGEX, header) is not None, (
-            f"Regex should match: {header!r}"
-        )
+        assert re.search(self.FILE_HEADER_REGEX, header) is not None, f"Regex should match: {header!r}"
 
     @pytest.mark.parametrize(
         "header",
@@ -838,9 +835,7 @@ class TestChangedFunctionLogic:
     )
     def test_file_header_regex_matches_paths_with_underscores(self, header):
         """Underscore in filenames matches via \\w even though it was removed from the explicit set."""
-        assert re.search(self.FILE_HEADER_REGEX, header) is not None, (
-            f"Regex should match underscore path: {header!r}"
-        )
+        assert re.search(self.FILE_HEADER_REGEX, header) is not None, f"Regex should match underscore path: {header!r}"
 
     @pytest.mark.parametrize(
         "non_header",
@@ -854,23 +849,15 @@ class TestChangedFunctionLogic:
     )
     def test_file_header_regex_does_not_match_non_paths(self, non_header):
         """Updated regex should not match non-file-path headers."""
-        assert re.search(self.FILE_HEADER_REGEX, non_header) is None, (
-            f"Regex should NOT match: {non_header!r}"
-        )
+        assert re.search(self.FILE_HEADER_REGEX, non_header) is None, f"Regex should NOT match: {non_header!r}"
 
     def test_file_header_regex_result_contains_path_separator(self):
         """Each matched file header must contain a path separator (backslash or slash)."""
-        content = (
-            r"### \src\main.py" + "\n"
-            r"### \frontend\app\page.tsx" + "\n"
-            "### Plain heading\n"
-        )
+        content = r"### \src\main.py" + "\n" r"### \frontend\app\page.tsx" + "\n### Plain heading\n"
         matches = re.findall(self.FILE_HEADER_REGEX, content)
         assert len(matches) == 2
         for match in matches:
-            assert "\\" in match or "/" in match, (
-                f"File path should have proper separators: {match}"
-            )
+            assert "\\" in match or "/" in match, f"File path should have proper separators: {match}"
 
     def test_old_and_new_regex_are_functionally_equivalent_for_underscore(self):
         """Confirm the regex change is non-breaking: both old and new match underscore paths."""
@@ -906,9 +893,7 @@ class TestChangedFunctionLogic:
             return
         has_deps = "Dependencies:" in section or "No dependencies found" in section
         condition = has_deps or section.strip().startswith("\\")
-        assert condition == expected_pass, (
-            f"Section {section!r}: expected condition={expected_pass}, got {condition}"
-        )
+        assert condition == expected_pass, f"Section {section!r}: expected condition={expected_pass}, got {condition}"
 
     def test_dependency_entry_section_starting_with_hash_is_skipped(self):
         """Sections starting with '#' are excluded from the dependency-content check."""
@@ -923,9 +908,7 @@ class TestChangedFunctionLogic:
     def test_project_structure_assertion_passes_when_section_present(self):
         """Assertion passes when '## Project Structure' is in the manifest content."""
         content = self._make_system_manifest()
-        assert "## Project Structure" in content, (
-            "## Project Structure section not found in system manifest"
-        )
+        assert "## Project Structure" in content, "## Project Structure section not found in system manifest"
 
     def test_project_structure_assertion_fails_when_section_absent(self):
         """Assertion fails when '## Project Structure' is not in the manifest content."""
@@ -934,13 +917,7 @@ class TestChangedFunctionLogic:
 
     def test_project_structure_section_extraction(self):
         """Content after '## Project Structure' up to the next '##' is extracted correctly."""
-        content = (
-            "# System Manifest\n"
-            "## Project Structure\n"
-            "- 5 py files\n"
-            "- 3 ts files\n"
-            "## Dependencies\n"
-        )
+        content = "# System Manifest\n## Project Structure\n- 5 py files\n- 3 ts files\n## Dependencies\n"
         sm_content = content.split("## Project Structure")[1].split("##")[0]
         dm_pattern = r"- (\d+) (\w+) files"
         counts = {ft: int(c) for c, ft in re.findall(dm_pattern, sm_content)}
@@ -968,14 +945,12 @@ class TestChangedFunctionLogic:
             if should_assert:
                 with pytest.raises(AssertionError) as exc_info:
                     assert dm_has == sm_has, (
-                        f"Dependency '{dep}' inconsistently present: "
-                        f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
+                        f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
                     )
                 assert dep in str(exc_info.value)
             else:
                 assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: "
-                    f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
+                    f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
                 )
 
     def test_dependency_consistency_skips_when_neither_document_has_dep(self):
@@ -990,10 +965,7 @@ class TestChangedFunctionLogic:
         dep = "axios"
         dm_has = True
         sm_has = False
-        message = (
-            f"Dependency '{dep}' inconsistently present: "
-            f"dependencyMatrix={dm_has}, systemManifest={sm_has}"
-        )
+        message = f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
         assert dep in message
         assert "dependencyMatrix=True" in message
         assert "systemManifest=False" in message
@@ -1020,9 +992,7 @@ class TestChangedFunctionLogic:
         """Regression: parenthesised assert message for missing Project Structure section."""
         content = "# System Manifest\n## Dependencies\n"
         with pytest.raises(AssertionError) as exc_info:
-            assert "## Project Structure" in content, (
-                "## Project Structure section not found in system manifest"
-            )
+            assert "## Project Structure" in content, "## Project Structure section not found in system manifest"
         assert "Project Structure" in str(exc_info.value)
 
     def test_assertion_message_dependency_inconsistency(self):
@@ -1041,7 +1011,5 @@ class TestChangedFunctionLogic:
         section = "some_text_without_deps"
         has_deps = "Dependencies:" in section or "No dependencies found" in section
         with pytest.raises(AssertionError) as exc_info:
-            assert has_deps or section.strip().startswith("\\"), (
-                "File section should have dependency information"
-            )
+            assert has_deps or section.strip().startswith("\\"), "File section should have dependency information"
         assert "File section should have dependency information" in str(exc_info.value)
