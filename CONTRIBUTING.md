@@ -488,8 +488,8 @@ When updating dependencies, follow this checklist:
    - Keep version policies consistent across files
    - Update comments to explain pins (e.g., `# pinned for API compatibility`)
    - Run CI/CD pipeline to validate changes
-## Need Help?
 
+## Need Help?
 
 - Check existing issues and pull requests
 - Read the documentation in README.md
