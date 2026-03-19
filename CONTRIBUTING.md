@@ -466,7 +466,7 @@ This project uses three files for dependency management, each with a specific ro
 **Policy:**
 
 - `[project.dependencies]` should align with `requirements.txt` core packages
-- Uses minimum version constraints (e.g., `>=`) rather than exact pins
+- Prefers minimum version constraints (e.g., `>=`) but allows exact pins (e.g., `==`) when required for compatibility or reproducible builds, with clear justification
 - `[project.optional-dependencies.dev]` aligns with development tools
 - Serves as the source of truth for project metadata
 
