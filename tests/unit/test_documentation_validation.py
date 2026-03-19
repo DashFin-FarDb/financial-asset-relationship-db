@@ -125,9 +125,9 @@ class TestDependencyMatrix:
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
         found_types = set(file_types)
-        assert found_types.issubset(expected_types | {"jsx", "json", "md"}), (
-            f"Unexpected file types: {found_types - expected_types}"
-        )
+        assert found_types.issubset(
+            expected_types | {"jsx", "json", "md"}
+        ), f"Unexpected file types: {found_types - expected_types}"
 
     def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
         """Test that dependencyMatrix.md has File Type Distribution section."""
@@ -452,9 +452,9 @@ class TestSystemManifest:
                 has_deps = "Dependencies:" in section or "No dependencies found" in section
                 # Allow for section headers without file content
                 if not section.startswith("#"):
-                    assert has_deps or section.strip().startswith("\\"), (
-                        "File section should have dependency information"
-                    )
+                    assert has_deps or section.strip().startswith(
+                        "\\"
+                    ), "File section should have dependency information"
 
     def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
         """Test that there are no duplicate major sections."""
@@ -536,9 +536,9 @@ class TestDocumentationConsistency:
 
         # Extract file counts from system manifest (first occurrence in Project Structure)
         # Extract file counts from system manifest (first occurrence in Project Structure)
-        assert "## Project Structure" in system_manifest_content, (
-            "## Project Structure section not found in system manifest"
-        )
+        assert (
+            "## Project Structure" in system_manifest_content
+        ), "## Project Structure section not found in system manifest"
         sm_content = system_manifest_content.split("## Project Structure")[1].split("##")[0]
         sm_counts = {file_type: int(count) for count, file_type in re.findall(dm_pattern, sm_content)}
 
@@ -616,9 +616,9 @@ class TestDocumentationConsistency:
             sm_has = any(dep in d for d in sm_deps)
             # If one has it, both should (or neither)
             if dm_has or sm_has:
-                assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
-                )
+                assert (
+                    dm_has == sm_has
+                ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
 
 
 @pytest.mark.unit
