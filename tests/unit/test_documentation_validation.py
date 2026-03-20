@@ -807,10 +807,11 @@ class TestChangedFunctionLogic:
     # 2. Updated regex pattern (line 428)                                  #
     # ------------------------------------------------------------------ #
 
+
 FILE_HEADER_REGEX = r"###\s+\\[\w/._-]+\.\w+"
 
-    @pytest.mark.parametrize(
-        "header",
+  @pytest.mark.parametrize(
+       "header",
         [
             r"### \src\main.py",
             r"### \src\utils\helper.ts",
@@ -820,8 +821,8 @@ FILE_HEADER_REGEX = r"###\s+\\[\w/._-]+\.\w+"
             r"### \path\file-name.py",
             r"### \path\file.name.with.dots.py",
         ],
-    )
-    def test_file_header_regex_matches_valid_paths(self, header):
+       )
+   def test_file_header_regex_matches_valid_paths(self, header):
         """Updated regex matches valid file headers with common path characters."""
         assert re.search(self.FILE_HEADER_REGEX, header) is not None, f"Regex should match: {header!r}"
 
