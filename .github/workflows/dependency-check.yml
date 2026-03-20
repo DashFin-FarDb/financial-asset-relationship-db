@@ -2,7 +2,7 @@ name: Dependency Check
 
 on:
   push:
-    branches-ignore: [ "main" ]
+    branches: [ "main" ]
     paths:
       - 'requirements*.txt'
       - 'pyproject.toml'
