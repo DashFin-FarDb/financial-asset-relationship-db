@@ -808,7 +808,7 @@ class TestChangedFunctionLogic:
     # ------------------------------------------------------------------ #
 
 
-FILE_HEADER_REGEX = r"###\s+\\[\w/._-]+\.\w+"
+    FILE_HEADER_REGEX = r"###\s+\\[\w\\/._-]+\.\w+"
 
   @pytest.mark.parametrize(
        "header",
