@@ -807,7 +807,7 @@ class TestChangedFunctionLogic:
     # 2. Updated regex pattern (line 428)                                  #
     # ------------------------------------------------------------------ #
 
-    FILE_HEADER_REGEX = r"###\s+\\[\w\\/.-]+\.\w+"
+FILE_HEADER_REGEX = r"###\s+\\[\w/._-]+\.\w+"
 
     @pytest.mark.parametrize(
         "header",
