@@ -45,19 +45,19 @@ jobs:
       run: |
         python -m pip install --upgrade pip setuptools wheel
 
-    - name: Install runtime requirements
-      run: |
-        pip install -r requirements.txt
-
-    - name: Run pip check
-      run: |
-        pip check
-
     - name: Install project from pyproject.toml
       run: |
         pip install -e .
 
-    - name: Verify project installation
+    - name: Verify project installation (packaging metadata only)
+      run: |
+        pip check
+
+    - name: Install runtime requirements
+      run: |
+        pip install -r requirements.txt
+
+    - name: Verify combined environment
       run: |
         pip check
 
