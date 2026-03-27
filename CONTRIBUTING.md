@@ -467,7 +467,8 @@ This project uses three files for dependency management, each with a specific ro
 
 - `[project.dependencies]` should align with `requirements.txt` core packages
 - Prefers minimum version constraints (e.g., `>=`) but allows exact pins (e.g., `==`) when required for compatibility or reproducible builds, with clear justification
-- `[project.optional-dependencies.dev]` aligns with development tools
+- `[project.optional-dependencies.dev]` includes core development tools (pytest, pytest-cov, pytest-asyncio, linters, formatters)
+- Additional specialized dev tools (e.g., pre-commit, PyGithub) may be documented in requirements-dev.txt and not included in the dev extra
 - Serves as the source of truth for project metadata
 
 ### Updating Dependencies

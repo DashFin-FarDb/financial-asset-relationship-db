@@ -53,6 +53,14 @@ jobs:
       run: |
         pip check
 
+    - name: Install project from pyproject.toml
+      run: |
+        pip install -e .
+
+    - name: Verify project installation
+      run: |
+        pip check
+
     - name: Verify core imports
       run: |
         python -c "import yaml; print('PyYAML:', yaml.__version__)"
