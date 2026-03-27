@@ -2,6 +2,14 @@
 -r requirements.txt
 
 # Development dependencies
+# Testing dependencies
+httpx==0.28.1  # pinned for test stability
+pytest>=7.0.0
+urllib3>=2.6.0  # not directly required, pinned by Snyk to avoid a vulnerability
+anyio==4.12.0  # pinned for httpx compatibility
+zipp>=3.19.1  # not directly required, pinned by Snyk to avoid a vulnerability
+
+# Dev tools
 pytest-cov>=4.0.0
 pytest-asyncio>=0.21.0
 flake8>=6.0.0

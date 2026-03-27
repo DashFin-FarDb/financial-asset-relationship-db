@@ -430,7 +430,7 @@ This project uses three files for dependency management, each with a specific ro
 
 **Policy:**
 
-- Contains dependencies needed to run the application, including some testing utilities (httpx, pytest, anyio) for compatibility and stability
+- Contains only dependencies needed to run the application
 - Uses specific pins for stability-critical packages (e.g., `fastapi==0.127.0`)
 - Uses version ranges for libraries where flexibility is acceptable
 - Includes Python 3.10+ compatibility constraints
@@ -466,9 +466,11 @@ This project uses three files for dependency management, each with a specific ro
 **Policy:**
 
 - `[project.dependencies]` should align with `requirements.txt` core packages
-- Prefers minimum version constraints (e.g., `>=`) but allows exact pins (e.g., `==`) when required for compatibility or reproducible builds, with clear justification
-- `[project.optional-dependencies.dev]` includes core development tools (pytest, pytest-cov, pytest-asyncio, linters, formatters)
-- Additional specialized dev tools (e.g., pre-commit, PyGithub) may be documented in requirements-dev.txt and not included in the dev extra
+- Uses exact pins (e.g., `==`) for stability-critical packages (e.g., `fastapi==0.127.0`, `pydantic==2.12.5`) to prevent dependency conflicts
+- Uses minimum version constraints (e.g., `>=`) for flexible dependencies where version updates are safe
+- Must maintain consistency with `requirements.txt` pins to avoid resolver conflicts
+- `[project.optional-dependencies.dev]` includes core development tools needed for most contributors (pytest, pytest-cov, pytest-asyncio, linters, formatters)
+- Additional specialized tools (e.g., pre-commit, PyGithub) are available in `requirements-dev.txt` but not required in the optional dev extras
 - Serves as the source of truth for project metadata
 
 ### Updating Dependencies
