@@ -496,7 +496,9 @@ When updating dependencies, follow this checklist:
 1. **Identify the change type:**
    - Security patch: Update all three files
    - New runtime dependency: Add to `requirements.txt` and `pyproject.toml`
-   - New dev tool: Add to `requirements-dev.txt` and `pyproject.toml` dev extras
+   - New dev tool:
+     - Core tools (used by most contributors): add to `requirements-dev.txt` and `[project.optional-dependencies].dev` in `pyproject.toml`
+     - Optional/specialized tools: add only to `requirements-dev.txt`
 
 2. **Check compatibility:**
    - Verify Python 3.10+ compatibility
