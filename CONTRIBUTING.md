@@ -430,7 +430,7 @@ This project uses three files for dependency management, each with a specific ro
 
 **Policy:**
 
-- Contains only dependencies needed to run the application
+- Contains dependencies needed to run the application, plus core testing tools (httpx, pytest, anyio) and security pins (urllib3, zipp) required by CI/CD pipelines
 - Uses specific pins for stability-critical packages (e.g., `fastapi==0.127.0`)
 - Uses version ranges for libraries where flexibility is acceptable
 - Includes Python 3.10+ compatibility constraints

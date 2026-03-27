@@ -39,7 +39,7 @@ dependencies = [
     "h11==0.16.0",
     "PyYAML==6.0.3",
     "ruamel.yaml==0.18.17",
-    "mangum>=0.17.0",
+    "mangum==0.17.0",
     "psycopg2-binary>=2.9.9",
     "sqlalchemy>=2.0.0",
     "mcp>=1.0.0",

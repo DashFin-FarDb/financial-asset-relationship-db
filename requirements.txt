@@ -18,7 +18,7 @@ PyYAML==6.0.3  # updated for Python 3.12 compatibility
 ruamel.yaml==0.18.17  # updated for Python 3.12 compatibility
 
 # Serverless/Database dependencies
-mangum>=0.17.0
+mangum==0.17.0  # pinned for consistency with pyproject.toml
 psycopg2-binary>=2.9.9
 sqlalchemy>=2.0.0
 
