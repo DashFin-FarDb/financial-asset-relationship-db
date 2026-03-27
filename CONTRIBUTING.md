@@ -75,8 +75,8 @@ source .venv/bin/activate
 # Install production dependencies
 pip install -r requirements.txt
 
-# Install development dependencies
-pip install -r requirements-dev.txt
+# Install development dependencies (includes runtime deps)
+pip install -r requirements.txt -r requirements-dev.txt
 ```
 
 Or use the Makefile:
@@ -437,13 +437,22 @@ This project uses three files for dependency management, each with a specific ro
 
 #### 2. `requirements-dev.txt` (Development Dependencies)
 
-**Purpose:** Extends runtime dependencies with development tools
+**Purpose:** Development-only tools (testing, linting, type checking, formatting)
 
 **Structure:**
 
 ```
--r requirements.txt  # Extends runtime requirements
-<dev-only dependencies>
+# Testing dependencies
+pytest>=7.0.0
+...
+
+# YAML type stubs
+PyYAML>=6.0.3
+types-PyYAML>=6.0.0
+
+# Dev tools
+pytest-cov>=4.0.0
+...
 ```
 
 **Use when:**
@@ -452,12 +461,18 @@ This project uses three files for dependency management, each with a specific ro
 - Running tests, linters, formatters
 - Contributing to the project
 
+**Setup:** Always install alongside `requirements.txt`:
+```bash
+pip install -r requirements.txt -r requirements-dev.txt
+```
+
 **Policy:**
 
-- Always extends `requirements.txt` via `-r requirements.txt`
-- Adds only dev-specific tools: pytest plugins, linters, formatters, pre-commit
-- Never duplicates packages from `requirements.txt`
-- Can use looser version constraints for dev tools
+- Standalone file — does not use `-r requirements.txt` (avoids pip include syntax that breaks validators)
+- Contains only dev-specific tools: pytest plugins, linters, formatters, pre-commit, type stubs
+- Includes `PyYAML` and `types-PyYAML` for workflow validation tests
+- Security pins (`urllib3`, `zipp`) remain here alongside the test tools they protect
+- Optional specialized tools (e.g., `pre-commit`, `PyGithub`) are listed here but are not required in `pyproject.toml` dev extras — contributors who don't use them can skip installing them manually
 
 #### 3. `pyproject.toml` (Project Metadata)
 
