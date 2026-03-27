@@ -470,10 +470,12 @@ pip install -r requirements.txt -r requirements-dev.txt
 **Policy:**
 
 - Standalone file — does not use `-r requirements.txt` (avoids pip include syntax that breaks validators)
-- Contains only dev-specific tools: pytest plugins, linters, formatters, pre-commit, type stubs
-- Includes `PyYAML` and `types-PyYAML` for workflow validation tests
-- Security pins (`urllib3`, `zipp`) remain here alongside the test tools they protect
-- Optional specialized tools (e.g., `pre-commit`, `PyGithub`) are listed here but are not required in `pyproject.toml` dev extras — contributors who don't use them can skip installing them manually
+- Contains dev-specific tooling **and** test-time libraries (e.g., `httpx`, `anyio`) that are not needed at runtime
+- Includes `PyYAML` and `types-PyYAML` for workflow validation tests and type checking
+- Security pins (`urllib3`, `zipp`) live here alongside the test tools they protect
+- Two supported install paths:
+  - **Core dev** (pytest, linters, formatters only): `pip install -e ".[dev]"` — installs from `pyproject.toml` optional extras
+  - **Full tooling** (all of the above plus `pre-commit`, `PyGithub`, etc.): `pip install -r requirements.txt -r requirements-dev.txt`
 
 #### 3. `pyproject.toml` (Project Metadata)
 
@@ -496,7 +498,9 @@ When updating dependencies, follow this checklist:
 1. **Identify the change type:**
    - Security patch: Update all three files
    - New runtime dependency: Add to `requirements.txt` and `pyproject.toml`
-   - New dev tool: Add to `requirements-dev.txt` and `pyproject.toml` dev extras
+   - New dev tool:
+     - **Core tools** (used by most contributors — pytest, linters, formatters): add to `requirements-dev.txt` **and** `[project.optional-dependencies].dev` in `pyproject.toml`
+     - **Optional/specialized tools** (e.g., `pre-commit`, `PyGithub`): add only to `requirements-dev.txt`
 
 2. **Check compatibility:**
    - Verify Python 3.10+ compatibility

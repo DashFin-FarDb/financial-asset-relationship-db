@@ -53,6 +53,15 @@ jobs:
       run: |
         pip check
 
+    - name: Smoke-test pyproject.toml imports (before requirements.txt)
+      run: |
+        python -c "import yaml; print('PyYAML (pyproject):', yaml.__version__)"
+        python -c "import ruamel.yaml; print('ruamel.yaml (pyproject): ok')"
+        python -c "import fastapi; print('FastAPI (pyproject):', fastapi.__version__)"
+        python -c "import gradio; print('Gradio (pyproject):', gradio.__version__)"
+        python -c "import numpy; print('NumPy (pyproject):', numpy.__version__)"
+        python -c "from api.main import app; print('api.main (pyproject): ok')"
+
     - name: Install runtime requirements
       run: |
         pip install -r requirements.txt
