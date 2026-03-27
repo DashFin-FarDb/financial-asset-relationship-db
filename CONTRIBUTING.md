@@ -462,6 +462,7 @@ pytest-cov>=4.0.0
 - Contributing to the project
 
 **Setup:** Always install alongside `requirements.txt`:
+
 ```bash
 pip install -r requirements.txt -r requirements-dev.txt
 ```
