@@ -36,6 +36,7 @@ dependencies = [
     "fastapi==0.127.0",
     "uvicorn[standard]>=0.24.0",
     "pydantic==2.12.5",
+    "h11==0.16.0",  # pinned for compatibility with uvicorn/httpx
     "PyYAML==6.0.3",
     "ruamel.yaml==0.18.17",
     "mangum==0.17.0",
