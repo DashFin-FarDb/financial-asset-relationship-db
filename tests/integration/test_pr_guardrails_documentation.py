@@ -35,7 +35,7 @@ def _load(path: Path) -> str:
 
 
 def _lines(content: str) -> List[str]:
-    return content.split("\n")
+    return content.splitlines()
 
 
 # ---------------------------------------------------------------------------
