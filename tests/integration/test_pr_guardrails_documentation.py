@@ -746,11 +746,11 @@ class TestGuardrailsDocumentationConsistency:
     ) -> None:
         """Both files must say fix the validator, not the policy."""
         assert "update the validator" in guardrails_content.lower() or "fix the validator" in guardrails_content.lower()
-        assert "fix the validator" in dep_policy_content.lower() or "validator or workflow" in dep_policy_content.lower()
+        assert (
+            "fix the validator" in dep_policy_content.lower() or "validator or workflow" in dep_policy_content.lower()
+        )
 
-    def test_pr_templates_both_have_guardrail_checklists(
-        self, dep_change_content: str, validator_content: str
-    ) -> None:
+    def test_pr_templates_both_have_guardrail_checklists(self, dep_change_content: str, validator_content: str) -> None:
         """Both PR templates must include a guardrail checklist section."""
         assert "## Guardrail checklist" in dep_change_content
         assert "## Guardrail checklist" in validator_content
@@ -814,9 +814,7 @@ class TestGuardrailsDocumentationConsistency:
         guardrail_section = validator_content.split("## Guardrail checklist")[1]
         assert "dependency files" in guardrail_section or "dependency file" in guardrail_section
 
-    def test_dep_change_template_does_not_require_scope_beyond_one_decision(
-        self, dep_change_content: str
-    ) -> None:
+    def test_dep_change_template_does_not_require_scope_beyond_one_decision(self, dep_change_content: str) -> None:
         """The dependency change template must reinforce the single-decision constraint."""
         guardrail_section = dep_change_content.split("## Guardrail checklist")[1]
         assert (
