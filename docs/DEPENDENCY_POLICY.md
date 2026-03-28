@@ -42,13 +42,18 @@ Supplemental development, test, lint, and repository tooling.
 
 Use this file for:
 
-- pytest and test-only helpers
+- pytest plugins and test-only helpers that are not required in production
 - lint/format/type-check tooling
 - optional contributor tooling not required for production runtime
+
+Note:
+
+- Some testing libraries may also appear in `requirements.txt` when they are part of the supported runtime or integration test matrix. In those cases, `requirements.txt` remains the authoritative source for the runtime version/range.
 
 Rule:
 
 - `requirements-dev.txt` is not the runtime source of truth
+- when a package appears in both files, `requirements.txt` defines the canonical runtime constraint; `requirements-dev.txt` may mirror or narrow it for tooling, but must not introduce an incompatible version
 - it may extend the toolchain, but it must not silently redefine runtime versions
 
 ### Tests, workflows, and documentation
