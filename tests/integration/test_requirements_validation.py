@@ -130,12 +130,14 @@ class TestRequirementsDependencyCompatibility:
     @staticmethod
     def test_no_conflicting_versions():
         """
-        Ensure only allowlisted packages overlap between requirements.txt and requirements-dev.txt.
+        Ensure overlap between requirements files is restricted to an approved set.
 
-        Reads both files (skipping the test if requirements.txt is missing), extracts package names by removing common version specifiers and ignoring commented/blank lines. Only packages in allowed_overlap (pyyaml, urllib3, zipp) are permitted to appear in both files. The test asserts that unexpected_overlap is empty, meaning any overlap beyond the allowlist will fail.
+        This repo intentionally allows a small, explicit set of overlaps between `requirements.txt`
+        and `requirements-dev.txt` (e.g., security override pins and shared YAML tooling).
+        Any overlap outside the approved allowlist is treated as unintended drift and fails the test.
 
         Raises:
-            AssertionError: If any non-allowlisted package names appear in both files.
+            AssertionError: If any overlapping packages are not in the allowlist.
         """
         req_path = Path("requirements.txt")
         req_dev_path = Path("requirements-dev.txt")
