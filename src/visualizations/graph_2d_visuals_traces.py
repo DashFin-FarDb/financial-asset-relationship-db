@@ -97,11 +97,7 @@ def _create_2d_relationship_traces(
             tx, ty = positions[rel["target_id"]]
             edges_x.extend([sx, tx, None])
             edges_y.extend([sy, ty, None])
-            hover = (
-                f"{rel['source_id']} → {rel['target_id']}<br>"
-                f"Type: {rel_type}<br>"
-                f"Strength: {rel['strength']:.2f}"
-            )
+            hover = f"{rel['source_id']} → {rel['target_id']}<br>Type: {rel_type}<br>Strength: {rel['strength']:.2f}"
             hover_texts.extend([hover, hover, None])
 
         traces.append(

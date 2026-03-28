@@ -14,8 +14,12 @@ import pytest
 import yaml
 
 # Import functions from the module we're testing
-from tests.integration.test_github_workflows import (WORKFLOWS_DIR, check_duplicate_keys, get_workflow_files,
-                                                     load_yaml_safe)
+from tests.integration.test_github_workflows import (
+    WORKFLOWS_DIR,
+    check_duplicate_keys,
+    get_workflow_files,
+    load_yaml_safe,
+)
 
 
 class TestGetWorkflowFiles:

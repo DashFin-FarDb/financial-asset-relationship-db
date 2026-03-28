@@ -18,9 +18,22 @@ import jwt
 import pytest
 from fastapi import HTTPException
 
-from api.auth import (ALGORITHM, SECRET_KEY, User, UserInDB, UserRepository, _is_truthy, _seed_credentials_from_env,
-                      authenticate_user, create_access_token, get_current_active_user, get_current_user,
-                      get_password_hash, get_user, verify_password)
+from api.auth import (
+    ALGORITHM,
+    SECRET_KEY,
+    User,
+    UserInDB,
+    UserRepository,
+    _is_truthy,
+    _seed_credentials_from_env,
+    authenticate_user,
+    create_access_token,
+    get_current_active_user,
+    get_current_user,
+    get_password_hash,
+    get_user,
+    verify_password,
+)
 
 
 @pytest.fixture
