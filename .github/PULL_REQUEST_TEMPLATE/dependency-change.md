@@ -53,6 +53,7 @@ This PR does **not** do:
 - [ ] `black --version`
 - [ ] `isort --version`
 - [ ] `ruff --version`
+
 ### Commands / outputs
 
 ```bash
