@@ -167,9 +167,9 @@ class TestRequirementsDependencyCompatibility:
         # - YAML stack is validated in both runtime and dev requirement surfaces
         allowed_overlap = {"pyyaml", "urllib3", "zipp"}
         unexpected_overlap = overlap - allowed_overlap
-        assert len(unexpected_overlap) == 0, (
-            f"Unexpected overlapping packages: {unexpected_overlap} (raw overlap: {overlap})"
-        )
+        assert (
+            len(unexpected_overlap) == 0
+        ), f"Unexpected overlapping packages: {unexpected_overlap} (raw overlap: {overlap})"
 
 
 class TestRequirementsInstallability:
@@ -226,7 +226,7 @@ class TestRequirementsDocumentation:
                 # Check previous lines for comments
                 context = "\n".join(lines[max(0, i - 3) : i + 1])
                 # Should have some context about YAML parsing or workflows
-                assert any(keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]), (
-                    "PyYAML should have explanatory comment"
-                )
+                assert any(
+                    keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]
+                ), "PyYAML should have explanatory comment"
                 break
