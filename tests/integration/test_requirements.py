@@ -183,7 +183,7 @@ class TestRequiredPackages:
         assert "pydantic" in package_names
 
     @staticmethod
-    def test_has_httpx(package_names: List[str]):
+    def test_has_httpx(_package_names: List[str]):
         """Test that httpx is included (dev/test surface)."""
         dev_names = [pkg.lower() for pkg, _ in parse_requirements(DEV_REQUIREMENTS_FILE)]
         assert "httpx" in dev_names
