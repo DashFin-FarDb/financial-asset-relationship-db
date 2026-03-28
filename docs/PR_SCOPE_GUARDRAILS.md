@@ -29,7 +29,7 @@ Typical files:
 - `requirements.txt`
 - `requirements-dev.txt`
 - `pyproject.toml`
-- `.github/workflows/dependency-check.yml`
+- `.github/workflows/dependency-review.yml`
 - `tests/integration/test_requirements*.py`
 - relevant docs
 
