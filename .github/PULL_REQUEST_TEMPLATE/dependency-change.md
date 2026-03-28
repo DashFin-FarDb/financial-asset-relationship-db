@@ -39,7 +39,8 @@ This PR does **not** do:
 - [ ] `pip check`
 - [ ] `pip install -e .`
 - [ ] `python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None))"`
-- [ ] `python -c "from api.main import app"`
+- [ ] `pip install -e ".[dev]"`
+- [ ] `pip check`
 - [ ] `pip install -r requirements.txt -r requirements-dev.txt`
 - [ ] `pip install -e ".[dev]"`
 
