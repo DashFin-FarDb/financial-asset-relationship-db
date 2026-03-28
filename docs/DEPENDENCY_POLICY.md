@@ -117,7 +117,10 @@ pip check
 
 ### Editable install validation
 
+> **Prerequisite:** `pyproject.toml` does not yet declare all runtime API dependencies (e.g. `fastapi`, `pydantic`, `slowapi`). Install `requirements.txt` first so import checks can succeed.
+
 ```bash
+pip install -r requirements.txt
 pip install -e .
 pip check
 python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None))"
@@ -141,7 +144,6 @@ flake8 --version
 pylint --version
 mypy --version
 black --version
-isort --version
 ruff --version
 ```
 
