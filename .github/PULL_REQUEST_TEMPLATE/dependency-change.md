@@ -34,7 +34,8 @@ This PR does **not** do:
 
 ## Validation run locally
 
-- [ ] `pip install -r requirements.txt`
+- [ ] `pip install -e .`
+- [ ] `pip check`
 - [ ] `pip check`
 - [ ] `pip install -e .`
 - [ ] `python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None))"`
