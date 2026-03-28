@@ -17,20 +17,9 @@ import pytest
 from fastapi import HTTPException, status
 from jwt import ExpiredSignatureError, InvalidTokenError
 
-from api.auth import (
-    Token,
-    TokenData,
-    User,
-    UserInDB,
-    UserRepository,
-    _is_truthy,
-    authenticate_user,
-    create_access_token,
-    get_current_active_user,
-    get_current_user,
-    get_password_hash,
-    verify_password,
-)
+from api.auth import (Token, TokenData, User, UserInDB, UserRepository, _is_truthy, authenticate_user,
+                      create_access_token, get_current_active_user, get_current_user, get_password_hash,
+                      verify_password)
 
 
 class TestIsTruthy:

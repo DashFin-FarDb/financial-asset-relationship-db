@@ -117,11 +117,7 @@ First and only occurrence of TS dependencies.
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
-        from deduplicate_manifest import (
-            deduplicate_sections,
-            parse_manifest,
-            reconstruct_manifest,
-        )
+        from deduplicate_manifest import deduplicate_sections, parse_manifest, reconstruct_manifest
 
         # Parse preamble and sections
         preamble, sections = parse_manifest(sample_manifest_with_duplicates)
@@ -187,11 +183,7 @@ First and only occurrence of TS dependencies.
         import sys
 
         sys.path.insert(0, str(Path(__file__).parent.parent.parent / "scripts"))
-        from deduplicate_manifest import (
-            deduplicate_sections,
-            parse_manifest,
-            reconstruct_manifest,
-        )
+        from deduplicate_manifest import deduplicate_sections, parse_manifest, reconstruct_manifest
 
         # Parse
         preamble, sections = parse_manifest(sample_manifest_with_duplicates)

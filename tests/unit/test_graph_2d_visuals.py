@@ -11,13 +11,8 @@ This module contains comprehensive unit tests for the graph_2d_visuals module in
 import plotly.graph_objects as go
 import pytest
 
-from src.visualizations.graph_2d_visuals import (
-    _create_2d_relationship_traces,
-    _create_circular_layout,
-    _create_grid_layout,
-    _create_spring_layout_2d,
-    visualize_2d_graph,
-)
+from src.visualizations.graph_2d_visuals import (_create_2d_relationship_traces, _create_circular_layout,
+                                                 _create_grid_layout, _create_spring_layout_2d, visualize_2d_graph)
 
 
 def create_relationship_traces_with_defaults(graph, positions, asset_ids, **overrides):

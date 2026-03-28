@@ -23,24 +23,10 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.pool import StaticPool
 
-from api.database import (
-    _connect,
-    _get_database_url,
-    _is_memory_db,
-    _resolve_sqlite_path,
-    execute,
-    fetch_one,
-    fetch_value,
-    get_connection,
-)
-from src.data.database import (
-    DEFAULT_DATABASE_URL,
-    Base,
-    create_engine_from_url,
-    create_session_factory,
-    init_db,
-    session_scope,
-)
+from api.database import (_connect, _get_database_url, _is_memory_db, _resolve_sqlite_path, execute, fetch_one,
+                          fetch_value, get_connection)
+from src.data.database import (DEFAULT_DATABASE_URL, Base, create_engine_from_url, create_session_factory, init_db,
+                               session_scope)
 
 pytest.importorskip("sqlalchemy")
 

@@ -130,12 +130,12 @@ class TestRequirementsDependencyCompatibility:
     @staticmethod
     def test_no_conflicting_versions():
         """
-        Ensure at most two package name overlaps exist between requirements.txt and requirements - dev.txt.
+        Ensure only allowlisted packages overlap between requirements.txt and requirements-dev.txt.
 
-        Reads both files(skipping the test if requirements.txt is missing), extracts package names by removing common version specifiers and ignoring commented / blank lines, and asserts that the number of overlapping package names is less than or equal to two. On failure, raises an AssertionError listing the overlapping package names.
+        Reads both files (skipping the test if requirements.txt is missing), extracts package names by removing common version specifiers and ignoring commented/blank lines. Only packages in allowed_overlap (pyyaml, urllib3, zipp) are permitted to appear in both files. The test asserts that unexpected_overlap is empty, meaning any overlap beyond the allowlist will fail.
 
         Raises:
-            AssertionError: If more than two package names appear in both files.
+            AssertionError: If any non-allowlisted package names appear in both files.
         """
         req_path = Path("requirements.txt")
         req_dev_path = Path("requirements-dev.txt")
@@ -167,9 +167,9 @@ class TestRequirementsDependencyCompatibility:
         # - YAML stack is validated in both runtime and dev requirement surfaces
         allowed_overlap = {"pyyaml", "urllib3", "zipp"}
         unexpected_overlap = overlap - allowed_overlap
-        assert len(unexpected_overlap) == 0, (
-            f"Unexpected overlapping packages: {unexpected_overlap} (raw overlap: {overlap})"
-        )
+        assert (
+            len(unexpected_overlap) == 0
+        ), f"Unexpected overlapping packages: {unexpected_overlap} (raw overlap: {overlap})"
 
 
 class TestRequirementsInstallability:
@@ -226,7 +226,7 @@ class TestRequirementsDocumentation:
                 # Check previous lines for comments
                 context = "\n".join(lines[max(0, i - 3) : i + 1])
                 # Should have some context about YAML parsing or workflows
-                assert any(keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]), (
-                    "PyYAML should have explanatory comment"
-                )
+                assert any(
+                    keyword in context.lower() for keyword in ["yaml", "workflow", "config", "parse"]
+                ), "PyYAML should have explanatory comment"
                 break

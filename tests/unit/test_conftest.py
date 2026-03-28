@@ -19,14 +19,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
-    AssetClass,
-    Bond,
-    Commodity,
-    Currency,
-    Equity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Bond, Commodity, Currency, Equity, RegulatoryEvent
 
 
 def _load_tests_conftest():

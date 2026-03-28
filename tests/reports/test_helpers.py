@@ -2,12 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from src.reports.helpers import (
-    _as_float,
-    _as_int,
-    _as_str_int_map,
-    _as_top_relationships,
-)
+from src.reports.helpers import _as_float, _as_int, _as_str_int_map, _as_top_relationships
 
 pytestmark = pytest.mark.unit
 

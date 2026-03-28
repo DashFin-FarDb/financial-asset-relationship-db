@@ -3,10 +3,7 @@ from typing import Dict, List, Tuple
 import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.visualizations.graph_2d_visuals_constants import (
-    ASSET_CLASS_COLORS,
-    REL_TYPE_COLORS,
-)
+from src.visualizations.graph_2d_visuals_constants import ASSET_CLASS_COLORS, REL_TYPE_COLORS
 
 
 def _create_2d_relationship_traces(

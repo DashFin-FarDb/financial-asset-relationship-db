@@ -11,13 +11,7 @@ from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from src.data.repository import AssetGraphRepository
-from src.models.financial_models import (
-    AssetClass,
-    Bond,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import AssetClass, Bond, Equity, RegulatoryActivity, RegulatoryEvent
 
 pytest.importorskip("sqlalchemy")
 

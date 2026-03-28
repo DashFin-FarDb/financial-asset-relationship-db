@@ -19,17 +19,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from api.database import (
-    DATABASE_PATH,
-    DATABASE_URL,
-    _is_memory_db,
-    _resolve_sqlite_path,
-    execute,
-    fetch_one,
-    fetch_value,
-    get_connection,
-    initialize_schema,
-)
+from api.database import (DATABASE_PATH, DATABASE_URL, _is_memory_db, _resolve_sqlite_path, execute, fetch_one,
+                          fetch_value, get_connection, initialize_schema)
 
 
 class TestDatabaseURLConfiguration:

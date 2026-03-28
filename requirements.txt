@@ -35,5 +35,5 @@ passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
 
 # Security override pins (transitive dependencies; keep comments explaining why)
-urllib3>=2.6.0  # security: minimum version required by CI policy
+urllib3>=2.6.3  # security: minimum version required by CI policy
 zipp>=3.19.1  # security: minimum version required by CI policy

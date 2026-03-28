@@ -7,13 +7,9 @@ import plotly.graph_objects as go
 
 from src.logic.asset_graph import AssetRelationshipGraph
 from src.visualizations.graph_visuals_constants import REL_TYPE_COLORS
-from src.visualizations.graph_visuals_data import (
-    _build_asset_id_index,
-    _build_edge_coordinates_optimized,
-    _build_hover_texts,
-    _build_relationship_index,
-    _collect_and_group_relationships,
-)
+from src.visualizations.graph_visuals_data import (_build_asset_id_index, _build_edge_coordinates_optimized,
+                                                   _build_hover_texts, _build_relationship_index,
+                                                   _collect_and_group_relationships)
 from src.visualizations.graph_visuals_validation import _validate_visualization_data
 
 

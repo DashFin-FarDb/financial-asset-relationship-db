@@ -19,30 +19,12 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.data.real_data_fetcher import (
-    RealDataFetcher,
-    _deserialize_asset,
-    _deserialize_event,
-    _deserialize_graph,
-    _enum_to_value,
-    _get_yfinance,
-    _load_from_cache,
-    _save_to_cache,
-    _serialize_dataclass,
-    _serialize_graph,
-    create_real_database,
-)
+from src.data.real_data_fetcher import (RealDataFetcher, _deserialize_asset, _deserialize_event, _deserialize_graph,
+                                        _enum_to_value, _get_yfinance, _load_from_cache, _save_to_cache,
+                                        _serialize_dataclass, _serialize_graph, create_real_database)
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.models.financial_models import (
-    Asset,
-    AssetClass,
-    Bond,
-    Commodity,
-    Currency,
-    Equity,
-    RegulatoryActivity,
-    RegulatoryEvent,
-)
+from src.models.financial_models import (Asset, AssetClass, Bond, Commodity, Currency, Equity, RegulatoryActivity,
+                                         RegulatoryEvent)
 
 pytestmark = pytest.mark.unit
 
@@ -1449,9 +1431,9 @@ class TestDataFetcherConsistency:
 
         # At least some events should reference known symbols
         referenced_assets = {event.asset_id for event in events}
-        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
-            "Events should reference known asset IDs"
-        )
+        assert any(
+            asset_id in known_symbols for asset_id in referenced_assets
+        ), "Events should reference known asset IDs"
 
 
 @pytest.mark.unit

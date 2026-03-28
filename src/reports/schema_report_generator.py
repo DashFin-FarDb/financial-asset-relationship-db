@@ -3,12 +3,7 @@ from __future__ import annotations
 from typing import Any, Callable, Dict, Iterable, List, Tuple
 
 from src.logic.asset_graph import AssetRelationshipGraph
-from src.reports.helpers import (
-    _as_float,
-    _as_int,
-    _as_str_int_map,
-    _as_top_relationships,
-)
+from src.reports.helpers import _as_float, _as_int, _as_str_int_map, _as_top_relationships
 
 Formatter = Callable[[Iterable[str]], str]
 Metrics = Dict[str, Any]
