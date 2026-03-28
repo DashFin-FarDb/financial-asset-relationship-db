@@ -18,8 +18,9 @@ from typing import List, Tuple
 import pytest
 from packaging.requirements import InvalidRequirement, Requirement
 
-# Path to requirements.txt file (production dependencies)
-REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements.txt"
+# Dependency surfaces
+RUNTIME_REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements.txt"
+DEV_REQUIREMENTS_FILE = Path(__file__).parent.parent.parent / "requirements-dev.txt"
 
 
 def parse_requirements(file_path: Path) -> List[Tuple[str, str]]:
@@ -82,17 +83,17 @@ class TestRequirementsFileExists:
     @staticmethod
     def test_file_exists():
         """Test that requirements.txt file exists."""
-        assert REQUIREMENTS_FILE.exists()
+        assert RUNTIME_REQUIREMENTS_FILE.exists()
 
     @staticmethod
     def test_file_is_file():
         """Test that requirements.txt is a file, not a directory."""
-        assert REQUIREMENTS_FILE.is_file()
+        assert RUNTIME_REQUIREMENTS_FILE.is_file()
 
     @staticmethod
     def test_file_is_readable():
         """Test that the file can be read."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             content = f.read()
             assert len(content) > 0
 
@@ -103,19 +104,19 @@ class TestRequirementsFileFormat:
     @pytest.fixture
     def file_content(self) -> str:
         """Load requirements file content."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.read()
 
     @pytest.fixture
     def file_lines(self) -> List[str]:
         """Load requirements file as list of lines."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.readlines()
 
     @staticmethod
     def test_file_encoding():
         """Test that file uses UTF-8 encoding."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             f.read()
 
     @staticmethod
@@ -152,7 +153,7 @@ class TestRequiredPackages:
     @staticmethod
     def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
-        return parse_requirements(REQUIREMENTS_FILE)
+        return parse_requirements(RUNTIME_REQUIREMENTS_FILE)
 
     @pytest.fixture
     @staticmethod
@@ -183,13 +184,15 @@ class TestRequiredPackages:
 
     @staticmethod
     def test_has_httpx(package_names: List[str]):
-        """Test that httpx is included for HTTP client."""
-        assert "httpx" in package_names
+        """Test that httpx is included (dev/test surface)."""
+        dev_names = [pkg.lower() for pkg, _ in parse_requirements(DEV_REQUIREMENTS_FILE)]
+        assert "httpx" in dev_names
 
     @staticmethod
     def test_has_pytest(package_names: List[str]):
-        """Test that pytest is included for testing."""
-        assert "pytest" in package_names
+        """Test that pytest is included (dev/test surface)."""
+        dev_names = [pkg.lower() for pkg, _ in parse_requirements(DEV_REQUIREMENTS_FILE)]
+        assert "pytest" in dev_names
 
     @staticmethod
     def test_has_security_pinned_packages(requirements: List[Tuple[str, str]]):
@@ -206,7 +209,7 @@ class TestVersionSpecifications:
     @pytest.fixture
     def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
-        return parse_requirements(REQUIREMENTS_FILE)
+        return parse_requirements(RUNTIME_REQUIREMENTS_FILE)
 
     def test_all_packages_parseable(self, requirements: List[Tuple[str, str]]):
         """Test that all package specifications are parseable."""
@@ -238,7 +241,7 @@ class TestVersionSpecifications:
 
     def test_no_exact_pins_without_comment(self, requirements: List[Tuple[str, str]]):
         """Test that exact pins (==) are documented with comments in the file."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         exact_pins = [pkg for pkg, ver in requirements if ver.startswith("==")]
@@ -259,7 +262,7 @@ class TestPackageConsistency:
     @staticmethod
     def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
-        return parse_requirements(REQUIREMENTS_FILE)
+        return parse_requirements(RUNTIME_REQUIREMENTS_FILE)
 
     @pytest.fixture
     @staticmethod
@@ -283,7 +286,8 @@ class TestPackageConsistency:
     @staticmethod
     def test_package_names_valid(package_names: List[str]):
         """Test that package names follow valid naming conventions."""
-        valid_name_pattern = re.compile(r"^[a-zA-Z0-9_-]+$")
+        # PEP 508 names allow dot-separated distributions (e.g. ruamel.yaml).
+        valid_name_pattern = re.compile(r"^[a-zA-Z0-9_.-]+$")
 
         invalid_names = [pkg for pkg in package_names if not valid_name_pattern.match(pkg)]
         assert len(invalid_names) == 0, f"Invalid package names: {invalid_names}"
@@ -312,7 +316,7 @@ class TestFileOrganization:
     @staticmethod
     def file_lines() -> List[str]:
         """Load requirements file as list of lines."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.readlines()
 
     @staticmethod
@@ -336,13 +340,13 @@ class TestSecurityAndCompliance:
     @staticmethod
     def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
-        return parse_requirements(REQUIREMENTS_FILE)
+        return parse_requirements(RUNTIME_REQUIREMENTS_FILE)
 
     @pytest.fixture
     @staticmethod
     def file_content() -> str:
         """Load requirements file content."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             return f.read()
 
     @staticmethod
@@ -389,7 +393,7 @@ class TestEdgeCases:
     def test_parse_with_extras():
         """Test parsing packages with extras."""
         # Test that packages with extras are handled correctly
-        requirements = parse_requirements(REQUIREMENTS_FILE)
+        requirements = parse_requirements(RUNTIME_REQUIREMENTS_FILE)
         # If any package has extras, ensure it's parsed correctly
         for pkg, _ in requirements:
             assert "[" not in pkg, f"Package name should not contain '[': {pkg}"
@@ -397,7 +401,7 @@ class TestEdgeCases:
     @staticmethod
     def test_parse_with_environment_markers():
         """Test parsing packages with environment markers."""
-        requirements = parse_requirements(REQUIREMENTS_FILE)
+        requirements = parse_requirements(RUNTIME_REQUIREMENTS_FILE)
         # Ensure environment markers are stripped
         for pkg, ver in requirements:
             assert ";" not in pkg, f"Package name should not contain ';': {pkg}"
@@ -406,7 +410,7 @@ class TestEdgeCases:
     @staticmethod
     def test_parse_with_inline_comments():
         """Test that inline comments are properly handled."""
-        requirements = parse_requirements(REQUIREMENTS_FILE)
+        requirements = parse_requirements(RUNTIME_REQUIREMENTS_FILE)
         # Ensure comments don't leak into package names or versions
         for pkg, ver in requirements:
             assert "#" not in pkg, f"Package name should not contain '#': {pkg}"
@@ -415,7 +419,7 @@ class TestEdgeCases:
     @staticmethod
     def test_empty_lines_ignored():
         """Test that empty lines and comment-only lines are ignored."""
-        requirements = parse_requirements(REQUIREMENTS_FILE)
+        requirements = parse_requirements(RUNTIME_REQUIREMENTS_FILE)
         # All returned entries should have valid package names
         for pkg, _ in requirements:
             assert len(pkg) > 0, "Package name should not be empty"
@@ -429,7 +433,7 @@ class TestComprehensiveValidation:
     @pytest.fixture
     def requirements() -> List[Tuple[str, str]]:
         """Parse requirements and return list of (package, version) tuples."""
-        return parse_requirements(REQUIREMENTS_FILE)
+        return parse_requirements(RUNTIME_REQUIREMENTS_FILE)
 
     @staticmethod
     def test_all_packages_have_versions_or_pins(requirements: List[Tuple[str, str]]):
@@ -462,7 +466,7 @@ class TestComprehensiveValidation:
     @staticmethod
     def test_transitive_dependencies_documented(requirements: List[Tuple[str, str]]):
         """Test that transitive dependencies are documented if pinned."""
-        with open(REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
+        with open(RUNTIME_REQUIREMENTS_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
 
         # Packages that are typically transitive dependencies

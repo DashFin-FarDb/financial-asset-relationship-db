@@ -162,9 +162,12 @@ class TestRequirementsDependencyCompatibility:
         }
 
         overlap = req_packages & req_dev_packages
-        # PyYAML might be in both, but versions should be compatible
-        # This is a basic check
-        assert len(overlap) <= 2, f"Too many overlapping packages: {overlap}"
+        # Some overlap is intentional in this repo:
+        # - security override pins that may be required by both runtime and tooling/CI
+        # - YAML stack is validated in both runtime and dev requirement surfaces
+        allowed_overlap = {"pyyaml", "urllib3", "zipp"}
+        unexpected_overlap = overlap - allowed_overlap
+        assert len(unexpected_overlap) == 0, f"Unexpected overlapping packages: {unexpected_overlap} (raw overlap: {overlap})"
 
 
 class TestRequirementsInstallability:

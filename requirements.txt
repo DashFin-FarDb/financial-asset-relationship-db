@@ -17,8 +17,8 @@ pydantic==2.12.5  # pinned for FastAPI compatibility
 h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 
 # YAML / configuration dependencies
-PyYAML==6.0.3  # updated for Python 3.12 compatibility
-ruamel.yaml==0.18.17  # updated for Python 3.12 compatibility
+PyYAML>=6.0.3  # minimum for Python 3.12 compatibility
+ruamel.yaml>=0.18.17  # minimum for Python 3.12 compatibility
 
 # Serverless / database dependencies
 mangum==0.17.0  # pinned for consistency with pyproject.toml
@@ -33,3 +33,7 @@ fastmcp>=0.1.0
 PyJWT>=2.8.0
 passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
+
+# Security override pins (transitive dependencies; keep comments explaining why)
+urllib3>=2.6.0  # security: minimum version required by CI policy
+zipp>=3.19.1  # security: minimum version required by CI policy

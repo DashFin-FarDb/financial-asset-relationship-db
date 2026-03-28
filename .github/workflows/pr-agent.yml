@@ -3,7 +3,7 @@ name: PR Agent Workflow
 permissions:
   contents: read
 
-on:
+"on":
   pull_request:
     types: [opened, synchronize, reopened]
   pull_request_review:
@@ -59,6 +59,7 @@ jobs:
       - name: Fetch PR Context
         id: pr-context
         run: |
+          # parse-comments: fetch minimal PR metadata for downstream steps
           if [ "${{ github.event_name }}" = "issue_comment" ] && [ -z "${{ github.event.issue.pull_request.url }}" ]; then
             echo "pr_data={}" >> "$GITHUB_OUTPUT"
             exit 0
