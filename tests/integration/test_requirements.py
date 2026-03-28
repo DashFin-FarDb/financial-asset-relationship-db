@@ -189,7 +189,7 @@ class TestRequiredPackages:
         assert "httpx" in dev_names
 
     @staticmethod
-    def test_has_pytest(package_names: List[str]):
+    def test_has_pytest(_package_names: List[str]):
         """Test that pytest is included (dev/test surface)."""
         dev_names = [pkg.lower() for pkg, _ in parse_requirements(DEV_REQUIREMENTS_FILE)]
         assert "pytest" in dev_names
