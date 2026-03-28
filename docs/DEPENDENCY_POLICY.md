@@ -11,43 +11,53 @@ If a dependency is required for the application to run, its authoritative versio
 ## File roles
 
 ### `requirements.txt`
+
 Authoritative runtime / deployment dependency surface.
 
 Use this file for:
+
 - application runtime dependencies
 - deployment dependencies
 - intentional runtime security override pins
 - the versions/ranges the project is actually expected to run against
 
 ### `pyproject.toml`
+
 Packaging and editable-install surface.
 
 Use this file for:
+
 - package metadata
 - build system configuration
 - a runtime dependency surface that mirrors `requirements.txt` closely enough for `pip install -e .`
 
 Rule:
+
 - `pyproject.toml` must not invent a different runtime policy from `requirements.txt`
 - if the two differ, `requirements.txt` wins and `pyproject.toml` must be corrected
 
 ### `requirements-dev.txt`
+
 Supplemental development, test, lint, and repository tooling.
 
 Use this file for:
+
 - pytest and test-only helpers
 - lint/format/type-check tooling
 - optional contributor tooling not required for production runtime
 
 Rule:
+
 - `requirements-dev.txt` is not the runtime source of truth
 - it may extend the toolchain, but it must not silently redefine runtime versions
 
 ### Tests, workflows, and documentation
+
 These validate and describe the dependency model.
 They do not define it.
 
 Rule:
+
 - if a validator or workflow disagrees with the dependency policy, fix the validator or workflow
 - do not distort dependency files to satisfy a stale assumption
 
@@ -75,6 +85,7 @@ Do not combine multiple dependency decisions into one PR unless there is a stron
 ## Guardrails
 
 ### Do
+
 - keep runtime dependency decisions anchored to `requirements.txt`
 - explain why any exact pin exists
 - split framework/security upgrades from validator cleanup where practical
@@ -82,6 +93,7 @@ Do not combine multiple dependency decisions into one PR unless there is a stron
 - state explicitly what is not in scope
 
 ### Do not
+
 - let tests or workflow assumptions redefine the dependency model
 - mix runtime dependency policy work with broad refactors
 - broaden a PR from alignment into upgrade work without saying so

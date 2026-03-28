@@ -9,17 +9,20 @@
 - [ ] If runtime dependency semantics changed, that decision was made in a separate PR.
 
 Reference policy or prior PR:
-- 
+
+-
 
 ## Scope
 
 This PR changes:
-- 
-- 
+
+-
+-
 
 This PR does **not** change:
-- 
-- 
+
+-
+-
 
 ## Touched files
 

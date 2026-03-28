@@ -7,6 +7,7 @@ This file exists to reduce agent drift in review-driven PRs.
 `requirements.txt` is the source of truth for runtime dependencies.
 
 AI agents must treat all other dependency-related files as supporting files:
+
 - `pyproject.toml` mirrors the runtime install surface
 - `requirements-dev.txt` adds dev/test/tooling intent
 - tests/workflows/docs validate or describe the model
@@ -16,6 +17,7 @@ They do not overrule `requirements.txt`.
 ## Mandatory reasoning order for dependency work
 
 Before changing files, state internally:
+
 1. what the runtime policy is
 2. which file is authoritative
 3. which files are mirrors
@@ -35,7 +37,9 @@ If that model is not clear, stop and narrow the task.
 ## Preferred PR split
 
 ### Dependency alignment PR
+
 Allowed files:
+
 - `requirements.txt`
 - `pyproject.toml`
 - `requirements-dev.txt`
@@ -44,17 +48,21 @@ Allowed files:
 - dependency policy docs
 
 ### Validator follow-up PR
+
 Allowed files:
+
 - tests
 - workflows
 - docs
 
 Rule:
+
 - if a follow-up only exists because validators lag the policy, keep dependency file edits out of that PR unless unavoidable
 
 ## Stop conditions
 
 Open a follow-up PR instead of continuing when:
+
 - a second architectural decision appears mid-task
 - a security/framework upgrade becomes mixed with alignment work
 - the PR now needs to justify why many unrelated files changed

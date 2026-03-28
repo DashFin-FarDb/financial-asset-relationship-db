@@ -12,12 +12,14 @@
 ## Scope
 
 This PR does:
-- 
-- 
+
+-
+-
 
 This PR does **not** do:
-- 
-- 
+
+-
+-
 
 ## Files changed and why they belong together
 
