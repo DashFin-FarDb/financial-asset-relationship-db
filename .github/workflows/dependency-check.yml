@@ -2,17 +2,19 @@ name: Dependency Check
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'requirements*.txt'
-      - 'pyproject.toml'
-      - '.github/workflows/dependency-check.yml'
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - ".github/workflows/dependency-check.yml"
+      - "CONTRIBUTING.md"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - 'requirements*.txt'
-      - 'pyproject.toml'
-      - '.github/workflows/dependency-check.yml'
+      - "requirements*.txt"
+      - "pyproject.toml"
+      - ".github/workflows/dependency-check.yml"
+      - "CONTRIBUTING.md"
   workflow_dispatch:
 
 concurrency:
@@ -30,82 +32,124 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.10', '3.11', '3.12']
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Upgrade pip and core tools
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
+      - name: Upgrade pip and core tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
 
-    - name: Install project from pyproject.toml
-      run: |
-        pip install -e .
+      - name: Install project from pyproject.toml
+        run: |
+          pip install -e .
 
-    - name: Verify project installation (packaging metadata only)
-      run: |
-        pip check
+      - name: Verify project installation (packaging metadata only)
+        run: |
+          pip check
 
-    - name: Smoke-test pyproject.toml imports (before requirements.txt)
-      run: |
-        python -c "import yaml; print('PyYAML (pyproject):', yaml.__version__)"
-        python -c "import ruamel.yaml; print('ruamel.yaml (pyproject): ok')"
-        python -c "import fastapi; print('FastAPI (pyproject):', fastapi.__version__)"
-        python -c "import gradio; print('Gradio (pyproject):', gradio.__version__)"
-        python -c "import numpy; print('NumPy (pyproject):', numpy.__version__)"
-        python -c "from api.main import app; print('api.main (pyproject): ok')"
+      - name: Smoke-test pyproject.toml imports (before requirements.txt)
+        run: |
+          python -c "import yaml; print('PyYAML (pyproject):', yaml.__version__)"
+          python -c "import ruamel.yaml; print('ruamel.yaml (pyproject): ok')"
+          python -c "import fastapi; print('FastAPI (pyproject):', fastapi.__version__)"
+          python -c "import gradio; print('Gradio (pyproject):', gradio.__version__)"
+          python -c "import numpy; print('NumPy (pyproject):', numpy.__version__)"
+          python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None)); print('app.py (pyproject): ok')"
+          python -c "from api.main import app; print('api.main (pyproject): ok')"
 
-    - name: Install runtime requirements
-      run: |
-        pip install -r requirements.txt
+      - name: Install runtime requirements
+        run: |
+          pip install -r requirements.txt
 
-    - name: Verify combined environment
-      run: |
-        pip check
+      - name: Verify combined environment
+        run: |
+          pip check
 
-    - name: Verify core imports
-      run: |
-        python -c "import yaml; print('PyYAML:', yaml.__version__)"
-        python -c "import ruamel.yaml; print('ruamel.yaml installed')"
-        python -c "import fastapi; print('FastAPI:', fastapi.__version__)"
-        python -c "import gradio; print('Gradio:', gradio.__version__)"
-        python -c "import numpy; print('NumPy:', numpy.__version__)"
-        python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None)); print('app.py entrypoint validated')"
-        python -c "from api.main import app; print('api.main entrypoint validated')"
+      - name: Verify combined imports and entrypoints
+        run: |
+          python -c "import yaml; print('PyYAML:', yaml.__version__)"
+          python -c "import ruamel.yaml; print('ruamel.yaml installed')"
+          python -c "import fastapi; print('FastAPI:', fastapi.__version__)"
+          python -c "import gradio; print('Gradio:', gradio.__version__)"
+          python -c "import numpy; print('NumPy:', numpy.__version__)"
+          python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None)); print('app.py entrypoint validated')"
+          python -c "from api.main import app; print('api.main entrypoint validated')"
 
   test-dev-deps:
-    name: Test Dev Dependencies (Python ${{ matrix.python-version }})
+    name: Test Full Dev Tooling (Python ${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        python-version: ['3.10', '3.12']
+        python-version: ["3.10", "3.12"]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Upgrade pip and core tools
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
+      - name: Upgrade pip and core tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
 
-    - name: Install runtime and dev requirements
-      run: |
-        pip install -r requirements.txt -r requirements-dev.txt
+      - name: Install runtime requirements
+        run: |
+          pip install -r requirements.txt
 
-    - name: Run pip check
-      run: |
-        pip check
+      - name: Install dev requirements
+        run: |
+          pip install -r requirements-dev.txt
+
+      - name: Run pip check
+        run: |
+          pip check
+
+      - name: Validate dependency requirement tests
+        run: |
+          pytest tests/integration/test_requirements_dev.py -v
+          pytest tests/integration/test_requirements_pyyaml.py -v
+
+  test-pyproject-dev-extra:
+    name: Test pyproject dev extra
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Upgrade pip and core tools
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install core dev extra
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Verify core dev extra
+        run: |
+          pip check
+          pytest --version
+          flake8 --version
+          pylint --version
+          mypy --version
+          black --version
+          isort --version
+          ruff --version
