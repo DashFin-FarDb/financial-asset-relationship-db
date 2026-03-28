@@ -43,7 +43,7 @@ Allowed files:
 - `requirements.txt`
 - `pyproject.toml`
 - `requirements-dev.txt`
-- `.github/workflows/dependency-check.yml`
+- dependency-related GitHub Actions workflows (for example, `.github/workflows/ci.yml`, `.github/workflows/dependency-review.yml`, or other dependency-focused workflow files present in this repository)
 - dependency-related tests
 - dependency policy docs
 
