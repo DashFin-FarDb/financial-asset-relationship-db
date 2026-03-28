@@ -1,4 +1,7 @@
-gradio==5.9.1  # pinned for FastAPI 0.127.0 compatibility
+# Runtime / deployment dependencies only.
+# Development and test tooling lives in requirements-dev.txt.
+
+gradio==5.9.1  # temporary stability pin; revisit in a dedicated upgrade/security PR
 Markdown>=3.4,<4.0
 curl-cffi>=0.5.0
 requests>=2.32.2
@@ -17,7 +20,7 @@ h11==0.16.0  # pinned for compatibility with uvicorn/httpx
 PyYAML==6.0.3  # updated for Python 3.12 compatibility
 ruamel.yaml==0.18.17  # updated for Python 3.12 compatibility
 
-# Serverless/Database dependencies
+# Serverless / database dependencies
 mangum==0.17.0  # pinned for consistency with pyproject.toml
 psycopg2-binary>=2.9.9
 sqlalchemy>=2.0.0
@@ -26,7 +29,7 @@ sqlalchemy>=2.0.0
 mcp>=1.0.0
 fastmcp>=0.1.0
 
-# Security dependencies
+# Auth / rate-limiting dependencies
 PyJWT>=2.8.0
 passlib[bcrypt]>=1.7.4
 slowapi>=0.1.4
