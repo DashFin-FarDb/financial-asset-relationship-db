@@ -34,16 +34,25 @@ This PR does **not** do:
 
 ## Validation run locally
 
-- [ ] `pip install -e .`
-- [ ] `pip check`
-- [ ] `pip check`
-- [ ] `pip install -e .`
-- [ ] `python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None))"`
-- [ ] `pip install -e ".[dev]"`
-- [ ] `pip check`
-- [ ] `pip install -r requirements.txt -r requirements-dev.txt`
-- [ ] `pip install -e ".[dev]"`
+## Validation run locally
 
+- [ ] `pip install -r requirements.txt`
+- [ ] `pip check`
+- [ ] `pip install -e .`
+- [ ] `pip check`
+- [ ] `python -c "from app import FinancialAssetApp; assert callable(getattr(FinancialAssetApp, 'create_interface', None))"`
+- [ ] `python -c "from api.main import app"`
+- [ ] `pip install -r requirements.txt -r requirements-dev.txt`
+- [ ] `pip check`
+- [ ] `pip install -e ".[dev]"`
+- [ ] `pip check`
+- [ ] `pytest --version`
+- [ ] `flake8 --version`
+- [ ] `pylint --version`
+- [ ] `mypy --version`
+- [ ] `black --version`
+- [ ] `isort --version`
+- [ ] `ruff --version`
 ### Commands / outputs
 
 ```bash
