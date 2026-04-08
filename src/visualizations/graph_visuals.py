@@ -69,80 +69,57 @@ def _is_valid_color_format(color: str) -> bool:
         return False
 
     if _HEX_COLOR_RE.match(color):
-        return True
-
-    if _RGB_COLOR_RE.match(color):
-        return True
-
-    if _RGBA_COLOR_RE.match(color):
-        return True
-
-    # Allow simple named colours while rejecting malformed tokens.
-    return bool(re.fullmatch(r"[A-Za-z]+", color))
-
-
-def _build_asset_id_index(asset_ids: Sequence[str]) -> dict[str, int]:
-    """Build an O(1) lookup index for asset IDs to their positions."""
-    return {asset_id: idx for idx, asset_id in enumerate(asset_ids)}
-
-
-def _coerce_asset_ids(asset_ids: Iterable[str]) -> set[str]:
-    """Normalize and validate asset IDs to a set of non-empty strings."""
-    if isinstance(asset_ids, (str, bytes)):
-        raise TypeError("Invalid input: asset_ids must be an iterable of strings, not a single string")
-
-    try:
-        asset_ids_set = set(asset_ids)
-    except TypeError as exc:
-        raise TypeError("Invalid input: asset_ids must be an iterable of strings") from exc
-
-    if not asset_ids_set:
-        raise ValueError("Invalid input: asset_ids must be non-empty")
-
-    if not all(isinstance(aid, str) and aid for aid in asset_ids_set):
-        raise ValueError("Invalid input: asset_ids must contain only non-empty strings")
-
-    return asset_ids_set
-
-
-def _build_relationship_index(
-    graph: AssetRelationshipGraph,
-    asset_ids: Iterable[str],
-) -> dict[tuple[str, str, str], float]:
-    """Build an optimized relationship index for O(1) lookups.
-
-    Creates a snapshot of relevant relationships within a reentrant lock to
-    guard against concurrent modifications.
-
-    Args:
-        graph: The asset relationship graph.
-        asset_ids: Iterable of asset IDs to include.
-
-    Returns:
-        Mapping from (source_id, target_id, rel_type) to strength for relationships
-        whose source and target are both in *asset_ids*.
-
-    Raises:
-        TypeError: If *graph* is not an AssetRelationshipGraph or graph data types
-            are invalid.
-        ValueError: If required graph attributes are missing or relationship rows
-            are malformed.
-    """
-    if not isinstance(graph, AssetRelationshipGraph):
-        raise TypeError(f"Invalid input: graph must be an AssetRelationshipGraph instance, got {type(graph).__name__}")
-
-    if not hasattr(graph, "relationships"):
-        raise ValueError("Invalid graph: missing 'relationships' attribute")
-
     if not isinstance(graph.relationships, dict):
-        raise TypeError("The graph.relationships attribute must be a dictionary.")
+        raise TypeError(
+            f"Invalid graph: relationships must be a dict, got {type(graph.relationships).__name__}"
+        )
 
-    def _create_directional_arrows(
-        graph: AssetRelationshipGraph,
-        positions: np.ndarray,
-        asset_ids: list[str],
-        relationship_filters: Mapping[str, bool] | None = None,
-    ) -> list[go.Scatter3d]:
+    asset_ids_set = _coerce_asset_ids(asset_ids)
+
+    with _GRAPH_ACCESS_LOCK:
+        relevant_relationships: dict[str, list[Any]] = {
+            source_id: list(rels)
+            for source_id, rels in graph.relationships.items()
+            if source_id in asset_ids_set
+        }
+
+    relationship_index: dict[tuple[str, str, str], float] = {}
+    for source_id, rels in relevant_relationships.items():
+        if not isinstance(rels, (list, tuple)):
+            raise TypeError(
+                f"Invalid graph data: relationships for '{source_id}' must be a list/tuple, "
+                f"got {type(rels).__name__}"
+            )
+        for idx, rel in enumerate(rels):
+            if not isinstance(rel, (list, tuple)) or len(rel) != 3:
+                raise ValueError(
+                    f"Invalid graph data: relationship at index {idx} for '{source_id}' "
+                    f"must be a 3-element tuple (target_id, rel_type, strength)"
+                )
+            target_id, rel_type, strength = rel
+            if not isinstance(target_id, str) or not isinstance(rel_type, str):
+                raise TypeError(
+                    f"Invalid graph data: relationship at index {idx} for '{source_id}' "
+                    "must use string target_id and rel_type"
+                )
+            try:
+                strength_float = float(strength)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    f"Invalid graph data: strength at index {idx} for '{source_id}' must be numeric"
+                ) from exc
+            if target_id in asset_ids_set:
+                relationship_index[(source_id, target_id, rel_type)] = strength_float
+
+    return relationship_index
+
+
+def _create_directional_arrows(
+    graph: AssetRelationshipGraph,
+    positions: np.ndarray,
+    asset_ids: list[str],
+    relationship_filters: Mapping[str, bool] | None=None,
+) -> list[go.Scatter3d]:
         """Create arrow markers for unidirectional relationships."""
         if not isinstance(graph, AssetRelationshipGraph):
             raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
