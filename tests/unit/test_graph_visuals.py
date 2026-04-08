@@ -530,7 +530,7 @@ def test_build_relationship_index_strength_as_float():
     index = _build_relationship_index(graph, ["A", "B"])
     val = index[("A", "B", "same_sector")]
     assert isinstance(val, float)
-    assert val == 1.0
+    assert np.isclose(val, 1.0)
 
 
 def test_build_relationship_index_empty_relationships():
