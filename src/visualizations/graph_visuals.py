@@ -4,7 +4,7 @@ import logging
 import re
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
-from typing import Any, Final
+from typing import Final
 
 import numpy as np
 import plotly.graph_objects as go
