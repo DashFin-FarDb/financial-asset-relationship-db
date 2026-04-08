@@ -7,8 +7,12 @@ from src.visualizations.graph_visuals import (
     REL_TYPE_COLORS,
     _build_asset_id_index,
     _build_relationship_index,
+    _coerce_asset_ids,
     _create_directional_arrows,
     _create_relationship_traces,
+    _get_relationship_color,
+    _is_valid_color_format,
+    visualize_3d_graph_with_filters,
 )
 
 
@@ -267,3 +271,425 @@ def test_create_directional_arrows_bidirectional_no_arrows():
     asset_ids = ["A", "B"]
     arrows = _create_directional_arrows(graph, positions, asset_ids)
     assert arrows == []
+
+
+# ---------------------------------------------------------------------------
+# Tests for _get_relationship_color (new function)
+# ---------------------------------------------------------------------------
+
+
+def test_get_relationship_color_known_types():
+    """All explicitly configured relationship types return their specific color."""
+    assert _get_relationship_color("same_sector") == "#FF6B6B"
+    assert _get_relationship_color("market_cap_similar") == "#4ECDC4"
+    assert _get_relationship_color("correlation") == "#45B7D1"
+    assert _get_relationship_color("corporate_bond_to_equity") == "#96CEB4"
+    assert _get_relationship_color("commodity_currency") == "#FFEAA7"
+    assert _get_relationship_color("income_comparison") == "#DDA0DD"
+    assert _get_relationship_color("regulatory_impact") == "#FFA07A"
+
+
+def test_get_relationship_color_unknown_type_returns_default():
+    """Unknown relationship types should fall back to the default gray."""
+    assert _get_relationship_color("nonexistent_type") == "#888888"
+
+
+def test_get_relationship_color_empty_string_returns_default():
+    """Empty string key falls back to the default color."""
+    assert _get_relationship_color("") == "#888888"
+
+
+def test_get_relationship_color_matches_rel_type_colors():
+    """_get_relationship_color is consistent with REL_TYPE_COLORS lookup."""
+    for rel_type in ["same_sector", "correlation", "unknown_xyz"]:
+        assert _get_relationship_color(rel_type) == REL_TYPE_COLORS[rel_type]
+
+
+# ---------------------------------------------------------------------------
+# Tests for _is_valid_color_format (modified: named colors now require [A-Za-z]+)
+# ---------------------------------------------------------------------------
+
+
+def test_is_valid_color_format_hex_3():
+    """Three-digit hex colors are valid."""
+    assert _is_valid_color_format("#RGB") is False  # not hex digits
+    assert _is_valid_color_format("#abc") is True
+    assert _is_valid_color_format("#123") is True
+    assert _is_valid_color_format("#FFF") is True
+
+
+def test_is_valid_color_format_hex_6():
+    """Six-digit hex colors are valid."""
+    assert _is_valid_color_format("#aabbcc") is True
+    assert _is_valid_color_format("#AABBCC") is True
+    assert _is_valid_color_format("#000000") is True
+    assert _is_valid_color_format("#ffffff") is True
+
+
+def test_is_valid_color_format_hex_8():
+    """Eight-digit hex colors (with alpha) are valid."""
+    assert _is_valid_color_format("#aabbccdd") is True
+    assert _is_valid_color_format("#AABBCCDD") is True
+    assert _is_valid_color_format("#00000000") is True
+
+
+def test_is_valid_color_format_hex_invalid():
+    """Malformed hex strings are rejected."""
+    assert _is_valid_color_format("#") is False
+    assert _is_valid_color_format("#12") is False       # only 2 digits
+    assert _is_valid_color_format("#12345") is False    # 5 digits (ambiguous)
+    assert _is_valid_color_format("#ggg") is False      # non-hex letters
+    assert _is_valid_color_format("##aabbcc") is False  # double hash
+
+
+def test_is_valid_color_format_rgb():
+    """Valid rgb() strings are accepted."""
+    assert _is_valid_color_format("rgb(0,0,0)") is True
+    assert _is_valid_color_format("rgb(255, 128, 64)") is True
+    assert _is_valid_color_format("rgb( 0 , 0 , 0 )") is True
+
+
+def test_is_valid_color_format_rgb_invalid():
+    """Malformed rgb() strings are rejected."""
+    assert _is_valid_color_format("rgb(0,0)") is False          # only 2 args
+    assert _is_valid_color_format("rgb(0,0,0,0)") is False       # 4 args (use rgba)
+    assert _is_valid_color_format("rgb(a,b,c)") is False         # non-numeric
+    assert _is_valid_color_format("RGB(0,0,0)") is False         # uppercase
+
+
+def test_is_valid_color_format_rgba():
+    """Valid rgba() strings are accepted."""
+    assert _is_valid_color_format("rgba(0,0,0,0)") is True
+    assert _is_valid_color_format("rgba(0,0,0,1)") is True
+    assert _is_valid_color_format("rgba(255, 128, 64, 0.5)") is True
+    assert _is_valid_color_format("rgba(0, 0, 0, 0.0)") is True
+    assert _is_valid_color_format("rgba(0, 0, 0, .9)") is True
+
+
+def test_is_valid_color_format_rgba_invalid():
+    """Malformed rgba() strings are rejected."""
+    assert _is_valid_color_format("rgba(0,0,0,1.5)") is False    # alpha > 1
+    assert _is_valid_color_format("rgba(0,0,0,-0.5)") is False   # negative alpha
+    assert _is_valid_color_format("rgba(0,0,0)") is False         # missing alpha
+    assert _is_valid_color_format("rgba(a,b,c,0)") is False       # non-numeric
+
+
+def test_is_valid_color_format_named_colors_only_alpha():
+    """Named colors consisting solely of alpha characters are valid."""
+    assert _is_valid_color_format("red") is True
+    assert _is_valid_color_format("blue") is True
+    assert _is_valid_color_format("Green") is True
+    assert _is_valid_color_format("cornflowerblue") is True
+
+
+def test_is_valid_color_format_named_colors_with_non_alpha_rejected():
+    """Named color strings with non-alpha characters are rejected (new behavior)."""
+    # These would have returned True in the old code but are now rejected
+    assert _is_valid_color_format("red123") is False
+    assert _is_valid_color_format("my-color") is False
+    assert _is_valid_color_format("color name") is False
+    assert _is_valid_color_format("color_name") is False
+
+
+def test_is_valid_color_format_non_string():
+    """Non-string inputs return False."""
+    assert _is_valid_color_format(None) is False  # type: ignore[arg-type]
+    assert _is_valid_color_format(123) is False   # type: ignore[arg-type]
+    assert _is_valid_color_format([]) is False    # type: ignore[arg-type]
+
+
+def test_is_valid_color_format_empty_string():
+    """Empty string returns False."""
+    assert _is_valid_color_format("") is False
+
+
+# ---------------------------------------------------------------------------
+# Tests for _coerce_asset_ids (new function)
+# ---------------------------------------------------------------------------
+
+
+def test_coerce_asset_ids_basic():
+    """Valid list of strings returns a set."""
+    result = _coerce_asset_ids(["A", "B", "C"])
+    assert result == {"A", "B", "C"}
+
+
+def test_coerce_asset_ids_deduplicates():
+    """Duplicate IDs are collapsed into a set."""
+    result = _coerce_asset_ids(["A", "B", "A"])
+    assert result == {"A", "B"}
+
+
+def test_coerce_asset_ids_accepts_any_iterable():
+    """Any iterable of strings (tuple, generator) is accepted."""
+    assert _coerce_asset_ids(("X", "Y")) == {"X", "Y"}
+    assert _coerce_asset_ids(s for s in ["P", "Q"]) == {"P", "Q"}
+
+
+def test_coerce_asset_ids_rejects_single_string():
+    """Passing a bare string raises TypeError (prevents accidental character iteration)."""
+    with pytest.raises(TypeError, match="not a single string"):
+        _coerce_asset_ids("ABC")  # type: ignore[arg-type]
+
+
+def test_coerce_asset_ids_rejects_bytes():
+    """Passing bytes raises TypeError."""
+    with pytest.raises(TypeError, match="not a single string"):
+        _coerce_asset_ids(b"ABC")  # type: ignore[arg-type]
+
+
+def test_coerce_asset_ids_rejects_empty_iterable():
+    """Empty iterable raises ValueError."""
+    with pytest.raises(ValueError, match="must be non-empty"):
+        _coerce_asset_ids([])
+
+
+def test_coerce_asset_ids_rejects_empty_string_elements():
+    """Iterable containing empty strings raises ValueError."""
+    with pytest.raises(ValueError, match="non-empty strings"):
+        _coerce_asset_ids(["A", ""])
+
+
+def test_coerce_asset_ids_rejects_non_string_elements():
+    """Iterable containing non-string elements raises ValueError."""
+    with pytest.raises(ValueError, match="non-empty strings"):
+        _coerce_asset_ids(["A", 42])  # type: ignore[list-item]
+
+
+def test_coerce_asset_ids_rejects_none():
+    """None raises TypeError (not iterable)."""
+    with pytest.raises(TypeError):
+        _coerce_asset_ids(None)  # type: ignore[arg-type]
+
+
+def test_coerce_asset_ids_returns_set_type():
+    """Return value is always a set."""
+    result = _coerce_asset_ids(["Z"])
+    assert isinstance(result, set)
+
+
+# ---------------------------------------------------------------------------
+# Additional tests for _build_relationship_index (simplified/modified)
+# ---------------------------------------------------------------------------
+
+
+def test_build_relationship_index_type_error_non_graph():
+    """Passing a non-AssetRelationshipGraph raises TypeError."""
+    with pytest.raises(TypeError, match="AssetRelationshipGraph"):
+        _build_relationship_index(object(), ["A"])  # type: ignore[arg-type]
+
+
+def test_build_relationship_index_type_error_non_dict_relationships():
+    """graph.relationships must be a dict; otherwise TypeError is raised."""
+
+    class BadGraph(AssetRelationshipGraph):
+        def __init__(self):
+            super().__init__()
+            self.relationships = "not-a-dict"
+
+    with pytest.raises(TypeError, match="dictionary"):
+        _build_relationship_index(BadGraph(), ["A"])
+
+
+def test_build_relationship_index_value_error_missing_relationships():
+    """graph without a 'relationships' attribute raises ValueError."""
+
+    class NoRelGraph(AssetRelationshipGraph):
+        def __init__(self):
+            # Intentionally don't call super().__init__() to avoid setting relationships
+            pass
+
+    graph = NoRelGraph.__new__(NoRelGraph)
+    # Remove the attribute if it exists from the base class
+    if hasattr(graph, "relationships"):
+        del graph.relationships
+
+    with pytest.raises(ValueError, match="relationships"):
+        _build_relationship_index(graph, ["A"])
+
+
+def test_build_relationship_index_excludes_external_targets():
+    """Relationships whose target is not in asset_ids are excluded."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9), ("Z", "correlation", 0.5)],
+        }
+    )
+    index = _build_relationship_index(graph, ["A", "B"])
+    assert ("A", "B", "correlation") in index
+    assert ("A", "Z", "correlation") not in index
+
+
+def test_build_relationship_index_strength_as_float():
+    """Relationship strength values are stored as floats."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "same_sector", 1)],  # integer strength
+        }
+    )
+    index = _build_relationship_index(graph, ["A", "B"])
+    val = index[("A", "B", "same_sector")]
+    assert isinstance(val, float)
+    assert val == 1.0
+
+
+def test_build_relationship_index_empty_relationships():
+    """Graph with empty relationships dict returns an empty index."""
+    graph = DummyGraph({})
+    index = _build_relationship_index(graph, ["A", "B"])
+    assert index == {}
+
+
+def test_build_relationship_index_no_matching_asset_ids():
+    """No relationships are indexed when asset_ids don't overlap with graph data."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9)],
+        }
+    )
+    index = _build_relationship_index(graph, ["X", "Y"])
+    assert index == {}
+
+
+# ---------------------------------------------------------------------------
+# Tests for visualize_3d_graph_with_filters (modified validation logic)
+# ---------------------------------------------------------------------------
+
+
+def test_visualize_3d_graph_with_filters_raises_type_error_for_non_graph():
+    """Passing a non-AssetRelationshipGraph raises TypeError (not ValueError)."""
+    with pytest.raises(TypeError, match="AssetRelationshipGraph"):
+        visualize_3d_graph_with_filters(object())  # type: ignore[arg-type]
+
+
+def test_visualize_3d_graph_with_filters_raises_type_error_for_non_bool_filter():
+    """Non-boolean filter parameters raise TypeError."""
+    graph = DummyGraph({})
+    with pytest.raises(TypeError, match="boolean"):
+        visualize_3d_graph_with_filters(graph, show_same_sector=1)  # type: ignore[arg-type]
+
+    with pytest.raises(TypeError, match="boolean"):
+        visualize_3d_graph_with_filters(graph, show_market_cap="yes")  # type: ignore[arg-type]
+
+    with pytest.raises(TypeError, match="boolean"):
+        visualize_3d_graph_with_filters(graph, toggle_arrows=0)  # type: ignore[arg-type]
+
+
+def test_visualize_3d_graph_with_filters_returns_figure():
+    """Valid graph with default parameters produces a Plotly Figure."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.9)],
+            "B": [("A", "correlation", 0.9)],
+        }
+    )
+    fig = visualize_3d_graph_with_filters(graph)
+    assert isinstance(fig, go.Figure)
+
+
+def test_visualize_3d_graph_with_filters_show_all_relationships_true_passes_none_filters():
+    """When show_all_relationships=True no filter is applied (full graph rendered)."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "same_sector", 1.0)],
+        }
+    )
+    # Should not raise; all relationship types should appear
+    fig = visualize_3d_graph_with_filters(graph, show_all_relationships=True)
+    assert isinstance(fig, go.Figure)
+
+
+def test_visualize_3d_graph_with_filters_show_all_false_applies_filters():
+    """When show_all_relationships=False, a filter dict is built and applied."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.8)],
+            "B": [("A", "correlation", 0.8)],
+            "C": [("A", "same_sector", 1.0)],
+        }
+    )
+    # Disable correlation; only same_sector should remain
+    fig = visualize_3d_graph_with_filters(
+        graph,
+        show_all_relationships=False,
+        show_correlation=False,
+        show_same_sector=True,
+    )
+    assert isinstance(fig, go.Figure)
+
+
+def test_visualize_3d_graph_with_filters_all_disabled_still_returns_figure(caplog):
+    """All filters disabled still returns a Figure but logs a warning."""
+    import logging
+
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.8)],
+        }
+    )
+    with caplog.at_level(logging.WARNING, logger="src.visualizations.graph_visuals"):
+        fig = visualize_3d_graph_with_filters(
+            graph,
+            show_all_relationships=False,
+            show_same_sector=False,
+            show_market_cap=False,
+            show_correlation=False,
+            show_corporate_bond=False,
+            show_commodity_currency=False,
+            show_income_comparison=False,
+            show_regulatory=False,
+        )
+    assert isinstance(fig, go.Figure)
+    assert any("All relationship filters are disabled" in r.message for r in caplog.records)
+
+
+def test_visualize_3d_graph_with_filters_toggle_arrows_false():
+    """toggle_arrows=False disables arrow traces in the output figure."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.8)],
+        }
+    )
+    fig = visualize_3d_graph_with_filters(graph, toggle_arrows=False)
+    assert isinstance(fig, go.Figure)
+    arrow_traces = [t for t in fig.data if getattr(t, "name", None) == "Direction Arrows"]
+    assert arrow_traces == []
+
+
+def test_visualize_3d_graph_with_filters_toggle_arrows_true_adds_arrows():
+    """toggle_arrows=True adds arrow traces for unidirectional relationships."""
+    graph = DummyGraph(
+        {
+            "A": [("B", "correlation", 0.8)],  # unidirectional
+        }
+    )
+    fig = visualize_3d_graph_with_filters(graph, toggle_arrows=True)
+    assert isinstance(fig, go.Figure)
+    arrow_traces = [t for t in fig.data if getattr(t, "name", None) == "Direction Arrows"]
+    assert len(arrow_traces) >= 1
+
+
+def test_visualize_3d_graph_with_filters_no_relationships():
+    """Graph with no relationships still produces a valid Figure."""
+    graph = DummyGraph({})
+
+    class SingleNodeGraph(AssetRelationshipGraph):
+        def __init__(self):
+            super().__init__()
+            self.relationships = {}
+
+        def get_3d_visualization_data_enhanced(self):
+            positions = np.array([[0.0, 0.0, 0.0]])
+            asset_ids = ["SOLO"]
+            colors = ["#FF6B6B"]
+            hover_texts = ["SOLO"]
+            return positions, asset_ids, colors, hover_texts
+
+    fig = visualize_3d_graph_with_filters(SingleNodeGraph())
+    assert isinstance(fig, go.Figure)
+
+
+def test_visualize_3d_graph_with_filters_none_graph():
+    """None as graph raises TypeError."""
+    with pytest.raises(TypeError):
+        visualize_3d_graph_with_filters(None)  # type: ignore[arg-type]
