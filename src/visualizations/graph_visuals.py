@@ -118,7 +118,7 @@ def _create_directional_arrows(
     graph: AssetRelationshipGraph,
     positions: np.ndarray,
     asset_ids: list[str],
-    relationship_filters: Mapping[str, bool] | None=None,
+    relationship_filters: Mapping[str, bool] | None = None,
 ) -> list[go.Scatter3d]:
         """Create arrow markers for unidirectional relationships."""
         if not isinstance(graph, AssetRelationshipGraph):
