@@ -672,15 +672,18 @@ def test_visualize_3d_graph_with_filters_toggle_arrows_true_adds_arrows():
 def test_visualize_3d_graph_with_filters_no_relationships():
     """Graph with no relationships still produces a valid Figure."""
 
+
     class SingleNodeGraph(AssetRelationshipGraph):
         def __init__(self):
             super().__init__()
+
             self.relationships = {}
 
         def get_3d_visualization_data_enhanced(self):
             positions = np.array([[0.0, 0.0, 0.0]])
             asset_ids = ["SOLO"]
             colors = ["#FF6B6B"]
+
             hover_texts = ["SOLO"]
             return positions, asset_ids, colors, hover_texts
 
