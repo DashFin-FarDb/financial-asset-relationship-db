@@ -245,7 +245,18 @@ def _visualize_3d_graph_core(
         return fig
 
 
-def visualize_3d_graph_with_filters(
+def visualize_3d_graph(
+    graph: AssetRelationshipGraph,
+    toggle_arrows: bool = True,
+) -> go.Figure:
+    """Backward-compatible wrapper for the default 3D visualization."""
+    return visualize_3d_graph_with_filters(
+        graph=graph,
+        show_all_relationships=True,
+        toggle_arrows=toggle_arrows,
+    )
+
+
     graph: AssetRelationshipGraph,
     show_same_sector: bool = True,
     show_market_cap: bool = True,
