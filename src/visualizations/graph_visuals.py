@@ -116,62 +116,63 @@ def _create_directional_arrows(
     asset_ids: list[str],
     relationship_filters: Mapping[str, bool] | None = None,
 ) -> list[go.Scatter3d]:
-        """Create arrow markers for unidirectional relationships."""
-        if not isinstance(graph, AssetRelationshipGraph):
-            raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
+    """Create arrow markers for unidirectional relationships."""
+    if not isinstance(graph, AssetRelationshipGraph):
+        raise TypeError("Expected graph to be an instance of AssetRelationshipGraph")
 
-        _validate_positions_array(positions)
-        _validate_asset_ids_list(asset_ids)
+    _validate_positions_array(positions)
+    _validate_asset_ids_list(asset_ids)
 
-        if len(positions) != len(asset_ids):
-            raise ValueError("positions and asset_ids must have the same length")
+    if len(positions) != len(asset_ids):
+        raise ValueError("positions and asset_ids must have the same length")
 
-        relationship_index = _build_relationship_index(graph, asset_ids)
-        asset_id_index = _build_asset_id_index(asset_ids)
+    relationship_index = _build_relationship_index(graph, asset_ids)
+    asset_id_index = _build_asset_id_index(asset_ids)
 
-        source_indices: list[int] = []
-        target_indices: list[int] = []
-        hover_texts: list[str] = []
+    source_indices: list[int] = []
+    target_indices: list[int] = []
+    hover_texts: list[str] = []
 
-        for (source_id, target_id, rel_type), _ in relationship_index.items():
-            # Respect relationship filters when generating arrow markers.
-            if relationship_filters is not None and not relationship_filters.get(rel_type, True):
-                continue
-            reverse_key = (target_id, source_id, rel_type)
-            if reverse_key not in relationship_index:
-                source_indices.append(asset_id_index[source_id])
-                target_indices.append(asset_id_index[target_id])
-                hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
+    for (source_id, target_id, rel_type), _ in relationship_index.items():
+        # Respect relationship filters when generating arrow markers.
+        if relationship_filters is not None and not relationship_filters.get(rel_type, True):
+            continue
+        reverse_key = (target_id, source_id, rel_type)
+        if reverse_key not in relationship_index:
+            source_indices.append(asset_id_index[source_id])
+            target_indices.append(asset_id_index[target_id])
+            hover_texts.append(f"Direction: {source_id} → {target_id}<br>Type: {rel_type}")
 
-        if not source_indices:
-            return []
+    if not source_indices:
+        return []
 
-        src_idx_arr = np.asarray(source_indices, dtype=int)
-        tgt_idx_arr = np.asarray(target_indices, dtype=int)
+    src_idx_arr = np.asarray(source_indices, dtype=int)
+    tgt_idx_arr = np.asarray(target_indices, dtype=int)
 
-        source_positions = positions[src_idx_arr]
-        target_positions = positions[tgt_idx_arr]
-        arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
+    source_positions = positions[src_idx_arr]
+    target_positions = positions[tgt_idx_arr]
+    arrow_positions = source_positions + 0.7 * (target_positions - source_positions)
 
-        arrow_trace = go.Scatter3d(
-            x=arrow_positions[:, 0].tolist(),
-            y=arrow_positions[:, 1].tolist(),
-            z=arrow_positions[:, 2].tolist(),
-            mode="markers",
-            marker=dict(
-                symbol="diamond",
-                size=8,
-                color="rgba(255, 0, 0, 0.8)",
-                line=dict(color="red", width=1),
-            ),
-            hovertext=hover_texts,
-            hoverinfo="text",
-            name="Direction Arrows",
-            visible=True,
-            showlegend=False,
-        )
+    arrow_trace = go.Scatter3d(
+        x=arrow_positions[:, 0].tolist(),
+        y=arrow_positions[:, 1].tolist(),
+        z=arrow_positions[:, 2].tolist(),
+        mode="markers",
+        marker=dict(
+            symbol="diamond",
+            size=8,
+            color="rgba(255, 0, 0, 0.8)",
+            line=dict(color="red", width=1),
+        ),
+        hovertext=hover_texts,
+        hoverinfo="text",
+        name="Direction Arrows",
+        visible=True,
+        showlegend=False,
+    )
 
-        return [arrow_trace]
+    return [arrow_trace]
+
 
 def _visualize_3d_graph_core(
     graph: AssetRelationshipGraph,
@@ -190,9 +191,9 @@ def _visualize_3d_graph_core(
 
     _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
-        fig = go.Figure()
+      fig = go.Figure()
 
-        try:
+       try:
             relationship_traces = _create_relationship_traces(
                 graph,
                 positions,
