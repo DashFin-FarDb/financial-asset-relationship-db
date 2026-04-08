@@ -135,7 +135,7 @@ def _build_relationship_index(
         raise ValueError("Invalid graph: missing 'relationships' attribute")
 
     if not isinstance(graph.relationships, dict):
-        raise TypeError(
+        raise TypeError('The graph.relationships attribute must be a dictionary.')
     def _create_directional_arrows(
         graph: AssetRelationshipGraph,
         positions: np.ndarray,
