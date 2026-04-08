@@ -173,22 +173,22 @@ def _create_directional_arrows(
 
         return [arrow_trace]
 
-    def _visualize_3d_graph_core(
-        graph: AssetRelationshipGraph,
-        relationship_filters: Mapping[str, bool] | None,
-        toggle_arrows: bool,
-    ) -> go.Figure:
-        """Core visualization pipeline used by public wrappers."""
-        if not hasattr(graph, "get_3d_visualization_data_enhanced"):
-            raise ValueError("Invalid graph data provided: graph must provide get_3d_visualization_data_enhanced")
+def _visualize_3d_graph_core(
+    graph: AssetRelationshipGraph,
+    relationship_filters: Mapping[str, bool] | None,
+    toggle_arrows: bool,
+) -> go.Figure:
+    """Core visualization pipeline used by public wrappers."""
+    if not hasattr(graph, "get_3d_visualization_data_enhanced"):
+        raise ValueError("Invalid graph data provided: graph must provide get_3d_visualization_data_enhanced")
 
-        try:
-            positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
-        except Exception as exc:  # pylint: disable=broad-except
-            logger.exception("Failed to retrieve visualization data from graph: %s", exc)
-            raise ValueError("Failed to retrieve graph visualization data") from exc
+    try:
+        positions, asset_ids, colors, hover_texts = graph.get_3d_visualization_data_enhanced()
+    except Exception as exc:  # pylint: disable=broad-except
+        logger.exception("Failed to retrieve visualization data from graph: %s", exc)
+        raise ValueError("Failed to retrieve graph visualization data") from exc
 
-        _validate_visualization_data(positions, asset_ids, colors, hover_texts)
+    _validate_visualization_data(positions, asset_ids, colors, hover_texts)
 
         fig = go.Figure()
 
