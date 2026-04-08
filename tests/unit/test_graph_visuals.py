@@ -496,13 +496,12 @@ def test_build_relationship_index_value_error_missing_relationships():
 
     class NoRelGraph(AssetRelationshipGraph):
         def __init__(self):
-            # Intentionally don't call super().__init__() to avoid setting relationships
-            pass
+            super().__init__()
+            # Ensure the instance mimics a graph missing `relationships`
+            if hasattr(self, "relationships"):
+                del self.relationships
 
-    graph = NoRelGraph.__new__(NoRelGraph)
-    # Remove the attribute if it exists from the base class
-    if hasattr(graph, "relationships"):
-        del graph.relationships
+    graph = NoRelGraph()
 
     with pytest.raises(ValueError, match="relationships"):
         _build_relationship_index(graph, ["A"])
