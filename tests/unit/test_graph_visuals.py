@@ -336,9 +336,9 @@ def test_is_valid_color_format_hex_8():
 def test_is_valid_color_format_hex_invalid():
     """Malformed hex strings are rejected."""
     assert _is_valid_color_format("#") is False
-    assert _is_valid_color_format("#12") is False       # only 2 digits
-    assert _is_valid_color_format("#12345") is False    # 5 digits (ambiguous)
-    assert _is_valid_color_format("#ggg") is False      # non-hex letters
+    assert _is_valid_color_format("#12") is False  # only 2 digits
+    assert _is_valid_color_format("#12345") is False  # 5 digits (ambiguous)
+    assert _is_valid_color_format("#ggg") is False  # non-hex letters
     assert _is_valid_color_format("##aabbcc") is False  # double hash
 
 
@@ -351,10 +351,10 @@ def test_is_valid_color_format_rgb():
 
 def test_is_valid_color_format_rgb_invalid():
     """Malformed rgb() strings are rejected."""
-    assert _is_valid_color_format("rgb(0,0)") is False          # only 2 args
-    assert _is_valid_color_format("rgb(0,0,0,0)") is False       # 4 args (use rgba)
-    assert _is_valid_color_format("rgb(a,b,c)") is False         # non-numeric
-    assert _is_valid_color_format("RGB(0,0,0)") is False         # uppercase
+    assert _is_valid_color_format("rgb(0,0)") is False  # only 2 args
+    assert _is_valid_color_format("rgb(0,0,0,0)") is False  # 4 args (use rgba)
+    assert _is_valid_color_format("rgb(a,b,c)") is False  # non-numeric
+    assert _is_valid_color_format("RGB(0,0,0)") is False  # uppercase
 
 
 def test_is_valid_color_format_rgba():
@@ -368,10 +368,10 @@ def test_is_valid_color_format_rgba():
 
 def test_is_valid_color_format_rgba_invalid():
     """Malformed rgba() strings are rejected."""
-    assert _is_valid_color_format("rgba(0,0,0,1.5)") is False    # alpha > 1
-    assert _is_valid_color_format("rgba(0,0,0,-0.5)") is False   # negative alpha
-    assert _is_valid_color_format("rgba(0,0,0)") is False         # missing alpha
-    assert _is_valid_color_format("rgba(a,b,c,0)") is False       # non-numeric
+    assert _is_valid_color_format("rgba(0,0,0,1.5)") is False  # alpha > 1
+    assert _is_valid_color_format("rgba(0,0,0,-0.5)") is False  # negative alpha
+    assert _is_valid_color_format("rgba(0,0,0)") is False  # missing alpha
+    assert _is_valid_color_format("rgba(a,b,c,0)") is False  # non-numeric
 
 
 def test_is_valid_color_format_named_colors_only_alpha():
@@ -394,8 +394,8 @@ def test_is_valid_color_format_named_colors_with_non_alpha_rejected():
 def test_is_valid_color_format_non_string():
     """Non-string inputs return False."""
     assert _is_valid_color_format(None) is False  # type: ignore[arg-type]
-    assert _is_valid_color_format(123) is False   # type: ignore[arg-type]
-    assert _is_valid_color_format([]) is False    # type: ignore[arg-type]
+    assert _is_valid_color_format(123) is False  # type: ignore[arg-type]
+    assert _is_valid_color_format([]) is False  # type: ignore[arg-type]
 
 
 def test_is_valid_color_format_empty_string():
