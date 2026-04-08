@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 import re
-import threading
 from collections import defaultdict
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any, Final
@@ -20,9 +19,6 @@ from src.visualizations.graph_visuals_validation import (
 )
 
 logger = logging.getLogger(__name__)
-
-# Protect concurrent access to graph.relationships (graph is mutable).
-_GRAPH_ACCESS_LOCK: Final[threading.RLock] = threading.RLock()
 
 # Precompiled regex patterns for color validation.
 _HEX_COLOR_RE: Final[re.Pattern[str]] = re.compile(r"^#(?:[0-9A-Fa-f]{3}){1,2}(?:[0-9A-Fa-f]{2})?$")
