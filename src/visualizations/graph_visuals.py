@@ -296,10 +296,10 @@ def visualize_3d_graph_with_filters(
             "same_sector": show_same_sector,
             "market_cap_similar": show_market_cap,
             "correlation": show_correlation,
-            "corporate_bond_to_equity": show_corporate_bond,
+            "corporate_link": show_corporate_bond,
             "commodity_currency": show_commodity_currency,
             "income_comparison": show_income_comparison,
-            "regulatory_impact": show_regulatory,
+            "event_impact": show_regulatory,
         }
 
     if relationship_filters is not None and not any(relationship_filters.values()):
