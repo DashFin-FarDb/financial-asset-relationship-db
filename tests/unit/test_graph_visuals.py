@@ -672,6 +672,7 @@ def test_visualize_3d_graph_with_filters_no_relationships():
     """Graph with no relationships still produces a valid Figure."""
 
 
+
     class SingleNodeGraph(AssetRelationshipGraph):
         def __init__(self):
             super().__init__()
