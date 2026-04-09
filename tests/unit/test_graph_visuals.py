@@ -169,7 +169,7 @@ def test_create_directional_arrows_invalid_shape():
     graph = DummyGraph({})
     positions = np.array([[0, 0], [1, 1]])  # 2D instead of 3D
     asset_ids = ["A", "B"]
-    with pytest.raises(ValueError, match="expected positions to be a \\(n, 3\\) numpy array"):
+    with pytest.raises(ValueError, match="positions must have shape \\(n, 3\\), got"):
         _create_directional_arrows(graph, positions, asset_ids)
 
 
