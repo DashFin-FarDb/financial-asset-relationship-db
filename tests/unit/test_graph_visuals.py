@@ -7,7 +7,6 @@ from src.visualizations.graph_visuals import (
     REL_TYPE_COLORS,
     _build_asset_id_index,
     _build_relationship_index,
-    _coerce_asset_ids,
     _create_directional_arrows,
     _create_relationship_traces,
     _get_relationship_color,
