@@ -258,6 +258,7 @@ def visualize_3d_graph(
     )
 
 
+def visualize_3d_graph_with_filters(
     graph: AssetRelationshipGraph,
     show_same_sector: bool = True,
     show_market_cap: bool = True,
