@@ -64,8 +64,17 @@ def _is_valid_color_format(color: str) -> bool:
     if not isinstance(color, str) or not color:
         return False
 
-    if _HEX_COLOR_RE.match(color):
-    if not isinstance(graph.relationships, dict):
+    normalized_color = color.strip()
+    if not normalized_color:
+        return False
+
+    if _HEX_COLOR_RE.match(normalized_color):
+        return True
+
+    if _RGB_COLOR_RE.match(normalized_color) or _RGBA_COLOR_RE.match(normalized_color):
+        return True
+
+    return re.fullmatch(r"[A-Za-z]+", normalized_color) is not None
         raise TypeError(
             f"Invalid graph: relationships must be a dict, got {type(graph.relationships).__name__}"
         )
