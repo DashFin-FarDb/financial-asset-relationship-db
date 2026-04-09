@@ -282,10 +282,10 @@ def test_get_relationship_color_known_types():
     assert _get_relationship_color("same_sector") == "#FF6B6B"
     assert _get_relationship_color("market_cap_similar") == "#4ECDC4"
     assert _get_relationship_color("correlation") == "#45B7D1"
-    assert _get_relationship_color("corporate_bond_to_equity") == "#96CEB4"
+    assert _get_relationship_color("corporate_link") == "#96CEB4"
     assert _get_relationship_color("commodity_currency") == "#FFEAA7"
     assert _get_relationship_color("income_comparison") == "#DDA0DD"
-    assert _get_relationship_color("regulatory_impact") == "#FFA07A"
+    assert _get_relationship_color("event_impact") == "#FFA07A"
 
 
 def test_get_relationship_color_unknown_type_returns_default():
