@@ -18,6 +18,7 @@ Base = declarative_base()
 from .repository import session_scope  # noqa: F401, E402
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
+ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
