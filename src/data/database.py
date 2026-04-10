@@ -17,15 +17,12 @@ Base = declarative_base()
 # import (database -> repository -> db_models -> database.Base).
 from .repository import session_scope  # noqa: F401, E402
 
-DEFAULT_DATABASE_URL = os.getenv(
-    "ASSET_GRAPH_DATABASE_URL",
-    "sqlite:///./asset_graph.db",
-)
+DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
-    resolved_url = url or DEFAULT_DATABASE_URL
+    resolved_url = url if url else os.getenv("ASSET_GRAPH_DATABASE_URL", DEFAULT_DATABASE_URL)
 
     if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
         return create_engine(
