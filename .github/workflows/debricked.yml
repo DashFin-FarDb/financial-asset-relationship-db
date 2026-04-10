@@ -39,7 +39,8 @@ jobs:
       - name: Checkout code
         # Security: Pinned to specific SHA for actions/checkout@v4.2.2
         # This prevents supply-chain attacks from compromised action versions
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+- name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Run Debricked Scan
         # Security: Pinned to commit SHA for debricked/actions/scan v1
