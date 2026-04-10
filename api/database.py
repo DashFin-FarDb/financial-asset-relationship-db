@@ -292,9 +292,11 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     """
     Return the first column value from the first row of a query result.
 
-    If the query returns no rows, returns `None`. If the row is an `sqlite3.Row` or
-    a `tuple`/`list`, returns its first element (or `None` for an empty sequence).
-    For any other row type, returns the row object unchanged.
+    If the query returns no rows, returns `None`. For any non-string indexable row
+    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with
+    ``__getitem__``), attempts to return ``row[0]``.  Returns ``None`` when the row
+    is empty, and returns the row object unchanged only when indexing is not
+    supported (``TypeError``) or the index is out of range (``IndexError``).
 
     Parameters:
         query (str): SQL query to execute; may include parameter placeholders.
@@ -306,11 +308,14 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     row = fetch_one(query, parameters)
     if row is None:
         return None
-    if isinstance(row, sqlite3.Row):
+    if isinstance(row, str):
+        return row
+    try:
         return row[0]
-    if isinstance(row, (tuple, list)):
-        return row[0] if row else None
-    return row
+    except IndexError:
+        return None
+    except TypeError:
+        return row
 
 
 def initialize_schema() -> None:
