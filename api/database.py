@@ -308,7 +308,7 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     row = fetch_one(query, parameters)
     if row is None:
         return None
-     if isinstance(row, (sqlite3.Row, tuple, list)):
+    if isinstance(row, (sqlite3.Row, tuple, list)):
         return row[0] if row else None
     try:
         return row[0]
