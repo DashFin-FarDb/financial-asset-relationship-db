@@ -291,15 +291,15 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
 def fetch_value(query: str, parameters: tuple | list | None = None):
     """
     Return the first column value from the first row of a query result.
-    
+
     If the query returns no rows, returns `None`. If the row is an `sqlite3.Row` or
     a `tuple`/`list`, returns its first element (or `None` for an empty sequence).
     For any other row type, returns the row object unchanged.
-    
+
     Parameters:
         query (str): SQL query to execute; may include parameter placeholders.
         parameters (tuple | list | None): Sequence of parameters for the query placeholders.
-    
+
     Returns:
         The first column value from the first row, or `None` if no row is returned.
     """
