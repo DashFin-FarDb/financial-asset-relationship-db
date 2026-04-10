@@ -295,8 +295,8 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
     If the query returns no rows, returns `None`. For any non-string indexable row
     (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with
     ``__getitem__``), attempts to return ``row[0]``.  Returns ``None`` when the row
-    is empty, and returns the row object unchanged only when indexing is not
-    supported (``TypeError``) or the index is out of range (``IndexError``).
+    is empty (i.e. ``row[0]`` raises ``IndexError``), and returns the row object
+    unchanged only when indexing is not supported (``TypeError``).
 
     Parameters:
         query (str): SQL query to execute; may include parameter placeholders.
