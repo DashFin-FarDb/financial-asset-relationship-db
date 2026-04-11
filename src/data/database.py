@@ -17,10 +17,13 @@ from .repository import session_scope  # noqa: F401, E402
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 
-
 def create_engine_from_url(url: str | None = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
-    resolved_url = url if url else (os.getenv("ASSET_GRAPH_DATABASE_URL") or DEFAULT_DATABASE_URL)
+    if url is not None:
+        resolved_url = url
+    else:
+        # Read at call time for runtime flexibility, but document the change.
+        resolved_url = os.getenv("ASSET_GRAPH_DATABASE_URL", DEFAULT_DATABASE_URL)
 
     if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
         return create_engine(
