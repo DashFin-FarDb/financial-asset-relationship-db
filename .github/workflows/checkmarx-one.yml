@@ -42,8 +42,7 @@ jobs:
     steps:
       # This step checks out a copy of your repository.
       - name: Checkout repository
-        uses: actions/checkout@v4
-      # This step creates the Checkmarx One scan
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Checkmarx One scan
         uses: checkmarx/ast-github-action@8e887bb93dacc44e0f5b64ee2b06d5815f89d4fc
         with:
@@ -54,7 +53,7 @@ jobs:
           additional_params: --report-format sarif --output-path .
       - name: Upload SARIF file
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
         with:
           # Path to SARIF file relative to the root of the repository
           sarif_file: cx_result.sarif

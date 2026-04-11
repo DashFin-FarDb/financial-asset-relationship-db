@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Auto-assign new issues and PRs
-        uses: pozil/auto-assign-issue@6594700 # v1.14.0
+        uses: pozil/auto-assign-issue@65947009a243e6b3993edeef4e64df3ca85d760c # v1.14.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           assignees: 'mohavro'
