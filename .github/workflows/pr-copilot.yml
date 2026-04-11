@@ -3,7 +3,7 @@ name: PR Copilot Agent
 # Comprehensive PR management, maintenance, and completion workflows
 # Triggered by PR mentions, labels, events, and status checks
 
-on:
+"on":
   pull_request:
     types: [opened, labeled, synchronize]
   pull_request_review:

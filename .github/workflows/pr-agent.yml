@@ -3,7 +3,7 @@ name: PR Agent Workflow
 permissions:
   contents: read
 
-on:
+"on":
   pull_request:
     types: [opened, synchronize, reopened]
   pull_request_review:

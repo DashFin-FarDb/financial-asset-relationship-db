@@ -10,7 +10,7 @@
 # Some projects require creating a frogbot-config.yml file. Read more about it here - https://docs.jfrog-applications.jfrog.io/jfrog-applications/frogbot/setup-frogbot/frogbot-configuration
 
 name: "Frogbot Scan Pull Request"
-on:
+"on":
   pull_request_target:
     types: [ opened, synchronize ]
 permissions:

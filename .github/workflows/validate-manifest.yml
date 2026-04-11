@@ -1,6 +1,6 @@
 name: Validate System Manifest
 
-on:
+"on":
   pull_request:
     paths:
       - '.elastic-copilot/memory/systemManifest.md'

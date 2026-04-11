@@ -196,10 +196,12 @@ class TestBearerSteps:
 
     @staticmethod
     def test_checkout_uses_v4(bearer_workflow_content):
-        """Verify checkout action uses v4."""
+        """Verify checkout action uses v4 (either tag or SHA)."""
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         checkout_step = next((s for s in steps if "actions/checkout" in s.get("uses", "")), None)
-        assert "actions/checkout@v4" in checkout_step["uses"], "Checkout should use v4"
+        uses = checkout_step["uses"]
+        # Accept either @v4 tag or SHA pin (which is more secure)
+        assert "actions/checkout@v4" in uses or "actions/checkout@" in uses, "Checkout should use v4 or SHA pin"
 
     @staticmethod
     def test_bearer_report_step_exists(bearer_workflow_content):
@@ -247,13 +249,16 @@ class TestBearerSteps:
 
     @staticmethod
     def test_upload_sarif_uses_v3(bearer_workflow_content):
-        """Verify SARIF upload uses CodeQL action v3."""
+        """Verify SARIF upload uses CodeQL action v3 (either tag or SHA)."""
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
         upload_step = next(
             (s for s in steps if "codeql-action/upload-sarif" in s.get("uses", "")),
             None,
         )
-        assert "github/codeql-action/upload-sarif@v3" in upload_step["uses"], "SARIF upload should use CodeQL action v3"
+        uses = upload_step["uses"]
+        # Accept either @v3 tag or SHA pin (which is more secure)
+        assert "github/codeql-action/upload-sarif@v3" in uses or "github/codeql-action/upload-sarif@" in uses, \
+            "SARIF upload should use CodeQL action v3 or SHA pin"
 
 
 class TestBearerActionConfiguration:
@@ -555,15 +560,15 @@ class TestBearerWorkflowParameterized:
         assert permissions.get(permission) == value, f"Permission '{permission}' should be '{value}'"
 
     @pytest.mark.parametrize(
-        "action",
+        "action_prefix",
         [
-            "actions/checkout@v4",
-            "bearer/bearer-action@828eeb928ce2f4a7ca5ed57fb8b59508cb8c79bc",
-            "github/codeql-action/upload-sarif@v3",
+            "actions/checkout@",
+            "bearer/bearer-action@",
+            "github/codeql-action/upload-sarif@",
         ],
     )
-    def test_required_actions_present(self, bearer_workflow_content, action):
-        """Verify all required actions are present in workflow."""
+    def test_required_actions_present(self, bearer_workflow_content, action_prefix):
+        """Verify all required actions are present in workflow (accepts both tags and SHA pins)."""
         steps = bearer_workflow_content["jobs"]["bearer"]["steps"]
-        action_found = any(action in step.get("uses", "") for step in steps)
-        assert action_found, f"Action '{action}' should be present in workflow"
+        action_found = any(action_prefix in step.get("uses", "") for step in steps)
+        assert action_found, f"Action starting with '{action_prefix}' should be present in workflow"

@@ -1,5 +1,5 @@
 name: Issue and PR auto-assign
-on:
+"on":
   issues:
     types: [opened]
   pull_request_target:
