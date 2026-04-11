@@ -16,7 +16,7 @@ executors:
 
   node-executor:
     docker:
-      - image: cimg/node:25.8.2
+      - image: cimg/node:25.9.0
     working_directory: ~/project
     resource_class: medium
     environment:
