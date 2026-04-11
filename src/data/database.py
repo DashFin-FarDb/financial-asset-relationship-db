@@ -23,12 +23,16 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
     if url is not None and url.strip():
         resolved_url = url
+        is_explicit_url = True
     else:
         resolved_url = os.getenv("ASSET_GRAPH_DATABASE_URL", DEFAULT_DATABASE_URL)
+        is_explicit_url = False
 
     try:
         parsed_url = make_url(resolved_url)
     except ArgumentError:
+        if is_explicit_url:
+            raise
         return create_engine(DEFAULT_DATABASE_URL, future=True)
 
     is_sqlite = parsed_url.get_backend_name() == "sqlite"
