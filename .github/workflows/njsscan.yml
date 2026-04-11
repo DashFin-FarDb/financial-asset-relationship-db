@@ -8,7 +8,7 @@
 
 name: njsscan sarif
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

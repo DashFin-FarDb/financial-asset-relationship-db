@@ -1,5 +1,5 @@
 name: MCP Protocol Validation
-on:
+"on":
   push:
     branches: [ main, develop ]
   pull_request:

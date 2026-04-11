@@ -15,7 +15,7 @@
 #Any issues with this workflow, please raise it on https://github.com/ZscalerCWP/Zscaler-IaC-Action/issues for further investigation.
 
 name: Zscaler IaC Scan
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
   pull_request:

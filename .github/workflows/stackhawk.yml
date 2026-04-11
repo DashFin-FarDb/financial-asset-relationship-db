@@ -29,7 +29,7 @@
 
 name: "StackHawk"
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

@@ -5,29 +5,43 @@ from __future__ import annotations
 import os
 
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.exc import ArgumentError
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-Base = declarative_base()
+from .base import Base
 
 # Canonical transaction helper lives in repository.py per tech spec.
 # Re-export here for backward compatibility with older imports.
-# NOTE: This import must come AFTER Base is defined to avoid a circular
-# import (database -> repository -> db_models -> database.Base).
 from .repository import session_scope  # noqa: F401, E402
 
-DEFAULT_DATABASE_URL = os.getenv(
-    "ASSET_GRAPH_DATABASE_URL",
-    "sqlite:///./asset_graph.db",
-)
+DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
-    resolved_url = url or DEFAULT_DATABASE_URL
+    if url is not None and url.strip():
+        resolved_url = url
+        is_explicit_url = True
+    else:
+        resolved_url = os.getenv("ASSET_GRAPH_DATABASE_URL", DEFAULT_DATABASE_URL)
+        is_explicit_url = False
 
-    if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
+    try:
+        parsed_url = make_url(resolved_url)
+    except ArgumentError:
+        if is_explicit_url:
+            raise
+        return create_engine(DEFAULT_DATABASE_URL, future=True)
+
+    is_sqlite = parsed_url.get_backend_name() == "sqlite"
+    database = parsed_url.database or ""
+    query = parsed_url.query or {}
+
+    is_sqlite_memory = is_sqlite and (database == ":memory:" or query.get("mode") == "memory")
+
+    if is_sqlite_memory:
         return create_engine(
             resolved_url,
             future=True,

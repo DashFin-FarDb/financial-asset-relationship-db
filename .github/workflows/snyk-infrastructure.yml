@@ -12,7 +12,7 @@
 
 name: Snyk Infrastructure as Code
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
   pull_request:

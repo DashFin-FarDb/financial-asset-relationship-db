@@ -11,7 +11,7 @@
 #
 name: "CodeQL Advanced"
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

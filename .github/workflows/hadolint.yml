@@ -8,7 +8,7 @@
 
 name: Hadolint
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:
