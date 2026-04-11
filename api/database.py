@@ -305,7 +305,12 @@ def fetch_value(query: str, parameters: tuple | list | None = None):
         return None
     if isinstance(row, (sqlite3.Row, tuple, list)):
         return row[0] if row else None
-    return row
+    if isinstance(row, dict):
+        return next(iter(row.values()), None)
+    try:
+        return row[0]
+    except (TypeError, KeyError, IndexError):
+        return None
 
 
 def initialize_schema() -> None:
