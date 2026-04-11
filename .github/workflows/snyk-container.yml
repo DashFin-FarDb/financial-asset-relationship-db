@@ -13,7 +13,7 @@
 
 name: Snyk Container
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

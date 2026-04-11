@@ -18,7 +18,7 @@
 
 name: Snyk Security
 
-on:
+"on":
   push:
     branches: ["main", "Default"]
   pull_request:

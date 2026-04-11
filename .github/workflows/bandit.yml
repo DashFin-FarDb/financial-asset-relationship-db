@@ -11,7 +11,7 @@
 # https://pypi.org/project/bandit/ is Apache v2.0 licensed, by PyCQA
 
 name: Bandit
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
   pull_request:

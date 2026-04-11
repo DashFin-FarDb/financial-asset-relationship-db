@@ -1,5 +1,5 @@
 name: "Setup JFrog CLI OIDC Example"
-on: push
+"on": push
 
 permissions:
   # This is required for requesting the OIDC token

@@ -28,7 +28,7 @@
 
 name: SonarCloud analysis
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

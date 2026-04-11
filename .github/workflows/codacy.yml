@@ -13,7 +13,7 @@
 
 name: Codacy Security Scan
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

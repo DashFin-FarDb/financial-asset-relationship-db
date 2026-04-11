@@ -7,7 +7,7 @@
 # See https://docs.bearer.com/guides/bearer-cloud/
 name: Bearer
 
-on:
+"on":
   push:
     branches: ["main"]
   pull_request:

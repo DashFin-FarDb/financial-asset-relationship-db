@@ -8,7 +8,7 @@
 # https://github.com/github/ossar-action
 name: OSSAR
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

@@ -7,7 +7,7 @@
 
 name: Veracode Static Analysis Pipeline Scan
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:

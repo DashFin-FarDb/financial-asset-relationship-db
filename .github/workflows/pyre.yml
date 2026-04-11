@@ -15,7 +15,7 @@
 
 name: Pyre
 
-on:
+"on":
   workflow_dispatch:
   push:
     branches: [ "main", "Default" ]
