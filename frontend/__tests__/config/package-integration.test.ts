@@ -72,9 +72,9 @@ describe("Package Configuration Integration", () => {
         if (lockedPkg) {
           expect(lockedPkg.version).toBeDefined();
 
-          // Basic validation: if range starts with ^1.13.2, locked should be >= 1.13.2
-          if (name === "axios" && range === "^1.13.2") {
-            expect(lockedPkg.version).toBe("1.13.2");
+          // Basic validation: if range starts with ^1.13.5, locked should be >= 1.13.5
+          if (name === "axios" && range === "^1.13.5") {
+            expect(lockedPkg.version).toBe("1.15.0");
           }
         }
       });
@@ -86,8 +86,8 @@ describe("Package Configuration Integration", () => {
       const axiosRange = packageJson.dependencies.axios;
       const axiosLocked = packageLock.packages?.["node_modules/axios"];
 
-      expect(axiosRange).toBe("^1.13.2");
-      expect(axiosLocked?.version).toBe("1.13.2");
+      expect(axiosRange).toBe("^1.13.5");
+      expect(axiosLocked?.version).toBe("1.15.0");
     });
 
     it("axios upgrade should not break peer dependencies", () => {
@@ -215,8 +215,8 @@ describe("Package Configuration Integration", () => {
 
     it("no unexpected major version bumps in core deps", () => {
       const coreDeps = {
-        react: 18,
-        "react-dom": 18,
+        react: 19,
+        "react-dom": 19,
         next: 16,
         axios: 1,
       };
@@ -259,7 +259,7 @@ describe("Package Configuration Integration", () => {
       const axiosLocked = packageLock.packages?.["node_modules/axios"];
 
       expect(axiosLocked?.resolved).toContain("registry.npmjs.org");
-      expect(axiosLocked?.resolved).toContain("axios-1.13.2.tgz");
+      expect(axiosLocked?.resolved).toContain("axios-1.15.0.tgz");
     });
 
     it("no packages should use insecure protocols", () => {
@@ -277,20 +277,20 @@ describe("Package Configuration Integration", () => {
 
   describe("Version Range Satisfaction", () => {
     it("caret ranges should be satisfied correctly", () => {
-      // ^1.13.2 should resolve to 1.13.2 or compatible
+      // ^1.13.5 should resolve to 1.13.5 or compatible
       const axiosRange = packageJson.dependencies.axios;
       const axiosVersion =
         packageLock.packages?.["node_modules/axios"]?.version;
 
-      expect(axiosRange).toBe("^1.13.2");
-      expect(axiosVersion).toBe("1.13.2");
+      expect(axiosRange).toBe("^1.13.5");
+      expect(axiosVersion).toBe("1.15.0");
 
       // Parse versions
       if (axiosVersion == null) {
         throw new Error("Expected axiosVersion to be defined");
       }
       const [major, minor, patch] = axiosVersion.split(".").map(Number);
-      const [rangeMajor, rangeMinor, rangePatch] = "1.13.2"
+      const [rangeMajor, rangeMinor, rangePatch] = "1.13.5"
         .split(".")
         .map(Number);
 
@@ -333,7 +333,7 @@ describe("Package Configuration Integration", () => {
 
       // Jest should be able to mock axios
       expect(jest?.version).toBeDefined();
-      expect(axios?.version).toBe("1.13.2");
+      expect(axios?.version).toBe("1.15.0");
     });
 
     it("@testing-library packages should work with current React", () => {
