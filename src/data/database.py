@@ -59,7 +59,7 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
 
 def init_db(engine: Engine) -> None:
     """Initialise database schema if it has not been created."""
-    Base.metadata.create_all(engine)"""Database configuration helpers for the asset relationship store."""
+    Base.metadata.create_all(engine)
 
 
 # Canonical transaction helper lives in repository.py per tech spec.
