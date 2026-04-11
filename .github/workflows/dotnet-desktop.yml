@@ -32,7 +32,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       with:
         fetch-depth: 0
 
@@ -51,14 +51,13 @@ jobs:
 
     - name: Install .NET Core
       if: steps.check-dotnet.outputs.has_dotnet == 'true'
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4
       with:
         dotnet-version: 8.0.x
 
     - name: Setup MSBuild.exe
       if: steps.check-dotnet.outputs.has_dotnet == 'true'
-      uses: microsoft/setup-msbuild@v2
-
+      uses: microsoft/setup-msbuild@6fb02220983dee41ce7ae257b6f4d8f9bf5ed4ce # v2
     - name: Execute unit tests
       if: steps.check-dotnet.outputs.has_dotnet == 'true'
       run: dotnet test
