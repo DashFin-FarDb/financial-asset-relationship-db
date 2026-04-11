@@ -11,7 +11,7 @@
  * - Security and integrity checks
  *
  * This ensures that the package-lock.json correctly reflects the axios
- * upgrade from 1.6.0 to 1.13.2 and maintains dependency tree integrity.
+ * upgrade from 1.6.0 to 1.15.0 and maintains dependency tree integrity.
  */
 
 import { readFileSync, existsSync } from "fs";
@@ -116,16 +116,16 @@ describe("Package-lock.json Validation", () => {
       expect(axiosLock).toBeDefined();
     });
 
-    it("should have axios version 1.13.2", () => {
+    it("should have axios version 1.15.0", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
-      expect(axiosLock?.version).toBe("1.13.2");
+      expect(axiosLock?.version).toBe("1.15.0");
     });
 
     it("axios should have resolved URL pointing to registry", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       expect(axiosLock?.resolved).toBeDefined();
       expect(axiosLock?.resolved).toContain("registry.npmjs.org");
-      expect(axiosLock?.resolved).toContain("axios-1.13.2.tgz");
+      expect(axiosLock?.resolved).toContain("axios-1.15.0.tgz");
     });
 
     it("axios should have integrity hash", () => {
@@ -400,7 +400,8 @@ describe("Package-lock.json Validation", () => {
           if (pkg.version) {
             expect(pkg.version).not.toContain("||");
             expect(pkg.version).not.toContain("*");
-            expect(pkg.version).not.toContain("x");
+            // Only reject standalone 'x' wildcard notation (e.g. "1.x"), not 'x' in prerelease names (e.g. "2.0.0-next.6")
+            expect(pkg.version).not.toMatch(/(?:^|\.)x(?:\.|$)/);
           }
         },
       );
@@ -517,7 +518,12 @@ describe("Package-lock.json Validation", () => {
       Object.entries(packageLock.packages).forEach(
         ([path, pkg]: [string, { version: string }]) => {
           if (path && pkg.version) {
-            const pkgName = path.split("node_modules/").pop()?.split("/")[0];
+            const parts = path.split("node_modules/").pop()?.split("/");
+            // Correctly handle scoped packages (e.g. @types/react -> @types/react)
+            const pkgName =
+              parts?.[0]?.startsWith("@") && parts.length >= 2
+                ? `${parts[0]}/${parts[1]}`
+                : parts?.[0];
             if (pkgName) {
               if (!versionMap.has(pkgName)) {
                 versionMap.set(pkgName, new Set());
@@ -577,7 +583,7 @@ describe("Package-lock.json Validation", () => {
 
       // Should only have one version of axios
       expect(axiosVersions.size).toBe(1);
-      expect(axiosVersions.has("1.13.2")).toBeTruthy();
+      expect(axiosVersions.has("1.15.0")).toBeTruthy();
     });
 
     it("axios dependencies should be compatible versions", () => {
@@ -595,11 +601,11 @@ describe("Package-lock.json Validation", () => {
   });
 
   describe("Backwards Compatibility", () => {
-    it("axios 1.13.2 should be compatible with existing code", () => {
+    it("axios 1.15.0 should be compatible with existing code", () => {
       const axiosLock = packageLock.packages?.["node_modules/axios"];
       const version = axiosLock?.version;
 
-      expect(version).toBe("1.13.2");
+      expect(version).toBe("1.15.0");
 
       // Major version should be 1 for backward compatibility
       if (version == null) {
@@ -619,7 +625,7 @@ describe("Package-lock.json Validation", () => {
           if (pkg.peerDependencies?.axios) {
             const peerVersion = pkg.peerDependencies.axios;
 
-            // 1.13.2 should satisfy the peer dependency
+            // 1.15.0 should satisfy the peer dependency
             expect(peerVersion).toBeDefined();
           }
         },
