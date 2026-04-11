@@ -35,9 +35,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
     database = parsed_url.database or ""
     query = parsed_url.query or {}
 
-    is_sqlite_memory = is_sqlite and (
-        database == ":memory:" or query.get("mode") == "memory"
-    )
+    is_sqlite_memory = is_sqlite and (database == ":memory:" or query.get("mode") == "memory")
 
     if is_sqlite_memory:
         return create_engine(
