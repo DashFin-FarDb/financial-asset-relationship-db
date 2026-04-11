@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from io import StringIO
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
+import generate_status
 import pytest
 from github import GithubException
 
@@ -24,7 +25,6 @@ from github import GithubException
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
 
 # Now we can import directly
-import generate_status
 
 # --- Fixtures ---
 
