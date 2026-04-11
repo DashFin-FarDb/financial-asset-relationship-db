@@ -17,6 +17,7 @@ from .repository import session_scope  # noqa: F401, E402
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
 
+
 def create_engine_from_url(url: str | None = None) -> Engine:
     """Create a SQLAlchemy engine for the configured database URL."""
     if url is not None:
