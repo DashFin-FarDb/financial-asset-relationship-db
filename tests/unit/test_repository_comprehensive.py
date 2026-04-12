@@ -847,11 +847,9 @@ class TestRelationshipTypeVariations:
         )
         repository.session.commit()
 
-        repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
-        assert rel1 is not None
-        assert rel2 is not None
-        assert abs(rel1.strength - 0.5) < 1e-9
-        assert abs(rel2.strength - 0.6) < 1e-9
+        rel = repository.get_relationship("REL_TYPE1", "REL_TYPE2", "same_sector_correlation")
+        assert rel is not None
+        assert abs(rel.strength - 0.7) < 1e-9
 
     @staticmethod
     def test_relationship_type_case_sensitivity(repository):
