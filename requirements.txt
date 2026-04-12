@@ -1,9 +1,9 @@
 # Runtime / deployment dependencies only.
 # Development and test tooling lives in requirements-dev.txt.
 
-gradio==5.9.1  # temporary stability pin; revisit in a dedicated upgrade/security PR
+gradio>=5.11.0,<6.0.0  # >=5.11.0 required for ACL bypass fix (CVE); <6.0.0 for FastAPI 0.127.0 compat
 Markdown>=3.4,<4.0
-curl-cffi>=0.5.0
+curl-cffi>=0.7.0  # >=0.7.0 required; libcurl vulnerability in <=0.6.4
 requests>=2.32.2
 websockets>=13.0
 plotly>=5.0.0
@@ -26,7 +26,7 @@ psycopg2-binary>=2.9.9
 sqlalchemy>=2.0.0
 
 # MCP (Model Context Protocol) dependencies
-mcp>=1.0.0
+mcp>=1.23.0  # >=1.9.4 for DoS fix, >=1.23.0 for DNS rebinding protection fix
 fastmcp>=0.1.0
 
 # Auth / rate-limiting dependencies
