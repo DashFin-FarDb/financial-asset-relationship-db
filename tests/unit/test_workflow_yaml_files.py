@@ -564,9 +564,9 @@ class TestCircleCINodeExecutorVersion:
         docker_images = node_executor["docker"]
         assert len(docker_images) >= 1, "node-executor should define at least one Docker image"
         primary_image = docker_images[0]["image"]
-        assert primary_image == "cimg/node:25.8.1", (
-            f"node-executor image should be cimg/node:25.8.1, got {primary_image!r}"
-        )
+        assert (
+            primary_image == "cimg/node:25.8.1"
+        ), f"node-executor image should be cimg/node:25.8.1, got {primary_image!r}"
 
     def test_node_executor_image_is_not_previous_version(self, circleci_config):
         """node-executor must not reference the old image cimg/node:25.9.0."""
@@ -580,9 +580,9 @@ class TestCircleCINodeExecutorVersion:
         node_executor = circleci_config["executors"]["node-executor"]
         docker_images = node_executor["docker"]
         primary_image = docker_images[0]["image"]
-        assert primary_image.startswith("cimg/node:"), (
-            f"node-executor should use cimg/node base image, got {primary_image!r}"
-        )
+        assert primary_image.startswith(
+            "cimg/node:"
+        ), f"node-executor should use cimg/node base image, got {primary_image!r}"
 
 
 class TestCircleCISafetyCheckCommand:
@@ -621,9 +621,9 @@ class TestCircleCISafetyCheckCommand:
         """safety check must NOT include --file requirements.txt."""
         command = self._get_safety_check_command(circleci_config)
         assert command, "safety check step not found in python-security job"
-        assert "--file" not in command, (
-            "safety check should not use --file flag; it should scan the entire installed environment"
-        )
+        assert (
+            "--file" not in command
+        ), "safety check should not use --file flag; it should scan the entire installed environment"
         assert "requirements.txt" not in command, "safety check should not specify requirements.txt explicitly"
 
     def test_safety_check_command_has_json_flag(self, circleci_config):
