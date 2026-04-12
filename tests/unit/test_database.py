@@ -421,6 +421,14 @@ class TestEdgeCases:
         fallback_engine = create_engine_from_url(None)
         assert fallback_engine is not None
 
+    def test_create_engine_with_malformed_explicit_url_raises(self) -> None:
+        """Malformed explicit URL should raise ArgumentError, not fall back."""
+        from sqlalchemy.exc import ArgumentError
+
+        malformed_url = "not-a-valid-database-url"
+        with pytest.raises(ArgumentError):
+            create_engine_from_url(malformed_url)
+
 
 # ---------------------------------------------------------------------------
 # Connection pooling tests
