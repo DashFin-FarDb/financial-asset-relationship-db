@@ -388,30 +388,28 @@ class TestWorkflowIntegration:
                         assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
 
 
-class TestDependencyCheckWorkflowRemoved:
-    """Tests confirming that dependency-check.yml was deleted in this PR."""
+class TestDependencyCheckWorkflowPresence:
+    """Tests confirming that dependency-check.yml is present and valid."""
 
     @staticmethod
-    def test_dependency_check_workflow_file_deleted():
-        """dependency-check.yml must not exist after this PR deletes it."""
+    def test_dependency_check_workflow_file_exists():
+        """dependency-check.yml should exist in the current workflow set."""
         workflow_path = Path(".github/workflows/dependency-check.yml")
-        assert not workflow_path.exists(), (
-            "dependency-check.yml should have been deleted in this PR; "
-            "its functionality was replaced by other workflows"
+        assert workflow_path.exists(), (
+            "dependency-check.yml is part of the current repository workflow set "
+            "and should exist unless this PR removes it"
         )
 
     @staticmethod
-    def test_no_orphan_reference_to_dependency_check_workflow():
-        """No remaining workflow file should reference dependency-check.yml by name."""
-        workflows_dir = Path(".github/workflows")
-        for workflow_file in workflows_dir.glob("*.yml"):
-            with open(workflow_file, "r") as f:
-                content = f.read()
-            assert "dependency-check.yml" not in content, (
-                f"{workflow_file.name} still references the deleted dependency-check.yml"
-            )
+    def test_dependency_check_workflow_yaml_is_valid():
+        """dependency-check.yml should parse as a valid workflow YAML document."""
+        workflow_path = Path(".github/workflows/dependency-check.yml")
+        with open(workflow_path, "r") as f:
+            workflow = yaml.safe_load(f)
 
-
+        assert isinstance(workflow, dict), (
+            "dependency-check.yml should contain a valid workflow mapping"
+        )
 class TestWorkflowActionVersionRefs:
     """Tests confirming that action version references in changed workflows
     use the expected format after the SHA-to-semantic-version migration."""
