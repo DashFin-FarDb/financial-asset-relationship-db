@@ -426,16 +426,12 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       expect(version).not.toBe("8.57.0");
     });
 
-    it("glob 10.x should not appear anywhere in the dependency tree", () => {
+    it("glob should not appear anywhere in the dependency tree", () => {
       const globPaths = Object.keys(packageLock.packages).filter(
         (p) => p === "node_modules/glob" || p.endsWith("/node_modules/glob"),
       );
-      globPaths.forEach((p) => {
-        const version = packageLock.packages[p]?.version ?? "";
-        const major = parseInt(version.split(".")[0]);
-        // No glob 10.x should be present (that's what was removed)
-        expect(major).not.toBe(10);
-      });
+      expect(globPaths).toHaveLength(0);
+    });
     });
   });
 });
