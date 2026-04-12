@@ -17,16 +17,29 @@ from .base import Base
 from .repository import session_scope  # noqa: F401, E402
 
 DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
+ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
-    """Create a SQLAlchemy engine for the configured database URL."""
-    if url is not None and url.strip():
-        resolved_url = url
-        is_explicit_url = True
+    """
+    Create a SQLAlchemy Engine configured for the asset relationship store database.
+
+    Parameters:
+        url (str | None): Optional database URL. If None, uses ASSET_GRAPH_DATABASE_URL
+            environment variable, falling back to DEFAULT_DATABASE_URL. Empty string
+            falls back to DEFAULT_DATABASE_URL.
+
+    Returns:
+        Engine: A SQLAlchemy Engine for the resolved URL. If the URL refers to an
+            in-memory SQLite database (contains ":memory:"), the engine is configured
+            with connection arguments and a static pool appropriate for in-memory usage.
+    """
+    if url is None:
+        resolved_url = os.getenv(ASSET_GRAPH_DATABASE_URL_ENV_VAR) or DEFAULT_DATABASE_URL
+    elif url == "":
+        resolved_url = DEFAULT_DATABASE_URL
     else:
-        resolved_url = os.getenv("ASSET_GRAPH_DATABASE_URL", DEFAULT_DATABASE_URL)
-        is_explicit_url = False
+        resolved_url = url
 
     try:
         parsed_url = make_url(resolved_url)
