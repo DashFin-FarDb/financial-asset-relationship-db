@@ -143,6 +143,7 @@ pytest --version
 flake8 --version
 pylint --version
 mypy --version
+isort --version
 black --version
 ruff --version
 ```
