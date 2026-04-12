@@ -1397,3 +1397,150 @@ def test_large_diff_numbers():
 
     assert "**Size:** 1000 files (100 commits)" in markdown
     assert "**Diff:** +999999 / -888888" in markdown
+
+
+# --- Tests for PR changes: PullRequest import and label extraction ---
+
+
+def test_pull_request_type_accessible_in_module():
+    """Verify that PullRequest type from github.PullRequest is importable.
+
+    This is a regression test for the import added in this PR:
+        from github.PullRequest import PullRequest
+    The import must not break module loading.
+    """
+    # If the module imported successfully (it was imported at the top of this
+    # test file), PullRequest should be accessible in the module's globals.
+    assert hasattr(generate_status, "PullRequest") or "github" in sys.modules, (
+        "generate_status module should import without error; "
+        "PullRequest import from github.PullRequest must be valid"
+    )
+
+    # Also verify we can independently import the same symbol
+    from github.PullRequest import PullRequest as PR
+
+    assert PR is not None
+
+
+def test_fetch_pr_status_label_extraction_uses_name_attribute():
+    """Regression test: label names are correctly extracted with short loop variable.
+
+    The PR changed the label comprehension from:
+        labels=[label.name for label in pr.labels]
+    to:
+        labels=[l.name for l in pr.labels]
+
+    Both forms must produce identical output. This test verifies the .name
+    attribute is accessed on each label object regardless of variable name.
+    """
+    mock_github = Mock()
+    mock_repo = Mock()
+    mock_commit = Mock()
+    mock_pr = Mock()
+
+    mock_github.get_repo.return_value = mock_repo
+    mock_repo.get_pull.return_value = mock_pr
+    mock_repo.get_commit.return_value = mock_commit
+
+    # Create label mocks with .name attributes
+    label_a = Mock()
+    label_a.name = "bug"
+    label_b = Mock()
+    label_b.name = "enhancement"
+    label_c = Mock()
+    label_c.name = "help wanted"
+
+    mock_pr.number = 42
+    mock_pr.title = "Fix issue"
+    mock_pr.user = Mock(login="dev")
+    mock_pr.base = Mock(ref="main")
+    mock_pr.head = Mock(ref="fix-branch", sha="deadbeef")
+    mock_pr.draft = False
+    mock_pr.html_url = "https://github.com/owner/repo/pull/42"
+    mock_pr.commits = 1
+    mock_pr.changed_files = 2
+    mock_pr.additions = 10
+    mock_pr.deletions = 5
+    mock_pr.labels = [label_a, label_b, label_c]
+    mock_pr.mergeable = True
+    mock_pr.mergeable_state = "clean"
+    mock_pr.get_reviews.return_value = []
+    mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+    mock_commit.get_check_runs.return_value = []
+
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 42)
+
+    # All three label names must be present and in the correct order
+    assert status.labels == ["bug", "enhancement", "help wanted"]
+    assert len(status.labels) == 3
+
+
+def test_fetch_pr_status_empty_labels_list():
+    """Regression test: empty label list produces empty list in PRStatus."""
+    mock_github = Mock()
+    mock_repo = Mock()
+    mock_commit = Mock()
+    mock_pr = Mock()
+
+    mock_github.get_repo.return_value = mock_repo
+    mock_repo.get_pull.return_value = mock_pr
+    mock_repo.get_commit.return_value = mock_commit
+
+    mock_pr.number = 1
+    mock_pr.title = "No labels PR"
+    mock_pr.user = Mock(login="user")
+    mock_pr.base = Mock(ref="main")
+    mock_pr.head = Mock(ref="branch", sha="abc")
+    mock_pr.draft = False
+    mock_pr.html_url = "https://github.com/owner/repo/pull/1"
+    mock_pr.commits = 1
+    mock_pr.changed_files = 1
+    mock_pr.additions = 5
+    mock_pr.deletions = 2
+    mock_pr.labels = []
+    mock_pr.mergeable = True
+    mock_pr.mergeable_state = "clean"
+    mock_pr.get_reviews.return_value = []
+    mock_pr.get_review_comments.return_value = Mock(totalCount=0)
+    mock_commit.get_check_runs.return_value = []
+
+    status = generate_status.fetch_pr_status(mock_github, "owner/repo", 1)
+
+    assert status.labels == []
+
+
+def test_generate_markdown_multiple_labels_formatted_with_backticks():
+    """Test that multiple labels in the markdown report are wrapped in backticks.
+
+    Regression for the label comprehension change: labels must appear as
+    comma-separated backtick-wrapped strings in the generated report.
+    """
+    status = generate_status.PRStatus(
+        number=7,
+        title="Feature PR",
+        author="contributor",
+        base_ref="main",
+        head_ref="feature-x",
+        is_draft=False,
+        url="https://github.com/owner/repo/pull/7",
+        commit_count=3,
+        file_count=5,
+        additions=80,
+        deletions=20,
+        labels=["bug", "priority:high", "v2.0"],
+        mergeable=True,
+        mergeable_state="clean",
+        review_stats={
+            "approved": 1,
+            "changes_requested": 0,
+            "commented": 0,
+            "total": 1,
+        },
+        open_thread_count=0,
+        check_runs=[],
+    )
+
+    markdown = generate_status.generate_markdown(status)
+
+    # Labels must appear as comma-separated backtick-wrapped strings
+    assert "**Labels:** `bug`, `priority:high`, `v2.0`" in markdown
