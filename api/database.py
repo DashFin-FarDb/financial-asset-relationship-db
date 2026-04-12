@@ -6,9 +6,9 @@ import atexit
 import os
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 from urllib.parse import unquote, urlparse
 
 
@@ -128,9 +128,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     # SQLite supports URI-style memory databases such as ``file::memory:?cache=shared``.
     # The :memory: token must be the entire path component (not part of a longer path).
     parsed = urlparse(target)
-    if parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query):
-        return True
-    return False
+    return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
 
 
 class _DatabaseConnectionManager:
@@ -238,7 +236,7 @@ def _close_shared_memory_connection() -> None:
         conn = getattr(_db_manager, "_memory_connection", None)
         if conn is not None:
             conn.close()
-            setattr(_db_manager, "_memory_connection", None)
+            _db_manager._memory_connection = None  # type: ignore[attr-defined]
         return
 
     with lock:
@@ -288,7 +286,7 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
         return cursor.fetchone()
 
 
-def fetch_value(query: str, parameters: tuple | list | None = None):
+def fetch_value(query: str, parameters: tuple | list | None = None) -> object | None:
     """
     Return the first column value from the first row of a query result.
 
