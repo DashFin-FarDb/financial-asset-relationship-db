@@ -92,9 +92,9 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
         .split(".")
         .map(Number);
       // Must be exactly 8.57.1 or higher within this range declaration
-      expect(major).toBe(8);
-      expect(minor).toBe(57);
-      expect(patch).toBeGreaterThanOrEqual(1);
+      expect(
+        major === 8 && (minor > 57 || (minor === 57 && patch >= 1)),
+      ).toBe(true);
     });
   });
 
