@@ -1,7 +1,7 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Python application
+name: Python package
 
 "on":
   push:
@@ -9,7 +9,7 @@ name: Python application
     paths:
       - '**/*.py'
       - 'requirements*.txt'
-      - '.github/workflows/python-app.yml'
+      - '.github/workflows/python-package.yml'
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -19,7 +19,7 @@ name: Python application
     paths:
       - '**/*.py'
       - 'requirements*.txt'
-      - '.github/workflows/python-app.yml'
+      - '.github/workflows/python-package.yml'
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
@@ -28,26 +28,29 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
   build:
 
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
 
     steps:
-    - name: Python CI common (3.10)
+    - name: Python CI common (${{ matrix.python-version }})
       uses: ./.github/actions/ci-common
+      env:
+        MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
       with:
         language: python
-        python-version: '3.10'
+        python-version: ${{ matrix.python-version }}
         dependency-paths: |
           requirements.txt
           requirements-dev.txt
         install: |
           python -m pip install --upgrade pip &&
-          pip install flake8 pytest &&
+          python -m pip install flake8 pytest &&
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         test: |
           flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics &&
