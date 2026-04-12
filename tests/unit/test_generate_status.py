@@ -17,12 +17,13 @@ from datetime import datetime, timezone
 from io import StringIO
 from unittest.mock import MagicMock, Mock, mock_open, patch
 
-# Add the script directory to path so generate_status can be resolved
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
-
 import generate_status
 import pytest
 from github import GithubException
+
+# Add the script directory to path so generate_status can be resolved
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../.github/pr-copilot/scripts"))
+
 
 # --- Fixtures ---
 
