@@ -248,9 +248,9 @@ class TestDeletedFilesImpact:
         for workflow_file in workflows_dir.glob("*.yml"):
             with open(workflow_file, "r") as f:
                 content = f.read()
-                assert (
-                    "context_chunker" not in content.lower()
-                ), f"{workflow_file.name} should not reference deleted context_chunker script"
+                assert "context_chunker" not in content.lower(), (
+                    f"{workflow_file.name} should not reference deleted context_chunker script"
+                )
 
 
 class TestWorkflowSecurityBestPractices:
@@ -293,9 +293,9 @@ class TestWorkflowSecurityBestPractices:
             if "permissions" in workflow:
                 perms = workflow["permissions"]
                 # Should not have blanket 'write-all' permission
-                assert (
-                    perms.get("contents") != "write" or len(perms) > 1
-                ), f"{workflow_file.name} should limit permissions"
+                assert perms.get("contents") != "write" or len(perms) > 1, (
+                    f"{workflow_file.name} should limit permissions"
+                )
 
 
 class TestWorkflowYAMLValidity:
@@ -407,9 +407,9 @@ class TestDependencyCheckWorkflowRemoved:
         for workflow_file in workflows_dir.glob("*.yml"):
             with open(workflow_file, "r") as f:
                 content = f.read()
-            assert (
-                "dependency-check.yml" not in content
-            ), f"{workflow_file.name} still references the deleted dependency-check.yml"
+            assert "dependency-check.yml" not in content, (
+                f"{workflow_file.name} still references the deleted dependency-check.yml"
+            )
 
 
 class TestWorkflowActionVersionRefs:
@@ -462,9 +462,9 @@ class TestWorkflowActionVersionRefs:
         ref = assign_refs[0]
         assert "@" in ref, f"pozil/auto-assign-issue ref must include @ separator, got: {ref!r}"
         # Must NOT use the old full 40-character SHA
-        assert (
-            "65947009a243e6b3993edeef4e64df3ca85d760c" not in ref
-        ), "auto-assign.yml still uses the old full SHA for pozil/auto-assign-issue"
+        assert "65947009a243e6b3993edeef4e64df3ca85d760c" not in ref, (
+            "auto-assign.yml still uses the old full SHA for pozil/auto-assign-issue"
+        )
 
     def test_autofix_workflow_uses_semantic_checkout(self):
         """autofix.yml checkout step should use semantic version @v6."""
@@ -484,9 +484,9 @@ class TestWorkflowActionVersionRefs:
             assert "@" in ref, f"actions/checkout ref must have version, got: {ref!r}"
         # All checkout refs must use @v4 (not old SHA)
         for ref in checkout_refs:
-            assert (
-                "34e114876b0b11c390a56781ad16ebd13914f8d5" not in ref
-            ), f"ci.yml still uses the old SHA for actions/checkout: {ref!r}"
+            assert "34e114876b0b11c390a56781ad16ebd13914f8d5" not in ref, (
+                f"ci.yml still uses the old SHA for actions/checkout: {ref!r}"
+            )
 
     def test_debricked_workflow_checkout_uses_pinned_sha(self):
         """debricked.yml checkout step should use a pinned SHA (not semantic tag).
@@ -509,12 +509,12 @@ class TestWorkflowActionVersionRefs:
 
         checkout_refs = [r for r in refs if "actions/checkout" in r]
         assert checkout_refs, "dependency-review.yml must reference actions/checkout"
-        assert any(
-            "@v4" in r for r in checkout_refs
-        ), f"dependency-review.yml checkout should use @v4, found: {checkout_refs}"
+        assert any("@v4" in r for r in checkout_refs), (
+            f"dependency-review.yml checkout should use @v4, found: {checkout_refs}"
+        )
 
         dep_review_refs = [r for r in refs if "actions/dependency-review-action" in r]
         assert dep_review_refs, "dependency-review.yml must reference actions/dependency-review-action"
-        assert any(
-            "@v4" in r for r in dep_review_refs
-        ), f"dependency-review.yml should use @v4 for dependency-review-action, found: {dep_review_refs}"
+        assert any("@v4" in r for r in dep_review_refs), (
+            f"dependency-review.yml should use @v4 for dependency-review-action, found: {dep_review_refs}"
+        )
