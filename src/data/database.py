@@ -35,7 +35,7 @@ def create_engine_from_url(url: str | None = None) -> Engine:
             with connection arguments and a static pool appropriate for in-memory usage.
     """
     if url is None:
-        resolved_url = os.getenv("ASSET_GRAPH_DATABASE_URL", DEFAULT_DATABASE_URL)
+        resolved_url = os.getenv(ASSET_GRAPH_DATABASE_URL_ENV_VAR) or DEFAULT_DATABASE_URL
     elif url == "":
         resolved_url = DEFAULT_DATABASE_URL
     else:
