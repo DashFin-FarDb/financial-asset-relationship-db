@@ -433,9 +433,15 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     });
 
     it("eslint-plugin-react-hooks canary version must not be present", () => {
-      const version =
-        packageLock.packages["node_modules/eslint-plugin-react-hooks"]
-          ?.version ?? "";
+      const matchingPaths = Object.keys(packageLock.packages).filter(
+        (p) =>
+          p === "node_modules/eslint-plugin-react-hooks" ||
+          p.endsWith("/node_modules/eslint-plugin-react-hooks"),
+      );
+      matchingPaths.forEach((p) => {
+        const version = packageLock.packages[p]?.version ?? "";
+        expect(version).not.toMatch(/canary/);
+      });
       expect(version).not.toMatch(/canary/);
     });
 
