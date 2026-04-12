@@ -250,9 +250,15 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
   // ─── Lockfile – removed packages ──────────────────────────────────────────
 
-  describe("lockfile – glob removed (replaced by fast-glob)", () => {
-    it("the top-level glob package should not be present in the lockfile", () => {
-      expect(packageLock.packages["node_modules/glob"]).toBeUndefined();
+  describe("lockfile – glob replaced (fast-glob for @next/eslint-plugin-next, non-deprecated glob for jest)", () => {
+    it("if glob is present at the top level, it must not be the deprecated glob@10.x", () => {
+      const globEntry = packageLock.packages["node_modules/glob"];
+      if (globEntry) {
+        const major = parseInt((globEntry.version ?? "0").split(".")[0], 10);
+        expect(major).not.toBe(10);
+        // Should be the non-deprecated version (13+)
+        expect(major).toBeGreaterThanOrEqual(13);
+      }
     });
 
     it("@next/eslint-plugin-next should not indirectly require glob", () => {
