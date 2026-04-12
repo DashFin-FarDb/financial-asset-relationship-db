@@ -31,9 +31,7 @@ This PR does **not** do:
 ## Compatibility / risk notes
 
 <!-- Call out framework upgrades, security changes, exact pins, or any platform-sensitive behavior. -->
-
 ## Validation run locally
-
 - [ ] `pip install -r requirements.txt`
 - [ ] `pip check`
 - [ ] `pip install -e .`
@@ -49,7 +47,10 @@ This PR does **not** do:
 - [ ] `pylint --version`
 - [ ] `mypy --version`
 - [ ] `black --version`
+- [ ] `isort --version`
 - [ ] `ruff --version`
+### Security scan
+- [ ] Vulnerability scan passed (Trivy, Snyk, or Codacy): [link to scan results or paste summary]
 
 ### Commands / outputs
 
