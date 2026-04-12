@@ -50,8 +50,9 @@ type PackageLock = {
 };
 
 describe("ESLint and eslint-config-next Upgrade Validation", () => {
-  const packageJsonPath = join(process.cwd(), "package.json");
-  const packageLockPath = join(process.cwd(), "package-lock.json");
+  const projectRoot = join(__dirname, "..", "..", "..");
+  const packageJsonPath = join(projectRoot, "package.json");
+  const packageLockPath = join(projectRoot, "package-lock.json");
   let packageJson: PackageJson;
   let packageLock: PackageLock;
 
