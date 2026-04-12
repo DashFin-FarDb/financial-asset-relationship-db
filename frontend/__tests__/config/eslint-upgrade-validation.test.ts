@@ -103,9 +103,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     });
 
     it("eslint-config-next range should be ^15.0.0", () => {
-      expect(packageJson.devDependencies["eslint-config-next"]).toBe(
-        "^15.0.0",
-      );
+      expect(packageJson.devDependencies["eslint-config-next"]).toBe("^15.0.0");
     });
 
     it("eslint-config-next should no longer be on version 14", () => {
@@ -143,9 +141,9 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     });
 
     it("eslint entry should have a SHA-512 integrity hash", () => {
-      expect(
-        packageLock.packages["node_modules/eslint"]?.integrity,
-      ).toMatch(/^sha512-/);
+      expect(packageLock.packages["node_modules/eslint"]?.integrity).toMatch(
+        /^sha512-/,
+      );
     });
   });
 
@@ -228,8 +226,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
     it("eslint-plugin-react-hooks should resolve to 5.1.0", () => {
       expect(
-        packageLock.packages["node_modules/eslint-plugin-react-hooks"]
-          ?.version,
+        packageLock.packages["node_modules/eslint-plugin-react-hooks"]?.version,
       ).toBe("5.1.0");
     });
 
@@ -289,20 +286,18 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     });
 
     it("fast-glob should have a SHA-512 integrity hash", () => {
-      expect(
-        packageLock.packages["node_modules/fast-glob"]?.integrity,
-      ).toMatch(/^sha512-/);
+      expect(packageLock.packages["node_modules/fast-glob"]?.integrity).toMatch(
+        /^sha512-/,
+      );
     });
 
     it("fast-glob should list merge2 as a direct dependency", () => {
-      const deps =
-        packageLock.packages["node_modules/fast-glob"]?.dependencies;
+      const deps = packageLock.packages["node_modules/fast-glob"]?.dependencies;
       expect(deps?.["merge2"]).toBeDefined();
     });
 
     it("fast-glob should list micromatch as a direct dependency", () => {
-      const deps =
-        packageLock.packages["node_modules/fast-glob"]?.dependencies;
+      const deps = packageLock.packages["node_modules/fast-glob"]?.dependencies;
       expect(deps?.["micromatch"]).toBeDefined();
     });
   });
@@ -333,7 +328,11 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
       const [major, minor, patch] = (entry?.version ?? "0.0.0")
         .split(".")
         .map(Number);
-      expect(major > 1 || (major === 1 && minor > 10) || (major === 1 && minor === 10 && patch >= 3)).toBe(true);
+      expect(
+        major > 1 ||
+          (major === 1 && minor > 10) ||
+          (major === 1 && minor === 10 && patch >= 3),
+      ).toBe(true);
     });
 
     it("eslint-plugin-import should be present and at least 2.31.0", () => {
@@ -344,8 +343,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
     });
 
     it("eslint-plugin-jsx-a11y should be present and at least 6.10.0", () => {
-      const entry =
-        packageLock.packages["node_modules/eslint-plugin-jsx-a11y"];
+      const entry = packageLock.packages["node_modules/eslint-plugin-jsx-a11y"];
       expect(entry).toBeDefined();
       const [major, minor] = (entry?.version ?? "0.0.0").split(".").map(Number);
       expect(major > 6 || (major === 6 && minor >= 10)).toBe(true);
@@ -364,8 +362,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
   describe("integration – package.json and lockfile in sync for changed deps", () => {
     it("eslint range in package.json should be satisfied by locked version", () => {
       const range = packageJson.devDependencies.eslint; // e.g. "^8.57.1"
-      const locked =
-        packageLock.packages["node_modules/eslint"]?.version ?? "";
+      const locked = packageLock.packages["node_modules/eslint"]?.version ?? "";
       const [rangeMajor, rangeMinor, rangePatch] = range
         .replace(/^\^/, "")
         .split(".")
@@ -430,9 +427,7 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
     it("glob 10.x should not appear anywhere in the dependency tree", () => {
       const globPaths = Object.keys(packageLock.packages).filter(
-        (p) =>
-          p === "node_modules/glob" ||
-          p.endsWith("/node_modules/glob"),
+        (p) => p === "node_modules/glob" || p.endsWith("/node_modules/glob"),
       );
       globPaths.forEach((p) => {
         const version = packageLock.packages[p]?.version ?? "";
