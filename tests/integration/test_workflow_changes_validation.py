@@ -248,9 +248,9 @@ class TestDeletedFilesImpact:
         for workflow_file in workflows_dir.glob("*.yml"):
             with open(workflow_file, "r") as f:
                 content = f.read()
-                assert (
-                    "context_chunker" not in content.lower()
-                ), f"{workflow_file.name} should not reference deleted context_chunker script"
+                assert "context_chunker" not in content.lower(), (
+                    f"{workflow_file.name} should not reference deleted context_chunker script"
+                )
 
 
 class TestWorkflowSecurityBestPractices:
@@ -293,9 +293,9 @@ class TestWorkflowSecurityBestPractices:
             if "permissions" in workflow:
                 perms = workflow["permissions"]
                 # Should not have blanket 'write-all' permission
-                assert (
-                    perms.get("contents") != "write" or len(perms) > 1
-                ), f"{workflow_file.name} should limit permissions"
+                assert perms.get("contents") != "write" or len(perms) > 1, (
+                    f"{workflow_file.name} should limit permissions"
+                )
 
 
 class TestWorkflowYAMLValidity:
@@ -431,9 +431,7 @@ class TestWorkflowActionVersionRefs:
 
         _GHLoader.yaml_implicit_resolvers = copy.deepcopy(_GHLoader.yaml_implicit_resolvers)
         for ch, resolvers in list(_GHLoader.yaml_implicit_resolvers.items()):
-            _GHLoader.yaml_implicit_resolvers[ch] = [
-                (tag, regexp) for tag, regexp in resolvers if tag != BOOL_TAG
-            ]
+            _GHLoader.yaml_implicit_resolvers[ch] = [(tag, regexp) for tag, regexp in resolvers if tag != BOOL_TAG]
         _GHLoader.add_implicit_resolver(
             BOOL_TAG,
             _re.compile(r"^(?:true|false)$", _re.IGNORECASE),
@@ -474,9 +472,7 @@ class TestWorkflowActionVersionRefs:
         refs = self._collect_uses_refs(workflow)
         checkout_refs = [r for r in refs if "actions/checkout" in r]
         assert checkout_refs, "autofix.yml must contain an actions/checkout step"
-        assert any("@v6" in r for r in checkout_refs), (
-            f"autofix.yml checkout should use @v6, found: {checkout_refs}"
-        )
+        assert any("@v6" in r for r in checkout_refs), f"autofix.yml checkout should use @v6, found: {checkout_refs}"
 
     def test_ci_workflow_checkout_uses_semantic_version(self):
         """ci.yml checkout steps should use @v4 semantic version."""
@@ -504,9 +500,7 @@ class TestWorkflowActionVersionRefs:
         ref = checkout_refs[0]
         # The debricked workflow should use a full 40-char SHA (not semantic version)
         sha_part = ref.split("@", 1)[-1] if "@" in ref else ""
-        assert len(sha_part) == 40, (
-            f"debricked.yml checkout should use a full 40-char SHA pin, got: {ref!r}"
-        )
+        assert len(sha_part) == 40, f"debricked.yml checkout should use a full 40-char SHA pin, got: {ref!r}"
 
     def test_dependency_review_workflow_uses_semantic_action_ref(self):
         """dependency-review.yml should use semantic version refs for changed actions."""

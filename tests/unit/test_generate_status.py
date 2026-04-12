@@ -1412,8 +1412,7 @@ def test_pull_request_type_accessible_in_module():
     # If the module imported successfully (it was imported at the top of this
     # test file), PullRequest should be accessible in the module's globals.
     assert hasattr(generate_status, "PullRequest") or "github" in sys.modules, (
-        "generate_status module should import without error; "
-        "PullRequest import from github.PullRequest must be valid"
+        "generate_status module should import without error; PullRequest import from github.PullRequest must be valid"
     )
 
     # Also verify we can independently import the same symbol

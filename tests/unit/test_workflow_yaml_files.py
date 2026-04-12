@@ -573,9 +573,7 @@ class TestCircleCINodeExecutorVersion:
         node_executor = circleci_config["executors"]["node-executor"]
         docker_images = node_executor["docker"]
         primary_image = docker_images[0]["image"]
-        assert primary_image != "cimg/node:25.9.0", (
-            "node-executor image was reverted to the old version 25.9.0"
-        )
+        assert primary_image != "cimg/node:25.9.0", "node-executor image was reverted to the old version 25.9.0"
 
     def test_node_executor_image_contains_cimg_node_prefix(self, circleci_config):
         """node-executor image must use the cimg/node base image."""
@@ -624,12 +622,9 @@ class TestCircleCISafetyCheckCommand:
         command = self._get_safety_check_command(circleci_config)
         assert command, "safety check step not found in python-security job"
         assert "--file" not in command, (
-            "safety check should not use --file flag; "
-            "it should scan the entire installed environment"
+            "safety check should not use --file flag; it should scan the entire installed environment"
         )
-        assert "requirements.txt" not in command, (
-            "safety check should not specify requirements.txt explicitly"
-        )
+        assert "requirements.txt" not in command, "safety check should not specify requirements.txt explicitly"
 
     def test_safety_check_command_has_json_flag(self, circleci_config):
         """safety check must still output JSON format."""
@@ -641,6 +636,4 @@ class TestCircleCISafetyCheckCommand:
         """safety check must still ignore CVE 72086."""
         command = self._get_safety_check_command(circleci_config)
         assert command, "safety check step not found in python-security job"
-        assert "--ignore 72086" in command, (
-            "safety check should still ignore CVE 72086 with --ignore 72086"
-        )
+        assert "--ignore 72086" in command, "safety check should still ignore CVE 72086 with --ignore 72086"
