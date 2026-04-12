@@ -3,7 +3,7 @@
 
 name: Python package
 
-on:
+"on":
   push:
     branches: [ "main" ]
     paths:
@@ -37,9 +37,22 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
 
-    steps:
+steps:
     - name: Python CI common (${{ matrix.python-version }})
       uses: ./.github/actions/ci-common
+      env:
+        MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
+      with:
+        language: python
+        python-version: ${{ matrix.python-version }}
+        dependency-paths: |
+          requirements.txt
+          requirements-dev.txt
+        install: |
+          python -m pip install --upgrade pip &&
+          python -m pip install flake8 pytest &&
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    uses: ./.github/actions/ci-common
       with:
         language: python
         python-version: ${{ matrix.python-version }}
