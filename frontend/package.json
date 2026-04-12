@@ -45,5 +45,16 @@
     "postcss": "^8.4.31",
     "tailwindcss": "^4.1.18",
     "typescript": "^5.3.0"
+  },
+  "overrides": {
+    "@jest/reporters": {
+      "glob": "^13.0.6"
+    },
+    "jest-config": {
+      "glob": "^13.0.6"
+    },
+    "jest-runtime": {
+      "glob": "^13.0.6"
+    }
   }
 }
