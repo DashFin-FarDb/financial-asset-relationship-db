@@ -405,9 +405,16 @@ describe("ESLint and eslint-config-next Upgrade Validation", () => {
 
   describe("regression – old versions must not appear in lockfile", () => {
     it("eslint-config-next 14.x must not be present in the lockfile", () => {
-      const version =
-        packageLock.packages["node_modules/eslint-config-next"]?.version ?? "";
-      const major = parseInt(version.split(".")[0]);
+      const matchingPaths = Object.keys(packageLock.packages).filter(
+        (p) =>
+          p === "node_modules/eslint-config-next" ||
+          p.endsWith("/node_modules/eslint-config-next"),
+      );
+      matchingPaths.forEach((p) => {
+        const version = packageLock.packages[p]?.version ?? "";
+        const major = parseInt(version.split(".")[0], 10);
+        expect(major).toBeGreaterThanOrEqual(15);
+      });
       expect(major).toBeGreaterThanOrEqual(15);
     });
 
