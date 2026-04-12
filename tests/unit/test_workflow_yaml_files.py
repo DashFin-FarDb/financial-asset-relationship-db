@@ -44,8 +44,7 @@ class TestCircleCIConfig:
         """CircleCI config defines required orbs."""
         assert "orbs" in circleci_config
         orbs = circleci_config["orbs"]
-        assert "node" in orbs
-        assert "python" in orbs
+        # Only codecov orb is used; executors are used instead of node/python orbs
         assert "codecov" in orbs
 
     def test_circleci_config_has_executors(self, circleci_config):
