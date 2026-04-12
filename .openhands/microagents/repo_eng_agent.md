@@ -4,10 +4,10 @@ type: knowledge
 version: 1.0.0
 agent: CodeActAgent
 triggers:
-  - @airepo_eng
-  - @openhands-agent
-  - @openhandsagent
-  - @openhands_airepo_eng
+  - "airepo_eng"
+  - "openhands-agent"
+  - "openhandsagent"
+  - "openhands_airepo_eng"
 ---
 
 # Repository Engineering Agent for mohavro/financial-asset-relationship-db

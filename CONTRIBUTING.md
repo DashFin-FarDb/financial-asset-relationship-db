@@ -119,7 +119,7 @@ git checkout -b bugfix/issue-number
 Branch naming conventions:
 
 - `feature/description` - new features
-- `bugfix/description` - bug fixes
+- `bugfix/description` - bugfixes
 - `docs/description` - documentation updates
 - `refactor/description` - code refactoring
 - `test/description` - test additions or improvements
@@ -333,7 +333,7 @@ make test-fast
    - type checking
    - formatting
 
-3. Update `CHANGELOG.md` if the repo is maintaining one for the affected change type.
+3. Update `CHANGELOG.md` if the repository is maintaining one for the affected change type.
 
 4. Create the pull request:
    - use a descriptive title
@@ -443,7 +443,7 @@ Use this file for:
 
 - local contributor setup with the full toolchain
 - test-only or CI-only libraries
-- optional repo tools not required for editable install
+- optional repository tools not required for editable install
 
 Policy:
 
@@ -472,7 +472,7 @@ Use this file for:
 
 Policy:
 
-- `[project.dependencies]` must be sufficient for `pip install -e .` and import of the real repo entrypoints.
+- `[project.dependencies]` must be sufficient for `pip install -e .` and import of the real repository entrypoints.
 - `[project.optional-dependencies].dev` should define the minimal core contributor toolchain.
 - The `dev` extra should remain a subset of `requirements-dev.txt`.
 - Do not use `pyproject.toml` as a substitute lockfile.
@@ -504,7 +504,7 @@ Use this checklist when changing dependencies:
 1. Identify the change type:
    - **New runtime dependency:** add it to `requirements.txt` and `[project.dependencies]`
    - **New core dev tool:** add it to `requirements-dev.txt` and `[project.optional-dependencies].dev`
-   - **New optional repo tool:** add it only to `requirements-dev.txt`
+   - **New optional repository tool:** add it only to `requirements-dev.txt`
    - **Security or transitive override pin:** place it in the file for the environment that actually needs it and document why
 
 2. Check compatibility:

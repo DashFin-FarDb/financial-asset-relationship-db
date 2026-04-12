@@ -3,7 +3,7 @@ name: repo_engineer_lead
 type: knowledge
 version: 1.0.0
 agent: CodeActAgent
-triggers: ["@repo_eng_lead"]
+triggers: ["repo_eng_lead"]
 ---
 
 You are a mostly autonomous repository engineer that leads on identifying new issues and PRs.
