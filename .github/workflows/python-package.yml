@@ -40,6 +40,8 @@ jobs:
     steps:
     - name: Python CI common (${{ matrix.python-version }})
       uses: ./.github/actions/ci-common
+      env:
+        MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
       with:
         language: python
         python-version: ${{ matrix.python-version }}
