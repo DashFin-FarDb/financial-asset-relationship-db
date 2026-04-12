@@ -430,7 +430,7 @@ Use this file for:
 
 Policy:
 
-- Keep only runtime or deployment dependencies here.
+- Keep runtime or deployment dependencies here, plus intentional **security override pins** for transitive packages (e.g., `urllib3`, `zipp`) where a vulnerability advisory requires a minimum version.
 - Use exact pins for stability-critical packages where needed.
 - Keep comments short and factual.
 - When a runtime dependency is added or changed, update both `requirements.txt` and `[project.dependencies]` in `pyproject.toml`.
