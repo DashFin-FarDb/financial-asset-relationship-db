@@ -63,14 +63,31 @@ get_version_from_yaml() {
 }
 
 get_latest_version() {
-    local response
+    local http_code response temp_file
+    temp_file=$(mktemp)
+
     if [ -n "${GH_TOKEN:-}" ]; then
-        response=$(curl -Lq --fail --silent --show-error --header "Authorization: Bearer $GH_TOKEN" "https://api.github.com/repos/codacy/codacy-cli-v2/releases/latest")
+        http_code=$(curl -Lq --silent --show-error \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            -w "%{http_code}" \
+            -o "$temp_file" \
+            "https://api.github.com/repos/codacy/codacy-cli-v2/releases/latest")
     else
-        response=$(curl -Lq --fail --silent --show-error "https://api.github.com/repos/codacy/codacy-cli-v2/releases/latest")
+        http_code=$(curl -Lq --silent --show-error \
+            -w "%{http_code}" \
+            -o "$temp_file" \
+            "https://api.github.com/repos/codacy/codacy-cli-v2/releases/latest")
     fi
 
-    handle_rate_limit "$response"
+    response=$(cat "$temp_file")
+    rm -f "$temp_file"
+
+    # Check HTTP status and handle errors before processing
+    if [ "$http_code" -ne 200 ]; then
+        handle_rate_limit "$response"
+        fatal "GitHub API request failed with HTTP status $http_code"
+    fi
+
     local version
     version=$(echo "$response" | grep -m 1 tag_name | cut -d'"' -f4 || true)
     if [ -z "${version:-}" ]; then
