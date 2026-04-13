@@ -138,11 +138,11 @@ class AssetRelationshipGraph:
     ) -> tuple[str, float, bool]:
         """
         Normalize flexible add_relationship inputs into a canonical (rel_type, strength, bidirectional) triple.
-        
+
         Parameters:
             relationship_args (tuple[Any, ...]): Positional args passed to add_relationship; accepts either a single tuple (rel_type, strength) or two/three positional values (rel_type, strength[, bidirectional]).
             kwargs (dict[str, Any]): Keyword args passed to add_relationship; may include `bidirectional` and will be validated for unknown keys.
-        
+
         Returns:
             rel_type (str): Relationship type coerced to a string.
             strength (float): Relationship strength coerced to a float.
@@ -203,14 +203,14 @@ class AssetRelationshipGraph:
     ) -> tuple[Any, Any, bool]:
         """
         Parse a single positional relationship argument given as a (rel_type, strength) tuple and extract an optional "bidirectional" flag from kwargs.
-        
+
         Parameters:
             relationship_arg (Any): A two-item tuple (rel_type, strength).
             kwargs (dict[str, Any]): Keyword arguments; may contain "bidirectional" which will be consumed.
-        
+
         Returns:
             tuple[Any, Any, bool]: (rel_type, strength, bidirectional)
-        
+
         Raises:
             TypeError: If `relationship_arg` is not a tuple.
         """
@@ -241,15 +241,15 @@ class AssetRelationshipGraph:
     ) -> tuple[str, float, bool]:
         """
         Coerce and validate relationship inputs, returning a normalized (rel_type, strength, bidirectional) triple.
-        
+
         Parameters:
             rel_type: Relationship type; must be a string identifying the relationship.
             strength: Numeric strength value; will be converted to a float.
             bidirectional: Flag indicating whether the relationship should be added in both directions.
-        
+
         Returns:
             tuple[str, float, bool]: A tuple containing the relationship type as a `str`, the strength as a `float`, and the bidirectional flag as a `bool`.
-        
+
         Raises:
             TypeError: If `rel_type` is not a `str`.
         """
@@ -264,14 +264,14 @@ class AssetRelationshipGraph:
     ) -> tuple[Any, Any, bool]:
         """
         Parse a two-element relationship tuple and extract an explicit bidirectional flag.
-        
+
         Parameters:
             relationship_tuple (tuple[Any, ...]): A tuple of (rel_type, strength); must have exactly two elements.
             kwargs (dict[str, Any]): May contain a 'bidirectional' key; if present its value is removed from this dict and used.
-        
+
         Returns:
             tuple[Any, Any, bool]: (rel_type, strength, bidirectional)
-        
+
         Raises:
             ValueError: If `relationship_tuple` does not contain exactly two elements.
         """
@@ -288,14 +288,14 @@ class AssetRelationshipGraph:
     ) -> tuple[Any, Any, bool]:
         """
         Parse legacy positional relationship arguments into a normalized triple: (rel_type, strength, bidirectional).
-        
+
         Accepts either a 2- or 3-element positional form:
         - With three positional elements, the third element is used as the bidirectional flag.
         - With two positional elements, the `bidirectional` value is taken from `kwargs.pop("bidirectional", False)`.
-        
+
         Raises:
             TypeError: If `bidirectional` is supplied both positionally (third positional element) and via `kwargs`.
-        
+
         Returns:
             tuple: `(rel_type, strength, bidirectional)` where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` is `True` if the relationship should be added bidirectionally, `False` otherwise.
         """
@@ -380,7 +380,7 @@ class AssetRelationshipGraph:
     ) -> tuple[dict[str, int], list[TopRelationship], int, float]:
         """
         Summarize the graph's stored directed relationships by type, top strengths, total count, and average strength.
-        
+
         Returns:
             rel_dist (dict[str, int]): Mapping from relationship type to its occurrence count.
             top_relationships (list[TopRelationship]): Up to 10 relationships sorted by descending strength; each is (source_id, target_id, relationship_type, strength).
@@ -481,7 +481,7 @@ class AssetRelationshipGraph:
     ) -> tuple[str, str] | None:
         """
         Determine whether one asset is a Bond issued by the other and return the corresponding (bond_id, issuer_id).
-        
+
         Returns:
             (bond_id, issuer_id) if a Bond's `issuer_id` equals the other asset's id, `None` otherwise.
         """

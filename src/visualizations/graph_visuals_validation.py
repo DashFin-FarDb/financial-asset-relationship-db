@@ -50,7 +50,7 @@ def _ensure_positions_shape(positions: np.ndarray) -> None:
 def _ensure_numeric_dtype(positions: np.ndarray) -> None:
     """
     Ensure the NumPy array's dtype is numeric.
-    
+
     Raises:
         ValueError: If `positions.dtype` is not a numeric dtype; the error message includes the actual dtype.
     """
@@ -92,11 +92,11 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
     """
     Ensure `colors` is a list or tuple containing exactly `expected_length` non-empty strings.
-    
+
     Parameters:
         colors (List[str]): Sequence of color values.
         expected_length (int): Required number of color entries.
-    
+
     Raises:
         ValueError: If `colors` is not a list/tuple of length `expected_length`, or if any entry is not a non-empty string.
     """
@@ -116,11 +116,11 @@ def _validate_hover_texts_list(
 ) -> None:
     """
     Ensure hover_texts is a list or tuple of non-empty strings whose length equals expected_length.
-    
+
     Parameters:
         hover_texts (List[str]): Sequence of hover text values to validate.
         expected_length (int): Required number of entries in hover_texts.
-    
+
     Raises:
         ValueError: If hover_texts is not a list/tuple, its length does not equal expected_length, or any entry is not a non-empty string.
     """
@@ -139,7 +139,7 @@ def _validate_hover_texts_list(
 def _ensure_hover_texts_sequence(hover_texts: List[str]) -> None:
     """
     Ensure `hover_texts` is a list or tuple.
-    
+
     Raises:
         ValueError: If `hover_texts` is not a list or tuple.
     """
@@ -173,11 +173,11 @@ def _ensure_non_empty_string_values(
 ) -> None:
     """
     Validate that every element of the sequence is a non-empty string.
-    
+
     Parameters:
         values (List[str]): Sequence whose elements are validated.
         name (str): Label used in the raised error message on failure.
-    
+
     Raises:
         ValueError: If any element in `values` is not a string or is an empty string.
     """
@@ -241,10 +241,10 @@ def _validate_visualization_data(
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
     """
     Ensure `filter_params` is a dict mapping parameter names to boolean values.
-    
+
     Parameters:
         filter_params (Dict[str, bool]): Mapping of parameter names to boolean flags.
-    
+
     Raises:
         TypeError: If `filter_params` is not a dict, or if any value in the mapping is not a `bool`.
     """

@@ -77,12 +77,12 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
 def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
     Convert input to a list of validated top-relationship tuples.
-    
+
     Each tuple is (source, target, relationship_type, strength) where the first three elements are strings and `strength` is coerced to a float (defaults to 0.0 when not convertible).
-    
+
     Parameters:
         value (Any): Expected to be a list of 4-element tuples; items that are not 4-tuples with string source, target, and relationship type are ignored.
-    
+
     Returns:
         list[tuple[str, str, str, float]]: Validated top-relationship tuples. Returns an empty list if `value` is not a list or contains no valid items.
     """
@@ -99,12 +99,12 @@ def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
 def _is_valid_top_relationship_item(item: Any) -> bool:
     """
     Check whether an object is a valid top-relationship tuple.
-    
+
     Valid means the object is a tuple of length 4 and its first three elements are strings.
-    
+
     Parameters:
         item (Any): Value to check.
-    
+
     Returns:
         `true` if `item` is a tuple of length 4 with the first three elements as strings, `false` otherwise.
     """
@@ -118,10 +118,10 @@ def _is_valid_top_relationship_item(item: Any) -> bool:
 def _relationship_type_lines(metrics: Mapping[str, Any]) -> list[str]:
     """
     Generate markdown bullet lines for each relationship type with its instance count.
-    
+
     Parameters:
         metrics (Mapping[str, Any]): Mapping that may contain "relationship_distribution", a mapping from relationship type string to integer count.
-    
+
     Returns:
         list[str]: Markdown lines like "- **{rel_type}**: {count} instances", sorted by descending count.
     """
@@ -198,11 +198,11 @@ def _asset_class_lines(metrics: Mapping[str, Any]) -> list[str]:
 def _top_relationship_lines(metrics: Mapping[str, Any]) -> list[str]:
     """
     Build the "Top Relationships" Markdown section from provided metrics.
-    
+
     Parameters:
         metrics (Mapping[str, Any]): Metrics mapping that may include the key "top_relationships",
             expected as a list of tuples (source:str, target:str, relationship_type:str, strength:float).
-    
+
     Returns:
         list[str]: Markdown lines for the section, including the section header and either formatted
             relationship entries or a placeholder line when no relationships are present.

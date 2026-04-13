@@ -13,10 +13,10 @@ _BASE_COLORS = ["blue", "green", "orange", "red", "purple"]
 def _asset_class_distribution(distribution: dict) -> go.Figure:
     """
     Create a bar chart of asset class counts.
-    
+
     Parameters:
         distribution (dict): Mapping of asset class names to integer counts.
-    
+
     Returns:
         go.Figure: Plotly Figure containing a bar trace with asset class names on the x-axis and counts on the y-axis.
     """
@@ -66,7 +66,7 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
 def _apply_relationship_layout(fig: go.Figure) -> None:
     """
     Apply a consistent layout for a relationship-type distribution chart.
-    
+
     Updates the provided figure in place by setting the title to "Relationship Types Distribution", the x-axis title to "Relationship Type", the y-axis title to "Count", and rotating x-axis tick labels by -45 degrees.
     """
     fig.update_layout(
@@ -80,16 +80,16 @@ def _apply_relationship_layout(fig: go.Figure) -> None:
 def _regulatory_events_timeline(events: list) -> go.Figure:
     """
     Create a timeline bar chart of regulatory events showing impact scores over time.
-    
+
     Each event object must provide:
     - date: ISO 8601 date string
     - asset_id: identifier used in bar labels
     - event_type.value: label text for the event type
     - impact_score: numeric value plotted on the y axis
-    
+
     Parameters:
         events (list): Sequence of event objects with the fields described above.
-    
+
     Returns:
         go.Figure: Plotly figure with dates on the x axis and impact scores on the y axis. Bars are labeled as "asset_id: event_type.value" and colored green for impact_score > 0, red otherwise.
     """
@@ -115,7 +115,7 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
 def _apply_regulatory_events_layout(fig: go.Figure) -> None:
     """
     Apply layout settings for the regulatory events timeline figure.
-    
+
     Sets the figure title to "Regulatory Events Timeline", the x-axis title to "Date", and the y-axis title to "Impact Score" in place.
     """
     fig.update_layout(

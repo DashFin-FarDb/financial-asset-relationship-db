@@ -30,7 +30,6 @@ sys.path.insert(
 
 import analyze_pr  # noqa: E402
 
-
 # ---------------------------------------------------------------------------
 # _format_list_items
 # ---------------------------------------------------------------------------
@@ -130,9 +129,7 @@ class TestFormatLargeFiles:
     def test_single_large_file_produces_section(self):
         """A single large file produces the section header and one bullet."""
         file_analysis = {
-            "large_files": [
-                {"filename": "src/big.py", "changes": 600, "additions": 400, "deletions": 200}
-            ]
+            "large_files": [{"filename": "src/big.py", "changes": 600, "additions": 400, "deletions": 200}]
         }
         result = analyze_pr._format_large_files(file_analysis)
         assert "**Large Files (>500 lines):**" in result
@@ -163,9 +160,7 @@ class TestFormatLargeFiles:
 
     def test_section_ends_with_newline(self):
         """The section string ends with a newline."""
-        file_analysis = {
-            "large_files": [{"filename": "f.py", "changes": 600, "additions": 500, "deletions": 100}]
-        }
+        file_analysis = {"large_files": [{"filename": "f.py", "changes": 600, "additions": 500, "deletions": 100}]}
         result = analyze_pr._format_large_files(file_analysis)
         assert result.endswith("\n")
 
@@ -436,7 +431,7 @@ class TestWriteOutput:
         def _raise(*args, **kwargs):
             """
             Always raise an IOError indicating the disk is full.
-            
+
             Raises:
                 IOError: always raised with the message "disk full".
             """
@@ -467,12 +462,12 @@ class TestWriteOutput:
         def spy_ntf(**kwargs):
             """
             Wraps a NamedTemporaryFile factory to record the `prefix` and `suffix` kwargs for each created file.
-            
+
             Records a tuple (prefix, suffix) in the module-level `created_names` list and forwards all keyword arguments to the wrapped NamedTemporaryFile factory, returning its result.
-            
+
             Parameters:
                 **kwargs: Keyword arguments accepted by tempfile.NamedTemporaryFile (e.g., `prefix`, `suffix`).
-            
+
             Returns:
                 The temporary file object returned by the underlying NamedTemporaryFile factory.
             """
@@ -483,7 +478,4 @@ class TestWriteOutput:
             with patch("tempfile.NamedTemporaryFile", side_effect=spy_ntf):
                 analyze_pr.write_output("data")
 
-        assert any(
-            prefix == "pr_analysis_" and suffix == ".md"
-            for prefix, suffix in created_names
-        )
+        assert any(prefix == "pr_analysis_" and suffix == ".md" for prefix, suffix in created_names)

@@ -28,7 +28,7 @@ HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 def _extract_section_heading(line: str) -> str | None:
     """
     Return the text of a level-2 Markdown heading if the line is a top-level `##` heading.
-    
+
     Returns:
         The heading text if the line contains a level-2 heading, `None` otherwise.
     """
@@ -48,11 +48,11 @@ def _flush_current_section(
 ) -> None:
     """
     Append the current section (heading and its content) to `sections` if `current_heading` is present.
-    
+
     Parameters:
-    	sections (List[Tuple[str, str]]): Mutable list of (heading, content) tuples to append to.
-    	current_heading (str | None): The heading for the current section; if `None` nothing is appended.
-    	current_content (List[str]): Lines comprising the section body; joined with newline characters to form the stored content.
+        sections (List[Tuple[str, str]]): Mutable list of (heading, content) tuples to append to.
+        current_heading (str | None): The heading for the current section; if `None` nothing is appended.
+        current_content (List[str]): Lines comprising the section body; joined with newline characters to form the stored content.
     """
     if current_heading is None:
         return
@@ -162,10 +162,10 @@ def reconstruct_manifest(
 def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
     """
     Return a mapping of section headings to their occurrence counts.
-    
+
     Parameters:
         sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs from a parsed manifest.
-    
+
     Returns:
         Dict[str, int]: Mapping where each key is a heading and the value is the number of times it appears.
     """
@@ -192,11 +192,11 @@ def _has_invalid_path_chars(user_value: str) -> bool:
 def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
     """
     Compute and return the absolute base directory and the resolved candidate path obtained by interpreting the given user path relative to the base directory.
-    
+
     Parameters:
         user_value (str): User-supplied filesystem path (may be relative).
         base_dir (Path): Base directory to resolve against.
-    
+
     Returns:
         tuple[Path, Path]: (base, resolved) where `base` is base_dir.resolve() and `resolved` is the absolute path of `base / user_value`.
     """
@@ -208,7 +208,7 @@ def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Pa
 def _is_within_base(base: Path, candidate: Path) -> bool:
     """
     Determine whether `candidate` is the same path as `base` or is located inside `base`.
-    
+
     Returns:
         bool: `True` if `candidate` is the same path as `base` or a descendant of `base`, `False` otherwise.
     """

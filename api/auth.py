@@ -101,7 +101,7 @@ class UserRepository:
     def has_users() -> bool:
         """
         Determine whether any user credential records exist.
-        
+
         Returns:
             `true` if at least one user credential exists, `false` otherwise.
         """
@@ -124,9 +124,9 @@ class UserRepository:
     ) -> None:
         """
         Insert or update a user credential record in the user_credentials table.
-        
+
         Performs an upsert for the given username using the provided hashed_password and optional profile data. Accepts a modern mapping via `user_profile` containing any of `user_email`, `user_full_name`, and `is_disabled`. Legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are accepted and override values from `user_profile` when provided. A `TypeError` is raised if any unexpected legacy keys are supplied. The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
-        
+
         Parameters:
             user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
             **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override values in `user_profile` when present; unexpected keys cause a `TypeError`.
@@ -319,10 +319,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
     Retrieve the User identified by the JWT's subject.
-    
+
     Returns:
         The User object for the token's subject.
-    
+
     Raises:
         HTTPException: 401 with detail "Token has expired" when the token has expired.
         HTTPException: 401 with detail "Could not validate credentials" when the token is invalid, missing a subject, or no matching user is found.

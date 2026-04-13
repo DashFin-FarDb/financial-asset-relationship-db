@@ -27,11 +27,11 @@ def _as_int(value: Any, default: int = 0) -> int:
 def _as_float(value: Any, default: float = 0.0) -> float:
     """
     Convert a value to a float; return `default` when the value is None or cannot be converted.
-    
+
     Parameters:
         value (Any): Value to convert.
         default (float): Value returned when conversion is not possible.
-    
+
     Returns:
         float: The converted float, or `default` if `value` is None or conversion fails.
     """
@@ -92,12 +92,12 @@ def _as_top_relationships(
 def _is_top_relationship_item(item: Any) -> bool:
     """
     Check whether a value matches the expected top-relationship item shape.
-    
+
     A top-relationship item is a tuple of length 4 whose first three elements are strings; the fourth element is not validated.
-    
+
     Parameters:
         item (Any): Value to check.
-    
+
     Returns:
         `true` if `item` is a 4-tuple and its first three elements are strings, `false` otherwise.
     """

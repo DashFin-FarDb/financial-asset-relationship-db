@@ -35,11 +35,11 @@ def _is_allowed_list_origin(origin: str, allowed_origins: list[str]) -> bool:
 def _is_http_local_in_dev(origin: str, current_env: str) -> bool:
     """
     Determine whether the origin is an HTTP localhost origin and the environment is exactly "development".
-    
+
     Parameters:
         origin (str): Origin string to check (e.g., "http://localhost:3000").
         current_env (str): Environment name compared exactly to "development".
-    
+
     Returns:
         bool: `True` if `origin` is an HTTP localhost origin (http://localhost or http://127.0.0.1 with an optional port) and `current_env` is "development", `False` otherwise.
     """
@@ -62,10 +62,10 @@ def _is_https_local(origin: str) -> bool:
 def _is_vercel_preview(origin: str) -> bool:
     """
     Determine whether an origin is a Vercel preview hostname.
-    
+
     Parameters:
         origin (str): Origin to test (for example, 'https://<subdomain>.vercel.app').
-    
+
     Returns:
         True if the origin matches a Vercel preview hostname, False otherwise.
     """
@@ -75,10 +75,10 @@ def _is_vercel_preview(origin: str) -> bool:
 def _is_valid_https_domain(origin: str) -> bool:
     """
     Check whether origin is an HTTPS origin with a standard domain and optional port.
-    
+
     Parameters:
         origin (str): Origin string such as "https://example.com" or "https://sub.example.com:8443".
-    
+
     Returns:
         True if the origin matches the module's HTTPS domain regex, False otherwise.
     """
@@ -88,10 +88,10 @@ def _is_valid_https_domain(origin: str) -> bool:
 def _is_valid_https_idn(origin: str) -> bool:
     """
     Validate an HTTPS origin whose hostname can be IDNA-encoded to an ASCII form that matches the module's HTTPS domain pattern.
-    
+
     Parameters:
         origin (str): Origin URL including scheme and hostname; may include a port.
-    
+
     Returns:
         `true` if the origin uses the `https` scheme, has a hostname that can be IDNA-encoded to ASCII, and the reconstructed ASCII origin (including port if present) matches the module's HTTPS domain regular expression; `false` otherwise.
     """
@@ -118,12 +118,12 @@ def _is_valid_https_idn(origin: str) -> bool:
 def validate_origin(origin: str) -> bool:
     """
     Validate whether an HTTP origin is permitted by the application's CORS rules.
-    
+
     Permitted origins include entries in the ALLOWED_ORIGINS allowlist, HTTPS domains matching the configured domain pattern, Vercel preview hostnames, HTTPS localhost/127.0.0.1 (any environment), and HTTP localhost/127.0.0.1 when ENV is "development". Origins containing URL components beyond scheme/host[:port] (path, params, query, fragment, username, password) are rejected. Internationalized hostnames are accepted when their IDNA-encoded ASCII form matches the HTTPS domain pattern.
-    
+
     Parameters:
         origin (str): Origin URL to validate (e.g., "https://example.com" or "http://localhost:3000").
-    
+
     Returns:
         bool: True if the origin is allowed, False otherwise.
     """

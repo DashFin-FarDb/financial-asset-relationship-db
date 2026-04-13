@@ -17,9 +17,9 @@ def test_validate_origin_short_circuits_on_allowlist(monkeypatch: pytest.MonkeyP
     def _must_not_run(*_args: object, **_kwargs: object) -> bool:
         """
         Fail the test if this helper is invoked, indicating a downstream validator executed when it should have been short-circuited.
-        
+
         Always raises an AssertionError with message "short-circuit failed: later validator executed".
-        
+
         Raises:
             AssertionError: Always raised when called.
         """
@@ -55,11 +55,11 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
     def _http_local_true(origin: str, current_env: str) -> bool:
         """
         Record a stubbed http-local-in-dev check by appending "http_local_dev" to the shared calls list.
-        
+
         Parameters:
             origin (str): Unused; present for signature compatibility.
             current_env (str): Unused; present for signature compatibility.
-        
+
         Returns:
             bool: Always True.
         """
@@ -70,7 +70,7 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
     def _must_not_run(*_args: object, **_kwargs: object) -> bool:
         """
         Indicate a test failure if invoked, asserting that short-circuiting did not occur.
-        
+
         Raises:
             AssertionError: Always raised with message "short-circuit failed: evaluated after True check".
         """

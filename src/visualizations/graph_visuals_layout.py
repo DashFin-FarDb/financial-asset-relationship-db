@@ -19,7 +19,7 @@ def _generate_dynamic_title(
 ) -> str:
     """
     Combine the base title with asset and relationship counts into a display title.
-    
+
     Returns:
         str: Title formatted as "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
     """
@@ -50,12 +50,12 @@ def _prepare_layout_config(
 ) -> Tuple[str, Dict[str, object]]:
     """
     Create a dynamic plot title using the asset count and estimated visible relationships, and return that title with layout options.
-    
+
     Parameters:
         relationship_traces: 3D scatter traces used to estimate visible relationships by counting their data points; traces with missing or empty `x` are treated as zero points.
         base_title (str): Prefix for the generated title. Defaults to "Financial Asset Network".
         layout_options (Optional[Dict[str, object]]): Layout configuration to return; an empty dict is returned if None.
-    
+
     Returns:
         Tuple[str, Dict[str, object]]: The generated title (e.g., "Financial Asset Network - 10 Assets, 5 Relationships") and the layout options dictionary (empty dict if none provided).
     """

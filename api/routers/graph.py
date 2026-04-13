@@ -22,15 +22,15 @@ def _build_visualization_nodes(
 ) -> List[Dict[str, Any]]:
     """
     Constructs ordered node payloads for 3D visualization of the provided assets.
-    
+
     If an asset ID is missing from graph.assets the function uses the asset ID for name and symbol and sets the asset_class value to "UNKNOWN".
-    
+
     Parameters:
         graph: Object exposing a mapping-like attribute `assets` (e.g., graph.assets.get(id)) used to look up asset metadata.
         positions: Array-like with shape (N, 3) providing x, y, z coordinates in the same order as asset_ids.
         asset_ids (List[str]): Ordered list of asset IDs to include.
         asset_colors (List[str]): Color strings aligned with asset_ids.
-    
+
     Returns:
         List[Dict[str, Any]]: Ordered list of node dictionaries with keys `id`, `name`, `symbol`, `asset_class`, `x`, `y`, `z`, `color`, and `size`.
     """
@@ -96,11 +96,11 @@ def _append_allowed_edges(
 ) -> None:
     """
     Add allowed relationship edges for a given source to an existing edges list.
-    
+
     Mutates `edges` in place by appending a dictionary for each relationship whose target is present in
     `allowed_asset_ids`. Each appended dictionary contains the keys `source`, `target`,
     `relationship_type`, and `strength` (the latter converted to a float).
-    
+
     Parameters:
         edges (List[Dict[str, Any]]): List to append edge dictionaries to; modified in place.
         source_id (str): Source asset identifier applied to each appended edge.
@@ -134,7 +134,7 @@ def _append_allowed_edges(
 async def get_all_relationships() -> List[RelationshipResponse]:
     """
     List all directed relationships present in the initialized asset graph.
-    
+
     Returns:
         relationships (List[RelationshipResponse]): List of RelationshipResponse objects where each entry contains `source_id`, `target_id`, `relationship_type`, and `strength`.
     """
@@ -178,7 +178,7 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 async def get_metrics() -> MetricsResponse:
     """
     Compute aggregate graph metrics and counts of assets grouped by asset class.
-    
+
     Returns:
         MetricsResponse: Metrics summary with the following fields:
             - total_assets (int): Total number of assets in the graph.
@@ -188,7 +188,7 @@ async def get_metrics() -> MetricsResponse:
             - max_degree (int): Maximum outgoing relationship count for any asset.
             - network_density (float): Network density as a fraction between 0.0 and 1.0.
             - relationship_density (float): Relationship density as a fraction between 0.0 and 1.0.
-    
+
     Raises:
         HTTPException: If an internal error occurs while obtaining metrics.
     """
@@ -279,7 +279,7 @@ async def get_visualization_data() -> VisualizationDataResponse:
 async def get_asset_classes() -> Dict[str, List[str]]:
     """
     List available asset classes.
-    
+
     Returns:
         Dict[str, List[str]]: Mapping with key "asset_classes" containing a list of asset class string values.
     """

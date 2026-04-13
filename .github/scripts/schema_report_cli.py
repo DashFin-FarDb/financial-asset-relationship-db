@@ -166,10 +166,10 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
 def convert_markdown_to_json(markdown: str) -> str:
     """
     Embed a Markdown report under the "schema_report" key and produce a pretty-printed JSON string.
-    
+
     Parameters:
         markdown (str): The Markdown report content to include.
-    
+
     Returns:
         json_str (str): Pretty-printed JSON with a single key `"schema_report"` whose value is the provided Markdown.
     """
@@ -180,12 +180,12 @@ def convert_markdown_to_json(markdown: str) -> str:
 def default_output_path(fmt: OutputFormat) -> Path:
     """
     Return the default output file path for a given output format in the current working directory.
-    
+
     Looks up the filename associated with `fmt` and resolves it under the current working directory.
-    
+
     Returns:
         Path: Path to the default filename for `fmt` inside the current working directory.
-    
+
     Raises:
         CLIError: If `fmt` is not a supported OutputFormat.
     """
@@ -198,10 +198,10 @@ def default_output_path(fmt: OutputFormat) -> Path:
 def parse_output_format(value: str) -> OutputFormat | None:
     """
     Parse a user-provided format name into an OutputFormat enum value.
-    
+
     Parameters:
         value (str): Format name; accepted values are "markdown", "text", or "json".
-    
+
     Returns:
         OutputFormat | None: The corresponding OutputFormat on success; `None` if the input is invalid (an error message is printed to stderr).
     """
@@ -295,12 +295,12 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
 def generate_report(fmt: OutputFormat, output: Path | None) -> None:
     """
     Generate the schema report and write it to the given file path or stdout.
-    
+
     Parameters:
         fmt (OutputFormat): Output format to produce (markdown, text, or json).
         output (Path | None): Destination file path. If `None`, the report is written to stdout
             (a single trailing newline is ensured).
-    
+
     Raises:
         CLIError: If report generation, formatting, or writing fails.
     """
@@ -329,9 +329,9 @@ def generate_report(fmt: OutputFormat, output: Path | None) -> None:
 def main() -> int:
     """
     Execute the CLI: parse arguments, configure logging, generate the schema report, and return an exit code.
-    
+
     Parses command-line arguments, adjusts logging based on the verbose flag, validates the requested output format, generates and emits or writes the formatted report, and maps common failure modes to user-facing exit codes.
-    
+
     Returns:
         int: Exit code — 0 on success; 1 on validation or unexpected errors; 130 if cancelled by the user.
     """

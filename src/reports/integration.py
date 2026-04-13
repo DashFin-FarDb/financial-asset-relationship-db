@@ -63,12 +63,12 @@ _ALLOWED_PROTOCOLS: frozenset[str] = frozenset({"http", "https", "mailto"})
 def markdown_to_html(md: str) -> str:
     """
     Convert Markdown to sanitized HTML for safe display.
-    
+
     Renders the provided Markdown to HTML, sanitizes it using the module allowlists, and post-processes links to add safe attributes (e.g., `rel="nofollow noopener"`, `target="_blank"`) while avoiding linkification inside code blocks.
-    
+
     Parameters:
         md (str): Markdown content to convert.
-    
+
     Returns:
         str: Sanitized HTML produced from the input Markdown.
     """
@@ -110,13 +110,13 @@ def markdown_to_html(md: str) -> str:
     def _add_noopener(attrs: dict, _new: bool = False) -> dict:
         """
         Ensure the 'rel' attribute in a bleach.linkify attribute mapping includes "noopener".
-        
+
         Modifies the provided attrs mapping in-place to append "noopener" to the (None, "rel") entry if it is not already present.
-        
+
         Parameters:
             attrs (dict): Attribute mapping used by bleach.linkify (keys are typically tuples like (None, "rel")).
             _new (bool): Ignored; present only to match bleach's callback signature.
-        
+
         Returns:
             dict: The same attrs mapping with the (None, "rel") value updated to include "noopener".
         """
@@ -179,14 +179,14 @@ ReportFormat = Literal["md", "html"]
 def export_report(graph: object, fmt: ReportFormat = "md") -> str:
     """
     Export a schema report for the provided asset relationship graph in Markdown or sanitized HTML.
-    
+
     Parameters:
         graph (object): Must be an AssetRelationshipGraph; a TypeError is raised if a different type is passed.
         fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML; comparison is case-insensitive.
-    
+
     Returns:
         str: Report content formatted as requested.
-    
+
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph.
         ValueError: If `fmt` is not "md" or "html".
@@ -241,14 +241,14 @@ def attach_to_gradio_interface(
 ) -> Any:
     """
     Create a Gradio component that displays the current schema report.
-    
+
     Parameters:
         graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument callable that returns the current AssetRelationshipGraph.
         html (bool): If True, produce an HTML-rendered component; otherwise produce a Markdown-rendered component.
-    
+
     Returns:
         A gr.HTML component when html is True, otherwise a gr.Markdown component.
-    
+
     Raises:
         RuntimeError: If Gradio is not installed.
     """

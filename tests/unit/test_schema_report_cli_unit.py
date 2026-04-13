@@ -1002,9 +1002,9 @@ class TestCleanupPartialOutput:
         def _fail_unlink(self):
             """
             Simulated unlink operation that always raises a permission error.
-            
+
             Used by tests to emulate Path.unlink failing with insufficient permissions.
-            
+
             Raises:
                 OSError: Always raised with the message "permission denied".
             """

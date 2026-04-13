@@ -68,13 +68,13 @@ class PRStatus:
 def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
     """
     Retrieve aggregated metadata, review statistics, mergeability, and CI check-run summaries for a pull request.
-    
+
     Aggregates PR identity (number, title, author, branches, draft flag, URL), fast statistics (commits, changed files, additions, deletions), label names, mergeability and mergeable state, review counts, a proxy count for open review threads, and a list of check runs (name, status, conclusion).
-    
+
     Parameters:
         repo_name (str): Repository identifier in "owner/name" form.
         pr_num (int): Pull request number.
-    
+
     Returns:
         PRStatus: Aggregated PR information populated with metadata, stats, review summary, open thread count, mergeability state, and check run entries.
     """
@@ -274,7 +274,7 @@ def generate_markdown(status: PRStatus) -> str:
 def write_output(content: str) -> None:
     """
     Write the PR Markdown report to the GitHub Actions step summary (when allowed), to a standard temp file, and to stdout.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set and resolves inside the system temporary directory, append content to that file; otherwise skip the step-summary write and emit a warning to stderr. Overwrite the file named "pr_status_report.md" in the system temporary directory and print its path to stderr on success. All I/O and path-related errors are caught and reported to stderr; the function does not raise exceptions.
     Parameters:
         content (str): The Markdown report content to write.

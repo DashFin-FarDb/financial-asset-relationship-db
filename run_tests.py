@@ -11,10 +11,10 @@ import sys
 def _has_control_chars(value: str) -> bool:
     """
     Determine whether the string contains any disallowed control characters: NUL, line feed, or carriage return.
-    
+
     Parameters:
         value (str): The string to inspect.
-    
+
     Returns:
         bool: True if `value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), False otherwise.
     """

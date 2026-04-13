@@ -162,10 +162,10 @@ class AssetGraphRepository:
     ) -> None:
         """
         Create or update an asset relationship and stage it on the repository session.
-        
+
         Accepts either a single _RelationshipUpsertSpec or explicit fields (source_id, target_id, rel_type, strength[, bidirectional=False]).
         Strength must be a numeric value between -1.0 and 1.0 inclusive; boolean values are rejected.
-        
+
         Parameters:
             *args: Either a single `_RelationshipUpsertSpec` or positional fields:
                 (source_id, target_id, rel_type, strength[, bidirectional]).
@@ -307,7 +307,7 @@ class AssetGraphRepository:
     def list_relationships(self) -> List[RelationshipRecord]:
         """
         List all asset relationships stored in the repository.
-        
+
         Returns:
             List[RelationshipRecord]: A list of RelationshipRecord objects, each containing source_id, target_id, relationship_type, strength (float), and bidirectional (bool).
         """
@@ -331,7 +331,7 @@ class AssetGraphRepository:
     ) -> Optional[RelationshipRecord]:
         """
         Return the relationship between two assets for the given relationship type.
-        
+
         Returns:
             `RelationshipRecord` if a matching relationship exists (with `strength` converted to a `float`), `None` otherwise.
         """
@@ -441,10 +441,10 @@ class AssetGraphRepository:
     def _to_asset_model(orm: AssetORM) -> Asset:
         """
         Constructs a domain Asset instance (specific subclass when applicable) from an AssetORM row.
-        
+
         Parameters:
             orm (AssetORM): The persisted ORM row to convert.
-        
+
         Returns:
             Asset: A domain Asset. Returns an Equity, Bond, Commodity, or Currency instance when `orm.asset_class` indicates that class; otherwise returns a generic `Asset`.
         """
@@ -496,11 +496,11 @@ class AssetGraphRepository:
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
         """
         Convert a RegulatoryEvent ORM row into a domain RegulatoryEvent model.
-        
+
         Extracts related asset IDs from orm.related_assets and constructs a RegulatoryEvent
         with id, asset_id, event_type (mapped to RegulatoryActivity), date, description,
         impact_score, and related_assets.
-        
+
         Returns:
             RegulatoryEvent: Domain model built from the ORM row.
         """

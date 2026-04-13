@@ -151,11 +151,11 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
     """
     Determine whether the comment contains any of the actionable keywords.
-    
+
     Parameters:
         comment_body (str): Text of the comment to inspect; matching is case-insensitive and uses substring matching.
         actionable_keywords (List[str]): Keywords to search for.
-    
+
     Returns:
         bool: True if at least one actionable keyword appears in comment_body, False otherwise.
     """
@@ -346,9 +346,9 @@ def write_output(report: str) -> None:
     # 1. GitHub Summary
     """
     Persist the Markdown report to configured outputs and print it.
-    
+
     When GITHUB_STEP_SUMMARY is set, appends the report to that file. Always writes the report to a securely created temporary `.md` file and prints that temporary file path to stderr on success. Finally prints the full report to stdout. IO failures are reported to stderr.
-    
+
     Parameters:
         report (str): Markdown-formatted report content to persist and print.
     """

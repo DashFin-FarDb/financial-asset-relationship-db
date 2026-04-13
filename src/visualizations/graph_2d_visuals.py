@@ -123,9 +123,9 @@ def _create_2d_relationship_traces(
 ) -> List[go.Scatter]:
     """
     Create Plotly line traces for asset-to-asset relationships, grouped and filtered by relationship type.
-    
+
     Builds one Scatter trace per included relationship type where each trace contains polyline segments for all edges of that type and hover text showing "source → target", relationship type, and strength. If `asset_ids` or `positions` is empty, returns an empty list.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph with relationships stored as tuples (target_id, rel_type, strength).
         positions (dict[str, tuple[float, float]]): Mapping from asset ID to 2D coordinates.
@@ -138,7 +138,7 @@ def _create_2d_relationship_traces(
         show_income_comparison (bool): Include relationships with internal key "income_comparison".
         show_regulatory (bool): Include relationships with internal key "regulatory_impact".
         show_all_relationships (bool): When True, ignore individual show_* toggles and include all relationship types present in the graph.
-    
+
     Returns:
         list[go.Scatter]: List of Plotly Scatter traces, one per included relationship type; empty if no traces are applicable.
     """
@@ -184,7 +184,7 @@ def _relationship_visibility_filters(
 ) -> Dict[str, bool]:
     """
     Produce a mapping from internal relationship type keys to their visibility flags.
-    
+
     Returns:
         Dict[str, bool]: Mapping where each key is an internal relationship type and the value is `True` if that relationship should be shown, `False` otherwise. Keys:
             - "same_sector"
@@ -378,12 +378,12 @@ def _spring_or_fallback_positions(
 def _asset_class_label(asset: object) -> str:
     """
     Produce a human-readable label for an asset's asset class.
-    
+
     If the asset has an `asset_class` attribute and that attribute has a `value` attribute (e.g., an enum), returns `str(asset.asset_class.value)`. If `asset_class` exists but has no `value`, returns `str(asset.asset_class)`. If the asset lacks `asset_class`, returns an empty string.
-    
+
     Parameters:
         asset (object): Object that may have an `asset_class` attribute.
-    
+
     Returns:
         str: The asset class label, or an empty string if not present.
     """
@@ -450,9 +450,9 @@ def visualize_2d_graph(
 ) -> go.Figure:
     """
     Render an AssetRelationshipGraph as a 2D Plotly network using the specified layout and relationship visibility toggles.
-    
+
     Renders assets as labeled node markers (marker size reflects connection count) and relationship edges as separate line traces grouped by relationship type. Relationship boolean flags control inclusion of each relationship category; setting show_all_relationships to True overrides individual flags and includes all relationship types.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The graph containing assets and relationships to visualize.
         layout_type (str): Layout to use; one of "spring", "circular", or "grid".
@@ -464,10 +464,10 @@ def visualize_2d_graph(
         show_income_comparison (bool): Include "income_comparison" relationships when True.
         show_regulatory (bool): Include "regulatory_impact" relationships when True.
         show_all_relationships (bool): If True, include all relationship types regardless of the individual flags.
-    
+
     Returns:
         go.Figure: A Plotly Figure containing the 2D asset network with node markers and relationship edge traces grouped by relationship type.
-    
+
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
     """

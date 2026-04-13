@@ -66,7 +66,7 @@ class FormulaicAnalyzer:
     def __init__(self) -> None:
         """
         Prepare a FormulaicAnalyzer with an empty formulas list.
-        
+
         Initializes internal state by creating self.formulas as an empty list for collecting Formula objects discovered during graph analysis.
         """
         self.formulas: List[Formula] = []
@@ -126,11 +126,11 @@ class FormulaicAnalyzer:
     ) -> Dict[str, Any]:
         """
         Assembles the consolidated analysis payload containing formulas, empirical relationships, and computed metadata.
-        
+
         Parameters:
             all_formulas (List[Formula]): Discovered Formula objects to include in the payload.
             empirical_relationships (Dict[str, Any]): Empirical data derived from the graph (e.g., correlation matrix, strongest correlations, asset/sector summaries).
-        
+
         Returns:
             Dict[str, Any]: Analysis mapping with keys:
                 - "formulas": list of provided Formula objects,
@@ -156,10 +156,10 @@ class FormulaicAnalyzer:
     ) -> List[Formula]:
         """
         Assembles fundamental valuation and income Formula objects applicable to the assets in the provided graph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Asset relationship graph used to determine which fundamental formulas apply (e.g., presence of equities or dividend-paying stocks).
-        
+
         Returns:
             List[Formula]: A list of applicable fundamental Formula objects (for example: equity fundamentals and dividend yield when dividend-paying stocks are present).
         """
@@ -198,10 +198,10 @@ class FormulaicAnalyzer:
     def _price_to_earnings_formula(graph: AssetRelationshipGraph) -> Formula:
         """
         Constructs a Formula representing the Price-to-Earnings (P/E) ratio.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to produce the example calculation for the formula.
-        
+
         Returns:
             Formula: A Formula for "Price-to-Earnings" with expression "P / E", LaTeX "\\frac{P}{E}", variables `P` mapped to "Price per share" and `E` mapped to "Earnings per share (EPS)", category "Valuation", and an example calculation derived from the provided graph.
         """
@@ -223,10 +223,10 @@ class FormulaicAnalyzer:
     def _dividend_yield_formula(graph: AssetRelationshipGraph) -> Formula:
         """
         Constructs a Formula for dividend yield (dividend per share divided by price per share).
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to generate the example_calculation for the formula.
-        
+
         Returns:
             Formula: A Formula named "Dividend Yield" with expression `D / P`, LaTeX `\frac{D}{P}`, variables `D` ("Dividend per share") and `P` ("Price per share"), category "Income", and `r_squared` 0.0.
         """
@@ -349,10 +349,10 @@ class FormulaicAnalyzer:
     def _price_to_book_formula(graph: AssetRelationshipGraph) -> Formula:
         """
         Constructs a Formula representing the Price-to-Book (P/B) ratio.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to generate the formula's example calculation.
-        
+
         Returns:
             Formula: A Formula for P/B with its expression, LaTeX, variable metadata, an example calculation derived from `graph`, category "Valuation", and `r_squared` set to 0.88.
         """
@@ -375,7 +375,7 @@ class FormulaicAnalyzer:
     def _enterprise_value_formula() -> Formula:
         """
         Create a Formula object representing Enterprise Value (EV = Market_Cap + Total_Debt - Cash).
-        
+
         Returns:
             Formula: Metadata for the Enterprise Value formula, including expression, LaTeX, variable descriptions for EV, Market_Cap, Debt, and Cash, an example_calculation noting debt/cash data is unavailable, category "Valuation", and r_squared set to 0.95.
         """
@@ -454,10 +454,10 @@ class FormulaicAnalyzer:
     ) -> List[Formula]:
         """
         Builds portfolio-theory Formula objects based on the provided asset relationship graph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to derive example calculations and populate formula metadata.
-        
+
         Returns:
             List[Formula]: Formula objects representing portfolio-theory relationships (currently includes the Portfolio Expected Return).
         """
@@ -490,9 +490,9 @@ class FormulaicAnalyzer:
     ) -> List[Formula]:
         """
         Constructs Formula objects representing detected cross-asset relationships present in the asset graph.
-        
+
         Adds a triangular-arbitrage exchange-rate formula when currency assets are present, and adds a commodity–currency inverse-relationship formula when both commodity and currency assets are present.
-        
+
         Returns:
             List[Formula]: A list of Formula objects for detected cross-asset relationships; empty if none are found.
         """
@@ -600,12 +600,12 @@ class FormulaicAnalyzer:
     ) -> List[Dict[str, Any]]:
         """
         Return the top correlation pairs from a correlation matrix, ranked by absolute correlation.
-        
+
         Parses keys of the form "assetA-assetB", filters out invalid correlations (absolute value > 1.0), assigns a strength label, and returns up to 10 entries sorted by descending absolute correlation.
-        
+
         Parameters:
             correlation_matrix (Dict[str, float]): Mapping with keys "assetA-assetB" and numeric correlation values.
-        
+
         Returns:
             List[Dict[str, Any]]: Up to 10 dictionaries with keys:
                 - "pair": string "assetA-assetB"
@@ -613,7 +613,7 @@ class FormulaicAnalyzer:
                 - "asset2": second asset id
                 - "correlation": numeric correlation value
                 - "strength": one of "Strong" (abs > 0.7), "Moderate" (abs > 0.4), or "Weak" (otherwise)
-        
+
         Notes:
             Entries with absolute correlation greater than 1.0 are excluded as invalid.
         """
@@ -696,12 +696,12 @@ class FormulaicAnalyzer:
     ) -> Dict[str, Dict[str, Any]]:
         """
         Builds statistics for each sector represented in the asset graph.
-        
+
         Iterates assets in the provided graph, ignoring assets without a sector, and aggregates per-sector metrics: the number of assets (`asset_count`), the average asset price as a float (`avg_price`), and a human-readable price range string formatted as "$min.xx - $max.xx" (`price_range`).
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph containing assets to aggregate by sector.
-        
+
         Returns:
             Dict[str, Dict[str, Any]]: Mapping from sector name to a dictionary with keys:
                 - `asset_count` (int): Number of assets assigned to the sector.
@@ -737,10 +737,10 @@ class FormulaicAnalyzer:
     def _summarize_sector_prices(prices: List[float]) -> tuple[float, str]:
         """
         Compute the average price and a formatted price range for a list of sector prices.
-        
+
         Parameters:
             prices (List[float]): Asset prices in USD for the sector.
-        
+
         Returns:
             tuple[float, str]: (avg_price, price_range) where avg_price is the arithmetic mean of `prices` (0.0 if `prices` is empty) and price_range is a formatted string "$min - $max" with two decimal places ("$0.00 - $0.00" if `prices` is empty).
         """
@@ -774,7 +774,7 @@ class FormulaicAnalyzer:
     def _categorize_formulas(formulas: List[Formula]) -> Dict[str, int]:
         """
         Count formulas by their category.
-        
+
         Returns:
             Dict[str, int]: Mapping from category name to the number of formulas in that category.
         """
@@ -791,7 +791,7 @@ class FormulaicAnalyzer:
     ) -> Dict[str, Any]:
         """
         Summarizes analyzed formulas and key empirical relationship metrics.
-        
+
         Returns:
             summary (dict): Aggregated summary containing:
                 total_formulas (int): Number of formulas analyzed.

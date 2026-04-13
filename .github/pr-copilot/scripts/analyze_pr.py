@@ -210,17 +210,17 @@ def assess_complexity(
 ) -> Tuple[int, str]:
     """
     Assess a pull request's overall complexity and determine a risk level.
-    
+
     file_data must be an aggregated metrics mapping that includes the keys:
     `file_count`, `total_changes`, `has_large_files`, and `large_files`; these
     values are used to compute the returned score. commit_count is the number of
     commits in the pull request.
-    
+
     Parameters:
         file_data (Dict[str, Any]): Aggregated file metrics with required keys
             described above.
         commit_count (int): Number of commits included in the pull request.
-    
+
     Returns:
         Tuple[int, str]: A two-item tuple:
             - score: Integer complexity score where higher values indicate greater complexity.
@@ -359,11 +359,11 @@ def find_related_issues(
 def _format_list_items(items: List[str], header: str) -> str:
     """
     Return a Markdown bullet section prefixed by a bold header when `items` is non-empty.
-    
+
     Parameters:
         items (List[str]): Lines to include as bullet points.
         header (str): Section title placed in bold above the list.
-    
+
     Returns:
         str: Markdown string with the bold header and `- ` bullet lines, or an empty string if `items` is empty.
     """
@@ -389,10 +389,10 @@ def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
     """
     Builds a Markdown section listing files with more than 500 changed lines.
-    
+
     Parameters:
         file_analysis (dict): Analysis dictionary that contains a "large_files" list of dicts, each with at least "filename" and "changes".
-    
+
     Returns:
         str: Markdown-formatted section beginning with "**Large Files (>500 lines):**" and one bullet per file in the form "`filename`: N lines"; returns an empty string if no large files are present.
     """
@@ -406,10 +406,10 @@ def _format_large_files(file_analysis: Dict[str, Any]) -> str:
 def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
     """
     Create a Markdown section listing related issue references.
-    
+
     Parameters:
         related_issues (List[Dict[str, str]]): Sequence of issue descriptors; each dict must include a 'number' (int or str) and may include a 'url'.
-    
+
     Returns:
         str: Markdown string starting with "**Related Issues:**" followed by lines like "- #123", or an empty string if no related issues are provided.
     """
@@ -484,9 +484,9 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 def write_output(report: str) -> None:
     """
     Write the Markdown analysis report to permitted outputs: the GitHub Actions step summary (when the summary path is inside the system temp directory), a secure temporary markdown file, and standard output.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set and its resolved path resides inside the system temporary directory, the report is appended to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False), write the report there, and print the temporary file path to stdout. I/O errors encountered while writing either destination are caught and reported to stderr. Finally, the full report is printed to stdout.
-    
+
     Parameters:
         report (str): The Markdown-formatted analysis report to write.
     """
