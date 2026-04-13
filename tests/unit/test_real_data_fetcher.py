@@ -49,10 +49,10 @@ pytestmark = pytest.mark.unit
 def _make_import_blocker(blocked_module: str):
     """
     Create an import-side-effect function that raises ModuleNotFoundError when the given module name is imported.
-    
+
     Parameters:
         blocked_module (str): The module name that the returned import hook will block.
-    
+
     Returns:
         callable: A function with the same signature as builtins.__import__ which raises ImportError for `blocked_module` and delegates to the real import for other modules.
     """
@@ -60,13 +60,13 @@ def _make_import_blocker(blocked_module: str):
     def _blocking_import(name, *args, _real_import=__import__, **kwargs):
         """
         Act as an import hook that blocks a specific module name by raising ModuleNotFoundError, otherwise delegates to the real import.
-        
+
         Parameters:
             name (str): The top-level module name being imported.
             *args: Additional positional arguments forwarded to the real import function.
             _real_import (callable): Import function to delegate to (defaults to built-in __import__); injected for testing/mocking.
             **kwargs: Additional keyword arguments forwarded to the real import function.
-        
+
         Raises:
             ImportError: If `name` equals the externally provided `blocked_module`, with message "Mocked: {blocked_module} is not installed".
         """
@@ -87,12 +87,12 @@ def _make_history_mock(
 ) -> Mock:
     """
     Build a lightweight mock resembling a pandas-like history object with a configurable closing price.
-    
+
     Parameters:
         close_value (float): Value returned when accessing the last element of the `Close` series via `.iloc[...]`.
         empty (bool): If True, sets the history's `.empty` attribute to True.
         has_close (bool): If True, includes "Close" in the history's `.columns`; otherwise `.columns` is empty.
-    
+
     Returns:
         Mock: A Mock object that:
             - has `.empty` and `.columns` attributes,
@@ -147,15 +147,15 @@ class TestGetYfinanceLazyImport:
         def side_effect(name, *args, **kwargs):
             """
             Mock import handler that simulates a failing import for the "yfinance" package and otherwise delegates to the real import.
-            
+
             Parameters:
                 name (str): The module name being imported.
                 *args: Additional positional arguments forwarded to the real importer.
                 **kwargs: Additional keyword arguments forwarded to the real importer.
-            
+
             Returns:
                 Any: The result of the real import for modules other than "yfinance".
-            
+
             Raises:
                 ImportError: Always raised with the message "Dependency conflict while importing yfinance" when `name` is "yfinance".
             """
@@ -479,7 +479,7 @@ class TestFallback:
         def custom_factory():
             """
             Return a prebuilt AssetRelationshipGraph provided by the surrounding test scope.
-            
+
             Returns:
                 AssetRelationshipGraph: the `custom_graph` object defined in the enclosing scope.
             """
@@ -1115,7 +1115,7 @@ class TestGraphBuilding:
     ):
         """
         Verifies that create_real_database constructs a non-empty set of asset relationships when multiple equities are present.
-        
+
         Sets up two equities (and no bonds, commodities, currencies, or events), builds the real database with network enabled, and asserts the resulting graph contains at least one relationship.
         """
         mock_equity.return_value = [
@@ -1434,9 +1434,9 @@ class TestDataFetcherConsistency:
 
         known_symbols = {"AAPL", "MSFT", "XOM", "JPM"}
         referenced_assets = {event.asset_id for event in events}
-        assert any(
-            asset_id in known_symbols for asset_id in referenced_assets
-        ), "Events should reference known asset IDs"
+        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
+            "Events should reference known asset IDs"
+        )
 
 
 @pytest.mark.unit
