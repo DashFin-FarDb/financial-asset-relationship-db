@@ -69,6 +69,8 @@ def _get_yfinance():
             "Ensure it is installed or optional features won't work."
         ) from exc
     return yf
+
+
 def __getattr__(name: str) -> Any:
     """Module-level __getattr__ (PEP 562) for lazy backward-compatible access.
 
