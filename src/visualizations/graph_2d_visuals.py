@@ -122,25 +122,25 @@ def _create_2d_relationship_traces(
     show_all_relationships: bool = False,
 ) -> List[go.Scatter]:
     """
-    Create 2D edge traces for asset relationships, grouped and filtered by relationship type.
-
-    Each returned trace draws all edges of a single relationship type as lines; hover text includes "source → target", the relationship type, and the reported strength. If `asset_ids` or `positions` is empty, an empty list is returned.
-
+    Create Plotly line traces for asset-to-asset relationships, grouped and filtered by relationship type.
+    
+    Builds one Scatter trace per included relationship type where each trace contains polyline segments for all edges of that type and hover text showing "source → target", relationship type, and strength. If `asset_ids` or `positions` is empty, returns an empty list.
+    
     Parameters:
-        graph: AssetRelationshipGraph containing relationships as tuples of the form (target_id, rel_type, strength).
-        positions: Mapping from asset ID to 2D (x, y) coordinates used to draw edges.
-        asset_ids: Sequence of asset IDs to consider when collecting relationships.
-        show_same_sector: Include relationships with internal key "same_sector".
-        show_market_cap: Include relationships with internal key "market_cap_similar".
-        show_correlation: Include relationships with internal key "correlation".
-        show_corporate_bond: Include relationships with internal key "corporate_bond_to_equity".
-        show_commodity_currency: Include relationships with internal key "commodity_currency".
-        show_income_comparison: Include relationships with internal key "income_comparison".
-        show_regulatory: Include relationships with internal key "regulatory_impact".
-        show_all_relationships: If True, ignore the individual show_* toggles and include all relationship types present in the graph.
-
+        graph (AssetRelationshipGraph): Graph with relationships stored as tuples (target_id, rel_type, strength).
+        positions (dict[str, tuple[float, float]]): Mapping from asset ID to 2D coordinates.
+        asset_ids (list[str]): Asset IDs to consider when collecting relationships.
+        show_same_sector (bool): Include relationships with internal key "same_sector".
+        show_market_cap (bool): Include relationships with internal key "market_cap_similar".
+        show_correlation (bool): Include relationships with internal key "correlation".
+        show_corporate_bond (bool): Include relationships with internal key "corporate_bond_to_equity".
+        show_commodity_currency (bool): Include relationships with internal key "commodity_currency".
+        show_income_comparison (bool): Include relationships with internal key "income_comparison".
+        show_regulatory (bool): Include relationships with internal key "regulatory_impact".
+        show_all_relationships (bool): When True, ignore individual show_* toggles and include all relationship types present in the graph.
+    
     Returns:
-        List[go.Scatter]: A list of Plotly Scatter traces, one per included relationship type; returns an empty list if there are no asset IDs or positions.
+        list[go.Scatter]: List of Plotly Scatter traces, one per included relationship type; empty if no traces are applicable.
     """
     if not asset_ids or not positions:
         return []
@@ -183,10 +183,17 @@ def _relationship_visibility_filters(
     show_regulatory: bool,
 ) -> Dict[str, bool]:
     """
-    Map internal relationship type keys to visibility flags based on the provided toggles.
-
+    Produce a mapping from internal relationship type keys to their visibility flags.
+    
     Returns:
-        Dict[str, bool]: Mapping from internal relationship type keys to `True` if that relationship type should be shown, `False` otherwise. Keys: "same_sector", "market_cap_similar", "correlation", "corporate_bond_to_equity", "commodity_currency", "income_comparison", "regulatory_impact".
+        Dict[str, bool]: Mapping where each key is an internal relationship type and the value is `True` if that relationship should be shown, `False` otherwise. Keys:
+            - "same_sector"
+            - "market_cap_similar"
+            - "correlation"
+            - "corporate_bond_to_equity"
+            - "commodity_currency"
+            - "income_comparison"
+            - "regulatory_impact"
     """
     return {
         "same_sector": show_same_sector,
@@ -370,13 +377,13 @@ def _spring_or_fallback_positions(
 
 def _asset_class_label(asset: object) -> str:
     """
-    Return a human-readable asset class label for an asset.
-
-    If the asset has an `asset_class` attribute, returns its `value` attribute as a string when present (e.g., for enum-like objects); otherwise returns `str(asset.asset_class)`. If the attribute is missing, returns an empty string.
-
+    Produce a human-readable label for an asset's asset class.
+    
+    If the asset has an `asset_class` attribute and that attribute has a `value` attribute (e.g., an enum), returns `str(asset.asset_class.value)`. If `asset_class` exists but has no `value`, returns `str(asset.asset_class)`. If the asset lacks `asset_class`, returns an empty string.
+    
     Parameters:
         asset (object): Object that may have an `asset_class` attribute.
-
+    
     Returns:
         str: The asset class label, or an empty string if not present.
     """
@@ -442,24 +449,25 @@ def visualize_2d_graph(
     show_all_relationships: bool = False,
 ) -> go.Figure:
     """
-    Visualize an AssetRelationshipGraph as a 2D Plotly network using a chosen layout and relationship filters.
-
-    Renders assets as node markers (sized by connection count) and relationships as separate line traces grouped by relationship type. Relationship-specific boolean toggles control whether those relationship types are included; setting show_all_relationships to True overrides the toggles and includes all relationship types.
-
+    Render an AssetRelationshipGraph as a 2D Plotly network using the specified layout and relationship visibility toggles.
+    
+    Renders assets as labeled node markers (marker size reflects connection count) and relationship edges as separate line traces grouped by relationship type. Relationship boolean flags control inclusion of each relationship category; setting show_all_relationships to True overrides individual flags and includes all relationship types.
+    
     Parameters:
+        graph (AssetRelationshipGraph): The graph containing assets and relationships to visualize.
         layout_type (str): Layout to use; one of "spring", "circular", or "grid".
-        show_all_relationships (bool): If True, include all relationship types regardless of individual toggles.
-        show_same_sector (bool): Include "same sector" relationships when True.
-        show_market_cap (bool): Include "market cap" relationships when True.
+        show_same_sector (bool): Include "same_sector" relationships when True.
+        show_market_cap (bool): Include "market_cap_similar" relationships when True.
         show_correlation (bool): Include "correlation" relationships when True.
-        show_corporate_bond (bool): Include "corporate bond" relationships when True.
-        show_commodity_currency (bool): Include "commodity/currency" relationships when True.
-        show_income_comparison (bool): Include "income comparison" relationships when True.
-        show_regulatory (bool): Include "regulatory" relationships when True.
-
+        show_corporate_bond (bool): Include "corporate_bond_to_equity" relationships when True.
+        show_commodity_currency (bool): Include "commodity_currency" relationships when True.
+        show_income_comparison (bool): Include "income_comparison" relationships when True.
+        show_regulatory (bool): Include "regulatory_impact" relationships when True.
+        show_all_relationships (bool): If True, include all relationship types regardless of the individual flags.
+    
     Returns:
-        go.Figure: Plotly Figure containing the 2D asset network with node markers and relationship edge traces.
-
+        go.Figure: A Plotly Figure containing the 2D asset network with node markers and relationship edge traces grouped by relationship type.
+    
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
     """

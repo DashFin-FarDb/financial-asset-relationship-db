@@ -323,14 +323,14 @@ type QueryUpdaterParams = Readonly<{
 }>;
 
 /**
- * Synchronizes component filter, page, and pageSize state with the given URL search params.
+ * Syncs local filter, page, and pageSize state from URL search parameters.
  *
- * Reads filter, page, and pageSize from `searchParams` and updates the provided setters only when the parsed values differ from current state.
+ * Parses `asset_class`, `sector`, `page`, and `per_page` from `searchParams` and updates the provided state setters only when the parsed values differ from current state.
  *
- * @param searchParams - URLSearchParams object to read `asset_class`, `sector`, `page`, and `pageSize` from
- * @param setFilter - State setter for the asset filter; will be set to the parsed filter if it differs from current filter
- * @param setPage - State setter for the current page; will be set to the parsed page if it differs from current page
- * @param setPageSize - State setter for the page size; will be set to the parsed pageSize if it differs from current page size
+ * @param searchParams - URLSearchParams to read `asset_class`, `sector`, `page`, and `per_page` from
+ * @param setFilter - State setter for the asset filter; set to the parsed filter when it differs from the current filter
+ * @param setPage - State setter for the current page; set to the parsed page when it differs from the current page
+ * @param setPageSize - State setter for the page size; set to the parsed page size (`per_page`) when it differs from the current page size
  */
 function useSearchStateSync(
   searchParams: URLSearchParams,
@@ -411,12 +411,12 @@ function useAssetDataLoading({
 }
 
 /**
- * Create a memoized updater that applies incremental changes to the current URL's search parameters using the provided router without causing page scroll.
+ * Create a memoized callback that updates the URL query string via the router without causing page scroll.
  *
- * @param pathname - The current pathname to which updated search params will be appended; if falsy no update is performed.
- * @param searchParams - The current URLSearchParams used as the base for applying `updates`.
- * @param router - Router object with a `replace` method used to update the URL without scrolling.
- * @returns A function that accepts an `updates` record mapping parameter names to string or `null`. The updater sets parameters to the provided string values, removes parameters when `null`, and calls `router.replace` with the new pathname and query only when the resulting search string differs from the current one.
+ * @param pathname - Base pathname to which the updated search string will be appended; if falsy the callback is a no-op.
+ * @param searchParams - Current URLSearchParams used as the baseline for applying updates.
+ * @param router - Router providing a `replace` method used to update the URL without scrolling.
+ * @returns A function that applies the provided updates (sets parameters to strings, removes parameters when `null`) and calls `router.replace` with the new pathname and query only when the resulting query string differs from the current one.
  */
 function useQueryParamUpdater({
   pathname,
@@ -438,15 +438,15 @@ function useQueryParamUpdater({
 }
 
 /**
- * Provides pagination and filter handlers that update local state and keep URL search params in sync.
+ * Create pagination and filter controls that update component state and keep URL query parameters in sync.
  *
  * @returns An object with:
  * - `canGoPrev` - `true` if the current page is greater than 1 and not loading, `false` otherwise.
  * - `canGoNext` - `true` if `totalPages` is known, the current page is less than `totalPages`, and not loading, `false` otherwise.
- * - `handleFilterChange` - A change handler for filter `<select>` elements that sets the specified filter field, resets the page to 1, and updates the URL search params.
- * - `handlePageSizeChange` - A change handler for the page-size `<select>` that parses and sets a new page size, resets the page to 1, and updates the URL search params.
- * - `handlePrevClick` - Navigates to the previous page (subject to clamping) using the same page update logic.
- * - `handleNextClick` - Navigates to the next page (subject to clamping) using the same page update logic.
+ * - `handleFilterChange` - A change handler for a filter `<select>` which sets the given filter field, resets the page to 1, and updates the URL search params (removing the param when cleared).
+ * - `handlePageSizeChange` - A change handler for the page-size `<select>` which parses and sets a new page size, resets the page to 1, and updates the `per_page` and `page` URL params.
+ * - `handlePrevClick` - Navigates to the previous page (clamped to valid bounds) and updates the `page` URL param.
+ * - `handleNextClick` - Navigates to the next page (clamped to valid bounds) and updates the `page` URL param.
  */
 function useNavigationControls({
   pathname,
@@ -515,17 +515,9 @@ function useNavigationControls({
 }
 
 /**
- * Provides controller state and handlers for the asset list, including filtering, pagination, loading state, and metadata.
+ * Centralizes asset list state, metadata loading, URL synchronization, and navigation handlers for the asset list UI.
  *
- * @returns An `AssetListController` containing:
- * - `assets` — the current list of loaded assets
- * - `loading` — `true` while an asset fetch is in progress
- * - `error` — an error message or `null`
- * - `filter` — active filter values (`asset_class`, `sector`)
- * - `assetClasses` and `sectors` — available metadata options for filters
- * - `page`, `pageSize`, and `totalPages` — pagination state
- * - `canGoPrev` and `canGoNext` — booleans indicating pagination availability
- * - handler functions: `handleFilterChange`, `handlePageSizeChange`, `handlePrevClick`, `handleNextClick`
+ * @returns An AssetListController exposing current `assets`, `loading` and `error` state, active `filter` values, available metadata (`assetClasses`, `sectors`), pagination (`page`, `pageSize`, `totalPages`), navigation booleans (`canGoPrev`, `canGoNext`), and handler functions (`handleFilterChange`, `handlePageSizeChange`, `handlePrevClick`, `handleNextClick`).
  */
 function useAssetListController(): AssetListController {
   const router = useRouter();

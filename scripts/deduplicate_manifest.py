@@ -27,10 +27,10 @@ HEADING_RE = re.compile(r"^\s*##\s+(.+?)\s*$")  # matches "## Title"
 
 def _extract_section_heading(line: str) -> str | None:
     """
-    Extract the text of a level-2 Markdown heading from a single line.
-
+    Return the text of a level-2 Markdown heading if the line is a top-level `##` heading.
+    
     Returns:
-        str: The heading text (trimmed) if the line is a level-2 heading (`##`), `None` otherwise.
+        The heading text if the line contains a level-2 heading, `None` otherwise.
     """
     match = HEADING_RE.match(line)
     if match is None:
@@ -46,7 +46,14 @@ def _flush_current_section(
     current_heading: str | None,
     current_content: List[str],
 ) -> None:
-    """Append current section to sections when heading is present."""
+    """
+    Append the current section (heading and its content) to `sections` if `current_heading` is present.
+    
+    Parameters:
+    	sections (List[Tuple[str, str]]): Mutable list of (heading, content) tuples to append to.
+    	current_heading (str | None): The heading for the current section; if `None` nothing is appended.
+    	current_content (List[str]): Lines comprising the section body; joined with newline characters to form the stored content.
+    """
     if current_heading is None:
         return
     sections.append((current_heading, "\n".join(current_content)))
@@ -154,13 +161,13 @@ def reconstruct_manifest(
 
 def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
     """
-    Count how many times each section heading appears in the provided sections.
-
+    Return a mapping of section headings to their occurrence counts.
+    
     Parameters:
-        sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs representing parsed manifest sections.
-
+        sections (List[Tuple[str, str]]): Sequence of (heading, content) pairs from a parsed manifest.
+    
     Returns:
-        Dict[str, int]: Mapping from a heading to the number of times it appears in `sections`.
+        Dict[str, int]: Mapping where each key is a heading and the value is the number of times it appears.
     """
     counts: Dict[str, int] = {}
     for heading, _ in sections:
@@ -184,11 +191,14 @@ def _has_invalid_path_chars(user_value: str) -> bool:
 
 def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
     """
-    Resolve a user-supplied path against a base directory and return the resolved base and candidate path.
-
+    Compute and return the absolute base directory and the resolved candidate path obtained by interpreting the given user path relative to the base directory.
+    
+    Parameters:
+        user_value (str): User-supplied filesystem path (may be relative).
+        base_dir (Path): Base directory to resolve against.
+    
     Returns:
-        tuple[Path, Path]: A pair (base, resolved_path) where `base` is `base_dir.resolve()` and
-        `resolved_path` is `(base / Path(user_value)).resolve()`, both as absolute Paths.
+        tuple[Path, Path]: (base, resolved) where `base` is base_dir.resolve() and `resolved` is the absolute path of `base / user_value`.
     """
     base = base_dir.resolve()
     resolved = (base / Path(user_value)).resolve()
@@ -197,10 +207,10 @@ def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Pa
 
 def _is_within_base(base: Path, candidate: Path) -> bool:
     """
-    Check whether `candidate` is the same path as `base` or is located within it.
-
+    Determine whether `candidate` is the same path as `base` or is located inside `base`.
+    
     Returns:
-        True if `candidate` is `base` or a descendant of `base`, False otherwise.
+        bool: `True` if `candidate` is the same path as `base` or a descendant of `base`, `False` otherwise.
     """
     return os.path.commonpath([str(base), str(candidate)]) == str(base)
 

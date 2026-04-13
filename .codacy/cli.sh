@@ -54,7 +54,8 @@ get_version_from_yaml() {
     return 1
 }
 
-# get_latest_version fetches the latest Codacy CLI v2 release tag from GitHub and echoes the tag (e.g., "v1.2.3"), exiting with an error if a valid version cannot be obtained.
+# get_latest_version fetches the latest Codacy CLI v2 release tag from GitHub and echoes the tag (e.g., "v1.2.3").
+# get_latest_version exits with an error via fatal if a valid version cannot be obtained.
 get_latest_version() {
     local response
     if [ -n "$GH_TOKEN" ]; then
@@ -74,7 +75,7 @@ get_latest_version() {
     echo "$version"
 }
 
-# handle_rate_limit checks the GitHub API response string for an "API rate limit exceeded" message and calls fatal with an explanatory error if the limit is exceeded.
+# handle_rate_limit checks a GitHub API response for the "API rate limit exceeded" message and calls fatal with an explanatory error if the limit is exceeded.
 handle_rate_limit() {
     local response="$1"
     if echo "$response" | grep -q "API rate limit exceeded"; then

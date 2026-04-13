@@ -109,14 +109,14 @@ def _resolve_trace_options(
     legacy_flags: Dict[str, bool],
 ) -> Dict[str, bool]:
     """
-    Merge trace option flags with precedence: legacy_flags override options, which override module defaults.
-
+    Resolve trace option flags by merging module defaults, `options`, and `legacy_flags` in that precedence order.
+    
     Parameters:
-        options: Optional mapping of option names to booleans that override the defaults when provided.
-        legacy_flags: Legacy mapping of option names to booleans that take highest precedence and override both `options` and defaults.
-
+        options (dict[str, bool] | None): Optional overrides for default flags.
+        legacy_flags (dict[str, bool]): Legacy overrides that take highest precedence over `options` and defaults.
+    
     Returns:
-        A mapping of option names to booleans where values from `legacy_flags` override `options`, which override the module defaults.
+        dict[str, bool]: A mapping of option names to booleans where values from `legacy_flags` override `options`, which override the module defaults.
     """
     resolved = dict(DEFAULT_TRACE_OPTIONS)
     if options:
@@ -223,18 +223,20 @@ def _build_relationship_trace(
     positions: Dict[str, Tuple[float, float]],
 ) -> go.Scatter:
     """
-    Builds a Plotly line trace connecting source and target assets for a given relationship type.
-
+    Construct a Plotly Scatter trace containing one independent line segment per relationship.
+    
+    Each segment connects the source and target coordinates and carries hover text showing
+    "{source} → {target}", the relationship type, and the numeric strength formatted to two decimals.
+    
     Parameters:
-        rel_type (str): Relationship type label used for styling and included in hover text.
-        relationships (list[Dict[str, object]]): Sequence of relationship records, each containing
-            'source_id' and 'target_id' and optionally a numeric 'strength'.
-        positions (Dict[str, Tuple[float, float]]): Mapping from asset id to its 2D (x, y) position.
-
+        rel_type (str): Relationship category label used in hover text and to select the segment color.
+        relationships (list[Dict[str, object]]): Records with keys "source_id", "target_id", and optional
+            numeric "strength".
+        positions (Dict[str, Tuple[float, float]]): Mapping from asset id to its (x, y) coordinates.
+    
     Returns:
-        go.Scatter: A Scatter trace with individual line segments for each source→target pair.
-            Hover text for each segment includes "source → target", the relationship type, and
-            the relationship strength formatted to two decimal places.
+        go.Scatter: A Scatter trace with mode="lines"; x/y contain segment endpoints separated by
+        None values so segments are independent, and hovertext contains the per-segment labels.
     """
     edges_x: list[float | None] = []
     edges_y: list[float | None] = []
@@ -265,17 +267,17 @@ def _create_node_trace(
     asset_ids: List[str],
 ) -> go.Scatter:
     """
-    Builds a Plotly Scatter trace representing asset nodes with colors, sizes, labels, and hover text.
-
-    Each marker's color is derived from the asset's class using ASSET_CLASS_COLORS (falls back to "#7f7f7f"), and its size is 20 plus 5 per connection capped at an additional 30. Hover text contains the asset ID and its class.
-
+    Builds a Plotly Scatter trace containing markers and labels for the given asset IDs.
+    
+    Each marker's color is chosen from ASSET_CLASS_COLORS (falls back to "#7f7f7f" when the asset class key is missing). Marker size is 20 plus 5 per relationship for the asset, capped at an additional 30. Hover text shows the asset ID and its class. The ordering of points follows the order of `asset_ids` and positions are taken from `positions`.
+    
     Parameters:
-        graph (AssetRelationshipGraph): Graph containing asset objects and their relationships.
-        positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to its (x, y) position; order of `asset_ids` determines the trace ordering.
-        asset_ids (List[str]): Asset IDs to include in the trace.
-
+        graph (AssetRelationshipGraph): Graph containing asset objects and their relationship lists.
+        positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to (x, y) coordinates.
+        asset_ids (List[str]): Asset IDs to include in the trace; their order determines point and label order.
+    
     Returns:
-        go.Scatter: A configured Scatter trace with markers and text suitable for plotting asset nodes.
+        go.Scatter: A configured scatter trace with markers, text labels, and hover text for the assets.
     """
     node_x = [positions[a][0] for a in asset_ids]
     node_y = [positions[a][1] for a in asset_ids]

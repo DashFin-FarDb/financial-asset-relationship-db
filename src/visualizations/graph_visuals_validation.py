@@ -49,10 +49,10 @@ def _ensure_positions_shape(positions: np.ndarray) -> None:
 
 def _ensure_numeric_dtype(positions: np.ndarray) -> None:
     """
-    Ensure the positions array has a numeric dtype.
-
+    Ensure the NumPy array's dtype is numeric.
+    
     Raises:
-        ValueError: If the array's dtype is not numeric; message includes the actual dtype.
+        ValueError: If `positions.dtype` is not a numeric dtype; the error message includes the actual dtype.
     """
     if not np.issubdtype(positions.dtype, np.number):
         raise ValueError(f"positions must contain numeric values, got dtype {positions.dtype}")
@@ -91,14 +91,14 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
     """
-    Validate that `colors` is a list or tuple of non-empty strings with length equal to `expected_length`.
-
+    Ensure `colors` is a list or tuple containing exactly `expected_length` non-empty strings.
+    
     Parameters:
-        colors (List[str]): Sequence of color values; each item must be a non-empty string.
+        colors (List[str]): Sequence of color values.
         expected_length (int): Required number of color entries.
-
+    
     Raises:
-        ValueError: If `colors` is not a list or tuple of length `expected_length`, or if any entry is not a non-empty string.
+        ValueError: If `colors` is not a list/tuple of length `expected_length`, or if any entry is not a non-empty string.
     """
     if not isinstance(colors, (list, tuple)) or len(colors) != expected_length:
         colors_len = len(colors) if isinstance(colors, (list, tuple)) else "N/A"
@@ -115,11 +115,14 @@ def _validate_hover_texts_list(
     expected_length: int,
 ) -> None:
     """
-    Validate that hover_texts is a list or tuple of non-empty strings with the specified length.
-
+    Ensure hover_texts is a list or tuple of non-empty strings whose length equals expected_length.
+    
     Parameters:
-        hover_texts (List[str]): Sequence of hover text values.
+        hover_texts (List[str]): Sequence of hover text values to validate.
         expected_length (int): Required number of entries in hover_texts.
+    
+    Raises:
+        ValueError: If hover_texts is not a list/tuple, its length does not equal expected_length, or any entry is not a non-empty string.
     """
     _ensure_hover_texts_sequence(hover_texts)
     _ensure_sequence_length(
@@ -135,13 +138,10 @@ def _validate_hover_texts_list(
 
 def _ensure_hover_texts_sequence(hover_texts: List[str]) -> None:
     """
-    Validate that hover_texts is a list or tuple.
-
-    Parameters:
-        hover_texts (List[str]): Sequence of hover text values; must be a list or tuple.
-
+    Ensure `hover_texts` is a list or tuple.
+    
     Raises:
-        ValueError: If hover_texts is not a list or tuple.
+        ValueError: If `hover_texts` is not a list or tuple.
     """
     if not isinstance(hover_texts, (list, tuple)):
         raise ValueError("hover_texts must be a list/tuple")
@@ -172,12 +172,12 @@ def _ensure_non_empty_string_values(
     name: str,
 ) -> None:
     """
-    Ensure every element in the provided sequence is a non-empty string.
-
+    Validate that every element of the sequence is a non-empty string.
+    
     Parameters:
-        values (List[str]): Sequence whose elements must be non-empty strings.
-        name (str): Display name used in the error message if validation fails.
-
+        values (List[str]): Sequence whose elements are validated.
+        name (str): Label used in the raised error message on failure.
+    
     Raises:
         ValueError: If any element in `values` is not a string or is an empty string.
     """
@@ -240,13 +240,13 @@ def _validate_visualization_data(
 
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
     """
-    Validate that `filter_params` maps parameter names to boolean flags.
-
+    Ensure `filter_params` is a dict mapping parameter names to boolean values.
+    
     Parameters:
-        filter_params (Dict[str, bool]): Mapping from parameter names to boolean values.
-
+        filter_params (Dict[str, bool]): Mapping of parameter names to boolean flags.
+    
     Raises:
-        TypeError: If `filter_params` is not a dictionary, or if any value in the mapping is not a `bool`.
+        TypeError: If `filter_params` is not a dict, or if any value in the mapping is not a `bool`.
     """
     if not isinstance(filter_params, dict):
         raise TypeError(f"filter_params must be a dictionary, got {type(filter_params).__name__}")

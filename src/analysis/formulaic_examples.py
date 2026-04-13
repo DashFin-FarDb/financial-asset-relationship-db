@@ -38,13 +38,13 @@ def _is_equity_with_dividend_yield(asset: object) -> bool:
 
 def _is_bond_with_ytm(asset: object) -> bool:
     """
-    Identify fixed-income assets that have a defined yield-to-maturity.
-
+    Check whether an asset is a fixed-income instrument with a defined yield-to-maturity.
+    
     Parameters:
         asset (object): Object expected to have `asset_class` and `yield_to_maturity` attributes.
-
+    
     Returns:
-        bool: `True` if `asset.asset_class` is `AssetClass.FIXED_INCOME` and `asset.yield_to_maturity` is not `None`, `False` otherwise.
+        `true` if `asset.asset_class` is `AssetClass.FIXED_INCOME` and `asset.yield_to_maturity` is not `None`, `false` otherwise.
     """
     if getattr(asset, "asset_class", None) != AssetClass.FIXED_INCOME:
         return False
@@ -80,13 +80,10 @@ def _is_equity_with_book_value(asset: object) -> bool:
 
 def _is_commodity_with_volatility(asset: object) -> bool:
     """
-    Determine whether an asset is a commodity and has a defined volatility attribute.
-
-    Parameters:
-        asset (object): The asset object to inspect.
-
+    Check whether an asset is a commodity with a defined volatility.
+    
     Returns:
-        bool: `true` if `asset.asset_class` equals `AssetClass.COMMODITY` and `asset.volatility` is not `None`, `false` otherwise.
+        `true` if `asset.asset_class` equals `AssetClass.COMMODITY` and `asset.volatility` is not `None`, `false` otherwise.
     """
     if getattr(asset, "asset_class", None) != AssetClass.COMMODITY:
         return False
@@ -124,8 +121,8 @@ def _collect_formatted_examples(
 
 def has_equities(graph: AssetRelationshipGraph) -> bool:
     """
-    Check whether the graph contains at least one equity asset.
-
+    Determine whether the graph contains at least one equity asset.
+    
     Returns:
         `true` if the graph contains one or more assets with class `AssetClass.EQUITY`, `false` otherwise.
     """
@@ -157,10 +154,10 @@ def has_commodities(graph: AssetRelationshipGraph) -> bool:
 
 def has_currencies(graph: AssetRelationshipGraph) -> bool:
     """
-    Check whether the graph contains any currency assets.
-
+    Determine if the graph contains any currency assets.
+    
     Returns:
-        `True` if the graph contains at least one asset with class `AssetClass.CURRENCY`, `False` otherwise.
+        `true` if the graph contains at least one asset with class `AssetClass.CURRENCY`, `false` otherwise.
     """
     return any(asset.asset_class == AssetClass.CURRENCY for asset in graph.assets.values())
 
@@ -202,9 +199,12 @@ def calculate_pe_examples(graph: AssetRelationshipGraph) -> str:
 
 def calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
     """
-    Collects up to two example strings showing an equity's dividend yield and price from the graph.
-
-    Each example is formatted as "SYMBOL: Yield = X.XX% at price $Y.YY". Returns a single string with examples joined by "; " or the default illustrative example "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%" when no matching equities are found.
+    Generate up to two formatted examples of equity dividend yield with price from the graph.
+    
+    Each example is formatted as "SYMBOL: Yield = X.XX% at price $Y.YY" and examples are joined with "; ". If no equities with both dividend yield and a valid numeric price are found, returns the illustrative default string "Example: Div Yield = (2.00 / 100.00) * 100 = 2.00%".
+    
+    Returns:
+        A string containing up to two formatted examples joined by "; ", or the default illustrative example when no matching equities exist.
     """
     examples: list[str] = []
     for asset in graph.assets.values():
@@ -227,9 +227,9 @@ def calculate_dividend_examples(graph: AssetRelationshipGraph) -> str:
 def calculate_ytm_examples(graph: AssetRelationshipGraph) -> str:
     """
     Create up to two formatted yield-to-maturity example strings from bond assets in the graph.
-
+    
     Returns:
-        a joined string of examples (e.g., "TRES: YTM ≈ 3.25%; BNDX: YTM ≈ 2.10%") if any bonds with YTM are found, or the default string "Example: YTM ≈ 3.0%" otherwise.
+        A `; `-separated string of up to two examples formatted as `"SYMBOL: YTM ≈ X.XX%"`; returns `"Example: YTM ≈ 3.0%"` if no bond YTMs are available.
     """
     examples: list[str] = []
     for asset in graph.assets.values():
@@ -293,29 +293,26 @@ def calculate_correlation_examples(graph: AssetRelationshipGraph) -> str:
 
 def calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
     """
-    Builds formatted price-to-book (P/B) examples from equity assets in the graph.
-
-    Scans the provided AssetRelationshipGraph for equities that have a defined book_value and formats up to two examples as "SYMBOL: P/B = X.XX". If no suitable equities are found, returns a default illustrative example.
-
+    Format up to two price-to-book (P/B) examples from equities in the graph.
+    
+    Scans equities in the provided AssetRelationshipGraph for valid numeric `price` and `book_value`, formats each as "SYMBOL: P/B = X.XX", and returns up to two examples joined by "; ". If no suitable equities are found, returns a default illustrative example.
+    
     Parameters:
-        graph (AssetRelationshipGraph): Graph containing assets to inspect for equity book values.
-
+        graph (AssetRelationshipGraph): Graph containing assets to inspect.
+    
     Returns:
-        A string with up to two formatted examples separated by "; ", or a default illustrative example if none are available.
+        str: Up to two formatted P/B example strings joined by "; ", or a default illustrative example if none are available.
     """
 
     def _is_equity_with_book_value_and_price(asset: object) -> bool:
         """
-        Determine whether an asset is an equity that has a numeric book value and price.
-
-        Checks that the asset is classified as equity and that both its `book_value` and `price`
-        exist and can be converted to float.
-
+        Check whether an asset is an equity with numeric `book_value` and `price`.
+        
         Parameters:
-            asset (object): Asset-like object with attributes `asset_class`, `book_value`, and `price`.
-
+            asset (object): Asset-like object expected to have `asset_class`, `book_value`, and `price` attributes.
+        
         Returns:
-            bool: `true` if the asset is an equity and both `book_value` and `price` can be parsed as numbers, `false` otherwise.
+            True if the asset is an equity and both `book_value` and `price` can be converted to float, False otherwise.
         """
         if not _is_equity_with_book_value(asset):
             return False
@@ -351,10 +348,10 @@ def calculate_pb_examples(graph: AssetRelationshipGraph) -> str:
 
 def calculate_sharpe_examples(graph: AssetRelationshipGraph) -> str:
     """
-    Return a fixed example illustrating a Sharpe ratio calculation.
-
+    Provide a fixed illustrative example of a Sharpe ratio calculation.
+    
     Returns:
-        A string containing a formatted Sharpe ratio example, e.g. "Sharpe = (10% - 2%) / 15% = 0.53".
+        A formatted example string: "Sharpe = (10% - 2%) / 15% = 0.53".
     """
     _ = graph
     return "Sharpe = (10% - 2%) / 15% = 0.53"
@@ -362,10 +359,10 @@ def calculate_sharpe_examples(graph: AssetRelationshipGraph) -> str:
 
 def calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
     """
-    Builds up to two formatted volatility (σ) examples from commodity assets in the graph.
-
+    Builds up to two formatted examples of annualized volatility (σ) from commodity assets in the graph.
+    
     Returns:
-        A semicolon-separated string of examples formatted as "SYMBOL: σ = X.XX%". If no commodity volatility values are available, returns the default example "Example: σ = 20% annualized".
+        A semicolon-separated string of up to two examples formatted as "SYMBOL: σ = X.XX%". If no commodity volatility values are available, returns "Example: σ = 20% annualized".
     """
     examples: list[str] = []
     for asset in graph.assets.values():
@@ -380,10 +377,10 @@ def calculate_volatility_examples(graph: AssetRelationshipGraph) -> str:
 
 def calculate_portfolio_return_examples(graph: AssetRelationshipGraph) -> str:
     """
-    Provide a representative example illustrating how to calculate an expected portfolio return as a weighted average of asset returns.
-
+    Return a fixed illustrative example of computing a portfolio's expected return as a weighted average.
+    
     Returns:
-        A formatted example string showing a weighted-average expected return, e.g. "Example: E(Rp) = 0.6 × 10% + 0.4 × 5% = 8%".
+        A string containing a worked example, e.g. "Example: E(Rp) = 0.6 × 10% + 0.4 × 5% = 8%".
     """
     _ = graph
     return "Example: E(Rp) = 0.6 × 10% + 0.4 × 5% = 8%"
@@ -418,10 +415,10 @@ def calculate_exchange_rate_examples(graph: AssetRelationshipGraph) -> str:
 
 def calculate_commodity_currency_examples(graph: AssetRelationshipGraph) -> str:
     """
-    Illustrates the typical relationship between commodity price movements and currency strength.
-
+    Show a brief illustrative example linking commodity price movements to currency strength.
+    
     Returns:
-        example (str): A short example sentence showing that when a commodity's price (e.g., oil) rises, the USD may strengthen.
+        example (str): A short example sentence describing an inverse relationship between commodity prices (e.g., oil) and the USD.
     """
     _ = graph
     return "Example: As oil prices rise, USD strengthens (inverse relationship)"

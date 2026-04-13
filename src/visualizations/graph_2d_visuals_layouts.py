@@ -11,10 +11,10 @@ def _create_circular_layout(
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
     """
-    Assign each asset ID an evenly spaced point on the unit circle.
-
+    Assigns each asset ID to an evenly spaced point on the unit circle.
+    
     If `asset_ids` is empty, returns an empty dict.
-
+    
     Returns:
         positions (Dict[str, Tuple[float, float]]): Mapping from each asset ID to its (x, y) coordinates on the unit circle.
     """
@@ -56,14 +56,14 @@ def _create_spring_layout_2d(
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
     """
-    Converts selected 3D positions into 2D coordinates by taking the X and Y components.
-
+    Convert selected 3D positions to 2D coordinates by taking the first two components (X, Y).
+    
     Parameters:
-        positions_3d (Dict[str, Tuple[float, float, float]]): Mapping from asset ID to its 3D position.
-        asset_ids (List[str]): Asset IDs to include; entries missing from `positions_3d` or whose position is not indexable are skipped.
-
+        positions_3d (Dict[str, Tuple[float, float, float]]): Mapping from asset ID to a 3-element position. Entries that are missing or not indexable are ignored.
+        asset_ids (List[str]): Asset IDs to include in the output, iterated in input order.
+    
     Returns:
-        Dict[str, Tuple[float, float]]: Mapping from each included asset ID to its (x, y) coordinates as floats.
+        Dict[str, Tuple[float, float]]: Mapping of each included asset ID to its (x, y) coordinates as floats.
     """
     if not positions_3d or not asset_ids:
         return {}

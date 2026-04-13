@@ -62,15 +62,25 @@ _ALLOWED_PROTOCOLS: frozenset[str] = frozenset({"http", "https", "mailto"})
 
 def markdown_to_html(md: str) -> str:
     """
-    Convert Markdown to sanitized HTML.
-
-    Renders the provided Markdown to HTML, sanitizes the result using the module's allowlists, and post-processes links to add appropriate safety attributes.
-
+    Convert Markdown to sanitized HTML for safe display.
+    
+    Renders the provided Markdown to HTML, sanitizes it using the module allowlists, and post-processes links to add safe attributes (e.g., `rel="nofollow noopener"`, `target="_blank"`) while avoiding linkification inside code blocks.
+    
     Parameters:
-        md (str): Markdown content to render.
-
+        md (str): Markdown content to convert.
+    
     Returns:
-        str: Sanitized HTML string rendered from the provided Markdown.
+        str: Sanitized HTML produced from the input Markdown.
+    """
+    """
+    Ensure the `rel` attribute includes "noopener" for linkified elements.
+    
+    Parameters:
+        attrs (dict): Bleach linkify attribute mapping; updated in-place so the `(None, 'rel')` entry includes `"noopener"` if it was not already present.
+        _new (bool): Ignored placeholder to match the bleach callback signature.
+    
+    Returns:
+        dict: The same `attrs` mapping with the `rel` value updated to include `"noopener"`.
     """
     """
     Ensure the `rel` attribute value includes "noopener".
@@ -99,14 +109,16 @@ def markdown_to_html(md: str) -> str:
     # Add rel="nofollow noopener" to links and open in new tab defensively.
     def _add_noopener(attrs: dict, _new: bool = False) -> dict:
         """
-        Add "noopener" to the `rel` attribute in a bleach linkify attribute mapping.
-
+        Ensure the 'rel' attribute in a bleach.linkify attribute mapping includes "noopener".
+        
+        Modifies the provided attrs mapping in-place to append "noopener" to the (None, "rel") entry if it is not already present.
+        
         Parameters:
-            attrs (dict): Mapping of attribute keys (typically tuples like `(None, "rel")`) to their values; the mapping is updated (in-place) so the `rel` entry includes `"noopener"`.
-            _new (bool): Ignored; present to match the callback signature expected by bleach.
-
+            attrs (dict): Attribute mapping used by bleach.linkify (keys are typically tuples like (None, "rel")).
+            _new (bool): Ignored; present only to match bleach's callback signature.
+        
         Returns:
-            dict: The same `attrs` mapping with the `rel` value updated to include `"noopener"`.
+            dict: The same attrs mapping with the (None, "rel") value updated to include "noopener".
         """
         rel = attrs.get((None, "rel"), "")
         if "noopener" not in rel:
@@ -166,18 +178,18 @@ ReportFormat = Literal["md", "html"]
 
 def export_report(graph: object, fmt: ReportFormat = "md") -> str:
     """
-    Export a schema report for the given asset relationship graph in the requested format.
-
+    Export a schema report for the provided asset relationship graph in Markdown or sanitized HTML.
+    
     Parameters:
-        graph (object): An AssetRelationshipGraph instance to generate the report from.
-        fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML (case-insensitive).
-
+        graph (object): Must be an AssetRelationshipGraph; a TypeError is raised if a different type is passed.
+        fmt (ReportFormat): Output format, either "md" for Markdown or "html" for sanitized HTML; comparison is case-insensitive.
+    
     Returns:
-        str: Report content in the requested format.
-
+        str: Report content formatted as requested.
+    
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph.
-        ValueError: If `fmt` is not one of "md" or "html".
+        ValueError: If `fmt` is not "md" or "html".
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise TypeError(f"export_report() expected AssetRelationshipGraph, got {type(graph)!r}")
@@ -228,15 +240,15 @@ def attach_to_gradio_interface(
     html: bool = False,
 ) -> Any:
     """
-    Create a Gradio component that renders the current schema report.
-
+    Create a Gradio component that displays the current schema report.
+    
     Parameters:
-        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument function that returns the current graph.
-        html (bool): If True, produce an HTML-rendered report component; otherwise produce a Markdown-rendered component.
-
+        graph_provider (Callable[[], AssetRelationshipGraph]): Zero-argument callable that returns the current AssetRelationshipGraph.
+        html (bool): If True, produce an HTML-rendered component; otherwise produce a Markdown-rendered component.
+    
     Returns:
-        A gr.HTML component when `html` is True, otherwise a gr.Markdown component.
-
+        A gr.HTML component when html is True, otherwise a gr.Markdown component.
+    
     Raises:
         RuntimeError: If Gradio is not installed.
     """

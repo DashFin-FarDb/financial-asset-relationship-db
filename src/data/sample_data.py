@@ -18,10 +18,12 @@ logger = logging.getLogger(__name__)
 
 def create_sample_database() -> AssetRelationshipGraph:
     """
-    Create an expanded sample financial database covering multiple asset classes and regulatory events.
-
+    Create an in-memory sample AssetRelationshipGraph populated with diversified financial assets and regulatory events.
+    
+    Constructs a graph containing equities, corporate and government bonds, commodities, and currencies; registers several regulatory events that reference related assets; and builds inter-asset relationships to produce a connected sample dataset.
+    
     Returns:
-        AssetRelationshipGraph: Graph populated with sample assets, regulatory events, and their established relationships.
+        AssetRelationshipGraph: Populated graph containing the sample assets, regulatory events, and their established relationships.
     """
     try:
         logger.info("Creating expanded sample financial database")
@@ -365,10 +367,14 @@ def create_sample_database() -> AssetRelationshipGraph:
 
 def _log_asset_class_coverage(all_assets: list[object]) -> None:
     """
-    Log counts of sample assets by asset class to the module logger.
-
+    Log how many sample assets belong to each AssetClass to the module logger.
+    
+    Counts Equity, Fixed Income, Commodity, and Currency by inspecting each item's
+    `asset_class` attribute and emits a single INFO-level log line with the four totals.
+    
     Parameters:
-        all_assets (list[object]): Iterable of sample asset instances; each item is expected to expose an `asset_class` attribute used to tally counts for Equity, Fixed Income, Commodity, and Currency.
+        all_assets (list[object]): Sequence of asset instances; each should expose an
+            `asset_class` attribute whose value is a member of `AssetClass`.
     """
     logger.info(
         "Asset classes covered: Equity (%s), Fixed Income (%s), Commodity (%s), Currency (%s)",
@@ -384,13 +390,13 @@ def _count_assets_by_class(
     asset_class: AssetClass,
 ) -> int:
     """
-    Return the number of assets in the provided list whose `asset_class` attribute equals the specified AssetClass.
-
+    Count assets whose `asset_class` attribute equals the given AssetClass.
+    
     Parameters:
-        all_assets (list[object]): Iterable of asset-like objects; each may have an `asset_class` attribute.
-        asset_class (AssetClass): AssetClass value to match against each asset's `asset_class` attribute.
-
+        all_assets (list[object]): Sequence of asset-like objects; some items may not have an `asset_class` attribute.
+        asset_class (AssetClass): AssetClass value to match.
+    
     Returns:
-        int: Number of assets whose `asset_class` attribute equals the given `asset_class`.
+        int: Number of assets whose `asset_class` equals the provided `asset_class`.
     """
     return sum(1 for asset in all_assets if getattr(asset, "asset_class", None) == asset_class)

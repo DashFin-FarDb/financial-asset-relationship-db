@@ -84,16 +84,16 @@ class FormulaicVisualizer:
     @staticmethod
     def _initialize_dashboard_figure() -> go.Figure:
         """
-        Create and return a pre-configured 3x2 subplot Figure for the formula dashboard.
-
+        Create a pre-configured 3x2 Plotly Figure prepared for the formula dashboard.
+        
         The figure contains titled subplots arranged as:
         - Row 1: pie, bar
         - Row 2: heatmap, bar
         - Row 3: bar, table
         Spacing and subplot titles are set to match the dashboard layout.
-
+        
         Returns:
-            go.Figure: A Plotly Figure with the dashboard subplot grid and layout specs.
+            A Plotly `go.Figure` with the dashboard subplot grid and layout specs.
         """
         return make_subplots(
             rows=3,
@@ -117,7 +117,14 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _apply_dashboard_layout(fig: go.Figure) -> None:
-        """Apply final layout configurations to the dashboard figure."""
+        """
+        Configure visual layout and styling for the dashboard figure.
+        
+        Updates the figure's title, height, legend visibility, and background colors to the standard dashboard defaults.
+        
+        Parameters:
+            fig (go.Figure): Plotly figure to be updated with dashboard layout settings.
+        """
         fig.update_layout(
             title="📊 Financial Formulaic Analysis Dashboard",
             height=1000,
@@ -192,8 +199,10 @@ class FormulaicVisualizer:
 
     def _plot_reliability(self, fig: go.Figure, category_stats: Dict[str, Dict[str, float]]) -> None:
         """
-        Plot average R-squared per formula category as a bar chart in the dashboard subplot (row 1, col 2).
-
+        Add a bar chart of average R-squared per formula category to the dashboard (subplot row 1, col 2).
+        
+        Each bar's height is taken from the category's 'avg_r2' value. Bar colors are chosen from the visualizer's color scheme with a gray fallback.
+        
         Parameters:
             fig (go.Figure): Figure to which the bar trace will be added.
             category_stats (Dict[str, Dict[str, float]]): Mapping of category name to statistics; each value must include an 'avg_r2' numeric entry used for bar heights.
@@ -366,15 +375,15 @@ class FormulaicVisualizer:
         correlation_matrix: Mapping[str, Any],
     ) -> float:
         """
-        Get the correlation coefficient for an asset pair, treating the pair as unordered.
-
+        Retrieve the correlation coefficient for a pair of assets treating the pair as unordered.
+        
         Parameters:
             source (str): Source asset identifier.
             target (str): Target asset identifier.
-            correlation_matrix (Mapping[str, Any]): Mapping of pair keys (e.g., "ASSET1-ASSET2") to numeric correlation values.
-
+            correlation_matrix (Mapping[str, Any]): Mapping with pair keys of the form "ASSET1-ASSET2" to numeric correlation values.
+        
         Returns:
-            float: Correlation value for the pair; returns 1.0 when source equals target, 0.0 if no entry exists for either ordering, otherwise the mapped value converted to float.
+            float: `1.0` if `source` equals `target`, the mapped correlation as a float if either "source-target" or "target-source" exists, or `0.0` if no entry is found.
         """
         if source == target:
             return 1.0
@@ -427,7 +436,15 @@ class FormulaicVisualizer:
 
     @staticmethod
     def _to_float(value: Any) -> float:
-        """Safely coerce input values to float."""
+        """
+        Convert a value to a float, returning 0.0 when conversion is not possible.
+        
+        Parameters:
+            value (Any): The input to convert to float.
+        
+        Returns:
+            float: The numeric value of `value` as a float, or `0.0` if `value` cannot be converted.
+        """
         try:
             return float(value)
         except (TypeError, ValueError):
@@ -462,15 +479,11 @@ class FormulaicVisualizer:
 
     def _plot_sector_analysis(self, fig: go.Figure, category_stats: Dict[str, Dict[str, float]]) -> None:
         """
-        Visualizes average R-squared by formula category as a bar chart and
-        adds it to the dashboard.
-
+        Plot average R-squared per formula category as a bar chart and add it to the dashboard.
+        
         Parameters:
-            fig (go.Figure): Plotly Figure containing
-                the subplot grid where the
-                bar trace will be added (row 3, col 1).
-            category_stats (Dict[str, Dict[str, float]]): Pre-aggregated
-                statistics per category containing 'avg_r2' values.
+            fig (go.Figure): Plotly Figure containing the dashboard subplot grid; the bar trace is added at row 3, column 1.
+            category_stats (Dict[str, Dict[str, float]]): Mapping of category names to aggregated stats. Each value must include an `'avg_r2'` numeric entry used for the bar heights.
         """
         if not category_stats:
             return
@@ -711,14 +724,14 @@ class FormulaicVisualizer:
         _correlation_matrix: Any,
     ) -> go.Figure:
         """
-        Builds and returns a Plotly network figure showing the strongest asset correlations.
-
-        Processes up to the first 10 correlation items from `strongest_correlations`, extracts unique asset identifiers, places nodes on a circle, and draws edges for each correlation; if no valid assets are found, returns a figure titled "No valid asset correlations found".
-
+        Render a network diagram of the strongest asset correlations.
+        
+        Processes up to the first 10 correlation items, extracts unique asset identifiers, positions nodes on a circle, and draws edges for each correlation; if no valid assets are found, returns a figure titled "No valid asset correlations found".
+        
         Parameters:
-            strongest_correlations (Any): Iterable of correlation items (dicts or sequences) describing pairwise relationships. Each item should encode two asset identifiers and an optional correlation value.
-            _correlation_matrix (Any): Optional full correlation matrix provided for context or future use; currently ignored by this function.
-
+            strongest_correlations (Any): Iterable of correlation items (dicts or sequences). Each item should encode two asset identifiers and an optional numeric correlation value.
+            _correlation_matrix (Any): Optional full correlation matrix provided for context or future use; currently ignored.
+        
         Returns:
             go.Figure: A Plotly Figure containing edge traces and a node trace representing the asset correlation network, or a Figure titled "No valid asset correlations found" when no assets could be extracted.
         """
@@ -923,18 +936,16 @@ class FormulaicVisualizer:
         analysis_results: Dict[str, Any],
     ) -> go.Figure:
         """
-        Create a grouped bar chart comparing formula reliability and prevalence by category.
-
+        Render a grouped bar chart comparing average R-squared and formula count per category.
+        
         Parameters:
-            analysis_results (Dict[str, Any]): Analysis output that may include a "formulas"
-                key with an iterable of Formula-like objects. Each item should expose
-                a `category` attribute and an `r_squared` attribute or property.
-
+            analysis_results (Dict[str, Any]): Analysis output expected to include a "formulas"
+                key with an iterable of objects exposing a `category` attribute and an `r_squared`
+                attribute or property.
+        
         Returns:
-            go.Figure: A Plotly Figure containing two grouped bar traces:
-                - "Average R-squared" (per category)
-                - "Formula Count" (per category).
-                Returns an empty Figure if no formulas are present.
+            go.Figure: A Plotly Figure with two grouped bar traces — "Average R-squared" and
+            "Formula Count" — keyed by category. Returns an empty Figure when no formulas are present.
         """
         formulas = analysis_results.get("formulas", [])
         fig = go.Figure()
@@ -974,8 +985,11 @@ class FormulaicVisualizer:
     def _apply_metric_comparison_layout(fig: go.Figure) -> None:
         """
         Configure layout for the metric comparison chart.
-
-        Sets the chart title, x/y axis labels, grouped bar mode, and the plot background color on the provided Plotly figure.
+        
+        Updates the provided Plotly Figure with a title, axis labels, grouped bar mode, and a white plot background.
+        
+        Parameters:
+            fig (go.Figure): The Plotly figure to update.
         """
         fig.update_layout(
             title="Formula Categories: Reliability vs Count",

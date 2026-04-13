@@ -24,11 +24,11 @@ class _GraphState:
 
     def __init__(self) -> None:
         """
-        Initialize the state container for a global AssetRelationshipGraph and its factory.
-
-        Creates two attributes used to manage graph initialization:
-        - `graph`: the cached AssetRelationshipGraph instance or `None` if not initialized.
-        - `graph_factory`: an optional callable that returns an AssetRelationshipGraph; when set, it is used to construct `graph`.
+        Create a container to manage a global AssetRelationshipGraph and an optional factory for its lazy initialization.
+        
+        Attributes:
+            graph: Cached AssetRelationshipGraph instance or `None` if not yet initialized.
+            graph_factory: Optional callable that returns an AssetRelationshipGraph; when set, it will be used to construct `graph`.
         """
         self.graph: Optional[AssetRelationshipGraph] = None
         self.graph_factory: Optional[Callable[[], AssetRelationshipGraph]] = None
@@ -40,13 +40,13 @@ graph_lock = threading.Lock()
 
 def get_graph() -> AssetRelationshipGraph:
     """
-    Provide the module's global AssetRelationshipGraph, initializing it if unset.
-
-    If the graph has not been created, attempts thread-safe lazy initialization. Raises a RuntimeError if initialization fails and the graph remains unset.
-
+    Get the module-global AssetRelationshipGraph, initializing it if necessary.
+    
+    If the graph is not yet set, it is created via a thread-safe lazy initialization. If initialization fails and the graph remains unset, an exception is raised.
+    
     Returns:
         AssetRelationshipGraph: The initialized global asset relationship graph.
-
+    
     Raises:
         RuntimeError: If the global graph could not be initialized and remains None.
     """
@@ -90,17 +90,19 @@ def set_graph_factory(
 
 def reset_graph() -> None:
     """
-    Reset the global AssetRelationshipGraph and clear any configured factory so the graph will be reinitialized on next access.
+    Reset module-level graph state so the graph will be recreated on next access.
+    
+    Clears the cached graph instance and any configured graph factory.
     """
     set_graph_factory(None)
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Constructs and returns the global AssetRelationshipGraph using the configured factory or environment-backed data sources.
-
-    If a graph factory is configured on graph_state it is invoked and its result is returned. Otherwise, when the environment variable GRAPH_CACHE_PATH is set a real-data graph backed by that cache is created (network access is enabled when USE_REAL_DATA_FETCHER indicates real data should be used). If GRAPH_CACHE_PATH is not set but USE_REAL_DATA_FETCHER is true, REAL_DATA_CACHE_PATH is used to create a real-data graph with network access enabled. If none of those conditions apply, a sample (in-memory) graph is returned.
-
+    Initialize the global AssetRelationshipGraph using the configured factory or environment-backed data sources.
+    
+    If a factory is set on graph_state, its result is returned. Otherwise, if the environment variable GRAPH_CACHE_PATH is set a RealDataFetcher is created with that path (network access enabled when USE_REAL_DATA_FETCHER is enabled) and its real database is returned. If GRAPH_CACHE_PATH is not set but USE_REAL_DATA_FETCHER is enabled, REAL_DATA_CACHE_PATH is used to create a RealDataFetcher with network access and its real database is returned. If none of those conditions apply, a sample in-memory graph is returned.
+    
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
     """

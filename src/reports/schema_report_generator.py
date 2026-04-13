@@ -78,10 +78,12 @@ class SchemaReportGenerator:
 
     def _render_schema_overview(self) -> List[str]:
         """
-        Produce the "Schema Overview" section listing the supported entity types.
-
+        Return a Markdown "Schema Overview" section listing supported entity types.
+        
+        The section includes an H2 heading, an "Entity Types" subsection, and one line per entity describing key attributes.
+        
         Returns:
-            List[str]: Markdown-formatted lines representing the Schema Overview section.
+            List[str]: Markdown-formatted lines for the Schema Overview section.
         """
         return [
             "## Schema Overview",

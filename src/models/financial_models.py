@@ -44,8 +44,8 @@ class Asset:
     def __post_init__(self) -> None:
         """
         Validate and normalize Asset fields after dataclass initialization.
-
-        Ensures `id`, `symbol`, and `name` are non-empty strings; ensures `price` is a number greater than or equal to zero; ensures `market_cap` is a number greater than or equal to zero or None; converts `currency` to uppercase when it is a string and validates that it matches the three-letter uppercase currency code format.
+        
+        Ensures `id`, `symbol`, and `name` are non-empty strings; `price` and, if provided, `market_cap` are numbers greater than or equal to zero; normalizes `currency` to uppercase and validates it matches a three-letter uppercase currency code. Raises `ValueError` when validations fail.
         """
         self._validate_non_empty_string(
             self.id,
@@ -76,13 +76,13 @@ class Asset:
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
         Validate that `value` is a non-empty string.
-
+        
         Parameters:
-            value (object): The value to validate; must be a `str` and not empty.
+            value (object): The value to validate; must be a non-empty `str`.
             error_message (str): Message used for the raised ValueError.
-
+        
         Raises:
-            ValueError: If `value` is not a `str` or is an empty string, raised with `error_message`.
+            ValueError: If `value` is not a `str` or is an empty string; raised with `error_message`.
         """
         if not isinstance(value, str) or not value:
             raise ValueError(error_message)
@@ -95,15 +95,15 @@ class Asset:
         allow_none: bool = False,
     ) -> None:
         """
-        Validate that a numeric value is greater than or equal to zero.
-
+        Ensure a numeric value is greater than or equal to zero.
+        
         Parameters:
-            value (object): The value to validate; may be an int, float, or None.
+            value (object): The value to check; may be an int, float, or None.
             error_message (str): Message used when raising ValueError for invalid input.
-            allow_none (bool, optional): If True, allow `value` to be None without raising. Defaults to False.
-
+            allow_none (bool, optional): If True, treat `None` as valid. Defaults to False.
+        
         Raises:
-            ValueError: If `value` is not an int or float, is negative, or is None while `allow_none` is False.
+            ValueError: If `value` is not an int/float, is negative, or is `None` while `allow_none` is False.
         """
         if value is None and allow_none:
             return
@@ -113,11 +113,11 @@ class Asset:
     @staticmethod
     def _validate_currency_code(currency: str) -> None:
         """
-        Ensure `currency` is a three-letter uppercase ISO-like currency code.
-
+        Validate that `currency` is a three-letter uppercase ISO-style currency code.
+        
         Parameters:
-            currency (str): Currency code as three uppercase ASCII letters (e.g., "USD").
-
+            currency (str): Currency code expected as exactly three uppercase ASCII letters (e.g., "USD").
+        
         Raises:
             ValueError: If `currency` is not a string of exactly three uppercase letters.
         """
@@ -203,12 +203,12 @@ class RegulatoryEvent:
     @staticmethod
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
-        Validate that `value` is a non-empty string.
-
+        Ensure `value` is a non-empty string.
+        
         Parameters:
-            value (object): The value to validate.
-            error_message (str): Message used for the raised ValueError if validation fails.
-
+            value (object): Value to validate.
+            error_message (str): Error message for the raised ValueError if validation fails.
+        
         Raises:
             ValueError: If `value` is not a `str` or is an empty string.
         """
@@ -218,13 +218,13 @@ class RegulatoryEvent:
     @staticmethod
     def _validate_impact_score(value: object) -> None:
         """
-        Validate that an event impact score is a numeric value within the inclusive range -1 to 1.
-
+        Validate that an event impact score is within the inclusive range -1 to 1.
+        
         Parameters:
-            value (object): The impact score to validate; expected to be an int or float between -1 and 1 inclusive.
-
+            value: Impact score expected to be an int or float between -1 and 1.
+        
         Raises:
-            ValueError: If `value` is not an int/float or is outside the range [-1, 1].
+            ValueError: If `value` is not an int or float, or is outside the range -1 to 1.
         """
         if not isinstance(value, (int, float)) or not -1 <= value <= 1:
             raise ValueError("Impact score must be a float between -1 and 1")
@@ -232,13 +232,13 @@ class RegulatoryEvent:
     @staticmethod
     def _validate_iso_date_prefix(value: object) -> None:
         """
-        Ensure the given value is a string that begins with an ISO 8601 date prefix in the form YYYY-MM-DD.
-
+        Validate that `value` is a string beginning with an ISO 8601 date prefix in the form YYYY-MM-DD.
+        
         Parameters:
-            value (object): The value to validate.
-
+            value (object): The value to validate; expected to be a string starting with `YYYY-MM-DD`.
+        
         Raises:
-            ValueError: If `value` is not a string starting with the pattern `YYYY-MM-DD`.
+            ValueError: If `value` is not a string or does not start with the `YYYY-MM-DD` pattern.
         """
         if not isinstance(value, str) or not re.match(r"^\d{4}-\d{2}-\d{2}", value):
             raise ValueError("Date must be in ISO 8601 format (YYYY-MM-DD...)")

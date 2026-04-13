@@ -1000,6 +1000,14 @@ class TestCleanupPartialOutput:
         target.write_text("data", encoding="utf-8")
 
         def _fail_unlink(self):
+            """
+            Simulated unlink operation that always raises a permission error.
+            
+            Used by tests to emulate Path.unlink failing with insufficient permissions.
+            
+            Raises:
+                OSError: Always raised with the message "permission denied".
+            """
             raise OSError("permission denied")
 
         monkeypatch.setattr(_Path, "unlink", _fail_unlink)
