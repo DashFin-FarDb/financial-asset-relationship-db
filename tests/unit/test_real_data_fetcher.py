@@ -23,15 +23,6 @@ from unittest.mock import Mock, patch
 import pytest
 
 # Provide a lightweight yfinance stub for environments where the optional
-# dependency is not installed; patched in tests as needed.
-try:
-    if importlib.util.find_spec("yfinance") is None:
-        raise ImportError
-except ImportError:
-    yfinance_stub = ModuleType("yfinance")
-    yfinance_stub.Ticker = Mock()
-    sys.modules["yfinance"] = yfinance_stub
-
 from src.data.real_data_fetcher import (
     RealDataFetcher,
     _deserialize_asset,
