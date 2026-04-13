@@ -13,6 +13,7 @@ from __future__ import annotations
 import warnings
 from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -95,11 +96,11 @@ def _has_codecov_upload_step(steps: object) -> bool:
     return any(isinstance(step, dict) and step.get("codecov/upload") is not None for step in steps)
 
 
-def _workflow_has_job(jobs: list[object], job_name: str) -> bool:
+def _workflow_has_job(jobs: list[Any], job_name: str) -> bool:
     return any(job == job_name or (isinstance(job, dict) and job_name in job) for job in jobs)
 
 
-def _workflow_job_config(jobs: list[object], job_name: str) -> dict | None:
+def _workflow_job_config(jobs: list[Any], job_name: str) -> dict | None:
     for job in jobs:
         if isinstance(job, dict) and job_name in job:
             config = job[job_name]
