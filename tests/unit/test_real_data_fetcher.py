@@ -15,10 +15,10 @@ Tests cover:
 import json
 import re
 from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 
+# Provide a lightweight yfinance stub for environments where the optional
 from src.data.real_data_fetcher import (
     RealDataFetcher,
     _deserialize_asset,
@@ -1449,9 +1449,9 @@ class TestDataFetcherConsistency:
 
         # At least some events should reference known symbols
         referenced_assets = {event.asset_id for event in events}
-        assert any(
-            asset_id in known_symbols for asset_id in referenced_assets
-        ), "Events should reference known asset IDs"
+        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
+            "Events should reference known asset IDs"
+        )
 
 
 @pytest.mark.unit
