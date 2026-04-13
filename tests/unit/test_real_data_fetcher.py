@@ -331,7 +331,7 @@ class TestFetchMethods:
         assert isinstance(equities, list)
         assert equities
         assert all(isinstance(eq, Equity) for eq in equities)
-        assert all(eq.price == 150.0 for eq in equities)
+        assert all(abs(eq.price - 150.0) < 1e-9 for eq in equities)
         assert all(eq.sector for eq in equities)
         assert mock_yf.Ticker.call_count == 4
 
