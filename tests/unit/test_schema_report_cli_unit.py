@@ -829,3 +829,275 @@ class TestSecurityAndSafety:
 
         # JSON should be sorted (schema_report key should appear predictably)
         assert json_str.index("schema_report") > 0
+
+
+# ---------------------------------------------------------------------------
+# New functions added in this PR
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+class TestDefaultOutputPath:
+    """Unit tests for default_output_path (new in this PR)."""
+
+    def test_markdown_returns_md_filename(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """MARKDOWN format maps to schema_report.md in cwd."""
+        path = cli_module.default_output_path(cli_module.OutputFormat.MARKDOWN)
+        assert path.name == "schema_report.md"
+
+    def test_text_returns_txt_filename(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """TEXT format maps to schema_report.txt in cwd."""
+        path = cli_module.default_output_path(cli_module.OutputFormat.TEXT)
+        assert path.name == "schema_report.txt"
+
+    def test_json_returns_json_filename(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """JSON format maps to schema_report.json in cwd."""
+        path = cli_module.default_output_path(cli_module.OutputFormat.JSON)
+        assert path.name == "schema_report.json"
+
+    def test_path_is_under_cwd(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """Returned path is inside the current working directory."""
+        from pathlib import Path as _Path
+
+        path = cli_module.default_output_path(cli_module.OutputFormat.MARKDOWN)
+        # The path should be resolvable as an absolute path
+        assert path.is_absolute()
+        assert path.parent == _Path.cwd().resolve()
+
+    def test_returns_path_object(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """Return value is a Path instance."""
+        from pathlib import Path as _Path
+
+        path = cli_module.default_output_path(cli_module.OutputFormat.JSON)
+        assert isinstance(path, _Path)
+
+
+@pytest.mark.unit
+class TestParseOutputFormat:
+    """Unit tests for parse_output_format (new in this PR)."""
+
+    def test_valid_markdown_returns_enum(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """'markdown' string returns OutputFormat.MARKDOWN."""
+        result = cli_module.parse_output_format("markdown")
+        assert result is cli_module.OutputFormat.MARKDOWN
+
+    def test_valid_text_returns_enum(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """'text' string returns OutputFormat.TEXT."""
+        result = cli_module.parse_output_format("text")
+        assert result is cli_module.OutputFormat.TEXT
+
+    def test_valid_json_returns_enum(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """'json' string returns OutputFormat.JSON."""
+        result = cli_module.parse_output_format("json")
+        assert result is cli_module.OutputFormat.JSON
+
+    def test_invalid_value_returns_none(
+        self,
+        cli_module: ModuleType,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """An invalid format string returns None."""
+        result = cli_module.parse_output_format("not-a-format")
+        assert result is None
+
+    def test_invalid_value_prints_error_to_stderr(
+        self,
+        cli_module: ModuleType,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """An invalid format string prints an error message to stderr."""
+        cli_module.parse_output_format("badformat")
+        captured = capsys.readouterr()
+        assert "Invalid output format" in captured.err
+
+    def test_empty_string_returns_none(
+        self,
+        cli_module: ModuleType,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """An empty string is not a valid format and returns None."""
+        result = cli_module.parse_output_format("")
+        assert result is None
+
+    def test_case_sensitive_uppercase_returns_none(
+        self,
+        cli_module: ModuleType,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        """'MARKDOWN' (uppercase) is not accepted – format values are lowercase."""
+        result = cli_module.parse_output_format("MARKDOWN")
+        assert result is None
+
+
+@pytest.mark.unit
+class TestCleanupPartialOutput:
+    """Unit tests for cleanup_partial_output (new in this PR)."""
+
+    def test_none_path_is_noop(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """Passing None does not raise and performs no operation."""
+        cli_module.cleanup_partial_output(None)  # Should not raise
+
+    def test_existing_file_is_deleted(
+        self,
+        cli_module: ModuleType,
+        tmp_path: Path,
+    ) -> None:
+        """An existing file at the given path is removed."""
+        target = tmp_path / "partial.tmp"
+        target.write_text("partial content", encoding="utf-8")
+        assert target.exists()
+
+        cli_module.cleanup_partial_output(target)
+
+        assert not target.exists()
+
+    def test_nonexistent_file_does_not_raise(
+        self,
+        cli_module: ModuleType,
+        tmp_path: Path,
+    ) -> None:
+        """Passing a path that does not exist is a no-op and does not raise."""
+        missing = tmp_path / "no_such_file.tmp"
+        cli_module.cleanup_partial_output(missing)  # Should not raise
+
+    def test_oserror_during_unlink_is_silenced(
+        self,
+        cli_module: ModuleType,
+        tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """An OSError raised by unlink is silently swallowed."""
+        from pathlib import Path as _Path
+
+        target = tmp_path / "locked.tmp"
+        target.write_text("data", encoding="utf-8")
+
+        def _fail_unlink(self):
+            raise OSError("permission denied")
+
+        monkeypatch.setattr(_Path, "unlink", _fail_unlink)
+        # Should not propagate the OSError
+        cli_module.cleanup_partial_output(target)
+
+    def test_directory_path_does_not_raise(
+        self,
+        cli_module: ModuleType,
+        tmp_path: Path,
+    ) -> None:
+        """Passing a directory path (exists but is a dir) does not crash."""
+        sub = tmp_path / "subdir"
+        sub.mkdir()
+        # cleanup_partial_output should not raise even if unlink on a dir may fail
+        try:
+            cli_module.cleanup_partial_output(sub)
+        except Exception:
+            pytest.fail("cleanup_partial_output raised an exception on a directory path")
+
+
+@pytest.mark.unit
+class TestFormatReportContent:
+    """Unit tests for format_report_content (new in this PR)."""
+
+    def test_markdown_format_returns_report_unchanged(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """MARKDOWN format returns the report string unchanged."""
+        report = "# Header\nContent"
+        result = cli_module.format_report_content(cli_module.OutputFormat.MARKDOWN, report)
+        assert result == report
+
+    def test_text_format_strips_markdown_markers(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """TEXT format produces plain text with leading markers removed."""
+        report = "# Title\n- item"
+        result = cli_module.format_report_content(cli_module.OutputFormat.TEXT, report)
+        assert "#" not in result.split("\n")[0]
+        assert "Title" in result
+
+    def test_json_format_wraps_in_schema_report_key(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """JSON format wraps the report under 'schema_report' key."""
+        import json as _json
+
+        report = "# My Report"
+        result = cli_module.format_report_content(cli_module.OutputFormat.JSON, report)
+        data = _json.loads(result)
+        assert "schema_report" in data
+        assert data["schema_report"] == report
+
+    def test_unsupported_format_raises_value_error(
+        self,
+        cli_module: ModuleType,
+        monkeypatch: pytest.MonkeyPatch,
+    ) -> None:
+        """A format value that is not one of the three known formats raises ValueError."""
+        # Monkeypatch OutputFormat to introduce a fake value
+        import enum
+
+        class FakeFormat(enum.Enum):
+            UNKNOWN = "unknown"
+
+        with pytest.raises((ValueError, AttributeError)):
+            cli_module.format_report_content(FakeFormat.UNKNOWN, "report")  # type: ignore[arg-type]
+
+    def test_markdown_with_empty_string(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """MARKDOWN format with an empty string returns an empty string."""
+        result = cli_module.format_report_content(cli_module.OutputFormat.MARKDOWN, "")
+        assert result == ""
+
+    def test_json_with_empty_string_is_valid_json(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """JSON format with an empty report still produces valid JSON."""
+        import json as _json
+
+        result = cli_module.format_report_content(cli_module.OutputFormat.JSON, "")
+        data = _json.loads(result)
+        assert data["schema_report"] == ""
+
+    def test_text_format_is_different_from_markdown(
+        self,
+        cli_module: ModuleType,
+    ) -> None:
+        """TEXT output is meaningfully different from the raw Markdown for marked-up input."""
+        report = "# Heading\n- bullet"
+        md_result = cli_module.format_report_content(cli_module.OutputFormat.MARKDOWN, report)
+        txt_result = cli_module.format_report_content(cli_module.OutputFormat.TEXT, report)
+        # They must differ (TEXT strips markers)
+        assert md_result != txt_result
