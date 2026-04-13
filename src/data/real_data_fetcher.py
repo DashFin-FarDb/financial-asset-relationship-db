@@ -32,8 +32,8 @@ def _get_yfinance() -> Any:
 
     Raises:
         RuntimeError: If yfinance is not installed.
-        RuntimeError: If yfinance or one of its dependencies fails unexpectedly
-            during import.
+        RuntimeError: If yfinance or one of its dependencies fails during import.
+        RuntimeError: If an unexpected import-time error occurs.
     """
     global _YFINANCE_MODULE
 
@@ -48,10 +48,13 @@ def _get_yfinance() -> Any:
             "unavailable. Install it using: pip install yfinance"
         )
         raise RuntimeError(
-            "yfinance is unavailable in the current environment. Install it using: pip install yfinance"
+            "yfinance is unavailable in the current environment. "
+            "Install it using: pip install yfinance"
         ) from exc
     except ImportError as exc:
-        logger.exception("Failed to import yfinance due to an import/dependency problem.")
+        logger.exception(
+            "Failed to import yfinance due to an import/dependency problem."
+        )
         raise RuntimeError(
             "yfinance could not be imported in the current environment. "
             "Check its installation and dependency compatibility."
@@ -59,7 +62,8 @@ def _get_yfinance() -> Any:
     except Exception as exc:
         logger.exception("Unexpected error while importing yfinance.")
         raise RuntimeError(
-            "Unexpected error while loading yfinance. Check the environment and dependency state."
+            "Unexpected error while loading yfinance. "
+            "Check the environment and dependency state."
         ) from exc
 
     _YFINANCE_MODULE = yf
@@ -140,10 +144,14 @@ class RealDataFetcher:
                 logger.info("Loading asset graph from cache at %s", self.cache_path)
                 return _load_from_cache(self.cache_path)
             except Exception:
-                logger.exception("Failed to load cached dataset; proceeding with standard fetch")
+                logger.exception(
+                    "Failed to load cached dataset; proceeding with standard fetch"
+                )
 
         if not self.enable_network:
-            logger.info("Network fetching disabled. Using fallback dataset if available.")
+            logger.info(
+                "Network fetching disabled. Using fallback dataset if available."
+            )
             return self._fallback()
 
         logger.info("Creating database with real financial data from Yahoo Finance")
@@ -175,7 +183,9 @@ class RealDataFetcher:
 
         except Exception:
             logger.exception("Failed to create real database")
-            logger.warning("Falling back to sample data due to real data fetch failure")
+            logger.warning(
+                "Falling back to sample data due to real data fetch failure"
+            )
             return self._fallback()
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
@@ -238,28 +248,27 @@ class RealDataFetcher:
     def _fetch_history_close(
         yf_module: Any,
         symbol: str,
-    ) -> Tuple[Optional[float], Any, Any]:
+    ) -> Tuple[Optional[float], Any]:
         """
-        Fetch ticker metadata and latest close price for a symbol.
+        Fetch the latest close price and ticker object for a symbol.
 
         Args:
             yf_module: Imported yfinance module.
             symbol: Yahoo Finance symbol.
 
         Returns:
-            tuple:
-                - latest close price as float, or None when unavailable
-                - ticker object
-                - history dataframe
+            A tuple of:
+            - latest close price as float, or None when unavailable
+            - ticker object
         """
         ticker = yf_module.Ticker(symbol)
         hist = ticker.history(period="1d")
 
         if hist.empty or "Close" not in hist.columns:
             logger.warning("No price data for %s", symbol)
-            return None, ticker, hist
+            return None, ticker
 
-        return float(hist["Close"].iloc[-1]), ticker, hist
+        return float(hist["Close"].iloc[-1]), ticker
 
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
@@ -279,7 +288,9 @@ class RealDataFetcher:
 
         for symbol, (name, sector) in equity_symbols.items():
             try:
-                current_price, ticker, _hist = RealDataFetcher._fetch_history_close(yf, symbol)
+                current_price, ticker = RealDataFetcher._fetch_history_close(
+                    yf, symbol
+                )
                 if current_price is None:
                     continue
 
@@ -337,7 +348,9 @@ class RealDataFetcher:
 
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             try:
-                current_price, ticker, _hist = RealDataFetcher._fetch_history_close(yf, symbol)
+                current_price, ticker = RealDataFetcher._fetch_history_close(
+                    yf, symbol
+                )
                 if current_price is None:
                     continue
 
@@ -386,7 +399,9 @@ class RealDataFetcher:
 
         for symbol, (name, sector, contract_size, volatility) in commodity_symbols.items():
             try:
-                current_price, _ticker, _hist = RealDataFetcher._fetch_history_close(yf, symbol)
+                current_price, _ticker = RealDataFetcher._fetch_history_close(
+                    yf, symbol
+                )
                 if current_price is None:
                     continue
 
@@ -398,7 +413,9 @@ class RealDataFetcher:
                     sector=sector,
                     price=current_price,
                     contract_size=contract_size,
-                    delivery_date=(datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d"),
+                    delivery_date=(
+                        datetime.now() + timedelta(days=90)
+                    ).strftime("%Y-%m-%d"),
                     volatility=volatility,
                 )
                 commodities.append(commodity)
@@ -431,7 +448,9 @@ class RealDataFetcher:
 
         for symbol, (name, country, currency_code) in currency_symbols.items():
             try:
-                current_rate, _ticker, _hist = RealDataFetcher._fetch_history_close(yf, symbol)
+                current_rate, _ticker = RealDataFetcher._fetch_history_close(
+                    yf, symbol
+                )
                 if current_rate is None:
                     continue
 
@@ -493,7 +512,9 @@ class RealDataFetcher:
                 asset_id="XOM",
                 event_type=RegulatoryActivity.SEC_FILING,
                 date="2024-10-01",
-                description=("10-K Filing - Increased oil reserves and sustainability initiatives"),
+                description=(
+                    "10-K Filing - Increased oil reserves and sustainability initiatives"
+                ),
                 impact_score=0.05,
                 related_assets=["CL_FUTURE"],
             )
@@ -541,7 +562,9 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
     return {
         "assets": [_serialize_dataclass(asset) for asset in graph.assets.values()],
-        "regulatory_events": [_serialize_dataclass(event) for event in graph.regulatory_events],
+        "regulatory_events": [
+            _serialize_dataclass(event) for event in graph.regulatory_events
+        ],
         "relationships": {
             source: [
                 {
