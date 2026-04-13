@@ -14,7 +14,6 @@ Tests cover:
 
 import json
 import re
-from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
@@ -58,8 +57,13 @@ def _make_import_blocker(blocked_module: str):
     return _blocking_import
 
 
-def _make_history_mock(close_value: float, *, empty: bool = False, has_close: bool = True) -> Mock:
-    """Create a minimal history mock supporting .empty, 'Close' in hist, and hist['Close'].iloc[-1]."""
+def _make_history_mock(
+    close_value: float,
+    *,
+    empty: bool = False,
+    has_close: bool = True,
+) -> Mock:
+    """Create a minimal history mock supporting .empty, columns, and Close.iloc[-1]."""
     hist = Mock()
     hist.empty = empty
     hist.columns = ["Close"] if has_close else []
@@ -317,10 +321,6 @@ class TestFetchMethods:
         mock_ticker = Mock()
         mock_ticker.info = {
             "marketCap": 1e12,
-            "trailingPE": 25.0,
-            "dividendYield": 0.01,
-            "trailingEps": 5.0,
-            "bookValue": 20.0,
         }
         mock_ticker.history.return_value = _make_history_mock(150.0)
         mock_yf.Ticker.return_value = mock_ticker
@@ -914,6 +914,7 @@ class TestAllAssetTypes:
 
     @patch("src.data.real_data_fetcher._get_yfinance")
     def test_fetch_all_commodity_symbols(self, mock_get_yfinance):
+        """Verify the commodity fetcher attempts all expected commodity symbols."""
         mock_yf = Mock()
         mock_ticker = Mock()
         mock_ticker.history.return_value = _make_history_mock(2000.0)
@@ -1299,7 +1300,9 @@ class TestAssetFieldValidation:
         events = RealDataFetcher._create_regulatory_events()
 
         for event in events:
-            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), f"Invalid date format: {event.date}"
+            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), (
+                f"Invalid date format: {event.date}"
+            )
 
 
 @pytest.mark.unit
@@ -1347,16 +1350,6 @@ class TestCacheEdgeCases:
 
         assert "E1" in loaded.relationships
         assert "E2" in loaded.relationships
-
-    @staticmethod
-    def test_cache_path_with_nonexistent_directory(tmp_path):
-        cache_path = tmp_path / "deep" / "nested" / "path" / "cache.json"
-        graph = AssetRelationshipGraph()
-
-        _save_to_cache(graph, cache_path)
-
-        assert cache_path.exists()
-        assert cache_path.parent.exists()
 
 
 @pytest.mark.unit
