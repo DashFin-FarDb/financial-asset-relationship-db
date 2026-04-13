@@ -48,7 +48,7 @@ pytestmark = pytest.mark.unit
 
 def _make_import_blocker(blocked_module: str):
     """
-    Create an import-side-effect function that raises ImportError when the given module name is imported.
+    Create an import-side-effect function that raises ModuleNotFoundError when the given module name is imported.
     
     Parameters:
         blocked_module (str): The module name that the returned import hook will block.
@@ -59,7 +59,7 @@ def _make_import_blocker(blocked_module: str):
 
     def _blocking_import(name, *args, _real_import=__import__, **kwargs):
         """
-        Act as an import hook that blocks a specific module name by raising ImportError, otherwise delegates to the real import.
+        Act as an import hook that blocks a specific module name by raising ModuleNotFoundError, otherwise delegates to the real import.
         
         Parameters:
             name (str): The top-level module name being imported.
@@ -71,7 +71,9 @@ def _make_import_blocker(blocked_module: str):
             ImportError: If `name` equals the externally provided `blocked_module`, with message "Mocked: {blocked_module} is not installed".
         """
         if name == blocked_module:
-            raise ImportError(f"Mocked: {blocked_module} is not installed")
+            exc = ModuleNotFoundError(f"Mocked: {blocked_module} is not installed")
+            exc.name = blocked_module
+            raise exc
         return _real_import(name, *args, **kwargs)
 
     return _blocking_import
