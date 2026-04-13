@@ -145,7 +145,7 @@ def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
 
 
 def calculate_score(value: int, thresholds: List[Tuple[int, int]], default: int) -> int:
-    """Helper to calculate score based on value thresholds."""
+    """Calculate score based on value thresholds."""
     for limit, points in thresholds:
         if value > limit:
             return points
@@ -307,7 +307,7 @@ def write_output(report: str) -> None:
 
 
 def run() -> None:
-    """Main execution flow."""
+    """Execute main PR analysis flow."""
     required_vars = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
     env_vars = {var: os.environ.get(var) for var in required_vars}
 

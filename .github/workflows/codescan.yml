@@ -8,7 +8,7 @@
 # read our documentation at https://github.com/codescan-io/codescan-scanner-action
 name: CodeScan
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
   pull_request:
@@ -30,16 +30,16 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           - name: Checkout repository
-            uses: actions/checkout@v4
+            uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
           - name: Cache files
-            uses: actions/cache@v3
+            uses: actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f # v3
             with:
               path: |
                 ~/.sonar
               key: ${{ runner.os }}-sonar
               restore-keys: ${{ runner.os }}-sonar
           - name: Set up JDK 17
-            uses: actions/setup-java@v3
+            uses: actions/setup-java@17f84c3641ba7b8f6deff6309fc4c864478f5d62 # v3
             with:
               java-version: '17'
               distribution: 'adopt'
@@ -50,6 +50,6 @@ jobs:
               organization: ${{ secrets.CODESCAN_ORGANIZATION_KEY }}
               projectKey: ${{ secrets.CODESCAN_PROJECT_KEY }}
           - name: Upload SARIF file
-            uses: github/codeql-action/upload-sarif@v3
+            uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
             with:
               sarif_file: codescan.sarif

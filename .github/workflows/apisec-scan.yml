@@ -28,7 +28,7 @@
 name: APIsec
 
 # Controls when the workflow will run
-on:
+"on":
   # Triggers the workflow on push or pull request events but only for the "main" branch
   # Customize trigger events based on your DevSecOps processes.
   push:
@@ -110,6 +110,6 @@ jobs:
           sarif-result-file: "apisec-results.sarif"
       - name: Import results
         if: steps.check-creds.outputs.has_credentials == 'true'
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
         with:
           sarif_file: ./apisec-results.sarif
