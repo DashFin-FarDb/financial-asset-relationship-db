@@ -124,10 +124,9 @@ class TestDependencyMatrix:
 
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
+        allowed_types = expected_types | {"jsx", "json", "md"}
         found_types = set(file_types)
-        assert found_types.issubset(
-            expected_types | {"jsx", "json", "md"}
-        ), f"Unexpected file types: {found_types - expected_types}"
+        assert found_types.issubset(allowed_types), f"Unexpected file types: {found_types - allowed_types}"
 
     def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
         """Test that dependencyMatrix.md has File Type Distribution section."""
@@ -637,9 +636,9 @@ class TestDocumentationRealisticContent:
 
         # Extract file paths from the manifest (look for common patterns)
         file_patterns = [
-            r"###\s+\\([\w\\\/._-]+\.py)",
-            r"###\s+\\([\w\\\/._-]+\.tsx?)",
-            r"###\s+\\([\w\\\/._-]+\.jsx?)",
+            r"###\s+\\([\w\\\/.-]+\.py)",
+            r"###\s+\\([\w\\\/.-]+\.tsx?)",
+            r"###\s+\\([\w\\\/.-]+\.jsx?)",
         ]
 
         mentioned_files = []
