@@ -1300,9 +1300,7 @@ class TestAssetFieldValidation:
         events = RealDataFetcher._create_regulatory_events()
 
         for event in events:
-            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), (
-                f"Invalid date format: {event.date}"
-            )
+            assert re.match(r"^\d{4}-\d{2}-\d{2}$", event.date), f"Invalid date format: {event.date}"
 
 
 @pytest.mark.unit
