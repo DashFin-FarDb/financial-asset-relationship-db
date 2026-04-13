@@ -15,7 +15,6 @@ Tests cover:
 import json
 import re
 from pathlib import Path
-from types import ModuleType
 from unittest.mock import Mock, patch
 
 import pytest
