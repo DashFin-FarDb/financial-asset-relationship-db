@@ -34,6 +34,10 @@ This PR does **not** do:
 
 ## Validation run locally
 
+## Validation run locally
+
+- [ ] `python --version`
+- [ ] `pip --version`
 - [ ] `pip install -r requirements.txt`
 - [ ] `pip check`
 - [ ] `pip install -e .`
