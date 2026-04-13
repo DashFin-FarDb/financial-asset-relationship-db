@@ -47,25 +47,6 @@ def _get_yfinance():
     return _YFINANCE_MODULE
 
 
-def _get_yfinance():
-    """
-    Lazily import yfinance when needed.
-
-    Returns:
-        module: The yfinance module.
-
-    Raises:
-        RuntimeError: If yfinance is unavailable in the current environment.
-    """
-    try:
-        import yfinance as yf
-    except Exception as exc:
-        logger.error("Failed to import yfinance. It may not be installed.")
-        raise RuntimeError(
-            "yfinance is unavailable in the current environment. "
-            "Ensure it is installed or optional features won't work."
-        ) from exc
-    return yf
 
 
 class RealDataFetcher:
@@ -289,7 +270,6 @@ class RealDataFetcher:
         }
 
         bonds = []
-        yf = _get_yfinance()
         for symbol, (name, sector, issuer_id, rating) in bond_symbols.items():
             try:
                 ticker = yf.Ticker(symbol)
@@ -343,7 +323,6 @@ class RealDataFetcher:
         }
 
         commodities: List[Commodity] = []
-        yf = _get_yfinance()
         for symbol, (
             name,
             sector,
