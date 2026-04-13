@@ -439,9 +439,6 @@ class FinancialAssetApp:
     def refresh_visualization(
         self,
         _graph_state: AssetRelationshipGraph,
-    def refresh_visualization(
-        self,
-        _graph_state: AssetRelationshipGraph,
         view_mode: str,
         layout_type: str,
         show_same_sector: bool=True,
