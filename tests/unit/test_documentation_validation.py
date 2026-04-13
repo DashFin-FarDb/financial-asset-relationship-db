@@ -858,13 +858,11 @@ class TestChangedFunctionLogic:
         for match in matches:
             assert "\\" in match or "/" in match, f"File path should have proper separators: {match}"
 
-    def test_old_and_new_regex_are_functionally_equivalent_for_underscore(self):
-        """Confirm the regex change is non-breaking: both old and new match underscore paths."""
-        old_pattern = r"###\s+\\[\w\\/._-]+\.\w+"
-        new_pattern = r"###\s+\\[\w\\/.-]+\.\w+"
+    def test_regex_still_matches_underscore_paths(self):
+        """Confirm underscore paths still match after simplifying the character class."""
+        pattern = r"###\s+\\[\w\\/.-]+\.\w+"
         header_with_underscore = r"### \src\my_module\test_utils.py"
-        assert re.search(old_pattern, header_with_underscore) is not None
-        assert re.search(new_pattern, header_with_underscore) is not None
+        assert re.search(pattern, header_with_underscore) is not None
 
     # ------------------------------------------------------------------ #
     # 3. Dependency-entry content condition (lines 452-457)                #
