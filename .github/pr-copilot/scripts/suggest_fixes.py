@@ -356,10 +356,9 @@ def write_output(report: str) -> None:
     if gh_summary:
         try:
             summary_path = os.path.realpath(gh_summary)
-            allowed_roots = {os.path.realpath(tempfile.gettempdir())}
             runner_temp = os.environ.get("RUNNER_TEMP")
             if runner_temp:
-            summary_path = os.path.realpath(gh_summary)
+                pass
             with open(summary_path, "a", encoding="utf-8") as f:
                 f.write(report)
         except (IOError, ValueError) as e:

@@ -18,8 +18,6 @@ import tempfile
 from typing import Any, Dict
 from unittest.mock import patch
 
-import pytest
-
 # Add the pr-copilot scripts directory to sys.path so analyze_pr can be
 # imported directly (same pattern used by test_generate_status.py).
 sys.path.insert(
