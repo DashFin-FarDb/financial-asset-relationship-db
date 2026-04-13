@@ -74,21 +74,21 @@ def markdown_to_html(md: str) -> str:
     """
     """
     Ensure the `rel` attribute includes "noopener" for linkified elements.
-    
+
     Parameters:
         attrs (dict): Bleach linkify attribute mapping; updated in-place so the `(None, 'rel')` entry includes `"noopener"` if it was not already present.
         _new (bool): Ignored placeholder to match the bleach callback signature.
-    
+
     Returns:
         dict: The same `attrs` mapping with the `rel` value updated to include `"noopener"`.
     """
     """
     Ensure the `rel` attribute value includes "noopener".
-    
+
     Parameters:
         attrs (dict): Mapping of attribute keys (typically tuples like `(None, "rel")`) to their values; modified in-place and returned.
         _new (bool): Unused placeholder to match the callback signature expected by Bleach.
-    
+
     Returns:
         dict: The same `attrs` mapping with the `rel` value updated to include "noopener" if it was not already present.
     """
