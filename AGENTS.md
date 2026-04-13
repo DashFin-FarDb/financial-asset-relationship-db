@@ -19,9 +19,7 @@ pip install -r requirements.txt
 
 Install dev tooling:
 ```pwsh
-pip install -r requirements.txt
 pip install -r requirements-dev.txt
-```
 
 (If you have GNU Make available, see “Makefile shortcuts” below.)
 
