@@ -24,18 +24,17 @@ _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
 
 
 
-
 def _get_yfinance() -> Any:
     """
-    Lazily import yfinance so optional dependency absence does not break startup.
-
+    Lazily import and cache the `yfinance` module for optional live-data features.
+    
     Returns:
-        The imported yfinance module.
-
+        The imported `yfinance` module.
+    
     Raises:
-        RuntimeError: If yfinance is not installed.
-        RuntimeError: If yfinance or one of its dependencies fails during import.
-        RuntimeError: If an unexpected import-time error occurs.
+        RuntimeError: If `yfinance` is not installed in the environment.
+        RuntimeError: If `yfinance` or one of its dependencies fails to import.
+        RuntimeError: If an unexpected error occurs during import.
     """
     global _YFINANCE_MODULE
 
@@ -131,11 +130,12 @@ class RealDataFetcher:
 
     def create_real_database(self) -> AssetRelationshipGraph:
         """
-        Build an asset relationship graph from live data or fallback data.
-
+        Constructs an AssetRelationshipGraph using cached data, live Yahoo Finance data, or fallback/sample data.
+        
+        Attempts to load from cache when a configured cache path exists; if network fetching is disabled or live fetch fails, returns the configured fallback (or the built-in sample dataset). 
+        
         Returns:
-            AssetRelationshipGraph: A populated graph built from cached, live,
-            or fallback/sample data depending on availability and configuration.
+            AssetRelationshipGraph: A graph populated from cache, live data, or fallback/sample data.
         """
         if self.cache_path and self.cache_path.exists():
             try:
@@ -182,10 +182,9 @@ class RealDataFetcher:
 
     def _persist_cache(self, graph: AssetRelationshipGraph) -> None:
         """
-        Persist the asset relationship graph to the configured cache file.
-
-        The graph is written to a temporary file and then atomically moved into
-        place. Cache persistence failures are logged and do not raise.
+        Write the asset relationship graph to the configured cache file.
+        
+        Writes the graph to a temporary file in the cache directory and atomically replaces the final cache path with that temporary file. If no cache path is configured this is a no-op. Any I/O or serialization errors are logged and suppressed; on failure the method makes a best-effort attempt to remove the temporary file.
         """
         import os
         import tempfile
@@ -227,7 +226,12 @@ class RealDataFetcher:
 
     def _fallback(self) -> AssetRelationshipGraph:
         """
-        Return fallback data when live fetching is unavailable.
+        Provide a fallback AssetRelationshipGraph when live fetching is unavailable.
+        
+        If a `fallback_factory` was configured, returns its result; otherwise returns the packaged sample database.
+        
+        Returns:
+            AssetRelationshipGraph: The fallback graph produced by the factory or the sample database.
         """
         if self.fallback_factory:
             return self.fallback_factory()
@@ -242,16 +246,14 @@ class RealDataFetcher:
         symbol: str,
     ) -> Tuple[Optional[float], Any]:
         """
-        Fetch the latest close price and ticker object for a symbol.
-
-        Args:
-            yf_module: Imported yfinance module.
-            symbol: Yahoo Finance symbol.
-
+        Fetch the most recent closing price for a Yahoo Finance symbol and return it with the ticker object.
+        
+        Parameters:
+            yf_module (Any): The imported yfinance module to use for fetching.
+            symbol (str): Yahoo Finance ticker symbol.
+        
         Returns:
-            A tuple of:
-            - latest close price as float, or None when unavailable
-            - ticker object
+            tuple[Optional[float], Any]: A pair (latest close price as float or `None` if unavailable, ticker object).
         """
         ticker = yf_module.Ticker(symbol)
         hist = ticker.history(period="1d")
@@ -265,7 +267,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_equity_data() -> List[Equity]:
         """
-        Fetch current market data for major equities.
+        Builds a list of Equity objects for a fixed set of major symbols using Yahoo Finance data.
+        
+        Fetches current price and metadata for each predefined equity symbol and constructs an Equity dataclass for each symbol with available price data. Symbols for which a current price cannot be obtained are skipped.
+        
+        Returns:
+            List[Equity]: Equity objects for symbols successfully fetched; symbols with missing price data are omitted.
         """
         yf = _get_yfinance()
 
@@ -311,10 +318,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_bond_data() -> List[Bond]:
         """
-        Fetch bond and treasury ETF market data and return Bond proxy instances.
-
-        Since individual bond data is less directly accessible, this uses a
-        small set of treasury and corporate bond ETFs as fixed-income proxies.
+        Construct Bond proxy instances from a fixed set of treasury and corporate bond ETF symbols.
+        
+        Uses a predefined list of ETF symbols as fixed-income proxies, creating a Bond for each symbol that has available price data; symbols with missing price data are skipped.
+        
+        Returns:
+            List[Bond]: Bond proxy objects built for each ETF with available market data.
         """
         yf = _get_yfinance()
 
@@ -373,7 +382,12 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_commodity_data() -> List[Commodity]:
         """
-        Fetch commodity futures data.
+        Create and return Commodity objects for a fixed set of futures symbols.
+        
+        Attempts to fetch the latest close price for each configured futures symbol and constructs a Commodity for each symbol that has a valid price; symbols with missing price data are skipped. Individual symbol fetch failures are handled per-symbol without aborting the entire operation.
+        
+        Returns:
+            List[Commodity]: List of Commodity instances for successfully fetched futures.
         """
         yf = _get_yfinance()
 
@@ -418,7 +432,16 @@ class RealDataFetcher:
     @staticmethod
     def _fetch_currency_data() -> List[Currency]:
         """
-        Fetch foreign exchange rate data.
+        Builds Currency objects for a predefined set of FX pairs using the latest available rates.
+        
+        Fetches the most recent exchange rate for each configured symbol and constructs a Currency
+        dataclass populated with id, symbol, name, asset_class (Currency), sector ("Forex"),
+        price, exchange_rate, country, and a default central_bank_rate of 0.02. Symbols with
+        missing price data are skipped; failures for individual symbols are handled per-symbol
+        and do not stop the overall fetch.
+        
+        Returns:
+            List[Currency]: A list of successfully constructed Currency objects.
         """
         yf = _get_yfinance()
 
@@ -458,9 +481,12 @@ class RealDataFetcher:
     @staticmethod
     def _create_regulatory_events() -> List[RegulatoryEvent]:
         """
-        Create a small set of sample regulatory events associated with assets.
-
-        These are synthetic enrichment events used alongside fetched price data.
+        Constructs a fixed set of synthetic RegulatoryEvent objects associated with assets.
+        
+        These events are static, hard-coded enrichment items (no external I/O) intended to be added to the graph alongside fetched price data. Each event includes an identifier, target asset id, regulatory activity type, ISO-formatted date, brief description, numeric impact score, and related asset ids.
+        
+        Returns:
+            List[RegulatoryEvent]: The list of synthetic regulatory events.
         """
         events: List[RegulatoryEvent] = []
 
@@ -513,14 +539,23 @@ def create_real_database() -> AssetRelationshipGraph:
 
 def _enum_to_value(value: Any) -> Any:
     """
-    Convert an Enum instance to its underlying value.
+    Convert an Enum to its underlying value; return other objects unchanged.
+    
+    Returns:
+        The underlying value if `value` is an `Enum`, otherwise `value` unchanged.
     """
     return value.value if isinstance(value, Enum) else value
 
 
 def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
     """
-    Serialize a dataclass instance into a JSON-friendly dictionary.
+    Convert a dataclass instance into a JSON-serializable dictionary with type metadata.
+    
+    Parameters:
+        obj (Any): A dataclass instance to serialize.
+    
+    Returns:
+        Dict[str, Any]: A dictionary of the dataclass fields with enum values converted to their underlying values and an added "__type__" key containing the dataclass class name.
     """
     data = asdict(obj)
     serialized = {key: _enum_to_value(val) for key, val in data.items()}
@@ -530,7 +565,16 @@ def _serialize_dataclass(obj: Any) -> Dict[str, Any]:
 
 def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
     """
-    Serialize an AssetRelationshipGraph into a JSON-serializable dictionary.
+    Convert an AssetRelationshipGraph into a JSON-serializable dictionary.
+    
+    Returns:
+        payload (dict): A JSON-friendly mapping with the following keys:
+            - "assets": list of serialized asset objects.
+            - "regulatory_events": list of serialized regulatory event objects.
+            - "relationships": mapping from source asset id to a list of objects each containing
+              "target", "relationship_type", and "strength".
+            - "incoming_relationships": mapping from target asset id to a list of objects each
+              containing "source", "relationship_type", and "strength".
     """
     incoming_relationships: Dict[str, List[Tuple[str, str, float]]] = {}
 
@@ -570,7 +614,15 @@ def _serialize_graph(graph: AssetRelationshipGraph) -> Dict[str, Any]:
 
 def _deserialize_asset(data: Dict[str, Any]) -> Asset:
     """
-    Deserialize a dictionary representation of an asset.
+    Reconstructs an Asset (or specific Asset subclass) instance from a JSON-like dictionary.
+    
+    If the input contains a "__type__" key, that value is used to select the concrete dataclass to instantiate; unknown or missing "__type__" defaults to Asset. If the dictionary contains an "asset_class" value, it is converted to the AssetClass enum before instantiation.
+    
+    Parameters:
+        data (Dict[str, Any]): Serialized asset data (as produced by _serialize_dataclass).
+    
+    Returns:
+        Asset: An instance of Asset or one of its subclasses (Equity, Bond, Commodity, Currency) populated from the input data.
     """
     data = dict(data)
     type_name = data.pop("__type__", "Asset")
@@ -592,7 +644,14 @@ def _deserialize_asset(data: Dict[str, Any]) -> Asset:
 
 def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
     """
-    Deserialize a dictionary representation of a regulatory event.
+    Convert a serialized regulatory event dictionary into a RegulatoryEvent instance.
+    
+    Parameters:
+        data (Dict[str, Any]): Serialized event data (as produced by _serialize_dataclass/_serialize_graph),
+            where `event_type` is the stored enum value.
+    
+    Returns:
+        RegulatoryEvent: A reconstructed RegulatoryEvent with `event_type` converted back to the RegulatoryActivity enum.
     """
     data = dict(data)
     data["event_type"] = RegulatoryActivity(data["event_type"])
@@ -602,6 +661,11 @@ def _deserialize_event(data: Dict[str, Any]) -> RegulatoryEvent:
 def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
     """
     Reconstruct an AssetRelationshipGraph from a serialized payload.
+    
+    The payload should contain optional "assets", "regulatory_events", and "relationships" keys produced by _serialize_graph. Assets and events are deserialized and added to the graph; relationships are recreated from the "relationships" mapping by calling add_relationship(source, target, relationship_type, strength, bidirectional=False). Strength values are coerced to float. The payload key "incoming_relationships" is ignored.
+    
+    Returns:
+        AssetRelationshipGraph: A newly constructed graph containing the deserialized assets, events, and relationships.
     """
     graph = AssetRelationshipGraph()
 
@@ -628,6 +692,12 @@ def _deserialize_graph(payload: Dict[str, Any]) -> AssetRelationshipGraph:
 def _load_from_cache(path: Path) -> AssetRelationshipGraph:
     """
     Load an AssetRelationshipGraph from a JSON cache file.
+    
+    Parameters:
+        path (Path): Filesystem path to the JSON cache file to read.
+    
+    Returns:
+        AssetRelationshipGraph: The reconstructed graph deserialized from the file's JSON payload.
     """
     with path.open("r", encoding="utf-8") as fp:
         payload = json.load(fp)
@@ -636,7 +706,9 @@ def _load_from_cache(path: Path) -> AssetRelationshipGraph:
 
 def _save_to_cache(graph: AssetRelationshipGraph, path: Path) -> None:
     """
-    Persist an AssetRelationshipGraph to a JSON file.
+    Write the given AssetRelationshipGraph to path as a JSON cache file.
+    
+    Creates parent directories if necessary and writes the serialized graph payload (via _serialize_graph) to the specified path using UTF-8 encoding and two-space indentation.
     """
     payload = _serialize_graph(graph)
     path.parent.mkdir(parents=True, exist_ok=True)
