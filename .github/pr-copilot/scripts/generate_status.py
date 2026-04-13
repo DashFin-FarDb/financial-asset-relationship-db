@@ -216,8 +216,7 @@ def format_checks_section(checks: List[CheckRunInfo]) -> str:
 
 
 def generate_markdown(status: PRStatus) -> str:
-    """
-    Builds a Markdown-formatted status report for the provided pull request.
+    """Build a Markdown-formatted status report for the pull request.
 
     Generate a complete PR report including PR metadata, review statistics, CI/check details, mergeability, a task checklist, and a UTC timestamp footer.
 
@@ -227,7 +226,6 @@ def generate_markdown(status: PRStatus) -> str:
     Returns:
         report (str): The Markdown document summarizing the PR status.
     """
-
     # Review Section
     revs = status.review_stats
     review_section = (

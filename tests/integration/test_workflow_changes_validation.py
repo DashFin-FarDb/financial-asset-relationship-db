@@ -386,3 +386,25 @@ class TestWorkflowIntegration:
                     if "$" not in path and "*" not in path:
                         full_path = repo_root / path
                         assert full_path.exists(), f"Path {path} referenced in {workflow_file.name} doesn't exist"
+
+
+class TestDependencyCheckWorkflowPresence:
+    """Tests confirming that dependency-check.yml is present and valid."""
+
+    @staticmethod
+    def test_dependency_check_workflow_file_exists():
+        """dependency-check.yml should exist in the current workflow set."""
+        workflow_path = Path(".github/workflows/dependency-check.yml")
+        assert workflow_path.exists(), (
+            "dependency-check.yml is part of the current repository workflow set "
+            "and should exist unless this PR removes it"
+        )
+
+    @staticmethod
+    def test_dependency_check_workflow_yaml_is_valid():
+        """dependency-check.yml should parse as a valid workflow YAML document."""
+        workflow_path = Path(".github/workflows/dependency-check.yml")
+        with open(workflow_path, "r") as f:
+            workflow = yaml.safe_load(f)
+
+        assert isinstance(workflow, dict), "dependency-check.yml should contain a valid workflow mapping"

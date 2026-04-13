@@ -12,6 +12,29 @@ from typing import Dict, List, Optional, Tuple
 import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 
+def _int_option(options: Dict[str, object], key: str, default: int) -> int:
+    """Return an int option value with safe fallback to default."""
+    value = options.get(key, default)
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        return int(value)
+    if isinstance(value, str):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return default
+    return default
+
+
+def _str_option(options: Dict[str, object], key: str, default: str) -> str:
+    """Return a string option value with safe fallback to default."""
+    value = options.get(key, default)
+    return value if isinstance(value, str) else default
+
+
 def _generate_dynamic_title(
     num_assets: int,
     num_relationships: int,
@@ -88,12 +111,12 @@ def _configure_3d_layout(
             - legend_bordercolor (str): Legend border color. Default "rgba(0, 0, 0, 0.3)".
     """
     opts = options or {}
-    width = int(opts.get("width", 1200))
-    height = int(opts.get("height", 800))
-    gridcolor = str(opts.get("gridcolor", "rgba(200, 200, 200, 0.3)"))
-    bgcolor = str(opts.get("bgcolor", "rgba(248, 248, 248, 0.95)"))
-    legend_bgcolor = str(opts.get("legend_bgcolor", "rgba(255, 255, 255, 0.8)"))
-    legend_bordercolor = str(opts.get("legend_bordercolor", "rgba(0, 0, 0, 0.3)"))
+    width = _int_option(opts, "width", 1200)
+    height = _int_option(opts, "height", 800)
+    gridcolor = _str_option(opts, "gridcolor", "rgba(200, 200, 200, 0.3)")
+    bgcolor = _str_option(opts, "bgcolor", "rgba(248, 248, 248, 0.95)")
+    legend_bgcolor = _str_option(opts, "legend_bgcolor", "rgba(255, 255, 255, 0.8)")
+    legend_bordercolor = _str_option(opts, "legend_bordercolor", "rgba(0, 0, 0, 0.3)")
 
     fig.update_layout(
         title={

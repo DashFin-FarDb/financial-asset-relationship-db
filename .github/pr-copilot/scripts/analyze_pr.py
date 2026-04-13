@@ -537,7 +537,8 @@ def run() -> None:
 
     Validates required environment variables, loads configuration, fetches the referenced pull request from GitHub, analyzes files and commits to compute a complexity score and risk level, detects scope issues and related issue references, and writes a Markdown report to configured outputs (CI step summary when allowed, a secure temp file, and stdout). Exits the process with status 0 on success or a non-zero status on missing/invalid environment, GitHub API errors, or other runtime failures. Emits a CI warning when the computed risk level is High.
     """
-    env_vars = {var: os.environ.get(var) for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")}
+    required_vars = ["GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME"]
+    env_vars = {var: os.environ.get(var) for var in required_vars}
 
     if not all(env_vars.values()):
         print(f"Error: Missing vars: {[k for k, v in env_vars.items() if not v]}", file=sys.stderr)

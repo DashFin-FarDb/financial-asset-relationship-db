@@ -3,7 +3,7 @@ name: PR Copilot Agent
 # Comprehensive PR management, maintenance, and completion workflows
 # Triggered by PR mentions, labels, events, and status checks
 
-on:
+"on":
   pull_request:
     types: [opened, labeled, synchronize]
   pull_request_review:
@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: Detect trigger type and set flags
         id: detect
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const eventName = context.eventName;
@@ -163,15 +163,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Configure welcome message
         id: config
         run: |
           echo "config_exists=false" >> $GITHUB_OUTPUT
 
       - name: Post welcome message
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -220,7 +219,7 @@ jobs:
     steps:
       - name: Analyze PR scope
         id: analyze
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -262,7 +261,7 @@ jobs:
 
       - name: Post scope warning if needed
         if: steps.analyze.outputs.should_warn == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -297,10 +296,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.11'
 
@@ -316,7 +314,7 @@ jobs:
           python .github/pr-copilot/scripts/generate_status.py
 
       - name: Post status update
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const fs = require('fs');
@@ -393,7 +391,7 @@ jobs:
     steps:
       - name: Analyze review comments
         id: analyze
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -455,7 +453,7 @@ jobs:
 
       - name: Acknowledge actionable feedback
         if: steps.analyze.outputs.has_actionable == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -486,7 +484,7 @@ jobs:
     steps:
       - name: Evaluate merge eligibility
         id: evaluate
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -546,7 +544,7 @@ jobs:
 
       - name: Post merge eligibility status
         if: steps.evaluate.outputs.is_eligible == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -573,7 +571,7 @@ jobs:
 
       - name: Post merge blockers if not eligible
         if: steps.evaluate.outputs.is_eligible == 'false'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -615,7 +613,7 @@ jobs:
     steps:
       - name: Check for conflicts
         id: check
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};
@@ -636,7 +634,7 @@ jobs:
 
       - name: Notify about conflicts
         if: steps.check.outputs.has_conflicts == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:
           script: |
             const prNumber = ${{ needs.detect-trigger.outputs.pr_number }};

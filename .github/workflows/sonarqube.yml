@@ -26,7 +26,7 @@
 
 name: SonarQube analysis
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:
