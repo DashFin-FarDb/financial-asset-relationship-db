@@ -238,7 +238,7 @@ class TestDependencyChangePRTemplate:
                 assert i + 1 < len(commands), f"Install command '{cmd}' has no following command in the checklist"
                 next_cmd = commands[i + 1]
                 assert next_cmd == "pip check", (
-                    f"Install command '{cmd}' must be immediately followed by 'pip check', " f"but got '{next_cmd}'"
+                    f"Install command '{cmd}' must be immediately followed by 'pip check', but got '{next_cmd}'"
                 )
 
     def test_validation_section_editable_install_present_and_not_duplicated(self, content: str) -> None:
@@ -250,12 +250,12 @@ class TestDependencyChangePRTemplate:
         dev_editable = [c for c in commands if c == 'pip install -e ".[dev]"']
 
         assert len(bare_editable) >= 1, "Validation section must include 'pip install -e .'"
-        assert (
-            len(bare_editable) == 1
-        ), f"'pip install -e .' must appear exactly once; found {len(bare_editable)} occurrences"
-        assert (
-            len(dev_editable) == 1
-        ), f"'pip install -e \".[dev]\"' must appear exactly once; found {len(dev_editable)} occurrences"
+        assert len(bare_editable) == 1, (
+            f"'pip install -e .' must appear exactly once; found {len(bare_editable)} occurrences"
+        )
+        assert len(dev_editable) == 1, (
+            f"'pip install -e \".[dev]\"' must appear exactly once; found {len(dev_editable)} occurrences"
+        )
 
     def test_guardrail_checklist_has_checkboxes(self, content: str) -> None:
         guardrail_section = content.split("## Guardrail checklist")[1]
