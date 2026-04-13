@@ -71,6 +71,8 @@ def _get_yfinance():
     return yf
 
 
+
+
 def __getattr__(name: str) -> Any:
     """Module-level __getattr__ (PEP 562) for lazy backward-compatible access.
 
