@@ -296,7 +296,7 @@ class RealDataFetcher:
                 equities.append(equity)
 
                 logger.info(
-                    "Fetched %s: %s at $%.2f",
+                    _FETCHED_ASSET_LOG_MESSAGE,
                     symbol,
                     name,
                     current_price,
@@ -358,7 +358,7 @@ class RealDataFetcher:
                 bonds.append(bond)
 
                 logger.info(
-                    "Fetched %s: %s at $%.2f",
+                    _FETCHED_ASSET_LOG_MESSAGE,
                     symbol,
                     name,
                     current_price,
@@ -403,7 +403,7 @@ class RealDataFetcher:
                 commodities.append(commodity)
 
                 logger.info(
-                    "Fetched %s: %s at $%.2f",
+                    _FETCHED_ASSET_LOG_MESSAGE,
                     symbol,
                     name,
                     current_price,
