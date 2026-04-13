@@ -41,7 +41,8 @@ This PR does **not** do:
 
 - [ ] `python --version`
 - [ ] `pip --version`
-- [ ] `pip install -r requirements.txt`
+- [ ] `pip install -e .`
+- [ ] `pip check`
 - [ ] `pip check`
 - [ ] `pip install -e .`
 - [ ] `pip check`
