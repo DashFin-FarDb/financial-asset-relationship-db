@@ -16,7 +16,7 @@ executors:
 
   node-executor:
     docker:
-      - image: cimg/node:25.7.0
+      - image: cimg/node:25.9.0
     working_directory: ~/project
     resource_class: medium
     environment:
@@ -137,7 +137,7 @@ jobs:
             - /home/circleci/.local/lib/python3.11/site-packages
       - run:
           name: Security check with safety
-          command: safety check --json --ignore 72086
+          command: safety check --file requirements.txt --json --ignore 72086
       - run:
           name: Security check with bandit
           command: bandit -r src/ -ll -f json -o bandit-report.json

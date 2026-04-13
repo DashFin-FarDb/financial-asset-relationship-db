@@ -17,7 +17,6 @@ from typing import Dict, List, Optional
 
 try:
     from github import Github, GithubException
-    from github.PullRequest import PullRequest
 except ImportError:
     print("Error: Required package 'PyGithub' not installed.", file=sys.stderr)
     print("Run: pip install PyGithub", file=sys.stderr)
@@ -117,7 +116,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
         file_count=pr.changed_files,  # API Attribute (Fast)
         additions=pr.additions,
         deletions=pr.deletions,
-        labels=[l.name for l in pr.labels],
+        labels=[label.name for label in pr.labels],
         mergeable=pr.mergeable,
         mergeable_state=pr.mergeable_state or "unknown",
         review_stats=review_stats,
@@ -127,8 +126,7 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
 
 def format_checklist(status: PRStatus) -> str:
-    """
-    Builds a Markdown task checklist reflecting PR readiness, review approvals, CI check status, merge conflicts, and change requests.
+    """Build a Markdown task checklist reflecting PR readiness and status.
 
     Parameters:
         status (PRStatus): Aggregated pull request data used to determine checklist state (draft status, review counts, check run results, and mergeability).
@@ -203,8 +201,7 @@ def format_checks_section(checks: List[CheckRunInfo]) -> str:
 
 
 def generate_markdown(status: PRStatus) -> str:
-    """
-    Builds a Markdown-formatted status report for the provided pull request.
+    """Build a Markdown-formatted status report for the pull request.
 
     Generate a complete PR report including PR metadata, review statistics, CI/check details, mergeability, a task checklist, and a UTC timestamp footer.
 
@@ -214,7 +211,6 @@ def generate_markdown(status: PRStatus) -> str:
     Returns:
         report (str): The Markdown document summarizing the PR status.
     """
-
     # Review Section
     revs = status.review_stats
     review_section = (

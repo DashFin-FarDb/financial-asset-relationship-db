@@ -1,6 +1,6 @@
 name: Python CI
 
-on:
+"on":
   push:
     branches: ["main"]
   pull_request:
@@ -26,10 +26,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -37,7 +37,7 @@ jobs:
       # Caching Layers (Batch 11)
       # ------------------------------------------------------------
       - name: Cache pip dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/pip
           key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt', 'requirements-dev.txt') }}
@@ -46,19 +46,19 @@ jobs:
             pip-${{ runner.os }}-
 
       - name: Cache ruff
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: ~/.cache/ruff
           key: ruff-${{ runner.os }}
 
       - name: Cache mypy
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .mypy_cache
           key: mypy-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/*.py') }}
 
       - name: Cache pytest cache
-        uses: actions/cache@v4
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
         with:
           path: .pytest_cache
           key: pytest-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/*.py') }}
@@ -120,7 +120,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Run CI common for security checks (Python 3.11)
         uses: ./.github/actions/ci-common

@@ -10,7 +10,7 @@
 # Some projects require creating a frogbot-config.yml file. Read more about it here - https://docs.jfrog-applications.jfrog.io/jfrog-applications/frogbot/setup-frogbot/frogbot-configuration
 
 name: "Frogbot Scan Pull Request"
-on:
+"on":
   pull_request_target:
     types: [ opened, synchronize ]
 permissions:
@@ -26,7 +26,7 @@ jobs:
     # Only run if JF_URL secret is configured
     if: secrets.JF_URL != ''
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 

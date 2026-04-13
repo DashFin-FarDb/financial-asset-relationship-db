@@ -644,7 +644,7 @@ class TestResponseValidation:
 class TestRealDataFetcherFallback:
     """Test RealDataFetcher fallback behavior when external APIs fail."""
 
-    @patch("src.data.real_data_fetcher.yf.Ticker")
+    @patch("yfinance.Ticker")
     def test_real_data_fetcher_complete_failure_fallback(self, mock_ticker):
         """Test that RealDataFetcher falls back to sample data when fetching fails completely."""
         from src.data.real_data_fetcher import RealDataFetcher
@@ -667,7 +667,7 @@ class TestRealDataFetcherFallback:
             assert isinstance(graph, AssetRelationshipGraph)
             assert len(graph.assets) > 0  # Should have sample data
 
-    @patch("src.data.real_data_fetcher.yf.Ticker")
+    @patch("yfinance.Ticker")
     def test_real_data_fetcher_partial_fetch_success(self, mock_ticker):
         """Test RealDataFetcher when all individual fetches fail gracefully (empty lists)."""
         from src.data.real_data_fetcher import RealDataFetcher
@@ -701,7 +701,7 @@ class TestRealDataFetcherFallback:
         # After fallback to sample data, should have assets
         assert len(graph.assets) > 0
 
-    @patch("src.data.real_data_fetcher.yf.Ticker")
+    @patch("yfinance.Ticker")
     def test_real_data_fetcher_empty_history_graceful_handling(self, mock_ticker):
         """Test RealDataFetcher handles empty ticker history gracefully."""
         import pandas as pd
@@ -741,7 +741,7 @@ class TestRealDataFetcherFallback:
         assert any("Falling back" in call for call in warning_calls)
 
     @patch("src.data.real_data_fetcher.logger")
-    @patch("src.data.real_data_fetcher.yf.Ticker")
+    @patch("yfinance.Ticker")
     @staticmethod
     def test_individual_asset_class_fetch_failures_logged(mock_ticker, mock_logger):
         """Test that individual asset class fetch failures are logged properly."""
@@ -780,7 +780,7 @@ class TestCacheCorruptionRegression:
     """Regression tests for cache corruption and data integrity scenarios."""
 
     @staticmethod
-    @patch("src.data.real_data_fetcher.yf.Ticker")
+    @patch("yfinance.Ticker")
     def test_real_data_fetcher_handles_corrupted_cache_gracefully(mock_ticker):
         """Regression: RealDataFetcher should handle corrupted cache without crashing."""
         from src.data.real_data_fetcher import RealDataFetcher
@@ -846,7 +846,7 @@ class TestCacheCorruptionRegression:
             assert len(graph.assets) == len(reference_graph.assets)
 
     @staticmethod
-    @patch("src.data.real_data_fetcher.yf.Ticker")
+    @patch("yfinance.Ticker")
     def test_fallback_creates_valid_empty_graph_on_total_failure(mock_ticker):
         """Regression: Total API failure should create a valid empty or sample graph."""
         from src.data.real_data_fetcher import RealDataFetcher
