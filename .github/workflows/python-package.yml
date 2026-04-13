@@ -37,7 +37,7 @@ jobs:
       matrix:
         python-version: ["3.9", "3.10", "3.11"]
 
-steps:
+    steps:
     - name: Python CI common (${{ matrix.python-version }})
       uses: ./.github/actions/ci-common
       env:
