@@ -248,9 +248,9 @@ class TestDeletedFilesImpact:
         for workflow_file in workflows_dir.glob("*.yml"):
             with open(workflow_file, "r") as f:
                 content = f.read()
-                assert (
-                    "context_chunker" not in content.lower()
-                ), f"{workflow_file.name} should not reference deleted context_chunker script"
+                assert "context_chunker" not in content.lower(), (
+                    f"{workflow_file.name} should not reference deleted context_chunker script"
+                )
 
 
 class TestWorkflowSecurityBestPractices:
@@ -293,9 +293,9 @@ class TestWorkflowSecurityBestPractices:
             if "permissions" in workflow:
                 perms = workflow["permissions"]
                 # Should not have blanket 'write-all' permission
-                assert (
-                    perms.get("contents") != "write" or len(perms) > 1
-                ), f"{workflow_file.name} should limit permissions"
+                assert perms.get("contents") != "write" or len(perms) > 1, (
+                    f"{workflow_file.name} should limit permissions"
+                )
 
 
 class TestWorkflowYAMLValidity:
