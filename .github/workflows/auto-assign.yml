@@ -1,19 +1,24 @@
 name: Issue and PR auto-assign
-"on":
+
+on:
   issues:
     types: [opened]
-  pull_request_target:
+  pull_request:
     types: [opened]
+
 permissions:
+  contents: read
   issues: write
   pull-requests: write
+
 jobs:
   auto-assign:
+    if: github.event_name == 'issues' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     runs-on: ubuntu-latest
     steps:
       - name: Auto-assign new issues and PRs
         uses: pozil/auto-assign-issue@65947009a243e6b3993edeef4e64df3ca85d760c # v1.14.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          assignees: 'mohavro'
+          assignees: "mohavro"
           numOfAssignee: 1
