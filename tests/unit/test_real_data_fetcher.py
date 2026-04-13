@@ -12,7 +12,6 @@ Tests cover:
 - Edge cases and error handling
 """
 
-import importlib.util
 import json
 import re
 import sys
