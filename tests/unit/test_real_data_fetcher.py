@@ -14,7 +14,7 @@ Tests cover:
 
 import json
 import re
-from unittest.mock import Mock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
@@ -98,12 +98,11 @@ def _make_history_mock(
             - has `.empty` and `.columns` attributes,
             - supports indexing like `hist["Close"]` returning a series mock whose `.iloc[...]` access yields `close_value`.
     """
-    hist = Mock()
+    hist = MagicMock()
     hist.empty = empty
     hist.columns = ["Close"] if has_close else []
 
-    close_series = Mock()
-    close_series.iloc = Mock()
+    close_series = MagicMock()
     close_series.iloc.__getitem__ = Mock(return_value=close_value)
 
     hist.__getitem__ = Mock(return_value=close_series)
