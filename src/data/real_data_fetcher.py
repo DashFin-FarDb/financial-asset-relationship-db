@@ -24,6 +24,7 @@ _FETCHED_ASSET_LOG_MESSAGE = "Fetched %s: %s at $%.2f"
 
 
 
+
 def _get_yfinance() -> Any:
     """
     Lazily import yfinance so optional dependency absence does not break startup.
