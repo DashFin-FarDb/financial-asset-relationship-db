@@ -451,9 +451,9 @@ class TestSystemManifest:
                 has_deps = "Dependencies:" in section or "No dependencies found" in section
                 # Allow for section headers without file content
                 if not section.startswith("#"):
-                    assert has_deps or section.strip().startswith("\\"), (
-                        "File section should have dependency information"
-                    )
+                    assert has_deps or section.strip().startswith(
+                        "\\"
+                    ), "File section should have dependency information"
 
     def test_system_manifest_no_duplicate_sections(self, system_manifest_content):
         """Test that there are no duplicate major sections."""
@@ -535,9 +535,9 @@ class TestDocumentationConsistency:
 
         # Extract file counts from system manifest (first occurrence in Project Structure)
         # Extract file counts from system manifest (first occurrence in Project Structure)
-        assert "## Project Structure" in system_manifest_content, (
-            "## Project Structure section not found in system manifest"
-        )
+        assert (
+            "## Project Structure" in system_manifest_content
+        ), "## Project Structure section not found in system manifest"
         sm_content = system_manifest_content.split("## Project Structure")[1].split("##")[0]
         sm_counts = {file_type: int(count) for count, file_type in re.findall(dm_pattern, sm_content)}
 
@@ -615,9 +615,9 @@ class TestDocumentationConsistency:
             sm_has = any(dep in d for d in sm_deps)
             # If one has it, both should (or neither)
             if dm_has or sm_has:
-                assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
-                )
+                assert (
+                    dm_has == sm_has
+                ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
 
 
 @pytest.mark.unit
@@ -775,9 +775,9 @@ class TestChangedFunctionLogic:
         allowed_extras = {"jsx", "json", "md"}
         found_types = set(file_types_str.split(", "))
         # Mirrors the assertion at line 128 exactly
-        assert found_types.issubset(expected_types | allowed_extras), (
-            f"Unexpected file types: {found_types - expected_types}"
-        )
+        assert found_types.issubset(
+            expected_types | allowed_extras
+        ), f"Unexpected file types: {found_types - expected_types}"
 
     @pytest.mark.parametrize(
         "file_types_str",
@@ -806,9 +806,10 @@ class TestChangedFunctionLogic:
     # 2. Updated regex pattern (line 428)                                  #
     # ------------------------------------------------------------------ #
 
-    FILE_HEADER_REGEX = r"###\s+\\[\w\\/._-]+\.\w+"
-  @pytest.mark.parametrize(
-       "header",
+    FILE_HEADER_REGEX = r"###\s+\\[\w\\/.-]+\.\w+"
+
+    @pytest.mark.parametrize(
+        "header",
         [
             r"### \src\main.py",
             r"### \src\utils\helper.ts",
@@ -818,8 +819,8 @@ class TestChangedFunctionLogic:
             r"### \path\file-name.py",
             r"### \path\file.name.with.dots.py",
         ],
-       )
-   def test_file_header_regex_matches_valid_paths(self, header):
+    )
+    def test_file_header_regex_matches_valid_paths(self, header):
         """Updated regex matches valid file headers with common path characters."""
         assert re.search(self.FILE_HEADER_REGEX, header) is not None, f"Regex should match: {header!r}"
 
@@ -942,14 +943,14 @@ class TestChangedFunctionLogic:
         if dm_has or sm_has:
             if should_assert:
                 with pytest.raises(AssertionError) as exc_info:
-                    assert dm_has == sm_has, (
-                        f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
-                    )
+                    assert (
+                        dm_has == sm_has
+                    ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
                 assert dep in str(exc_info.value)
             else:
-                assert dm_has == sm_has, (
-                    f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
-                )
+                assert (
+                    dm_has == sm_has
+                ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
 
     def test_dependency_consistency_skips_when_neither_document_has_dep(self):
         """When neither dm_has nor sm_has is True the check is skipped entirely."""
@@ -977,9 +978,9 @@ class TestChangedFunctionLogic:
         expected_types = {"py", "js", "ts", "tsx"}
         found_types = {"py", "rs", "go"}
         with pytest.raises(AssertionError) as exc_info:
-            assert found_types.issubset(expected_types | {"jsx", "json", "md"}), (
-                f"Unexpected file types: {found_types - expected_types}"
-            )
+            assert found_types.issubset(
+                expected_types | {"jsx", "json", "md"}
+            ), f"Unexpected file types: {found_types - expected_types}"
         error_text = str(exc_info.value)
         # Both unexpected types must appear in the message
         unexpected = found_types - expected_types
@@ -999,9 +1000,9 @@ class TestChangedFunctionLogic:
         dm_has = False
         sm_has = True
         with pytest.raises(AssertionError) as exc_info:
-            assert dm_has == sm_has, (
-                f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
-            )
+            assert (
+                dm_has == sm_has
+            ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
         assert dep in str(exc_info.value)
 
     def test_assertion_message_file_section_missing_dep_info(self):
