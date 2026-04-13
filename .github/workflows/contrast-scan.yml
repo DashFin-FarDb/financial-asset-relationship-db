@@ -12,7 +12,7 @@
 # All Contrast related account secrets should be configured as GitHub secrets to be passed as inputs to the Contrast Scan Action.
 # The required secrets are CONTRAST_API_KEY, CONTRAST_ORGANIZATION_ID and CONTRAST_AUTH_HEADER.
 
-on:
+"on":
   push:
     branches: [ "main", "Default" ]
     paths:
@@ -76,8 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     # check out project
     steps:
-    - uses: actions/checkout@v4
-    # Since Contrast Scan is designed to run against your deployable artifact, the steps to build your artifact should go here.
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
     # -name: Build Project
     # ...
     # Scan Artifact
@@ -90,6 +89,6 @@ jobs:
         authHeader: ${{ secrets.CONTRAST_AUTH_HEADER }}
     #Upload the results to GitHub
     - name: Upload SARIF file
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
       with:
         sarif_file: results.sarif # The file name must be 'results.sarif', as this is what the Github Action will output

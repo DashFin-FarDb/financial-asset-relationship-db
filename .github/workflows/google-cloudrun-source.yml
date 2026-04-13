@@ -29,7 +29,7 @@
 
 name: 'Deploy to Cloud Run from Source'
 
-on:
+"on":
   push:
     branches:
       - '"main"'

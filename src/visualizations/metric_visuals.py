@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Tuple
+from typing import Tuple
 
 import plotly.graph_objects as go
 
@@ -39,7 +39,8 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
         distribution (dict): Mapping of relationship type (str) to its count (int).
 
     Returns:
-        go.Figure: Plotly Figure containing a bar chart with relationship types on the x-axis and their counts on the y-axis.
+        go.Figure: Plotly Figure containing a bar chart with relationship
+            types on the x-axis and their counts on the y-axis.
     """
     rel_types = list(distribution.keys())
     rel_counts = list(distribution.values())
