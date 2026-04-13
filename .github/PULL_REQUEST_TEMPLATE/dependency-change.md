@@ -38,6 +38,10 @@ This PR does **not** do:
 
 - [ ] `python --version`
 - [ ] `pip --version`
+## Validation run locally
+
+- [ ] `python --version`
+- [ ] `pip --version`
 - [ ] `pip install -r requirements.txt`
 - [ ] `pip check`
 - [ ] `pip install -e .`
