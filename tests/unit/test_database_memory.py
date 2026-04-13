@@ -5,7 +5,7 @@ from __future__ import annotations
 import importlib
 import os
 import threading
-from typing import Iterator
+from typing import Any, Iterator
 
 import pytest
 
@@ -442,7 +442,7 @@ class TestThreadSafety:
         monkeypatch.setenv("DATABASE_URL", "sqlite:///:memory:")
         reloaded_database = importlib.reload(database)
 
-        connections: list[object] = []
+        connections: list[Any] = []
         errors: list[Exception] = []
 
         def get_conn() -> None:
