@@ -3,17 +3,15 @@ name: Issue and PR auto-assign
 on:
   issues:
     types: [opened]
-  pull_request:
+  pull_request_target:
     types: [opened]
 
 permissions:
-  contents: read
   issues: write
   pull-requests: write
 
 jobs:
   auto-assign:
-    if: github.event_name == 'issues' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
     runs-on: ubuntu-latest
     steps:
       - name: Auto-assign new issues and PRs
