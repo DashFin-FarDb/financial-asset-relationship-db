@@ -103,7 +103,7 @@ class UserRepository:
         Determine whether any user credential records exist.
 
         Returns:
-            `True` if at least one user credential exists, `False` otherwise.
+            `true` if at least one user credential exists, `false` otherwise.
         """
         return fetch_value("SELECT 1 FROM user_credentials LIMIT 1") is not None
 
@@ -125,13 +125,11 @@ class UserRepository:
         """
         Insert or update a user credential record in the user_credentials table.
 
-        Performs an upsert for the given username using the provided hashed_password and optional profile data. Accepts a modern mapping via `user_profile` with optional keys `user_email`, `user_full_name`, and `is_disabled`. Backward-compatible legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are accepted and take precedence over values in `user_profile`. A `TypeError` is raised if any unexpected legacy keys are supplied.
+        Performs an upsert for the given username using the provided hashed_password and optional profile data. Accepts a modern mapping via `user_profile` containing any of `user_email`, `user_full_name`, and `is_disabled`. Legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are accepted and override values from `user_profile` when provided. A `TypeError` is raised if any unexpected legacy keys are supplied. The `disabled` column is stored as `1` when `is_disabled` is truthy, otherwise `0`.
 
         Parameters:
-                username (str): Unique identifier for the user.
-                hashed_password (str): Pre-hashed password to store for the user.
-                user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
-                **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override `user_profile` values when provided.
+            user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
+            **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override values in `user_profile` when present; unexpected keys cause a `TypeError`.
         """
         profile = user_profile.copy() if user_profile is not None else {}
 
@@ -320,15 +318,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     """
-    Retrieve the User corresponding to the provided JWT.
+    Retrieve the User identified by the JWT's subject.
 
     Returns:
-        User: The User model for the token's subject.
+        The User object for the token's subject.
 
     Raises:
-        HTTPException: 401 with detail "Token has expired" if the token is expired.
-        HTTPException: 401 with detail "Could not validate credentials" if the token is invalid,
-            missing the subject, or no matching user is found.
+        HTTPException: 401 with detail "Token has expired" when the token has expired.
+        HTTPException: 401 with detail "Could not validate credentials" when the token is invalid, missing a subject, or no matching user is found.
     """
     credentials_exception = _build_credentials_exception()
     expired_exception = _build_expired_exception()

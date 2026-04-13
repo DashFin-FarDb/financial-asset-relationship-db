@@ -161,15 +161,15 @@ class AssetGraphRepository:
         **kwargs: Any,
     ) -> None:
         """
-        Create or update a relationship between two assets and stage it on the repository session.
+        Create or update an asset relationship and stage it on the repository session.
 
-        Accepts either a single `_RelationshipUpsertSpec` or explicit fields: (source_id, target_id, rel_type, strength, bidirectional=False).
-        Strength must be a numeric value between -1.0 and 1.0 inclusive. The resulting relationship ORM is added to the repository session for persistence.
+        Accepts either a single _RelationshipUpsertSpec or explicit fields (source_id, target_id, rel_type, strength[, bidirectional=False]).
+        Strength must be a numeric value between -1.0 and 1.0 inclusive; boolean values are rejected.
 
         Parameters:
-            *args: Positional form of the upsert input — either a single `_RelationshipUpsertSpec` or the explicit fields
+            *args: Either a single `_RelationshipUpsertSpec` or positional fields:
                 (source_id, target_id, rel_type, strength[, bidirectional]).
-            **kwargs: Keyword form of the explicit fields when not passing a `_RelationshipUpsertSpec`.
+            **kwargs: When not passing a `_RelationshipUpsertSpec`, may include `bidirectional` as a keyword.
         """
         relationship_spec = self._build_relationship_upsert_spec(
             *args,
@@ -309,7 +309,7 @@ class AssetGraphRepository:
         List all asset relationships stored in the repository.
 
         Returns:
-            List[RelationshipRecord]: A list of RelationshipRecord instances for every relationship in the database. Each record contains string identifiers for source and target, the relationship type, the relationship strength as a `float`, and a `bool` indicating whether it is bidirectional.
+            List[RelationshipRecord]: A list of RelationshipRecord objects, each containing source_id, target_id, relationship_type, strength (float), and bidirectional (bool).
         """
         result = self.session.execute(select(AssetRelationshipORM)).scalars().all()
         return [
@@ -330,10 +330,10 @@ class AssetGraphRepository:
         rel_type: str,
     ) -> Optional[RelationshipRecord]:
         """
-        Fetches the relationship record for the given source asset, target asset, and relationship type.
+        Return the relationship between two assets for the given relationship type.
 
         Returns:
-            RelationshipRecord: the matching relationship with `strength` as a float, or `None` if no match is found.
+            `RelationshipRecord` if a matching relationship exists (with `strength` converted to a `float`), `None` otherwise.
         """
         stmt = select(AssetRelationshipORM).where(
             AssetRelationshipORM.source_asset_id == source_id,
@@ -440,13 +440,13 @@ class AssetGraphRepository:
     @staticmethod
     def _to_asset_model(orm: AssetORM) -> Asset:
         """
-        Convert a persisted AssetORM row into the corresponding domain Asset instance.
+        Constructs a domain Asset instance (specific subclass when applicable) from an AssetORM row.
 
         Parameters:
-            orm (AssetORM): The ORM row representing an asset.
+            orm (AssetORM): The persisted ORM row to convert.
 
         Returns:
-            Asset: A domain Asset object. The concrete subclass (Equity, Bond, Commodity, Currency) is returned when `orm.asset_class` indicates a specific asset class; otherwise a generic `Asset` is returned.
+            Asset: A domain Asset. Returns an Equity, Bond, Commodity, or Currency instance when `orm.asset_class` indicates that class; otherwise returns a generic `Asset`.
         """
         asset_class = AssetClass(orm.asset_class)
         base_kwargs: _BaseAssetKwargs = {
@@ -497,12 +497,12 @@ class AssetGraphRepository:
         """
         Convert a RegulatoryEvent ORM row into a domain RegulatoryEvent model.
 
-        Constructs a RegulatoryEvent with fields copied from the ORM; `related_assets`
-        is a list of related asset IDs extracted from the ORM's related_assets
-        associations.
+        Extracts related asset IDs from orm.related_assets and constructs a RegulatoryEvent
+        with id, asset_id, event_type (mapped to RegulatoryActivity), date, description,
+        impact_score, and related_assets.
 
         Returns:
-            RegulatoryEvent: Domain model representing the ORM row.
+            RegulatoryEvent: Domain model built from the ORM row.
         """
         related_assets = [assoc.asset_id for assoc in orm.related_assets]
         return RegulatoryEvent(

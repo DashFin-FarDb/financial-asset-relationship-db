@@ -77,15 +77,15 @@ def _report_duplicates(
 
 def check_duplicate_headings(manifest_path: Path) -> int:
     """
-    Validate that the repository's systemManifest.md contains no duplicate level-2 headings.
+    Check that the repository's systemManifest.md contains no duplicate level-2 Markdown headings.
 
-    Checks that the provided path refers to the expected .elastic-copilot/memory/systemManifest.md within the repository, reads the file, and detects duplicate level-2 headings (lines beginning with "## " but not "### "). Reports duplicates to stderr when found.
+    Verifies that manifest_path resolves to the repository's .elastic-copilot/memory/systemManifest.md, reads the file, and detects duplicate level-2 headings (lines starting with "## " but not "### "). When duplicates are found or validation fails, a formatted report is written to stderr.
 
     Parameters:
-        manifest_path (Path): Path to the systemManifest.md file to validate.
+        manifest_path (Path): Path to the systemManifest.md file to validate; must resolve to the repository's expected manifest location.
 
     Returns:
-        int: Exit code where `0` indicates no duplicate level-2 headings were found, and `1` indicates a validation failure, unexpected path, missing file, or that duplicates were detected.
+        int: Exit code where `0` indicates no duplicate level-2 headings were found, and `1` indicates a missing or unexpected path, a read/validation failure, or that duplicates were detected.
     """
     if not manifest_path.exists():
         print(f"Error: {manifest_path} not found", file=sys.stderr)

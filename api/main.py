@@ -142,9 +142,9 @@ def reset_graph() -> None:
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Constructs and returns the shared asset relationship graph using the configured source.
+    Initialize and return the shared AssetRelationshipGraph using the configured source.
 
-    Selection priority: use a configured graph factory if present; otherwise use the cache path specified by `GRAPH_CACHE_PATH` (optionally enabling network based on environment); if `USE_REAL_DATA_FETCHER` is enabled, use the real-data fetcher with `REAL_DATA_CACHE_PATH`; if none of those apply, fall back to the bundled sample dataset.
+    Selects the graph source in this order: a configured graph factory; a cached real-data path specified by GRAPH_CACHE_PATH; the real-data fetcher when USE_REAL_DATA_FETCHER is enabled (using REAL_DATA_CACHE_PATH if present); otherwise the bundled sample dataset.
 
     Returns:
         AssetRelationshipGraph: The initialized asset relationship graph instance.
@@ -177,12 +177,12 @@ def _initialize_graph() -> AssetRelationshipGraph:
 
 def _should_use_real_data_fetcher() -> bool:
     """
-    Determine whether the USE_REAL_DATA_FETCHER environment variable indicates the real data fetcher should be used.
+    Return whether the environment requests the real data fetcher.
 
-    Checks the value of the environment variable and treats the case-insensitive values "1", "true", "yes", and "on" (after trimming whitespace) as true.
+    Interprets the environment variable USE_REAL_DATA_FETCHER case-insensitively; the values "1", "true", "yes", or "on" (ignoring surrounding whitespace) are treated as true.
 
     Returns:
-        True if USE_REAL_DATA_FETCHER is one of "1", "true", "yes", or "on" (case-insensitive), False otherwise.
+        bool: True if USE_REAL_DATA_FETCHER matches an accepted value, False otherwise.
     """
     flag = os.getenv("USE_REAL_DATA_FETCHER", "false")
     return flag.strip().lower() in {"1", "true", "yes", "on"}
@@ -191,11 +191,12 @@ def _should_use_real_data_fetcher() -> bool:
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
     """
-    FastAPI lifespan context that ensures the shared asset relationship graph is initialized before the app starts.
+    Ensure the shared asset relationship graph is initialized before application startup.
 
-    If graph initialization fails, the exception is propagated to abort application startup. After initialization this context yields control to the FastAPI lifespan manager; when resumed it completes shutdown processing.
-    Returns:
-        Yields control to the FastAPI lifespan manager after successful startup initialization.
+    If graph initialization fails, the original exception is re-raised to abort application startup. Yields control to FastAPI's lifespan manager for the running application; on shutdown the function logs application shutdown.
+
+    Raises:
+        Exception: Propagates any exception raised during graph initialization.
     """
     try:
         get_graph()
@@ -229,12 +230,12 @@ ENV = os.getenv("ENV", "development").lower()
 
 def _read_allowed_origins() -> List[str]:
     """
-    Parse the ALLOWED_ORIGINS environment variable into a list of trimmed origin strings.
+    Parse the ALLOWED_ORIGINS environment variable into a list of origin strings.
 
-    Splits the ALLOWED_ORIGINS value on commas and returns each non-empty entry with surrounding whitespace removed.
+    Reads the ALLOWED_ORIGINS environment variable, splits on commas, trims whitespace, and excludes empty entries.
 
     Returns:
-        allowed_origins (List[str]): A list of origin strings (e.g., "https://example.com").
+        List[str]: A list of trimmed origin strings (e.g., "https://example.com").
     """
     return [origin.strip() for origin in os.getenv("ALLOWED_ORIGINS", "").split(",") if origin.strip()]
 
@@ -303,13 +304,15 @@ def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
 
 def _is_valid_https_domain(origin_url: str) -> bool:
     """
-    Determine whether an origin URL is a valid HTTPS origin allowing internationalized domain names (IDN) and an optional port.
+    Validate that an origin URL is a secure HTTPS origin with a single hostname (internationalized domain names allowed) and an optional port.
+
+    Rejects origins that contain path, params, query, fragment, username, or password.
 
     Parameters:
         origin_url (str): The origin URL to validate.
 
     Returns:
-        `true` if the input starts with `https://`, contains a hostname (IDN allowed), has no forbidden URL parts (path, params, query, fragment, username, or password), and matches the allowed hostname with an optional port; `false` otherwise.
+        True if the input starts with "https://", contains a hostname (IDN allowed), has no forbidden URL parts, and matches an allowed hostname with an optional port, False otherwise.
     """
     if not origin_url.startswith("https://"):
         return False
@@ -656,13 +659,13 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
 )
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
     """
-    Return outgoing relationships for the specified asset.
+    Get outgoing relationships for the given asset.
 
     Parameters:
-        asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+        asset_id (str): Asset identifier to retrieve outgoing relationships for.
 
     Returns:
-        List[RelationshipResponse]: List of relationship records containing `source_id`, `target_id`, `relationship_type`, and `strength`.
+        List[RelationshipResponse]: Outgoing relationships; each entry contains `source_id`, `target_id`, `relationship_type`, and `strength`.
 
     Raises:
         HTTPException: 404 if the asset is not found.
@@ -873,15 +876,13 @@ def _build_visualization_edges(g: AssetRelationshipGraph) -> List[Dict[str, Any]
 @app.get("/api/visualization", response_model=VisualizationDataResponse)
 async def get_visualization_data() -> VisualizationDataResponse:
     """
-    Return nodes and edges representing the asset relationship graph prepared for 3-D visualization.
-
-    Nodes are positioned using a Fibonacci-lattice sphere distribution, colored by asset class, and sized proportionally to their degree in the graph.
+    Produce visualization nodes and edges representing the current asset relationship graph.
 
     Returns:
-        VisualizationDataResponse: Container with `nodes` (list of node dictionaries) and `edges` (list of edge dictionaries) ready for frontend rendering.
+        VisualizationDataResponse: Object with `nodes` (list of node dictionaries) and `edges` (list of edge dictionaries) suitable for frontend rendering.
 
     Raises:
-        HTTPException: Raised with status code 500 if an unexpected error occurs while building the visualization data.
+        HTTPException: With status code 500 if an unexpected error occurs while constructing the visualization data.
     """
     try:
         g = get_graph()

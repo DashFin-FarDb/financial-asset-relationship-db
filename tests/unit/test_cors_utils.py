@@ -16,12 +16,12 @@ def test_validate_origin_short_circuits_on_allowlist(monkeypatch: pytest.MonkeyP
 
     def _must_not_run(*_args: object, **_kwargs: object) -> bool:
         """
-        Fail the test if an unexpected downstream validator is invoked.
+        Fail the test if this helper is invoked, indicating a downstream validator executed when it should have been short-circuited.
 
-        This helper always raises an AssertionError to signal that a code path which should have been short-circuited was executed.
+        Always raises an AssertionError with message "short-circuit failed: later validator executed".
 
         Raises:
-            AssertionError: Always raised with message "short-circuit failed: later validator executed".
+            AssertionError: Always raised when called.
         """
         raise AssertionError("short-circuit failed: later validator executed")
 
@@ -54,7 +54,7 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
 
     def _http_local_true(origin: str, current_env: str) -> bool:
         """
-        Record the stubbed http-local-in-dev check by appending "http_local_dev" to the shared calls list and return True.
+        Record a stubbed http-local-in-dev check by appending "http_local_dev" to the shared calls list.
 
         Parameters:
             origin (str): Unused; present for signature compatibility.
@@ -69,10 +69,10 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
 
     def _must_not_run(*_args: object, **_kwargs: object) -> bool:
         """
-        Fail the test if called, indicating a later validator was invoked despite an earlier successful check.
+        Indicate a test failure if invoked, asserting that short-circuiting did not occur.
 
         Raises:
-            AssertionError: always raised with message "short-circuit failed: evaluated after True check".
+            AssertionError: Always raised with message "short-circuit failed: evaluated after True check".
         """
         raise AssertionError("short-circuit failed: evaluated after True check")
 

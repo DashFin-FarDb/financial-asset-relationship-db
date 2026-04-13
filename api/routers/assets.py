@@ -15,14 +15,14 @@ router = APIRouter(prefix="/api", tags=["assets"])
 
 def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
     """
-    Raise an HTTP 404 error indicating the specified resource was not found.
+    Raise an HTTPException with status code 404 when a requested resource is not found.
 
     Parameters:
         asset_id (str): Identifier of the missing resource.
-        resource_type (str): Human-readable resource type used in the error detail (default: "Asset").
+        resource_type (str): Human-readable resource type used in the error detail (default "Asset").
 
     Raises:
-        HTTPException: With status code 404 and detail "<resource_type> <asset_id> not found".
+        fastapi.HTTPException: With status_code=404 and detail "<resource_type> <asset_id> not found".
     """
     raise HTTPException(
         status_code=404,
@@ -32,16 +32,16 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     """
-    Serialize an Asset object to a dictionary suitable for API responses.
+    Builds a dictionary of core asset fields and a map of non-null supplemental attributes for API responses.
 
-    Core keys include: id, symbol, name, asset_class, sector, price, market_cap, and currency. An additional_fields mapping contains asset-type-specific attributes that exist on the asset and whose values are not None. If include_issuer is True and the asset has an issuer_id, issuer_id is added to additional_fields.
+    The returned dictionary includes core keys: `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, and `currency`, plus an `additional_fields` dictionary containing asset-specific attributes that exist on the asset and have non-null values. If `include_issuer` is True and the asset has an `issuer_id` with a non-null value, `issuer_id` is included in `additional_fields`.
 
     Parameters:
         asset (Any): Asset instance to serialize.
-        include_issuer (bool): When True, include `issuer_id` in `additional_fields` if present.
+        include_issuer (bool): When True, include `issuer_id` in `additional_fields` if present on the asset.
 
     Returns:
-        Dict[str, Any]: Dictionary containing core asset fields and an `additional_fields` map of non-null supplemental attributes.
+        Dict[str, Any]: Dictionary with core asset fields and an `additional_fields` mapping of supplemental attribute names to their non-null values.
     """
     asset_dict = {
         "id": asset.id,

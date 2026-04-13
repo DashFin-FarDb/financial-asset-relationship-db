@@ -209,20 +209,22 @@ def assess_complexity(
     commit_count: int,
 ) -> Tuple[int, str]:
     """
-    Estimate a pull request's complexity and assign a risk level.
+    Assess a pull request's overall complexity and determine a risk level.
+
+    file_data must be an aggregated metrics mapping that includes the keys:
+    `file_count`, `total_changes`, `has_large_files`, and `large_files`; these
+    values are used to compute the returned score. commit_count is the number of
+    commits in the pull request.
 
     Parameters:
-        file_data (dict): Aggregated file metrics containing at least:
-            - file_count: total number of files changed
-            - total_changes: sum of additions and deletions across files
-            - has_large_files: boolean indicating presence of large-file changes
-            - large_files: list of large-file entries used to compute penalties
-        commit_count (int): Number of commits in the pull request.
+        file_data (Dict[str, Any]): Aggregated file metrics with required keys
+            described above.
+        commit_count (int): Number of commits included in the pull request.
 
     Returns:
-        tuple: Two-item tuple describing the assessment.
-            - score (int): Complexity score (higher values indicate greater complexity).
-            - risk_level (str): Risk band: `"High"` if score >= 70, `"Medium"` if score >= 40, `"Low"` otherwise.
+        Tuple[int, str]: A two-item tuple:
+            - score: Integer complexity score where higher values indicate greater complexity.
+            - risk_level: `"High"` if score >= 70, `"Medium"` if score >= 40, `"Low"` otherwise.
     """
     score = 0
 
@@ -356,14 +358,14 @@ def find_related_issues(
 
 def _format_list_items(items: List[str], header: str) -> str:
     """
-    Format a Markdown bullet list section with a bold header when items are present.
+    Return a Markdown bullet section prefixed by a bold header when `items` is non-empty.
 
     Parameters:
         items (List[str]): Lines to include as bullet points.
         header (str): Section title placed in bold above the list.
 
     Returns:
-        str: Markdown string containing the bold header and bullet list, or an empty string if `items` is empty.
+        str: Markdown string with the bold header and `- ` bullet lines, or an empty string if `items` is empty.
     """
     if not items:
         return ""
@@ -386,13 +388,13 @@ def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
 
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
     """
-    Return a Markdown section listing files with more than 500 changed lines.
+    Builds a Markdown section listing files with more than 500 changed lines.
 
     Parameters:
-        file_analysis (dict): Analysis dictionary containing a "large_files" list of dicts, each with at least "filename" and "changes".
+        file_analysis (dict): Analysis dictionary that contains a "large_files" list of dicts, each with at least "filename" and "changes".
 
     Returns:
-        str: Markdown-formatted section with a bold header and one bullet per large file; empty string if no large files are present.
+        str: Markdown-formatted section beginning with "**Large Files (>500 lines):**" and one bullet per file in the form "`filename`: N lines"; returns an empty string if no large files are present.
     """
     large_files = file_analysis["large_files"]
     if not large_files:
@@ -403,13 +405,13 @@ def _format_large_files(file_analysis: Dict[str, Any]) -> str:
 
 def _format_related_issues(related_issues: List[Dict[str, str]]) -> str:
     """
-    Builds a Markdown "Related Issues" section from extracted issue metadata.
+    Create a Markdown section listing related issue references.
 
     Parameters:
-        related_issues (List[Dict[str, str]]): Iterable of issue descriptors where each dict contains at least a `'number'` key (issue number as a string or int) and may include a `'url'`.
+        related_issues (List[Dict[str, str]]): Sequence of issue descriptors; each dict must include a 'number' (int or str) and may include a 'url'.
 
     Returns:
-        str: A Markdown string with a "**Related Issues:**" header followed by bullet lines like `- #123`, or an empty string if `related_issues` is empty.
+        str: Markdown string starting with "**Related Issues:**" followed by lines like "- #123", or an empty string if no related issues are provided.
     """
     if not related_issues:
         return ""
@@ -481,9 +483,9 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 
 def write_output(report: str) -> None:
     """
-    Write the analysis report to the GitHub Actions step summary (when allowed), a secure temporary markdown file, and standard output.
+    Write the Markdown analysis report to permitted outputs: the GitHub Actions step summary (when the summary path is inside the system temp directory), a secure temporary markdown file, and standard output.
 
-    If the GITHUB_STEP_SUMMARY environment variable is set and its resolved path resides inside the system temporary directory, append the report to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False), write the report there, and print the temporary file path to stdout. Any I/O errors while writing either destination are caught and reported to stderr. Finally, print the full report to stdout.
+    If the GITHUB_STEP_SUMMARY environment variable is set and its resolved path resides inside the system temporary directory, the report is appended to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False), write the report there, and print the temporary file path to stdout. I/O errors encountered while writing either destination are caught and reported to stderr. Finally, the full report is printed to stdout.
 
     Parameters:
         report (str): The Markdown-formatted analysis report to write.

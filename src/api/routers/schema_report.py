@@ -50,15 +50,15 @@ def schema_report_raw(
     fmt: Annotated[Literal["md", "html"], Query(pattern="^(md|html)$")] = "md",
 ) -> dict[str, str]:
     """
-    Produce a downloadable schema report payload in the requested format.
+    Produce a payload containing a suggested filename and the report content in the requested format.
 
     Parameters:
         fmt (Literal["md", "html"]): Report format; "md" for Markdown or "html" for HTML.
 
     Returns:
-        payload (dict[str, str]): A mapping with keys:
-                - "filename": Suggested download filename (e.g., "schema_report.md" or "schema_report.html").
-                - "content": The report content as a string in the requested format.
+        payload (dict[str, str]): Mapping with:
+                - "filename": Suggested download filename, e.g. "schema_report.md" or "schema_report.html".
+                - "content": Report content as a string in the requested format.
     """
     content = export_report(graph, fmt=fmt)
     return {

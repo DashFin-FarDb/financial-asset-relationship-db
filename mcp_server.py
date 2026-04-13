@@ -19,10 +19,10 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
 
     def __init__(self, graph_obj: AssetRelationshipGraph, lock: threading.Lock):
         """
-        Create a thread-safe proxy for an AssetRelationshipGraph using the provided lock.
+        Initialize the thread-safe proxy that guards access to an AssetRelationshipGraph.
 
         Parameters:
-            graph_obj (AssetRelationshipGraph): The underlying shared graph instance to proxy.
+            graph_obj (AssetRelationshipGraph): Underlying shared graph instance to proxy.
             lock (threading.Lock): Lock used to synchronize all access to the underlying graph.
         """
         self._graph = graph_obj
@@ -86,13 +86,12 @@ def _get_3d_layout_resource() -> str:
 
 def _register_mcp_handlers(mcp: FastMCP) -> None:
     """
-    Register MCP tools and resources on the provided FastMCP app instance.
+    Register MCP handlers on the given FastMCP application.
 
-    Registers a tool callable "add_equity_node" that validates (and, if supported by the graph, adds) an Equity node,
-    and registers a resource at "graph://data/3d-layout" that serves the current 3D visualization data.
+    Registers a tool that validates Equity data and, if the graph supports mutation, inserts the new Equity into the shared asset graph; and registers a resource at "graph://data/3d-layout" that serves the current 3D visualization payload as JSON.
 
     Parameters:
-        mcp (FastMCP): The FastMCP application instance to register tools and resources on.
+        mcp (FastMCP): FastMCP application instance to attach the tool and resource to.
     """
 
     def add_equity_node(

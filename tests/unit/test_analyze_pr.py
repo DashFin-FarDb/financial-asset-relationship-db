@@ -15,7 +15,6 @@ from __future__ import annotations
 import os
 import sys
 import tempfile
-from pathlib import Path
 from typing import Any, Dict
 from unittest.mock import patch
 
@@ -429,6 +428,12 @@ class TestWriteOutput:
         summary_file.touch()
 
         def _raise(*args, **kwargs):
+            """
+            Always raise an IOError indicating the disk is full.
+
+            Raises:
+                IOError: always raised with the message "disk full".
+            """
             raise IOError("disk full")
 
         monkeypatch.setattr("builtins.open", _raise)
@@ -454,6 +459,17 @@ class TestWriteOutput:
         original_ntf = tempfile.NamedTemporaryFile
 
         def spy_ntf(**kwargs):
+            """
+            Wraps a NamedTemporaryFile factory to record the `prefix` and `suffix` kwargs for each created file.
+
+            Records a tuple (prefix, suffix) in the module-level `created_names` list and forwards all keyword arguments to the wrapped NamedTemporaryFile factory, returning its result.
+
+            Parameters:
+                **kwargs: Keyword arguments accepted by tempfile.NamedTemporaryFile (e.g., `prefix`, `suffix`).
+
+            Returns:
+                The temporary file object returned by the underlying NamedTemporaryFile factory.
+            """
             created_names.append((kwargs.get("prefix"), kwargs.get("suffix")))
             return original_ntf(**kwargs)
 

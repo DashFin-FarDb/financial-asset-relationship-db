@@ -150,14 +150,14 @@ def categorize_comment(comment_body: str) -> Tuple[str, int]:
 
 def is_actionable(comment_body: str, actionable_keywords: List[str]) -> bool:
     """
-    Check whether a comment contains any actionable keyword.
+    Determine whether the comment contains any of the actionable keywords.
 
     Parameters:
-        comment_body (str): The comment text to inspect.
-        actionable_keywords (List[str]): Keywords to search for; matching is case-insensitive and uses substring matching.
+        comment_body (str): Text of the comment to inspect; matching is case-insensitive and uses substring matching.
+        actionable_keywords (List[str]): Keywords to search for.
 
     Returns:
-        `true` if at least one actionable keyword appears in the comment, `false` otherwise.
+        bool: True if at least one actionable keyword appears in comment_body, False otherwise.
     """
     body_lower = comment_body.lower()
     return any(keyword in body_lower for keyword in actionable_keywords)
@@ -345,14 +345,10 @@ def generate_fix_proposals(actionable_items: List[Dict[str, Any]]) -> str:
 def write_output(report: str) -> None:
     # 1. GitHub Summary
     """
-    Write the generated Markdown report to configured outputs and print it.
+    Persist the Markdown report to configured outputs and print it.
 
-    This function, when possible, appends the report to the file specified by the
-    GITHUB_STEP_SUMMARY environment variable, writes the report to a securely
-    created temporary `.md` file (printing that temp file path to stderr), and
-    prints the full report to stdout. Failures appending to the GitHub summary are
-    caught and reported to stderr; failures creating the temp file are also
-    reported to stderr.
+    When GITHUB_STEP_SUMMARY is set, appends the report to that file. Always writes the report to a securely created temporary `.md` file and prints that temporary file path to stderr on success. Finally prints the full report to stdout. IO failures are reported to stderr.
+
     Parameters:
         report (str): Markdown-formatted report content to persist and print.
     """

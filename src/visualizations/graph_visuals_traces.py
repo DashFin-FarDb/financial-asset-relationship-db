@@ -23,13 +23,13 @@ RELATIONSHIPS_DICT_ERROR = "graph must have a relationships dictionary"
 
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     """
-    Get the Plotly line style dictionary for a relationship type and its direction.
+    Builds a Plotly line style mapping for a relationship type and its directionality.
 
     Returns:
-        dict: Line style with keys:
-            - color: color value from REL_TYPE_COLORS for the given relationship type.
-            - width: 4 when `is_bidirectional` is True, 2 otherwise.
-            - dash: "solid" when `is_bidirectional` is True, "dash" otherwise.
+        dict: Mapping with keys:
+            - color (str): Color from REL_TYPE_COLORS for the given relationship type.
+            - width (int): 4 if is_bidirectional is True, 2 otherwise.
+            - dash (str): "solid" if is_bidirectional is True, "dash" otherwise.
     """
     return {
         "color": REL_TYPE_COLORS[rel_type],
@@ -145,14 +145,14 @@ def _create_relationship_traces(
     relationship_filters: Optional[Dict[str, bool]] = None,
 ) -> List[go.Scatter3d]:
     """
-    Create Plotly Scatter3d traces for each relationship type and direction group found in the graph.
+    Builds Plotly Scatter3d traces for each relationship type and direction group present in the graph.
 
     Parameters:
         relationship_filters (Optional[Dict[str, bool]]): Mapping of relationship type to a boolean indicating whether
             that relationship type should be included; when omitted, all relationship types are considered.
 
     Returns:
-        List[go.Scatter3d]: Scatter3d traces, one per relationship type/direction group that contains relationships.
+        List[go.Scatter3d]: One scatter trace per relationship type/direction group that contains relationships.
     """
     _validate_relationship_trace_inputs(graph, positions, asset_ids)
 
@@ -195,11 +195,11 @@ def _validate_relationship_trace_inputs(
 
 def _validate_relationship_graph(graph: AssetRelationshipGraph) -> None:
     """
-    Ensure the graph is an AssetRelationshipGraph instance and that it exposes a 'relationships' attribute which is a dict.
+    Validate that `graph` is an AssetRelationshipGraph and exposes a `relationships` dictionary.
 
     Raises:
-        ValueError: If `graph` is not an AssetRelationshipGraph instance.
-        ValueError: If `graph.relationships` is missing or is not a `dict`.
+        ValueError: If `graph` is not an AssetRelationshipGraph instance ("graph must be an AssetRelationshipGraph instance").
+        ValueError: If `graph.relationships` is missing or is not a `dict` (RELATIONSHIPS_DICT_ERROR).
     """
     if not isinstance(graph, AssetRelationshipGraph):
         raise ValueError("graph must be an AssetRelationshipGraph instance")
@@ -211,13 +211,10 @@ def _validate_relationship_graph(graph: AssetRelationshipGraph) -> None:
 
 def _validate_positions_array(positions: np.ndarray) -> None:
     """
-    Ensure `positions` is a NumPy ndarray.
-
-    Parameters:
-        positions (np.ndarray): Array of position coordinates.
+    Validate that `positions` is a NumPy ndarray.
 
     Raises:
-        ValueError: If `positions` is not an instance of `numpy.ndarray`.
+        ValueError: If `positions` is not a `numpy.ndarray`.
     """
     if not isinstance(positions, np.ndarray):
         raise ValueError("positions must be a numpy array")
@@ -306,10 +303,10 @@ def _validate_and_prepare_directional_arrows_inputs(
 
 def _validate_graph(graph: AssetRelationshipGraph):
     """
-    Validate that the provided graph is an AssetRelationshipGraph and that it contains a relationships dictionary.
+    Ensure the provided graph is an AssetRelationshipGraph that exposes a relationships dictionary.
 
     Parameters:
-        graph (AssetRelationshipGraph): The graph to validate; must be an instance of AssetRelationshipGraph and expose a `relationships` attribute.
+        graph (AssetRelationshipGraph): The graph to validate.
 
     Raises:
         TypeError: If `graph` is not an instance of AssetRelationshipGraph.
@@ -344,18 +341,16 @@ def _prepare_asset_ids(
     positions_arr: np.ndarray,
 ) -> tuple[np.ndarray, list[str]]:
     """
-    Validate and normalize asset IDs and their corresponding positions array.
+    Validate and normalize asset IDs together with their positions and return cleaned outputs.
+
+    Validates that `asset_ids` is a sequence of non-empty strings whose length matches the number of rows in `positions_arr`, and ensures `positions_arr` is a numeric, finite array with shape (n, 3).
 
     Parameters:
         asset_ids: Sequence of asset identifier strings to validate.
         positions_arr (np.ndarray): Array of positions with one row per asset.
 
     Returns:
-        tuple[np.ndarray, list[str]]: Normalized positions array with shape (n, 3) and a list of validated asset ID strings.
-
-    Raises:
-        ValueError: If asset_ids is missing, has incorrect length, contains empty values, or if positions_arr is invalid.
-        TypeError: If asset_ids is not a sequence of strings.
+        tuple[np.ndarray, list[str]]: A validated and normalized positions array with shape (n, 3) and a list of validated asset ID strings.
     """
     asset_ids_list = _validate_asset_ids(asset_ids, positions_arr.shape[0])
     positions_clean = _validate_and_normalize_positions(positions_arr)
@@ -364,18 +359,20 @@ def _prepare_asset_ids(
 
 def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
     """
-    Validate and normalize a sequence of asset IDs against an expected length.
+    Validate and return a normalized list of asset IDs matching an expected length.
+
+    Checks that `asset_ids` is provided, is a list or tuple, has length `expected_len`, and contains only non-empty strings. Returns a new list containing the validated asset IDs.
 
     Parameters:
         asset_ids (list|tuple[str]): Sequence of asset ID strings to validate.
         expected_len (int): Required number of asset IDs.
 
-    Raises:
-        ValueError: If asset_ids is None, its length does not equal expected_len, or any entry is an empty string.
-        TypeError: If asset_ids is not a list or tuple of strings.
-
     Returns:
         list[str]: The validated asset IDs as a list.
+
+    Raises:
+        ValueError: If `asset_ids` is None, its length does not equal `expected_len`, or any entry is an empty string.
+        TypeError: If `asset_ids` is not a list or tuple of strings.
     """
     _ensure_asset_ids_present(asset_ids)
     _ensure_asset_ids_sequence(asset_ids)
@@ -386,13 +383,13 @@ def _validate_asset_ids(asset_ids, expected_len: int) -> list[str]:
 
 def _ensure_asset_ids_present(asset_ids) -> None:
     """
-    Ensure that an asset_ids sequence is provided.
+    Validate that an asset_ids sequence is provided.
 
     Parameters:
-        asset_ids: The sequence of asset identifier strings to validate.
+        asset_ids: Sequence of asset identifier strings or None.
 
     Raises:
-        ValueError: If `asset_ids` is None.
+        ValueError: If `asset_ids` is None; message is "positions and asset_ids must not be None".
     """
     if asset_ids is None:
         raise ValueError("positions and asset_ids must not be None")
@@ -400,10 +397,10 @@ def _ensure_asset_ids_present(asset_ids) -> None:
 
 def _ensure_asset_ids_sequence(asset_ids) -> None:
     """
-    Ensure `asset_ids` is a sequence of asset identifier strings.
+    Validate that `asset_ids` is a sequence of asset identifier strings.
 
     Parameters:
-        asset_ids: The value to validate; expected to be a list or tuple of strings.
+        asset_ids (list|tuple): Expected to be a list or tuple of strings.
 
     Raises:
         TypeError: If `asset_ids` is not a list or tuple.
@@ -414,14 +411,14 @@ def _ensure_asset_ids_sequence(asset_ids) -> None:
 
 def _ensure_asset_ids_length(asset_ids, expected_len: int) -> None:
     """
-    Validate that `asset_ids` contains exactly `expected_len` items.
+    Ensure `asset_ids` has exactly `expected_len` entries.
 
     Parameters:
         asset_ids (Sequence): Sequence of asset identifier values.
         expected_len (int): Required number of asset IDs.
 
     Raises:
-        ValueError: If the length of `asset_ids` does not equal `expected_len`.
+        ValueError: If the length of `asset_ids` does not equal `expected_len` (message: "positions and asset_ids must have the same length").
     """
     if len(asset_ids) != expected_len:
         raise ValueError("positions and asset_ids must have the same length")
@@ -429,13 +426,14 @@ def _ensure_asset_ids_length(asset_ids, expected_len: int) -> None:
 
 def _ensure_asset_ids_non_empty_strings(asset_ids) -> None:
     """
-    Verify that every element in `asset_ids` is a non-empty string.
+    Ensure each element of `asset_ids` is a non-empty string.
 
     Parameters:
         asset_ids (Sequence): Sequence of asset identifier values to validate.
 
     Raises:
-        ValueError: If any element is not a string or is an empty string.
+        ValueError: If any element is not a `str` or is an empty string with message
+                    "asset_ids must contain non-empty strings".
     """
     if any((not isinstance(aid, str) or not aid) for aid in asset_ids):
         raise ValueError("asset_ids must contain non-empty strings")
@@ -487,7 +485,7 @@ def _coerce_positions_to_numeric(positions: np.ndarray) -> np.ndarray:
 
 def _ensure_positions_finite(positions: np.ndarray) -> None:
     """
-    Ensure all entries in `positions` are finite numeric values.
+    Validate that all values in `positions` are finite numbers.
 
     Raises:
         ValueError: If any element of `positions` is not a finite number.
