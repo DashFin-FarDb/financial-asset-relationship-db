@@ -167,16 +167,15 @@ class AssetRelationshipGraph:
         kwargs: dict[str, Any],
     ) -> tuple[Any, Any, bool]:
         """
-        Selects and invokes the parser appropriate for the provided relationship argument shape.
-
+        Choose and run the parser corresponding to the provided relationship argument shape.
+        
         Parameters:
-            relationship_args (tuple[Any, ...]): Positional arguments forwarded from add_relationship; expected shapes are
-                a single tuple (rel_type, strength) or two/three positional elements (rel_type, strength[, bidirectional]).
-            kwargs (dict[str, Any]): Keyword arguments forwarded from add_relationship; used for optional `bidirectional`.
-
+            relationship_args (tuple[Any, ...]): Positional arguments forwarded from add_relationship; expected shapes are either a single tuple of (rel_type, strength) or two/three positional values (rel_type, strength[, bidirectional]).
+            kwargs (dict[str, Any]): Keyword arguments forwarded from add_relationship; may contain `bidirectional` for the two-argument form or be inspected/consumed by tuple form parsers.
+        
         Returns:
-            tuple[Any, Any, bool]: Parsed `(rel_type, strength, bidirectional)`.
-
+            tuple[Any, Any, bool]: A tuple (rel_type, strength, bidirectional) where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` indicates whether the relationship should be added in both directions.
+        
         Raises:
             TypeError: If `relationship_args` does not match any supported shape.
         """
@@ -239,18 +238,18 @@ class AssetRelationshipGraph:
         bidirectional: bool,
     ) -> tuple[str, float, bool]:
         """
-        Validate and coerce relationship argument values to their final types.
-
+        Validate and coerce relationship arguments into their final types.
+        
         Parameters:
-            rel_type (Any): Expected relationship type; must be a string.
-            strength (Any): Numeric value representing relationship strength; will be coerced to float.
-            bidirectional (bool): Flag indicating whether the relationship is bidirectional; will be coerced to bool.
-
+            rel_type (Any): Relationship type; must be a string and will be returned as `str`.
+            strength (Any): Numeric strength value; will be coerced to `float`.
+            bidirectional (bool): Bidirectionality flag; will be coerced to `bool`.
+        
         Returns:
-            tuple[str, float, bool]: A tuple of (rel_type, strength, bidirectional) with types (str, float, bool).
-
+            tuple[str, float, bool]: A tuple (rel_type, strength, bidirectional) with types (str, float, bool).
+        
         Raises:
-            TypeError: If `rel_type` is not a string.
+            TypeError: If `rel_type` is not a `str`.
         """
         if not isinstance(rel_type, str):
             raise TypeError("rel_type must be a string.")
@@ -286,13 +285,15 @@ class AssetRelationshipGraph:
         kwargs: dict[str, Any],
     ) -> tuple[Any, Any, bool]:
         """
-        Parse legacy positional relationship arguments and extract the relationship type, strength, and bidirectional flag.
-
-        Accepts a 2- or 3-element positional form:
-        - If three positional elements are provided, the third element is interpreted as the bidirectional flag.
-        - If two positional elements are provided, the `bidirectional` keyword is read from `kwargs` (defaults to `False`).
-        Raises a TypeError if `bidirectional` is supplied both positionally and via `kwargs`.
-
+        Parse legacy positional relationship arguments and return (rel_type, strength, bidirectional).
+        
+        Accepts either a 2- or 3-element positional form:
+        - If three positional elements are provided, the third element is used as the bidirectional flag.
+        - If two positional elements are provided, the `bidirectional` value is taken from `kwargs.pop("bidirectional", False)`.
+        
+        Raises:
+            TypeError: If `bidirectional` is supplied both positionally (third positional element) and via `kwargs`.
+        
         Returns:
             tuple: `(rel_type, strength, bidirectional)` where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` is `True` if the relationship should be added bidirectionally, `False` otherwise.
         """
@@ -476,7 +477,12 @@ class AssetRelationshipGraph:
         id1: str,
         id2: str,
     ) -> tuple[str, str] | None:
-        """Return (bond_id, issuer_id) if a bond-to-issuer link exists."""
+        """
+        Identify a bond-to-issuer relationship between two assets.
+        
+        Returns:
+            (bond_id, issuer_id) if one asset is a Bond whose issuer_id matches the other asset's id, `None` otherwise.
+        """
         if isinstance(asset1, Bond) and asset1.issuer_id == id2:
             return (id1, id2)
         if isinstance(asset2, Bond) and asset2.issuer_id == id1:
@@ -509,16 +515,14 @@ class AssetRelationshipGraph:
         related_assets: list[str],
     ) -> list[str]:
         """
-        Return the subset of related asset IDs that are present in the graph when the source asset exists.
-
-        If the source asset is not present in the graph, returns an empty list.
-
+        Selects related asset IDs that exist in the graph when the source asset is present.
+        
         Parameters:
-            source_id (str): The ID of the event's source asset; must be present to consider targets.
-            related_assets (list[str]): Candidate target asset IDs to validate.
-
+            source_id (str): ID of the event's source asset; if this asset is not stored in the graph no targets are considered.
+            related_assets (list[str]): Candidate target asset IDs to validate against stored assets.
+        
         Returns:
-            list[str]: Filtered list containing only those IDs from `related_assets` that exist in the graph.
+            list[str]: IDs from `related_assets` that are present in the graph; empty if `source_id` is not found.
         """
         if source_id not in self.assets:
             return []

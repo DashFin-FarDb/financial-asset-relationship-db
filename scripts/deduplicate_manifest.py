@@ -170,13 +170,13 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
 
 def _has_invalid_path_chars(user_value: str) -> bool:
     """
-    Check whether a path string contains any forbidden control characters: NUL, newline, or carriage return.
-
+    Detect whether a path string contains NUL, newline, or carriage return characters.
+    
     Parameters:
         user_value (str): The path string to inspect.
-
+    
     Returns:
-        true if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), false otherwise.
+        bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), `False` otherwise.
     """
     forbidden_chars = ("\x00", "\n", "\r")
     return any(char in user_value for char in forbidden_chars)
@@ -185,15 +185,10 @@ def _has_invalid_path_chars(user_value: str) -> bool:
 def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
     """
     Resolve a user-supplied path against a base directory and return the resolved base and candidate path.
-
-    Parameters:
-        user_value (str): Path string provided by the user; interpreted relative to `base_dir`.
-        base_dir (Path): Directory used as the resolution base.
-
+    
     Returns:
-        tuple[Path, Path]: A pair `(base, resolved_path)` where `base` is the absolute, resolved `base_dir`
-        and `resolved_path` is the absolute, resolved path of `base / user_value` (symlinks and relative
-        components normalized).
+        tuple[Path, Path]: A pair (base, resolved_path) where `base` is `base_dir.resolve()` and
+        `resolved_path` is `(base / Path(user_value)).resolve()`, both as absolute Paths.
     """
     base = base_dir.resolve()
     resolved = (base / Path(user_value)).resolve()
@@ -202,10 +197,10 @@ def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Pa
 
 def _is_within_base(base: Path, candidate: Path) -> bool:
     """
-    Determine whether a filesystem path lies at or beneath a given base directory.
-
+    Check whether `candidate` is the same path as `base` or is located within it.
+    
     Returns:
-        `true` if `candidate` is the same path as `base` or is located within it, `false` otherwise.
+        True if `candidate` is `base` or a descendant of `base`, False otherwise.
     """
     return os.path.commonpath([str(base), str(candidate)]) == str(base)
 

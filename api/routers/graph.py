@@ -21,25 +21,25 @@ def _build_visualization_nodes(
     asset_colors: List[str],
 ) -> List[Dict[str, Any]]:
     """
-    Construct visualization node payloads for the given assets.
-
-    Each node dictionary contains:
-    - `id`: asset identifier string
-    - `name`: asset display name
-    - `symbol`: asset ticker or symbol
-    - `asset_class`: asset class name string
-    - `x`, `y`, `z`: 3D coordinates as floats
-    - `color`: color string for the node
-    - `size`: node size (fixed at 5)
-
+    Builds a list of node dictionaries for 3D visualization of the given assets.
+    
+    Each returned node dictionary contains the keys:
+    - id: asset identifier string
+    - name: asset display name
+    - symbol: asset ticker or symbol
+    - asset_class: asset class name string
+    - x, y, z: 3D coordinates as floats
+    - color: color string for the node
+    - size: node size (integer, fixed at 5)
+    
     Parameters:
-        graph: Object providing access to assets via `graph.assets[asset_id]`.
-        positions: Array-like of shape (N, 3) with 3D coordinates corresponding to `asset_ids`.
-        asset_ids (List[str]): Ordered list of asset ids to include in the visualization.
-        asset_colors (List[str]): Color strings aligned with `asset_ids`.
-
+        graph: Object providing access to assets via a mapping (e.g., graph.assets.get(asset_id)).
+        positions: Array-like with shape (N, 3) supplying x,y,z coordinates corresponding to asset_ids.
+        asset_ids (List[str]): Ordered list of asset IDs to include.
+        asset_colors (List[str]): Color strings aligned with asset_ids.
+    
     Returns:
-        List[Dict[str, Any]]: List of node dictionaries suitable for the visualization response.
+        List[Dict[str, Any]]: Ordered list of node dictionaries suitable for the visualization response.
     """
     nodes: List[Dict[str, Any]] = []
     for i, asset_id in enumerate(asset_ids):
@@ -141,12 +141,10 @@ def _append_allowed_edges(
 )
 async def get_all_relationships() -> List[RelationshipResponse]:
     """
-    List all directed relationships in the initialized asset graph.
-
+    Return a list of directed relationships present in the initialized asset graph.
+    
     Returns:
-        List[RelationshipResponse]: List of relationships where each item
-        contains `source_id`, `target_id`, `relationship_type`, and
-        `strength`.
+        relationships (List[RelationshipResponse]): RelationshipResponse objects representing each directed relationship; each object includes `source_id`, `target_id`, `relationship_type`, and `strength`.
     """
     try:
         g = get_graph()
@@ -187,20 +185,20 @@ async def get_all_relationships() -> List[RelationshipResponse]:
 )
 async def get_metrics() -> MetricsResponse:
     """
-    Aggregate graph metrics and counts of assets by asset class.
-
+    Compute aggregate graph metrics and counts of assets grouped by asset class.
+    
     Returns:
-        MetricsResponse: Object with the following fields:
-            - total_assets: total number of assets.
-            - total_relationships: total number of directed relationships.
-            - asset_classes: dict mapping asset class name (str) to asset count (int).
-            - avg_degree: average node degree (float).
-            - max_degree: maximum node degree (int).
-            - network_density: network density as a fraction (float).
-            - relationship_density: relationship density as a fraction (float).
-
+        MetricsResponse: Object containing:
+            - total_assets (int): Total number of assets in the graph.
+            - total_relationships (int): Total number of directed relationships.
+            - asset_classes (Dict[str, int]): Mapping from asset class name to count of assets.
+            - avg_degree (float): Average node degree (average number of outgoing relationships per asset).
+            - max_degree (int): Maximum node degree observed.
+            - network_density (float): Network density expressed as a fraction (0.0–1.0).
+            - relationship_density (float): Relationship density expressed as a fraction (0.0–1.0).
+    
     Raises:
-        HTTPException: If metrics cannot be obtained (results in a 500 internal server error).
+        HTTPException: If metrics cannot be obtained or an internal error occurs.
     """
     try:
         g = get_graph()
@@ -313,13 +311,13 @@ async def get_asset_classes() -> Dict[str, List[str]]:
 )
 async def get_sectors() -> Dict[str, List[str]]:
     """
-    Return the unique sector names present in the global asset graph, sorted alphabetically.
-
+    List unique sector names from the global asset graph, sorted alphabetically.
+    
     Returns:
-        Dict[str, List[str]]: A mapping with the key "sectors" to a sorted list of unique sector names.
-
+        Dict[str, List[str]]: Mapping with key "sectors" to a sorted list of unique sector names.
+    
     Raises:
-        HTTPException: With status code 500 if an unexpected error occurs while retrieving sectors.
+        HTTPException: Raised with status code 500 if an unexpected error occurs while retrieving sectors.
     """
     try:
         g = get_graph()

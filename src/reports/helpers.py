@@ -46,12 +46,14 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 def _as_str_int_map(value: Any) -> dict[str, int]:
     """
     Normalize a mapping-like object into a dict with string keys and integer values.
-
+    
+    Only entries whose keys are strings are included. Values are coerced to ints using _as_int(..., 0). If the input is not a Mapping, an empty dict is returned.
+    
     Parameters:
-        value (Any): Input expected to be mapping-like; non-mapping inputs produce an empty dict.
-
+        value (Any): Input expected to be mapping-like.
+    
     Returns:
-        dict[str, int]: A dictionary containing only entries whose keys are strings. Values are coerced to int; conversion failures default to 0.
+        dict[str, int]: Dictionary of string keys mapped to integer values; conversion failures produce 0.
     """
     if not isinstance(value, Mapping):
         return {}
@@ -69,11 +71,11 @@ def _as_top_relationships(
 ) -> list[tuple[str, str, str, float]]:
     """
     Normalize an iterable into a list of top-relationship tuples.
-
-    Each tuple is (source_id, target_id, type, strength) where the first three elements are strings and strength is a float coerced from the fourth element. Non-iterable input or items that do not match the expected shape are ignored.
-
+    
+    Ignores non-iterable input and items that are not 4-tuples with the first three elements as strings. Coerces the fourth element of each valid item to a float using 0.0 if conversion fails.
+    
     Returns:
-        list[tuple[str, str, str, float]]: List of normalized relationship tuples.
+        A list of (source_id, target_id, type, strength) tuples where the first three elements are strings and `strength` is a float.
     """
     if not isinstance(value, Iterable):
         return []
@@ -89,10 +91,15 @@ def _as_top_relationships(
 
 def _is_top_relationship_item(item: Any) -> bool:
     """
-    Determine whether an object represents a top-relationship item in the form (source_id, target_id, type, strength).
-
+    Determine whether an object represents a top-relationship item tuple.
+    
+    A top-relationship item is a 4-tuple (source_id, target_id, type, strength) where the first three elements are strings. The fourth element is not validated by this function.
+    
+    Parameters:
+        item (Any): Value to check.
+    
     Returns:
-        bool: `True` if `item` is a 4-tuple whose first three elements are strings, `False` otherwise.
+        bool: `True` if `item` is a 4-tuple and its first three elements are strings, `False` otherwise.
     """
     if not isinstance(item, tuple):
         return False

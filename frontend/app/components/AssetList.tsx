@@ -356,18 +356,18 @@ function useSearchStateSync(
 }
 
 /**
- * Triggers asset fetching when pagination, filter, or query summary change and updates provided state setters.
+ * Fetches assets whenever page, pageSize, filter, or querySummary change and updates the provided state setters.
  *
- * Invokes `loadAssets` and ensures `setLoading`/`setError`/`setAssets`/`setTotal` are updated to reflect the request lifecycle and result.
+ * Runs an effect that calls the shared asset-loading routine and ensures loading, result, and error state are updated to reflect the request lifecycle.
  *
  * @param page - Current page number to request
  * @param pageSize - Number of items per page to request
  * @param filter - Asset filter to apply (e.g., asset class and sector)
- * @param querySummary - Precomputed string summary of the current query used for logging or cache keys
- * @param setAssets - Setter invoked with the fetched asset list
- * @param setTotal - Setter invoked with the total number of matching assets
- * @param setError - Setter invoked with an error message if loading fails
- * @param setLoading - Setter invoked to indicate loading state (`true` when request starts, `false` when it finishes)
+ * @param querySummary - Precomputed string summary of the current query (used for logging or cache keys)
+ * @param setAssets - Setter invoked with the fetched asset list (`Asset[]`)
+ * @param setTotal - Setter invoked with the total number of matching assets (`number | null`)
+ * @param setError - Setter invoked with an error message or `null`
+ * @param setLoading - Setter invoked with loading state (`true` when request starts, `false` when it finishes)
  */
 function useAssetDataLoading({
   page,
@@ -438,17 +438,15 @@ function useQueryParamUpdater({
 }
 
 /**
- * Create pagination and filter navigation controls that update local state and synchronize changes to the URL search params.
+ * Provides pagination and filter handlers that update local state and keep URL search params in sync.
  *
- * The returned handlers update the corresponding state setters and replace the router search params; navigation booleans reflect whether moving pages is allowed given the current page, total pages, and loading state.
- *
- * @returns An object containing:
+ * @returns An object with:
  * - `canGoPrev` - `true` if the current page is greater than 1 and not loading, `false` otherwise.
  * - `canGoNext` - `true` if `totalPages` is known, the current page is less than `totalPages`, and not loading, `false` otherwise.
- * - `handleFilterChange` - A change handler for filter select elements that sets the given filter field, resets the page to 1, and updates the URL search params.
- * - `handlePageSizeChange` - A change handler for the page-size select that parses and sets a new page size, resets the page to 1, and updates the URL search params.
- * - `handlePrevClick` - A handler that navigates to the previous page (clamped) via the same page update logic.
- * - `handleNextClick` - A handler that navigates to the next page (clamped) via the same page update logic.
+ * - `handleFilterChange` - A change handler for filter `<select>` elements that sets the specified filter field, resets the page to 1, and updates the URL search params.
+ * - `handlePageSizeChange` - A change handler for the page-size `<select>` that parses and sets a new page size, resets the page to 1, and updates the URL search params.
+ * - `handlePrevClick` - Navigates to the previous page (subject to clamping) using the same page update logic.
+ * - `handleNextClick` - Navigates to the next page (subject to clamping) using the same page update logic.
  */
 function useNavigationControls({
   pathname,
@@ -517,14 +515,17 @@ function useNavigationControls({
 }
 
 /**
- * Assembles and returns controller state and handlers for the asset list, including filtering, pagination, loading, and metadata.
+ * Provides controller state and handlers for the asset list, including filtering, pagination, loading state, and metadata.
  *
  * @returns An `AssetListController` containing:
- * - `assets`, `loading`, and `error` state for the current asset fetch
- * - the active `filter` and available `assetClasses` and `sectors`
- * - pagination state: `page`, `pageSize`, and `totalPages`
- * - navigation booleans `canGoPrev` and `canGoNext`
- * - handler functions `handleFilterChange`, `handlePageSizeChange`, `handlePrevClick`, and `handleNextClick`
+ * - `assets` — the current list of loaded assets
+ * - `loading` — `true` while an asset fetch is in progress
+ * - `error` — an error message or `null`
+ * - `filter` — active filter values (`asset_class`, `sector`)
+ * - `assetClasses` and `sectors` — available metadata options for filters
+ * - `page`, `pageSize`, and `totalPages` — pagination state
+ * - `canGoPrev` and `canGoNext` — booleans indicating pagination availability
+ * - handler functions: `handleFilterChange`, `handlePageSizeChange`, `handlePrevClick`, `handleNextClick`
  */
 function useAssetListController(): AssetListController {
   const router = useRouter();

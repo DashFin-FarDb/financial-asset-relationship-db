@@ -126,28 +126,22 @@ def categorize_filename(filename: str) -> str:
 
 def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
     """
-    Aggregate file-level statistics for the files included in a pull request.
-
-    Counts files per category, accumulates additions, deletions, and total changes,
-    and collects any files with more than 500 total changes.
-
+    Aggregate file-level statistics for a pull request's changed files.
+    
     Parameters:
-        pr_files_iterable (Iterable): An iterable of objects representing changed files.
-            Each object must have attributes:
-            - filename (str): the file path
-            - additions (int): number of added lines
-            - deletions (int): number of deleted lines
-
+        pr_files_iterable (Iterable): An iterable of file-like objects representing changed files.
+            Each object must provide `filename` (str), `additions` (int), and `deletions` (int).
+    
     Returns:
-        Dict[str, Any]: A dictionary containing:
+        dict: Summary dictionary with keys:
             - file_count (int): total number of files processed
-            - file_categories (Dict[str, int]): mapping of category name to file count
-            - total_additions (int): sum of additions across all files
-            - total_deletions (int): sum of deletions across all files
-            - total_changes (int): sum of additions and deletions across all files
-            - large_files (List[Dict[str, Any]]): list of dicts for files with >500 changes;
-              each dict contains `filename`, `changes`, `additions`, and `deletions`
-            - has_large_files (bool): `True` if any large files were found, `False` otherwise
+            - file_categories (Dict[str, int]): mapping from category name to count
+            - total_additions (int): sum of all additions
+            - total_deletions (int): sum of all deletions
+            - total_changes (int): sum of additions and deletions
+            - large_files (List[Dict[str, Any]]): list of files with more than 500 total changes;
+              each entry contains `filename`, `changes`, `additions`, and `deletions`
+            - has_large_files (bool): True if any large files were found, False otherwise
     """
     categories: Dict[str, int] = defaultdict(int)
     stats = {"additions": 0, "deletions": 0, "changes": 0}
@@ -215,23 +209,20 @@ def assess_complexity(
     commit_count: int,
 ) -> Tuple[int, str]:
     """
-    Assess overall PR complexity and map it to a risk level.
-
+    Estimate a pull request's complexity and assign a risk level.
+    
     Parameters:
-        file_data (dict): Aggregated file metrics with keys:
+        file_data (dict): Aggregated file metrics containing at least:
             - file_count: total number of files changed
             - total_changes: sum of additions and deletions across files
             - has_large_files: boolean indicating presence of large-file changes
-            - large_files: list of large-file entries (each entry counted toward a penalty)
-        commit_count (int): Number of commits in the PR.
-
+            - large_files: list of large-file entries used to compute penalties
+        commit_count (int): Number of commits in the pull request.
+    
     Returns:
-        tuple: (score, risk_level)
-            - score (int): Complexity score on a 0–100 scale computed from file count,
-              total changes, large-file penalties (5 points per large file, capped at 20),
-              and commit count.
-            - risk_level (str): One of "High" (score >= 70), "Medium" (score >= 40),
-              or "Low" (score < 40).
+        tuple: Two-item tuple describing the assessment.
+            - score (int): Complexity score (higher values indicate greater complexity).
+            - risk_level (str): Risk band: `"High"` if score >= 70, `"Medium"` if score >= 40, `"Low"` otherwise.
     """
     score = 0
 
@@ -395,13 +386,13 @@ def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
 
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
     """
-    Create a Markdown "Large Files" section listing files with more than 500 changed lines.
-
+    Return a Markdown section listing files with more than 500 changed lines.
+    
     Parameters:
-        file_analysis (dict): Analysis dictionary that must include a "large_files" key containing a list of dicts with at least the keys "filename" and "changes".
-
+        file_analysis (dict): Analysis dictionary containing a "large_files" list of dicts, each with at least "filename" and "changes".
+    
     Returns:
-        str: Markdown-formatted section listing each large file as a bullet (empty string if no large files).
+        str: Markdown-formatted section with a bold header and one bullet per large file; empty string if no large files are present.
     """
     large_files = file_analysis["large_files"]
     if not large_files:
@@ -490,12 +481,12 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 
 def write_output(report: str) -> None:
     """
-    Write the analysis report to the GitHub Actions step summary, a secure temporary file, and standard output.
-
-    If the GITHUB_STEP_SUMMARY environment variable is set and points inside the system temporary directory, append the report to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always attempt to create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False) and write the report there; the created temp file path is printed to stdout. Any I/O errors while writing the summary or temp file are caught and reported to stderr. Finally, the report is printed to stdout.
-
+    Write the analysis report to the GitHub Actions step summary (when allowed), a secure temporary markdown file, and standard output.
+    
+    If the GITHUB_STEP_SUMMARY environment variable is set and its resolved path resides inside the system temporary directory, append the report to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False), write the report there, and print the temporary file path to stdout. Any I/O errors while writing either destination are caught and reported to stderr. Finally, print the full report to stdout.
+    
     Parameters:
-        report (str): The Markdown report content to be written to outputs.
+        report (str): The Markdown-formatted analysis report to write.
     """
     # 1. GitHub Actions Summary
     gh_summary = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -542,9 +533,9 @@ def write_output(report: str) -> None:
 
 def run() -> None:
     """
-    Execute the end-to-end PR analysis workflow and produce a Markdown report.
-
-    Validates required environment variables, loads configuration, fetches the specified pull request from GitHub, collects file and commit data, computes a complexity score and risk level, detects scope and related-issue signals, writes the generated report to the configured outputs, and exits the process. Exits with a non-zero status on missing/invalid environment variables, GitHub API errors, or other runtime failures; prints a CI warning when the risk level is "High".
+    Run the end-to-end PR analysis and produce a Markdown report.
+    
+    Validates required environment variables, loads configuration, fetches the referenced pull request from GitHub, analyzes files and commits to compute a complexity score and risk level, detects scope issues and related issue references, and writes a Markdown report to configured outputs (CI step summary when allowed, a secure temp file, and stdout). Exits the process with status 0 on success or a non-zero status on missing/invalid environment, GitHub API errors, or other runtime failures. Emits a CI warning when the computed risk level is High.
     """
     env_vars = {var: os.environ.get(var) for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")}
 

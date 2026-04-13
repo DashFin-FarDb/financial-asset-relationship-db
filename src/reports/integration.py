@@ -62,19 +62,25 @@ _ALLOWED_PROTOCOLS: frozenset[str] = frozenset({"http", "https", "mailto"})
 
 def markdown_to_html(md: str) -> str:
     """
-    Render a Markdown-formatted string to sanitized HTML.
-
-    Markdown rendering can emit raw HTML if the source contains it. We therefore
-    sanitize the resulting HTML to prevent script injection (XSS).
-
+    Convert Markdown to sanitized HTML.
+    
+    Renders the provided Markdown to HTML, sanitizes the result using the module's allowlists, and post-processes links to add appropriate safety attributes.
+    
     Parameters:
-        md (str): Markdown content.
-
+        md (str): Markdown content to render.
+    
     Returns:
         str: Sanitized HTML string rendered from the provided Markdown.
-
-    Raises:
-        ValueError: If Markdown rendering or sanitisation fails.
+    """
+    """
+    Ensure the `rel` attribute value includes "noopener".
+    
+    Parameters:
+        attrs (dict): Mapping of attribute keys (typically tuples like `(None, "rel")`) to their values; modified in-place and returned.
+        _new (bool): Unused placeholder to match the callback signature expected by Bleach.
+    
+    Returns:
+        dict: The same `attrs` mapping with the `rel` value updated to include "noopener" if it was not already present.
     """
     rendered = markdown.markdown(
         md,
@@ -93,14 +99,14 @@ def markdown_to_html(md: str) -> str:
     # Add rel="nofollow noopener" to links and open in new tab defensively.
     def _add_noopener(attrs: dict, _new: bool = False) -> dict:
         """
-        Ensure the attribute mapping contains "noopener" in the `rel` attribute value.
-
+        Add "noopener" to the `rel` attribute in a bleach linkify attribute mapping.
+        
         Parameters:
-            attrs (dict): Mapping of attribute keys (typically tuples like `(None, "rel")`) to their values; this mapping is modified in-place and returned.
-            _new (bool): Unused; present to match the callback signature expected by bleach.
-
+            attrs (dict): Mapping of attribute keys (typically tuples like `(None, "rel")`) to their values; the mapping is updated (in-place) so the `rel` entry includes `"noopener"`.
+            _new (bool): Ignored; present to match the callback signature expected by bleach.
+        
         Returns:
-            dict: The same `attrs` mapping with the `rel` value updated to include `"noopener"` if it was not already present.
+            dict: The same `attrs` mapping with the `rel` value updated to include `"noopener"`.
         """
         rel = attrs.get((None, "rel"), "")
         if "noopener" not in rel:
@@ -126,16 +132,13 @@ def markdown_to_html(md: str) -> str:
 
 def generate_markdown_report(graph: AssetRelationshipGraph) -> str:
     """
-    Generate a Markdown-formatted schema report for an asset relationship graph.
-
+    Produce a Markdown schema report for an asset relationship graph.
+    
     Parameters:
-        graph (AssetRelationshipGraph): The asset relationship graph to produce the report from.
-
+        graph (AssetRelationshipGraph): The asset relationship graph to generate the report from.
+    
     Returns:
         str: The report rendered as Markdown.
-
-    Raises:
-        ValueError: If the provided graph is invalid or report generation fails.
     """
     return generate_schema_report(graph)
 

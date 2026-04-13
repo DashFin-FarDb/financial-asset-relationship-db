@@ -78,10 +78,10 @@ class SchemaReportGenerator:
 
     def _render_schema_overview(self) -> List[str]:
         """
-        Render the "Schema Overview" section describing supported entity types.
-
+        Produce the "Schema Overview" section listing the supported entity types.
+        
         Returns:
-            lines (List[str]): A list of Markdown-formatted lines for the schema overview.
+            List[str]: Markdown-formatted lines representing the Schema Overview section.
         """
         return [
             "## Schema Overview",
@@ -136,7 +136,17 @@ class SchemaReportGenerator:
         return lines
 
     def _render_top_relationships(self, metrics: Metrics) -> List[str]:
-        """Render the top relationships ranked by strength."""
+        """
+        Render the "Top Relationships" section as Markdown lines.
+        
+        Parameters:
+            metrics (Metrics): Metrics mapping expected to contain a "top_relationships" entry;
+                each item should be an iterable of tuples (src, tgt, relationship_type, strength).
+        
+        Returns:
+            List[str]: Markdown lines for the "## Top Relationships" section. If no relationships are present,
+                the list includes a single placeholder bullet "- No relationships recorded yet." followed by a blank line.
+        """
         top = _as_top_relationships(metrics.get("top_relationships"))
         lines = ["## Top Relationships", ""]
         if not top:
@@ -177,8 +187,19 @@ class SchemaReportGenerator:
         ]
 
     def _render_schema_optimization(self, metrics: Metrics) -> List[str]:
-        """Render recommendations and metrics for schema optimization based on
-        relationship density.
+        """
+        Render schema optimization section lines including a data quality score and a single recommendation determined by relationship density.
+        
+        Parameters:
+            metrics (Dict[str, Any]): Metrics mapping; expected keys:
+                - "relationship_density": numeric value used to select the recommendation.
+                - "quality_score": numeric value formatted as a percentage in the output.
+        
+        Returns:
+            List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines include a formatted data quality score and one recommendation chosen from:
+                - density > 30.0: "High connectivity - consider normalization."
+                - density > 10.0: "Well-balanced - suitable for most analytical use-cases."
+                - otherwise: "Sparse - consider enriching relationship definitions."
         """
         density = _as_float(metrics.get("relationship_density"))
         quality_score = _as_float(metrics.get("quality_score"))
@@ -203,10 +224,10 @@ class SchemaReportGenerator:
 
     def _render_implementation_notes(self) -> List[str]:
         """
-        Produce the "Implementation Notes" section as a list of Markdown lines detailing timestamp format, normalization ranges, and relationship directionality.
-
+        Render the "Implementation Notes" section.
+        
         Returns:
-            lines (List[str]): Markdown lines composing the Implementation Notes section.
+            lines (List[str]): Markdown lines for the Implementation Notes section.
         """
         return [
             "## Implementation Notes",

@@ -65,10 +65,14 @@ const MAX_NODES = Number(process.env.NEXT_PUBLIC_MAX_NODES) || 500;
 const MAX_EDGES = Number(process.env.NEXT_PUBLIC_MAX_EDGES) || 2000;
 
 /**
- * Constructs a Plotly 3D node trace from the provided node definitions.
+ * Build a Plotly 3D scatter trace that renders nodes as markers with inline labels.
  *
- * @param nodes - Array of node objects supplying the 3D coordinates, display label, hover metadata, size, and color. Each node is expected to include `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, and `color`.
- * @returns A NodeTrace configured as a 3D scatter of markers and text. Marker sizes and colors are taken from each node; hover text includes the node name, symbol, and asset class.
+ * Produces a `scatter3d` trace with markers and text where each node's position, label,
+ * marker size, and color are taken from the corresponding node object; hover text shows
+ * the node's name, symbol, and asset class.
+ *
+ * @param nodes - Array of node objects. Each node should provide `x`, `y`, `z`, `symbol`, `name`, `asset_class`, `size`, and `color`.
+ * @returns A NodeTrace configured as a 3D scatter with markers and text labels.
  */
 function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
   return {
@@ -98,13 +102,13 @@ function buildNodeTrace(nodes: VisualizationData["nodes"]): NodeTrace {
 }
 
 /**
- * Converts node and edge lists into Plotly 3D line traces representing network edges.
+ * Build Plotly 3D line traces for network edges from node and edge lists.
  *
- * Skips any edge whose source or target node is not found (a warning is logged in that case).
+ * Skips edges whose source or target node is missing and logs a warning in that case.
  *
- * @param nodes - Array of node objects with `id`, `x`, `y`, and `z` coordinates.
- * @param edges - Array of edge objects with `source`, `target`, and `strength` properties.
- * @returns An array of `EdgeTrace` objects where each trace is a two-point 3D line from source to target; line color and width are derived from the edge's `strength`.
+ * @param nodes - Nodes with unique `id` and numeric `x`, `y`, `z` coordinates.
+ * @param edges - Edges with `source` and `target` node ids and a numeric `strength` between 0 and 1.
+ * @returns An array of `EdgeTrace` objects; each trace is a two-point 3D line connecting source and target where line color and width are derived from the edge's `strength`.
  */
 function buildEdgeTraces(
   nodes: VisualizationData["nodes"],

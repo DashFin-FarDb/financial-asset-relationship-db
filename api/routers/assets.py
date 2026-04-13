@@ -32,16 +32,16 @@ def raise_asset_not_found(asset_id: str, resource_type: str = "Asset") -> None:
 
 def serialize_asset(asset: Any, include_issuer: bool = False) -> Dict[str, Any]:
     """
-    Convert an Asset object into a dictionary suitable for API responses.
-
-    The result contains core fields: `id`, `symbol`, `name`, `asset_class`, `sector`, `price`, `market_cap`, and `currency`, plus an `additional_fields` mapping that includes asset-type-specific attributes when their values are not None. If `include_issuer` is True and the asset has an `issuer_id`, it will be included in `additional_fields`.
-
+    Serialize an Asset object to a dictionary suitable for API responses.
+    
+    Core keys include: id, symbol, name, asset_class, sector, price, market_cap, and currency. An additional_fields mapping contains asset-type-specific attributes that exist on the asset and whose values are not None. If include_issuer is True and the asset has an issuer_id, issuer_id is added to additional_fields.
+    
     Parameters:
         asset (Any): Asset instance to serialize.
-        include_issuer (bool): Include `issuer_id` in `additional_fields` when present.
-
+        include_issuer (bool): When True, include `issuer_id` in `additional_fields` if present.
+    
     Returns:
-        Dict[str, Any]: Dictionary representation of the asset with an `additional_fields` map of non-null supplemental attributes.
+        Dict[str, Any]: Dictionary containing core asset fields and an `additional_fields` map of non-null supplemental attributes.
     """
     asset_dict = {
         "id": asset.id,

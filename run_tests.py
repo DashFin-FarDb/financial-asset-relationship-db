@@ -23,21 +23,16 @@ def _has_control_chars(value: str) -> bool:
 
 def _validate_pytest_args(args: list[str]) -> list[str]:
     """
-    Validate pytest command-line arguments for control characters.
-
-    Arguments are passed as a list to ``subprocess.run`` (no ``shell=True``),
-    so spaces and punctuation used in typical pytest expressions (e.g.
-    ``-k "foo and bar"``) are safe and do not require allowlist filtering.
-    Only NUL, newline, and carriage-return characters are rejected.
-
+    Validate pytest command-line arguments by rejecting NUL, newline, or carriage-return characters.
+    
     Parameters:
         args (list[str]): Candidate pytest command-line arguments (typically sys.argv[1:]).
-
+    
     Returns:
-        validated (list[str]): The input arguments in the same order after validation.
-
+        list[str]: The input arguments in the same order after validation.
+    
     Raises:
-        ValueError: If any argument contains NUL, newline, or carriage return characters.
+        ValueError: If any argument contains NUL (\\x00), newline (\\n), or carriage return (\\r).
     """
     validated: list[str] = []
     for arg in args:

@@ -18,11 +18,10 @@ def _generate_dynamic_title(
     base_title: str = "Financial Asset Network",
 ) -> str:
     """
-    Build a title summarizing asset and relationship counts.
-
+    Generate a display title combining the base title with counts of assets and relationships.
+    
     Returns:
-        A title string formatted as
-        "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
+        title (str): Formatted as "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
     """
     return f"{base_title} - {num_assets} Assets, {num_relationships} Relationships"
 
@@ -50,16 +49,13 @@ def _prepare_layout_config(
     layout_options: Optional[Dict[str, object]] = None,
 ) -> Tuple[str, Dict[str, object]]:
     """
-    Generate a title summarizing asset and visible relationship counts and return it alongside layout options.
-
-    Estimates the number of visible relationships from the provided 3D traces, composes a dynamic title using the asset and relationship counts with the given base title, and returns that title together with the provided layout options.
-
+    Generate a dynamic plot title from the asset count and the estimated number of visible relationships, and return that title with layout options.
+    
     Parameters:
-        num_assets (int): Number of assets to include in the title.
-        relationship_traces (List[go.Scatter3d]): Scatter3d traces used to estimate visible relationships.
-        base_title (str): Base string to prefix the generated title.
-        layout_options (Optional[Dict[str, object]]): Optional layout configuration to return with the title.
-
+        relationship_traces (List[go.Scatter3d]): 3D scatter traces used to estimate visible relationships by counting their points.
+        base_title (str): Base string to prefix the generated title. Defaults to "Financial Asset Network".
+        layout_options (Optional[Dict[str, object]]): Layout configuration to return; an empty dict is returned if None.
+    
     Returns:
         Tuple[str, Dict[str, object]]: The generated title and the layout options dictionary (empty dict if none provided).
     """

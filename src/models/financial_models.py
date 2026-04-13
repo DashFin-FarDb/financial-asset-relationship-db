@@ -44,8 +44,8 @@ class Asset:
     def __post_init__(self) -> None:
         """
         Validate and normalize Asset fields after dataclass initialization.
-
-        Performs validation that `id`, `symbol`, and `name` are non-empty strings; that `price` is a number greater than or equal to zero; and that `market_cap` is a number greater than or equal to zero or None. Normalizes `currency` to uppercase when it is a string and validates the currency code format.
+        
+        Ensures `id`, `symbol`, and `name` are non-empty strings; ensures `price` is a number greater than or equal to zero; ensures `market_cap` is a number greater than or equal to zero or None; converts `currency` to uppercase when it is a string and validates that it matches the three-letter uppercase currency code format.
         """
         self._validate_non_empty_string(
             self.id,
@@ -76,13 +76,13 @@ class Asset:
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
         Validate that `value` is a non-empty string.
-
+        
         Parameters:
-            value (object): The value to validate; must be an instance of `str` and not empty.
-            error_message (str): Message used for the raised ValueError when validation fails.
-
+            value (object): The value to validate; must be a `str` and not empty.
+            error_message (str): Message used for the raised ValueError.
+        
         Raises:
-            ValueError: If `value` is not a string or is an empty string, raised with `error_message`.
+            ValueError: If `value` is not a `str` or is an empty string, raised with `error_message`.
         """
         if not isinstance(value, str) or not value:
             raise ValueError(error_message)
@@ -113,13 +113,13 @@ class Asset:
     @staticmethod
     def _validate_currency_code(currency: str) -> None:
         """
-        Validate that `currency` is a three-letter uppercase ISO-like currency code.
-
+        Ensure `currency` is a three-letter uppercase ISO-like currency code.
+        
         Parameters:
-            currency (str): Currency code expected as three uppercase ASCII letters (for example, "USD").
-
+            currency (str): Currency code as three uppercase ASCII letters (e.g., "USD").
+        
         Raises:
-            ValueError: If `currency` is not a string of three uppercase letters.
+            ValueError: If `currency` is not a string of exactly three uppercase letters.
         """
         if not isinstance(currency, str) or not re.match(r"^[A-Z]{3}$", currency):
             raise ValueError("Currency must be a valid 3-letter ISO code")
@@ -178,9 +178,12 @@ class RegulatoryEvent:
 
     def __post_init__(self) -> None:
         """
-        Validate and normalize regulatory event fields after dataclass initialization.
-
-        Ensures `id`, `asset_id`, and `description` are non-empty strings, `impact_score` is between -1 and 1, and `date` begins with an ISO 8601 date prefix (YYYY-MM-DD).
+        Validate regulatory event fields after dataclass initialization.
+        
+        Ensures `id`, `asset_id`, and `description` are non-empty strings, `impact_score` is a number between -1 and 1, and `date` starts with an ISO-like `YYYY-MM-DD` prefix.
+        
+        Raises:
+            ValueError: If any validation check fails.
         """
         self._validate_non_empty_string(
             self.id,
@@ -200,12 +203,12 @@ class RegulatoryEvent:
     @staticmethod
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
-        Validate that a value is a non-empty string.
-
+        Validate that `value` is a non-empty string.
+        
         Parameters:
             value (object): The value to validate.
-            error_message (str): Error message used for the raised ValueError when validation fails.
-
+            error_message (str): Message used for the raised ValueError if validation fails.
+        
         Raises:
             ValueError: If `value` is not a `str` or is an empty string.
         """

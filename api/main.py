@@ -80,12 +80,15 @@ _DEFAULT_COLOR = "#9c755f"
 
 def get_graph() -> AssetRelationshipGraph:
     """
-    Return the module's shared AssetRelationshipGraph, initializing it on first access.
-
-    Initializes the graph lazily in a thread-safe manner if it has not been created yet.
-
+    Get the shared AssetRelationshipGraph, initializing it on first access.
+    
+    Initializes the graph lazily in a thread-safe manner so a single shared instance is created for the module.
+    
     Returns:
         The shared AssetRelationshipGraph instance.
+    
+    Raises:
+        RuntimeError: If the graph could not be initialized.
     """
     if graph_state.graph is None:
         with graph_lock:
@@ -99,10 +102,12 @@ def get_graph() -> AssetRelationshipGraph:
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
-    Replace the module's graph with the provided AssetRelationshipGraph instance and clear any configured graph factory.
-
+    Set the module-level AssetRelationshipGraph and disable the configured graph factory.
+    
+    Performs a thread-safe replacement of the shared graph and clears any existing graph factory so future lazy construction is disabled.
+    
     Parameters:
-        graph_instance (AssetRelationshipGraph): The graph to set as the module-level graph.
+        graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to install as the module-level graph.
     """
     with graph_lock:
         graph_state.graph = graph_instance
@@ -130,20 +135,19 @@ def set_graph_factory(factory: Optional[GraphFactory]) -> None:
 
 def reset_graph() -> None:
     """
-    Clear the global graph and factory so the graph is reinitialised on next
-    access.
+    Clears the shared graph instance and any configured graph factory, forcing the graph to be reinitialized on next access.
     """
     set_graph_factory(None)
 
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Construct the asset relationship graph using the configured source.
-
-    Chooses the construction source in this order: a configured graph factory; real-data cache pointed to by `GRAPH_CACHE_PATH`; live real-data fetcher using `REAL_DATA_CACHE_PATH` when `USE_REAL_DATA_FETCHER` is enabled; otherwise falls back to the bundled sample dataset.
-
+    Constructs and returns the shared asset relationship graph using the configured source.
+    
+    Selection priority: use a configured graph factory if present; otherwise use the cache path specified by `GRAPH_CACHE_PATH` (optionally enabling network based on environment); if `USE_REAL_DATA_FETCHER` is enabled, use the real-data fetcher with `REAL_DATA_CACHE_PATH`; if none of those apply, fall back to the bundled sample dataset.
+    
     Returns:
-        AssetRelationshipGraph: The initialized asset relationship graph.
+        AssetRelationshipGraph: The initialized asset relationship graph instance.
     """
     if graph_state.graph_factory is not None:
         return graph_state.graph_factory()
@@ -187,9 +191,11 @@ def _should_use_real_data_fetcher() -> bool:
 @asynccontextmanager
 async def lifespan(_fastapi_app: FastAPI):
     """
-    Initialize the global asset relationship graph at application startup.
-
-    If graph initialization fails, propagate the exception to abort application startup.
+    FastAPI lifespan context that ensures the shared asset relationship graph is initialized before the app starts.
+    
+    If graph initialization fails, the exception is propagated to abort application startup. After initialization this context yields control to the FastAPI lifespan manager; when resumed it completes shutdown processing.
+    Returns:
+        Yields control to the FastAPI lifespan manager after successful startup initialization.
     """
     try:
         get_graph()
@@ -235,28 +241,27 @@ def _read_allowed_origins() -> List[str]:
 
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """
-    Allow HTTP localhost origins only when running in the development environment.
-
+    Allow HTTP localhost origins only in the development environment.
+    
     Parameters:
-        origin_url (str): The origin URL to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
-        current_env (str): The current environment name; expected value for allowance is "development".
-
+        origin_url (str): Origin to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
+        current_env (str): Current environment string; allowance occurs only when this equals "development".
+    
     Returns:
-        bool: `True` if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" (optional port allowed)
-        and `current_env` equals "development", `False` otherwise.
+        True if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional port and `current_env` equals "development", `False` otherwise.
     """
     return current_env == "development" and bool(re.match(r"^http://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
 
 
 def _is_https_local(origin_url: str) -> bool:
     """
-    Determine whether an origin URL is an HTTPS localhost origin.
-
+    Determine whether an origin URL represents HTTPS localhost (either localhost or 127.0.0.1), allowing an optional port.
+    
     Parameters:
-        origin_url (str): The origin to test (scheme + host, optional port), e.g. "https://localhost:3000".
-
+        origin_url (str): Origin string including scheme and host, optionally with port (e.g. "https://localhost:3000").
+    
     Returns:
-        `true` if the origin is `https://localhost` or `https://127.0.0.1` (optionally with a port), `false` otherwise.
+        True if the origin is "https://localhost" or "https://127.0.0.1" optionally followed by ":<port>", False otherwise.
     """
     return bool(re.match(r"^https://(localhost|127\.0\.0\.1)(:\d+)?$", origin_url))
 
@@ -276,13 +281,13 @@ def _is_vercel_preview(origin_url: str) -> bool:
 
 def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
     """
-    Determine whether a parsed origin contains any disallowed URL components.
-
+    Check if a parsed origin contains disallowed URL components.
+    
     Parameters:
-        parsed_origin (object): A parsed URL-like object (for example, the result of urllib.parse.urlparse) whose attributes will be inspected.
-
+        parsed_origin (object): A URL parse result (e.g., urllib.parse.ParseResult) whose attributes will be inspected.
+    
     Returns:
-        bool: `True` if any of `path`, `params`, `query`, `fragment`, `username`, or `password` are present (non-empty); `False` otherwise.
+        bool: `True` if any of `path`, `params`, `query`, `fragment`, `username`, or `password` are non-empty; `False` otherwise.
     """
     return any(
         [
@@ -298,13 +303,13 @@ def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
 
 def _is_valid_https_domain(origin_url: str) -> bool:
     """
-    Validate whether an origin URL is a well-formed HTTPS origin, supporting internationalized domain names (IDN) and an optional port.
-
+    Determine whether an origin URL is a valid HTTPS origin allowing internationalized domain names (IDN) and an optional port.
+    
     Parameters:
         origin_url (str): The origin URL to validate.
-
+    
     Returns:
-        `true` if the input is a valid HTTPS origin with a hostname (IDN allowed) and optional port, `false` otherwise.
+        `true` if the input starts with `https://`, contains a hostname (IDN allowed), has no forbidden URL parts (path, params, query, fragment, username, or password), and matches the allowed hostname with an optional port; `false` otherwise.
     """
     if not origin_url.startswith("https://"):
         return False
@@ -584,17 +589,19 @@ async def get_assets(
     sector: Optional[str] = None,
 ) -> List[AssetResponse]:
     """
-    Retrieve assets filtered by asset class and/or sector.
-
+    Retrieve assets filtered by exact asset class and/or sector.
+    
+    Filters apply exact string matching against asset.asset_class.value and asset.sector.
+    
     Parameters:
-        asset_class (Optional[str]): Exact asset class name to filter by (e.g. "Equity").
+        asset_class (Optional[str]): Exact asset class name to filter by (for example, "Equity").
         sector (Optional[str]): Exact sector name to filter by.
-
+    
     Returns:
-        List[AssetResponse]: Matching assets formatted as API response objects.
-
+        List[AssetResponse]: API-formatted assets that match the provided filters.
+    
     Raises:
-        HTTPException: 500 if an unexpected error occurs while fetching assets.
+        HTTPException: If an unexpected error occurs while fetching assets (status code 500).
     """
     try:
         g = get_graph()
@@ -649,14 +656,14 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
 )
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
     """
-    Get outgoing relationships for the given asset.
-
+    Return outgoing relationships for the specified asset.
+    
     Parameters:
-        asset_id (str): Asset identifier whose outgoing relationships are requested.
-
+        asset_id (str): Identifier of the asset whose outgoing relationships are requested.
+    
     Returns:
-        List[RelationshipResponse]: A list of relationship records containing `source_id`, `target_id`, `relationship_type`, and `strength`.
-
+        List[RelationshipResponse]: List of relationship records containing `source_id`, `target_id`, `relationship_type`, and `strength`.
+    
     Raises:
         HTTPException: 404 if the asset is not found.
         HTTPException: 500 for unexpected internal errors.

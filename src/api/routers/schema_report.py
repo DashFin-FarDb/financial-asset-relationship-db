@@ -27,13 +27,13 @@ def schema_report(
     ] = "md",
 ) -> Response:
     """
-    Serve the schema report as Markdown or HTML.
-
+    Serve the schema report in either Markdown or HTML.
+    
     Parameters:
-        report_format (Literal["md", "html"]): Desired output format — `"md"` returns Markdown, `"html"` returns HTML.
-
+        report_format (Literal["md", "html"]): Desired output format. `"md"` returns the report as Markdown with media type `text/markdown; charset=utf-8`; `"html"` returns the report as HTML with media type `text/html; charset=utf-8`.
+    
     Returns:
-        Response: HTTP response containing the report content; media type is `text/markdown; charset=utf-8` for `md` and `text/html; charset=utf-8` for `html`.
+        Response: HTTP response containing the rendered report content with the appropriate media type.
     """
     if report_format == "md":
         return Response(

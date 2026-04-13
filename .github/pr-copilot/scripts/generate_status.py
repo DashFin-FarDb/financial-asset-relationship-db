@@ -141,15 +141,13 @@ def fetch_pr_status(g: Github, repo_name: str, pr_num: int) -> PRStatus:
 
 def format_checklist(status: PRStatus) -> str:
     """
-    Builds a Markdown task checklist reflecting PR readiness,
-    review approvals, CI check status, merge conflicts,
-    and change requests.
-
+    Create a Markdown task checklist summarizing a PR's readiness, review status, CI check results, mergeability, and pending change requests.
+    
     Parameters:
-        status (PRStatus): Aggregated pull request data used to determine checklist state (draft status, review counts, check run results, and mergeability).
-
+        status (PRStatus): Aggregated pull request data used to determine checklist items (reads draft status, review_stats, check_runs, mergeable, and mergeable_state).
+    
     Returns:
-        markdown_checklist (str): A newline-separated Markdown task list where each line is a checklist item indicating the current PR status (e.g., ready for review, approval, CI passing, merge conflicts, change requests).
+        markdown_checklist (str): Newline-separated Markdown task list where each line is a checked/unchecked item for: ready for review, approval, CI passing (with counts when partial), merge conflict resolution, and pending change requests.
     """
     tasks = []
 
@@ -280,10 +278,9 @@ def generate_markdown(status: PRStatus) -> str:
 
 def write_output(content: str) -> None:
     """
-    Persist a generated Markdown PR report to the GitHub step summary (when safe), a standard temp file, and stdout.
-
-    If the GITHUB_STEP_SUMMARY environment variable is set and points inside the system temporary directory, append `content` to that file; otherwise the step-summary write is skipped with a warning. Overwrite a file named `pr_status_report.md` in the system temporary directory and print its path to stderr. I/O and path-related errors are caught and printed to stderr rather than raised.
-
+    Write the Markdown report to the GitHub Actions step summary (when it is safe to do so), to a standard temp file, and to stdout.
+    
+    If the GITHUB_STEP_SUMMARY environment variable is set and points inside the system temporary directory, append content to that file; otherwise the step-summary write is skipped and a warning is printed to stderr. Overwrite the file named "pr_status_report.md" in the system temporary directory and print its path to stderr on success. I/O and path-related errors are caught and printed to stderr; the function does not raise.
     Parameters:
         content (str): The Markdown report content to write.
     """

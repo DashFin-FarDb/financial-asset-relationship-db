@@ -24,28 +24,24 @@ _HTTPS_DOMAIN_RE = re.compile(
 
 def _is_allowed_list_origin(origin: str, allowed_origins: list[str]) -> bool:
     """
-    Checks whether the given origin is non-empty and exactly matches an entry in the allowlist.
-
-    Parameters:
-        origin (str): Origin string to test.
-        allowed_origins (list[str]): List of allowed origin strings.
-
+    Determine whether the origin is non-empty and exactly equals an entry in the allowlist.
+    
     Returns:
-        `true` if origin is non-empty and present in `allowed_origins`, `false` otherwise.
+        True if origin is non-empty and present in allowed_origins, False otherwise.
     """
     return bool(origin) and origin in allowed_origins
 
 
 def _is_http_local_in_dev(origin: str, current_env: str) -> bool:
     """
-    Determine whether the origin is an HTTP localhost (http://localhost or http://127.0.0.1 with optional port) and the environment is "development".
-
+    Return whether the origin is an HTTP localhost URL and the environment is "development".
+    
     Parameters:
-        origin (str): The origin URL to check.
-        current_env (str): The current environment name (compared to "development").
-
+        origin (str): Origin string to check (e.g., "http://localhost:3000").
+        current_env (str): Environment name compared exactly to "development".
+    
     Returns:
-        bool: True if `current_env` is "development" and `origin` matches the HTTP localhost pattern, False otherwise.
+        bool: `True` if `current_env` is "development" and `origin` is an HTTP localhost URL, `False` otherwise.
     """
     return current_env == "development" and bool(_HTTP_LOCAL_RE.match(origin))
 
@@ -65,13 +61,13 @@ def _is_https_local(origin: str) -> bool:
 
 def _is_vercel_preview(origin: str) -> bool:
     """
-    Determines whether an origin matches Vercel preview hostnames.
-
+    Check if an origin is a Vercel preview hostname.
+    
     Parameters:
-        origin (str): Origin string to test against the Vercel preview hostname pattern.
-
+        origin (str): Origin string to test (e.g. 'https://<subdomain>.vercel.app').
+    
     Returns:
-        `true` if the origin matches a Vercel preview hostname, `false` otherwise.
+        True if the origin matches a Vercel preview hostname, False otherwise.
     """
     return bool(_VERCEL_PREVIEW_RE.match(origin))
 
@@ -91,13 +87,13 @@ def _is_valid_https_domain(origin: str) -> bool:
 
 def _is_valid_https_idn(origin: str) -> bool:
     """
-    Validate that an origin is an HTTPS URL whose hostname can be converted from an internationalized domain name (IDN) to an ASCII form that matches the module's HTTPS domain pattern.
-
+    Validate an HTTPS origin whose hostname can be converted from an internationalized domain name (IDN) to an ASCII form that matches the module's HTTPS domain pattern.
+    
     Parameters:
-        origin (str): The origin URL to validate (should include scheme and hostname; may include port).
-
+        origin (str): Origin URL including scheme and hostname (may include a port).
+    
     Returns:
-        `true` if the origin uses the `https` scheme, its hostname can be IDNA-encoded to ASCII, and the resulting ASCII origin (including port if present) matches the HTTPS domain regular expression; `false` otherwise.
+        `true` if the origin uses the `https` scheme, the hostname can be IDNA-encoded to ASCII, and the reconstructed ASCII origin (including port if present) matches the module's HTTPS domain regular expression; `false` otherwise.
     """
     parsed = urlparse(origin)
     if parsed.scheme != "https":

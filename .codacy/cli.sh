@@ -105,7 +105,7 @@ download() {
 }
 
 # download_cli downloads the Codacy CLI tarball for the specified version and extracts it into bin_folder if bin_path does not already exist.
-# Arguments: bin_folder — destination directory; bin_path — expected path of the CLI binary; version — release tag or version string.
+# download_cli downloads and extracts the codacy-cli-v2 release tarball for the given version into the specified bin_folder when the expected binary at bin_path is absent.
 download_cli() {
     # OS name lower case
     suffix=$(echo "$os_name" | tr '[:upper:]' '[:lower:]')

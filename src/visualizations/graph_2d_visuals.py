@@ -61,13 +61,11 @@ def _create_circular_layout(
 def _create_grid_layout(
     asset_ids: List[str],
 ) -> Dict[str, Tuple[float, float]]:
-    """Create grid layout for 2D visualization.
-
-    Args:
-        asset_ids: List of asset IDs to position
-
+    """
+    Create a 2D grid layout that assigns each asset to integer (x, y) grid coordinates.
+    
     Returns:
-        Dictionary mapping asset IDs to (x, y) positions in a grid
+        dict: Mapping from asset ID to a tuple (x, y) of floats representing column and row positions.
     """
     if not asset_ids:
         return {}
@@ -185,10 +183,10 @@ def _relationship_visibility_filters(
     show_regulatory: bool,
 ) -> Dict[str, bool]:
     """
-    Builds a mapping of internal relationship type keys to visibility flags based on the provided toggles.
-
+    Map internal relationship type keys to visibility flags based on the provided toggles.
+    
     Returns:
-        Dict[str, bool]: Mapping where keys are internal relationship type names and values are `True` if that relationship type should be shown, `False` otherwise. Keys returned: "same_sector", "market_cap_similar", "correlation", "corporate_bond_to_equity", "commodity_currency", "income_comparison", "regulatory_impact".
+        Dict[str, bool]: Mapping from internal relationship type keys to `True` if that relationship type should be shown, `False` otherwise. Keys: "same_sector", "market_cap_similar", "correlation", "corporate_bond_to_equity", "commodity_currency", "income_comparison", "regulatory_impact".
     """
     return {
         "same_sector": show_same_sector,
@@ -207,15 +205,15 @@ def _is_relationship_filtered(
     show_all_relationships: bool,
 ) -> bool:
     """
-    Determine whether a relationship type should be hidden based on per-type filters and the global show-all flag.
-
+    Decides whether a given relationship type should be hidden according to per-type filters and a global flag.
+    
     Parameters:
-        rel_type (str): The relationship type key to evaluate.
+        rel_type (str): Relationship type key to evaluate.
         relationship_filters (Dict[str, bool]): Mapping of relationship type keys to visibility flags (`True` = visible, `False` = hidden).
         show_all_relationships (bool): When `True`, ignore `relationship_filters` and show all relationship types.
-
+    
     Returns:
-        `true` if the relationship type should be hidden, `false` otherwise.
+        bool: `True` if the relationship type should be hidden, `False` otherwise.
     """
     return not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]
 
@@ -276,16 +274,16 @@ def _build_relationship_trace(
     positions: Dict[str, Tuple[float, float]],
 ) -> go.Scatter:
     """
-    Create a Plotly line trace representing all edges of a single relationship type.
-
+    Create a Plotly line trace that renders all edges for a single relationship type.
+    
     Parameters:
-        rel_type (str): Internal key identifying the relationship type (used for color and legend).
-        relationships (list[dict]): List of relationship records with keys "source_id", "target_id", and "strength".
-        positions (dict): Mapping from asset id to (x, y) coordinates used to place edge endpoints.
-
+        rel_type (str): Internal relationship key used to select trace color and derive the legend name.
+        relationships (list[dict]): Each record must contain "source_id", "target_id", and "strength".
+        positions (dict): Mapping from asset id (str) to (x, y) coordinates for edge endpoints.
+    
     Returns:
-        go.Scatter: A Scatter trace containing line segments for each relationship of the given type,
-        with hover text showing "source → target", relationship type, and strength.
+        go.Scatter: A Scatter trace containing line segments for each relationship of the given type.
+            Each segment includes hover text formatted as "source → target<br>Type: {rel_type}<br>Strength: {strength:.2f}".
     """
     edges_x: list[float | None] = []
     edges_y: list[float | None] = []
@@ -372,15 +370,15 @@ def _spring_or_fallback_positions(
 
 def _asset_class_label(asset: object) -> str:
     """
-    Extracts a printable asset class label from an asset object.
-
-    If the asset has an `asset_class` attribute and that attribute has a `value` (e.g., an enum), returns that `value` converted to a string. If `asset_class` exists but has no `value`, returns `str(asset_class)`. If the asset has no `asset_class` attribute, returns an empty string.
-
+    Return a human-readable asset class label for an asset.
+    
+    If the asset has an `asset_class` attribute, returns its `value` attribute as a string when present (e.g., for enum-like objects); otherwise returns `str(asset.asset_class)`. If the attribute is missing, returns an empty string.
+    
     Parameters:
-        asset (object): Object expected to contain an `asset_class` attribute (may be an enum-like object or a plain value).
-
+        asset (object): Object that may have an `asset_class` attribute.
+    
     Returns:
-        str: The asset class as a string, or an empty string if not present.
+        str: The asset class label, or an empty string if not present.
     """
     asset_class = getattr(asset, "asset_class", "")
     if hasattr(asset_class, "value"):
@@ -394,20 +392,20 @@ def _build_node_visual_components(
     asset_ids: List[str],
 ) -> Tuple[list[float], list[float], list[str], list[int], list[str]]:
     """
-    Construct visual attributes for each node: x/y coordinates, color, marker size, and hover text.
-
+    Compute per-node x/y positions, marker colors, marker sizes, and hover text for the given assets.
+    
     Parameters:
-        graph (AssetRelationshipGraph): Graph containing asset objects and relationship mappings used to derive classes and connection counts.
+        graph (AssetRelationshipGraph): Graph providing asset objects (graph.assets) and relationship mappings (graph.relationships).
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to its (x, y) coordinates.
-        asset_ids (List[str]): Ordered list of asset IDs to include (order determines returned lists' order).
-
+        asset_ids (List[str]): Ordered list of asset IDs; returned lists follow this order.
+    
     Returns:
-        Tuple[list[float], list[float], list[str], list[int], list[str]]: A 5-tuple containing:
-            - node_x: list of x coordinates for each asset in asset_ids.
-            - node_y: list of y coordinates for each asset in asset_ids.
-            - colors: list of hex color strings chosen by asset class (default gray if unknown).
-            - node_sizes: list of integer marker sizes derived from each asset's number of relationships.
-            - hover_texts: list of HTML-safe hover text strings containing the asset ID and its class.
+        Tuple[list[float], list[float], list[str], list[int], list[str]]:
+            - node_x: x coordinates for each asset in asset_ids.
+            - node_y: y coordinates for each asset in asset_ids.
+            - colors: hex color for each node determined by asset class (default '#7f7f7f' if unknown).
+            - node_sizes: integer marker sizes derived from each asset's number of relationships.
+            - hover_texts: HTML-formatted hover text for each node (asset ID and class).
     """
     node_x = [positions[asset_id][0] for asset_id in asset_ids]
     node_y = [positions[asset_id][1] for asset_id in asset_ids]
@@ -444,32 +442,24 @@ def visualize_2d_graph(
     show_all_relationships: bool = False,
 ) -> go.Figure:
     """
-    Render a 2D Plotly visualization of an asset relationship graph using a
-    chosen layout and relationship filters.
-
+    Visualize an AssetRelationshipGraph as a 2D Plotly network using a chosen layout and relationship filters.
+    
+    Renders assets as node markers (sized by connection count) and relationships as separate line traces grouped by relationship type. Relationship-specific boolean toggles control whether those relationship types are included; setting show_all_relationships to True overrides the toggles and includes all relationship types.
+    
     Parameters:
-        graph (AssetRelationshipGraph): Asset relationship graph to visualize.
-        layout_type (str):
-            Layout algorithm to use; one of "spring", "circular", or "grid".
-        show_same_sector (bool): Include "same sector"
-            relationships when True.
+        layout_type (str): Layout to use; one of "spring", "circular", or "grid".
+        show_all_relationships (bool): If True, include all relationship types regardless of individual toggles.
+        show_same_sector (bool): Include "same sector" relationships when True.
         show_market_cap (bool): Include "market cap" relationships when True.
-        show_correlation (bool): Include "correlation"
-            relationships when True.
-        show_corporate_bond (bool): Include "corporate bond"
-            relationships when True.
-        show_commodity_currency (bool): Include "commodity/currency"
-            relationships when True.
-        show_income_comparison (bool): Include "income comparison"
-            relationships when True.
+        show_correlation (bool): Include "correlation" relationships when True.
+        show_corporate_bond (bool): Include "corporate bond" relationships when True.
+        show_commodity_currency (bool): Include "commodity/currency" relationships when True.
+        show_income_comparison (bool): Include "income comparison" relationships when True.
         show_regulatory (bool): Include "regulatory" relationships when True.
-        show_all_relationships (bool): If True, override individual toggles
-            and include all relationship types.
-
+    
     Returns:
-        go.Figure: A Plotly Figure containing the 2D network visualization of
-            assets and filtered relationships.
-
+        go.Figure: Plotly Figure containing the 2D asset network with node markers and relationship edge traces.
+    
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
     """

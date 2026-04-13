@@ -19,11 +19,11 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
 
     def __init__(self, graph_obj: AssetRelationshipGraph, lock: threading.Lock):
         """
-        Initialize the thread-safe proxy with the underlying graph and a lock used to synchronize access.
-
+        Create a thread-safe proxy for an AssetRelationshipGraph using the provided lock.
+        
         Parameters:
-            graph_obj (AssetRelationshipGraph): The shared asset relationship graph to proxy.
-            lock (threading.Lock): Lock protecting access to the underlying graph.
+            graph_obj (AssetRelationshipGraph): The underlying shared graph instance to proxy.
+            lock (threading.Lock): Lock used to synchronize all access to the underlying graph.
         """
         self._graph = graph_obj
         self._lock = lock
@@ -62,16 +62,16 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 
 def _get_3d_layout_resource() -> str:
     """
-    Provide current 3D visualization data for spatial reasoning.
-
-    The returned JSON contains the following top-level keys:
-    - `asset_ids`: sequence of asset identifiers corresponding to the positions.
-    - `positions`: list of 3D coordinates (each a list of three numbers) for each asset.
-    - `colors`: color values associated with each asset position.
-    - `hover`: hover/label information for each asset used in UI displays.
-
+    Provides the current 3D visualization payload for UI and spatial reasoning.
+    
+    The JSON encodes:
+    - asset_ids: sequence of asset identifiers corresponding to positions
+    - positions: list of [x, y, z] coordinates for each asset
+    - colors: color values for each asset
+    - hover: hover/label metadata for each asset
+    
     Returns:
-        json_str (str): A JSON-formatted string encoding the visualization data.
+        A JSON-formatted string containing the visualization data.
     """
     positions, asset_ids, colors, hover = graph.get_3d_visualization_data_enhanced()
     return json.dumps(
@@ -158,18 +158,16 @@ def _build_mcp_app():
 
 def main(argv: list[str] | None = None) -> int:
     """
-    Run the MCP server command-line entry point.
-
+    Start the MCP server from the command line.
+    
     Parameters:
-        argv (list[str] | None): Command-line arguments to parse. If None, uses
-            sys.argv[1:].
-
+        argv (list[str] | None): Command-line arguments to parse; if None, uses sys.argv[1:].
+    
     Returns:
-        int: Exit code (0 on success or after printing version information).
-
+        int: Exit code; 0 on success or after printing version information.
+    
     Raises:
-        SystemExit: If a required optional dependency is missing (suggests
-            installing the MCP package).
+        SystemExit: If a required optional dependency is missing (message advises installing the MCP package).
     """
     parser = argparse.ArgumentParser(
         prog="mcp_server.py",

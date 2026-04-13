@@ -11,19 +11,21 @@ from src.logic.asset_graph import AssetRelationshipGraph
 @lru_cache(maxsize=1)
 def _get_cached_graph() -> AssetRelationshipGraph:
     """
-    Create and cache a single shared AssetRelationshipGraph instance.
-
+    Create and cache a single shared AssetRelationshipGraph instance for the application.
+    
+    The first call initializes the graph; subsequent calls return the same cached instance.
+    
     Returns:
-        AssetRelationshipGraph: The cached graph instance returned on subsequent calls.
+        AssetRelationshipGraph: The shared AssetRelationshipGraph instance.
     """
     return create_sample_database()
 
 
 def get_graph() -> AssetRelationshipGraph:
     """
-    Provide the module's shared AssetRelationshipGraph instance.
-
+    Provide access to the module's shared AssetRelationshipGraph.
+    
     Returns:
-        graph (AssetRelationshipGraph): The cached shared graph instance; created and cached on first call.
+        AssetRelationshipGraph: The shared cached graph instance created on first call.
     """
     return _get_cached_graph()

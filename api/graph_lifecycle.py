@@ -62,10 +62,10 @@ def get_graph() -> AssetRelationshipGraph:
 
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
-    Set the module's global AssetRelationshipGraph instance used by get_graph().
-
-    This stores the provided graph as the canonical global instance and clears any configured graph factory so subsequent accesses return this instance until changed or reset.
-
+    Register a global AssetRelationshipGraph instance to be returned by get_graph().
+    
+    Stores the provided graph as the canonical global instance and clears any configured graph factory so subsequent get_graph() calls return this instance until changed or reset.
+    
     Parameters:
         graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to register as the global instance.
     """
@@ -97,17 +97,10 @@ def reset_graph() -> None:
 
 def _initialize_graph() -> AssetRelationshipGraph:
     """
-    Construct the asset relationship graph using the configured factory or
-    environment-backed data sources.
-
-    If a `graph_factory` is configured it is invoked. Otherwise, if
-    `GRAPH_CACHE_PATH` is set a real-data graph is created (network access
-    enabled when `USE_REAL_DATA_FETCHER` indicates real data should be used).
-    If `GRAPH_CACHE_PATH` is not set but `USE_REAL_DATA_FETCHER` is true,
-    `REAL_DATA_CACHE_PATH` is consulted to create a real-data graph.
-    If neither real-data path nor real-data mode is available, a sample
-    database graph is returned.
-
+    Constructs and returns the global AssetRelationshipGraph using the configured factory or environment-backed data sources.
+    
+    If a graph factory is configured on graph_state it is invoked and its result is returned. Otherwise, when the environment variable GRAPH_CACHE_PATH is set a real-data graph backed by that cache is created (network access is enabled when USE_REAL_DATA_FETCHER indicates real data should be used). If GRAPH_CACHE_PATH is not set but USE_REAL_DATA_FETCHER is true, REAL_DATA_CACHE_PATH is used to create a real-data graph with network access enabled. If none of those conditions apply, a sample (in-memory) graph is returned.
+    
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
     """

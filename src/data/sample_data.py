@@ -384,12 +384,12 @@ def _count_assets_by_class(
     asset_class: AssetClass,
 ) -> int:
     """
-    Count how many assets in the provided list have the specified AssetClass.
-
+    Return the number of assets in the provided list whose `asset_class` attribute equals the specified AssetClass.
+    
     Parameters:
         all_assets (list[object]): Iterable of asset-like objects; each may have an `asset_class` attribute.
-        asset_class (AssetClass): The AssetClass value to match against each asset's `asset_class` attribute.
-
+        asset_class (AssetClass): AssetClass value to match against each asset's `asset_class` attribute.
+    
     Returns:
         int: Number of assets whose `asset_class` attribute equals the given `asset_class`.
     """

@@ -7,13 +7,14 @@ import numpy as np
 
 def _validate_positions_array(positions: np.ndarray) -> None:
     """
-    Validate that `positions` is a numeric, finite NumPy array with shape (n, 3).
-
-    Performs the following checks and raises ValueError on failure:
-    - `positions` is a NumPy ndarray.
-    - `positions` has two dimensions with three columns (shape (n, 3)).
-    - `positions` has a numeric dtype.
-    - all values in `positions` are finite (no NaN or Inf).
+    Validate that `positions` is a NumPy array of 3D coordinates.
+    
+    Parameters:
+        positions (np.ndarray): Array of shape (n, 3) representing n points in 3D space.
+    
+    Raises:
+        ValueError: If `positions` is not a NumPy ndarray, does not have shape (n, 3),
+                    has a non-numeric dtype, or contains NaN or infinite values.
     """
     _ensure_ndarray(positions)
     _ensure_positions_shape(positions)
@@ -23,10 +24,10 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 
 def _ensure_ndarray(positions: np.ndarray) -> None:
     """
-    Validate that `positions` is a NumPy ndarray.
-
+    Ensure `positions` is a NumPy ndarray.
+    
     Raises:
-        ValueError: If `positions` is not an instance of `numpy.ndarray`; the error message includes the actual type name.
+        ValueError: If `positions` is not an instance of `numpy.ndarray`; the message includes the actual type name.
     """
     if not isinstance(positions, np.ndarray):
         raise ValueError(f"positions must be a numpy array, got {type(positions).__name__}")
@@ -48,13 +49,10 @@ def _ensure_positions_shape(positions: np.ndarray) -> None:
 
 def _ensure_numeric_dtype(positions: np.ndarray) -> None:
     """
-    Validate that the provided positions array has a numeric dtype.
-
-    Parameters:
-        positions (np.ndarray): Array of positions to validate; expected to be a NumPy array.
-
+    Ensure the positions array has a numeric dtype.
+    
     Raises:
-        ValueError: If `positions.dtype` is not a numeric dtype (includes the actual dtype in the message).
+        ValueError: If the array's dtype is not numeric; message includes the actual dtype.
     """
     if not np.issubdtype(positions.dtype, np.number):
         raise ValueError(f"positions must contain numeric values, got dtype {positions.dtype}")
@@ -62,10 +60,10 @@ def _ensure_numeric_dtype(positions: np.ndarray) -> None:
 
 def _ensure_finite_values(positions: np.ndarray) -> None:
     """
-    Ensure all entries in the positions array are finite.
-
+    Validate that all elements of the positions array are finite.
+    
     Raises:
-        ValueError: If any NaN or infinite values are present; the error message includes counts of NaN and Inf.
+        ValueError: If any NaN or infinite values are present. The exception message includes counts of NaN and Inf.
     """
     if np.isfinite(positions).all():
         return
@@ -76,11 +74,11 @@ def _ensure_finite_values(positions: np.ndarray) -> None:
 
 def _validate_asset_ids_list(asset_ids: List[str]) -> None:
     """
-    Validate that asset_ids is a sequence of non-empty strings.
-
+    Ensure asset_ids is a sequence of non-empty strings.
+    
     Parameters:
-        asset_ids (List[str] | Tuple[str, ...]): Sequence of asset identifier strings.
-
+        asset_ids (list | tuple of str): Sequence of asset identifier strings.
+    
     Raises:
         ValueError: If asset_ids is not a list or tuple, or if any element is not a non-empty string.
     """
@@ -93,14 +91,14 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
     """
-    Ensure `colors` is a list or tuple of non-empty strings whose length equals `expected_length`.
-
+    Validate that `colors` is a list or tuple of non-empty strings with length equal to `expected_length`.
+    
     Parameters:
-        colors (List[str]): Sequence of color values to validate; each item must be a non-empty string.
+        colors (List[str]): Sequence of color values; each item must be a non-empty string.
         expected_length (int): Required number of color entries.
-
+    
     Raises:
-        ValueError: If `colors` is not a list/tuple of length `expected_length`, or if any entry is not a non-empty string.
+        ValueError: If `colors` is not a list or tuple of length `expected_length`, or if any entry is not a non-empty string.
     """
     if not isinstance(colors, (list, tuple)) or len(colors) != expected_length:
         colors_len = len(colors) if isinstance(colors, (list, tuple)) else "N/A"
@@ -117,11 +115,11 @@ def _validate_hover_texts_list(
     expected_length: int,
 ) -> None:
     """
-    Validate that hover_texts is a sequence of non-empty strings of the specified length.
-
+    Validate that hover_texts is a list or tuple of non-empty strings with the specified length.
+    
     Parameters:
-        hover_texts (List[str]): Sequence of hover text values to validate.
-        expected_length (int): Required number of entries in `hover_texts`.
+        hover_texts (List[str]): Sequence of hover text values.
+        expected_length (int): Required number of entries in hover_texts.
     """
     _ensure_hover_texts_sequence(hover_texts)
     _ensure_sequence_length(
@@ -155,16 +153,15 @@ def _ensure_sequence_length(
     name: str,
 ) -> None:
     """
-    Validate that a sequence's length equals the expected length.
-
+    Assert that a sequence has the specified length.
+    
     Parameters:
-        sequence (List[str]): The sequence to check; expected to be a list or tuple.
-        expected_length (int): The required length for the sequence.
-        name (str): The parameter name used in the error message if validation fails.
-
+        sequence (List[str]): Sequence to validate (expected to be a list or tuple).
+        expected_length (int): Required length for the sequence.
+        name (str): Parameter name used in the error message.
+    
     Raises:
-        ValueError: If the sequence length does not equal `expected_length`. The error message will be
-        "`{name} must be a list/tuple of length {expected_length}`".
+        ValueError: If len(sequence) != expected_length. Message: "{name} must be a list/tuple of length {expected_length}".
     """
     if len(sequence) != expected_length:
         raise ValueError(f"{name} must be a list/tuple of length {expected_length}")
@@ -189,7 +186,15 @@ def _ensure_non_empty_string_values(
 
 
 def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
-    """Validate that asset_ids contains unique values."""
+    """
+    Ensure asset_ids contains only unique strings.
+    
+    Parameters:
+        asset_ids (List[str]): Sequence of asset identifier strings to check.
+    
+    Raises:
+        ValueError: If duplicate asset IDs are found; the exception message lists the duplicated IDs.
+    """
     if len(set(asset_ids)) == len(asset_ids):
         return
     seen: Set[str] = set()

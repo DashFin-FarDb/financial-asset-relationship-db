@@ -39,10 +39,10 @@ const INACTIVE_TAB_CLASS =
   "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300";
 
 /**
- * Compute the CSS class string for a tab based on whether it is active.
+ * Builds the CSS class string for a tab according to its active state.
  *
- * @param isActive - Whether the tab is currently active; selects the active or inactive style segment.
- * @returns The full CSS class string combining base tab classes with the active or inactive class.
+ * @param isActive - If `true`, include the active tab class fragment; otherwise include the inactive fragment.
+ * @returns The combined CSS class string to apply to a tab element.
  */
 function getTabClassName(isActive: boolean): string {
   return `py-4 px-2 border-b-2 font-medium text-sm transition-colors ${
@@ -51,13 +51,12 @@ function getTabClassName(isActive: boolean): string {
 }
 
 /**
- * Render the main tabbed content area for the home page based on loading, error, and the active tab.
+ * Render the home page's tabbed content area based on loading, error, and the active tab.
  *
- * Shows a loading spinner when `loading` is true, an error block with a Retry button when `error` is set,
- * and the appropriate tab content: 3D visualization, metrics dashboard, or asset list. Returns `null` when
- * no content is applicable.
+ * When `loading` is true, shows a loading indicator; when `error` is set, shows an error panel with a retry action;
+ * otherwise renders the content for the active tab ("visualization", "metrics", or "assets").
  *
- * @returns The JSX to render for the content area, or `null` if there is nothing to render.
+ * @returns The JSX element for the content area, or `null` if no content is applicable.
  */
 function HomeContent({
   loading,
