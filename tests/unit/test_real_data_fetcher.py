@@ -165,6 +165,63 @@ class TestGetYfinanceLazyImport:
             RealDataFetcher._fetch_currency_data()
 
 
+@pytest.mark.unit
+class TestModuleLevelYfAttribute:
+    """Test module-level backward-compatible ``yf`` attribute (PEP 562 __getattr__)."""
+
+    @staticmethod
+    def test_yf_attribute_returns_yfinance_module():
+        """Accessing ``real_data_fetcher.yf`` returns the yfinance module lazily."""
+        import sys
+
+        # Use sys.modules to get the exact object that patch() targets. Using
+        # `from src.data import real_data_fetcher as rdf` (or
+        # `rdf = src.data.real_data_fetcher`) would read the attribute from the
+        # parent package, which may have been rebound by a prior module-reload test.
+        rdf = sys.modules["src.data.real_data_fetcher"]
+        expected_yf = pytest.importorskip("yfinance")
+        assert rdf.yf is expected_yf
+
+    @staticmethod
+    def test_yf_attribute_raises_runtime_error_when_yfinance_missing():
+        """Accessing ``real_data_fetcher.yf`` raises RuntimeError when yfinance unavailable."""
+        import sys
+
+        # See note in test above for why sys.modules is used here.
+        rdf = sys.modules["src.data.real_data_fetcher"]
+        with patch("src.data.real_data_fetcher._get_yfinance") as mock_get_yf:
+            mock_get_yf.side_effect = RuntimeError("yfinance is unavailable")
+            with pytest.raises(RuntimeError, match="yfinance is unavailable"):
+                _ = rdf.yf
+
+    @staticmethod
+    def test_unknown_attribute_raises_attribute_error():
+        """Accessing an unknown attribute on the module raises AttributeError."""
+        import sys
+
+        # See note in test_yf_attribute_returns_yfinance_module for why sys.modules is used.
+        rdf = sys.modules["src.data.real_data_fetcher"]
+        with pytest.raises(AttributeError, match="has no attribute"):
+            _ = rdf._nonexistent_attribute_xyz
+
+    @staticmethod
+    def test_patch_yf_ticker_resolves_as_patch_target():
+        """@patch("src.data.real_data_fetcher.yf.Ticker") resolves and applies correctly.
+
+        This is the core backward-compat goal: existing test suites that patch
+        ``src.data.real_data_fetcher.yf.Ticker`` must continue to work after the
+        module-level ``yf`` was converted from an eager import to a lazy attribute.
+        """
+        pytest.importorskip("yfinance")
+        mock_ticker = Mock()
+        with patch("src.data.real_data_fetcher.yf.Ticker", mock_ticker):
+            import sys
+
+            # See note in test_yf_attribute_returns_yfinance_module for why sys.modules is used.
+            rdf = sys.modules["src.data.real_data_fetcher"]
+            assert rdf.yf.Ticker is mock_ticker
+
+
 def _make_import_blocker(blocked_module: str):
     """Return a side-effect function that raises ImportError for *blocked_module*.
 
@@ -1404,9 +1461,9 @@ class TestDataFetcherConsistency:
 
         # At least some events should reference known symbols
         referenced_assets = {event.asset_id for event in events}
-        assert any(asset_id in known_symbols for asset_id in referenced_assets), (
-            "Events should reference known asset IDs"
-        )
+        assert any(
+            asset_id in known_symbols for asset_id in referenced_assets
+        ), "Events should reference known asset IDs"
 
 
 @pytest.mark.unit

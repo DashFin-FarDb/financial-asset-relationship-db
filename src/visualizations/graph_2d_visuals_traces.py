@@ -9,18 +9,79 @@ from src.visualizations.graph_2d_visuals_constants import (
 )
 
 
+def _should_include_relationship(
+    target_id: str,
+    positions: Dict[str, Tuple[float, float]],
+    asset_id_set: set[str],
+    relationship_enabled: bool,
+) -> bool:
+    """Return True when a relationship should be included in traces."""
+    if target_id not in positions or target_id not in asset_id_set:
+        return False
+    return relationship_enabled
+
+
+def _collect_relationship_groups(
+    graph: AssetRelationshipGraph,
+    asset_ids: List[str],
+    positions: Dict[str, Tuple[float, float]],
+    relationship_filters: Dict[str, bool] | None,
+) -> Dict[str, list]:
+    """Group relationships by type after applying display filters."""
+    asset_id_set = set(asset_ids)
+    relationship_groups: Dict[str, list] = {}
+
+    for source_id in asset_ids:
+        if source_id not in positions:
+            continue
+        source_relationships = graph.relationships.get(source_id, [])
+        for target_id, rel_type, strength in source_relationships:
+            relationship_enabled = True if relationship_filters is None else relationship_filters.get(rel_type, True)
+            if not _should_include_relationship(
+                target_id,
+                positions,
+                asset_id_set,
+                relationship_enabled,
+            ):
+                continue
+            relationship_groups.setdefault(rel_type, []).append(
+                {"source_id": source_id, "target_id": target_id, "strength": strength}
+            )
+
+    return relationship_groups
+
+
+def _build_relationship_trace(
+    rel_type: str,
+    relationships: list[dict[str, object]],
+    positions: Dict[str, Tuple[float, float]],
+) -> go.Scatter:
+    """Build one Plotly line trace for a relationship type."""
+    edges_x, edges_y, hover_texts = [], [], []
+    for rel in relationships:
+        source_id = str(rel["source_id"])
+        target_id = str(rel["target_id"])
+        strength = float(rel["strength"])
+        sx, sy = positions[source_id]
+        tx, ty = positions[target_id]
+        edges_x.extend([sx, tx, None])
+        edges_y.extend([sy, ty, None])
+        hover = f"{source_id} → {target_id}<br>Type: {rel_type}<br>Strength: {strength:.2f}"
+        hover_texts.extend([hover, hover, None])
+
+    return go.Scatter(
+        x=edges_x,
+        y=edges_y,
+        mode="lines",
+        line={"color": REL_TYPE_COLORS.get(rel_type, "#888888"), "width": 2},
+    )
+
+
 def _create_2d_relationship_traces(
     graph: AssetRelationshipGraph,
     positions: Dict[str, Tuple[float, float]],
     asset_ids: List[str],
-    show_same_sector: bool = True,
-    show_market_cap: bool = True,
-    show_correlation: bool = True,
-    show_corporate_bond: bool = True,
-    show_commodity_currency: bool = True,
-    show_income_comparison: bool = True,
-    show_regulatory: bool = True,
-    show_all_relationships: bool = False,
+    relationship_filters: Dict[str, bool] | None = None,
 ) -> List[go.Scatter]:
     """Create 2D relationship traces for a given asset relationship graph.
 
@@ -36,29 +97,10 @@ def _create_2d_relationship_traces(
         positions (Dict[str, Tuple[float, float]]):
             A dictionary mapping asset IDs to their 2D positions.
         asset_ids (List[str]): A list of asset IDs to include in the traces.
-        show_same_sector (bool):
-            Flag to show relationships within the same sector. Defaults to True.
-        show_market_cap (bool):
-            Flag to show relationships based on market
-            capitalization. Defaults to True.
-        show_correlation (bool):
-            Flag to show correlation relationships.
-            Defaults to True.
-        show_corporate_bond(bool):
-            Flag to show corporate bond relationships.
-            Defaults to True.
-        show_commodity_currency(bool):
-            Flag to show commodity currency relationships.
-            Defaults to True.
-        show_income_comparison(bool):
-            Flag to show income comparison relationships.
-            Defaults to True.
-        show_regulatory(bool):
-            Flag to show regulatory impact relationships.
-            Defaults to True.
-        show_all_relationships(bool):
-            Flag to show all relationships regardless of type.
-            Defaults to False.
+        relationship_filters (Dict[str, bool] | None):
+            Optional map of relationship type -> enabled/disabled.
+            When None, defaults to enabling all known relationship types.
+        relationship_filters=None means all relationship types are shown.
 
     Returns:
         List[go.Scatter]: A list of scatter traces representing the
@@ -66,53 +108,35 @@ def _create_2d_relationship_traces(
     """
     if not asset_ids or not positions:
         return []
+    valid_asset_ids = [asset_id for asset_id in asset_ids if asset_id in positions]
+    if not valid_asset_ids:
+        return []
 
-    relationship_filters = {
-        "same_sector": show_same_sector,
-        "market_cap_similar": show_market_cap,
-        "correlation": show_correlation,
-        "corporate_link": show_corporate_bond,
-        "commodity_currency": show_commodity_currency,
-        "income_comparison": show_income_comparison,
-        "event_impact": show_regulatory,
-    }
+    if relationship_filters is None:
+        relationship_filters = {
+            "same_sector": True,
+            "market_cap_similar": True,
+            "correlation": True,
+            "corporate_link": True,
+            "commodity_currency": True,
+            "income_comparison": True,
+            "event_impact": True,
+        }
 
-    asset_id_set = set(asset_ids)
-    relationship_groups: Dict[str, list] = {}
+    relationship_groups = _collect_relationship_groups(
+        graph,
+        valid_asset_ids,
+        positions,
+        relationship_filters,
+    )
 
-    for source_id in asset_ids:
-        if source_id not in graph.relationships:
-            continue
-        for target_id, rel_type, strength in graph.relationships[source_id]:
-            if target_id not in positions or target_id not in asset_id_set:
-                continue
-            if not show_all_relationships and rel_type in relationship_filters and not relationship_filters[rel_type]:
-                continue
-            relationship_groups.setdefault(rel_type, []).append(
-                {"source_id": source_id, "target_id": target_id, "strength": strength}
-            )
-
-    traces = []
+    traces: List[go.Scatter] = []
     for rel_type, relationships in relationship_groups.items():
-        edges_x, edges_y, hover_texts = [], [], []
-        for rel in relationships:
-            sx, sy = positions[rel["source_id"]]
-            tx, ty = positions[rel["target_id"]]
-            edges_x.extend([sx, tx, None])
-            edges_y.extend([sy, ty, None])
-            hover = (
-                f"{rel['source_id']} → {rel['target_id']}<br>"
-                f"Type: {rel_type}<br>"
-                f"Strength: {rel['strength']:.2f}"
-            )
-            hover_texts.extend([hover, hover, None])
-
         traces.append(
-            go.Scatter(
-                x=edges_x,
-                y=edges_y,
-                mode="lines",
-                line=dict(color=REL_TYPE_COLORS.get(rel_type, "#888888"), width=2),
+            _build_relationship_trace(
+                rel_type,
+                relationships,
+                positions,
             )
         )
 
@@ -144,7 +168,8 @@ def _create_node_trace(
 
     for asset_id in asset_ids:
         asset = graph.assets[asset_id]
-        asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else str(asset.asset_class)
+        raw_asset_class = asset.asset_class.value if hasattr(asset.asset_class, "value") else asset.asset_class
+        asset_class = str(raw_asset_class)
         colors.append(ASSET_CLASS_COLORS.get(asset_class.lower(), "#7f7f7f"))
         hover_texts.append(f"{asset_id}<br>Class: {asset_class}")
         num_connections = len(graph.relationships.get(asset_id, []))
@@ -154,17 +179,17 @@ def _create_node_trace(
         x=node_x,
         y=node_y,
         mode="markers+text",
-        marker=dict(
-            size=node_sizes,
-            color=colors,
-            opacity=0.9,
-            line=dict(color="rgba(0,0,0,0.8)", width=2),
-        ),
+        marker={
+            "size": node_sizes,
+            "color": colors,
+            "opacity": 0.9,
+            "line": {"color": "rgba(0,0,0,0.8)", "width": 2},
+        },
         text=asset_ids,
         hovertext=hover_texts,
         hoverinfo="text",
         textposition="top center",
-        textfont=dict(size=10, color="black"),
+        textfont={"size": 10, "color": "black"},
         name="Assets",
         showlegend=False,
     )
