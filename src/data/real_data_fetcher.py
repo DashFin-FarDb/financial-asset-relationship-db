@@ -24,13 +24,15 @@ _YFINANCE_MODULE = None
 
 
 def _get_yfinance():
-    """Lazily import and return the yfinance module, caching it after the first import.
+    """
+    Lazily import yfinance so optional dependency absence does not break startup.
+    This is an internal helper; external callers should not rely on it directly.
 
     Returns:
-        module: The yfinance module.
+        The imported yfinance module.
 
     Raises:
-        RuntimeError: If yfinance is not installed or cannot be imported.
+        RuntimeError: If yfinance cannot be imported in the current environment.
     """
     global _YFINANCE_MODULE
     if _YFINANCE_MODULE is None:
