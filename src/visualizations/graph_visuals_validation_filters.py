@@ -1,6 +1,6 @@
 """Filter validation helpers for graph visualizations."""
 
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 
 def _validate_filter_parameters(filter_params: Dict[str, bool]) -> None:
@@ -25,7 +25,7 @@ def _get_invalid_value_keys(relationship_filters: Dict[str, bool]) -> list[str]:
     return [key for key, value in relationship_filters.items() if not isinstance(value, bool)]
 
 
-def _get_invalid_key_types(relationship_filters: Dict[str, bool]) -> list[object]:
+def _get_invalid_key_types(relationship_filters: Dict[str, bool]) -> list[Any]:
     """Return keys that are not strings."""
     return [key for key in relationship_filters if not isinstance(key, str)]
 
