@@ -8,10 +8,10 @@ import numpy as np
 def _validate_positions_array(positions: np.ndarray) -> None:
     """
     Validate that `positions` is a NumPy array of 3D coordinates.
-    
+
     Parameters:
         positions (np.ndarray): Array of shape (n, 3) representing n points in 3D space.
-    
+
     Raises:
         ValueError: If `positions` is not a NumPy ndarray, does not have shape (n, 3),
                     has a non-numeric dtype, or contains NaN or infinite values.
@@ -25,7 +25,7 @@ def _validate_positions_array(positions: np.ndarray) -> None:
 def _ensure_ndarray(positions: np.ndarray) -> None:
     """
     Ensure `positions` is a NumPy ndarray.
-    
+
     Raises:
         ValueError: If `positions` is not an instance of `numpy.ndarray`; the message includes the actual type name.
     """
@@ -50,7 +50,7 @@ def _ensure_positions_shape(positions: np.ndarray) -> None:
 def _ensure_numeric_dtype(positions: np.ndarray) -> None:
     """
     Ensure the positions array has a numeric dtype.
-    
+
     Raises:
         ValueError: If the array's dtype is not numeric; message includes the actual dtype.
     """
@@ -61,7 +61,7 @@ def _ensure_numeric_dtype(positions: np.ndarray) -> None:
 def _ensure_finite_values(positions: np.ndarray) -> None:
     """
     Validate that all elements of the positions array are finite.
-    
+
     Raises:
         ValueError: If any NaN or infinite values are present. The exception message includes counts of NaN and Inf.
     """
@@ -75,10 +75,10 @@ def _ensure_finite_values(positions: np.ndarray) -> None:
 def _validate_asset_ids_list(asset_ids: List[str]) -> None:
     """
     Ensure asset_ids is a sequence of non-empty strings.
-    
+
     Parameters:
         asset_ids (list | tuple of str): Sequence of asset identifier strings.
-    
+
     Raises:
         ValueError: If asset_ids is not a list or tuple, or if any element is not a non-empty string.
     """
@@ -92,11 +92,11 @@ def _validate_asset_ids_list(asset_ids: List[str]) -> None:
 def _validate_colors_list(colors: List[str], expected_length: int) -> None:
     """
     Validate that `colors` is a list or tuple of non-empty strings with length equal to `expected_length`.
-    
+
     Parameters:
         colors (List[str]): Sequence of color values; each item must be a non-empty string.
         expected_length (int): Required number of color entries.
-    
+
     Raises:
         ValueError: If `colors` is not a list or tuple of length `expected_length`, or if any entry is not a non-empty string.
     """
@@ -116,7 +116,7 @@ def _validate_hover_texts_list(
 ) -> None:
     """
     Validate that hover_texts is a list or tuple of non-empty strings with the specified length.
-    
+
     Parameters:
         hover_texts (List[str]): Sequence of hover text values.
         expected_length (int): Required number of entries in hover_texts.
@@ -154,12 +154,12 @@ def _ensure_sequence_length(
 ) -> None:
     """
     Assert that a sequence has the specified length.
-    
+
     Parameters:
         sequence (List[str]): Sequence to validate (expected to be a list or tuple).
         expected_length (int): Required length for the sequence.
         name (str): Parameter name used in the error message.
-    
+
     Raises:
         ValueError: If len(sequence) != expected_length. Message: "{name} must be a list/tuple of length {expected_length}".
     """
@@ -188,10 +188,10 @@ def _ensure_non_empty_string_values(
 def _validate_asset_ids_uniqueness(asset_ids: List[str]) -> None:
     """
     Ensure asset_ids contains only unique strings.
-    
+
     Parameters:
         asset_ids (List[str]): Sequence of asset identifier strings to check.
-    
+
     Raises:
         ValueError: If duplicate asset IDs are found; the exception message lists the duplicated IDs.
     """

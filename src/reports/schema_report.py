@@ -77,12 +77,12 @@ def _as_str_int_map(value: Any) -> dict[str, int]:
 def _as_top_relationships(value: Any) -> list[tuple[str, str, str, float]]:
     """
     Normalize a value into a list of top-relationship tuples.
-    
+
     Each returned tuple is (source, target, relationship_type, strength) where the first three elements are strings and `strength` is a float coerced from the input (defaults to 0.0 when not convertible).
-    
+
     Parameters:
         value (Any): Expected to be a list of 4-element tuples; items that are not 4-tuples with string source, target, and relationship type are ignored.
-    
+
     Returns:
         list[tuple[str, str, str, float]]: Validated top-relationship tuples. Returns an empty list if `value` is not a list or contains no valid items.
     """
@@ -218,10 +218,10 @@ def _top_relationship_lines(metrics: Mapping[str, Any]) -> list[str]:
 def _density_recommendation_line(density: float) -> str:
     """
     Provide a short recommendation string based on network relationship density.
-    
+
     Parameters:
         density (float): Relationship density expressed as a percentage (0 to 100).
-    
+
     Returns:
         str: A recommendation message:
             - "High connectivity - consider normalization" when density > 30.0

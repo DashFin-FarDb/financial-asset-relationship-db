@@ -20,7 +20,7 @@ class _ThreadSafeGraph:  # pylint: disable=too-few-public-methods
     def __init__(self, graph_obj: AssetRelationshipGraph, lock: threading.Lock):
         """
         Create a thread-safe proxy for an AssetRelationshipGraph using the provided lock.
-        
+
         Parameters:
             graph_obj (AssetRelationshipGraph): The underlying shared graph instance to proxy.
             lock (threading.Lock): Lock used to synchronize all access to the underlying graph.
@@ -63,13 +63,13 @@ graph = _ThreadSafeGraph(AssetRelationshipGraph(), _graph_lock)
 def _get_3d_layout_resource() -> str:
     """
     Provides the current 3D visualization payload for UI and spatial reasoning.
-    
+
     The JSON encodes:
     - asset_ids: sequence of asset identifiers corresponding to positions
     - positions: list of [x, y, z] coordinates for each asset
     - colors: color values for each asset
     - hover: hover/label metadata for each asset
-    
+
     Returns:
         A JSON-formatted string containing the visualization data.
     """
@@ -159,13 +159,13 @@ def _build_mcp_app():
 def main(argv: list[str] | None = None) -> int:
     """
     Start the MCP server from the command line.
-    
+
     Parameters:
         argv (list[str] | None): Command-line arguments to parse; if None, uses sys.argv[1:].
-    
+
     Returns:
         int: Exit code; 0 on success or after printing version information.
-    
+
     Raises:
         SystemExit: If a required optional dependency is missing (message advises installing the MCP package).
     """

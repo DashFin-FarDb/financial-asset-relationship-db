@@ -63,7 +63,7 @@ def _create_grid_layout(
 ) -> Dict[str, Tuple[float, float]]:
     """
     Create a 2D grid layout that assigns each asset to integer (x, y) grid coordinates.
-    
+
     Returns:
         dict: Mapping from asset ID to a tuple (x, y) of floats representing column and row positions.
     """
@@ -184,7 +184,7 @@ def _relationship_visibility_filters(
 ) -> Dict[str, bool]:
     """
     Map internal relationship type keys to visibility flags based on the provided toggles.
-    
+
     Returns:
         Dict[str, bool]: Mapping from internal relationship type keys to `True` if that relationship type should be shown, `False` otherwise. Keys: "same_sector", "market_cap_similar", "correlation", "corporate_bond_to_equity", "commodity_currency", "income_comparison", "regulatory_impact".
     """
@@ -206,12 +206,12 @@ def _is_relationship_filtered(
 ) -> bool:
     """
     Decides whether a given relationship type should be hidden according to per-type filters and a global flag.
-    
+
     Parameters:
         rel_type (str): Relationship type key to evaluate.
         relationship_filters (Dict[str, bool]): Mapping of relationship type keys to visibility flags (`True` = visible, `False` = hidden).
         show_all_relationships (bool): When `True`, ignore `relationship_filters` and show all relationship types.
-    
+
     Returns:
         bool: `True` if the relationship type should be hidden, `False` otherwise.
     """
@@ -275,12 +275,12 @@ def _build_relationship_trace(
 ) -> go.Scatter:
     """
     Create a Plotly line trace that renders all edges for a single relationship type.
-    
+
     Parameters:
         rel_type (str): Internal relationship key used to select trace color and derive the legend name.
         relationships (list[dict]): Each record must contain "source_id", "target_id", and "strength".
         positions (dict): Mapping from asset id (str) to (x, y) coordinates for edge endpoints.
-    
+
     Returns:
         go.Scatter: A Scatter trace containing line segments for each relationship of the given type.
             Each segment includes hover text formatted as "source → target<br>Type: {rel_type}<br>Strength: {strength:.2f}".
@@ -371,12 +371,12 @@ def _spring_or_fallback_positions(
 def _asset_class_label(asset: object) -> str:
     """
     Return a human-readable asset class label for an asset.
-    
+
     If the asset has an `asset_class` attribute, returns its `value` attribute as a string when present (e.g., for enum-like objects); otherwise returns `str(asset.asset_class)`. If the attribute is missing, returns an empty string.
-    
+
     Parameters:
         asset (object): Object that may have an `asset_class` attribute.
-    
+
     Returns:
         str: The asset class label, or an empty string if not present.
     """
@@ -393,12 +393,12 @@ def _build_node_visual_components(
 ) -> Tuple[list[float], list[float], list[str], list[int], list[str]]:
     """
     Compute per-node x/y positions, marker colors, marker sizes, and hover text for the given assets.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph providing asset objects (graph.assets) and relationship mappings (graph.relationships).
         positions (Dict[str, Tuple[float, float]]): Mapping from asset ID to its (x, y) coordinates.
         asset_ids (List[str]): Ordered list of asset IDs; returned lists follow this order.
-    
+
     Returns:
         Tuple[list[float], list[float], list[str], list[int], list[str]]:
             - node_x: x coordinates for each asset in asset_ids.
@@ -443,9 +443,9 @@ def visualize_2d_graph(
 ) -> go.Figure:
     """
     Visualize an AssetRelationshipGraph as a 2D Plotly network using a chosen layout and relationship filters.
-    
+
     Renders assets as node markers (sized by connection count) and relationships as separate line traces grouped by relationship type. Relationship-specific boolean toggles control whether those relationship types are included; setting show_all_relationships to True overrides the toggles and includes all relationship types.
-    
+
     Parameters:
         layout_type (str): Layout to use; one of "spring", "circular", or "grid".
         show_all_relationships (bool): If True, include all relationship types regardless of individual toggles.
@@ -456,10 +456,10 @@ def visualize_2d_graph(
         show_commodity_currency (bool): Include "commodity/currency" relationships when True.
         show_income_comparison (bool): Include "income comparison" relationships when True.
         show_regulatory (bool): Include "regulatory" relationships when True.
-    
+
     Returns:
         go.Figure: Plotly Figure containing the 2D asset network with node markers and relationship edge traces.
-    
+
     Raises:
         ValueError: If `graph` is not an instance of AssetRelationshipGraph.
     """

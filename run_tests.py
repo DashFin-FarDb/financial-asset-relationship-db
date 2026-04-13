@@ -24,13 +24,13 @@ def _has_control_chars(value: str) -> bool:
 def _validate_pytest_args(args: list[str]) -> list[str]:
     """
     Validate pytest command-line arguments by rejecting NUL, newline, or carriage-return characters.
-    
+
     Parameters:
         args (list[str]): Candidate pytest command-line arguments (typically sys.argv[1:]).
-    
+
     Returns:
         list[str]: The input arguments in the same order after validation.
-    
+
     Raises:
         ValueError: If any argument contains NUL (\\x00), newline (\\n), or carriage return (\\r).
     """

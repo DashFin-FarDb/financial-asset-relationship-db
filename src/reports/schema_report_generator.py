@@ -79,7 +79,7 @@ class SchemaReportGenerator:
     def _render_schema_overview(self) -> List[str]:
         """
         Produce the "Schema Overview" section listing the supported entity types.
-        
+
         Returns:
             List[str]: Markdown-formatted lines representing the Schema Overview section.
         """
@@ -138,11 +138,11 @@ class SchemaReportGenerator:
     def _render_top_relationships(self, metrics: Metrics) -> List[str]:
         """
         Render the "Top Relationships" section as Markdown lines.
-        
+
         Parameters:
             metrics (Metrics): Metrics mapping expected to contain a "top_relationships" entry;
                 each item should be an iterable of tuples (src, tgt, relationship_type, strength).
-        
+
         Returns:
             List[str]: Markdown lines for the "## Top Relationships" section. If no relationships are present,
                 the list includes a single placeholder bullet "- No relationships recorded yet." followed by a blank line.
@@ -189,12 +189,12 @@ class SchemaReportGenerator:
     def _render_schema_optimization(self, metrics: Metrics) -> List[str]:
         """
         Render schema optimization section lines including a data quality score and a single recommendation determined by relationship density.
-        
+
         Parameters:
             metrics (Dict[str, Any]): Metrics mapping; expected keys:
                 - "relationship_density": numeric value used to select the recommendation.
                 - "quality_score": numeric value formatted as a percentage in the output.
-        
+
         Returns:
             List[str]: Markdown lines for the "Schema Optimization Metrics" section. The lines include a formatted data quality score and one recommendation chosen from:
                 - density > 30.0: "High connectivity - consider normalization."
@@ -225,7 +225,7 @@ class SchemaReportGenerator:
     def _render_implementation_notes(self) -> List[str]:
         """
         Render the "Implementation Notes" section.
-        
+
         Returns:
             lines (List[str]): Markdown lines for the Implementation Notes section.
         """

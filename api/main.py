@@ -81,12 +81,12 @@ _DEFAULT_COLOR = "#9c755f"
 def get_graph() -> AssetRelationshipGraph:
     """
     Get the shared AssetRelationshipGraph, initializing it on first access.
-    
+
     Initializes the graph lazily in a thread-safe manner so a single shared instance is created for the module.
-    
+
     Returns:
         The shared AssetRelationshipGraph instance.
-    
+
     Raises:
         RuntimeError: If the graph could not be initialized.
     """
@@ -103,9 +103,9 @@ def get_graph() -> AssetRelationshipGraph:
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
     Set the module-level AssetRelationshipGraph and disable the configured graph factory.
-    
+
     Performs a thread-safe replacement of the shared graph and clears any existing graph factory so future lazy construction is disabled.
-    
+
     Parameters:
         graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to install as the module-level graph.
     """
@@ -143,9 +143,9 @@ def reset_graph() -> None:
 def _initialize_graph() -> AssetRelationshipGraph:
     """
     Constructs and returns the shared asset relationship graph using the configured source.
-    
+
     Selection priority: use a configured graph factory if present; otherwise use the cache path specified by `GRAPH_CACHE_PATH` (optionally enabling network based on environment); if `USE_REAL_DATA_FETCHER` is enabled, use the real-data fetcher with `REAL_DATA_CACHE_PATH`; if none of those apply, fall back to the bundled sample dataset.
-    
+
     Returns:
         AssetRelationshipGraph: The initialized asset relationship graph instance.
     """
@@ -192,7 +192,7 @@ def _should_use_real_data_fetcher() -> bool:
 async def lifespan(_fastapi_app: FastAPI):
     """
     FastAPI lifespan context that ensures the shared asset relationship graph is initialized before the app starts.
-    
+
     If graph initialization fails, the exception is propagated to abort application startup. After initialization this context yields control to the FastAPI lifespan manager; when resumed it completes shutdown processing.
     Returns:
         Yields control to the FastAPI lifespan manager after successful startup initialization.
@@ -242,11 +242,11 @@ def _read_allowed_origins() -> List[str]:
 def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
     """
     Allow HTTP localhost origins only in the development environment.
-    
+
     Parameters:
         origin_url (str): Origin to validate (e.g., "http://localhost:3000" or "http://127.0.0.1").
         current_env (str): Current environment string; allowance occurs only when this equals "development".
-    
+
     Returns:
         True if `origin_url` is an HTTP URL for "localhost" or "127.0.0.1" with an optional port and `current_env` equals "development", `False` otherwise.
     """
@@ -256,10 +256,10 @@ def _is_http_local_in_dev(origin_url: str, current_env: str) -> bool:
 def _is_https_local(origin_url: str) -> bool:
     """
     Determine whether an origin URL represents HTTPS localhost (either localhost or 127.0.0.1), allowing an optional port.
-    
+
     Parameters:
         origin_url (str): Origin string including scheme and host, optionally with port (e.g. "https://localhost:3000").
-    
+
     Returns:
         True if the origin is "https://localhost" or "https://127.0.0.1" optionally followed by ":<port>", False otherwise.
     """
@@ -282,10 +282,10 @@ def _is_vercel_preview(origin_url: str) -> bool:
 def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
     """
     Check if a parsed origin contains disallowed URL components.
-    
+
     Parameters:
         parsed_origin (object): A URL parse result (e.g., urllib.parse.ParseResult) whose attributes will be inspected.
-    
+
     Returns:
         bool: `True` if any of `path`, `params`, `query`, `fragment`, `username`, or `password` are non-empty; `False` otherwise.
     """
@@ -304,10 +304,10 @@ def _has_forbidden_origin_parts(parsed_origin: object) -> bool:
 def _is_valid_https_domain(origin_url: str) -> bool:
     """
     Determine whether an origin URL is a valid HTTPS origin allowing internationalized domain names (IDN) and an optional port.
-    
+
     Parameters:
         origin_url (str): The origin URL to validate.
-    
+
     Returns:
         `true` if the input starts with `https://`, contains a hostname (IDN allowed), has no forbidden URL parts (path, params, query, fragment, username, or password), and matches the allowed hostname with an optional port; `false` otherwise.
     """
@@ -590,16 +590,16 @@ async def get_assets(
 ) -> List[AssetResponse]:
     """
     Retrieve assets filtered by exact asset class and/or sector.
-    
+
     Filters apply exact string matching against asset.asset_class.value and asset.sector.
-    
+
     Parameters:
         asset_class (Optional[str]): Exact asset class name to filter by (for example, "Equity").
         sector (Optional[str]): Exact sector name to filter by.
-    
+
     Returns:
         List[AssetResponse]: API-formatted assets that match the provided filters.
-    
+
     Raises:
         HTTPException: If an unexpected error occurs while fetching assets (status code 500).
     """
@@ -657,13 +657,13 @@ async def get_asset_detail(asset_id: str) -> AssetResponse:
 async def get_asset_relationships(asset_id: str) -> List[RelationshipResponse]:
     """
     Return outgoing relationships for the specified asset.
-    
+
     Parameters:
         asset_id (str): Identifier of the asset whose outgoing relationships are requested.
-    
+
     Returns:
         List[RelationshipResponse]: List of relationship records containing `source_id`, `target_id`, `relationship_type`, and `strength`.
-    
+
     Raises:
         HTTPException: 404 if the asset is not found.
         HTTPException: 500 for unexpected internal errors.

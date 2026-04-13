@@ -97,9 +97,9 @@ class AssetGraphRepository:
     def upsert_asset(self, asset: Asset) -> None:
         """
         Create or update the persistent record for a domain Asset.
-        
+
         Maps fields from the given domain `Asset` onto an `AssetORM` (creating one if needed) and stages the ORM instance on the repository session for persistence.
-        
+
         Parameters:
             asset (Asset): Domain asset to persist or update.
         """
@@ -276,11 +276,11 @@ class AssetGraphRepository:
     ) -> AssetRelationshipORM:
         """
         Obtain or construct an AssetRelationshipORM that corresponds to the provided upsert specification.
-        
+
         Parameters:
             relationship_spec (_RelationshipUpsertSpec): Normalized relationship input containing
                 source_id, target_id, rel_type, strength, and bidirectional.
-        
+
         Returns:
             AssetRelationshipORM: An existing ORM instance matching source, target, and relationship type
             with its `strength` and `bidirectional` fields updated, or a new ORM instance populated
@@ -331,7 +331,7 @@ class AssetGraphRepository:
     ) -> Optional[RelationshipRecord]:
         """
         Fetches the relationship record for the given source asset, target asset, and relationship type.
-        
+
         Returns:
             RelationshipRecord: the matching relationship with `strength` as a float, or `None` if no match is found.
         """
@@ -496,11 +496,11 @@ class AssetGraphRepository:
     def _to_regulatory_event_model(orm: RegulatoryEventORM) -> RegulatoryEvent:
         """
         Convert a RegulatoryEvent ORM row into a domain RegulatoryEvent model.
-        
+
         Constructs a RegulatoryEvent with fields copied from the ORM; `related_assets`
         is a list of related asset IDs extracted from the ORM's related_assets
         associations.
-        
+
         Returns:
             RegulatoryEvent: Domain model representing the ORM row.
         """

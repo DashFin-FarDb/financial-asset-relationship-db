@@ -44,7 +44,7 @@ class Asset:
     def __post_init__(self) -> None:
         """
         Validate and normalize Asset fields after dataclass initialization.
-        
+
         Ensures `id`, `symbol`, and `name` are non-empty strings; ensures `price` is a number greater than or equal to zero; ensures `market_cap` is a number greater than or equal to zero or None; converts `currency` to uppercase when it is a string and validates that it matches the three-letter uppercase currency code format.
         """
         self._validate_non_empty_string(
@@ -76,11 +76,11 @@ class Asset:
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
         Validate that `value` is a non-empty string.
-        
+
         Parameters:
             value (object): The value to validate; must be a `str` and not empty.
             error_message (str): Message used for the raised ValueError.
-        
+
         Raises:
             ValueError: If `value` is not a `str` or is an empty string, raised with `error_message`.
         """
@@ -114,10 +114,10 @@ class Asset:
     def _validate_currency_code(currency: str) -> None:
         """
         Ensure `currency` is a three-letter uppercase ISO-like currency code.
-        
+
         Parameters:
             currency (str): Currency code as three uppercase ASCII letters (e.g., "USD").
-        
+
         Raises:
             ValueError: If `currency` is not a string of exactly three uppercase letters.
         """
@@ -179,9 +179,9 @@ class RegulatoryEvent:
     def __post_init__(self) -> None:
         """
         Validate regulatory event fields after dataclass initialization.
-        
+
         Ensures `id`, `asset_id`, and `description` are non-empty strings, `impact_score` is a number between -1 and 1, and `date` starts with an ISO-like `YYYY-MM-DD` prefix.
-        
+
         Raises:
             ValueError: If any validation check fails.
         """
@@ -204,11 +204,11 @@ class RegulatoryEvent:
     def _validate_non_empty_string(value: object, error_message: str) -> None:
         """
         Validate that `value` is a non-empty string.
-        
+
         Parameters:
             value (object): The value to validate.
             error_message (str): Message used for the raised ValueError if validation fails.
-        
+
         Raises:
             ValueError: If `value` is not a `str` or is an empty string.
         """

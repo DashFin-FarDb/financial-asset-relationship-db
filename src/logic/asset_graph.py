@@ -168,14 +168,14 @@ class AssetRelationshipGraph:
     ) -> tuple[Any, Any, bool]:
         """
         Choose and run the parser corresponding to the provided relationship argument shape.
-        
+
         Parameters:
             relationship_args (tuple[Any, ...]): Positional arguments forwarded from add_relationship; expected shapes are either a single tuple of (rel_type, strength) or two/three positional values (rel_type, strength[, bidirectional]).
             kwargs (dict[str, Any]): Keyword arguments forwarded from add_relationship; may contain `bidirectional` for the two-argument form or be inspected/consumed by tuple form parsers.
-        
+
         Returns:
             tuple[Any, Any, bool]: A tuple (rel_type, strength, bidirectional) where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` indicates whether the relationship should be added in both directions.
-        
+
         Raises:
             TypeError: If `relationship_args` does not match any supported shape.
         """
@@ -239,15 +239,15 @@ class AssetRelationshipGraph:
     ) -> tuple[str, float, bool]:
         """
         Validate and coerce relationship arguments into their final types.
-        
+
         Parameters:
             rel_type (Any): Relationship type; must be a string and will be returned as `str`.
             strength (Any): Numeric strength value; will be coerced to `float`.
             bidirectional (bool): Bidirectionality flag; will be coerced to `bool`.
-        
+
         Returns:
             tuple[str, float, bool]: A tuple (rel_type, strength, bidirectional) with types (str, float, bool).
-        
+
         Raises:
             TypeError: If `rel_type` is not a `str`.
         """
@@ -286,14 +286,14 @@ class AssetRelationshipGraph:
     ) -> tuple[Any, Any, bool]:
         """
         Parse legacy positional relationship arguments and return (rel_type, strength, bidirectional).
-        
+
         Accepts either a 2- or 3-element positional form:
         - If three positional elements are provided, the third element is used as the bidirectional flag.
         - If two positional elements are provided, the `bidirectional` value is taken from `kwargs.pop("bidirectional", False)`.
-        
+
         Raises:
             TypeError: If `bidirectional` is supplied both positionally (third positional element) and via `kwargs`.
-        
+
         Returns:
             tuple: `(rel_type, strength, bidirectional)` where `rel_type` is the relationship type, `strength` is the relationship strength, and `bidirectional` is `True` if the relationship should be added bidirectionally, `False` otherwise.
         """
@@ -479,7 +479,7 @@ class AssetRelationshipGraph:
     ) -> tuple[str, str] | None:
         """
         Identify a bond-to-issuer relationship between two assets.
-        
+
         Returns:
             (bond_id, issuer_id) if one asset is a Bond whose issuer_id matches the other asset's id, `None` otherwise.
         """
@@ -516,11 +516,11 @@ class AssetRelationshipGraph:
     ) -> list[str]:
         """
         Selects related asset IDs that exist in the graph when the source asset is present.
-        
+
         Parameters:
             source_id (str): ID of the event's source asset; if this asset is not stored in the graph no targets are considered.
             related_assets (list[str]): Candidate target asset IDs to validate against stored assets.
-        
+
         Returns:
             list[str]: IDs from `related_assets` that are present in the graph; empty if `source_id` is not found.
         """

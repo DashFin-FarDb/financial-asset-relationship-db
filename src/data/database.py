@@ -57,10 +57,10 @@ def create_engine_from_url(url: str | None = None) -> Engine:
 def create_session_factory(engine: Engine) -> sessionmaker[Session]:
     """
     Create a SQLAlchemy session factory bound to the provided engine.
-    
+
     Parameters:
         engine (Engine): Engine to bind produced Session instances to.
-    
+
     Returns:
         session_factory (sessionmaker[Session]): A configured session factory that produces Session objects bound to `engine` with autocommit disabled, autoflush disabled, and SQLAlchemy 2.0 `future` behavior enabled.
     """
@@ -95,7 +95,7 @@ def session_scope(
 def init_db(engine: Engine) -> None:
     """
     Create any missing tables declared on Base.metadata in the database bound to the given engine.
-    
+
     Parameters:
         engine (Engine): SQLAlchemy Engine connected to the target database where tables will be created.
     """

@@ -24,7 +24,7 @@ RELATIONSHIPS_DICT_ERROR = "graph must have a relationships dictionary"
 def _get_line_style(rel_type: str, is_bidirectional: bool) -> dict:
     """
     Get the Plotly line style dictionary for a relationship type and its direction.
-    
+
     Returns:
         dict: Line style with keys:
             - color: color value from REL_TYPE_COLORS for the given relationship type.
@@ -146,11 +146,11 @@ def _create_relationship_traces(
 ) -> List[go.Scatter3d]:
     """
     Create Plotly Scatter3d traces for each relationship type and direction group found in the graph.
-    
+
     Parameters:
         relationship_filters (Optional[Dict[str, bool]]): Mapping of relationship type to a boolean indicating whether
             that relationship type should be included; when omitted, all relationship types are considered.
-    
+
     Returns:
         List[go.Scatter3d]: Scatter3d traces, one per relationship type/direction group that contains relationships.
     """
@@ -178,12 +178,12 @@ def _validate_relationship_trace_inputs(
 ) -> None:
     """
     Validate inputs for constructing relationship traces.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph object that must be an AssetRelationshipGraph and must contain a `relationships` dictionary.
         positions (np.ndarray): NumPy array of node coordinates with one row per asset.
         asset_ids (List[str]): Sequence of asset identifier strings whose length must equal the number of rows in `positions`.
-    
+
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph.
         ValueError: If `graph.relationships` is missing or not a dict, if `positions` is not a NumPy array, or if `len(positions) != len(asset_ids)`.
@@ -284,14 +284,14 @@ def _validate_and_prepare_directional_arrows_inputs(
 ) -> tuple[np.ndarray, list[str]]:
     """
     Validate and normalize inputs for directional arrow trace creation.
-    
+
     Ensures `graph` is an AssetRelationshipGraph with a relationships dictionary, converts `positions` to a numeric, finite NumPy array of shape (n, 3), and validates `asset_ids` as a sequence of n non-empty strings.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph object containing a `relationships` dict.
         positions (array-like): Positions convertible to an (n, 3) numeric ndarray.
         asset_ids (Sequence[str] | None): Sequence of asset ID strings whose length must match `positions`.
-    
+
     Returns:
         tuple[np.ndarray, list[str]]: `positions_array` — an (n, 3) finite numeric ndarray; `asset_ids_list` — a list of n non-empty asset ID strings.
     """
@@ -307,10 +307,10 @@ def _validate_and_prepare_directional_arrows_inputs(
 def _validate_graph(graph: AssetRelationshipGraph):
     """
     Validate that the provided graph is an AssetRelationshipGraph and that it contains a relationships dictionary.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The graph to validate; must be an instance of AssetRelationshipGraph and expose a `relationships` attribute.
-    
+
     Raises:
         TypeError: If `graph` is not an instance of AssetRelationshipGraph.
         ValueError: If `graph.relationships` is missing or is not a dict (message: "graph must have a relationships dictionary").
@@ -324,13 +324,13 @@ def _validate_graph(graph: AssetRelationshipGraph):
 def _prepare_positions(positions) -> np.ndarray:
     """
     Normalize the input positions into a NumPy array suitable for downstream validation.
-    
+
     Parameters:
         positions: Array-like sequence of shape (n, 3) or convertible to such; must not be None.
-    
+
     Returns:
         np.ndarray: The input converted to a NumPy array.
-    
+
     Raises:
         ValueError: If `positions` is None.
     """
@@ -345,14 +345,14 @@ def _prepare_asset_ids(
 ) -> tuple[np.ndarray, list[str]]:
     """
     Validate and normalize asset IDs and their corresponding positions array.
-    
+
     Parameters:
         asset_ids: Sequence of asset identifier strings to validate.
         positions_arr (np.ndarray): Array of positions with one row per asset.
-    
+
     Returns:
         tuple[np.ndarray, list[str]]: Normalized positions array with shape (n, 3) and a list of validated asset ID strings.
-    
+
     Raises:
         ValueError: If asset_ids is missing, has incorrect length, contains empty values, or if positions_arr is invalid.
         TypeError: If asset_ids is not a sequence of strings.
@@ -401,10 +401,10 @@ def _ensure_asset_ids_present(asset_ids) -> None:
 def _ensure_asset_ids_sequence(asset_ids) -> None:
     """
     Ensure `asset_ids` is a sequence of asset identifier strings.
-    
+
     Parameters:
         asset_ids: The value to validate; expected to be a list or tuple of strings.
-    
+
     Raises:
         TypeError: If `asset_ids` is not a list or tuple.
     """
@@ -476,7 +476,7 @@ def _ensure_positions_shape(positions: np.ndarray) -> None:
 def _coerce_positions_to_numeric(positions: np.ndarray) -> np.ndarray:
     """
     Coerce a positions array to a numeric floating-point dtype.
-    
+
     Returns:
         np.ndarray: The original array if its dtype is already numeric; otherwise a new array cast to float.
     """
@@ -504,15 +504,15 @@ def _create_directional_arrows_traces(
 ) -> list[go.Scatter3d]:
     """
     Create 3D directional arrow traces for relationships that are present in one direction but not the reverse.
-    
+
     When a relationship from A to B exists and the reverse (B to A) of the same type does not, an arrow marker is placed along the edge at 70% of the distance from source to target. If relationship_filters is provided, a relationship type is included only when its filter value is True. Returns an empty list when no directional arrows are produced.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Asset relationship graph containing relationship entries.
         positions (np.ndarray): (n, 3) array of vertex coordinates aligned with asset_ids.
         asset_ids (list[str]): Sequence of asset identifiers corresponding to rows in positions.
         relationship_filters (Optional[Dict[str, bool]]): Optional mapping from relationship type to a boolean indicating whether arrows for that type should be created; types missing from the mapping default to included.
-    
+
     Returns:
         list[go.Scatter3d]: A list containing a single Scatter3d trace of arrow markers positioned along asymmetric edges, or an empty list if no arrows are generated.
     """

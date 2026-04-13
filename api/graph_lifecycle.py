@@ -63,9 +63,9 @@ def get_graph() -> AssetRelationshipGraph:
 def set_graph(graph_instance: AssetRelationshipGraph) -> None:
     """
     Register a global AssetRelationshipGraph instance to be returned by get_graph().
-    
+
     Stores the provided graph as the canonical global instance and clears any configured graph factory so subsequent get_graph() calls return this instance until changed or reset.
-    
+
     Parameters:
         graph_instance (AssetRelationshipGraph): The AssetRelationshipGraph to register as the global instance.
     """
@@ -98,9 +98,9 @@ def reset_graph() -> None:
 def _initialize_graph() -> AssetRelationshipGraph:
     """
     Constructs and returns the global AssetRelationshipGraph using the configured factory or environment-backed data sources.
-    
+
     If a graph factory is configured on graph_state it is invoked and its result is returned. Otherwise, when the environment variable GRAPH_CACHE_PATH is set a real-data graph backed by that cache is created (network access is enabled when USE_REAL_DATA_FETCHER indicates real data should be used). If GRAPH_CACHE_PATH is not set but USE_REAL_DATA_FETCHER is true, REAL_DATA_CACHE_PATH is used to create a real-data graph with network access enabled. If none of those conditions apply, a sample (in-memory) graph is returned.
-    
+
     Returns:
         AssetRelationshipGraph: The initialized graph instance.
     """

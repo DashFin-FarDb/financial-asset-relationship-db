@@ -127,11 +127,11 @@ def categorize_filename(filename: str) -> str:
 def analyze_pr_files(pr_files_iterable: Any) -> Dict[str, Any]:
     """
     Aggregate file-level statistics for a pull request's changed files.
-    
+
     Parameters:
         pr_files_iterable (Iterable): An iterable of file-like objects representing changed files.
             Each object must provide `filename` (str), `additions` (int), and `deletions` (int).
-    
+
     Returns:
         dict: Summary dictionary with keys:
             - file_count (int): total number of files processed
@@ -210,7 +210,7 @@ def assess_complexity(
 ) -> Tuple[int, str]:
     """
     Estimate a pull request's complexity and assign a risk level.
-    
+
     Parameters:
         file_data (dict): Aggregated file metrics containing at least:
             - file_count: total number of files changed
@@ -218,7 +218,7 @@ def assess_complexity(
             - has_large_files: boolean indicating presence of large-file changes
             - large_files: list of large-file entries used to compute penalties
         commit_count (int): Number of commits in the pull request.
-    
+
     Returns:
         tuple: Two-item tuple describing the assessment.
             - score (int): Complexity score (higher values indicate greater complexity).
@@ -387,10 +387,10 @@ def _format_file_categories(file_analysis: Dict[str, Any]) -> str:
 def _format_large_files(file_analysis: Dict[str, Any]) -> str:
     """
     Return a Markdown section listing files with more than 500 changed lines.
-    
+
     Parameters:
         file_analysis (dict): Analysis dictionary containing a "large_files" list of dicts, each with at least "filename" and "changes".
-    
+
     Returns:
         str: Markdown-formatted section with a bold header and one bullet per large file; empty string if no large files are present.
     """
@@ -482,9 +482,9 @@ def generate_markdown(pr: Any, data: AnalysisData) -> str:
 def write_output(report: str) -> None:
     """
     Write the analysis report to the GitHub Actions step summary (when allowed), a secure temporary markdown file, and standard output.
-    
+
     If the GITHUB_STEP_SUMMARY environment variable is set and its resolved path resides inside the system temporary directory, append the report to that file; if the path is outside the temp directory the summary write is skipped and a warning is printed to stderr. Always create a securely-named temporary file (prefix "pr_analysis_", suffix ".md", delete=False), write the report there, and print the temporary file path to stdout. Any I/O errors while writing either destination are caught and reported to stderr. Finally, print the full report to stdout.
-    
+
     Parameters:
         report (str): The Markdown-formatted analysis report to write.
     """
@@ -534,7 +534,7 @@ def write_output(report: str) -> None:
 def run() -> None:
     """
     Run the end-to-end PR analysis and produce a Markdown report.
-    
+
     Validates required environment variables, loads configuration, fetches the referenced pull request from GitHub, analyzes files and commits to compute a complexity score and risk level, detects scope issues and related issue references, and writes a Markdown report to configured outputs (CI step summary when allowed, a secure temp file, and stdout). Exits the process with status 0 on success or a non-zero status on missing/invalid environment, GitHub API errors, or other runtime failures. Emits a CI warning when the computed risk level is High.
     """
     env_vars = {var: os.environ.get(var) for var in ("GITHUB_TOKEN", "PR_NUMBER", "REPO_OWNER", "REPO_NAME")}

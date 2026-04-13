@@ -171,10 +171,10 @@ def count_duplicates(sections: List[Tuple[str, str]]) -> Dict[str, int]:
 def _has_invalid_path_chars(user_value: str) -> bool:
     """
     Detect whether a path string contains NUL, newline, or carriage return characters.
-    
+
     Parameters:
         user_value (str): The path string to inspect.
-    
+
     Returns:
         bool: `True` if `user_value` contains NUL (`\x00`), newline (`\n`), or carriage return (`\r`), `False` otherwise.
     """
@@ -185,7 +185,7 @@ def _has_invalid_path_chars(user_value: str) -> bool:
 def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Path]:
     """
     Resolve a user-supplied path against a base directory and return the resolved base and candidate path.
-    
+
     Returns:
         tuple[Path, Path]: A pair (base, resolved_path) where `base` is `base_dir.resolve()` and
         `resolved_path` is `(base / Path(user_value)).resolve()`, both as absolute Paths.
@@ -198,7 +198,7 @@ def _resolve_path_within_base(user_value: str, base_dir: Path) -> tuple[Path, Pa
 def _is_within_base(base: Path, candidate: Path) -> bool:
     """
     Check whether `candidate` is the same path as `base` or is located within it.
-    
+
     Returns:
         True if `candidate` is `base` or a descendant of `base`, False otherwise.
     """

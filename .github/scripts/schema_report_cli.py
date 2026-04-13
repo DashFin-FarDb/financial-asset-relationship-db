@@ -109,9 +109,9 @@ DEFAULT_OUTPUT_FILENAMES = {
 def parse_arguments() -> argparse.Namespace:
     """
     Parse command-line arguments for the schema report CLI.
-    
+
     Parses the --fmt (markdown|text|json), --output/-o (Path or None), and --verbose/-v options and returns the resulting namespace.
-    
+
     Returns:
         argparse.Namespace: Namespace with attributes `fmt` (str), `output` (Path | None), and `verbose` (bool).
     """
@@ -147,12 +147,12 @@ def parse_arguments() -> argparse.Namespace:
 def convert_markdown_to_plain_text(markdown: str) -> str:
     """
     Convert Markdown to a simple plain-text representation.
-    
+
     Strips common leading Markdown markers from each line (e.g., '#', '-', '*') and preserves line breaks. This is a lightweight transformation and does not perform full Markdown parsing; complex constructs (tables, code fences, nested lists) may not be handled correctly.
-    
+
     Parameters:
         markdown (str): Markdown text to convert.
-    
+
     Returns:
         str: Plain-text string with leading Markdown markers removed from each line.
     """
@@ -166,7 +166,7 @@ def convert_markdown_to_plain_text(markdown: str) -> str:
 def convert_markdown_to_json(markdown: str) -> str:
     """
     Embed the Markdown report as the value of the "schema_report" key in a JSON object.
-    
+
     Returns:
         json_str (str): A pretty-printed JSON string with the Markdown under the "schema_report" key.
     """
@@ -177,10 +177,10 @@ def convert_markdown_to_json(markdown: str) -> str:
 def default_output_path(fmt: OutputFormat) -> Path:
     """
     Get the default output file path for the given output format in the current working directory.
-    
+
     Returns:
         Path: Path to the default filename for the provided format inside the current working directory.
-    
+
     Raises:
         CLIError: If `fmt` is not a supported OutputFormat.
     """
@@ -193,13 +193,13 @@ def default_output_path(fmt: OutputFormat) -> Path:
 def parse_output_format(value: str) -> OutputFormat | None:
     """
     Convert a user-provided format name into an OutputFormat enum or indicate invalid input.
-    
+
     Parameters:
         value (str): Format name expected to be "markdown", "text", or "json".
-    
+
     Returns:
         OutputFormat | None: The matching OutputFormat on success, `None` if the input is not a valid format.
-    
+
     Notes:
         If the value is invalid a user-facing error message is printed to stderr.
     """
@@ -219,9 +219,9 @@ def parse_output_format(value: str) -> OutputFormat | None:
 def cleanup_partial_output(temp_path: Path | None) -> None:
     """
     Remove a partially written temporary file if one exists.
-    
+
     If `temp_path` is `None` this function does nothing. If the path exists the file is deleted; errors during removal are suppressed and only logged.
-    
+
     Parameters:
         temp_path (Path | None): Path to the temporary file to remove, or `None` to indicate no file.
     """
@@ -242,14 +242,14 @@ def cleanup_partial_output(temp_path: Path | None) -> None:
 def format_report_content(fmt: OutputFormat, report: str) -> str:
     """
     Convert a Markdown schema report into the specified output format.
-    
+
     Parameters:
         fmt (OutputFormat): Target format; one of MARKDOWN, TEXT, or JSON.
         report (str): Report content in Markdown.
-    
+
     Returns:
         str: Report formatted for the chosen output (Markdown unchanged, plain text for TEXT, JSON-wrapped string for JSON).
-    
+
     Raises:
         ValueError: If `fmt` is not a supported OutputFormat.
     """
@@ -293,11 +293,11 @@ def write_atomic(path: Path, data: str, encoding: str = "utf-8") -> None:
 def generate_report(fmt: OutputFormat, output: Path | None) -> None:
     """
     Generate a schema report and emit it to the specified destination.
-    
+
     Parameters:
         fmt (OutputFormat): Desired output format.
         output (Path | None): Destination file path; if None, write to stdout.
-    
+
     Raises:
         CLIError: If report generation, formatting, or writing fails.
     """

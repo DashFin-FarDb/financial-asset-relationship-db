@@ -74,15 +74,15 @@ def _create_2d_relationship_traces(
 ) -> List[go.Scatter]:
     """
     Builds Plotly line traces representing relationships between the provided assets.
-    
+
     Each returned trace groups all relationships of a single type and contains segmented lines between asset coordinates with hover text showing source, target, relationship type, and strength.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): Graph containing assets and their relationships.
         positions (Dict[str, Tuple[float, float]]): Mapping of asset IDs to (x, y) coordinates.
         asset_ids (List[str]): Ordered list of asset IDs to include; only relationships between these and assets present in `positions` are considered.
         options (Dict[str, bool] | None): Optional visibility toggles per high-level option; missing keys fall back to DEFAULT_TRACE_OPTIONS.
-    
+
     Returns:
         List[go.Scatter]: A list of Scatter traces, one per relationship type present. Returns an empty list if `asset_ids` or `positions` is empty.
     """
@@ -110,11 +110,11 @@ def _resolve_trace_options(
 ) -> Dict[str, bool]:
     """
     Merge trace option flags with precedence: legacy_flags override options, which override module defaults.
-    
+
     Parameters:
         options: Optional mapping of option names to booleans that override the defaults when provided.
         legacy_flags: Legacy mapping of option names to booleans that take highest precedence and override both `options` and defaults.
-    
+
     Returns:
         A mapping of option names to booleans where values from `legacy_flags` override `options`, which override the module defaults.
     """
@@ -129,13 +129,13 @@ def _resolve_trace_options(
 def _build_relationship_filters(options: Dict[str, bool]) -> Dict[str, bool]:
     """
     Create a normalized mapping from high-level visibility options to relationship-type filter flags.
-    
+
     Parameters:
         options (Dict[str, bool]): Visibility options expected to include keys:
             `show_same_sector`, `show_market_cap`, `show_correlation`,
             `show_corporate_bond`, `show_commodity_currency`,
             `show_income_comparison`, `show_regulatory`.
-    
+
     Returns:
         Dict[str, bool]: Mapping of normalized relationship-type keys to visibility flags:
             `same_sector`, `market_cap_similar`, `correlation`, `corporate_link`,
@@ -224,13 +224,13 @@ def _build_relationship_trace(
 ) -> go.Scatter:
     """
     Builds a Plotly line trace connecting source and target assets for a given relationship type.
-    
+
     Parameters:
         rel_type (str): Relationship type label used for styling and included in hover text.
         relationships (list[Dict[str, object]]): Sequence of relationship records, each containing
             'source_id' and 'target_id' and optionally a numeric 'strength'.
         positions (Dict[str, Tuple[float, float]]): Mapping from asset id to its 2D (x, y) position.
-    
+
     Returns:
         go.Scatter: A Scatter trace with individual line segments for each source→target pair.
             Hover text for each segment includes "source → target", the relationship type, and

@@ -46,12 +46,12 @@ def _as_float(value: Any, default: float = 0.0) -> float:
 def _as_str_int_map(value: Any) -> dict[str, int]:
     """
     Normalize a mapping-like object into a dict with string keys and integer values.
-    
+
     Only entries whose keys are strings are included. Values are coerced to ints using _as_int(..., 0). If the input is not a Mapping, an empty dict is returned.
-    
+
     Parameters:
         value (Any): Input expected to be mapping-like.
-    
+
     Returns:
         dict[str, int]: Dictionary of string keys mapped to integer values; conversion failures produce 0.
     """
@@ -71,9 +71,9 @@ def _as_top_relationships(
 ) -> list[tuple[str, str, str, float]]:
     """
     Normalize an iterable into a list of top-relationship tuples.
-    
+
     Ignores non-iterable input and items that are not 4-tuples with the first three elements as strings. Coerces the fourth element of each valid item to a float using 0.0 if conversion fails.
-    
+
     Returns:
         A list of (source_id, target_id, type, strength) tuples where the first three elements are strings and `strength` is a float.
     """
@@ -92,12 +92,12 @@ def _as_top_relationships(
 def _is_top_relationship_item(item: Any) -> bool:
     """
     Determine whether an object represents a top-relationship item tuple.
-    
+
     A top-relationship item is a 4-tuple (source_id, target_id, type, strength) where the first three elements are strings. The fourth element is not validated by this function.
-    
+
     Parameters:
         item (Any): Value to check.
-    
+
     Returns:
         bool: `True` if `item` is a 4-tuple and its first three elements are strings, `False` otherwise.
     """

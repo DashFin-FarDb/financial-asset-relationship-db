@@ -103,10 +103,10 @@ class FormulaicAnalyzer:
     ) -> List[Formula]:
         """
         Collects and concatenates all formula groups derived from the provided asset relationship graph.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph of assets and their relationships used to derive formulas.
-        
+
         Returns:
             List[Formula]: A flat list of Formula objects assembled from fundamental, correlation, valuation,
             risk/return, portfolio theory, and cross-asset analysis routines.
@@ -184,7 +184,7 @@ class FormulaicAnalyzer:
     ) -> list[Formula]:
         """
         Return fundamental equity formulas when the graph contains equities.
-        
+
         Returns:
             list[Formula]: Price-to-Earnings and Market Capitalization formulas when the graph contains equities, otherwise an empty list.
         """
@@ -199,10 +199,10 @@ class FormulaicAnalyzer:
     def _price_to_earnings_formula(graph: AssetRelationshipGraph) -> Formula:
         """
         Constructs a Formula describing the Price-to-Earnings (P/E) ratio.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to derive the example_calculation for the formula.
-        
+
         Returns:
             Formula: A Formula with name "Price-to-Earnings", expression "P / E", LaTeX r"\frac{P}{E}", variables mapping `"P"` to the price-per-share label and `"E"` to "Earnings per share (EPS)", category "Valuation", example_calculation produced from `graph`, and `r_squared` set to 0.0.
         """
@@ -224,10 +224,10 @@ class FormulaicAnalyzer:
     def _dividend_yield_formula(graph: AssetRelationshipGraph) -> Formula:
         """
         Create a Formula representing dividend yield (dividend per share divided by price per share).
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to derive example calculations for dividend yield.
-        
+
         Returns:
             Formula: A Formula with name "Dividend Yield", expression "D / P", LaTeX "\\frac{D}{P}", variable descriptions for `D` and `P`, an example_calculation derived from the provided graph, category "Income", and r_squared set to 0.0.
         """
@@ -251,10 +251,10 @@ class FormulaicAnalyzer:
     ) -> Formula:
         """
         Constructs a Formula representing market capitalization (Price × Shares Outstanding).
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to derive the formula's example_calculation and contextual metadata.
-        
+
         Returns:
             Formula: A Formula for market capitalization whose example_calculation is generated from the provided graph, with category "Valuation" and r_squared set to 0.0.
         """
@@ -278,9 +278,9 @@ class FormulaicAnalyzer:
     ) -> List[Formula]:
         """
         Collects standard formulas describing asset beta (systematic risk) and the Pearson correlation coefficient.
-        
+
         Each Formula includes variable descriptions, an example calculation derived from the provided graph, a category label, and an r_squared estimate indicating expected explanatory strength.
-        
+
         Returns:
             List[Formula]: Two Formula objects: `Beta (Systematic Risk)` and `Correlation Coefficient`.
         """
@@ -331,12 +331,12 @@ class FormulaicAnalyzer:
     ) -> List[Formula]:
         """
         Collect valuation formulas applicable to the provided asset relationship graph.
-        
+
         Includes price-to-book when equities are present and always includes an enterprise value formula.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph of assets and relationships used to determine applicable valuation formulas.
-        
+
         Returns:
             List[Formula]: Valuation Formula objects relevant to the graph (e.g., Price-to-Book, Enterprise Value).
         """
@@ -350,10 +350,10 @@ class FormulaicAnalyzer:
     def _price_to_book_formula(graph: AssetRelationshipGraph) -> Formula:
         """
         Create a Formula object representing the Price-to-Book (P/B) ratio.
-        
+
         Parameters:
             graph (AssetRelationshipGraph): Graph used to generate the example calculation for the formula.
-        
+
         Returns:
             Formula: A Formula describing the Price-to-Book ratio with its expression, variables, example calculation populated from `graph`, category "Valuation", and an expected r_squared of 0.88.
         """
@@ -376,7 +376,7 @@ class FormulaicAnalyzer:
     def _enterprise_value_formula() -> Formula:
         """
         Constructs a Formula describing Enterprise Value (EV = Market_Cap + Total_Debt - Cash).
-        
+
         Returns:
             Formula: A Formula populated with metadata for Enterprise Value, including the expression and LaTeX, variable descriptions for EV, Market_Cap, Debt, and Cash, an example_calculation noting debt/cash data is unavailable in the current dataset, category "Valuation", and r_squared set to 0.95.
         """

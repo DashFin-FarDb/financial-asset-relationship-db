@@ -18,10 +18,10 @@ from typing import Dict, List
 def _collect_headings(lines: List[str]) -> Dict[str, List[int]]:
     """
     Collect level-2 Markdown headings and their 1-based line numbers.
-    
+
     Parameters:
         lines (List[str]): Lines of a Markdown document in order; lines may include line endings.
-    
+
     Returns:
         Dict[str, List[int]]: Mapping from each level-2 heading text (the text following '##') to a list of 1-based line numbers where that heading appears.
     """
@@ -42,11 +42,11 @@ def _report_duplicates(
 ) -> int:
     """
     Print a formatted MD024 violation report for duplicated level-2 headings to stderr.
-    
+
     Parameters:
         duplicates (Dict[str, List[int]]): Mapping from duplicated heading text to the list of 1-based line numbers where each occurs.
         manifest_path (Path): Path to the manifest file being validated.
-    
+
     Returns:
         int: 1 to indicate a duplicate-heading validation failure.
     """
@@ -78,12 +78,12 @@ def _report_duplicates(
 def check_duplicate_headings(manifest_path: Path) -> int:
     """
     Validate that the repository's systemManifest.md contains no duplicate level-2 headings.
-    
+
     Checks that the provided path refers to the expected .elastic-copilot/memory/systemManifest.md within the repository, reads the file, and detects duplicate level-2 headings (lines beginning with "## " but not "### "). Reports duplicates to stderr when found.
-    
+
     Parameters:
         manifest_path (Path): Path to the systemManifest.md file to validate.
-    
+
     Returns:
         int: Exit code where `0` indicates no duplicate level-2 headings were found, and `1` indicates a validation failure, unexpected path, missing file, or that duplicates were detected.
     """

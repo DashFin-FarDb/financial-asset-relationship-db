@@ -19,7 +19,7 @@ def _generate_dynamic_title(
 ) -> str:
     """
     Generate a display title combining the base title with counts of assets and relationships.
-    
+
     Returns:
         title (str): Formatted as "{base_title} - {num_assets} Assets, {num_relationships} Relationships".
     """
@@ -50,12 +50,12 @@ def _prepare_layout_config(
 ) -> Tuple[str, Dict[str, object]]:
     """
     Generate a dynamic plot title from the asset count and the estimated number of visible relationships, and return that title with layout options.
-    
+
     Parameters:
         relationship_traces (List[go.Scatter3d]): 3D scatter traces used to estimate visible relationships by counting their points.
         base_title (str): Base string to prefix the generated title. Defaults to "Financial Asset Network".
         layout_options (Optional[Dict[str, object]]): Layout configuration to return; an empty dict is returned if None.
-    
+
     Returns:
         Tuple[str, Dict[str, object]]: The generated title and the layout options dictionary (empty dict if none provided).
     """

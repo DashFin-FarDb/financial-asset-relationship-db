@@ -17,9 +17,9 @@ def test_validate_origin_short_circuits_on_allowlist(monkeypatch: pytest.MonkeyP
     def _must_not_run(*_args: object, **_kwargs: object) -> bool:
         """
         Fail the test if an unexpected downstream validator is invoked.
-        
+
         This helper always raises an AssertionError to signal that a code path which should have been short-circuited was executed.
-        
+
         Raises:
             AssertionError: Always raised with message "short-circuit failed: later validator executed".
         """
@@ -42,9 +42,9 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
     def _allowlist_false(origin: str, allowed_origins: list[str]) -> bool:
         """
         Test double that records an allowlist check invocation and always returns False.
-        
+
         Appends the string "allowlist" to the surrounding `calls` list as a side effect. The `origin` and `allowed_origins` parameters are accepted but ignored.
-        
+
         Returns:
             False to indicate the origin is not allowed by the allowlist.
         """
@@ -55,11 +55,11 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
     def _http_local_true(origin: str, current_env: str) -> bool:
         """
         Record the stubbed http-local-in-dev check by appending "http_local_dev" to the shared calls list and return True.
-        
+
         Parameters:
             origin (str): Unused; present for signature compatibility.
             current_env (str): Unused; present for signature compatibility.
-        
+
         Returns:
             bool: Always True.
         """
@@ -70,7 +70,7 @@ def test_validate_origin_stops_after_first_true_check(monkeypatch: pytest.Monkey
     def _must_not_run(*_args: object, **_kwargs: object) -> bool:
         """
         Fail the test if called, indicating a later validator was invoked despite an earlier successful check.
-        
+
         Raises:
             AssertionError: always raised with message "short-circuit failed: evaluated after True check".
         """

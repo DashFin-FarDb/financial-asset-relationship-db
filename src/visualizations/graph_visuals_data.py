@@ -16,10 +16,10 @@ _graph_access_lock = threading.RLock()
 def _build_asset_id_index(asset_ids: List[str]) -> Dict[str, int]:
     """
     Create a lookup that maps each asset ID to its index in the provided list.
-    
+
     Parameters:
         asset_ids (List[str]): Ordered sequence of asset IDs; the index reflects each ID's position in this list.
-    
+
     Returns:
         Dict[str, int]: Dictionary mapping asset ID -> position index.
     """
@@ -31,10 +31,10 @@ def _validate_graph_relationships_structure(
 ) -> None:
     """
     Ensure the provided graph is an AssetRelationshipGraph and that it exposes a `relationships` dictionary.
-    
+
     Parameters:
         graph (AssetRelationshipGraph): The graph object to validate.
-    
+
     Raises:
         TypeError: If `graph` is not an AssetRelationshipGraph instance or if `graph.relationships` is not a dict.
         ValueError: If `graph` does not have a `relationships` attribute.
@@ -50,13 +50,13 @@ def _validate_graph_relationships_structure(
 def _normalize_asset_ids(asset_ids: Iterable[str]) -> Set[str]:
     """
     Return a set of unique asset IDs after validating that the input is an iterable of strings.
-    
+
     Parameters:
         asset_ids: Iterable of asset ID values to normalize.
-    
+
     Returns:
         A set containing the unique asset ID strings from the input.
-    
+
     Raises:
         TypeError: If `asset_ids` is not iterable.
         ValueError: If any element in `asset_ids` is not a string.
@@ -165,16 +165,16 @@ def _require_str(
 ) -> str:
     """
     Ensure the provided value is a string and return it.
-    
+
     Parameters:
         value (object): The value to validate.
         field (str): Field name included in the error message when validation fails.
         source_id (str): Relationship source identifier included in the error message.
         idx (int): Relationship entry index included in the error message.
-    
+
     Returns:
         str: The validated string value.
-    
+
     Raises:
         TypeError: If `value` is not a `str`. The exception message includes `field`, `idx`, and `source_id`.
     """
@@ -191,17 +191,17 @@ def _coerce_strength(
 ) -> float:
     """
     Converts a relationship strength to a float.
-    
+
     If conversion fails, raises ValueError that includes the relationship index and source_id.
-    
+
     Parameters:
         value: The numeric-like value to convert.
         source_id: Source asset identifier included in the error message.
         idx: Index of the relationship entry included in the error message.
-    
+
     Returns:
         The strength as a float.
-    
+
     Raises:
         ValueError: If `value` cannot be converted to a float; message includes `idx` and `source_id`.
     """
@@ -296,7 +296,7 @@ def _store_relationship_if_target_known(
 ) -> None:
     """
     Insert a parsed relationship into the relationship index if the relationship's target asset is in the provided asset set.
-    
+
     Parameters:
         source_id (str): The source asset identifier for the relationship.
         relationship (Tuple[str, str, float]): Parsed relationship tuple (target_id, relationship_type, strength).
@@ -395,12 +395,12 @@ def _is_processed_bidirectional_pair(
 ) -> bool:
     """
     Check whether a bidirectional relationship pair has already been recorded as processed.
-    
+
     Parameters:
         pair_key (Tuple[str, str, str]): Canonical relationship key used in processed_pairs.
         is_bidirectional (bool): Whether the current relationship is bidirectional.
         processed_pairs (Set[Tuple[str, str, str]]): Set of canonical relationship keys that have been processed.
-    
+
     Returns:
         `True` if `is_bidirectional` is `True` and `pair_key` exists in `processed_pairs`, `False` otherwise.
     """

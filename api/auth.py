@@ -124,14 +124,14 @@ class UserRepository:
     ) -> None:
         """
         Insert or update a user credential record in the user_credentials table.
-        
+
         Performs an upsert for the given username using the provided hashed_password and optional profile data. Accepts a modern mapping via `user_profile` with optional keys `user_email`, `user_full_name`, and `is_disabled`. Backward-compatible legacy keyword fields (`user_email`, `user_full_name`, `is_disabled`) passed via `**legacy_profile_fields` are accepted and take precedence over values in `user_profile`. A `TypeError` is raised if any unexpected legacy keys are supplied.
-        
+
         Parameters:
-        	username (str): Unique identifier for the user.
-        	hashed_password (str): Pre-hashed password to store for the user.
-        	user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
-        	**legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override `user_profile` values when provided.
+                username (str): Unique identifier for the user.
+                hashed_password (str): Pre-hashed password to store for the user.
+                user_profile (Optional[UserRepository.UserProfile]): Optional mapping with any of `user_email`, `user_full_name`, `is_disabled`.
+                **legacy_profile_fields (object): Backward-compatible keyword fields (`user_email`, `user_full_name`, `is_disabled`) which override `user_profile` values when provided.
         """
         profile = user_profile.copy() if user_profile is not None else {}
 
@@ -217,7 +217,7 @@ def get_password_hash(password):
 def _seed_credentials_from_env(repository: UserRepository) -> None:
     """
     Seed an administrative user into the repository from environment variables.
-    
+
     Reads ADMIN_USERNAME and ADMIN_PASSWORD; if both are present, hashes the password and upserts a user using optional ADMIN_EMAIL, ADMIN_FULL_NAME, and ADMIN_DISABLED (interpreted as a truthy flag). If either ADMIN_USERNAME or ADMIN_PASSWORD is missing, the repository is not modified.
     """
     username = os.getenv("ADMIN_USERNAME")
@@ -360,7 +360,7 @@ def _build_credentials_exception() -> HTTPException:
 def _build_expired_exception() -> HTTPException:
     """
     Create an HTTP 401 Unauthorized exception for an expired bearer token.
-    
+
     Returns:
         HTTPException: An exception with status code 401, detail "Token has expired", and header
         `WWW-Authenticate: Bearer`.
@@ -380,15 +380,15 @@ def _decode_username_from_token(
 ) -> str:
     """
     Extract the username stored in the token's `sub` claim and validate the token.
-    
+
     Parameters:
         token (str): JWT access token expected to contain a `sub` claim.
         credentials_exception (HTTPException): Exception to raise when the token is invalid or missing `sub`.
         expired_exception (HTTPException): Exception to raise when the token has expired.
-    
+
     Returns:
         username (str): The `sub` claim value from the token.
-    
+
     Raises:
         HTTPException: `expired_exception` if the token has expired.
         HTTPException: `credentials_exception` if the token is invalid or the `sub` claim is missing.
@@ -409,10 +409,10 @@ def _decode_username_from_token(
 async def get_current_active_user(current_user: User = Depends(get_current_user)):
     """
     Verify that the authenticated user's account is active.
-    
+
     Raises:
         HTTPException: 400 with detail "Inactive user" if the user's account is disabled.
-    
+
     Returns:
         User: The authenticated user's public profile.
     """

@@ -33,9 +33,9 @@ def _asset_class_distribution(distribution: dict) -> go.Figure:
 def _apply_asset_class_layout(fig: go.Figure) -> None:
     """
     Set titles and axis labels for an asset class distribution figure.
-    
+
     Modifies the provided Plotly Figure in place to set the chart title to "Asset Class Distribution", the x-axis title to "Asset Class", and the y-axis title to "Count".
-    
+
     Parameters:
         fig (go.Figure): Figure whose layout will be updated in place.
     """
@@ -67,7 +67,7 @@ def _relationship_distribution(distribution: dict) -> go.Figure:
 def _apply_relationship_layout(fig: go.Figure) -> None:
     """
     Apply layout for a relationship-type distribution chart.
-    
+
     Updates the given figure in place by setting the title to "Relationship Types Distribution", the x-axis title to "Relationship Type", the y-axis title to "Count", and rotating x-axis tick labels by -45 degrees.
     """
     fig.update_layout(
@@ -81,16 +81,16 @@ def _apply_relationship_layout(fig: go.Figure) -> None:
 def _regulatory_events_timeline(events: list) -> go.Figure:
     """
     Create a timeline bar chart of regulatory events showing each event's impact score over time.
-    
+
     Expects each event to have:
     - date: ISO 8601 date string
     - asset_id: identifier used in bar labels
     - event_type: object with a `value` attribute used in bar labels
     - impact_score: numeric value plotted on the y axis
-    
+
     Parameters:
         events (list): Sequence of event objects with the fields described above.
-    
+
     Returns:
         go.Figure: Plotly figure with dates on the x axis and impact scores on the y axis; bars are labeled as "asset_id: event_type.value" and colored green for impact_score > 0 and red for impact_score <= 0.
     """
@@ -116,7 +116,7 @@ def _regulatory_events_timeline(events: list) -> go.Figure:
 def _apply_regulatory_events_layout(fig: go.Figure) -> None:
     """
     Update the layout of a regulatory events timeline figure in place.
-    
+
     Parameters:
         fig (go.Figure): Figure whose layout will be modified to set the title to "Regulatory Events Timeline", the x-axis title to "Date", and the y-axis title to "Impact Score".
     """
