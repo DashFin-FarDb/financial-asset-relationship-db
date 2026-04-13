@@ -12,7 +12,6 @@ from src.visualizations.graph_visuals_data import (
     _build_hover_texts,
     _collect_and_group_relationships,
 )
-from src.visualizations.graph_visuals_directional_arrows import _create_directional_arrows
 from src.visualizations.graph_visuals_positions import _normalize_positions
 
 
