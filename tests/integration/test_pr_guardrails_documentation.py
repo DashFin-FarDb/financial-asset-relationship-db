@@ -167,6 +167,16 @@ class TestDependencyChangePRTemplate:
     def lines(self, content: str) -> List[str]:
         return _lines(content)
 
+    @staticmethod
+    def _checkbox_commands(section: str) -> list[str]:
+        """Return, in order, the command strings from markdown checkbox lines."""
+        commands = []
+        for line in section.splitlines():
+            m = re.match(r"^\s*-\s*\[\s*[xX ]?\s*\]\s*`(.+?)`\s*$", line)
+            if m:
+                commands.append(m.group(1).strip())
+        return commands
+
     def test_file_exists(self) -> None:
         assert DEPENDENCY_CHANGE_TEMPLATE.exists()
         assert DEPENDENCY_CHANGE_TEMPLATE.is_file()
@@ -209,17 +219,48 @@ class TestDependencyChangePRTemplate:
         sot_section = content.split("## Source of truth")[1].split("##")[0]
         assert "requirements-dev.txt" in sot_section
 
-    def test_validation_section_includes_pip_install(self, content: str) -> None:
+    def test_validation_section_includes_full_dev_install_command(self, content: str) -> None:
+        """Validation section must contain the exact full dev install command from the policy doc."""
         validation_section = content.split("## Validation run locally")[1].split("##")[0]
-        assert "pip install" in validation_section
+        assert "pip install -r requirements.txt -r requirements-dev.txt" in validation_section, (
+            "Validation section must include the canonical full dev command: "
+            "'pip install -r requirements.txt -r requirements-dev.txt'"
+        )
 
-    def test_validation_section_includes_pip_check(self, content: str) -> None:
+    def test_validation_section_pip_check_paired_after_each_install(self, content: str) -> None:
+        """Every install command must be immediately followed by a pip check line."""
         validation_section = content.split("## Validation run locally")[1].split("##")[0]
-        assert "pip check" in validation_section
+        commands = self._checkbox_commands(validation_section)
 
-    def test_validation_section_includes_editable_install(self, content: str) -> None:
+        install_prefixes = ("pip install -r", "pip install -e")
+        for i, cmd in enumerate(commands):
+            if any(cmd.startswith(prefix) for prefix in install_prefixes):
+                assert i + 1 < len(commands), (
+                    f"Install command '{cmd}' has no following command in the checklist"
+                )
+                next_cmd = commands[i + 1]
+                assert next_cmd == "pip check", (
+                    f"Install command '{cmd}' must be immediately followed by 'pip check', "
+                    f"but got '{next_cmd}'"
+                )
+
+    def test_validation_section_editable_install_present_and_not_duplicated(self, content: str) -> None:
+        """'pip install -e .' and 'pip install -e ".[dev]"' must each appear exactly once."""
         validation_section = content.split("## Validation run locally")[1].split("##")[0]
-        assert "pip install -e" in validation_section
+        commands = self._checkbox_commands(validation_section)
+
+        bare_editable = [c for c in commands if c == "pip install -e ."]
+        dev_editable = [c for c in commands if c == 'pip install -e ".[dev]"']
+
+        assert len(bare_editable) >= 1, (
+            "Validation section must include 'pip install -e .'"
+        )
+        assert len(bare_editable) == 1, (
+            f"'pip install -e .' must appear exactly once; found {len(bare_editable)} occurrences"
+        )
+        assert len(dev_editable) == 1, (
+            f"'pip install -e \".[dev]\"' must appear exactly once; found {len(dev_editable)} occurrences"
+        )
 
     def test_guardrail_checklist_has_checkboxes(self, content: str) -> None:
         guardrail_section = content.split("## Guardrail checklist")[1]
