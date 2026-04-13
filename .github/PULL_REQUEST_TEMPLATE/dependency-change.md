@@ -57,7 +57,6 @@ This PR does **not** do:
 - [ ] `pylint --version`
 - [ ] `mypy --version`
 - [ ] `black --version`
-- [ ] `isort --version`
 - [ ] `ruff --version`
 
 ### Security scan
