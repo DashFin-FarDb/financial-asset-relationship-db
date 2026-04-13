@@ -117,8 +117,6 @@ pip check
 
 ### Editable install validation
 
-> **Prerequisite:** `pyproject.toml` does not yet declare all runtime API dependencies (e.g. `fastapi`, `pydantic`, `slowapi`). Install `requirements.txt` first so import checks can succeed.
-
 ```bash
 pip install -r requirements.txt
 pip install -e .
