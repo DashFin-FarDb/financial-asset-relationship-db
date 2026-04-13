@@ -63,6 +63,7 @@ def _build_filter_params(
     normalized_legacy_flags = dict(legacy_flags or {})
     invalid_keys = sorted(set(normalized_legacy_flags).difference(base_options))
     if invalid_keys:
+        logger.error("Unexpected filter options encountered: %s", ", ".join(invalid_keys))
         raise TypeError(f"Unexpected filter options: {', '.join(invalid_keys)}")
     base_options.update(normalized_legacy_flags)
 
