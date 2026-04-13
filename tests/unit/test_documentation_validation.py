@@ -124,9 +124,10 @@ class TestDependencyMatrix:
 
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
+        allowed_types = expected_types | {"jsx", "json", "md"}
         found_types = set(file_types)
-        assert found_types.issubset(expected_types | {"jsx", "json", "md"}), (
-            f"Unexpected file types: {found_types - expected_types}"
+        assert found_types.issubset(allowed_types), (
+            f"Unexpected file types: {found_types - allowed_types}"
         )
 
     def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
