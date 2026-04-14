@@ -23,7 +23,12 @@ jobs:
     # "frogbot" GitHub environment can approve the pull request to be scanned.
     # Read more here (Install Frogbot Using GitHub Actions): https://docs.jfrog-applications.jfrog.io/jfrog-applications/frogbot/setup-frogbot/setup-frogbot-using-github-actions
     environment: frogbot
-    # Only run if JF_URL secret is configured
+    # Security note: This workflow uses 'pull_request' trigger instead of 'pull_request_target' to prevent
+    # privilege escalation attacks. As a result, forked PRs will not have access to repository secrets
+    # (JF_URL, JF_ACCESS_TOKEN) and the scan will be skipped. This is the intended secure behavior.
+    # Maintainers can manually trigger scans for approved external contributions using workflow_dispatch
+    # or by requesting the contributor to open the PR from a branch in the main repository.
+    # Only run if JF_URL secret is configured (will be empty/unavailable for forked PRs)
     if: secrets.JF_URL != ''
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
