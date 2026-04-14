@@ -21,8 +21,8 @@ jobs:
         with:
           prompt: |
             Summarize the following GitHub issue in one paragraph:
-            Title: ${{ github.event.issue.title }}
-            Body: ${{ github.event.issue.body }}
+            Title: ${{ steps.sanitize.outputs.title }}
+            Body: ${{ steps.sanitize.outputs.body }}
 
       - name: Comment with AI summary
         run: |
