@@ -56,6 +56,7 @@ def summary_workflow_raw_fixture():
         return f.read()
 
 
+@pytest.mark.integration
 class TestSummaryWorkflowExists:
     """Verify the summary workflow file is present and valid YAML."""
 
