@@ -29,7 +29,7 @@ def summary_workflow_fixture():
     Returns:
         dict: Parsed YAML content of .github/workflows/summary.yml.
     """
-    with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+    with open(SUMMARY_WORKFLOW_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -41,7 +41,7 @@ def summary_workflow_raw_fixture():
     Returns:
         str: Raw file content as a string.
     """
-    with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+    with open(SUMMARY_WORKFLOW_PATH, encoding="utf-8") as f:
         return f.read()
 
 
@@ -56,7 +56,7 @@ class TestSummaryWorkflowExists:
     @staticmethod
     def test_summary_workflow_is_valid_yaml():
         """summary.yml must be parseable as valid YAML."""
-        with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+        with open(SUMMARY_WORKFLOW_PATH, encoding="utf-8") as f:
             try:
                 content = yaml.safe_load(f)
             except yaml.YAMLError as exc:
