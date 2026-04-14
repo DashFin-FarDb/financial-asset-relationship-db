@@ -54,43 +54,64 @@ runs:
       if: ${{ inputs.install != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      env:
-        CI_COMMON_INSTALL_CMD: ${{ inputs.install }}
       run: |
         set -euo pipefail
+        # Write commands to a temporary script file to prevent injection
+        SCRIPT_FILE="$(mktemp)"
+        cat > "$SCRIPT_FILE" << 'EOF'
+        ${{ inputs.install }}
+        EOF
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "${CI_COMMON_INSTALL_CMD//[[:space:]]/}" ]]; then
+        if [[ -z "$(cat "$SCRIPT_FILE" | tr -d '[:space:]')" ]]; then
+          rm -f "$SCRIPT_FILE"
           exit 0
         fi
-        # Execute the full install script body, preserving newlines and quoting
-        bash -euo pipefail -c "$CI_COMMON_INSTALL_CMD"
+        # Execute the script file with proper error handling
+        bash -euo pipefail "$SCRIPT_FILE"
+        EXIT_CODE=$?
+        rm -f "$SCRIPT_FILE"
+        exit $EXIT_CODE
 
     - name: Build
       if: ${{ inputs.build != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      env:
-        CI_COMMON_BUILD_CMD: ${{ inputs.build }}
       run: |
         set -euo pipefail
+        # Write commands to a temporary script file to prevent injection
+        SCRIPT_FILE="$(mktemp)"
+        cat > "$SCRIPT_FILE" << 'EOF'
+        ${{ inputs.build }}
+        EOF
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "${CI_COMMON_BUILD_CMD//[[:space:]]/}" ]]; then
+        if [[ -z "$(cat "$SCRIPT_FILE" | tr -d '[:space:]')" ]]; then
+          rm -f "$SCRIPT_FILE"
           exit 0
         fi
-        # Execute the full build script body, preserving newlines and quoting
-        bash -euo pipefail -c "$CI_COMMON_BUILD_CMD"
+        # Execute the script file with proper error handling
+        bash -euo pipefail "$SCRIPT_FILE"
+        EXIT_CODE=$?
+        rm -f "$SCRIPT_FILE"
+        exit $EXIT_CODE
 
     - name: Test
       if: ${{ inputs.test != '' }}
       shell: bash
       working-directory: ${{ inputs.working-directory }}
-      env:
-        CI_COMMON_TEST_CMD: ${{ inputs.test }}
       run: |
         set -euo pipefail
+        # Write commands to a temporary script file to prevent injection
+        SCRIPT_FILE="$(mktemp)"
+        cat > "$SCRIPT_FILE" << 'EOF'
+        ${{ inputs.test }}
+        EOF
         # Trim whitespace and exit early if the script body is effectively empty
-        if [[ -z "${CI_COMMON_TEST_CMD//[[:space:]]/}" ]]; then
+        if [[ -z "$(cat "$SCRIPT_FILE" | tr -d '[:space:]')" ]]; then
+          rm -f "$SCRIPT_FILE"
           exit 0
         fi
-        # Execute the full test script body, preserving newlines and quoting
-        bash -euo pipefail -c "$CI_COMMON_TEST_CMD"
+        # Execute the script file with proper error handling
+        bash -euo pipefail "$SCRIPT_FILE"
+        EXIT_CODE=$?
+        rm -f "$SCRIPT_FILE"
+        exit $EXIT_CODE
