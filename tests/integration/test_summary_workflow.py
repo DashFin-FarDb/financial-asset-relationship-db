@@ -28,11 +28,20 @@ def summary_workflow_fixture():
     """
     Load and parse the summary.yml GitHub Actions workflow file.
 
+    PyYAML (YAML 1.1) may resolve an unquoted ``on`` key to boolean ``True``.
+    This fixture normalises the result so callers can always use the string
+    key ``'on'`` regardless of how the YAML was serialised.
+
     Returns:
-        dict: Parsed YAML content of .github/workflows/summary.yml.
+        dict: Parsed YAML content of .github/workflows/summary.yml with the
+        trigger key normalised to the string ``'on'``.
     """
     with open(SUMMARY_WORKFLOW_PATH, encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        data = yaml.safe_load(f)
+    # Normalise: PyYAML 1.1 may load an unquoted `on:` key as boolean True.
+    if True in data and "on" not in data:
+        data["on"] = data.pop(True)
+    return data
 
 
 @pytest.fixture(name="summary_workflow_raw")
@@ -378,8 +387,14 @@ class TestCommentStep:
 
 class TestIssueContentIsIncludedInWorkflow:
     """
-    Verify that the workflow includes issue title and body content through
-    the sanitization step to ensure both security and functionality.
+    Verify that the workflow captures issue title and body and passes them
+    through the sanitization step before AI inference.
+
+    These tests assert that (a) raw GitHub issue expressions are referenced
+    in the sanitize step's environment variables, and (b) the AI inference
+    step receives the sanitized outputs rather than raw user-controlled input.
+    The suite therefore enforces that sanitization is present; removing the
+    sanitize step will cause these tests to fail.
     """
 
     def test_workflow_references_issue_title_in_sanitize_step(self, summary_workflow_raw):
