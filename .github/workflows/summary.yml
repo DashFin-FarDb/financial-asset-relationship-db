@@ -15,7 +15,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
       # Security: Sanitize untrusted GitHub context values before AI inference
       # to prevent prompt injection attacks. User-controlled fields (title, body)
       # are passed through env vars and sanitized to remove potentially malicious
