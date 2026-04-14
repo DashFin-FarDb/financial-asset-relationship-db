@@ -34,13 +34,16 @@ jobs:
       - name: Install Bandit
         run: pip install bandit[sarif]
       - name: Run Bandit Scan
-        run: bandit -r . -f sarif -o bandit-results.sarif || true
+        continue-on-error: true
+        run: bandit -r . -f sarif -o bandit-results.sarif
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
         with:
           name: bandit-results
           path: bandit-results.sarif
       - name: Upload SARIF file
+        if: always()
         uses: github/codeql-action/upload-sarif@5c8a8a642e79153f5d047b10ec1cba1d1cc65699 # v3
         with:
           sarif_file: bandit-results.sarif
