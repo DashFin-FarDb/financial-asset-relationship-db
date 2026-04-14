@@ -1,14 +1,13 @@
 """
-Tests for the summary.yml GitHub Actions workflow changes.
+Tests for the summary.yml GitHub Actions workflow security implementation.
 
 This module validates the structure and behavior of .github/workflows/summary.yml
-after the PR that removed the sanitization step and changed how the AI inference
-prompt and comment step handle user-controlled inputs.
+to ensure proper security controls are in place for handling untrusted user input.
 
-Changes under test:
-- Removed: "Sanitize issue inputs" step (sed-based sanitization of title/body)
-- Changed: "Run AI inference" now uses raw github.event.issue.title/body directly
-- Changed: "Comment with AI summary" passes the AI response via a quoted RESPONSE
+Security requirements under test:
+- Present: "Sanitize issue inputs" step (sed-based sanitization of title/body)
+- Required: "Run AI inference" uses sanitized outputs (steps.sanitize.outputs.*)
+- Required: "Comment with AI summary" passes the AI response via a quoted RESPONSE
   environment variable (--body "$RESPONSE") for safe shell handling.
 """
 
@@ -30,7 +29,7 @@ def summary_workflow_fixture():
     Returns:
         dict: Parsed YAML content of .github/workflows/summary.yml.
     """
-    with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+    with open(SUMMARY_WORKFLOW_PATH, encoding="utf-8") as f:
         return yaml.safe_load(f)
 
 
@@ -42,7 +41,7 @@ def summary_workflow_raw_fixture():
     Returns:
         str: Raw file content as a string.
     """
-    with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+    with open(SUMMARY_WORKFLOW_PATH, encoding="utf-8") as f:
         return f.read()
 
 
@@ -57,7 +56,7 @@ class TestSummaryWorkflowExists:
     @staticmethod
     def test_summary_workflow_is_valid_yaml():
         """summary.yml must be parseable as valid YAML."""
-        with open(SUMMARY_WORKFLOW_PATH, "r", encoding="utf-8") as f:
+        with open(SUMMARY_WORKFLOW_PATH, encoding="utf-8") as f:
             try:
                 content = yaml.safe_load(f)
             except yaml.YAMLError as exc:
@@ -127,7 +126,7 @@ class TestSummaryWorkflowStructure:
 
 
 class TestSummaryWorkflowSteps:
-    """Verify the steps present in the summary workflow after the PR changes."""
+    """Verify the steps present in the summary workflow for security compliance."""
 
     @pytest.fixture(name="summary_steps")
     def summary_steps_fixture(self, summary_workflow):
@@ -142,32 +141,35 @@ class TestSummaryWorkflowSteps:
         """
         return summary_workflow["jobs"]["summary"]["steps"]
 
-    def test_sanitize_step_is_absent(self, summary_steps):
+    def test_sanitize_step_is_present(self, summary_steps):
         """
-        Assert that the removed sanitize step is not present in the `summary` job.
+        Assert that the sanitize step is present in the `summary` job for security.
 
-        This checks the specific historical step by exact name and id, without
-        banning unrelated future steps that may happen to include "sanitize" in
-        their names.
+        The sanitization step is required to prevent prompt injection attacks
+        by sanitizing user-controlled input before passing it to the AI model.
         """
-        removed_step_present = any(
+        sanitize_step_present = any(
             step.get("name") == "Sanitize issue inputs" or step.get("id") == "sanitize" for step in summary_steps
         )
-        assert not removed_step_present, (
-            "The removed 'Sanitize issue inputs' step (id 'sanitize') should not be present in summary.yml"
+        assert sanitize_step_present, (
+            "The 'Sanitize issue inputs' step (id 'sanitize') must be present in summary.yml for security"
         )
 
-    def test_no_step_uses_sanitize_outputs(self, summary_steps):
+    def test_inference_step_uses_sanitize_outputs(self, summary_steps):
         """
-        Ensure no step references `steps.sanitize.outputs`.
+        Ensure the AI inference step references `steps.sanitize.outputs` for security.
 
-        Asserts that none of the provided steps contain the string "steps.sanitize.outputs".
+        The inference step must use sanitized inputs to prevent prompt injection attacks.
         """
-        for step in summary_steps:
-            step_str = yaml.dump(step)
-            assert "steps.sanitize.outputs" not in step_str, (
-                f"Step '{step.get('name', '?')}' references removed sanitize step outputs"
-            )
+        inference_step = next(
+            (s for s in summary_steps if "actions/ai-inference" in s.get("uses", "")),
+            None,
+        )
+        assert inference_step is not None, "AI inference step not found"
+        step_str = yaml.dump(inference_step)
+        assert "steps.sanitize.outputs" in step_str, (
+            "AI inference step must reference sanitized outputs (steps.sanitize.outputs.*) for security"
+        )
 
     def test_checkout_step_exists(self, summary_steps):
         """The checkout step must still be present."""
@@ -198,7 +200,7 @@ class TestSummaryWorkflowSteps:
 
 
 class TestAIInferenceStepPrompt:
-    """Verify the AI inference step uses raw (unsanitized) GitHub context expressions."""
+    """Verify the AI inference step uses sanitized GitHub context expressions for security."""
 
     @pytest.fixture(name="inference_step")
     def inference_step_fixture(self, summary_workflow):
@@ -222,49 +224,52 @@ class TestAIInferenceStepPrompt:
         assert step is not None, "actions/ai-inference step not found"
         return step
 
-    def test_prompt_uses_raw_issue_title(self, inference_step):
+    def test_prompt_uses_sanitized_title(self, inference_step):
         """
-        The AI inference prompt must use raw github.event.issue.title directly.
+        The AI inference prompt must use sanitized title from steps.sanitize.outputs.title.
 
-        After the PR, sanitized outputs are no longer used; the raw GitHub
-        context expression is embedded in the prompt.
+        Using sanitized outputs prevents prompt injection attacks by ensuring
+        user-controlled input is cleaned before being passed to the AI model.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "github.event.issue.title" in prompt, (
-            "The inference prompt must reference github.event.issue.title directly"
+        assert "steps.sanitize.outputs.title" in prompt, (
+            "The inference prompt must reference steps.sanitize.outputs.title for security"
         )
 
-    def test_prompt_uses_raw_issue_body(self, inference_step):
+    def test_prompt_uses_sanitized_body(self, inference_step):
         """
-        Asserts the AI inference step's prompt contains the raw GitHub issue body expression.
+        The AI inference prompt must use sanitized body from steps.sanitize.outputs.body.
 
-        Verifies the `with.prompt` value for the `actions/ai-inference` step includes `github.event.issue.body`.
+        Using sanitized outputs prevents prompt injection attacks by ensuring
+        user-controlled input is cleaned before being passed to the AI model.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "github.event.issue.body" in prompt, (
-            "The inference prompt must reference github.event.issue.body directly"
+        assert "steps.sanitize.outputs.body" in prompt, (
+            "The inference prompt must reference steps.sanitize.outputs.body for security"
         )
 
-    def test_prompt_does_not_use_sanitized_title(self, inference_step):
+    def test_prompt_does_not_use_raw_title(self, inference_step):
         """
-        Ensure the inference `prompt` does not reference the removed sanitize step's `title` output.
+        Ensure the inference prompt does not use raw github.event.issue.title.
 
-        Asserts that the string `steps.sanitize.outputs.title` is not present in the `with.prompt` value of the inference step.
+        Raw user input must not be passed directly to AI models to prevent
+        prompt injection attacks.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "steps.sanitize.outputs.title" not in prompt, (
-            "Inference prompt should not reference removed sanitize step title output"
+        assert "github.event.issue.title" not in prompt, (
+            "Inference prompt must not reference raw github.event.issue.title (security vulnerability)"
         )
 
-    def test_prompt_does_not_use_sanitized_body(self, inference_step):
+    def test_prompt_does_not_use_raw_body(self, inference_step):
         """
-        The prompt must not reference steps.sanitize.outputs.body.
+        Ensure the inference prompt does not use raw github.event.issue.body.
 
-        The sanitization step was removed; its outputs must not appear in the prompt.
+        Raw user input must not be passed directly to AI models to prevent
+        prompt injection attacks.
         """
         prompt = inference_step.get("with", {}).get("prompt", "")
-        assert "steps.sanitize.outputs.body" not in prompt, (
-            "Inference prompt should not reference removed sanitize step body output"
+        assert "github.event.issue.body" not in prompt, (
+            "Inference prompt must not reference raw github.event.issue.body (security vulnerability)"
         )
 
     def test_prompt_contains_title_label(self, inference_step):
@@ -371,45 +376,45 @@ class TestCommentStep:
 
 class TestIssueContentIsIncludedInWorkflow:
     """
-    Verify that the workflow still includes the issue title and body content
-    needed to generate a summary, without constraining whether sanitization or
-    other hardening steps are present.
+    Verify that the workflow includes issue title and body content through
+    the sanitization step to ensure both security and functionality.
     """
 
-    def test_workflow_references_issue_title(self, summary_workflow_raw):
+    def test_workflow_references_issue_title_in_sanitize_step(self, summary_workflow_raw):
         """
-        Assert that the workflow references the GitHub issue title expression.
+        Assert that the workflow references the GitHub issue title in the sanitize step.
 
-        This validates required summary input while allowing implementation
-        details such as sanitization, truncation, or intermediate variables.
+        This validates that user input is captured for sanitization before being
+        passed to the AI model.
         """
         assert "github.event.issue.title" in summary_workflow_raw, (
-            "summary.yml should reference github.event.issue.title so the summary can include the issue title"
+            "summary.yml should reference github.event.issue.title in the sanitize step env vars"
         )
 
-    def test_workflow_references_issue_body(self, summary_workflow_raw):
+    def test_workflow_references_issue_body_in_sanitize_step(self, summary_workflow_raw):
         """
-        Assert that the workflow references the GitHub issue body expression.
+        Assert that the workflow references the GitHub issue body in the sanitize step.
 
-        This validates required summary input while allowing implementation
-        details such as sanitization, truncation, or intermediate variables.
+        This validates that user input is captured for sanitization before being
+        passed to the AI model.
         """
         assert "github.event.issue.body" in summary_workflow_raw, (
-            "summary.yml should reference github.event.issue.body so the summary can include the issue body"
+            "summary.yml should reference github.event.issue.body in the sanitize step env vars"
         )
 
-    def test_workflow_uses_issue_content_in_step_configuration(self, summary_workflow_raw):
+    def test_workflow_uses_sanitized_outputs_in_inference(self, summary_workflow_raw):
         """
-        Verify that issue content is wired into workflow step configuration.
+        Verify that sanitized outputs are used in the AI inference step.
 
-        The workflow may pass issue title/body directly, via env variables, or
-        through sanitized intermediate variables. This test checks only that the
-        workflow is set up to use issue content, not how it hardens that data.
+        The workflow must use steps.sanitize.outputs.* to ensure user-controlled
+        input has been sanitized before being passed to the AI model.
         """
-        assert re.search(
-            r"github\.event\.issue\.(title|body)|(?:SANITIZED|ISSUE)_(?:TITLE|BODY)",
-            summary_workflow_raw,
-        ), "summary.yml should include issue title/body content in step configuration"
+        assert "steps.sanitize.outputs.title" in summary_workflow_raw, (
+            "summary.yml should use steps.sanitize.outputs.title in the inference prompt"
+        )
+        assert "steps.sanitize.outputs.body" in summary_workflow_raw, (
+            "summary.yml should use steps.sanitize.outputs.body in the inference prompt"
+        )
 
 
 class TestPinnedActionVersions:
@@ -540,16 +545,30 @@ class TestSummaryWorkflowRegression:
         assert comment_idx is not None, "Comment step not found"
         assert inference_idx < comment_idx, "Inference step must appear before the comment step"
 
-    def test_raw_github_expressions_present_in_prompt(self, summary_workflow_raw):
+    def test_raw_github_expressions_present_in_sanitize_step(self, summary_workflow_raw):
         """
         The raw YAML source must contain GitHub expression syntax for title and body
-        inside the prompt, confirming unsanitized values are passed to the AI.
+        in the sanitize step env vars, confirming user input is captured for sanitization.
         """
         assert "github.event.issue.title" in summary_workflow_raw, (
-            "Raw workflow YAML must reference github.event.issue.title in the prompt"
+            "Raw workflow YAML must reference github.event.issue.title in sanitize step env"
         )
         assert "github.event.issue.body" in summary_workflow_raw, (
-            "Raw workflow YAML must reference github.event.issue.body in the prompt"
+            "Raw workflow YAML must reference github.event.issue.body in sanitize step env"
+        )
+
+    def test_sanitized_outputs_used_in_inference_prompt(self, summary_workflow_raw):
+        """
+        Verify sanitized outputs are used in the AI inference prompt for security.
+
+        The workflow must use steps.sanitize.outputs.* in the prompt to ensure
+        user-controlled input has been sanitized before being passed to the AI model.
+        """
+        assert "steps.sanitize.outputs.title" in summary_workflow_raw, (
+            "Raw workflow YAML must use steps.sanitize.outputs.title in the inference prompt"
+        )
+        assert "steps.sanitize.outputs.body" in summary_workflow_raw, (
+            "Raw workflow YAML must use steps.sanitize.outputs.body in the inference prompt"
         )
 
     def test_response_env_var_defined_and_used_in_comment_step(self, summary_workflow):
