@@ -29,7 +29,7 @@
 
 name: 'Build and Deploy to Cloud Run'
 
-on:
+"on":
   push:
     branches:
       - '"main"'

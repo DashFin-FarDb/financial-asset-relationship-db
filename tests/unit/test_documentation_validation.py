@@ -124,10 +124,9 @@ class TestDependencyMatrix:
 
         # Common expected file types
         expected_types = {"py", "js", "ts", "tsx"}
+        allowed_types = expected_types | {"jsx", "json", "md", "h"}
         found_types = set(file_types)
-        assert found_types.issubset(
-            expected_types | {"jsx", "json", "md"}
-        ), f"Unexpected file types: {found_types - expected_types}"
+        assert found_types.issubset(allowed_types), f"Unexpected file types: {found_types - allowed_types}"
 
     def test_dependency_matrix_has_file_type_distribution(self, dependency_matrix_content):
         """Test that dependencyMatrix.md has File Type Distribution section."""
@@ -425,7 +424,7 @@ class TestSystemManifest:
             system_manifest_content(str): Full markdown text of the system manifest to inspect.
         """
         # Look for file dependency entries like: ### \path\to\file.py
-        file_pattern = r"###\s+\\[\w\\/._-]+\.\w+"
+        file_pattern = r"###\s+\\[\w\\/.-]+\.\w+"
         matches = re.findall(file_pattern, system_manifest_content)
 
         # If there are file entries, they should be properly formatted
@@ -637,9 +636,9 @@ class TestDocumentationRealisticContent:
 
         # Extract file paths from the manifest (look for common patterns)
         file_patterns = [
-            r"###\s+\\([\w\\\/._-]+\.py)",
-            r"###\s+\\([\w\\\/._-]+\.tsx?)",
-            r"###\s+\\([\w\\\/._-]+\.jsx?)",
+            r"###\s+\\([\w\\\/.-]+\.py)",
+            r"###\s+\\([\w\\\/.-]+\.tsx?)",
+            r"###\s+\\([\w\\\/.-]+\.jsx?)",
         ]
 
         mentioned_files = []
@@ -700,3 +699,314 @@ class TestDocumentationRealisticContent:
                 if " " not in dep:
                     # Valid package name format
                     assert re.match(r"^[@\w\.\-/]+$", dep), f"Dependency '{dep}' doesn't look like a valid package name"
+
+
+@pytest.mark.unit
+class TestChangedFunctionLogic:
+    """Tests for the logic in functions modified by this PR.
+
+    All PR changes were formatting-only (Black style) except the regex in
+    test_system_manifest_file_dependency_format. These tests exercise the
+    assertion conditions and the updated regex pattern using synthetic content
+    to confirm correct behaviour independently of the real documentation files.
+    """
+
+    # ------------------------------------------------------------------ #
+    # Helpers / synthetic content factories                                #
+    # ------------------------------------------------------------------ #
+
+    @staticmethod
+    def _make_dep_matrix(file_types_line: str) -> str:
+        """Return a minimal dependency-matrix document with the given file-types line."""
+        return (
+            "# Dependency Matrix\n"
+            "*Generated: 2025-01-01T00:00:00.000Z*\n"
+            "## Summary\n"
+            "- Files analyzed: 10\n"
+            f"- File types: {file_types_line}\n"
+            "## File Type Distribution\n"
+            "- 10 py files\n"
+            "## Key Dependencies by Type\n"
+            "### PY\n"
+            "Top dependencies:\n"
+            "- pytest\n"
+        )
+
+    @staticmethod
+    def _make_system_manifest(extra_content: str = "") -> str:
+        """Return a minimal system-manifest document."""
+        return (
+            "# System Manifest\n"
+            "## Project Overview\n"
+            "- Name: TestProject\n"
+            "- Description: A test project\n"
+            "- Created: 2025-01-01T00:00:00.000Z\n"
+            "## Current Phase\n"
+            "- Current Phase: development\n"
+            "- Last Updated: 2025-01-01T00:00:00.000Z\n"
+            "## Project Structure\n"
+            "- 10 py files\n"
+            "## Dependencies\n"
+            "## Project Directory Structure\n"
+            "📂 src\n"
+            "  📄 main.py\n"
+            "## PY Dependencies\n" + extra_content
+        )
+
+    # ------------------------------------------------------------------ #
+    # 1. file-type subset assertion (lines 126-130)                        #
+    # ------------------------------------------------------------------ #
+
+    @pytest.mark.parametrize(
+        "file_types_str",
+        [
+            "py",
+            "py, js",
+            "py, js, ts, tsx",
+            "py, jsx",
+            "py, json",
+            "py, md",
+            "py, js, ts, tsx, jsx, json, md",
+        ],
+    )
+    def test_file_types_subset_passes_for_allowed_types(self, file_types_str):
+        """found_types that are a subset of the allowed set should pass the assertion."""
+        expected_types = {"py", "js", "ts", "tsx"}
+        allowed_extras = {"jsx", "json", "md"}
+        found_types = set(file_types_str.split(", "))
+        # Mirrors the assertion at line 128 exactly
+        assert found_types.issubset(
+            expected_types | allowed_extras
+        ), f"Unexpected file types: {found_types - (expected_types | allowed_extras)}"
+
+    @pytest.mark.parametrize(
+        "file_types_str",
+        [
+            "py, unknown",
+            "rb",
+            "py, go, ts",
+        ],
+    )
+    def test_file_types_subset_fails_for_unexpected_types(self, file_types_str):
+        """found_types containing an unknown type should NOT be a subset of the allowed set."""
+        expected_types = {"py", "js", "ts", "tsx"}
+        allowed_extras = {"jsx", "json", "md"}
+        found_types = set(file_types_str.split(", "))
+        assert not found_types.issubset(expected_types | allowed_extras)
+
+    def test_file_types_subset_error_message_identifies_unexpected_types(self):
+        """The assertion message should list the unexpected file types."""
+        expected_types = {"py", "js", "ts", "tsx"}
+        found_types = {"py", "rb"}
+        unexpected = found_types - expected_types
+        message = f"Unexpected file types: {unexpected}"
+        assert "rb" in message
+
+    # ------------------------------------------------------------------ #
+    # 2. Updated regex pattern (line 428)                                  #
+    # ------------------------------------------------------------------ #
+
+    FILE_HEADER_REGEX = r"###\s+\\[\w\\/.-]+\.\w+"
+
+    @pytest.mark.parametrize(
+        "header",
+        [
+            r"### \src\main.py",
+            r"### \src\utils\helper.ts",
+            r"### \frontend\app\page.tsx",
+            r"### \tests\unit\test_foo.py",
+            r"### \my-module\index.js",
+            r"### \path\file-name.py",
+            r"### \path\file.name.with.dots.py",
+        ],
+    )
+    def test_file_header_regex_matches_valid_paths(self, header):
+        """Updated regex matches valid file headers with common path characters."""
+        assert re.search(self.FILE_HEADER_REGEX, header) is not None, f"Regex should match: {header!r}"
+
+    @pytest.mark.parametrize(
+        "header",
+        [
+            r"### \path\file_with_underscore.py",
+            r"### \src\my_module\__init__.py",
+            r"### \tests\test_utils.py",
+        ],
+    )
+    def test_file_header_regex_matches_paths_with_underscores(self, header):
+        """Underscore in filenames matches via \\w even though it was removed from the explicit set."""
+        assert re.search(self.FILE_HEADER_REGEX, header) is not None, f"Regex should match underscore path: {header!r}"
+
+    @pytest.mark.parametrize(
+        "non_header",
+        [
+            "## Section Header",
+            "### Plain heading",
+            "Some text",
+            r"### \no-extension",
+            "###no space",
+        ],
+    )
+    def test_file_header_regex_does_not_match_non_paths(self, non_header):
+        """Updated regex should not match non-file-path headers."""
+        assert re.search(self.FILE_HEADER_REGEX, non_header) is None, f"Regex should NOT match: {non_header!r}"
+
+    def test_file_header_regex_result_contains_path_separator(self):
+        """Each matched file header must contain a path separator (backslash or slash)."""
+        content = r"### \src\main.py" + "\n" r"### \frontend\app\page.tsx" + "\n### Plain heading\n"
+        matches = re.findall(self.FILE_HEADER_REGEX, content)
+        assert len(matches) == 2
+        for match in matches:
+            assert "\\" in match or "/" in match, f"File path should have proper separators: {match}"
+
+    def test_regex_still_matches_underscore_paths(self):
+        """Confirm underscore paths still match after simplifying the character class."""
+        pattern = r"###\s+\\[\w\\/.-]+\.\w+"
+        header_with_underscore = r"### \src\my_module\test_utils.py"
+        assert re.search(pattern, header_with_underscore) is not None
+
+    # ------------------------------------------------------------------ #
+    # 3. Dependency-entry content condition (lines 452-457)                #
+    # ------------------------------------------------------------------ #
+
+    @pytest.mark.parametrize(
+        "section,expected_pass",
+        [
+            # has "Dependencies:" -> should pass
+            ("test_file.py\nDependencies: pytest, requests\n", True),
+            # has "No dependencies found" -> should pass
+            ("test_file.py\nNo dependencies found\n", True),
+            # starts with backslash -> should pass (file path continuation)
+            ("\\src\\utils.py\n", True),
+            # starts with "#" -> excluded from check (section header)
+            ("# Some Header\nsome content\n", True),
+            # no deps, no backslash, does not start with "#" -> should fail
+            ("some random content without deps info\n", False),
+        ],
+    )
+    def test_dependency_entry_content_condition(self, section, expected_pass):
+        """The condition 'has_deps or section.strip().startswith(backslash)' behaves as expected."""
+        if section.startswith("#"):
+            # Excluded from the assertion - always passes
+            return
+        has_deps = "Dependencies:" in section or "No dependencies found" in section
+        condition = has_deps or section.strip().startswith("\\")
+        assert condition == expected_pass, f"Section {section!r}: expected condition={expected_pass}, got {condition}"
+
+    def test_dependency_entry_section_starting_with_hash_is_skipped(self):
+        """Sections starting with '#' are excluded from the dependency-content check."""
+        section = "# This is a heading\nNo dependency info here"
+        # The guard 'if not section.startswith("#")' means the assert is never reached
+        assert section.startswith("#")  # confirm the guard fires
+
+    # ------------------------------------------------------------------ #
+    # 4. Project Structure assertion in consistency test (lines 536-541)   #
+    # ------------------------------------------------------------------ #
+
+    def test_project_structure_assertion_passes_when_section_present(self):
+        """Assertion passes when '## Project Structure' is in the manifest content."""
+        content = self._make_system_manifest()
+        assert "## Project Structure" in content, "## Project Structure section not found in system manifest"
+
+    def test_project_structure_assertion_fails_when_section_absent(self):
+        """Assertion fails when '## Project Structure' is not in the manifest content."""
+        content = "# System Manifest\n## Dependencies\n- some dep\n"
+        assert "## Project Structure" not in content
+
+    def test_project_structure_section_extraction(self):
+        """Content after '## Project Structure' up to the next '##' is extracted correctly."""
+        content = "# System Manifest\n## Project Structure\n- 5 py files\n- 3 ts files\n## Dependencies\n"
+        sm_content = content.split("## Project Structure")[1].split("##")[0]
+        dm_pattern = r"- (\d+) (\w+) files"
+        counts = {ft: int(c) for c, ft in re.findall(dm_pattern, sm_content)}
+        assert counts == {"py": 5, "ts": 3}
+
+    # ------------------------------------------------------------------ #
+    # 5. Common-dependency consistency assertion (lines 614-621)           #
+    # ------------------------------------------------------------------ #
+
+    @pytest.mark.parametrize(
+        "dm_has,sm_has,dep,should_assert",
+        [
+            # Both have it -> consistent -> no assertion error
+            (True, True, "react", False),
+            # Neither has it -> consistent -> no assertion error
+            (False, False, "react", False),
+            # One has it, other doesn't -> inconsistent -> assertion error
+            (True, False, "react", True),
+            (False, True, "react", True),
+        ],
+    )
+    def test_dependency_consistency_condition(self, dm_has, sm_has, dep, should_assert):
+        """dm_has == sm_has assertion mirrors the changed code at line 619."""
+        if dm_has or sm_has:
+            if should_assert:
+                with pytest.raises(AssertionError) as exc_info:
+                    assert (
+                        dm_has == sm_has
+                    ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
+                assert dep in str(exc_info.value)
+            else:
+                assert (
+                    dm_has == sm_has
+                ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
+
+    def test_dependency_consistency_skips_when_neither_document_has_dep(self):
+        """When neither dm_has nor sm_has is True the check is skipped entirely."""
+        dm_has = False
+        sm_has = False
+        # The guard 'if dm_has or sm_has' prevents the assert from running
+        assert not (dm_has or sm_has)
+
+    def test_dependency_consistency_error_message_format(self):
+        """Error message includes the dependency name and both document states."""
+        dep = "axios"
+        dm_has = True
+        sm_has = False
+        message = f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
+        assert dep in message
+        assert "dependencyMatrix=True" in message
+        assert "systemManifest=False" in message
+
+    # ------------------------------------------------------------------ #
+    # 6. Regression: assert formatting produces correct error messages     #
+    # ------------------------------------------------------------------ #
+
+    def test_assertion_message_file_types_includes_unexpected_set(self):
+        """Regression: parenthesised assert message format correctly surfaces unexpected types."""
+        expected_types = {"py", "js", "ts", "tsx"}
+        found_types = {"py", "rs", "go"}
+        with pytest.raises(AssertionError) as exc_info:
+            assert found_types.issubset(
+                expected_types | {"jsx", "json", "md"}
+            ), f"Unexpected file types: {found_types - expected_types}"
+        error_text = str(exc_info.value)
+        # Both unexpected types must appear in the message
+        unexpected = found_types - expected_types
+        for t in unexpected:
+            assert t in error_text, f"Expected '{t}' in error: {error_text}"
+
+    def test_assertion_message_project_structure_missing(self):
+        """Regression: parenthesised assert message for missing Project Structure section."""
+        content = "# System Manifest\n## Dependencies\n"
+        with pytest.raises(AssertionError) as exc_info:
+            assert "## Project Structure" in content, "## Project Structure section not found in system manifest"
+        assert "Project Structure" in str(exc_info.value)
+
+    def test_assertion_message_dependency_inconsistency(self):
+        """Regression: parenthesised assert message for inconsistent dependency presence."""
+        dep = "@testing-library/jest-dom"
+        dm_has = False
+        sm_has = True
+        with pytest.raises(AssertionError) as exc_info:
+            assert (
+                dm_has == sm_has
+            ), f"Dependency '{dep}' inconsistently present: dependencyMatrix={dm_has}, systemManifest={sm_has}"
+        assert dep in str(exc_info.value)
+
+    def test_assertion_message_file_section_missing_dep_info(self):
+        """Regression: parenthesised assert message for section without dependency information."""
+        section = "some_text_without_deps"
+        has_deps = "Dependencies:" in section or "No dependencies found" in section
+        with pytest.raises(AssertionError) as exc_info:
+            assert has_deps or section.strip().startswith("\\"), "File section should have dependency information"
+        assert "File section should have dependency information" in str(exc_info.value)

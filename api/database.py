@@ -6,9 +6,9 @@ import atexit
 import os
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 from urllib.parse import unquote, urlparse
 
 
@@ -168,11 +168,7 @@ def _is_memory_db(path: str | None = None) -> bool:
     # The :memory: token must be the entire path component
     # (not part of a longer path).
     parsed = urlparse(target)
-    if parsed.scheme != "file":
-        return False
-    if parsed.path == ":memory:":
-        return True
-    return False
+    return parsed.scheme == "file" and (parsed.path == ":memory:" or ":memory:" in parsed.query)
 
 
 class _DatabaseConnectionManager:
@@ -269,6 +265,12 @@ def get_connection() -> Iterator[sqlite3.Connection]:
         sqlite3.Connection: An open SQLite connection for the configured database.
     """
     connection = _connect()
+    is_memory = _is_memory_db()
+    try:
+        yield connection
+    finally:
+        if not is_memory:
+            connection.close()
 
 
 def _cleanup_memory_connection() -> None:
@@ -327,22 +329,34 @@ def fetch_one(query: str, parameters: tuple | list | None = None):
         return cursor.fetchone()
 
 
-def fetch_value(query: str, parameters: tuple | list | None = None):
+def fetch_value(query: str, parameters: tuple | list | None = None) -> object | None:
     """
-    Fetches the first column value from the first row of a query result.
+    Return the first column value from the first row of a query result.
+
+    If the query returns no rows, returns `None`. For any non-string indexable row
+    (e.g. ``sqlite3.Row``, ``tuple``, ``list``, SQLAlchemy ``Row``, or a mock with
+    ``__getitem__``), attempts to return ``row[0]``.  Returns ``None`` when the row
+    is empty (i.e. ``row[0]`` raises ``IndexError``), and returns the row object
+    unchanged only when indexing is not supported (``TypeError``).
 
     Parameters:
-        query(str): SQL query to execute; may include parameter placeholders.
-        parameters(tuple | list | None): Sequence of parameters for the query
-            placeholders.
+        query (str): SQL query to execute; may include parameter placeholders.
+        parameters (tuple | list | None): Sequence of parameters for the query placeholders.
 
     Returns:
-        The first column value if a row is returned, `None` otherwise.
+        The first column value from the first row, or `None` if no row is returned.
     """
     row = fetch_one(query, parameters)
     if row is None:
         return None
-    return row[0] if isinstance(row, sqlite3.Row) else row
+    if isinstance(row, (sqlite3.Row, tuple, list)):
+        return row[0] if row else None
+    try:
+        return row[0]
+    except IndexError:
+        return None
+    except TypeError:
+        return row
 
 
 def initialize_schema() -> None:

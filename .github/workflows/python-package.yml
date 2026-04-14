@@ -1,28 +1,25 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
-
 name: Python package
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - '**/*.py'
-      - 'requirements*.txt'
-      - '.github/workflows/python-package.yml'
+      - "**/*.py"
+      - "requirements*.txt"
+      - ".github/workflows/python-package.yml"
     paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - "**/*.md"
+      - "docs/**"
   pull_request:
     types: [opened, synchronize, reopened]
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
-      - '**/*.py'
-      - 'requirements*.txt'
-      - '.github/workflows/python-package.yml'
+      - "**/*.py"
+      - "requirements*.txt"
+      - ".github/workflows/python-package.yml"
     paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
+      - "**/*.md"
+      - "docs/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -30,7 +27,6 @@ concurrency:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -38,19 +34,45 @@ jobs:
         python-version: ["3.9", "3.10", "3.11"]
 
     steps:
-    - name: Python CI common (${{ matrix.python-version }})
-      uses: ./.github/actions/ci-common
-      with:
-        language: python
-        python-version: ${{ matrix.python-version }}
-        dependency-paths: |
-          requirements.txt
-          requirements-dev.txt
-        install: |
-          python -m pip install --upgrade pip &&
-          python -m pip install flake8 pytest &&
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        test: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics &&
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics &&
-          pytest
+      - name: Python CI common (${{ matrix.python-version }})
+        uses: ./.github/actions/ci-common
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
+        with:
+          language: python
+          python-version: ${{ matrix.python-version }}
+          dependency-paths: |
+            requirements.txt
+            requirements-dev.txt
+          install: |
+            python -m pip install --upgrade pip
+            python -m pip install flake8 pytest
+            if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+            if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          test: |
+            flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+            flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+            pytest
+
+  ci-common-contract:
+    name: ci-common contract check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Validate ci-common invocation
+        uses: ./.github/actions/ci-common
+        env:
+          MERGIFY_TOKEN: ${{ secrets.MERGIFY_TOKEN }}
+        with:
+          language: python
+          python-version: "3.11"
+          dependency-paths: |
+            requirements.txt
+            requirements-dev.txt
+          install: |
+            python -m pip install --upgrade pip
+          test: |
+            python --version

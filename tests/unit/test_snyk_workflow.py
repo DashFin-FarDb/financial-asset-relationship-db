@@ -9,6 +9,7 @@ This module tests the Snyk workflow configuration (.github/workflows/snyk-infras
 - Permission settings
 """
 
+import re
 from pathlib import Path
 
 import pytest
@@ -249,12 +250,13 @@ class TestSnykJobConfiguration:
         assert len(checkout_steps) > 0
 
     def test_checkout_uses_v4(self, snyk_job):
-        """Test that checkout action uses v4."""
+        """Test that checkout action uses v4 (or SHA pin)."""
         steps = snyk_job["steps"]
         checkout_steps = [s for s in steps if "uses" in s and "checkout" in s["uses"]]
         assert len(checkout_steps) > 0
         checkout_action = checkout_steps[0]["uses"]
-        assert "@v4" in checkout_action
+        # Accept either @v4 tag or a 40-hex-character SHA pin (more secure)
+        assert "@v4" in checkout_action or re.search(r"@[0-9a-f]{40}", checkout_action)
 
     def test_job_runs_snyk_action(self, snyk_job):
         """Test that job runs Snyk IaC action."""
@@ -333,12 +335,13 @@ class TestSnykJobConfiguration:
 
     def test_sarif_upload_uses_v4(self, snyk_job):
         """
-        Ensure the SARIF upload step uses the CodeQL `upload - sarif` action with `@ v4`.
+        Ensure the SARIF upload step uses the CodeQL `upload-sarif` action with `@v4` (or SHA pin).
         """
         steps = snyk_job["steps"]
         sarif_steps = [s for s in steps if "uses" in s and "codeql-action/upload-sarif" in s["uses"]]
         sarif_action = sarif_steps[0]["uses"]
-        assert "@v4" in sarif_action
+        # Accept either @v4 tag or a 40-hex-character SHA pin (more secure)
+        assert "@v4" in sarif_action or re.search(r"@[0-9a-f]{40}", sarif_action)
 
     def test_sarif_upload_has_file_input(self, snyk_job):
         """

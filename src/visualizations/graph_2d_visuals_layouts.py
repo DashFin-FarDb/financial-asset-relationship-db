@@ -16,7 +16,9 @@ def _create_circular_layout(
     If `asset_ids` is empty, returns an empty dict.
 
     Returns:
-        positions (Dict[str, Tuple[float, float]]): Mapping from each asset ID to its (x, y) coordinates on the unit circle.
+        positions (Dict[str, Tuple[float, float]]):
+            Mapping from each asset ID to its (x, y) coordinates on the
+            unit circle.
     """
     if not asset_ids:
         return {}

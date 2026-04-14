@@ -3,47 +3,59 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable, Generator
-from contextlib import contextmanager
-from importlib import import_module
 
 from sqlalchemy import create_engine
-from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session, declarative_base, sessionmaker
+from sqlalchemy.engine import Engine, make_url
+from sqlalchemy.exc import ArgumentError
+from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-Base = declarative_base()
+from .base import Base
 
-DEFAULT_DATABASE_URL = os.getenv(
-    "ASSET_GRAPH_DATABASE_URL",
-    "sqlite:///./asset_graph.db",
-)
+# Canonical transaction helper lives in repository.py per tech spec.
+# Re-export here for backward compatibility with older imports.
+from .repository import session_scope  # noqa: F401, E402
 
-__all__ = [
-    "Base",
-    "DEFAULT_DATABASE_URL",
-    "create_engine_from_url",
-    "create_session_factory",
-    "init_db",
-    "session_scope",
-]
+DEFAULT_DATABASE_URL = "sqlite:///./asset_graph.db"
+ASSET_GRAPH_DATABASE_URL_ENV_VAR = "ASSET_GRAPH_DATABASE_URL"
 
 
 def create_engine_from_url(url: str | None = None) -> Engine:
     """
-    Create a SQLAlchemy Engine for the given database URL, using the module default when none is provided.
-
-    If `url` is None, `DEFAULT_DATABASE_URL` is used. When the resolved URL is an in-memory SQLite database, the engine is configured with `connect_args={"check_same_thread": False}` and `poolclass=StaticPool` to allow connections to be shared appropriately; otherwise a standard engine is created.
+    Create a SQLAlchemy Engine configured for the asset relationship store database.
 
     Parameters:
-        url (str | None): Database URL to use; if None the module's `DEFAULT_DATABASE_URL` is used.
+        url (str | None): Optional database URL. If None, uses ASSET_GRAPH_DATABASE_URL
+            environment variable, falling back to DEFAULT_DATABASE_URL. Empty string
+            falls back to DEFAULT_DATABASE_URL.
 
     Returns:
-        Engine: A SQLAlchemy Engine bound to the resolved database URL.
+        Engine: A SQLAlchemy Engine for the resolved URL. If the URL refers to an
+            in-memory SQLite database (contains ":memory:"), the engine is configured
+            with connection arguments and a static pool appropriate for in-memory usage.
     """
-    resolved_url = url or DEFAULT_DATABASE_URL
+    is_explicit_url = url is not None and url != ""
+    if url is None:
+        resolved_url = os.getenv(ASSET_GRAPH_DATABASE_URL_ENV_VAR) or DEFAULT_DATABASE_URL
+    elif url == "":
+        resolved_url = DEFAULT_DATABASE_URL
+    else:
+        resolved_url = url
 
-    if resolved_url.startswith("sqlite") and ":memory:" in resolved_url:
+    try:
+        parsed_url = make_url(resolved_url)
+    except ArgumentError:
+        if is_explicit_url:
+            raise
+        return create_engine(DEFAULT_DATABASE_URL, future=True)
+
+    is_sqlite = parsed_url.get_backend_name() == "sqlite"
+    database = parsed_url.database or ""
+    query = parsed_url.query or {}
+
+    is_sqlite_memory = is_sqlite and (database == ":memory:" or query.get("mode") == "memory")
+
+    if is_sqlite_memory:
         return create_engine(
             resolved_url,
             future=True,
@@ -72,28 +84,6 @@ def create_session_factory(engine: Engine) -> sessionmaker[Session]:
         autoflush=False,
         future=True,
     )
-
-
-@contextmanager
-def session_scope(
-    session_factory: Callable[[], Session],
-) -> Generator[Session, None, None]:
-    """
-    Provide a context-managed database Session for use within a with-statement.
-
-    Yields a Session produced by the provided session_factory and scoped to the context manager.
-
-    Parameters:
-        session_factory (Callable[[], Session]): Callable that returns a new Session instance.
-
-    Returns:
-        session (Session): Session instance yielded while the context is active.
-    """
-    # Keep compatibility for callers importing session_scope from this module.
-    repository_session_scope = import_module("src.data.repository").session_scope
-
-    with repository_session_scope(session_factory) as session:
-        yield session
 
 
 def init_db(engine: Engine) -> None:
